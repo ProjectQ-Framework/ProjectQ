@@ -51,6 +51,18 @@ class HGate(SelfInverseGate):
 H = HGate()
 
 
+class IdentityGate(SelfInverseGate):
+	""" Identity gate class """
+	def __str__(self):
+		return "I"
+
+	@property
+	def matrix(self):
+		return np.matrix([[1, 0], [0, 1]])
+
+I = Identity = IdentityGate()
+
+
 class XGate(SelfInverseGate):
 	""" Pauli-X gate class """
 	def __str__(self):
