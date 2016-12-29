@@ -54,7 +54,7 @@ H = HGate()
 class IdentityGate(SelfInverseGate):
 	""" Identity gate class """
 	def __str__(self):
-		return "I"
+		return "Id"
 
 	@property
 	def matrix(self):

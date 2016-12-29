@@ -35,7 +35,7 @@ def test_h_gate():
 def test_i_gate():
 	gate = _gates.IdentityGate()
 	assert gate == gate.get_inverse()
-	assert str(gate) == "I"
+	assert str(gate) == "Id"
 	assert np.array_equal(gate.matrix, np.matrix([[1, 0], [0, 1]]))
 	assert isinstance(_gates.I, _gates.IdentityGate)
 

@@ -24,6 +24,7 @@ from projectq.ops import (NOT,
                           S,
                           Sdag,
                           H,
+                          I,
                           Measure,
                           Allocate,
                           Deallocate,
@@ -87,7 +88,7 @@ class IBMBackend(BasicEngine):
 			return True
 		if get_control_count(cmd) == 0:
 			if (g == T or g == Tdag or g == S or g == Sdag or g == H or g == Y
-			   or g == Z):
+			   or g == Z or g == I):
 				return True
 		if g == Measure or g == Allocate or g == Deallocate:
 			return True
