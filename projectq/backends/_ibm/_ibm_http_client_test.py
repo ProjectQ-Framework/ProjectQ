@@ -25,7 +25,7 @@ def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
 
-_api_url = 'https://qcwi-staging.mybluemix.net/api/'
+_api_url = 'https://quantumexperience.ng.bluemix.net/api/'
 _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 
 
@@ -135,6 +135,7 @@ def test_send_real_device_online_verbose(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -197,6 +198,7 @@ def test_send_that_errors_are_caught(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -233,6 +235,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -269,6 +272,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password

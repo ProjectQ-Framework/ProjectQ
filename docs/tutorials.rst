@@ -61,7 +61,7 @@ Detailed instructions and OS-specific hints
 	
 	.. code-block:: bash
 		
-		sudo pip3 install projectq
+		sudo pip3 install --user projectq
 	
 	all dependencies (such as numpy and pybind11) should be installed automatically.
 
