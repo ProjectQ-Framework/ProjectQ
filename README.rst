@@ -1,6 +1,13 @@
 ProjectQ - An open source software framework for quantum computing
 ==================================================================
 
+.. image:: https://travis-ci.org/ProjectQ-Framework/ProjectQ.svg?branch=master
+    :target: https://travis-ci.org/ProjectQ-Framework/ProjectQ
+
+.. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
+    :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
+
+
 ProjectQ is an open source effort for quantum computing.
 
 The first version (v0.1) features a compilation framework capable of
