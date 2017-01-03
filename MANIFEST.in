@@ -1,0 +1,9 @@
+include LICENSE
+include MANIFEST.in
+include NOTICE
+include pytest.ini
+include README.rst
+include requirements.txt
+include setup.py
+
+recursive-include projectq *.py *.hpp *.cpp
