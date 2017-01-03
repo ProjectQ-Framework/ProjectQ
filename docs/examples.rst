@@ -38,7 +38,7 @@ These values are obtained by simulating this quantum algorithm classically. By c
 
 All you need to do is:
 
-	* Create an account for `IBM's Quantum Experience <https://qcwi-staging.mybluemix.net/>`_
+	* Create an account for `IBM's Quantum Experience <https://quantumexperience.ng.bluemix.net/>`_
 	* And perform these minor changes:
 
 	.. literalinclude:: ../examples/quantum_random_numbers_ibm.py

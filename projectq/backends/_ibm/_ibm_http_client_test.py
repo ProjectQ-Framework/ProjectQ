@@ -25,7 +25,7 @@ def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
 
-_api_url = 'https://qcwi-staging.mybluemix.net/api/'
+_api_url = 'https://quantumexperience.ng.bluemix.net/api/'
 _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 
 
