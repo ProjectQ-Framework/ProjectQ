@@ -3,6 +3,8 @@
 Examples
 ========
 
+All example codes can be found on `GitHub <https://github.com/ProjectQ-Framework/ProjectQ/tree/master/examples/>`_.
+
 .. toctree::
    :maxdepth: 2	
 
@@ -162,7 +164,7 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	.. literalinclude:: ../examples/shor.py
 		:lineno-start: 87
 		:lines: 87-98
-		:emphasize-lines: 6
+		:emphasize-lines: 9
 		:linenos:
 		:tab-width: 2
 	
@@ -171,8 +173,8 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	The most important part of the code is
 	
 	.. literalinclude:: ../examples/shor.py
-		:lines: 50-68
-		:lineno-start: 50
+		:lines: 52-70
+		:lineno-start: 52
 		:linenos:
 		:dedent: 1
 		:tab-width: 2
