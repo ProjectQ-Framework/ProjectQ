@@ -36,10 +36,10 @@ install:
   - pip$PY install -r requirements.txt
   - pip$PY install pytest-cov
   - pip$PY install coveralls
-  - pip$PY install  .
+  - pip$PY install -e .
 
 # command to run tests
-script: pytest --pyargs projectq --cov projectq
+script: pytest projectq --cov projectq
 
 after_success:
   - coveralls
