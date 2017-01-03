@@ -53,13 +53,13 @@ all requirements are now installed), i.e.,
 
 .. code:: bash
 
-    python setup.py --without-cppsimulator install
+    python setup.py --without-cppsimulator install --user
 
 If you are using pip, then this parameter can be supplied as follows
 
 .. code:: bash
 
-    python -m pip install --global-option=--without-cppsimulator .
+    python -m pip install --global-option=--without-cppsimulator --user .
 
 Then, please visit the `ProjectQ website <http://www.projectq.ch>`__,
 where you will find
