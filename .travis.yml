@@ -41,7 +41,7 @@ install:
   - pip$PY install  .
 
 # command to run tests
-script: pytest --pyargs projectq
+script: pytest --pyargs projectq --cov --cov-report term-missing
 
 after_success:
   - coveralls
