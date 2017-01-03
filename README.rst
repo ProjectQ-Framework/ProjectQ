@@ -31,7 +31,7 @@ Alternatively, you can clone or download this repository and run
 
 .. code:: bash
 
-    python setup.py install
+    python setup.py install --user
 
 or
 

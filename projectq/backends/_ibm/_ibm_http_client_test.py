@@ -135,6 +135,7 @@ def test_send_real_device_online_verbose(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -197,6 +198,7 @@ def test_send_that_errors_are_caught(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -233,6 +235,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password
@@ -269,6 +272,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
 	password = 12345
 	email = "test@projectq.ch"
 	monkeypatch.setitem(__builtins__, "input", lambda x: email)
+	monkeypatch.setitem(__builtins__, "raw_input", lambda x: email)
 	def user_password_input(prompt):
 		if prompt == "IBM QE password > ":
 			return password

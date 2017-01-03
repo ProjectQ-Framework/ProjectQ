@@ -92,7 +92,11 @@ def _authenticate(email=None, password=None):
 	:return:
 	"""
 	if email is None:
-		email = input('IBM QE user (e-mail) > ')
+		try:
+			input_fun = raw_input
+		except NameError:
+			input_fun = input
+		email = input_fun('IBM QE user (e-mail) > ')
 	if password is None:
 		password = getpass.getpass(prompt='IBM QE password > ')
 
