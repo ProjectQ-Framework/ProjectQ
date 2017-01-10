@@ -27,7 +27,7 @@ class DeviceOfflineError(Exception):
 	pass
 
 
-def send(json_qasm, name, device='sim_trivial', user=None, password=None,
+def send(json_qasm, name, device='sim_trivial_2', user=None, password=None,
          shots=1, verbose=False):
 	"""
 	Sends json QASM through the IBM API and runs the quantum circuit represented
@@ -36,7 +36,7 @@ def send(json_qasm, name, device='sim_trivial', user=None, password=None,
 	Args:
 		json_qasm: JSON QASM representation of the circuit to run.
 		name (str): Name of the experiment.
-		device (str): 'sim_trivial' or 'real' to run on simulator or on the real
+		device (str): 'sim_trivial_2' or 'real' to run on simulator or on the real
 			chip, respectively.
 		user (str): IBM quantum experience user.
 		password (str): IBM quantum experience user password.
