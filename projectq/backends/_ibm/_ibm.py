@@ -259,7 +259,7 @@ class IBMBackend(BasicEngine):
 						ID = self._cnot_qubit_id
 					elif ID == self._cnot_qubit_id:  # same here.
 						ID = 2
-					self.main_engine.set_measurement_result(QB(ID), int(measured[i]))
+					self.main_engine.set_measurement_result(QB(ID), int(measured[-1-i]))
 				self._reset()
 			except TypeError:
 				raise Exception("Failed to run the circuit. Aborting.")
