@@ -32,6 +32,12 @@ def test_h_gate():
 		1. / math.sqrt(2) * np.matrix([[1, 1], [1, -1]]))
 	assert isinstance(_gates.H, _gates.HGate)
 
+def test_i_gate():
+	gate = _gates.IdentityGate()
+	assert gate == gate.get_inverse()
+	assert str(gate) == "Id"
+	assert np.array_equal(gate.matrix, np.matrix([[1, 0], [0, 1]]))
+	assert isinstance(_gates.I, _gates.IdentityGate)
 
 def test_x_gate():
 	gate = _gates.XGate()
