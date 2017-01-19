@@ -67,7 +67,7 @@ class IBMBackend(BasicEngine):
 		if use_hardware:
 			self._device = 'real'
 		else:
-			self._device = 'sim_trivial'
+			self._device = 'sim_trivial_2'
 		self._num_runs = num_runs
 		self._verbose = verbose
 		self._user = user
@@ -166,6 +166,7 @@ class IBMBackend(BasicEngine):
 					gate['position'] = j
 					try:
 						gate['name'] = cmd.gate
+						gate['qasm'] = cmd.gate
 						if not cmd.ctrl is None:
 							gate['to'] = cmd.ctrl
 							cnot_qubit_id = i
@@ -209,8 +210,10 @@ class IBMBackend(BasicEngine):
 				for j in range(len(lines[i]['gates'])):
 					try:
 						name = lines[i]['gates'][j]['name']
+						qasm = lines[i]['gates'][j]['qasm']
 						gates += '{"position":' + str(j)
 						gates += ',"name":"' + name + '"'
+						gates += ',"qasm":"' + qasm + '"'
 						if name == "cx":
 							gates += ',"to":' + str(lines[i]['gates'][j]['to'])
 						gates += '},'
