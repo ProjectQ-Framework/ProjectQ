@@ -72,6 +72,10 @@ class IBMBackend(BasicEngine):
 		self._verbose = verbose
 		self._user = user
 		self._password = password
+		self._mapping = dict()
+		self._inverse_mapping = dict()
+		self._mapped_qubits = 0
+		self._probabilities = dict()
 		
 	def is_available(self, cmd):
 		"""
@@ -101,6 +105,7 @@ class IBMBackend(BasicEngine):
 		for _ in range(self._num_qubits):
 			self._cmds.append([""] * self._num_cols)
 		self._positions = [0] * self._num_qubits
+		self._mapped_qubits = 0
 		
 	def _store(self, cmd):
 		"""
@@ -113,14 +118,32 @@ class IBMBackend(BasicEngine):
 		"""
 		gate = cmd.gate
 		if gate == Allocate or gate == Deallocate:
-			pass
-		elif gate == Measure:
+			return
+		
+		if self._mapped_qubits == 0:
+			self._mapping = dict()
+			self._inverse_mapping = dict()
+			self._probabilities = dict()
+		
+		for qr in cmd.qubits:
+			for qb in qr:
+				if not qb.id in self._mapping:
+					self._mapping[qb.id] = self._mapped_qubits
+					self._inverse_mapping[self._mapped_qubits] = qb.id
+					self._mapped_qubits += 1
+		for qb in cmd.control_qubits:
+			if not qb.id in self._mapping:
+				self._mapping[qb.id] = self._mapped_qubits
+				self._inverse_mapping[self._mapped_qubits] = qb.id
+				self._mapped_qubits += 1
+		
+		if gate == Measure:
 			for qr in cmd.qubits:
 				for qb in qr:
-					qb_id = qb.id
-					meas = _IBMGateCommand("measure", qb_id)
-					self._cmds[qb_id][self._positions[qb_id]] = meas
-					self._positions[qb_id] += 1
+					qb_pos = self._mapping[qb.id]
+					meas = _IBMGateCommand("measure", qb_pos)
+					self._cmds[qb_pos][self._positions[qb_pos]] = meas
+					self._positions[qb_pos] += 1
 					
 		elif not (gate == NOT and get_control_count(cmd) == 1):
 			cls = gate.__class__.__name__
@@ -129,20 +152,56 @@ class IBMBackend(BasicEngine):
 			else:
 				gate_str = str(gate).lower()
 			
-			qb_id = cmd.qubits[0][0].id
-			ibm_cmd = _IBMGateCommand(gate_str, qb_id)
-			self._cmds[qb_id][self._positions[qb_id]] = ibm_cmd
-			self._positions[qb_id] += 1
+			qb_pos = self._mapping[cmd.qubits[0][0].id]
+			ibm_cmd = _IBMGateCommand(gate_str, qb_pos)
+			self._cmds[qb_pos][self._positions[qb_pos]] = ibm_cmd
+			self._positions[qb_pos] += 1
 		else:
-			ctrl_id = cmd.control_qubits[0].id
-			qb_id = cmd.qubits[0][0].id
-			pos = max(self._positions[qb_id], self._positions[ctrl_id])
-			self._positions[qb_id] = pos
-			self._positions[ctrl_id] = pos
-			ibm_cmd = _IBMGateCommand("cx", qb_id, ctrl_id)
-			self._cmds[qb_id][self._positions[qb_id]] = ibm_cmd
-			self._positions[qb_id] += 1
-			self._positions[ctrl_id] += 1
+			ctrl_pos = self._mapping[cmd.control_qubits[0].id]
+			qb_pos = self._mapping[cmd.qubits[0][0].id]
+			pos = max(self._positions[qb_pos], self._positions[ctrl_pos])
+			self._positions[qb_pos] = pos
+			self._positions[ctrl_pos] = pos
+			ibm_cmd = _IBMGateCommand("cx", qb_pos, ctrl_pos)
+			self._cmds[qb_pos][self._positions[qb_pos]] = ibm_cmd
+			self._positions[qb_pos] += 1
+			self._positions[ctrl_pos] += 1
+	
+	def get_probabilities(self, qureg):
+		"""
+		Return the list of basis states with corresponding probabilities.
+		
+		The measured bits are ordered according to the supplied quantum register,
+		i.e., the left-most bit in the state-string corresponds to the first qubit
+		in the supplied quantum register.
+		
+		Warning:
+			Only call this function after the circuit has been executed!
+		
+		Args:
+			qureg (list<Qubit>): Quantum register determining the order of the
+				qubits.
+		
+		Returns:
+			probability_dict (dict): Dictionary mapping n-bit strings to
+			probabilities.
+		
+		Raises:
+			Exception: If no data is available (i.e., if the circuit has not been
+				executed).
+		"""
+		if len(self._probabilities) == 0:
+			raise RuntimeError("Please, run the circuit first!")
+		
+		probability_dict = dict()
+		
+		for state in self._probabilities:
+			mapped_state = ['0'] * len(qureg)
+			for i in range(len(qureg)):
+				mapped_state[i] = state[self._mapping[qureg[i].id]]
+			probability_dict["".join(mapped_state)] = self._probabilities[state]
+		
+		return probability_dict
 	
 	def _run(self):
 		"""
@@ -239,27 +298,26 @@ class IBMBackend(BasicEngine):
 				p_sum = 0.
 				measured = ""
 				for state, probability in zip(data['labels'], data['values']):
-					if self._verbose and probability > 0:
-						print(str(state) + " with p = " + str(probability))
+					state = list(reversed(state))
+					state[2], state[self._cnot_qubit_id] = state[self._cnot_qubit_id], state[2]
+					state = "".join(state)
 					p_sum += probability
+					star = ""
 					if p_sum >= P and measured == "":
 						measured = state
-						
+						star = "*"
+					self._probabilities[state] = probability
+					if self._verbose and probability > 0:
+						print(str(state) + " with p = " + str(probability) + star)
+					
 				class QB():
 					def __init__(self, ID):
 						self.id = ID
-						
+				
 				# register measurement result
-				for i in range(len(data['qubits'])):
-					ID = int(data['qubits'][i])
-					if ID == 2:
-						# we may have swapped these two qubits
-						# (cnot qubit is always #2 on the device)
-						# --> undo this transformation
-						ID = self._cnot_qubit_id
-					elif ID == self._cnot_qubit_id:  # same here.
-						ID = 2
-					self.main_engine.set_measurement_result(QB(ID), int(measured[-1-i]))
+				for ID in self._mapping:
+					location = self._mapping[ID]
+					self.main_engine.set_measurement_result(QB(ID), int(measured[location]))
 				self._reset()
 			except TypeError:
 				raise Exception("Failed to run the circuit. Aborting.")
