@@ -71,7 +71,7 @@ def test_ibm_backend_functional_test(monkeypatch):
                                             toffoli2cnotandtgate,
                                             entangle,
                                             qft2crandhadamard)
-	correct_info = '{"playground":[{"line":0,"name":"q","gates":[{"position":0,"name":"h"},{"position":3,"name":"h"},{"position":4,"name":"measure"}]},{"line":1,"name":"q","gates":[{"position":0,"name":"h"},{"position":2,"name":"h"},{"position":3,"name":"measure"}]},{"line":2,"name":"q","gates":[{"position":1,"name":"cx","to":1},{"position":2,"name":"cx","to":0},{"position":3,"name":"h"},{"position":4,"name":"measure"}]},{"line":3,"name":"q","gates":[]},{"line":4,"name":"q","gates":[]}],"numberColumns":40,"numberLines":5,"numberGates":200,"hasMeasures":true,"topology":"250e969c6b9e68aa2a045ffbceb3ac33"}'
+	correct_info = '{"playground":[{"line":0,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":1,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm":"h"},{"position":3,"name":"measure","qasm":"measure"}]},{"line":2,"name":"q","gates":[{"position":1,"name":"cx","qasm":"cx","to":1},{"position":2,"name":"cx","qasm":"cx","to":0},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":3,"name":"q","gates":[]},{"line":4,"name":"q","gates":[]}],"numberColumns":40,"numberLines":5,"numberGates":200,"hasMeasures":true,"topology":"250e969c6b9e68aa2a045ffbceb3ac33"}'
 	# patch send 
 	def mock_send(*args, **kwargs):
 		assert args[0] == correct_info
