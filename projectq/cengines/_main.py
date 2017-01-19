@@ -44,6 +44,7 @@ class MainEngine(BasicEngine):
 		main_engine (MainEngine): Self.
 		active_qubits (WeakSet): WeakSet containing all active qubits
 		dirty_qubits (Set): Containing all dirty qubit ids
+		backend (BasicEngine): Access the back-end.
 		
 	"""
 	def __init__(self, backend=None, engine_list=None):
@@ -107,7 +108,8 @@ class MainEngine(BasicEngine):
 						"     MainEngine(engine_list=[AutoReplacer()])")
 		
 		engine_list.append(backend)
-
+		self.backend = backend
+		
 		# Test that user did not supply twice the same engine instance
 		num_different_engines = len(set([id(item) for item in engine_list]))
 		if len(engine_list) != num_different_engines:
