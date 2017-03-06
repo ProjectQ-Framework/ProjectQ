@@ -290,19 +290,12 @@ class BasicRotationGate(BasicGate):
 		raise NotMergeable("Can't merge different types of rotation gates.")
 
 	def __eq__(self, other):
-		""" Return True if same class and same rotation angle. """
-		tolerance = 1.e-12
-		if isinstance(other, self.__class__):
-			difference = abs(self._angle - other._angle)
-			if difference < tolerance:
-				return True
-			else:  # if one angle is close to 0 and the other one close to 4*pi:
-				if difference > 4 * math.pi - tolerance:
-					return True
-				else:
-					return False
-		else:
+		if not isinstance(other, self.__class__):
 			return False
+		pi = math.pi
+		difference = abs((self._angle - other._angle + pi) % (2 * pi) - pi)
+		tolerance = 1.e-12
+		return difference < tolerance
 
 	def __ne__(self, other):
 		return not self.__eq__(other)
