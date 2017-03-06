@@ -295,7 +295,7 @@ class BasicRotationGate(BasicGate):
 		pi = math.pi
 		difference = abs((self._angle - other._angle + pi) % (2 * pi) - pi)
 		tolerance = 1.e-12
-		return difference < tolerance
+		return difference <= tolerance
 
 	def __ne__(self, other):
 		return not self.__eq__(other)
