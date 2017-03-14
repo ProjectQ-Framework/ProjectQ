@@ -21,7 +21,10 @@ Registers a variety of useful gate decompositions. Among others it includes
 """
 
 import projectq
-from projectq.cengines import TagRemover, LocalOptimizer, AutoReplacer
+from projectq.cengines import (TagRemover,
+                               LocalOptimizer,
+                               AutoReplacer,
+                               DecompositionRuleSet)
 
 from projectq.setups.decompositions import (crz2cxandrz,
                                             r2rzandph,
@@ -34,8 +37,16 @@ from projectq.setups.decompositions import (crz2cxandrz,
 
 
 def default_engines():
-	return [TagRemover(), LocalOptimizer(10), AutoReplacer(), TagRemover(),
-	        LocalOptimizer(10)]
+    dh = DecompositionRuleSet(modules=(crz2cxandrz,
+                                       r2rzandph,
+                                       ph2r,
+                                       globalphase,
+                                       swap2cnot,
+                                       toffoli2cnotandtgate,
+                                       entangle,
+                                       qft2crandhadamard))
+    return [TagRemover(), LocalOptimizer(10), AutoReplacer(dh), TagRemover(),
+            LocalOptimizer(10)]
 
 
 projectq.default_engines = default_engines

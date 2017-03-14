@@ -19,8 +19,8 @@ from ._cmdmodifier import CommandModifier
 from ._replacer import (AutoReplacer,
                         InstructionFilter,
                         Decomposition,
-                        register_decomposition,
-                        decompositions)
+                        DecompositionRuleSet,
+                        DecompositionRule)
 from ._ibmcnotmapper import IBMCNOTMapper
 from ._main import (MainEngine,
                     NotYetMeasuredError,

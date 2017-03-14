@@ -19,7 +19,8 @@ from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                IBMCNOTMapper,
-                               DummyEngine)
+                               DummyEngine,
+							   DecompositionRuleSet)
 from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, CNOT, Measure,
                           Allocate, Deallocate, NOT, Rx, Entangle)
 
@@ -62,13 +63,21 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
 
 def test_ibm_backend_functional_test(monkeypatch):
 	from projectq.setups.decompositions import (crz2cxandrz,
-                                            r2rzandph,
-                                            ph2r,
-                                            globalphase,
-                                            swap2cnot,
-                                            toffoli2cnotandtgate,
-                                            entangle,
-                                            qft2crandhadamard)
+												r2rzandph,
+												ph2r,
+												globalphase,
+												swap2cnot,
+												toffoli2cnotandtgate,
+												entangle,
+												qft2crandhadamard)
+	dh = DecompositionRuleSet(modules=(crz2cxandrz,
+									   r2rzandph,
+									   ph2r,
+									   globalphase,
+									   swap2cnot,
+									   toffoli2cnotandtgate,
+									   entangle,
+									   qft2crandhadamard))
 	correct_info = '{"playground":[{"line":0,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm":"h"},{"position":3,"name":"measure","qasm":"measure"}]},{"line":1,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":2,"name":"q","gates":[{"position":1,"name":"cx","qasm":"cx","to":0},{"position":2,"name":"cx","qasm":"cx","to":1},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":3,"name":"q","gates":[]},{"line":4,"name":"q","gates":[]}],"numberColumns":40,"numberLines":5,"numberGates":200,"hasMeasures":true,"topology":"250e969c6b9e68aa2a045ffbceb3ac33"}'
 	# patch send 
 	def mock_send(*args, **kwargs):
@@ -77,7 +86,7 @@ def test_ibm_backend_functional_test(monkeypatch):
 	monkeypatch.setattr(_ibm, "send", mock_send)
 
 	backend = _ibm.IBMBackend()
-	engine_list = [TagRemover(), LocalOptimizer(10), AutoReplacer(), 
+	engine_list = [TagRemover(), LocalOptimizer(10), AutoReplacer(dh),
 	               TagRemover(), IBMCNOTMapper(), LocalOptimizer(10)]
 	eng = MainEngine(backend=backend, engine_list=engine_list)
 	unused_qubit = eng.allocate_qubit()

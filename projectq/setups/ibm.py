@@ -26,7 +26,8 @@ import projectq
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
-                               IBMCNOTMapper)
+                               IBMCNOTMapper,
+                               DecompositionRuleSet)
 from projectq.backends import IBMBackend
 from projectq.setups.decompositions import (crz2cxandrz,
                                             r2rzandph,
@@ -39,7 +40,15 @@ from projectq.setups.decompositions import (crz2cxandrz,
 
 
 def ibm_default_engines():
-	return [TagRemover(), LocalOptimizer(10), AutoReplacer(), TagRemover(),
+    dh = DecompositionRuleSet(modules=(crz2cxandrz,
+                                       r2rzandph,
+                                       ph2r,
+                                       globalphase,
+                                       swap2cnot,
+                                       toffoli2cnotandtgate,
+                                       entangle,
+                                       qft2crandhadamard))
+    return [TagRemover(), LocalOptimizer(10), AutoReplacer(dh), TagRemover(),
 	        IBMCNOTMapper(), LocalOptimizer(10)]
 
 

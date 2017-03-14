@@ -11,7 +11,7 @@
 #   limitations under the License.
 
 from ._decomposition import Decomposition
-from ._decompositionhandling import register_decomposition, decompositions
+from ._decompositionhandling import DecompositionRuleSet, DecompositionRule
 from ._replacer import (AutoReplacer,
                         InstructionFilter,
                         NoGateDecompositionError)

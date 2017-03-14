@@ -14,13 +14,25 @@ import pytest
 
 from projectq.cengines import (MainEngine,
                                AutoReplacer,
+							   DecompositionRuleSet,
                                InstructionFilter,
                                LocalOptimizer,
                                TagRemover)
 from projectq.ops import X, H, QFT, BasicMathGate, Swap, get_inverse, Measure
 from projectq.meta import Control
+import projectq.libs.math
 from projectq.libs.math import MultiplyByConstantModN
+from projectq.setups.decompositions import (crz2cxandrz,
+											qft2crandhadamard,
+											swap2cnot,
+											r2rzandph)
 from projectq.backends._sim._simulator_test import sim
+
+dh = DecompositionRuleSet(modules=(projectq.libs.math,
+								   crz2cxandrz,
+								   qft2crandhadamard,
+								   swap2cnot,
+								   r2rzandph))
 
 
 def high_level_gates(eng, cmd):
@@ -33,8 +45,8 @@ def high_level_gates(eng, cmd):
 
 
 def get_main_engine(sim):
-	engine_list=[AutoReplacer(), InstructionFilter(high_level_gates),
-	             TagRemover(), LocalOptimizer(3), AutoReplacer(),
+	engine_list=[AutoReplacer(dh), InstructionFilter(high_level_gates),
+	             TagRemover(), LocalOptimizer(3), AutoReplacer(dh),
 	             TagRemover(), LocalOptimizer(3)]
 	return MainEngine(sim, engine_list)
 

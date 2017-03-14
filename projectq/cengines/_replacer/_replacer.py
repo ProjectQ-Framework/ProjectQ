@@ -26,8 +26,6 @@ from projectq.cengines import (LastEngineException,
 from projectq.ops import (FlushGate,
                           get_inverse)
 
-from . import _decompositionhandling as dh
-
 
 class NoGateDecompositionError(Exception):
 	pass
@@ -80,33 +78,34 @@ class AutoReplacer(BasicEngine):
 	further. The loaded setup is used to find decomposition rules appropriate
 	for each command (e.g., setups.default).
 	"""
-	def __init__(self, decomposition_chooser=
+	def __init__(self, decompositionRuleSet, decomposition_chooser=
 	             lambda cmd, decomposition_list: decomposition_list[0]):
 		"""
 		Initialize an AutoReplacer.
-		
+
 		Args:
 			decomposition_chooser (function): A function which, given the Command
 				to decompose and a list of potential Decomposition objects,
 				determines (and then returns) the 'best' decomposition.
-		
+
 		The default decomposition chooser simply returns the first list element,
 		i.e., calling
-		
+
 		.. code-block:: python
-		
+
 			repl = AutoReplacer()
-		
+
 		Amounts to
-		
+
 		.. code-block:: python
-		
+
 			def decomposition_chooser(cmd, decomp_list):
 				return decomp_list[0]
 			repl = AutoReplacer(decomposition_chooser)
 		"""
 		BasicEngine.__init__(self)
 		self._decomp_chooser = decomposition_chooser
+		self.decompositionRuleSet = decompositionRuleSet
 		
 	def _process_command(self, cmd):
 		"""
@@ -131,14 +130,14 @@ class AutoReplacer(BasicEngine):
 			# check for forward rules
 			cls = cmd.gate.__class__.__name__
 			try:
-				potential_decomps = [d for d in dh.decompositions[cls]]
+				potential_decomps = [d for d in self.decompositionRuleSet.decompositions[cls]]
 			except KeyError:
 				pass
 			# check for rules implementing the inverse gate and run them in reverse
 			inv_cls = get_inverse(cmd.gate).__class__.__name__
 			try:
 				potential_decomps += [d.get_inverse_decomposition()
-				                      for d in dh.decompositions[inv_cls]]
+				                      for d in self.decompositionRuleSet.decompositions[inv_cls]]
 			except KeyError:
 				pass
 			# throw out the ones which don't recognize the command

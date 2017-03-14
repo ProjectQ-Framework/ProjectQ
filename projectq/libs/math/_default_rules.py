@@ -16,7 +16,7 @@ Registers a few default replacement rules for Shor's algorithm to work
 """
 
 from projectq.meta import Control, Dagger
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 
 from ._gates import (AddConstant,
                      SubConstant,
@@ -37,9 +37,6 @@ def _replace_addconstant(cmd):
 		add_constant(eng, c, quint)
 
 
-register_decomposition(AddConstant, _replace_addconstant)
-
-
 def _replace_addconstmodN(cmd):
 	eng = cmd.engine
 	c = cmd.gate.a
@@ -48,9 +45,6 @@ def _replace_addconstmodN(cmd):
 
 	with Control(eng, cmd.control_qubits):
 		add_constant_modN(eng, c, N, quint)
-
-
-register_decomposition(AddConstantModN, _replace_addconstmodN)
 
 
 def _replace_multiplybyconstantmodN(cmd):
@@ -62,6 +56,8 @@ def _replace_multiplybyconstantmodN(cmd):
 	with Control(eng, cmd.control_qubits):
 		mul_by_constant_modN(eng, c, N, quint)
 
-
-register_decomposition(MultiplyByConstantModN,
-                       _replace_multiplybyconstantmodN)
+all_defined_decomposition_rules = [
+	DecompositionRule(AddConstant, _replace_addconstant),
+	DecompositionRule(AddConstantModN, _replace_addconstmodN),
+	DecompositionRule(MultiplyByConstantModN, _replace_multiplybyconstantmodN),
+]

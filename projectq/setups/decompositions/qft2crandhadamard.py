@@ -22,7 +22,7 @@ Warning:
 
 import math
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.ops import H, R, QFT
 from projectq.meta import Control
 
@@ -38,4 +38,6 @@ def _decompose_QFT(cmd):
 					R(math.pi / (1 << (1 + j))) | qb[-1 - i]
 
 
-register_decomposition(QFT.__class__, _decompose_QFT)
+all_defined_decomposition_rules = [
+	DecompositionRule(QFT.__class__, _decompose_QFT)
+]

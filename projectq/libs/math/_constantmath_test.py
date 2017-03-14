@@ -15,10 +15,14 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import InstructionFilter, AutoReplacer
+from projectq.cengines import (InstructionFilter,
+							   AutoReplacer,
+							   DecompositionRuleSet)
 from projectq.backends import Simulator
 from projectq.ops import X, BasicMathGate, ClassicalInstructionGate, Measure
 
+import projectq.libs.math
+from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
@@ -42,8 +46,9 @@ def no_math_emulation(eng, cmd):
 
 
 def test_adder():
+	dh = DecompositionRuleSet(modules=[projectq.libs.math, qft2crandhadamard, swap2cnot])
 	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
+	eng = MainEngine(sim, [AutoReplacer(dh),
 	                       InstructionFilter(no_math_emulation)])
 	qureg = eng.allocate_qureg(4)
 	init(eng, qureg, 4)
@@ -62,8 +67,9 @@ def test_adder():
 
 
 def test_modadder():
+	dh = DecompositionRuleSet(modules=[projectq.libs.math, qft2crandhadamard, swap2cnot])
 	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
+	eng = MainEngine(sim, [AutoReplacer(dh),
 	                       InstructionFilter(no_math_emulation)])
 	
 	qureg = eng.allocate_qureg(4)
@@ -83,8 +89,9 @@ def test_modadder():
 
 
 def test_modmultiplier():
+	dh = DecompositionRuleSet(modules=[projectq.libs.math, qft2crandhadamard, swap2cnot])
 	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
+	eng = MainEngine(sim, [AutoReplacer(dh),
 	                       InstructionFilter(no_math_emulation)])
 	
 	qureg = eng.allocate_qureg(4)

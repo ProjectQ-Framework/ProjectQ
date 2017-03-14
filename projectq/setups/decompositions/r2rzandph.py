@@ -17,7 +17,7 @@ Decomposes the (controlled) phase-shift gate using z-rotation and a global
 phase gate.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import Control
 from projectq.ops import Ph, Rz, R
 
@@ -33,4 +33,6 @@ def _decompose_R(cmd):
 		Rz(gate._angle) | cmd.qubits
 
 
-register_decomposition(R, _decompose_R)
+all_defined_decomposition_rules = [
+	DecompositionRule(R, _decompose_R)
+]

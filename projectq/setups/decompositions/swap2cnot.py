@@ -17,7 +17,7 @@ Decomposes a Swap gate using 3 CNOT gates, where the one in the middle
 features as many control qubits as the Swap gate has control qubits.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Uncompute, Control, get_control_count
 from projectq.ops import Swap, CNOT
 
@@ -33,4 +33,6 @@ def _decompose_swap(cmd):
 	Uncompute(eng)
 
 
-register_decomposition(Swap.__class__, _decompose_swap)
+all_defined_decomposition_rules = [
+	DecompositionRule(Swap.__class__, _decompose_swap)
+]

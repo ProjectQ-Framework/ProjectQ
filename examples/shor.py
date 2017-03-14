@@ -10,7 +10,8 @@ from projectq.cengines import (MainEngine,
                                AutoReplacer,
                                LocalOptimizer,
                                TagRemover,
-                               InstructionFilter)
+                               InstructionFilter,
+							   DecompositionRuleSet)
 from projectq.ops import (X,
                           Measure,
                           H,
@@ -104,8 +105,9 @@ def high_level_gates(eng, cmd):
 if __name__ == "__main__":
 	# build compilation engine list
 	resource_counter = ResourceCounter()
-	compilerengines = [AutoReplacer(), InstructionFilter(high_level_gates),
-	                   TagRemover(), LocalOptimizer(3), AutoReplacer(),
+	dh = DecompositionRuleSet()
+	compilerengines = [AutoReplacer(dh), InstructionFilter(high_level_gates),
+	                   TagRemover(), LocalOptimizer(3), AutoReplacer(dh),
 	                   TagRemover(), LocalOptimizer(3), resource_counter]
 	
 	# make the compiler and run the circuit on the simulator backend
