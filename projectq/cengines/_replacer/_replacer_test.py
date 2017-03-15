@@ -44,25 +44,38 @@ class TestGate(BasicGate):
 TestGate = TestGate()
 
 
-def test_gate_filter():
-	dh = DecompositionRuleSet()
+def make_decomposition_rule_set():
+	result = DecompositionRuleSet()
 	# BasicGate with no get_inverse used for testing:
 	with pytest.raises(NotInvertible):
 		TestGate.get_inverse()
+
 	# Loading of decomposition rules:
 	def decompose_test1(cmd):
 		qb = cmd.qubits
 		X | qb
+
 	def recognize_test(cmd):
 		return True
-	dh.add_decomposition_rule(DecompositionRule(TestGate.__class__, decompose_test1, recognize_test))
+
+	result.add_decomposition_rule(
+		DecompositionRule(TestGate.__class__, decompose_test1, recognize_test))
+
 	def decompose_test2(cmd):
 		qb = cmd.qubits
 		H | qb
-	dh.add_decomposition_rule(DecompositionRule(TestGate.__class__, decompose_test2, recognize_test))
-	
-	assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
-	
+
+	result.add_decomposition_rule(
+		DecompositionRule(TestGate.__class__, decompose_test2, recognize_test))
+
+	assert len(result.decompositions[TestGate.__class__.__name__]) == 2
+	return result
+
+dh = make_decomposition_rule_set()
+
+
+@pytest.fixture()
+def fixture_gate_filter():
 	# Filter which doesn't allow TestGate
 	def test_gate_filter_func(self, cmd):
 		if cmd.gate == TestGate:
@@ -71,12 +84,11 @@ def test_gate_filter():
 	return _replacer.InstructionFilter(test_gate_filter_func)
 
 
-def test_auto_replacer_default_chooser(test_gate_filter):
-	dh = DecompositionRuleSet()
+def test_auto_replacer_default_chooser(fixture_gate_filter):
 	# Test that default decomposition_chooser takes always first rule.
 	backend = DummyEngine(save_commands=True)
 	eng = MainEngine(backend=backend, 
-	                 engine_list=[_replacer.AutoReplacer(dh), test_gate_filter])
+	                 engine_list=[_replacer.AutoReplacer(dh), fixture_gate_filter])
 	assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
 	assert len(backend.received_commands) == 0
 	qb = eng.allocate_qubit()
@@ -86,15 +98,14 @@ def test_auto_replacer_default_chooser(test_gate_filter):
 	assert backend.received_commands[1].gate == X
 
 
-def test_auto_replacer_decomposition_chooser(test_gate_filter):
-	dh = DecompositionRuleSet()
+def test_auto_replacer_decomposition_chooser(fixture_gate_filter):
 	# Supply a decomposition chooser which always chooses last rule.
 	def test_decomp_chooser(cmd, decomposition_list):
 		return decomposition_list[-1]
 	backend = DummyEngine(save_commands=True)
 	eng = MainEngine(backend=backend, 
 	                 engine_list=[_replacer.AutoReplacer(dh, test_decomp_chooser),
-	                 test_gate_filter])
+	                 fixture_gate_filter])
 	assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
 	assert len(backend.received_commands) == 0
 	qb = eng.allocate_qubit()
@@ -105,7 +116,6 @@ def test_auto_replacer_decomposition_chooser(test_gate_filter):
 
 
 def test_auto_replacer_no_rule_found():
-	dh = DecompositionRuleSet()
 	# Check that exception is thrown if no rule is found
 	# For both the cmd and it's inverse (which exists)
 	def h_filter(self, cmd):
@@ -125,8 +135,7 @@ def test_auto_replacer_no_rule_found():
 def test_auto_replacer_use_inverse_decomposition():
 	# Check that if there is no decomposition for the gate, that
 	# AutoReplacer runs the decomposition for the inverse gate in reverse
-	dh = DecompositionRuleSet()
-	
+
 	# Create test gate and inverse
 	class NoMagicGate(BasicGate):
 		pass
@@ -160,12 +169,11 @@ def test_auto_replacer_use_inverse_decomposition():
 	assert backend.received_commands[2].gate == Rx(-0.6)
 
 
-def test_auto_replacer_adds_tags(test_gate_filter):
-	dh = DecompositionRuleSet()
+def test_auto_replacer_adds_tags(fixture_gate_filter):
 	# Test that AutoReplacer puts back the tags
 	backend = DummyEngine(save_commands=True)
 	eng = MainEngine(backend=backend, 
-	                 engine_list=[_replacer.AutoReplacer(dh), test_gate_filter])
+	                 engine_list=[_replacer.AutoReplacer(dh), fixture_gate_filter])
 	assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
 	assert len(backend.received_commands) == 0
 	qb = eng.allocate_qubit()
