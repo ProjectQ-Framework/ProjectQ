@@ -29,38 +29,38 @@ from ._constantmath import (add_constant,
 
 
 def _replace_addconstant(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		add_constant(eng, c, quint)
+    with Control(eng, cmd.control_qubits):
+        add_constant(eng, c, quint)
 
 
 register_decomposition(AddConstant, _replace_addconstant)
 
 
 def _replace_addconstmodN(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	N = cmd.gate.N
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    N = cmd.gate.N
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		add_constant_modN(eng, c, N, quint)
+    with Control(eng, cmd.control_qubits):
+        add_constant_modN(eng, c, N, quint)
 
 
 register_decomposition(AddConstantModN, _replace_addconstmodN)
 
 
 def _replace_multiplybyconstantmodN(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	N = cmd.gate.N
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    N = cmd.gate.N
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		mul_by_constant_modN(eng, c, N, quint)
+    with Control(eng, cmd.control_qubits):
+        mul_by_constant_modN(eng, c, N, quint)
 
 
 register_decomposition(MultiplyByConstantModN,
