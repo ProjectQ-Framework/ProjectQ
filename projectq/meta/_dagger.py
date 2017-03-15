@@ -15,9 +15,9 @@ Tools to easily invert a sequence of gates.
 
 .. code-block:: python
 
-	with Dagger(eng):
-		H | qubit1
-		Rz(0.5) | qubit2
+    with Dagger(eng):
+        H | qubit1
+        Rz(0.5) | qubit2
 """
 
 from projectq.cengines import BasicEngine
@@ -26,114 +26,114 @@ from projectq.meta import DirtyQubitTag
 
 
 class QubitManagementError(Exception):
-	pass
+    pass
 
 
 class DaggerEngine(BasicEngine):
-	"""
-	Stores all commands and, when done, inverts the circuit & runs it.
-	"""
+    """
+    Stores all commands and, when done, inverts the circuit & runs it.
+    """
 
-	def __init__(self):
-		BasicEngine.__init__(self)
-		self._commands = []
-		self._allocated_qubit_ids = set()
-		self._deallocated_qubit_ids = set()
+    def __init__(self):
+        BasicEngine.__init__(self)
+        self._commands = []
+        self._allocated_qubit_ids = set()
+        self._deallocated_qubit_ids = set()
 
-	def run(self):
-		"""
-		Run the stored circuit in reverse and check that local qubits
-		have been deallocated.
-		"""
-		if self._deallocated_qubit_ids != self._allocated_qubit_ids:
-				raise QubitManagementError(
-				    "\n Error. Qubits have been allocated in 'with " +
-				    "Dagger(eng)' context,\n which have not explicitely " +
-				    "been deallocated.\n" +
-				    "Correct usage:\n" +
-				    "with Dagger(eng):\n" +
-				    "    qubit = eng.allocate_qubit()\n" +
-				    "    ...\n" +
-				    "    del qubit[0]\n")
+    def run(self):
+        """
+        Run the stored circuit in reverse and check that local qubits
+        have been deallocated.
+        """
+        if self._deallocated_qubit_ids != self._allocated_qubit_ids:
+                raise QubitManagementError(
+                    "\n Error. Qubits have been allocated in 'with " +
+                    "Dagger(eng)' context,\n which have not explicitely " +
+                    "been deallocated.\n" +
+                    "Correct usage:\n" +
+                    "with Dagger(eng):\n" +
+                    "    qubit = eng.allocate_qubit()\n" +
+                    "    ...\n" +
+                    "    del qubit[0]\n")
 
-		for cmd in reversed(self._commands):
-				self.send([cmd.get_inverse()])
+        for cmd in reversed(self._commands):
+                self.send([cmd.get_inverse()])
 
-	def receive(self, command_list):
-		"""
-		Receive a list of commands and store them for later inversion.
-		
-		Args:
-			command_list (list<Command>): List of commands to temporarily store.
-		"""
-		for cmd in command_list:
-			if cmd.gate == Allocate:
-				self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
-			elif cmd.gate == Deallocate:
-				self._deallocated_qubit_ids.add(cmd.qubits[0][0].id)
-		self._commands.extend(command_list)
+    def receive(self, command_list):
+        """
+        Receive a list of commands and store them for later inversion.
+
+        Args:
+            command_list (list<Command>): List of commands to temporarily store.
+        """
+        for cmd in command_list:
+            if cmd.gate == Allocate:
+                self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
+            elif cmd.gate == Deallocate:
+                self._deallocated_qubit_ids.add(cmd.qubits[0][0].id)
+        self._commands.extend(command_list)
 
 
 class Dagger(object):
-	"""
-	Invert an entire code block.
+    """
+    Invert an entire code block.
 
-	Use it with a with-statement, i.e.,
-	
-	.. code-block:: python
-	
-		with Dagger(eng):
-			[code to invert]
-	
-	Warning:
-		If the code to invert contains allocation of qubits, those qubits have
-		to be deleted prior to exiting the 'with Dagger()' context.
-		
-		This code is **NOT VALID**:
-		
-		.. code-block:: python
-		
-			with Dagger(eng):
-				qb = eng.allocate_qubit()
-				H | qb # qb is still available!!!
-		
-		The **correct way** of handling qubit (de-)allocation is as follows:
-		
-		.. code-block:: python
-		
-			with Dagger(eng):
-				qb = eng.allocate_qubit()
-				...
-				del qb # sends deallocate gate (which becomes an allocate)
-	"""
+    Use it with a with-statement, i.e.,
 
-	def __init__(self, engine):
-		"""
-		Enter an inverted section.
+    .. code-block:: python
 
-		Args:
-			engine: Engine which handles the commands (usually MainEngine)
+        with Dagger(eng):
+            [code to invert]
 
-		Example (executes an inverse QFT):
-		
-		.. code-block:: python
-		
-			with Dagger(eng):
-				QFT | qubits
-		"""
-		self.engine = engine
+    Warning:
+        If the code to invert contains allocation of qubits, those qubits have
+        to be deleted prior to exiting the 'with Dagger()' context.
 
-	def __enter__(self):
-		dagger_eng = DaggerEngine()
-		dagger_eng.main_engine = self.engine.main_engine
-		oldnext = self.engine.next_engine
-		self.engine.next_engine = dagger_eng
-		dagger_eng.next_engine = oldnext
-		self._dagger_eng = dagger_eng
+        This code is **NOT VALID**:
 
-	def __exit__(self, type, value, traceback):
-		# run dagger engine
-		self._dagger_eng.run()
-		# remove dagger handler from engine list (i.e. skip it)
-		oldnext = self._dagger_eng.next_engine
-		self.engine.next_engine = oldnext
+        .. code-block:: python
+
+            with Dagger(eng):
+                qb = eng.allocate_qubit()
+                H | qb # qb is still available!!!
+
+        The **correct way** of handling qubit (de-)allocation is as follows:
+
+        .. code-block:: python
+
+            with Dagger(eng):
+                qb = eng.allocate_qubit()
+                ...
+                del qb # sends deallocate gate (which becomes an allocate)
+    """
+
+    def __init__(self, engine):
+        """
+        Enter an inverted section.
+
+        Args:
+            engine: Engine which handles the commands (usually MainEngine)
+
+        Example (executes an inverse QFT):
+
+        .. code-block:: python
+
+            with Dagger(eng):
+                QFT | qubits
+        """
+        self.engine = engine
+
+    def __enter__(self):
+        dagger_eng = DaggerEngine()
+        dagger_eng.main_engine = self.engine.main_engine
+        oldnext = self.engine.next_engine
+        self.engine.next_engine = dagger_eng
+        dagger_eng.next_engine = oldnext
+        self._dagger_eng = dagger_eng
+
+    def __exit__(self, type, value, traceback):
+        # run dagger engine
+        self._dagger_eng.run()
+        # remove dagger handler from engine list (i.e. skip it)
+        oldnext = self._dagger_eng.next_engine
+        self.engine.next_engine = oldnext

@@ -20,24 +20,24 @@ from projectq.cengines import _cmdmodifier
 
 
 def test_command_modifier():
-	def cmd_mod_fun(cmd):
-		cmd.tags = "NewTag"
-		return cmd
+    def cmd_mod_fun(cmd):
+        cmd.tags = "NewTag"
+        return cmd
 
-	backend = DummyEngine(save_commands=True)
-	main_engine = MainEngine(backend=backend,
-		engine_list=[_cmdmodifier.CommandModifier(cmd_mod_fun)])
-	qubit = main_engine.allocate_qubit()
-	H | qubit
-	# Test if H gate was sent through forwarder_eng and tag was added
-	received_commands = []
-	# Remove Allocate and Deallocate gates
-	for cmd in backend.received_commands:
-		if not (isinstance(cmd.gate, FastForwardingGate) or 
-	            isinstance(cmd.gate, ClassicalInstructionGate)):
-			received_commands.append(cmd)
-	for cmd in received_commands:
-		print(cmd)
-	assert len(received_commands) == 1
-	assert received_commands[0].gate == H
-	assert received_commands[0].tags == "NewTag"
+    backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=backend,
+        engine_list=[_cmdmodifier.CommandModifier(cmd_mod_fun)])
+    qubit = main_engine.allocate_qubit()
+    H | qubit
+    # Test if H gate was sent through forwarder_eng and tag was added
+    received_commands = []
+    # Remove Allocate and Deallocate gates
+    for cmd in backend.received_commands:
+        if not (isinstance(cmd.gate, FastForwardingGate) or
+                isinstance(cmd.gate, ClassicalInstructionGate)):
+            received_commands.append(cmd)
+    for cmd in received_commands:
+        print(cmd)
+    assert len(received_commands) == 1
+    assert received_commands[0].gate == H
+    assert received_commands[0].tags == "NewTag"

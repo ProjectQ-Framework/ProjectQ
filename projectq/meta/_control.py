@@ -14,11 +14,11 @@
 Contains the tools to make an entire section of operations controlled.
 
 Example:
-	.. code-block:: python
-	
-		with Control(eng, qubit1):
-			H | qubit2
-			X | qubit3
+    .. code-block:: python
+
+        with Control(eng, qubit1):
+            H | qubit2
+            X | qubit3
 """
 
 from projectq.cengines import BasicEngine
@@ -28,94 +28,94 @@ from projectq.types import BasicQubit
 
 
 class ControlEngine(BasicEngine):
-	"""
-	Adds control qubits to all commands that have no compute / uncompute tags.
-	"""
+    """
+    Adds control qubits to all commands that have no compute / uncompute tags.
+    """
 
-	def __init__(self, qubits):
-		"""
-		Initialize the control engine.
+    def __init__(self, qubits):
+        """
+        Initialize the control engine.
 
-		Args:
-			qubits (list of Qubit objects): qubits conditional on which the following
-			operations are executed.
-		"""
-		BasicEngine.__init__(self)
-		self._qubits = qubits
+        Args:
+            qubits (list of Qubit objects): qubits conditional on which the following
+            operations are executed.
+        """
+        BasicEngine.__init__(self)
+        self._qubits = qubits
 
-	def _has_compute_uncompute_tag(self, cmd):
-		"""
-		Return True if command cmd has a compute/uncompute tag.
+    def _has_compute_uncompute_tag(self, cmd):
+        """
+        Return True if command cmd has a compute/uncompute tag.
 
-		Args:
-			cmd (Command object): a command object.
-		"""
-		for t in cmd.tags:
-			if t in [UncomputeTag(), ComputeTag()]:
-				return True
-		return False
+        Args:
+            cmd (Command object): a command object.
+        """
+        for t in cmd.tags:
+            if t in [UncomputeTag(), ComputeTag()]:
+                return True
+        return False
 
-	def _handle_command(self, cmd):
-		if (not self._has_compute_uncompute_tag(cmd) and not
-					isinstance(cmd.gate, ClassicalInstructionGate)):
-			cmd.add_control_qubits(self._qubits)
-		self.send([cmd])
+    def _handle_command(self, cmd):
+        if (not self._has_compute_uncompute_tag(cmd) and not
+                    isinstance(cmd.gate, ClassicalInstructionGate)):
+            cmd.add_control_qubits(self._qubits)
+        self.send([cmd])
 
-	def receive(self, command_list):
-		for cmd in command_list:
-			self._handle_command(cmd)
+    def receive(self, command_list):
+        for cmd in command_list:
+            self._handle_command(cmd)
 
 
 class Control(object):
-	"""
-	Condition an entire code block on the value of qubits being 1.
+    """
+    Condition an entire code block on the value of qubits being 1.
 
-	Example:
-		.. code-block:: python
-		
-			with Control(eng, ctrlqubits):
-				do_something(otherqubits)
-	"""
+    Example:
+        .. code-block:: python
 
-	def __init__(self, engine, qubits):
-		"""
-		Enter a controlled section.
+            with Control(eng, ctrlqubits):
+                do_something(otherqubits)
+    """
 
-		Args:
-			engine: Engine which handles the commands (usually MainEngine)
-			qubits (list of Qubit objects): Qubits to condition on
+    def __init__(self, engine, qubits):
+        """
+        Enter a controlled section.
 
-		Enter the section using a with-statement:
-		
-		.. code-block:: python
-		
-			with Control(eng, ctrlqubits):
-				...
-		"""
-		self.engine = engine
-		assert(not isinstance(qubits, tuple))
-		if isinstance(qubits, BasicQubit):
-			qubits = [qubits]
-		self._qubits = qubits
+        Args:
+            engine: Engine which handles the commands (usually MainEngine)
+            qubits (list of Qubit objects): Qubits to condition on
 
-	def __enter__(self):
-		if len(self._qubits) > 0:
-			ce = ControlEngine(self._qubits)
-			ce.main_engine = self.engine.main_engine
-			oldnext = self.engine.next_engine
-			self.engine.next_engine = ce
-			ce.next_engine = oldnext
-			self._ce = ce
+        Enter the section using a with-statement:
 
-	def __exit__(self, type, value, traceback):
-		# remove control handler from engine list (i.e. skip it)
-		if len(self._qubits) > 0:
-			oldnext = self._ce.next_engine
-			self.engine.next_engine = oldnext
+        .. code-block:: python
+
+            with Control(eng, ctrlqubits):
+                ...
+        """
+        self.engine = engine
+        assert(not isinstance(qubits, tuple))
+        if isinstance(qubits, BasicQubit):
+            qubits = [qubits]
+        self._qubits = qubits
+
+    def __enter__(self):
+        if len(self._qubits) > 0:
+            ce = ControlEngine(self._qubits)
+            ce.main_engine = self.engine.main_engine
+            oldnext = self.engine.next_engine
+            self.engine.next_engine = ce
+            ce.next_engine = oldnext
+            self._ce = ce
+
+    def __exit__(self, type, value, traceback):
+        # remove control handler from engine list (i.e. skip it)
+        if len(self._qubits) > 0:
+            oldnext = self._ce.next_engine
+            self.engine.next_engine = oldnext
 
 
 def get_control_count(cmd):
-	"""
-	Return the number of control qubits of the command object cmd
-	"""
-	return len(cmd.control_qubits)
+    """
+    Return the number of control qubits of the command object cmd
+    """
+    return len(cmd.control_qubits)

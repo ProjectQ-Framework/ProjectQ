@@ -20,17 +20,17 @@ from projectq.cengines._replacer import _decompositionhandling
 
 
 def test_register_decomposition_wrong_input():
-	class WrongInput(BasicRotationGate):
-		pass
-	
-	def decompose_func(cmd):
-		pass
-	
-	def recognize_func(cmd):
-		pass
-	
-	with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
-		_decompositionhandling.register_decomposition(WrongInput.__class__, 
-		                                     decompose_func, recognize_func)
-	decompose_func("")
-	recognize_func("")
+    class WrongInput(BasicRotationGate):
+        pass
+
+    def decompose_func(cmd):
+        pass
+
+    def recognize_func(cmd):
+        pass
+
+    with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
+        _decompositionhandling.register_decomposition(WrongInput.__class__,
+                                             decompose_func, recognize_func)
+    decompose_func("")
+    recognize_func("")
