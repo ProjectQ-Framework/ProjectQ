@@ -13,40 +13,24 @@
 """
 Registers a variety of useful gate decompositions. Among others it includes
 
-	* Controlled z-rotations --> Controlled NOTs and single-qubit rotations
-	* Toffoli gate --> CNOT and single-qubit gates
-	* m-Controlled global phases --> (m-1)-controlled phase-shifts
-	* Global phases --> ignore
-	* (controlled) Swap gates --> CNOTs and Toffolis
+    * Controlled z-rotations --> Controlled NOTs and single-qubit rotations
+    * Toffoli gate --> CNOT and single-qubit gates
+    * m-Controlled global phases --> (m-1)-controlled phase-shifts
+    * Global phases --> ignore
+    * (controlled) Swap gates --> CNOTs and Toffolis
 """
 
 import projectq
+import projectq.setups.decompositions
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                DecompositionRuleSet)
 
-from projectq.setups.decompositions import (crz2cxandrz,
-                                            r2rzandph,
-                                            ph2r,
-                                            globalphase,
-                                            swap2cnot,
-                                            toffoli2cnotandtgate,
-                                            entangle,
-                                            qft2crandhadamard)
-
 
 def default_engines():
-    dh = DecompositionRuleSet(modules=(crz2cxandrz,
-                                       r2rzandph,
-                                       ph2r,
-                                       globalphase,
-                                       swap2cnot,
-                                       toffoli2cnotandtgate,
-                                       entangle,
-                                       qft2crandhadamard))
+    dh = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(), LocalOptimizer(10), AutoReplacer(dh), TagRemover(),
             LocalOptimizer(10)]
-
 
 projectq.default_engines = default_engines
