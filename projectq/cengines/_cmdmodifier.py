@@ -52,4 +52,4 @@ class CommandModifier(BasicEngine):
 				(after modification) send on.
 		"""
 		new_command_list = [self._cmd_mod_fun(cmd) for cmd in command_list]
-		self.send(command_list)
+		self.send(new_command_list)
