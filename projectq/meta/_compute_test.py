@@ -53,7 +53,7 @@ def test_compute_engine():
     backend = DummyEngine(save_commands=True)
     compute_engine = _compute.ComputeEngine()
     eng = MainEngine(backend=backend, engine_list=[compute_engine])
-    ancilla = eng.allocate_qubit() # Ancilla
+    ancilla = eng.allocate_qubit()  # Ancilla
     H | ancilla
     Rx(0.6) | ancilla
     ancilla[0].__del__()
@@ -101,6 +101,7 @@ def test_uncompute_engine():
     assert backend.received_commands[0].tags == [_compute.UncomputeTag()]
     assert backend.received_commands[1].gate == H
     assert backend.received_commands[1].tags == [_compute.UncomputeTag()]
+
 
 def test_outside_qubit_deallocated_in_compute():
     # Test that there is an error if a qubit is deallocated which has
@@ -193,7 +194,7 @@ def test_compute_uncompute_no_additional_qubits():
     assert backend0.received_commands[3].tags == [_compute.UncomputeTag()]
     assert backend0.received_commands[4].tags == []
     # Same using CustomUncompute and test using CompareEngine
-    backend1 = DummyEngine(save_commands = True)
+    backend1 = DummyEngine(save_commands=True)
     compare_engine1 = CompareEngine()
     eng1 = MainEngine(backend=backend1, engine_list=[compare_engine1])
     qubit = eng1.allocate_qubit()
@@ -212,6 +213,7 @@ def test_compute_uncompute_with_statement():
     compare_engine0 = CompareEngine()
     # Allow dirty qubits
     dummy_cengine = DummyEngine()
+
     def allow_dirty_qubits(self, meta_tag):
         return meta_tag == DirtyQubitTag
     dummy_cengine.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
@@ -222,7 +224,8 @@ def test_compute_uncompute_with_statement():
     with _compute.Compute(eng):
         Rx(0.9) | qubit
         ancilla = eng.allocate_qubit(dirty=True)
-        ancilla2 = eng.allocate_qubit() # will be deallocated in Uncompute section
+        # ancilla2 will be deallocated in Uncompute section:
+        ancilla2 = eng.allocate_qubit()
         # Test that ancilla is registered in MainEngine.active_qubits:
         assert ancilla[0] in eng.active_qubits
         H | qubit
@@ -288,7 +291,8 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[4].qubits[0][0].id == qubit_id
     assert backend.received_commands[5].qubits[0][0].id == ancilla_compt_id
     assert backend.received_commands[6].qubits[0][0].id == qubit_id
-    assert backend.received_commands[6].control_qubits[0].id == ancilla_compt_id
+    assert (backend.received_commands[6].control_qubits[0].id ==
+            ancilla_compt_id)
     assert backend.received_commands[7].qubits[0][0].id == qubit_id
     assert backend.received_commands[8].qubits[0][0].id == ancilla_compt_id
     assert backend.received_commands[9].qubits[0][0].id == ancilla_compt_id
@@ -307,22 +311,25 @@ def test_compute_uncompute_with_statement():
     # Test that ancilla qubits should have seperate ids
     assert ancilla_uncompt_id != ancilla_compt_id
 
-    # Do the same thing with CustomUncompute and compare using the CompareEngine:
+    # Do the same thing with CustomUncompute and compare using the
+    # CompareEngine:
     backend1 = DummyEngine(save_commands=True)
     compare_engine1 = CompareEngine()
     # Allow dirty qubits
     dummy_cengine1 = DummyEngine()
+
     def allow_dirty_qubits(self, meta_tag):
         return meta_tag == DirtyQubitTag
     dummy_cengine1.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
                                                           dummy_cengine1)
     eng1 = MainEngine(backend=backend1,
-                     engine_list=[compare_engine1, dummy_cengine1])
+                      engine_list=[compare_engine1, dummy_cengine1])
     qubit = eng1.allocate_qubit()
     with _compute.Compute(eng1):
         Rx(0.9) | qubit
         ancilla = eng1.allocate_qubit(dirty=True)
-        ancilla2 = eng1.allocate_qubit() # will be deallocated in Uncompute section
+        # ancilla2 will be deallocated in Uncompute section:
+        ancilla2 = eng1.allocate_qubit()
         # Test that ancilla is registered in MainEngine.active_qubits:
         assert ancilla[0] in eng1.active_qubits
         H | qubit

@@ -72,8 +72,8 @@ class LoopEngine(BasicEngine):
         self._deallocated_qubit_ids = set()
         # key: qubit id of a local qubit, i.e. a qubit which has been allocated
         #      and deallocated within the loop body.
-        # value: list contain reference to each weakref qubit with this qubit id
-        #        either within control_qubits or qubits.
+        # value: list contain reference to each weakref qubit with this qubit
+        #        id either within control_qubits or qubits.
         self._refs_to_local_qb = dict()
         self._next_engines_support_loop_tag = False
 
@@ -87,14 +87,13 @@ class LoopEngine(BasicEngine):
         .. code-block:: python
             is_meta_tag_supported(next_engine, LoopTag) == False
         """
-        error_message = ("\n Error. Qubits have been allocated in with " +
-                    "Loop(eng, num) context,\n which have not explicitely " +
-                    "been deallocated in the Loop context.\n" +
-                    "Correct usage:\n" +
-                    "with Loop(eng, 5):\n" +
-                    "    qubit = eng.allocate_qubit()\n" +
-                    "    ...\n" +
-                    "    del qubit[0]\n")
+        error_message = ("\n Error. Qubits have been allocated in with "
+                         "Loop(eng, num) context,\n which have not "
+                         "explicitely been deallocated in the Loop context.\n"
+                         "Correct usage:\nwith Loop(eng, 5):\n"
+                         "    qubit = eng.allocate_qubit()\n"
+                         "    ...\n"
+                         "    del qubit[0]\n")
         if not self._next_engines_support_loop_tag:
             # Unroll the loop
             # Check that local qubits have been deallocated:
@@ -110,7 +109,7 @@ class LoopEngine(BasicEngine):
                 # For each iteration, allocate and deallocate a new qubit and
                 # replace the qubit id in all commands using it.
                 for i in range(self._tag.num):
-                    if i == 0: # Don't change local qubit ids
+                    if i == 0:  # Don't change local qubit ids
                         self.send(deepcopy(self._cmd_list))
                     else:
                         # Change local qubit ids before sending them
@@ -139,11 +138,12 @@ class LoopEngine(BasicEngine):
         unrolling the loop)
 
         Args:
-            command_list (list<Command>): List of commands to store and later unroll
-                or, if there is a LoopTag-handling engine, add the LoopTag.
+            command_list (list<Command>): List of commands to store and later
+                unroll or, if there is a LoopTag-handling engine, add the
+                LoopTag.
         """
         if (self._next_engines_support_loop_tag or
-            self.next_engine.is_meta_tag_supported(LoopTag)):
+           self.next_engine.is_meta_tag_supported(LoopTag)):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
@@ -163,24 +163,24 @@ class LoopEngine(BasicEngine):
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
                     self._refs_to_local_qb[cmd.qubits[0][0].id] = (
-                                                        [cmd.qubits[0][0]])
+                        [cmd.qubits[0][0]])
                 elif cmd.gate == Deallocate:
                     self._deallocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
                     self._refs_to_local_qb[cmd.qubits[0][0].id].append(
-                                                        cmd.qubits[0][0])
+                        cmd.qubits[0][0])
                 else:
                     # Add a reference to each place a local qubit id is
                     # used as within either control_qubit or qubits
                     for control_qubit in cmd.control_qubits:
                         if control_qubit.id in self._allocated_qubit_ids:
                             self._refs_to_local_qb[control_qubit.id].append(
-                                                              control_qubit)
+                                control_qubit)
                     for qureg in cmd.qubits:
                         for qubit in qureg:
                             if qubit.id in self._allocated_qubit_ids:
                                 self._refs_to_local_qb[qubit.id].append(
-                                                                      qubit)
+                                    qubit)
 
 
 class Loop(object):

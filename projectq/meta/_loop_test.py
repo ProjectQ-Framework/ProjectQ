@@ -99,7 +99,7 @@ def test_loop_with_supported_loop_tag_and_local_qubits():
     assert loop_tag.num == 6
     for ii in [0, 1, 11, 12, 13]:
         assert backend.received_commands[ii].tags == []
-    for ii in range(2,9):
+    for ii in range(2, 9):
         assert backend.received_commands[ii].tags == [loop_tag]
 
 
@@ -151,21 +151,21 @@ def test_loop_unrolling_with_ancillas():
         assert backend.received_commands[ii * 4 + 4].gate == Deallocate
         # Check qubit ids
         assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-            backend.received_commands[ii * 4 + 2].qubits[0][0].id)
+                backend.received_commands[ii * 4 + 2].qubits[0][0].id)
         assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-            backend.received_commands[ii * 4 + 3].control_qubits[0].id)
+                backend.received_commands[ii * 4 + 3].control_qubits[0].id)
         assert (backend.received_commands[ii * 4 + 3].qubits[0][0].id ==
-            qubit_id)
+                qubit_id)
         assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-            backend.received_commands[ii * 4 + 4].qubits[0][0].id)
+                backend.received_commands[ii * 4 + 4].qubits[0][0].id)
     assert backend.received_commands[13].gate == Deallocate
     assert backend.received_commands[14].gate == FlushGate()
     assert (backend.received_commands[1].qubits[0][0].id !=
-        backend.received_commands[5].qubits[0][0].id)
+            backend.received_commands[5].qubits[0][0].id)
     assert (backend.received_commands[1].qubits[0][0].id !=
-        backend.received_commands[9].qubits[0][0].id)
+            backend.received_commands[9].qubits[0][0].id)
     assert (backend.received_commands[5].qubits[0][0].id !=
-        backend.received_commands[9].qubits[0][0].id)
+            backend.received_commands[9].qubits[0][0].id)
 
 
 def test_nested_loop():
@@ -187,7 +187,7 @@ def test_nested_loop():
     assert backend.received_commands[1].tags[0].num == 4
     assert backend.received_commands[1].tags[1].num == 3
     assert (backend.received_commands[1].tags[0].id !=
-                  backend.received_commands[1].tags[1].id)
+            backend.received_commands[1].tags[1].id)
 
 
 def test_qubit_management_error():

@@ -64,7 +64,8 @@ class DaggerEngine(BasicEngine):
         Receive a list of commands and store them for later inversion.
 
         Args:
-            command_list (list<Command>): List of commands to temporarily store.
+            command_list (list<Command>): List of commands to temporarily
+                store.
         """
         for cmd in command_list:
             if cmd.gate == Allocate:

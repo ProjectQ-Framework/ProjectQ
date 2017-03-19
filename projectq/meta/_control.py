@@ -37,8 +37,8 @@ class ControlEngine(BasicEngine):
         Initialize the control engine.
 
         Args:
-            qubits (list of Qubit objects): qubits conditional on which the following
-            operations are executed.
+            qubits (list of Qubit objects): qubits conditional on which the
+                following operations are executed.
         """
         BasicEngine.__init__(self)
         self._qubits = qubits
@@ -57,7 +57,7 @@ class ControlEngine(BasicEngine):
 
     def _handle_command(self, cmd):
         if (not self._has_compute_uncompute_tag(cmd) and not
-                    isinstance(cmd.gate, ClassicalInstructionGate)):
+           isinstance(cmd.gate, ClassicalInstructionGate)):
             cmd.add_control_qubits(self._qubits)
         self.send([cmd])
 
