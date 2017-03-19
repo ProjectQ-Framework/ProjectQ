@@ -58,7 +58,8 @@ class BasicQubit(object):
 
     def __bool__(self):
         """
-        Access the result of a previous measurement and return False / True (0/1)
+        Access the result of a previous measurement and return False / True
+        (0 / 1)
         """
         return self.engine.main_engine.get_measurement_result(self)
 
@@ -70,7 +71,8 @@ class BasicQubit(object):
 
     def __int__(self):
         """
-        Access the result of a previous measurement and return as integer (0 / 1).
+        Access the result of a previous measurement and return as integer
+        (0 / 1).
         """
         return int(bool(self))
 
@@ -102,10 +104,12 @@ class Qubit(BasicQubit):
     Qubit class.
 
     Represents a (logical-level) qubit with a unique index provided by the
-    MainEngine. Once the qubit goes out of scope (and is garbage-collected), it
-    deallocates itself automatically, allowing automatic resource management.
+    MainEngine. Once the qubit goes out of scope (and is garbage-collected),
+    it deallocates itself automatically, allowing automatic resource
+    management.
 
-    Thus the qubit is not copyable; only returns a reference to the same object.
+    Thus the qubit is not copyable; only returns a reference to the same
+    object.
     """
     def __del__(self):
         """
@@ -119,7 +123,8 @@ class Qubit(BasicQubit):
         Non-copyable (returns reference to self).
 
         Note:
-            To prevent problems with automatic deallocation, qubits are not copyable!
+            To prevent problems with automatic deallocation, qubits are not
+                copyable!
         """
         return self
 
@@ -128,7 +133,8 @@ class Qubit(BasicQubit):
         Non-deepcopyable (returns reference to self).
 
         Note:
-            To prevent problems with automatic deallocation, qubits are not deepcopyable!
+            To prevent problems with automatic deallocation, qubits are not
+                deepcopyable!
         """
         return self
 
@@ -137,11 +143,11 @@ class WeakQubitRef(BasicQubit):
     """
     WeakQubitRef objects are used inside the Command object.
 
-    Qubits feature automatic deallocation when destroyed. WeakQubitRefs, on the
-    other hand, do not share this feature, allowing to copy them and pass them
-    along the compiler pipeline, while the actual qubit objects may be garbage-
-    collected (and, thus, cleaned up early). Otherwise there is no difference
-    between a WeakQubitRef and a Qubit object.
+    Qubits feature automatic deallocation when destroyed. WeakQubitRefs, on
+    the other hand, do not share this feature, allowing to copy them and pass
+    them along the compiler pipeline, while the actual qubit objects may be
+    garbage-collected (and, thus, cleaned up early). Otherwise there is no
+    difference between a WeakQubitRef and a Qubit object.
     """
     pass
 
@@ -165,8 +171,8 @@ class Qureg(list):
         if len(self) == 1:
             return bool(self[0])
         else:
-            raise Exception("__bool__(qureg): Quantum register contains more than 1"
-                            "qubit. Use __bool__(qureg[idx]) instead.")
+            raise Exception("__bool__(qureg): Quantum register contains more "
+                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
 
     def __int__(self):
         """
@@ -179,8 +185,8 @@ class Qureg(list):
         if len(self) == 1:
             return int(self[0])
         else:
-            raise Exception("__int__(qureg): Quantum register contains more than 1"
-                            "qubit. Use __int__(qureg[idx]) instead.")
+            raise Exception("__int__(qureg): Quantum register contains more "
+                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
 
     def __nonzero__(self):
         """
@@ -190,11 +196,7 @@ class Qureg(list):
             Exception if more than 1 qubit resides in this register (then you
             need to specify which value to get using qureg[???])
         """
-        if len(self) == 1:
-            return int(self[0])
-        else:
-            raise Exception("__int__(qureg): Quantum register contains more than 1"
-                            "qubit. Use __int__(qureg[idx]) instead.")
+        return int(self) != 0
 
     def __str__(self):
         """

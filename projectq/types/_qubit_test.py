@@ -29,7 +29,7 @@ def test_basic_qubit_str(qubit_id):
 
 
 def test_basic_qubit_measurement():
-    eng = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit0 = eng.allocate_qubit()[0]
     qubit1 = eng.allocate_qubit()[0]
     eng.set_measurement_result(qubit0, False)
@@ -103,7 +103,7 @@ def test_qubit_del(mock_main_engine):
 
 
 def test_qubit_not_copyable():
-    eng = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit = _qubit.Qubit(eng, 10)
     qubit_copy = copy(qubit)
     assert id(qubit) == id(qubit_copy)
@@ -118,10 +118,10 @@ def test_weak_qubit_ref():
         qubit.__del__()
 
 
-@pytest.mark.parametrize("qubit_ids, expected", [
-    ([10], "Qubit[10]"), ([1, 2, 3],"Qureg[1, 2, 3]")])
+@pytest.mark.parametrize("qubit_ids, expected",
+                         [([10], "Qubit[10]"), ([1, 2, 3], "Qureg[1, 2, 3]")])
 def test_qureg(qubit_ids, expected):
-    eng = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qureg = _qubit.Qureg()
     for qubit_id in qubit_ids:
         qubit = _qubit.Qubit(eng, qubit_id)
@@ -130,7 +130,7 @@ def test_qureg(qubit_ids, expected):
 
 
 def test_qureg_measure_if_qubit():
-    eng = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qureg0 = _qubit.Qureg(eng.allocate_qubit())
     qureg1 = _qubit.Qureg(eng.allocate_qubit())
     eng.set_measurement_result(qureg0[0], False)
@@ -149,9 +149,9 @@ def test_qureg_measure_if_qubit():
 
 
 def test_qureg_measure_exception():
-    eng = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qureg = _qubit.Qureg()
-    for qubit_id in [0,1]:
+    for qubit_id in [0, 1]:
         qubit = _qubit.Qubit(eng, qubit_id)
         qureg.append(qubit)
     with pytest.raises(Exception):
@@ -163,8 +163,8 @@ def test_qureg_measure_exception():
 
 
 def test_qureg_engine():
-    eng1 = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
-    eng2 = MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    eng1 = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    eng2 = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qureg = _qubit.Qureg([_qubit.Qubit(eng1, 0), _qubit.Qubit(eng1, 1)])
     assert eng1 == qureg.engine
     qureg.engine = eng2
