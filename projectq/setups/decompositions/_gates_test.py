@@ -43,7 +43,7 @@ def low_level_gates(eng, cmd):
         return True
     if len(cmd.control_qubits) == 0:
         if (g == T or g == Tdag or g == H or isinstance(g, Rz)
-            or isinstance(g, Ph)):
+           or isinstance(g, Ph)):
             return True
     else:
         if len(cmd.control_qubits) == 1 and cmd.gate == X:
@@ -70,8 +70,8 @@ def low_level_gates_noglobalphase(eng, cmd):
 
 def test_globalphase():
     dummy = DummyEngine(save_commands=True)
-    eng = MainEngine(dummy, [AutoReplacer(),
-                           InstructionFilter(low_level_gates_noglobalphase)])
+    filter_engine = InstructionFilter(low_level_gates_noglobalphase)
+    eng = MainEngine(dummy, [AutoReplacer(), filter_engine])
 
     qubit = eng.allocate_qubit()
     R(1.2) | qubit
@@ -105,7 +105,7 @@ def test_gate_decompositions():
 
     sim2 = Simulator()
     eng_lowlevel = MainEngine(sim2, [AutoReplacer(),
-                                    InstructionFilter(low_level_gates)])
+                                     InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
 
     for i in range(len(sim.cheat()[1])):

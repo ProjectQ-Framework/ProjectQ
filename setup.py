@@ -11,6 +11,7 @@ exec(open('projectq/_version.py').read())
 # Readme file as long_description:
 long_description = open('README.rst').read()
 
+
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
 
@@ -33,7 +34,7 @@ cppsim = Feature(
         Extension(
             'projectq.backends._sim._cppsim',
             ['projectq/backends/_sim/_cppsim.cpp'],
-                include_dirs=[
+            include_dirs=[
                 # Path to pybind11 headers
                 get_pybind_include(),
                 get_pybind_include(user=True)
@@ -110,7 +111,7 @@ class BuildExt(build_ext):
         elif has_flag(self.compiler, '-openmp'):
             openmp = '-openmp'
         if ct == 'msvc':
-            openmp = '' # supports only OpenMP 2.0
+            openmp = ''  # supports only OpenMP 2.0
 
         if knows_intrinsics(self.compiler):
             opts.append('-DINTRIN')
@@ -125,12 +126,14 @@ class BuildExt(build_ext):
                 self.warning("Compiler needs to have C++11 support!")
                 return
 
-            opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
+            opts.append('-DVERSION_INFO="%s"'
+                        % self.distribution.get_version())
             opts.append('-std=c++11')
             if has_flag(self.compiler, '-fvisibility=hidden'):
                 opts.append('-fvisibility=hidden')
         elif ct == 'msvc':
-            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
+            opts.append('/DVERSION_INFO=\\"%s\\"'
+                        % self.distribution.get_version())
         for ext in self.extensions:
             ext.extra_compile_args = opts
             ext.extra_link_args = [openmp]
@@ -142,8 +145,8 @@ class BuildExt(build_ext):
     def warning(self, warning_text):
         Exception(warning_text + "\nCould not install the C++-Simulator.\n"
                   "ProjectQ will default to the (slow) Python simulator.\n"
-                  "Use --without-cppsimulator to skip building the (faster) C++"
-                  " version of the simulator.")
+                  "Use --without-cppsimulator to skip building the (faster) "
+                  "C++ version of the simulator.")
 
 
 setup(
@@ -153,11 +156,11 @@ setup(
     author_email='info@projectq.ch',
     url='http://www.projectq.ch',
     description=('ProjectQ - '
-                'An open source software framework for quantum computing'),
+                 'An open source software framework for quantum computing'),
     long_description=long_description,
     features={'cppsimulator': cppsim},
     install_requires=['numpy', 'future', 'pytest>=3.0',
-                      'pybind11>=1.7','requests'],
+                      'pybind11>=1.7', 'requests'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
     license='Apache 2',

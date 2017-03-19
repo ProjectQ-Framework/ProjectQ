@@ -67,8 +67,8 @@ def test_send_real_device_online_verbose(monkeypatch):
 
         # Accessing status of device. Return online.
         if (args[0] == urljoin(_api_url_status, "Status/queue") and
-            kwargs["params"]["device"] == "chip_real" and
-            request_num[0] == 0):
+           kwargs["params"]["device"] == "chip_real" and
+           request_num[0] == 0):
             request_num[0] += 1
             return MockResponse({"state": True}, 200)
         # Getting result
@@ -168,7 +168,7 @@ def test_send_real_device_offline(monkeypatch):
 
         # Accessing status of device. Return online.
         if (args[0] == urljoin(_api_url_status, "Status/queue") and
-            kwargs["params"]["device"] == "chip_real"):
+           kwargs["params"]["device"] == "chip_real"):
             return MockResponse({"state": False}, 200)
     monkeypatch.setattr("requests.get", mocked_requests_get)
     shots = 1
@@ -193,7 +193,7 @@ def test_send_that_errors_are_caught(monkeypatch):
 
         # Accessing status of device. Return online.
         if (args[0] == urljoin(_api_url_status, "Status/queue") and
-            kwargs["params"]["device"] == "chip_real"):
+           kwargs["params"]["device"] == "chip_real"):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -234,7 +234,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
 
         # Accessing status of device. Return online.
         if (args[0] == urljoin(_api_url_status, "Status/queue") and
-            kwargs["params"]["device"] == "chip_real"):
+           kwargs["params"]["device"] == "chip_real"):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -275,7 +275,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
 
         # Accessing status of device. Return online.
         if (args[0] == urljoin(_api_url_status, "Status/queue") and
-            kwargs["params"]["device"] == "chip_real"):
+           kwargs["params"]["device"] == "chip_real"):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):

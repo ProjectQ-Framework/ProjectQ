@@ -96,8 +96,8 @@ class Simulator(BasicEngine):
             True if it can be simulated and False otherwise.
         """
         if (cmd.gate == Measure or cmd.gate == Allocate
-            or cmd.gate == Deallocate
-            or isinstance(cmd.gate, BasicMathGate)):
+           or cmd.gate == Deallocate
+           or isinstance(cmd.gate, BasicMathGate)):
             return True
         try:
             m = cmd.gate.matrix
