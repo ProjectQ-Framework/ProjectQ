@@ -15,8 +15,8 @@ from projectq.ops import BasicMathGate
 
 class AddConstant(BasicMathGate):
     """
-    Add a constant to a quantum number represented by a quantum register, stored
-    from low- to high-bit.
+    Add a constant to a quantum number represented by a quantum register,
+    stored from low- to high-bit.
 
     Example:
         .. code-block:: python
@@ -32,8 +32,8 @@ class AddConstant(BasicMathGate):
         Args:
             a (int): Number to add to a quantum register.
 
-        It also initializes its base class, BasicMathGate, with the corresponding
-        function, so it can be emulated efficiently.
+        It also initializes its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((x + a),))
         self.a = a
@@ -45,7 +45,7 @@ class AddConstant(BasicMathGate):
         return SubConstant(self.a)
 
     def __str__(self):
-        return "AddConstant(" + str(self.a) + ")"
+        return "AddConstant({})".format(self.a)
 
     def __eq__(self, other):
         return isinstance(other, AddConstant) and self.a == other.a
@@ -56,8 +56,8 @@ class AddConstant(BasicMathGate):
 
 def SubConstant(a):
     """
-    Subtract a constant from a quantum number represented by a quantum register,
-    stored from low- to high-bit.
+    Subtract a constant from a quantum number represented by a quantum
+    register, stored from low- to high-bit.
 
     Args:
         a (int): Constant to subtract
@@ -74,7 +74,8 @@ def SubConstant(a):
 
 class AddConstantModN(BasicMathGate):
     """
-    Add a constant to a quantum number represented by a quantum register modulo N.
+    Add a constant to a quantum number represented by a quantum register
+    modulo N.
 
     The number is stored from low- to high-bit, i.e., qunum[0] is the LSB.
 
@@ -93,20 +94,20 @@ class AddConstantModN(BasicMathGate):
             a (int): Number to add to a quantum register (0 <= a < N).
             N (int): Number modulo which the addition is carried out.
 
-        It also initializes its base class, BasicMathGate, with the corresponding
-        function, so it can be emulated efficiently.
+        It also initializes its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((x + a) % N,))
         self.a = a
         self.N = N
 
     def __str__(self):
-        return "AddConstantModN(" + str(self.a) + ", " + str(self.N) + ")"
+        return "AddConstantModN({}, {})".format(self.a, self.N)
 
     def get_inverse(self):
         """
-        Return the inverse gate (subtraction of the same number a modulo the same
-        number N).
+        Return the inverse gate (subtraction of the same number a modulo the
+        same number N).
         """
         return SubConstantModN(self.a, self.N)
 
@@ -120,21 +121,22 @@ class AddConstantModN(BasicMathGate):
 
 def SubConstantModN(a, N):
     """
-    Subtract a constant from a quantum number represented by a quantum register
-    modulo N.
+    Subtract a constant from a quantum number represented by a quantum
+    register modulo N.
 
     The number is stored from low- to high-bit, i.e., qunum[0] is the LSB.
 
     Args:
         a (int): Constant to add
-        N (int): Constant modulo which the addition of a should be carried out.
+        N (int): Constant modulo which the addition of a should be carried
+            out.
 
     Example:
         .. code-block:: python
 
             qunum = eng.allocate_qureg(3) # 3-qubit number
             X | qunum[1] # qunum is now equal to 2
-            SubConstantModN(4,5) | qunum # qunum is now equal to -2 = 6 = 1 (mod 5)
+            SubConstantModN(4,5) | qunum # qunum is now -2 = 6 = 1 (mod 5)
     """
     return AddConstantModN(N - a, N)
 
@@ -151,25 +153,26 @@ class MultiplyByConstantModN(BasicMathGate):
 
             qunum = eng.allocate_qureg(5) # 5-qubit number
             X | qunum[2] # qunum is now equal to 4
-            MultiplyByConstantModN(3,5) | qunum # qunum is now equal to 2 (mod 5)
+            MultiplyByConstantModN(3,5) | qunum # qunum is now 2.
     """
     def __init__(self, a, N):
         """
         Initializes the gate to the number to multiply with modulo N.
 
         Args:
-            a (int): Number by which to multiply a quantum register (0 <= a < N).
+            a (int): Number by which to multiply a quantum register
+                (0 <= a < N).
             N (int): Number modulo which the multiplication is carried out.
 
-        It also initializes its base class, BasicMathGate, with the corresponding
-        function, so it can be emulated efficiently.
+        It also initializes its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((a * x) % N,))
         self.a = a
         self.N = N
 
     def __str__(self):
-        return "MultiplyByConstantModN(" + str(self.a) + ", " + str(self.N) + ")"
+        return "MultiplyByConstantModN({}, {})".format(self.a, self.N)
 
     def __eq__(self, other):
         return (isinstance(other, MultiplyByConstantModN) and

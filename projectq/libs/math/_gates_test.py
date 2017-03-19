@@ -28,20 +28,20 @@ def test_addconstant():
 
 
 def test_addconstantmodn():
-    assert AddConstantModN(3,4) == AddConstantModN(3,4)
-    assert not AddConstantModN(3,4) == AddConstantModN(4,4)
-    assert not AddConstantModN(3,5) == AddConstantModN(3,4)
-    assert AddConstantModN(7,4) != AddConstantModN(3,4)
-    assert AddConstantModN(3,5) != AddConstantModN(3,4)
+    assert AddConstantModN(3, 4) == AddConstantModN(3, 4)
+    assert not AddConstantModN(3, 4) == AddConstantModN(4, 4)
+    assert not AddConstantModN(3, 5) == AddConstantModN(3, 4)
+    assert AddConstantModN(7, 4) != AddConstantModN(3, 4)
+    assert AddConstantModN(3, 5) != AddConstantModN(3, 4)
 
-    assert str(AddConstantModN(3,4)) == "AddConstantModN(3, 4)"
+    assert str(AddConstantModN(3, 4)) == "AddConstantModN(3, 4)"
 
 
 def test_multiplybyconstmodn():
-    assert MultiplyByConstantModN(3,4) == MultiplyByConstantModN(3,4)
-    assert not MultiplyByConstantModN(3,4) == MultiplyByConstantModN(4,4)
-    assert not MultiplyByConstantModN(3,5) == MultiplyByConstantModN(3,4)
-    assert MultiplyByConstantModN(7,4) != MultiplyByConstantModN(3,4)
-    assert MultiplyByConstantModN(3,5) != MultiplyByConstantModN(3,4)
+    assert MultiplyByConstantModN(3, 4) == MultiplyByConstantModN(3, 4)
+    assert not MultiplyByConstantModN(3, 4) == MultiplyByConstantModN(4, 4)
+    assert not MultiplyByConstantModN(3, 5) == MultiplyByConstantModN(3, 4)
+    assert MultiplyByConstantModN(7, 4) != MultiplyByConstantModN(3, 4)
+    assert MultiplyByConstantModN(3, 5) != MultiplyByConstantModN(3, 4)
 
-    assert str(MultiplyByConstantModN(3,4)) == "MultiplyByConstantModN(3, 4)"
+    assert str(MultiplyByConstantModN(3, 4)) == "MultiplyByConstantModN(3, 4)"

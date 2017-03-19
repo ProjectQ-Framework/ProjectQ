@@ -26,7 +26,7 @@ from projectq.libs.math import (AddConstant,
 
 def init(engine, quint, value):
     for i in range(len(quint)):
-        if ((value >> i)&1) == 1:
+        if ((value >> i) & 1) == 1:
             X | quint[i]
 
 
@@ -55,7 +55,7 @@ def test_adder():
     init(eng, qureg, 7)  # reset
     init(eng, qureg, 2)
 
-    AddConstant(15) | qureg  # check for overflow -> should be 15+2 = 1 (mod 16)
+    AddConstant(15) | qureg  # check for overflow. Should be 15+2 = 1 (mod 16)
     assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
 
     Measure | qureg
