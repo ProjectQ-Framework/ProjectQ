@@ -42,9 +42,9 @@ class DaggeredGate(BasicGate):
     Wrapper class allowing to execute the inverse of a gate, even when it does
     not define one.
 
-    If there is a replacement available, then there is also one for the inverse,
-    namely the replacement function run in reverse, while inverting all gates.
-    This class enables using this emulation automatically.
+    If there is a replacement available, then there is also one for the
+    inverse, namely the replacement function run in reverse, while inverting
+    all gates. This class enables using this emulation automatically.
 
     A DaggeredGate is returned automatically when employing the get_inverse-
     function on a gate which does not provide a get_inverse() member function.
@@ -55,10 +55,10 @@ class DaggeredGate(BasicGate):
             with Dagger(eng):
                 MySpecialGate | qubits
 
-    will create a DaggeredGate if MySpecialGate does not implement get_inverse.
-    If there is a decomposition function available, an auto-replacer engine can
-    automatically replace the inverted gate by a call to the decomposition
-    function inside a "with Dagger"-statement.
+    will create a DaggeredGate if MySpecialGate does not implement
+    get_inverse. If there is a decomposition function available, an auto-
+    replacer engine can automatically replace the inverted gate by a call to
+    the decomposition function inside a "with Dagger"-statement.
     """
 
     def __init__(self, gate):
@@ -134,7 +134,7 @@ class ControlledGate(BasicGate):
     Example:
         .. code-block:: python
 
-            ControlledGate(gate, 2) | (qb0, qb2, qb3) # qb0 and qb2 are controls
+            ControlledGate(gate, 2) | (qb0, qb2, qb3) # qb0 & qb2 are controls
             C(gate, 2) | (qb0, qb2, qb3) # This is much nicer.
             C(gate, 2) | ([qb0,qb2], qb3) # Is equivalent
 
@@ -168,21 +168,23 @@ class ControlledGate(BasicGate):
 
     def get_inverse(self):
         """
-        Return inverse of a controlled gate, which is the controlled inverse gate.
+        Return inverse of a controlled gate, which is the controlled inverse
+        gate.
         """
         return ControlledGate(get_inverse(self._gate), self._n)
 
     def __or__(self, qubits):
         """
-        Apply the controlled gate to qubits, using the first n qubits as controls.
+        Apply the controlled gate to qubits, using the first n qubits as
+        controls.
 
-        Note: The control qubits can be split across the first quregs. However,
-              the n-th control qubit needs to be the last qubit in a qureg.
-              The following quregs belong to the gate.
+        Note: The control qubits can be split across the first quregs.
+            However, the n-th control qubit needs to be the last qubit in a
+            qureg. The following quregs belong to the gate.
 
         Args:
-            qubits (tuple of lists of Qubit objects): qubits to which to apply the
-                                                      gate.
+            qubits (tuple of lists of Qubit objects): qubits to which to apply
+                the gate.
         """
         qubits = BasicGate.make_tuple_of_qureg(qubits)
         n = self._n
@@ -198,13 +200,12 @@ class ControlledGate(BasicGate):
         # Test that there were enough control qubits and that that
         # the last control qubit was the last qubit in a qureg.
         if added_ctrl_qubits != n:
-            raise ControlQubitError("Wrong number of control qubits. " +
-                "First qureg(s) need to contain exactly the required " +
-                "number of control qubits.")
+            raise ControlQubitError("Wrong number of control qubits. "
+                                    "First qureg(s) need to contain exactly "
+                                    "the required number of control qubits.")
         cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
         cmd.add_control_qubits(ctrl)
         apply_command(cmd)
-
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """
@@ -255,8 +256,8 @@ class Tensor(BasicGate):
 
     def get_inverse(self):
         """
-        Return the inverse of this tensored gate (which is the tensored inverse of
-        the gate).
+        Return the inverse of this tensored gate (which is the tensored
+        inverse of the gate).
         """
         return Tensor(get_inverse(self._gate))
 

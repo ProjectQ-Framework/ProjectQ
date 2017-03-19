@@ -29,7 +29,7 @@ def test_h_gate():
     assert gate == gate.get_inverse()
     assert str(gate) == "H"
     assert np.array_equal(gate.matrix,
-        1. / math.sqrt(2) * np.matrix([[1, 1], [1, -1]]))
+                          1. / math.sqrt(2) * np.matrix([[1, 1], [1, -1]]))
     assert isinstance(_gates.H, _gates.HGate)
 
 
@@ -71,7 +71,8 @@ def test_t_gate():
     gate = _gates.TGate()
     assert str(gate) == "T"
     assert np.array_equal(gate.matrix,
-                    np.matrix([[1, 0], [0, cmath.exp(1j * cmath.pi / 4)]]))
+                          np.matrix([[1, 0],
+                                     [0, cmath.exp(1j * cmath.pi / 4)]]))
     assert isinstance(_gates.T, _gates.TGate)
     assert type(_gates.Tdag) == type(get_inverse(gate))
     assert type(_gates.Tdagger) == type(get_inverse(gate))
@@ -83,7 +84,8 @@ def test_swap_gate():
     assert str(gate) == "Swap"
     assert gate.interchangeable_qubit_indices == [[0, 1]]
     assert np.array_equal(gate.matrix,
-           np.matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]))
+                          np.matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0],
+                                     [0, 0, 0, 1]]))
     assert isinstance(_gates.Swap, _gates.SwapGate)
 
 
@@ -93,36 +95,36 @@ def test_engangle_gate():
     assert isinstance(_gates.Entangle, _gates.EntangleGate)
 
 
-@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2* math.pi,
-    4 * math.pi])
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
 def test_rx(angle):
     gate = _gates.Rx(angle)
     expected_matrix = np.matrix([[math.cos(0.5 * angle),
-                       -1j * math.sin(0.5 * angle)],
-                      [-1j * math.sin(0.5 * angle),
-                       math.cos(0.5 * angle)]])
+                                  -1j * math.sin(0.5 * angle)],
+                                 [-1j * math.sin(0.5 * angle),
+                                  math.cos(0.5 * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
     assert np.allclose(gate.matrix, expected_matrix)
 
 
-@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2* math.pi,
-    4 * math.pi])
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
 def test_ry(angle):
     gate = _gates.Ry(angle)
     expected_matrix = np.matrix([[math.cos(0.5 * angle),
-                       -math.sin(0.5 * angle)],
-                      [math.sin(0.5 * angle),
-                       math.cos(0.5 * angle)]])
+                                  -math.sin(0.5 * angle)],
+                                [math.sin(0.5 * angle),
+                                 math.cos(0.5 * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
     assert np.allclose(gate.matrix, expected_matrix)
 
 
-@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2* math.pi,
-    4 * math.pi])
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
 def test_rz(angle):
     gate = _gates.Rz(angle)
     expected_matrix = np.matrix([[cmath.exp(-.5 * 1j * angle), 0],
-                      [0, cmath.exp(.5 * 1j * angle)]])
+                                 [0, cmath.exp(.5 * 1j * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
     assert np.allclose(gate.matrix, expected_matrix)
 

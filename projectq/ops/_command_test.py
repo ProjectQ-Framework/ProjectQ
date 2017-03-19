@@ -27,7 +27,7 @@ from projectq.ops import _command
 
 @pytest.fixture
 def main_engine():
-    return MainEngine(backend = DummyEngine(), engine_list = [DummyEngine()])
+    return MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
 
 
 def test_command_init(main_engine):
@@ -48,14 +48,14 @@ def test_command_init(main_engine):
     assert cmd._engine == main_engine
     # Test that quregs are ordered if gate has interchangeable qubits:
     symmetric_gate = BasicGate()
-    symmetric_gate.interchangeable_qubit_indices=[[0,1]]
+    symmetric_gate.interchangeable_qubit_indices = [[0, 1]]
     symmetric_cmd = _command.Command(main_engine, symmetric_gate,
-        (qureg2, qureg1, qureg0))
+                                     (qureg2, qureg1, qureg0))
     assert cmd.gate == gate
     assert cmd.tags == []
     expected_ordered_tuple = (qureg1, qureg2, qureg0)
     for cmd_qureg, expected_qureg in zip(symmetric_cmd.qubits,
-        expected_ordered_tuple):
+                                         expected_ordered_tuple):
         assert cmd_qureg[0].id == expected_qureg[0].id
     assert symmetric_cmd._engine == main_engine
 
@@ -139,16 +139,17 @@ def test_command_order_qubits(main_engine):
     qubit4 = Qureg([Qubit(main_engine, 4)])
     qubit5 = Qureg([Qubit(main_engine, 5)])
     gate = BasicGate()
-    gate.interchangeable_qubit_indices=[[0,4,5],[1,2]]
+    gate.interchangeable_qubit_indices = [[0, 4, 5], [1, 2]]
     input_tuple = (qubit4, qubit5, qubit3, qubit2, qubit1, qubit0)
     expected_tuple = (qubit0, qubit3, qubit5, qubit2, qubit1, qubit4)
     cmd = _command.Command(main_engine, gate, input_tuple)
     for ordered_qubit, expected_qubit in zip(cmd.qubits, expected_tuple):
         assert ordered_qubit[0].id == expected_qubit[0].id
 
+
 def test_command_interchangeable_qubit_indices(main_engine):
     gate = BasicGate()
-    gate.interchangeable_qubit_indices = [[0,4,5],[1,2]]
+    gate.interchangeable_qubit_indices = [[0, 4, 5], [1, 2]]
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])
@@ -157,8 +158,8 @@ def test_command_interchangeable_qubit_indices(main_engine):
     qubit5 = Qureg([Qubit(main_engine, 5)])
     input_tuple = (qubit4, qubit5, qubit3, qubit2, qubit1, qubit0)
     cmd = _command.Command(main_engine, gate, input_tuple)
-    assert (cmd.interchangeable_qubit_indices == [[0,4,5],[1,2]] or
-        cmd.interchangeable_qubit_indices == [[1,2],[0,4,5]])
+    assert (cmd.interchangeable_qubit_indices == [[0, 4, 5], [1, 2]] or
+            cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]])
 
 
 def test_commmand_add_control_qubits(main_engine):
@@ -180,6 +181,7 @@ def test_command_all_qubits(main_engine):
     assert all_qubits[0][0].id == 1
     assert all_qubits[1][0].id == 0
 
+
 def test_command_engine(main_engine):
     qubit0 = Qureg([Qubit("fake_engine", 0)])
     qubit1 = Qureg([Qubit("fake_engine", 1)])
@@ -190,6 +192,7 @@ def test_command_engine(main_engine):
     assert id(cmd.engine) == id(main_engine)
     assert id(cmd.control_qubits[0].engine) == id(main_engine)
     assert id(cmd.qubits[0][0].engine) == id(main_engine)
+
 
 def test_command_comparison(main_engine):
     qubit = Qureg([Qubit(main_engine, 0)])
@@ -222,6 +225,7 @@ def test_command_comparison(main_engine):
     cmd6.tags = ["TestTag"]
     cmd6.add_control_qubits(ctrl_qubit)
     assert cmd6 != cmd1
+
 
 def test_command_str():
     qubit = Qureg([Qubit(main_engine, 0)])

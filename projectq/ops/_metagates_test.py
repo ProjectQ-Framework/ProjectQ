@@ -39,7 +39,8 @@ def test_daggered_gate_init():
     dagger_inv = _metagates.DaggeredGate(not_invertible_gate)
     assert dagger_inv._gate == not_invertible_gate
     assert np.array_equal(dagger_inv.matrix,
-        np.matrix([[1, 0], [0, cmath.exp(-1j * cmath.pi / 4)]]))
+                          np.matrix([[1, 0],
+                                     [0, cmath.exp(-1j * cmath.pi / 4)]]))
     inv = _metagates.DaggeredGate(invertible_gate)
     assert inv._gate == invertible_gate
     assert np.array_equal(inv.matrix, np.matrix([[0, -1j], [1j, 0]]))
@@ -85,8 +86,8 @@ def test_get_inverse():
 
 
 def test_controlled_gate_init():
-    one_control = _metagates.ControlledGate(Y,1)
-    two_control = _metagates.ControlledGate(Y,2)
+    one_control = _metagates.ControlledGate(Y, 1)
+    two_control = _metagates.ControlledGate(Y, 2)
     three_control = _metagates.ControlledGate(one_control, 2)
     assert one_control._gate == Y
     assert one_control._n == 1
@@ -97,20 +98,20 @@ def test_controlled_gate_init():
 
 
 def test_controlled_gate_str():
-    one_control = _metagates.ControlledGate(Y,2)
+    one_control = _metagates.ControlledGate(Y, 2)
     assert str(one_control) == "CC" + str(Y)
 
 
 def test_controlled_gate_get_inverse():
-    one_control = _metagates.ControlledGate(Rx(0.5),1)
-    expected = _metagates.ControlledGate(Rx(-0.5 + 4 * math.pi),1)
+    one_control = _metagates.ControlledGate(Rx(0.5), 1)
+    expected = _metagates.ControlledGate(Rx(-0.5 + 4 * math.pi), 1)
     assert one_control.get_inverse() == expected
 
 
 def test_controlled_gate_or():
-    saving_backend = DummyEngine(save_commands = True)
-    main_engine = MainEngine(backend = saving_backend,
-                             engine_list = [DummyEngine()])
+    saving_backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=saving_backend,
+                             engine_list=[DummyEngine()])
     gate = Rx(0.6)
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
@@ -120,7 +121,8 @@ def test_controlled_gate_or():
     expected_cmd.add_control_qubits([qubit0, qubit1, qubit2])
     received_commands = []
     # Option 1:
-    _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0], [qubit2], [qubit3])
+    _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0],
+                                          [qubit2], [qubit3])
     # Option 2:
     _metagates.ControlledGate(gate, 3) | (qubit1, qubit0, qubit2, qubit3)
     # Option 3:
@@ -141,17 +143,17 @@ def test_controlled_gate_or():
 
 
 def test_controlled_gate_comparison():
-    gate1 = _metagates.ControlledGate(Y,1)
-    gate2 = _metagates.ControlledGate(Y,1)
-    gate3 = _metagates.ControlledGate(T,1)
-    gate4 = _metagates.ControlledGate(Y,2)
+    gate1 = _metagates.ControlledGate(Y, 1)
+    gate2 = _metagates.ControlledGate(Y, 1)
+    gate3 = _metagates.ControlledGate(T, 1)
+    gate4 = _metagates.ControlledGate(Y, 2)
     assert gate1 == gate2
     assert not gate1 == gate3
     assert gate1 != gate4
 
 
 def test_c():
-    expected = _metagates.ControlledGate(Y,2)
+    expected = _metagates.ControlledGate(Y, 2)
     assert _metagates.C(Y, 2) == expected
 
 
@@ -180,9 +182,9 @@ def test_tensor_comparison():
 
 
 def test_tensor_or():
-    saving_backend = DummyEngine(save_commands = True)
-    main_engine = MainEngine(backend = saving_backend,
-                             engine_list = [DummyEngine()])
+    saving_backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=saving_backend,
+                             engine_list=[DummyEngine()])
     gate = Rx(0.6)
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
@@ -204,4 +206,4 @@ def test_tensor_or():
         assert len(cmd.qubits) == 1
         assert cmd.gate == gate
         qubit_ids.append(cmd.qubits[0][0].id)
-    assert sorted(qubit_ids) == [0,0,1,1,2,2]
+    assert sorted(qubit_ids) == [0, 0, 1, 1, 2, 2]

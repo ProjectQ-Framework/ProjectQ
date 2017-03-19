@@ -61,7 +61,8 @@ class BasicGate(object):
         Initialize a basic gate.
 
         Note:
-            Set interchangeable qubit indices! (gate.interchangeable_qubit_indices)
+            Set interchangeable qubit indices!
+            (gate.interchangeable_qubit_indices)
 
             As an example, consider
 
@@ -69,7 +70,8 @@ class BasicGate(object):
 
                 ExampleGate | (a,b,c,d,e)
 
-            where a and b are interchangeable. Then, call this function as follows
+            where a and b are interchangeable. Then, call this function as
+            follows:
 
             .. code-block:: python
 
@@ -81,8 +83,8 @@ class BasicGate(object):
 
                 ExampleGate2 | (a,b,c,d,e)
 
-            where a and b are interchangeable and, in addition, c, d, and e are
-            interchangeable among themselves. Then, call this function as
+            where a and b are interchangeable and, in addition, c, d, and e
+            are interchangeable among themselves. Then, call this function as
 
             .. code-block:: python
 
@@ -138,11 +140,11 @@ class BasicGate(object):
             5) -> Gate | (qureg, [qubit])
 
         Args:
-            qubits: a Qubit object, a list of Qubit objects, a Qureg object, or
-                    a tuple of Qubit or Qureg objects (can be mixed).
+            qubits: a Qubit object, a list of Qubit objects, a Qureg object,
+                or a tuple of Qubit or Qureg objects (can be mixed).
         Returns:
-            Canonical representation (tuple<qureg>): A tuple containing Qureg (or
-            list of Qubits) objects.
+            Canonical representation (tuple<qureg>): A tuple containing Qureg
+                (or list of Qubits) objects.
         """
         if not isinstance(qubits, tuple):
             qubits = (qubits,)
@@ -203,13 +205,14 @@ class SelfInverseGate(BasicGate):
     """
     Self-inverse basic gate class.
 
-    Automatic implementation of the get_inverse-member function for self-inverse
-    gates.
+    Automatic implementation of the get_inverse-member function for self-
+    inverse gates.
 
     Example:
         .. code-block:: python
 
-            get_inverse(H) | qubit # get_inverse(H) == H; it is a self-inverse gate
+            # get_inverse(H) == H, it is a self-inverse gate:
+            get_inverse(H) | qubit
     """
     def get_inverse(self):
         return deepcopy(self)
@@ -280,7 +283,8 @@ class BasicRotationGate(BasicGate):
             other: Rotation gate of same type.
 
         Raises:
-            NotMergeable: For non-rotation gates or rotation gates of different type.
+            NotMergeable: For non-rotation gates or rotation gates of
+                different type.
 
         Returns:
             New object representing the merged gates.
@@ -296,7 +300,7 @@ class BasicRotationGate(BasicGate):
             difference = abs(self._angle - other._angle)
             if difference < tolerance:
                 return True
-            else:  # if one angle is close to 0 and the other one close to 4*pi:
+            else:  # if one angle is close to 0 and the other close to 4*pi:
                 if difference > 4 * math.pi - tolerance:
                     return True
                 else:
@@ -328,12 +332,12 @@ class FastForwardingGate(ClassicalInstructionGate):
     respectively.
 
     Note:
-        The only requirement is that FlushGate commands run the entire circuit.
-        FastForwardingGate objects can be used but the user cannot expect a
-        measurement result to be available for all back-ends when calling only
-        Measure. E.g., for the IBM Quantum Experience back-end, sending the
-        circuit for each Measure-gate would be too inefficient, which is way a
-        final
+        The only requirement is that FlushGate commands run the entire
+        circuit. FastForwardingGate objects can be used but the user cannot
+        expect a measurement result to be available for all back-ends when
+        calling only Measure. E.g., for the IBM Quantum Experience back-end,
+        sending the circuit for each Measure-gate would be too inefficient,
+        which is why a final
 
         .. code-block: python
 
@@ -349,8 +353,8 @@ class BasicMathGate(BasicGate):
     Base class for all math gates.
 
     It allows efficient emulation by providing a mathematical representation
-    which is given by the concrete gate which derives from this base class. The
-    AddConstant gate, for example, registers a function of the form
+    which is given by the concrete gate which derives from this base class.
+    The AddConstant gate, for example, registers a function of the form
 
     .. code-block:: python
 
@@ -359,9 +363,9 @@ class BasicMathGate(BasicGate):
 
     upon initialization. More generally, the function takes integers as
     parameters and returns a tuple / list of outputs, each entry corresponding
-    to the function input. As an example, consider out-of-place multiplication,
-    which takes two input registers and adds the result into a third, i.e.,
-    (a,b,c) -> (a,b,c+a*b). The corresponding function then is
+    to the function input. As an example, consider out-of-place
+    multiplication, which takes two input registers and adds the result into a
+    third, i.e., (a,b,c) -> (a,b,c+a*b). The corresponding function then is
 
     .. code-block:: python
 
@@ -370,13 +374,14 @@ class BasicMathGate(BasicGate):
     """
     def __init__(self, math_fun):
         """
-        Initialize a BasicMathGate by providing the mathematical function that it
-        implements.
+        Initialize a BasicMathGate by providing the mathematical function that
+        it implements.
 
         Args:
-            math_fun (function): Function which takes as many int values as input,
-                as the gate takes registers. For each of these values, it then returns
-                the output (i.e., it returns a list/tuple of output values).
+            math_fun (function): Function which takes as many int values as
+                input, as the gate takes registers. For each of these values,
+                it then returns the output (i.e., it returns a list/tuple of
+                output values).
 
         Example:
             .. code-block:: python
@@ -411,15 +416,15 @@ class BasicMathGate(BasicGate):
         self._math_function = math_function
 
     """
-    Return the math function which corresponds to the action of this math gate,
-    given the input to the gate (a tuple of quantum registers).
+    Return the math function which corresponds to the action of this math
+    gate, given the input to the gate (a tuple of quantum registers).
 
     Args:
         qubits (tuple<Qureg>): Qubits to which the math gate is being applied.
 
     Returns:
-        math_fun (function): Python function describing the action of this gate.
-            (See BasicMathGate.__init__ for an example).
+        math_fun (function): Python function describing the action of this
+            gate. (See BasicMathGate.__init__ for an example).
     """
     def get_math_function(self, qubits):
         return self._math_function

@@ -124,7 +124,10 @@ class SwapGate(SelfInverseGate):
 
     @property
     def matrix(self):
-        return np.matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+        return np.matrix([[1, 0, 0, 0],
+                          [0, 0, 1, 0],
+                          [0, 1, 0, 0],
+                          [0, 0, 0, 1]])
 
 Swap = SwapGate()
 
@@ -154,8 +157,8 @@ class Rx(BasicRotationGate):
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self._angle),
                            -1j * math.sin(0.5 * self._angle)],
-                            [-1j * math.sin(0.5 * self._angle),
-                             math.cos(0.5 * self._angle)]])
+                          [-1j * math.sin(0.5 * self._angle),
+                           math.cos(0.5 * self._angle)]])
 
 
 class Ry(BasicRotationGate):
@@ -164,8 +167,8 @@ class Ry(BasicRotationGate):
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self._angle),
                            -math.sin(0.5 * self._angle)],
-                            [math.sin(0.5 * self._angle),
-                             math.cos(0.5 * self._angle)]])
+                          [math.sin(0.5 * self._angle),
+                           math.cos(0.5 * self._angle)]])
 
 
 class Rz(BasicRotationGate):
@@ -188,9 +191,9 @@ class FlushGate(FastForwardingGate):
     Flush gate (denotes the end of the circuit).
 
     Note:
-        All compiler engines (cengines) which cache/buffer gates are obligated to
-        flush and send all gates to the next compiler engine (followed by the
-        flush command).
+        All compiler engines (cengines) which cache/buffer gates are obligated
+        to flush and send all gates to the next compiler engine (followed by
+        the flush command).
 
     Note:
         This gate is sent when calling

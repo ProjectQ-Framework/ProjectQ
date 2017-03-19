@@ -58,10 +58,11 @@ def apply_command(cmd):
 
 class Command(object):
     """
-    Class used as a container to store commands. If a gate is applied to qubits,
-    then the gate and qubits are saved in a command object. Qubits are copied
-    into WeakQubitRefs in order to allow early deallocation (would be kept alive
-    otherwise). WeakQubitRef qubits don't send deallocate gate when destructed.
+    Class used as a container to store commands. If a gate is applied to
+    qubits, then the gate and qubits are saved in a command object. Qubits
+    are copied into WeakQubitRefs in order to allow early deallocation (would
+    be kept alive otherwise). WeakQubitRef qubits don't send deallocate gate
+    when destructed.
 
     Attributes:
         gate: The gate to execute
@@ -75,8 +76,8 @@ class Command(object):
           TagRemover. New tags should always be added to the end of the list.
           This means that if there are e.g. two LoopTags in a command, tag[0]
           is from the inner scope while tag[1] is from the other scope as the
-          other scope receives the command after the inner scope LoopEngine and
-          hence adds its LoopTag to the end.
+          other scope receives the command after the inner scope LoopEngine
+          and hence adds its LoopTag to the end.
         all_qubits: A tuple of control_qubits + qubits
     """
 
@@ -87,22 +88,24 @@ class Command(object):
         Note:
             control qubits (Command.control_qubits) are stored as a
             list of qubits, and command tags (Command.tags) as a list of tag-
-            objects. All functions within this class also work if WeakQubitRefs are
-            supplied instead of normal Qubit objects (see WeakQubitRef).
+            objects. All functions within this class also work if
+            WeakQubitRefs are supplied instead of normal Qubit objects
+            (see WeakQubitRef).
 
         Args:
             engine: engine which created the qubit (mostly the MainEngine)
             gate: Gate to be executed
             qubits: Tuple of quantum registers (to which the gate is applied)
         """
-        qubits = tuple([[WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg]
+        qubits = tuple([[WeakQubitRef(qubit.engine, qubit.id)
+                         for qubit in qreg]
                         for qreg in qubits])
 
         self.gate = gate
         self.tags = []
-        self.qubits = qubits # property
-        self._control_qubits = [] # access it via self.control_qubits property
-        self.engine = engine # property
+        self.qubits = qubits  # property
+        self._control_qubits = []  # access via self.control_qubits property
+        self.engine = engine  # property
 
     @property
     def qubits(self):
@@ -128,26 +131,28 @@ class Command(object):
 
         Raises:
             NotInvertible: If the gate does not provide an inverse (see
-            BasicGate.get_inverse)
+                BasicGate.get_inverse)
         """
-        cmd = Command(self._engine, projectq.ops.get_inverse(self.gate), self.qubits)
+        cmd = Command(self._engine, projectq.ops.get_inverse(self.gate),
+                      self.qubits)
         cmd.tags = deepcopy(self.tags)
         cmd.add_control_qubits(self.control_qubits)
         return cmd
 
     def get_merged(self, other):
         """
-        Merge this command with another one and return the merged command object.
+        Merge this command with another one and return the merged command
+        object.
 
         Args:
             other: Other command to merge with this one (self)
 
         Raises:
-            NotMergeable: if the gates don't supply a get_merged()-function or can't
-            be merged for other reasons.
+            NotMergeable: if the gates don't supply a get_merged()-function
+                or can't be merged for other reasons.
         """
         if (self.tags == other.tags and self.all_qubits == other.all_qubits and
-              self.engine == other.engine):
+           self.engine == other.engine):
             merged_command = Command(self.engine, self.gate, self.qubits)
             merged_command.gate = merged_command.gate.get_merged(other.gate)
             merged_command.add_control_qubits(self.control_qubits)
@@ -170,7 +175,7 @@ class Command(object):
         interchangeable_qubit_indices = self.interchangeable_qubit_indices
         for old_positions in interchangeable_qubit_indices:
             new_positions = sorted(old_positions,
-                                      key=lambda x: ordered_qubits[x][0].id)
+                                   key=lambda x: ordered_qubits[x][0].id)
             qubits_new_order = [ordered_qubits[i] for i in new_positions]
             for i in range(len(old_positions)):
                 ordered_qubits[old_positions[i]] = qubits_new_order[i]
@@ -205,7 +210,7 @@ class Command(object):
             control_qubits (Qureg): quantum register
         """
         self._control_qubits = ([WeakQubitRef(qubit.engine, qubit.id)
-                                    for qubit in qubits])
+                                 for qubit in qubits])
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
     def add_control_qubits(self, qubits):
@@ -218,7 +223,8 @@ class Command(object):
 
         Args:
             qubits (list of Qubit objects): List of qubits which control this
-            gate, i.e., the gate is only executed if all qubits are in state 1.
+                gate, i.e., the gate is only executed if all qubits are
+                in state 1.
         """
         assert(isinstance(qubits, list))
         self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id)
@@ -230,16 +236,17 @@ class Command(object):
         """
         Get all qubits (gate and control qubits).
 
-        Returns a tuple T where T[0] is a quantum register (a list of WeakQubitRef
-        objects) containing the control qubits and T[1:] contains the quantum
-        registers to which the gate is applied.
+        Returns a tuple T where T[0] is a quantum register (a list of
+        WeakQubitRef objects) containing the control qubits and T[1:] contains
+        the quantum registers to which the gate is applied.
         """
         return (self.control_qubits,) + self.qubits
 
     @property
     def engine(self):
         """
-        Return engine to which the qubits belong / on which the gates are executed.
+        Return engine to which the qubits belong / on which the gates are
+        executed.
         """
         return self._engine
 
@@ -269,10 +276,10 @@ class Command(object):
         qubits; ordered modulo interchangeability; and same tags)
         """
         if (isinstance(other, self.__class__) and
-              self.gate == other.gate and
-              self.tags == other.tags and
-              self.engine == other.engine and
-              self.all_qubits == other.all_qubits):
+           self.gate == other.gate and
+           self.tags == other.tags and
+           self.engine == other.engine and
+           self.all_qubits == other.all_qubits):
             return True
         return False
 
