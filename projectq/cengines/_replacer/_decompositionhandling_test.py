@@ -31,6 +31,7 @@ def test_register_decomposition_wrong_input():
 
     with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
         _decompositionhandling.register_decomposition(WrongInput.__class__,
-                                             decompose_func, recognize_func)
+                                                      decompose_func,
+                                                      recognize_func)
     decompose_func("")
     recognize_func("")

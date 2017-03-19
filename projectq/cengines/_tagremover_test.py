@@ -34,10 +34,10 @@ def test_tagremover():
     cmd0 = Command(eng, H, (qubit,))
     cmd0.tags = ["NewTag"]
     cmd1 = Command(eng, H, (qubit,))
-    cmd1.tags = [1,2,"NewTag", 3]
+    cmd1.tags = [1, 2, "NewTag", 3]
     cmd_list = [cmd0, cmd1, cmd0]
-    assert len(backend.received_commands) == 1 # AllocateQubitGate
+    assert len(backend.received_commands) == 1  # AllocateQubitGate
     tag_remover.receive(cmd_list)
     assert len(backend.received_commands) == 4
     assert backend.received_commands[1].tags == []
-    assert backend.received_commands[2].tags == [1,2,3]
+    assert backend.received_commands[2].tags == [1, 2, 3]

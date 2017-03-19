@@ -25,7 +25,7 @@ def test_compare_engine_str():
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     H | qb0
-    CNOT | (qb0,qb1)
+    CNOT | (qb0, qb1)
     eng.flush()
     expected = ("Qubit 0 : Allocate | Qubit[0], H | Qubit[0], " +
                 "CX | ( Qubit[0], Qubit[1] )\nQubit 1 : Allocate | Qubit[1]," +

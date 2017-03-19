@@ -34,10 +34,12 @@ class UnsupportedEngineError(Exception):
 
 class MainEngine(BasicEngine):
     """
-    The MainEngine class provides all functionality of the main compiler engine.
+    The MainEngine class provides all functionality of the main compiler
+    engine.
 
-    It initializes all further compiler engines (calls, e.g., .next_engine=...)
-    and keeps track of measurement results and active qubits (and their IDs).
+    It initializes all further compiler engines (calls, e.g.,
+    .next_engine=...) and keeps track of measurement results and active
+    qubits (and their IDs).
 
     Attributes:
         next_engine (BasicEngine): Next compiler engine (or the back-end).
@@ -51,26 +53,28 @@ class MainEngine(BasicEngine):
         """
         Initialize the main compiler engine and all compiler engines.
 
-        Sets 'next_engine'- and 'main_engine'-attributes of all compiler engines
-        and adds the back-end as the last engine.
+        Sets 'next_engine'- and 'main_engine'-attributes of all compiler
+        engines and adds the back-end as the last engine.
 
         Args:
             backend (BasicEngine): Backend to send the circuit to.
-            engine_list (list<BasicEngine>): List of engines / backends to use as
-                compiler engines.
+            engine_list (list<BasicEngine>): List of engines / backends to use
+                as compiler engines.
 
         Example:
             .. code-block:: python
 
                 from projectq import MainEngine
-                eng = MainEngine() # will load default setup using Simulator backend
+                eng = MainEngine() # uses default setup and the Simulator
 
         Alternatively, one can specify all compiler engines explicitly, e.g.,
 
         Example:
             .. code-block:: python
 
-                from projectq.cengines import TagRemover,AutoReplacer,LocalOptimizer
+                from projectq.cengines import (TagRemover,
+                                               AutoReplacer,
+                                               LocalOptimizer)
                 from projectq.backends import Simulator
                 from projectq import MainEngine
                 engines = [AutoReplacer(), TagRemover(), LocalOptimizer(3)]
@@ -80,13 +84,13 @@ class MainEngine(BasicEngine):
 
         if backend is None:
             backend = Simulator()
-        else: # Test that backend is BasicEngine object
+        else:  # Test that backend is BasicEngine object
             if not isinstance(backend, BasicEngine):
                 raise UnsupportedEngineError(
-                    "\nYou supplied a backend which is not supported,\n" +
-                    "i.e. not an instance of BasicEngine.\n"+
-                    "Did you forget the brackets to create an instance?\n" +
-                    "E.g. MainEngine(backend=Simulator) instead of \n" +
+                    "\nYou supplied a backend which is not supported,\n"
+                    "i.e. not an instance of BasicEngine.\n"
+                    "Did you forget the brackets to create an instance?\n"
+                    "E.g. MainEngine(backend=Simulator) instead of \n"
                     "     MainEngine(backend=Simulator())")
         if engine_list is None:
             try:
@@ -94,18 +98,18 @@ class MainEngine(BasicEngine):
             except AttributeError:
                 from projectq.setups.default import default_engines
                 engine_list = default_engines()
-        else: # Test that engine list elements are all BasicEngine objects
+        else:  # Test that engine list elements are all BasicEngine objects
             if not isinstance(engine_list, list):
                 raise UnsupportedEngineError(
                     "\n The engine_list argument is not a list!\n")
             for current_eng in engine_list:
                 if not isinstance(current_eng, BasicEngine):
                     raise UnsupportedEngineError(
-                        "\nYou supplied an unsupported engine in engine_list,\n" +
-                        "i.e. not an instance of BasicEngine.\n"+
-                        "Did you forget the brackets to create an instance?\n" +
-                        "E.g. MainEngine(engine_list=[AutoReplacer]) instead of \n" +
-                        "     MainEngine(engine_list=[AutoReplacer()])")
+                        "\nYou supplied an unsupported engine in engine_list,"
+                        "\ni.e. not an instance of BasicEngine.\n"
+                        "Did you forget the brackets to create an instance?\n"
+                        "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
+                        "of\n     MainEngine(engine_list=[AutoReplacer()])")
 
         engine_list.append(backend)
         self.backend = backend
@@ -153,13 +157,15 @@ class MainEngine(BasicEngine):
         Register a measurement result
 
         The engine being responsible for measurement results needs to register
-        these results with the master engine such that they are available when the
-        user calls an int() or bool() conversion operator on a measured qubit.
+        these results with the master engine such that they are available when
+        the user calls an int() or bool() conversion operator on a measured
+        qubit.
 
         Args:
-            qubit (BasicQubit): Qubit for which to register the measurement result.
-            value (bool): Boolean value of the measurement outcome (True / False = 1
-                / 0 respectively)
+            qubit (BasicQubit): Qubit for which to register the measurement
+                result.
+            value (bool): Boolean value of the measurement outcome
+                (True / False = 1 / 0 respectively).
         """
         self._measurements[qubit.id] = bool(value)
 
@@ -186,14 +192,14 @@ class MainEngine(BasicEngine):
             return self._measurements[qubit.id]
         else:
             raise NotYetMeasuredError(
-                            "\nError: Can't access measurement result for " +
-                            "qubit #" + str(qubit.id) + ". The problem may " +
-                            "be:\n\t1. Your " +
-                            "code lacks a measurement statement\n\t" +
-                            "2. You have not yet called engine.flush() to " +
-                            "force execution of your code\n\t3. The " +
-                            "underlying backend failed to register " +
-                            "the measurement result\n")
+                "\nError: Can't access measurement result for "
+                "qubit #" + str(qubit.id) + ". The problem may "
+                "be:\n\t1. Your "
+                "code lacks a measurement statement\n\t"
+                "2. You have not yet called engine.flush() to "
+                "force execution of your code\n\t3. The "
+                "underlying backend failed to register "
+                "the measurement result\n")
 
     def get_new_qubit_id(self):
         """
@@ -210,8 +216,8 @@ class MainEngine(BasicEngine):
         Forward the list of commands to the first engine.
 
         Args:
-            command_list (list<Command>): List of commands to receive (and then send
-                on)
+            command_list (list<Command>): List of commands to receive (and
+                then send on)
         """
         self.send(command_list)
 
@@ -221,8 +227,9 @@ class MainEngine(BasicEngine):
         (of, e.g., optimizers).
 
         Args:
-            deallocate_qubits (bool): If True, deallocates all qubits that are still
-                alive (invalidating references to them by setting their id to -1)
+            deallocate_qubits (bool): If True, deallocates all qubits that are
+                still alive (invalidating references to them by setting their
+                id to -1).
         """
         if deallocate_qubits:
             for qb in self.active_qubits:

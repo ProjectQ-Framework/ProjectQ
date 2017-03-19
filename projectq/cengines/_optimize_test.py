@@ -17,7 +17,7 @@ import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (CNOT, H, Rx, Ry, AllocateQubitGate, X,
-     FastForwardingGate, ClassicalInstructionGate)
+                          FastForwardingGate, ClassicalInstructionGate)
 
 from projectq.cengines import _optimize
 

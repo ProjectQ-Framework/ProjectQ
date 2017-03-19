@@ -25,8 +25,8 @@ def test_command_modifier():
         return cmd
 
     backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=backend,
-        engine_list=[_cmdmodifier.CommandModifier(cmd_mod_fun)])
+    cmd_modifier = _cmdmodifier.CommandModifier(cmd_mod_fun)
+    main_engine = MainEngine(backend=backend, engine_list=[cmd_modifier])
     qubit = main_engine.allocate_qubit()
     H | qubit
     # Test if H gate was sent through forwarder_eng and tag was added

@@ -23,16 +23,18 @@ def register_decomposition(gate_class, gate_decomposer, gate_recognizer=None):
     """
     Add a decomposition rule for compiling 'gate' to the global setup.
 
-    The decomposition rule is a Decomposition object (see _decomposition.py) and
-    consists of a function which recognizes a command (i.e., determines whether
-    it can handle it) and a function which executes the decomposition. The
-    gate_class parameter determines the gate class for which the decomposition
-    is valid (keeps the number of calls to recognize functions lower).
+    The decomposition rule is a Decomposition object (see _decomposition.py)
+    and consists of a function which recognizes a command (i.e., determines
+    whether it can handle it) and a function which executes the decomposition.
+    The gate_class parameter determines the gate class for which the
+    decomposition is valid (keeps the number of calls to recognize functions
+    lower).
 
     Args:
-        gate_class: Gate class for which the decomposition should be applicable;
-            this parameter is only used to enable binary search on
+        gate_class: Gate class for which the decomposition should be
+            applicable; this parameter is only used to enable binary search on
             `gate_object.__class__`.
+
             If your class is defined as
 
             .. code-block:: python
@@ -45,18 +47,18 @@ def register_decomposition(gate_class, gate_decomposer, gate_recognizer=None):
 
             .. code-block:: python
 
-                MyGate = MyGate() # Because it allows the syntax MyGate | qubit
+                MyGate = MyGate() # allows the syntax MyGate | qubit
 
             then gate_class = MyGate.__class__
         gate_decomposer (function): Function which, given the command to
-            decompose, applies a sequence of gates corresponding to the high-level
-            function of a gate of type gate_class.
-        gate_recognizer (function): Optional function which, given the command to
-            decompose, returns whether the decomposition supports the given command.
-            E.g., rotation gates may be rewritten using one decomposition for some
-            angles, and another one for other angles. If no such function is
-            provided, the decomposition rule will be valid for all gates of type
-            gate_class.
+            decompose, applies a sequence of gates corresponding to the high-
+            level function of a gate of type gate_class.
+        gate_recognizer (function): Optional function which, given the command
+            to decompose, returns whether the decomposition supports the given
+            command. E.g., rotation gates may be rewritten using one
+            decomposition for some angles, and another one for other angles.
+            If no such function is provided, the decomposition rule will be
+            valid for all gates of type gate_class.
     """
     if gate_recognizer is None:
         gate_recognizer = lambda cmd: True

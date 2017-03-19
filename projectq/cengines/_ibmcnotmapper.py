@@ -16,8 +16,8 @@ Contains a compiler engine to map the CNOT gates for the IBM backend.
 from copy import deepcopy
 
 from projectq.cengines import (BasicEngine,
-                              ForwarderEngine,
-                              CommandModifier)
+                               ForwarderEngine,
+                               CommandModifier)
 from projectq.meta import get_control_count
 from projectq.ops import (CNOT,
                           NOT,
@@ -40,13 +40,14 @@ class IBMCNOTMapper(BasicEngine):
     both qubits.
 
     Note:
-        The mapper has to be run once on the entire circuit. Else, an Exception
-        will be raised (if, e.g., several measurements are performed without re-
-        initializing the mapper).
+        The mapper has to be run once on the entire circuit. Else, an
+        Exception will be raised (if, e.g., several measurements are performed
+        without re-initializing the mapper).
 
     Warning:
-        If the provided circuit cannot be mapped to the hardware layout without
-        performing Swaps, the mapping procedure **raises an Exception**.
+        If the provided circuit cannot be mapped to the hardware layout
+        without performing Swaps, the mapping procedure
+        **raises an Exception**.
     """
 
     def __init__(self):
@@ -60,8 +61,8 @@ class IBMCNOTMapper(BasicEngine):
 
     def is_available(self, cmd):
         """
-        Check if the IBM backend can perform the Command cmd and return True if
-        so.
+        Check if the IBM backend can perform the Command cmd and return True
+        if so.
 
         Args:
             cmd (Command): The command to check
@@ -81,9 +82,11 @@ class IBMCNOTMapper(BasicEngine):
         Check if the command corresponds to a CNOT (controlled NOT gate).
 
         Args:
-            cmd (Command): Command to check whether it is a controlled NOT gate.
+            cmd (Command): Command to check whether it is a controlled NOT
+                gate.
         """
-        return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1
+        return (isinstance(cmd.gate, NOT.__class__) and
+                get_control_count(cmd) == 1)
 
     def _run(self):
         """
@@ -91,14 +94,14 @@ class IBMCNOTMapper(BasicEngine):
 
         Raises:
             Exception:
-                If the mapping to the IBM backend cannot be performed or if the
-                mapping was already determined but more CNOTs get sent down the
-                pipeline.
+                If the mapping to the IBM backend cannot be performed or if
+                the mapping was already determined but more CNOTs get sent
+                down the pipeline.
         """
         cnot_id = self._cnot_id
         if cnot_id == -1 and len(self._cnot_ids) > 0:
             cnot_id = self._cnot_ids[0]
-            if len(self._cnot_ids) == 2:  # we can optimize (at least a little bit)!
+            if len(self._cnot_ids) == 2:  # we can optimize a little bit
                 count1 = 0
                 count2 = 0
                 for cmd in self._cmds:
@@ -115,19 +118,21 @@ class IBMCNOTMapper(BasicEngine):
         for cmd in self._cmds:
             if self._is_cnot(cmd) and not cmd.qubits[0][0].id == cnot_id:
                 # we have to flip it around. To have nice syntax, we'll use a
-                # forwarder engine and a command modifier to get the tags right.
-                # (If the CNOT is an 'uncompute', then so must be the remapped CNOT)
+                # forwarder engine and a command modifier to get the tags
+                # right. (If the CNOT is an 'uncompute', then so must be the
+                # remapped CNOT)
                 def cmd_mod(command):
                     command.tags = cmd.tags[:] + command.tags
                     command.engine = self.main_engine
                     return command
 
-                cmd_mod_eng = CommandModifier(cmd_mod)  # will add potential meta tags
-                cmd_mod_eng.next_engine = self.next_engine # and send on all commands
+                # We'll have to add all meta tags before sending on
+                cmd_mod_eng = CommandModifier(cmd_mod)
+                cmd_mod_eng.next_engine = self.next_engine
                 cmd_mod_eng.main_engine = self.main_engine
                 # forward everything to the command modifier
                 forwarder_eng = ForwarderEngine(cmd_mod_eng)
-                cmd.engine = forwarder_eng  # and send all gates to forwarder engine.
+                cmd.engine = forwarder_eng
 
                 qubit = cmd.qubits[0]
                 ctrl = cmd.control_qubits
@@ -137,12 +142,14 @@ class IBMCNOTMapper(BasicEngine):
                 All(H) | (ctrl + qubit)
 
                 # This cmd would require remapping -->
-                # raise an exception if the CNOT id has already been determined.
+                # raise an exception if the CNOT id has already been
+                # determined.
                 if self._cnot_id != -1:
                     self._reset()
                     raise Exception("\nIBM Quantum Experience does not allow "
-                                    "intermediate measurements / \ndestruction of "
-                                    "qubits! CNOT mapping may be inconsistent.\n")
+                                    "intermediate measurements / "
+                                    "\ndestruction of qubits! CNOT mapping "
+                                    "may be inconsistent.\n")
             else:
                 self.next_engine.receive([cmd])
         self._cmds = []
@@ -155,19 +162,21 @@ class IBMCNOTMapper(BasicEngine):
         Args:
             cmd (Command): A command to store
         Raises:
-            Exception: If the mapping to the IBM backend cannot be performed without
-                SWAPs.
+            Exception: If the mapping to the IBM backend cannot be performed
+                without SWAPs.
         """
         if self._is_cnot(cmd):
             # CNOT encountered
             if len(self._cnot_ids) == 0:
-                self._cnot_ids += [cmd.control_qubits[0].id, cmd.qubits[0][0].id]
+                self._cnot_ids += [cmd.control_qubits[0].id,
+                                   cmd.qubits[0][0].id]
             else:
                 apply_to = cmd.qubits[0][0].id
                 ctrl = cmd.control_qubits[0].id
                 if not apply_to in self._cnot_ids:
                     if not ctrl in self._cnot_ids:
-                        raise Exception("Mapping without SWAPs failed! Sorry...")
+                        raise Exception("Mapping without SWAPs failed! "
+                                        "Sorry...")
                     else:
                         self._cnot_ids = [ctrl]
                 elif not ctrl in self._cnot_ids:
@@ -177,16 +186,18 @@ class IBMCNOTMapper(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until completion.
+        Receives a command list and, for each command, stores it until
+        completion.
 
         Args:
-            command_list (list of Command objects): list of commands to receive.
+            command_list (list of Command objects): list of commands to
+                receive.
 
         Raises:
-            Exception: If mapping the CNOT gates to 1 qubit would require Swaps. The
-                current version only supports remapping of CNOT gates without
-                performing any Swaps due to the large costs associated with Swapping
-                given the CNOT constraints.
+            Exception: If mapping the CNOT gates to 1 qubit would require
+                Swaps. The current version only supports remapping of CNOT
+                gates without performing any Swaps due to the large costs
+                associated with Swapping given the CNOT constraints.
         """
         for cmd in command_list:
             self._store(cmd)

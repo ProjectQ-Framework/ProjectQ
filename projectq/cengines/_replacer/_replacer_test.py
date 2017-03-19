@@ -15,7 +15,8 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine, register_decomposition, decompositions
+from projectq.cengines import (DummyEngine, register_decomposition,
+                               decompositions)
 from projectq.ops import H, X, Command, S, Rx, NotInvertible, Ry, BasicGate
 
 from projectq.cengines._replacer import _replacer
@@ -44,18 +45,21 @@ class TestGate(BasicGate):
 TestGate = TestGate()
 
 
-@pytest.fixture(scope='module') # Call only once, otherwise too many decompositions
+@pytest.fixture(scope='module')
 def test_gate_filter():
     # BasicGate with no get_inverse used for testing:
     with pytest.raises(NotInvertible):
         TestGate.get_inverse()
     # Loading of decomposition rules:
+
     def decompose_test1(cmd):
         qb = cmd.qubits
         X | qb
+
     def recognize_test(cmd):
         return True
     register_decomposition(TestGate.__class__, decompose_test1, recognize_test)
+
     def decompose_test2(cmd):
         qb = cmd.qubits
         H | qb
@@ -92,7 +96,7 @@ def test_auto_replacer_decomposition_chooser(test_gate_filter):
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
                      engine_list=[_replacer.AutoReplacer(test_decomp_chooser),
-                     test_gate_filter])
+                                  test_gate_filter])
     assert len(decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
@@ -126,17 +130,21 @@ def test_auto_replacer_use_inverse_decomposition():
     # Create test gate and inverse
     class NoMagicGate(BasicGate):
         pass
+
     class MagicGate(BasicGate):
         def get_inverse(self):
             return NoMagicGate()
+
     def decompose_no_magic_gate(cmd):
         qb = cmd.qubits
         Rx(0.6) | qb
         H | qb
+
     def recognize_no_magic_gate(cmd):
         return True
     register_decomposition(NoMagicGate, decompose_no_magic_gate,
                            recognize_no_magic_gate)
+
     def magic_filter(self, cmd):
         if cmd.gate == MagicGate():
             return False
@@ -164,7 +172,7 @@ def test_auto_replacer_adds_tags(test_gate_filter):
     assert len(decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    cmd = Command(eng, TestGate, (qb,) )
+    cmd = Command(eng, TestGate, (qb,))
     cmd.tags = ["AddedTag"]
     eng.send([cmd])
     eng.flush()

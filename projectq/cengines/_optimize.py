@@ -25,22 +25,22 @@ class LocalOptimizer(BasicEngine):
     rotations, cancelling gates with their inverse) in a local window of user-
     defined size.
 
-    It stores all commands in a list of lists, where each qubit has its own gate
-    pipeline. After adding a gate, it tries to merge / cancel successive gates
-    using the get_merged and get_inverse functions of the gate (if available).
-    For examples, see BasicRotationGate. Once a list corresponding to a qubit
-    contains >=m gates, the pipeline is sent on to the next engine.
+    It stores all commands in a list of lists, where each qubit has its own
+    gate pipeline. After adding a gate, it tries to merge / cancel successive
+    gates using the get_merged and get_inverse functions of the gate (if
+    available). For examples, see BasicRotationGate. Once a list corresponding
+    to a qubit contains >=m gates, the pipeline is sent on to the next engine.
     """
     def __init__(self, m=5):
         """
         Initialize a LocalOptimizer object.
 
         Args:
-            m (int): Number of gates to cache per qubit, before sending on the first
-                gate.
+            m (int): Number of gates to cache per qubit, before sending on the
+                first gate.
         """
         BasicEngine.__init__(self)
-        self._l = [[]]  # list of lists containing the operations for each qubit
+        self._l = [[]]  # list of lists containing operations for each qubit
         self._m = m  # wait for m gates before sending on
 
     # sends n gate operations of the qubit with index idx
@@ -70,8 +70,8 @@ class LocalOptimizer(BasicEngine):
                             # and don't want the other qubit to do so
                             self._l[Id] = self._l[Id][1:]
                         except IndexError:
-                            print("Invalid qubit pipeline encountered (in the process of "
-                                  "shutting down?).")
+                            print("Invalid qubit pipeline encountered (in the"
+                                  " process of shutting down?).")
 
             # all qubits that need to be flushed have been flushed
             # --> send on the n-qubit gate
@@ -81,8 +81,8 @@ class LocalOptimizer(BasicEngine):
 
     def _get_gate_indices(self, idx, i, IDs):
         """
-        Return all indices of a command, each index corresponding to the command's
-        index in one of the qubits' command lists.
+        Return all indices of a command, each index corresponding to the
+        command's index in one of the qubits' command lists.
 
         Args:
             idx (int): qubit index
@@ -98,8 +98,9 @@ class LocalOptimizer(BasicEngine):
         numidentical = 0  # number of identical commands (gate & arguments)
         j = 0
         while j < i:
-            # this gate would otherwise be recognized as the right one in other qubits
-            # find #times this happens before the right gate is found
+            # this gate would otherwise be recognized as the right one in
+            # other qubits find #times this happens before the right gate
+            # is found
             if self._l[idx][j] == self._l[idx][i]:
                 numidentical += 1
             j += 1
@@ -137,11 +138,11 @@ class LocalOptimizer(BasicEngine):
 
             if inv == self._l[idx][i + 1]:
                 # determine index of this gate on all qubits
-                qubitids = [qb.id for sublist in self._l[idx][i].all_qubits for qb
-                            in sublist]
+                qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                            for qb in sublist]
                 gid = self._get_gate_indices(idx, i, qubitids)
-                # check that there are no other gates between this and its inverse
-                # on any of the other qubits involved
+                # check that there are no other gates between this and its
+                # inverse on any of the other qubits involved
                 erase = True
                 for j in range(len(qubitids)):
                     erase *= (inv == self._l[qubitids[j]][gid[j] + 1])
@@ -149,15 +150,18 @@ class LocalOptimizer(BasicEngine):
                 # drop these two gates if possible and goto next iteration
                 if erase:
                     for j in range(len(qubitids)):
-                        self._l[qubitids[j]] = (self._l[qubitids[j]][0:gid[j]] +
-                                                self._l[qubitids[j]][gid[j] + 2:])
+                        new_list = (self._l[qubitids[j]][0:gid[j]] +
+                                    self._l[qubitids[j]][gid[j] + 2:])
+                        self._l[qubitids[j]] = new_list
                     i = 0
                     limit -= 2
                     continue
 
-            # gates are not each other's inverses --> check if they're mergeable
+            # gates are not each other's inverses --> check if they're
+            # mergeable
             try:
-                merged_command = self._l[idx][i].get_merged(self._l[idx][i + 1])
+                merged_command = self._l[idx][i].get_merged(
+                    self._l[idx][i + 1])
                 # determine index of this gate on all qubits
                 qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
                             for qb in sublist]
@@ -166,14 +170,15 @@ class LocalOptimizer(BasicEngine):
                 merge = True
                 for j in range(len(qubitids)):
                     m = self._l[qubitids[j]][gid[j]].get_merged(
-                                self._l[qubitids[j]][gid[j] + 1])
+                        self._l[qubitids[j]][gid[j] + 1])
                     merge *= (m == merged_command)
 
                 if merge:
                     for j in range(len(qubitids)):
                         self._l[qubitids[j]][gid[j]] = merged_command
-                        self._l[qubitids[j]] = (self._l[qubitids[j]][0:gid[j] + 1] +
-                                                self._l[qubitids[j]][gid[j] + 2:])
+                        new_list = (self._l[qubitids[j]][0:gid[j] + 1] +
+                                    self._l[qubitids[j]][gid[j] + 2:])
+                        self._l[qubitids[j]] = new_list
                     i = 0
                     limit -= 1
                     continue
@@ -190,10 +195,11 @@ class LocalOptimizer(BasicEngine):
         """
         for i in range(len(self._l)):
             if (len(self._l[i]) >= self._m or len(self._l[i]) > 0
-                and isinstance(self._l[i][-1].gate, FastForwardingGate)):
+               and isinstance(self._l[i][-1].gate, FastForwardingGate)):
                 self._optimize(i)
                 if (len(self._l[i]) >= self._m
-                    and not isinstance(self._l[i][-1].gate, FastForwardingGate)):
+                   and not isinstance(self._l[i][-1].gate,
+                                      FastForwardingGate)):
                     self._send_qubit_pipeline(i, len(self._l[i]) - self._m + 1)
                 elif (len(self._l[i]) > 0 and
                       isinstance(self._l[i][-1].gate, FastForwardingGate)):

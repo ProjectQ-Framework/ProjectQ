@@ -15,6 +15,7 @@ from projectq.types import Qubit, Qureg
 from projectq.ops import Command
 import projectq.cengines
 
+
 class LastEngineException(Exception):
     """
     Exception thrown when the last engine tries to access the next one.
@@ -25,10 +26,11 @@ class LastEngineException(Exception):
     engine, this behavior needs to be adapted (see BasicEngine.isAvailable).
     """
     def __init__(self, engine):
-        Exception.__init__(self, "\nERROR: Sending to next engine failed. " +
-                        engine.__class__.__name__ + " as last engine?" +
-                        "\nIf this is legal, please override"
-                        "'isAvailable' to adapt its behavior.")
+        Exception.__init__(self, ("\nERROR: Sending to next engine failed. "
+                                  "{} as last engine?\nIf this is legal, "
+                                  "please override 'isAvailable' to adapt its"
+                                  " behavior."
+                                  ).format(engine.__class__.__name__))
 
 
 class BasicEngine(object):
@@ -70,8 +72,8 @@ class BasicEngine(object):
             True if the command can be executed.
 
         Raises:
-            LastEngineException: If is_last_engine is True but is_available is not
-            implemented.
+            LastEngineException: If is_last_engine is True but is_available
+                is not implemented.
         """
         if not self.is_last_engine:
             return self.next_engine.is_available(cmd)
@@ -80,8 +82,8 @@ class BasicEngine(object):
 
     def allocate_qubit(self, dirty=False):
         """
-        Return a new qubit as a list containing 1 qubit object (quantum register
-        of size 1).
+        Return a new qubit as a list containing 1 qubit object (quantum
+        register of size 1).
 
         Allocates a new qubit by getting a (new) qubit id from the MainEngine,
         creating the qubit object, and then sending an AllocateQubit command
@@ -90,15 +92,15 @@ class BasicEngine(object):
         must be returned to their initial states before they are deallocated /
         freed.
 
-        All allocated qubits are added to the MainEngine's set of active qubits
-        as weak references. This allows proper clean-up at the end of the Python
-        program (using atexit), deallocating all qubits which are still alive.
-        Qubit ids of dirty qubits are registered in MainEngine's dirty_qubits
-        set.
+        All allocated qubits are added to the MainEngine's set of active
+        qubits as weak references. This allows proper clean-up at the end of
+        the Python program (using atexit), deallocating all qubits which are
+        still alive. Qubit ids of dirty qubits are registered in MainEngine's
+        dirty_qubits set.
 
         Args:
-            dirty (bool): If True, indicates that the allocated qubit may be dirty
-                (i.e., in an arbitrary initial state).
+            dirty (bool): If True, indicates that the allocated qubit may be
+                dirty (i.e., in an arbitrary initial state).
 
         Returns:
             Qureg of length 1, where the first entry is the allocated qubit.
@@ -109,11 +111,13 @@ class BasicEngine(object):
             from projectq.meta import DirtyQubitTag
             if self.is_meta_tag_supported(DirtyQubitTag):
                 oldnext = self.next_engine
+
                 def cmd_modifier(cmd):
                     assert(cmd.gate == Allocate)
                     cmd.tags += [DirtyQubitTag()]
                     return cmd
-                self.next_engine = projectq.cengines.CommandModifier(cmd_modifier)
+                self.next_engine = projectq.cengines.CommandModifier(
+                    cmd_modifier)
                 self.next_engine.next_engine = oldnext
                 self.send([Command(self, Allocate, (qb,))])
                 self.next_engine = oldnext
@@ -127,8 +131,8 @@ class BasicEngine(object):
 
     def allocate_qureg(self, n):
         """
-        Allocate n qubits and return them as a quantum register, which is a list
-        of qubit objects.
+        Allocate n qubits and return them as a quantum register, which is a
+        list of qubit objects.
 
         Args:
             n (int): Number of qubits to allocate
@@ -139,9 +143,9 @@ class BasicEngine(object):
 
     def deallocate_qubit(self, qubit):
         """
-        Deallocate a qubit (and sends the deallocation command down the pipeline).
-        If the qubit was allocated as a dirty qubit, add DirtyQubitTag() to
-        Deallocate command.
+        Deallocate a qubit (and sends the deallocation command down the
+        pipeline). If the qubit was allocated as a dirty qubit, add
+        DirtyQubitTag() to Deallocate command.
 
         Args:
             qubit (BasicQubit): Qubit to deallocate.
@@ -152,11 +156,13 @@ class BasicEngine(object):
             else:
                 from projectq.meta import DirtyQubitTag
                 oldnext = self.next_engine
+
                 def cmd_modifier(cmd):
                     assert(cmd.gate == Deallocate)
                     cmd.tags += [DirtyQubitTag()]
                     return cmd
-                self.next_engine = projectq.cengines.CommandModifier(cmd_modifier)
+                self.next_engine = projectq.cengines.CommandModifier(
+                    cmd_modifier)
                 self.next_engine.next_engine = oldnext
                 self.send([Command(self, Deallocate, ([qubit],))])
                 self.next_engine = oldnext
@@ -166,12 +172,14 @@ class BasicEngine(object):
         Check if there is a compiler engine handling the meta tag
 
         Args:
-            engine: First engine to check (then iteratively calls getNextEngine)
+            engine: First engine to check (then iteratively calls
+                getNextEngine)
             meta_tag: Meta tag class for which to check support
 
         Returns:
-            supported (bool): True if one of the further compiler engines is a meta tag handler, i.e.,
-            engine.is_meta_tag_handler(meta_tag) returns True.
+            supported (bool): True if one of the further compiler engines is a
+                meta tag handler, i.e., engine.is_meta_tag_handler(meta_tag)
+                returns True.
         """
         engine = self
         try:
@@ -187,7 +195,9 @@ class BasicEngine(object):
 
     # sends the commandList to the next engine
     def send(self, command_list):
-        """ Forward the list of commands to the next engine in the pipeline. """
+        """
+        Forward the list of commands to the next engine in the pipeline.
+        """
         self.next_engine.receive(command_list)
 
 
@@ -206,8 +216,8 @@ class ForwarderEngine(BasicEngine):
         Args:
             engine (BasicEngine): Engine to forward all commands to.
             cmd_mod_fun (function): Function which is called before sending a
-                command. Each command cmd is replaced by the command it returns when
-                getting called with cmd.
+                command. Each command cmd is replaced by the command it
+                returns when getting called with cmd.
         """
         BasicEngine.__init__(self)
         self.main_engine = engine.main_engine

@@ -58,6 +58,7 @@ def test_ibmcnotmapper_nointermediate_measurements():
     with pytest.raises(Exception):
         Measure | qb0
 
+
 def test_ibmcnotmapper_optimizeifpossible():
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,

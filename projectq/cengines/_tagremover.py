@@ -24,9 +24,9 @@ class TagRemover(BasicEngine):
     TagRemover is a compiler engine which removes temporary command tags (see
     the tag classes such as LoopTag in projectq.meta._loop).
 
-    Removing tags is important (after having handled them if necessary) in order
-    to enable optimizations across meta-function boundaries (compute/action/
-    uncompute or loops after unrolling)
+    Removing tags is important (after having handled them if necessary) in
+    order to enable optimizations across meta-function boundaries (compute/
+    action/uncompute or loops after unrolling)
     """
     def __init__(self, tags=[ComputeTag, UncomputeTag]):
         """
@@ -42,8 +42,8 @@ class TagRemover(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, remove all tags which
-        are an instance of at least one of the meta tags provided in the
+        Receive a list of commands from the previous engine, remove all tags
+        which are an instance of at least one of the meta tags provided in the
         constructor, and then send them on to the next compiler engine.
 
         Args:

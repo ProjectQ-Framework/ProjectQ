@@ -17,6 +17,7 @@ from copy import deepcopy
 from projectq.cengines import BasicEngine
 from projectq.ops import FlushGate, Allocate, Deallocate
 
+
 class CompareEngine(BasicEngine):
     """
     CompareEngine is an engine which saves all commands. It is only intended
@@ -32,7 +33,8 @@ class CompareEngine(BasicEngine):
 
     def cache_cmd(self, cmd):
         # are there qubit ids that haven't been added to the list?
-        all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits for qubit in qureg]
+        all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits
+                             for qubit in qureg]
         maxidx = int(0)
         for qubit_id in all_qubit_id_list:
             maxidx = max(maxidx, qubit_id)
@@ -60,13 +62,14 @@ class CompareEngine(BasicEngine):
         return c1 == c2
 
     def __eq__(self, other):
-        if not isinstance(other, CompareEngine) or len(self._l) != len(other._l):
+        if (not isinstance(other, CompareEngine) or
+           len(self._l) != len(other._l)):
             return False
         for i in range(len(self._l)):
             if len(self._l[i]) != len(other._l[i]):
                 return False
             for j in range(len(self._l[i])):
-                if self.compare_cmds(self._l[i][j], other._l[i][j]) == False:
+                if not self.compare_cmds(self._l[i][j], other._l[i][j]):
                     return False
         return True
 
@@ -93,7 +96,7 @@ class DummyEngine(BasicEngine):
     list in self.received_commands. Elements are appended to this
     list so they are ordered according to when they are received.
     """
-    def __init__(self, save_commands = False):
+    def __init__(self, save_commands=False):
         """
         Initialize DummyEngine
 

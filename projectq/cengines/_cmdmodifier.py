@@ -28,8 +28,8 @@ class CommandModifier(BasicEngine):
         Initialize the CommandModifier.
 
         Args:
-            cmd_mod_fun (function): Function which, given a command cmd, returns
-                the command it should send instead.
+            cmd_mod_fun (function): Function which, given a command cmd,
+                returns the command it should send instead.
 
         Example:
             .. code-block:: python
@@ -44,8 +44,8 @@ class CommandModifier(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, modify all commands,
-        and send them on to the next engine.
+        Receive a list of commands from the previous engine, modify all
+        commands, and send them on to the next engine.
 
         Args:
             command_list (list<Command>): List of commands to receive and then
