@@ -23,14 +23,14 @@ from projectq.ops import Ph, Rz, R
 
 
 def _decompose_R(cmd):
-	""" Decompose the (controlled) phase-shift gate, denoted by R(phase). """
-	ctrl = cmd.control_qubits
-	eng = cmd.engine
-	gate = cmd.gate
-	
-	with Control(eng, ctrl):
-		Ph(.5 * gate._angle) | cmd.qubits
-		Rz(gate._angle) | cmd.qubits
+    """ Decompose the (controlled) phase-shift gate, denoted by R(phase). """
+    ctrl = cmd.control_qubits
+    eng = cmd.engine
+    gate = cmd.gate
+
+    with Control(eng, ctrl):
+        Ph(.5 * gate._angle) | cmd.qubits
+        Rz(gate._angle) | cmd.qubits
 
 
 register_decomposition(R, _decompose_R)

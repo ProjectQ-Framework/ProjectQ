@@ -13,11 +13,11 @@
 """
 Registers a variety of useful gate decompositions. Among others it includes
 
-	* Controlled z-rotations --> Controlled NOTs and single-qubit rotations
-	* Toffoli gate --> CNOT and single-qubit gates
-	* m-Controlled global phases --> (m-1)-controlled phase-shifts
-	* Global phases --> ignore
-	* (controlled) Swap gates --> CNOTs and Toffolis
+    * Controlled z-rotations --> Controlled NOTs and single-qubit rotations
+    * Toffoli gate --> CNOT and single-qubit gates
+    * m-Controlled global phases --> (m-1)-controlled phase-shifts
+    * Global phases --> ignore
+    * (controlled) Swap gates --> CNOTs and Toffolis
 """
 
 import projectq
@@ -34,8 +34,8 @@ from projectq.setups.decompositions import (crz2cxandrz,
 
 
 def default_engines():
-	return [TagRemover(), LocalOptimizer(10), AutoReplacer(), TagRemover(),
-	        LocalOptimizer(10)]
+    return [TagRemover(), LocalOptimizer(10), AutoReplacer(), TagRemover(),
+            LocalOptimizer(10)]
 
 
 projectq.default_engines = default_engines

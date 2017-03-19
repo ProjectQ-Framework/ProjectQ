@@ -16,11 +16,11 @@ Defines the DirtyQubitTag meta tag.
 
 
 class DirtyQubitTag(object):
-	"""
-	Dirty qubit meta tag
-	"""
-	def __eq__(self, other):
-		return isinstance(other, DirtyQubitTag)
+    """
+    Dirty qubit meta tag
+    """
+    def __eq__(self, other):
+        return isinstance(other, DirtyQubitTag)
 
-	def __ne__(self, other):
-		return not self.__eq__(other)
+    def __ne__(self, other):
+        return not self.__eq__(other)

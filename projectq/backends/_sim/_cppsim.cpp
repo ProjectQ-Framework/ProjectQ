@@ -32,26 +32,26 @@ using QuRegs = std::vector<std::vector<unsigned>>;
 
 template <class QR>
 void emulate_math_wrapper(Simulator &sim, py::function const& pyfunc, QR const& qr, std::vector<unsigned> const& ctrls){
-	auto f = [&](std::vector<int>& x) {
-		pybind11::gil_scoped_acquire acquire;
-		x = std::move(pyfunc(x).cast<std::vector<int>>());
-	};
-	pybind11::gil_scoped_release release;
-	sim.emulate_math(f, qr, ctrls);
+    auto f = [&](std::vector<int>& x) {
+        pybind11::gil_scoped_acquire acquire;
+        x = std::move(pyfunc(x).cast<std::vector<int>>());
+    };
+    pybind11::gil_scoped_release release;
+    sim.emulate_math(f, qr, ctrls);
 }
 PYBIND11_PLUGIN(_cppsim) {
-	py::module m("_cppsim", "_cppsim");
-	py::class_<Simulator>(m, "Simulator")
-		.def(py::init<unsigned>())
-		.def("allocate_qubit", &Simulator::allocate_qubit)
-		.def("deallocate_qubit", &Simulator::deallocate_qubit)
-		.def("get_classical_value", &Simulator::get_classical_value)
-		.def("is_classical", &Simulator::is_classical)
-		.def("measure_qubits", &Simulator::measure_qubits_return)
-		.def("apply_controlled_gate", &Simulator::apply_controlled_gate<MatrixType>)
-		.def("emulate_math", &emulate_math_wrapper<QuRegs>)
-		.def("run", &Simulator::run)
-		.def("cheat", &Simulator::cheat)
-		;
-	return m.ptr();
+    py::module m("_cppsim", "_cppsim");
+    py::class_<Simulator>(m, "Simulator")
+        .def(py::init<unsigned>())
+        .def("allocate_qubit", &Simulator::allocate_qubit)
+        .def("deallocate_qubit", &Simulator::deallocate_qubit)
+        .def("get_classical_value", &Simulator::get_classical_value)
+        .def("is_classical", &Simulator::is_classical)
+        .def("measure_qubits", &Simulator::measure_qubits_return)
+        .def("apply_controlled_gate", &Simulator::apply_controlled_gate<MatrixType>)
+        .def("emulate_math", &emulate_math_wrapper<QuRegs>)
+        .def("run", &Simulator::run)
+        .def("cheat", &Simulator::cheat)
+        ;
+    return m.ptr();
 }
