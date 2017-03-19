@@ -14,10 +14,10 @@ from ._basics import BasicGate
 
 
 class QFTGate(BasicGate):
-	"""
-	Quantum Fourier Transform gate.
-	"""
-	def __str__(self):
-		return "QFT"
+    """
+    Quantum Fourier Transform gate.
+    """
+    def __str__(self):
+        return "QFT"
 
 QFT = QFTGate()

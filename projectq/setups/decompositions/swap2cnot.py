@@ -23,14 +23,14 @@ from projectq.ops import Swap, CNOT
 
 
 def _decompose_swap(cmd):
-	""" Decompose (controlled) swap gates. """
-	ctrl = cmd.control_qubits
-	eng = cmd.engine
-	with Compute(eng):
-		CNOT | (cmd.qubits[0], cmd.qubits[1])
-	with Control(eng, ctrl):
-		CNOT | (cmd.qubits[1], cmd.qubits[0])
-	Uncompute(eng)
+    """ Decompose (controlled) swap gates. """
+    ctrl = cmd.control_qubits
+    eng = cmd.engine
+    with Compute(eng):
+        CNOT | (cmd.qubits[0], cmd.qubits[1])
+    with Control(eng, ctrl):
+        CNOT | (cmd.qubits[1], cmd.qubits[0])
+    Uncompute(eng)
 
 
 register_decomposition(Swap.__class__, _decompose_swap)

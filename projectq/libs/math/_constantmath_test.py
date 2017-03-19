@@ -25,79 +25,79 @@ from projectq.libs.math import (AddConstant,
 
 
 def init(engine, quint, value):
-	for i in range(len(quint)):
-		if ((value >> i)&1) == 1:
-			X | quint[i]
+    for i in range(len(quint)):
+        if ((value >> i) & 1) == 1:
+            X | quint[i]
 
 
 def no_math_emulation(eng, cmd):
-	if isinstance(cmd.gate, BasicMathGate):
-		return False
-	if isinstance(cmd.gate, ClassicalInstructionGate):
-		return True
-	try:
-		return len(cmd.gate.matrix) == 2
-	except:
-		return False
+    if isinstance(cmd.gate, BasicMathGate):
+        return False
+    if isinstance(cmd.gate, ClassicalInstructionGate):
+        return True
+    try:
+        return len(cmd.gate.matrix) == 2
+    except:
+        return False
 
 
 def test_adder():
-	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
-	                       InstructionFilter(no_math_emulation)])
-	qureg = eng.allocate_qureg(4)
-	init(eng, qureg, 4)
-	
-	AddConstant(3) | qureg
-	
-	assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
-	
-	init(eng, qureg, 7)  # reset
-	init(eng, qureg, 2)
-	
-	AddConstant(15) | qureg  # check for overflow -> should be 15+2 = 1 (mod 16)
-	assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
-	
-	Measure | qureg
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(),
+                           InstructionFilter(no_math_emulation)])
+    qureg = eng.allocate_qureg(4)
+    init(eng, qureg, 4)
+
+    AddConstant(3) | qureg
+
+    assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
+
+    init(eng, qureg, 7)  # reset
+    init(eng, qureg, 2)
+
+    AddConstant(15) | qureg  # check for overflow. Should be 15+2 = 1 (mod 16)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+
+    Measure | qureg
 
 
 def test_modadder():
-	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
-	                       InstructionFilter(no_math_emulation)])
-	
-	qureg = eng.allocate_qureg(4)
-	init(eng, qureg, 4)
-	
-	AddConstantModN(3, 6) | qureg
-	
-	assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
-	
-	init(eng, qureg, 1)  # reset
-	init(eng, qureg, 7)
-	
-	AddConstantModN(10, 13) | qureg
-	assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
-	
-	Measure | qureg
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(),
+                           InstructionFilter(no_math_emulation)])
+
+    qureg = eng.allocate_qureg(4)
+    init(eng, qureg, 4)
+
+    AddConstantModN(3, 6) | qureg
+
+    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+
+    init(eng, qureg, 1)  # reset
+    init(eng, qureg, 7)
+
+    AddConstantModN(10, 13) | qureg
+    assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
+
+    Measure | qureg
 
 
 def test_modmultiplier():
-	sim = Simulator()
-	eng = MainEngine(sim, [AutoReplacer(),
-	                       InstructionFilter(no_math_emulation)])
-	
-	qureg = eng.allocate_qureg(4)
-	init(eng, qureg, 4)
-	
-	MultiplyByConstantModN(3, 7) | qureg
-	
-	assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
-	
-	init(eng, qureg, 5)  # reset
-	init(eng, qureg, 7)
-	
-	MultiplyByConstantModN(4, 13) | qureg
-	assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
-	
-	Measure | qureg
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(),
+                           InstructionFilter(no_math_emulation)])
+
+    qureg = eng.allocate_qureg(4)
+    init(eng, qureg, 4)
+
+    MultiplyByConstantModN(3, 7) | qureg
+
+    assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
+
+    init(eng, qureg, 5)  # reset
+    init(eng, qureg, 7)
+
+    MultiplyByConstantModN(4, 13) | qureg
+    assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
+
+    Measure | qureg
