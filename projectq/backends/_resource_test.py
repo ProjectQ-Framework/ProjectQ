@@ -69,3 +69,7 @@ def test_resource_counter():
     assert sent_gates.count(H) == 1
     assert sent_gates.count(X) == 2
     assert sent_gates.count(Measure) == 1
+
+
+def test_resource_counter_str_when_empty():
+    assert isinstance(str(ResourceCounter()), str)
