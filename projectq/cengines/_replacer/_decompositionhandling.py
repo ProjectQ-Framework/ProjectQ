@@ -11,58 +11,59 @@
 #   limitations under the License.
 
 from ._decomposition import Decomposition
+from projectq.ops import BasicGate
 
 
-class ThisIsNotAGateClassError(Exception):
+class ThisIsNotAGateClassError(TypeError):
     pass
 
 
 class DecompositionRule:
-    def __init__(self, gate_class, gate_decomposer, gate_recognizer=lambda cmd: True):
-        """
-        The decomposition rule is a Decomposition object (see _decomposition.py) and
-        consists of a function which recognizes a command (i.e., determines whether
-        it can handle it) and a function which executes the decomposition. The
-        gate_class parameter determines the gate class for which the decomposition
-        is valid (keeps the number of calls to recognize functions lower).
+    """
+    A rule for breaking down specific gates into sequences of simpler gates.
+    """
 
+    def __init__(self,
+                 gate_class,
+                 gate_decomposer,
+                 gate_recognizer=lambda cmd: True):
+        """
         Args:
-            gate_class: Gate class for which the decomposition should be applicable;
-                this parameter is only used to enable binary search on
-                `gate_object.__class__`.
-                If your class is defined as
+            gate_class: The type of gate that this rule decomposes.
 
-                .. code-block:: python
+                The gate class is redundant information used to make lookups
+                faster when iterating over a circuit and deciding "which rules
+                apply to this gate?" again and again.
 
-                    class MyGate(BasicGate):
-                        pass
+                Note that this parameter is a gate type, not a gate instance.
+                You supply gate_class=MyGate or gate_class=MyGate().__class__,
+                not gate_class=MyGate().
 
-                Then you supply gate_class=MyGate
-                However, if MyGate is overridden as often is the case when
-
-                .. code-block:: python
-
-                    MyGate = MyGate() # Because it allows the syntax MyGate | qubit
-
-                then gate_class = MyGate.__class__
-            gate_decomposer (function): Function which, given the command to
-                decompose, applies a sequence of gates corresponding to the high-level
-                function of a gate of type gate_class.
-            gate_recognizer (function): Optional function which, given the command to
-                decompose, returns whether the decomposition supports the given command.
-                E.g., rotation gates may be rewritten using one decomposition for some
-                angles, and another one for other angles. If no such function is
-                provided, the decomposition rule will be valid for all gates of type
+            gate_decomposer (function[projectq.ops.Command]): Function which,
+                given the command to decompose, applies a sequence of gates
+                corresponding to the high-level function of a gate of type
                 gate_class.
+
+            gate_recognizer (function[projectq.ops.Command] : boolean): A
+                predicate that determines if the decomposition applies to the
+                given command (on top of the filtering by gate_class).
+
+                For example, a decomposition rule may only to apply rotation
+                gates that rotate by a specific angle.
+
+                If no gate_recognizer is given, the decomposition applies to
+                all gates matching the gate_class.
         """
 
-        # Check that gate_class is a gate class and not type
+        # Check for common gate_class type mistakes.
+        if isinstance(gate_class, BasicGate):
+            raise ThisIsNotAGateClassError(
+                "gate_class is a gate instance instead of a type of BasicGate."
+                "\nDid you pass in someGate instead of someGate.__class__?")
         if gate_class == type.__class__:
             raise ThisIsNotAGateClassError(
-                "gate_class is not a valid gate_class.\n" +
-                "Did you forget to create an instance and call" +
-                " .__class__ in that one?\n" +
-                " Rx.__class__ instead of Rx(0.6).__class__?\n")
+                "gate_class is type.__class__ instead of a type of BasicGate."
+                "\nDid you pass in GateType.__class__ instead of GateType?")
 
         self.gate_class = gate_class
         self.gate_decomposer = gate_decomposer
@@ -70,6 +71,9 @@ class DecompositionRule:
 
 
 class DecompositionRuleSet:
+    """
+    A collection of decomposition rules.
+    """
     def __init__(self, rules=None, modules=None):
         """
         Args:
@@ -102,6 +106,6 @@ class DecompositionRuleSet:
         """
         decomp_obj = Decomposition(rule.gate_decomposer, rule.gate_recognizer)
         cls = rule.gate_class.__name__
-        if not cls in self.decompositions:
+        if cls not in self.decompositions:
             self.decompositions[cls] = []
         self.decompositions[cls].append(decomp_obj)

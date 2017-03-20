@@ -28,3 +28,8 @@ def test_decomposition_rule_wrong_input():
         _ = DecompositionRule(WrongInput.__class__,
                               lambda cmd: None,
                               lambda cmd: None)
+
+    with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
+        _ = DecompositionRule(WrongInput(0),
+                              lambda cmd: None,
+                              lambda cmd: None)
