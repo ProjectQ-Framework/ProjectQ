@@ -63,22 +63,45 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
 
 def test_ibm_backend_functional_test(monkeypatch):
     dh = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    correct_info = '{"playground":[{"line":0,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm":"h"},{"position":3,"name":"measure","qasm":"measure"}]},{"line":1,"name":"q","gates":[{"position":0,"name":"h","qasm":"h"},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":2,"name":"q","gates":[{"position":1,"name":"cx","qasm":"cx","to":0},{"position":2,"name":"cx","qasm":"cx","to":1},{"position":3,"name":"h","qasm":"h"},{"position":4,"name":"measure","qasm":"measure"}]},{"line":3,"name":"q","gates":[]},{"line":4,"name":"q","gates":[]}],"numberColumns":40,"numberLines":5,"numberGates":200,"hasMeasures":true,"topology":"250e969c6b9e68aa2a045ffbceb3ac33"}'
+    correct_info = ('{"playground":[{"line":0,"name":"q","gates":[{"position"'
+                    ':0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm'
+                    '":"h"},{"position":3,"name":"measure","qasm":"measure"}]'
+                    '},{"line":1,"name":"q","gates":[{"position":0,"name":"h"'
+                    ',"qasm":"h"},{"position":3,"name":"h","qasm":"h"},{'
+                    '"position":4,"name":"measure","qasm":"measure"}]},{'
+                    '"line":2,"name":"q","gates":[{"position":1,"name":"cx"'
+                    ',"qasm":"cx","to":0},{"position":2,"name":"cx","qasm":'
+                    '"cx","to":1},{"position":3,"name":"h","qasm":"h"},{'
+                    '"position":4,"name":"measure","qasm":"measure"}]},{'
+                    '"line":3,"name":"q","gates":[]},{"line":4,"name":"q",'
+                    '"gates":[]}],"numberColumns":40,"numberLines":5,'
+                    '"numberGates":200,"hasMeasures":true,"topology":'
+                    '"250e969c6b9e68aa2a045ffbceb3ac33"}')
 
     # patch send
     def mock_send(*args, **kwargs):
         assert args[0] == correct_info
         return {'date': '2017-01-19T14:28:47.622Z',
-                'data': {'time': 14.429004907608032,
-                         'serialNumberDevice': 'Real5Qv1', 'p': {
-                        'labels': ['00000', '00001', '00010', '00011', '00100',
-                                   '00101', '00110', '00111'],
-                        'values': [0.4521484375, 0.0419921875, 0.0185546875,
-                                   0.0146484375, 0.005859375, 0.0263671875,
-                                   0.0537109375, 0.38671875],
-                        'qubits': [0, 1, 2]},
-                         'qasm': 'IBMQASM 2.0;\n\ninclude "qelib1.inc";\nqreg q[5];\ncreg c[5];\n\nh q[0];\nh q[1];\nCX q[0],q[2];\nh q[0];\nCX q[1],q[2];\nmeasure q[0] -> c[0];\nh q[1];\nh q[2];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\n'}}
-
+                'data': {'time': 14.429004907608032, 'serialNumberDevice':
+                         'Real5Qv1', 'p': {'labels': ['00000', '00001',
+                                                      '00010', '00011',
+                                                      '00100', '00101',
+                                                      '00110', '00111'],
+                                           'values': [0.4521484375,
+                                                      0.0419921875,
+                                                      0.0185546875,
+                                                      0.0146484375,
+                                                      0.005859375,
+                                                      0.0263671875,
+                                                      0.0537109375,
+                                                      0.38671875],
+                                           'qubits': [0, 1, 2]},
+                         'qasm': ('IBMQASM 2.0;\n\ninclude "qelib1.inc";\n'
+                                  'qreg q[5];\ncreg c[5];\n\nh q[0];\n'
+                                  'h q[1];\nCX q[0],q[2];\nh q[0];\n'
+                                  'CX q[1],q[2];\nmeasure q[0] -> c[0];\n'
+                                  'h q[1];\nh q[2];\nmeasure q[1] -> c[1];\n'
+                                  'measure q[2] -> c[2];\n')}}
     monkeypatch.setattr(_ibm, "send", mock_send)
 
     backend = _ibm.IBMBackend()

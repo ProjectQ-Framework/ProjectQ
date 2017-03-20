@@ -28,49 +28,49 @@ from projectq.ops import (FlushGate,
 
 
 class NoGateDecompositionError(Exception):
-	pass
+    pass
 
 
 class InstructionFilter(BasicEngine):
-	"""
-	The InstructionFilter is a compiler engine which changes the behavior of
-	is_available according to a filter function. All commands are passed to this
-	function, which then returns whether this command can be executed (True) or
-	needs replacement (False).
-	"""
-	def __init__(self, filterfun):
-		"""
-		Constructor: The provided filterfun returns True for all commands which do
-		not need replacement and False for commands that do.
-		
-		Args:
-			filterfun (function): Filter function which returns True for available
-				commands, and False otherwise. filterfun will be called as
-				filterfun(self, cmd).
-		"""
-		BasicEngine.__init__(self)
-		self._filterfun = filterfun
-	
-	def is_available(self, cmd):
-		"""
-		Specialized implementation of BasicBackend.is_available: Forwards this
-		call to the filter function given to the constructor.
-		
-		Args:
-			cmd (Command): Command for which to check availability.
-		"""
-		return self._filterfun(self, cmd)
-		
-	def receive(self, command_list):
-		"""
-		Forward all commands to the next engine.
-		
-		Args:
-			command_list (list<Command>): List of commands to receive.
-		"""
-		self.next_engine.receive(command_list)
+    """
+    The InstructionFilter is a compiler engine which changes the behavior of
+    is_available according to a filter function. All commands are passed to
+    this function, which then returns whether this command can be executed
+    (True) or needs replacement (False).
+    """
+    def __init__(self, filterfun):
+        """
+        Initializer: The provided filterfun returns True for all commands
+        which do not need replacement and False for commands that do.
 
-			
+        Args:
+            filterfun (function): Filter function which returns True for
+                available commands, and False otherwise. filterfun will be
+                called as filterfun(self, cmd).
+        """
+        BasicEngine.__init__(self)
+        self._filterfun = filterfun
+
+    def is_available(self, cmd):
+        """
+        Specialized implementation of BasicBackend.is_available: Forwards this
+        call to the filter function given to the constructor.
+
+        Args:
+            cmd (Command): Command for which to check availability.
+        """
+        return self._filterfun(self, cmd)
+
+    def receive(self, command_list):
+        """
+        Forward all commands to the next engine.
+
+        Args:
+            command_list (list<Command>): List of commands to receive.
+        """
+        self.next_engine.receive(command_list)
+
+
 class AutoReplacer(BasicEngine):
 	"""
 	The AutoReplacer is a compiler engine which uses engine.is_available in

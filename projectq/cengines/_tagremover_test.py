@@ -21,23 +21,23 @@ from projectq.cengines import _tagremover
 
 
 def test_tagremover_default():
-	tag_remover = _tagremover.TagRemover()
-	assert tag_remover._tags == [ComputeTag, UncomputeTag]
+    tag_remover = _tagremover.TagRemover()
+    assert tag_remover._tags == [ComputeTag, UncomputeTag]
 
 
 def test_tagremover():
-	backend = DummyEngine(save_commands=True)
-	tag_remover = _tagremover.TagRemover([type("")])
-	eng = MainEngine(backend=backend, engine_list=[tag_remover])
-	# Create a command_list and check if "NewTag" is removed
-	qubit = eng.allocate_qubit()
-	cmd0 = Command(eng, H, (qubit,))
-	cmd0.tags = ["NewTag"]
-	cmd1 = Command(eng, H, (qubit,))
-	cmd1.tags = [1,2,"NewTag", 3]
-	cmd_list = [cmd0, cmd1, cmd0]
-	assert len(backend.received_commands) == 1 # AllocateQubitGate
-	tag_remover.receive(cmd_list)
-	assert len(backend.received_commands) == 4
-	assert backend.received_commands[1].tags == []
-	assert backend.received_commands[2].tags == [1,2,3]
+    backend = DummyEngine(save_commands=True)
+    tag_remover = _tagremover.TagRemover([type("")])
+    eng = MainEngine(backend=backend, engine_list=[tag_remover])
+    # Create a command_list and check if "NewTag" is removed
+    qubit = eng.allocate_qubit()
+    cmd0 = Command(eng, H, (qubit,))
+    cmd0.tags = ["NewTag"]
+    cmd1 = Command(eng, H, (qubit,))
+    cmd1.tags = [1, 2, "NewTag", 3]
+    cmd_list = [cmd0, cmd1, cmd0]
+    assert len(backend.received_commands) == 1  # AllocateQubitGate
+    tag_remover.receive(cmd_list)
+    assert len(backend.received_commands) == 4
+    assert backend.received_commands[1].tags == []
+    assert backend.received_commands[2].tags == [1, 2, 3]

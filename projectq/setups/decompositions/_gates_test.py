@@ -50,7 +50,7 @@ def low_level_gates(eng, cmd):
         return True
     if len(cmd.control_qubits) == 0:
         if (g == T or g == Tdag or g == H or isinstance(g, Rz)
-            or isinstance(g, Ph)):
+                or isinstance(g, Ph)):
             return True
     else:
         if len(cmd.control_qubits) == 1 and cmd.gate == X:

@@ -25,11 +25,11 @@ from projectq.backends import Simulator
 
 
 class NotYetMeasuredError(Exception):
-	pass
+    pass
 
 
 class UnsupportedEngineError(Exception):
-	pass
+    pass
 
 
 class MainEngine(BasicEngine):

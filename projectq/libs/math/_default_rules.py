@@ -29,32 +29,32 @@ from ._constantmath import (add_constant,
 
 
 def _replace_addconstant(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		add_constant(eng, c, quint)
+    with Control(eng, cmd.control_qubits):
+        add_constant(eng, c, quint)
 
 
 def _replace_addconstmodN(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	N = cmd.gate.N
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    N = cmd.gate.N
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		add_constant_modN(eng, c, N, quint)
+    with Control(eng, cmd.control_qubits):
+        add_constant_modN(eng, c, N, quint)
 
 
 def _replace_multiplybyconstantmodN(cmd):
-	eng = cmd.engine
-	c = cmd.gate.a
-	N = cmd.gate.N
-	quint = cmd.qubits[0]
+    eng = cmd.engine
+    c = cmd.gate.a
+    N = cmd.gate.N
+    quint = cmd.qubits[0]
 
-	with Control(eng, cmd.control_qubits):
-		mul_by_constant_modN(eng, c, N, quint)
+    with Control(eng, cmd.control_qubits):
+        mul_by_constant_modN(eng, c, N, quint)
 
 all_defined_decomposition_rules = [
 	DecompositionRule(AddConstant, _replace_addconstant),

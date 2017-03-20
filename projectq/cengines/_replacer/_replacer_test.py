@@ -22,23 +22,23 @@ from projectq.cengines._replacer import _replacer
 
 
 def test_filter_engine():
-	def my_filter(self, cmd):
-		if cmd.gate == H:
-			return True
-		return False
-	filter_eng = _replacer.InstructionFilter(my_filter)
-	eng = MainEngine(backend=DummyEngine(), engine_list=[filter_eng])
-	qubit = eng.allocate_qubit()
-	cmd = Command(eng, H, (qubit,))
-	cmd2 = Command(eng, X, (qubit,))
-	assert eng.is_available(cmd)
-	assert not eng.is_available(cmd2)
-	assert filter_eng.is_available(cmd)
-	assert not filter_eng.is_available(cmd2)
+    def my_filter(self, cmd):
+        if cmd.gate == H:
+            return True
+        return False
+    filter_eng = _replacer.InstructionFilter(my_filter)
+    eng = MainEngine(backend=DummyEngine(), engine_list=[filter_eng])
+    qubit = eng.allocate_qubit()
+    cmd = Command(eng, H, (qubit,))
+    cmd2 = Command(eng, X, (qubit,))
+    assert eng.is_available(cmd)
+    assert not eng.is_available(cmd2)
+    assert filter_eng.is_available(cmd)
+    assert not filter_eng.is_available(cmd2)
 
 
 class TestGate(BasicGate):
-	""" Test gate class """
+    """ Test gate class """
 
 
 TestGate = TestGate()

@@ -22,13 +22,13 @@ from projectq.ops import Ph
 
 
 def _decompose_PhNoCtrl(cmd):
-	""" Throw out global phases (no controls). """
-	pass
+    """ Throw out global phases (no controls). """
+    pass
 
 
 def _recognize_PhNoCtrl(cmd):
-	""" Recognize global phases (no controls). """
-	return get_control_count(cmd) == 0
+    """ Recognize global phases (no controls). """
+    return get_control_count(cmd) == 0
 
 
 all_defined_decomposition_rules = [

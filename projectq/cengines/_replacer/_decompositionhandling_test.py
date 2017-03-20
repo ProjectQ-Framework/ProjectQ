@@ -24,14 +24,7 @@ def test_decomposition_rule_wrong_input():
 	class WrongInput(BasicRotationGate):
 		pass
 	
-	def decompose_func(cmd):
-		pass
-	
-	def recognize_func(cmd):
-		pass
-
 	with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
 		_ = DecompositionRule(WrongInput.__class__,
-		                      decompose_func, recognize_func)
-	decompose_func("")
-	recognize_func("")
+		                      lambda cmd: None,
+                              lambda cmd: None)

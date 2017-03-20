@@ -14,11 +14,11 @@
 Registers a variety of useful gate decompositions, specifically for the IBM
 quantum experience backend. Among others it includes:
 
-	* Controlled z-rotations --> Controlled NOTs and single-qubit rotations
-	* Toffoli gate --> CNOT and single-qubit gates
-	* m-Controlled global phases --> (m-1)-controlled phase-shifts
-	* Global phases --> ignore
-	* (controlled) Swap gates --> CNOTs and Toffolis
+    * Controlled z-rotations --> Controlled NOTs and single-qubit rotations
+    * Toffoli gate --> CNOT and single-qubit gates
+    * m-Controlled global phases --> (m-1)-controlled phase-shifts
+    * Global phases --> ignore
+    * (controlled) Swap gates --> CNOTs and Toffolis
 """
 
 

@@ -24,40 +24,41 @@ from projectq.backends import _printer
 
 
 def test_command_printer_is_available():
-	inline_cmd_printer = _printer.CommandPrinter()
-	cmd_printer = _printer.CommandPrinter()
-	def available_cmd(self, cmd):
-		return cmd.gate == H
-	filter = InstructionFilter(available_cmd)
-	eng = MainEngine(backend=cmd_printer, 
-	                 engine_list=[inline_cmd_printer, filter])
-	qubit = eng.allocate_qubit()
-	cmd0 = Command(eng, H, (qubit,))
-	cmd1 = Command(eng, T, (qubit,))
-	assert inline_cmd_printer.is_available(cmd0)
-	assert not inline_cmd_printer.is_available(cmd1)
-	assert cmd_printer.is_available(cmd0)
-	assert cmd_printer.is_available(cmd1)
+    inline_cmd_printer = _printer.CommandPrinter()
+    cmd_printer = _printer.CommandPrinter()
+
+    def available_cmd(self, cmd):
+        return cmd.gate == H
+    filter = InstructionFilter(available_cmd)
+    eng = MainEngine(backend=cmd_printer,
+                     engine_list=[inline_cmd_printer, filter])
+    qubit = eng.allocate_qubit()
+    cmd0 = Command(eng, H, (qubit,))
+    cmd1 = Command(eng, T, (qubit,))
+    assert inline_cmd_printer.is_available(cmd0)
+    assert not inline_cmd_printer.is_available(cmd1)
+    assert cmd_printer.is_available(cmd0)
+    assert cmd_printer.is_available(cmd1)
 
 
 def test_command_printer_accept_input(monkeypatch):
-	cmd_printer = _printer.CommandPrinter()
-	eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
-	monkeypatch.setattr(_printer, "input", lambda x: 1)
-	qubit = eng.allocate_qubit()
-	Measure | qubit
-	assert int(qubit) == 1
-	monkeypatch.setattr(_printer, "input", lambda x: 0)
-	qubit = eng.allocate_qubit()
-	NOT | qubit
-	Measure | qubit
-	assert int(qubit) == 0
+    cmd_printer = _printer.CommandPrinter()
+    eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
+    monkeypatch.setattr(_printer, "input", lambda x: 1)
+    qubit = eng.allocate_qubit()
+    Measure | qubit
+    assert int(qubit) == 1
+    monkeypatch.setattr(_printer, "input", lambda x: 0)
+    qubit = eng.allocate_qubit()
+    NOT | qubit
+    Measure | qubit
+    assert int(qubit) == 0
 
 
 def test_command_printer_no_input_default_measure():
-	cmd_printer = _printer.CommandPrinter(accept_input=False)
-	eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
-	qubit = eng.allocate_qubit()
-	NOT | qubit
-	Measure | qubit
-	assert int(qubit) == 0
+    cmd_printer = _printer.CommandPrinter(accept_input=False)
+    eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
+    qubit = eng.allocate_qubit()
+    NOT | qubit
+    Measure | qubit
+    assert int(qubit) == 0

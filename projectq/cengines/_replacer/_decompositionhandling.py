@@ -14,7 +14,7 @@ from ._decomposition import Decomposition
 
 
 class ThisIsNotAGateClassError(Exception):
-	pass
+    pass
 
 
 class DecompositionRule:
