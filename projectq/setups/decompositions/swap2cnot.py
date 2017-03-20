@@ -34,5 +34,5 @@ def _decompose_swap(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(Swap.__class__, _decompose_swap)
+    DecompositionRule(Swap.__class__, _decompose_swap)
 ]

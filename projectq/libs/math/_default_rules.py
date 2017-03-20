@@ -57,7 +57,7 @@ def _replace_multiplybyconstantmodN(cmd):
         mul_by_constant_modN(eng, c, N, quint)
 
 all_defined_decomposition_rules = [
-	DecompositionRule(AddConstant, _replace_addconstant),
-	DecompositionRule(AddConstantModN, _replace_addconstmodN),
-	DecompositionRule(MultiplyByConstantModN, _replace_multiplybyconstantmodN),
+    DecompositionRule(AddConstant, _replace_addconstant),
+    DecompositionRule(AddConstantModN, _replace_addconstmodN),
+    DecompositionRule(MultiplyByConstantModN, _replace_multiplybyconstantmodN),
 ]

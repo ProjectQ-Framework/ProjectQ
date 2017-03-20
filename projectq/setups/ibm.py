@@ -35,7 +35,7 @@ import projectq.setups.decompositions
 def ibm_default_engines():
     dh = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(), LocalOptimizer(10), AutoReplacer(dh), TagRemover(),
-	        IBMCNOTMapper(), LocalOptimizer(10)]
+            IBMCNOTMapper(), LocalOptimizer(10)]
 
 
 projectq.default_engines = ibm_default_engines

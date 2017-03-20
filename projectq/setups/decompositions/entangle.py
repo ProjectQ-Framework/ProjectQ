@@ -34,5 +34,5 @@ def _decompose_entangle(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(Entangle.__class__, _decompose_entangle)
+    DecompositionRule(Entangle.__class__, _decompose_entangle)
 ]

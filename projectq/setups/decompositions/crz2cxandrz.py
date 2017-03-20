@@ -40,5 +40,5 @@ def _recognize_CRz(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
+    DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
 ]

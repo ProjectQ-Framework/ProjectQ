@@ -32,5 +32,5 @@ def _recognize_PhNoCtrl(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
+    DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
 ]

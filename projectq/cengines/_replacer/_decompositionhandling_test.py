@@ -21,10 +21,10 @@ from projectq.cengines import DecompositionRule
 
 
 def test_decomposition_rule_wrong_input():
-	class WrongInput(BasicRotationGate):
-		pass
-	
-	with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
-		_ = DecompositionRule(WrongInput.__class__,
-		                      lambda cmd: None,
+    class WrongInput(BasicRotationGate):
+        pass
+
+    with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
+        _ = DecompositionRule(WrongInput.__class__,
+                              lambda cmd: None,
                               lambda cmd: None)

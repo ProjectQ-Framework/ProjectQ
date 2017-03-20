@@ -34,5 +34,5 @@ def _decompose_R(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(R, _decompose_R)
+    DecompositionRule(R, _decompose_R)
 ]

@@ -15,7 +15,7 @@ from projectq.cengines import (MainEngine,
                                LocalOptimizer,
                                TagRemover,
                                InstructionFilter,
-							   DecompositionRuleSet)
+                               DecompositionRuleSet)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
@@ -106,46 +106,46 @@ def high_level_gates(eng, cmd):
 
 
 if __name__ == "__main__":
-	# build compilation engine list
-	resource_counter = ResourceCounter()
-	dh = DecompositionRuleSet(modules=[projectq.libs.math,
+    # build compilation engine list
+    resource_counter = ResourceCounter()
+    dh = DecompositionRuleSet(modules=[projectq.libs.math,
                                        projectq.setups.decompositions])
-	compilerengines = [AutoReplacer(dh), InstructionFilter(high_level_gates),
-	                   TagRemover(), LocalOptimizer(3), AutoReplacer(dh),
-	                   TagRemover(), LocalOptimizer(3), resource_counter]
-	
-	# make the compiler and run the circuit on the simulator backend
-	eng = MainEngine(Simulator(), compilerengines)
-	
-	# print welcome message and ask the user for the number to factor
-	print("\n\t\033[37mprojectq\033[0m\n\t--------\n\tImplementation of Shor"
-	      "\'s algorithm.", end="")
-	N = int(input('\n\tNumber to factor: '))
-	print("\n\tFactoring N = {}: \033[0m".format(N), end="")
-	
-	# choose a base at random:
-	a = int(random.random()*N)
-	if not gcd(a, N) == 1:
-		print("\n\n\t\033[92mOoops, we were lucky: Chose non relative prime by "
-		      "accident :)")
-		print("\tFactor: {}\033[0m".format(gcd(a, N)))
-	else:
-		# run the quantum subroutine
-		r = run_shor(eng, N, a, True)
-	
-		# try to determine the factors
-		if r % 2 != 0:
-			r *= 2
-		apowrhalf = pow(a, r>>1, N)
-		f1 = gcd(apowrhalf+1, N)
-		f2 = gcd(apowrhalf-1, N)
-		if ((not f1 * f2 == N) and f1 * f2 > 1
-		    and int(1. * N / (f1 * f2)) * f1 * f2 == N):
-			f1, f2 = f1*f2, int(N/(f1*f2))
-		if f1 * f2 == N and f1 > 1 and f2 > 1:
-			print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m"
-			       .format(f1, f2, N))
-		else:
-			print("\n\n\t\033[91mBad luck: Found {} and {}\033[0m".format(f1, f2))
-		
-		print(resource_counter)  # print resource usage
+    compilerengines = [AutoReplacer(dh), InstructionFilter(high_level_gates),
+                       TagRemover(), LocalOptimizer(3), AutoReplacer(dh),
+                       TagRemover(), LocalOptimizer(3), resource_counter]
+
+    # make the compiler and run the circuit on the simulator backend
+    eng = MainEngine(Simulator(), compilerengines)
+
+    # print welcome message and ask the user for the number to factor
+    print("\n\t\033[37mprojectq\033[0m\n\t--------\n\tImplementation of Shor"
+          "\'s algorithm.", end="")
+    N = int(input('\n\tNumber to factor: '))
+    print("\n\tFactoring N = {}: \033[0m".format(N), end="")
+
+    # choose a base at random:
+    a = int(random.random()*N)
+    if not gcd(a, N) == 1:
+        print("\n\n\t\033[92mOoops, we were lucky: Chose non relative prime by "
+              "accident :)")
+        print("\tFactor: {}\033[0m".format(gcd(a, N)))
+    else:
+        # run the quantum subroutine
+        r = run_shor(eng, N, a, True)
+
+        # try to determine the factors
+        if r % 2 != 0:
+            r *= 2
+        apowrhalf = pow(a, r>>1, N)
+        f1 = gcd(apowrhalf+1, N)
+        f2 = gcd(apowrhalf-1, N)
+        if ((not f1 * f2 == N) and f1 * f2 > 1
+            and int(1. * N / (f1 * f2)) * f1 * f2 == N):
+            f1, f2 = f1*f2, int(N/(f1*f2))
+        if f1 * f2 == N and f1 > 1 and f2 > 1:
+            print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m"
+                   .format(f1, f2, N))
+        else:
+            print("\n\n\t\033[91mBad luck: Found {} and {}\033[0m".format(f1, f2))
+
+        print(resource_counter)  # print resource usage

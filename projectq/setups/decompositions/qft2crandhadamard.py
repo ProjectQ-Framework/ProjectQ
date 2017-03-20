@@ -39,5 +39,5 @@ def _decompose_QFT(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(QFT.__class__, _decompose_QFT)
+    DecompositionRule(QFT.__class__, _decompose_QFT)
 ]

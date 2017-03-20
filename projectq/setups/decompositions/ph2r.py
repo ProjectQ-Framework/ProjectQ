@@ -38,5 +38,5 @@ def _recognize_Ph(cmd):
 
 
 all_defined_decomposition_rules = [
-	DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)
+    DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)
 ]
