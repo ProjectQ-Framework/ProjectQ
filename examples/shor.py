@@ -126,8 +126,8 @@ if __name__ == "__main__":
     # choose a base at random:
     a = int(random.random()*N)
     if not gcd(a, N) == 1:
-        print("\n\n\t\033[92mOoops, we were lucky: Chose non relative prime by "
-              "accident :)")
+        print("\n\n\t\033[92mOoops, we were lucky: Chose non relative prime"
+              " by accident :)")
         print("\tFactor: {}\033[0m".format(gcd(a, N)))
     else:
         # run the quantum subroutine
@@ -136,16 +136,17 @@ if __name__ == "__main__":
         # try to determine the factors
         if r % 2 != 0:
             r *= 2
-        apowrhalf = pow(a, r>>1, N)
-        f1 = gcd(apowrhalf+1, N)
-        f2 = gcd(apowrhalf-1, N)
+        apowrhalf = pow(a, r >> 1, N)
+        f1 = gcd(apowrhalf + 1, N)
+        f2 = gcd(apowrhalf - 1, N)
         if ((not f1 * f2 == N) and f1 * f2 > 1
             and int(1. * N / (f1 * f2)) * f1 * f2 == N):
             f1, f2 = f1*f2, int(N/(f1*f2))
         if f1 * f2 == N and f1 > 1 and f2 > 1:
             print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m"
-                   .format(f1, f2, N))
+                  .format(f1, f2, N))
         else:
-            print("\n\n\t\033[91mBad luck: Found {} and {}\033[0m".format(f1, f2))
+            print("\n\n\t\033[91mBad luck: Found {} and {}\033[0m".format(f1,
+                                                                          f2))
 
         print(resource_counter)  # print resource usage
