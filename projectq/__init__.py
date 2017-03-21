@@ -14,14 +14,14 @@
 ProjectQ - An open source software framework for quantum computing
 
 Get started:
-	Simply import the main compiler engine (from projectq import MainEngine)
-	together with your setup of choice (e.g., import projectq.setups.default)
-	and start coding!
-	
-	For examples, see the example folder, which features implementation of
-	a quantum random number generator, entanglement demonstration (simulation
-	or run on the IBM backend), Teleportation, Grover search, and
-	Shor's algorithm for factoring.
+    Simply import the main compiler engine (from projectq import MainEngine)
+    together with your setup of choice (e.g., import projectq.setups.default)
+    and start coding!
+
+    For examples, see the example folder, which features implementation of
+    a quantum random number generator, entanglement demonstration (simulation
+    or run on the IBM backend), Teleportation, Grover search, and
+    Shor's algorithm for factoring.
 """
 
 from ._version import __version__

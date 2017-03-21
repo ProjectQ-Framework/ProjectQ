@@ -18,9 +18,9 @@ from projectq.meta import _dirtyqubit
 
 
 def test_dirty_qubit_tag():
-	tag0 = _dirtyqubit.DirtyQubitTag()
-	tag1 = _dirtyqubit.DirtyQubitTag()
-	tag2 = ComputeTag()
-	assert tag0 == tag1
-	assert not tag0 != tag1
-	assert not tag0 == tag2
+    tag0 = _dirtyqubit.DirtyQubitTag()
+    tag1 = _dirtyqubit.DirtyQubitTag()
+    tag2 = ComputeTag()
+    assert tag0 == tag1
+    assert not tag0 != tag1
+    assert not tag0 == tag2

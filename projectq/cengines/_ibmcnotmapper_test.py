@@ -22,77 +22,78 @@ from projectq.cengines import _ibmcnotmapper
 
 
 def test_ibmcnotmapper_is_available(monkeypatch):
-	# Test that IBMCNOTMapper calls IBMBackend if gate is available.
-	def mock_send(*args, **kwargs):
-		return "Yes"
-	monkeypatch.setattr(_ibmcnotmapper.IBMBackend, "is_available", mock_send)
-	mapper = _ibmcnotmapper.IBMCNOTMapper()
-	assert mapper.is_available("TestCommand") == "Yes"
+    # Test that IBMCNOTMapper calls IBMBackend if gate is available.
+    def mock_send(*args, **kwargs):
+        return "Yes"
+    monkeypatch.setattr(_ibmcnotmapper.IBMBackend, "is_available", mock_send)
+    mapper = _ibmcnotmapper.IBMCNOTMapper()
+    assert mapper.is_available("TestCommand") == "Yes"
 
 
 def test_ibmcnotmapper_invalid_circuit():
-	backend = DummyEngine(save_commands=True)
-	eng = MainEngine(backend=backend, 
-	                 engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
-	qb0 = eng.allocate_qubit()
-	qb1 = eng.allocate_qubit()
-	qb2 = eng.allocate_qubit()
-	qb3 = eng.allocate_qubit()
-	CNOT | (qb1, qb2)
-	CNOT | (qb0, qb1)
-	with pytest.raises(Exception):
-		CNOT | (qb3, qb2)
-		eng.flush()
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()
+    CNOT | (qb1, qb2)
+    CNOT | (qb0, qb1)
+    with pytest.raises(Exception):
+        CNOT | (qb3, qb2)
+        eng.flush()
 
 
 def test_ibmcnotmapper_nointermediate_measurements():
-	backend = DummyEngine()
-	eng = MainEngine(backend=backend, 
-	                 engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
-	qb0 = eng.allocate_qubit()
-	qb1 = eng.allocate_qubit()
-	
-	CNOT | (qb0, qb1)
-	Measure | qb0
-	CNOT | (qb1, qb0)
-	with pytest.raises(Exception):
-		Measure | qb0
+    backend = DummyEngine()
+    eng = MainEngine(backend=backend,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+
+    CNOT | (qb0, qb1)
+    Measure | qb0
+    CNOT | (qb1, qb0)
+    with pytest.raises(Exception):
+        Measure | qb0
+
 
 def test_ibmcnotmapper_optimizeifpossible():
-	backend = DummyEngine(save_commands=True)
-	eng = MainEngine(backend=backend, 
-	                 engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
-	qb0 = eng.allocate_qubit()
-	qb1 = eng.allocate_qubit()
-	qb2 = eng.allocate_qubit()
-	qb3 = eng.allocate_qubit()
-	CNOT | (qb1, qb2)
-	CNOT | (qb2, qb1)
-	CNOT | (qb1, qb2)
-	
-	eng.flush()
-	
-	hadamard_count = 0
-	for cmd in backend.received_commands:
-		if cmd.gate == H:
-			hadamard_count += 1
-		if cmd.gate == X:
-			assert cmd.qubits[0][0].id == qb2[0].id
-	
-	assert hadamard_count == 4
-	backend.received_commands = []
-	
-	CNOT | (qb2, qb1)
-	CNOT | (qb1, qb2)
-	CNOT | (qb2, qb1)
-	
-	eng.flush()
-	
-	hadamard_count = 0
-	for cmd in backend.received_commands:
-		if cmd.gate == H:
-			hadamard_count += 1
-		if cmd.gate == X:
-			assert cmd.qubits[0][0].id == qb1[0].id
-	
-	assert hadamard_count == 4
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()
+    CNOT | (qb1, qb2)
+    CNOT | (qb2, qb1)
+    CNOT | (qb1, qb2)
+
+    eng.flush()
+
+    hadamard_count = 0
+    for cmd in backend.received_commands:
+        if cmd.gate == H:
+            hadamard_count += 1
+        if cmd.gate == X:
+            assert cmd.qubits[0][0].id == qb2[0].id
+
+    assert hadamard_count == 4
+    backend.received_commands = []
+
+    CNOT | (qb2, qb1)
+    CNOT | (qb1, qb2)
+    CNOT | (qb2, qb1)
+
+    eng.flush()
+
+    hadamard_count = 0
+    for cmd in backend.received_commands:
+        if cmd.gate == H:
+            hadamard_count += 1
+        if cmd.gate == X:
+            assert cmd.qubits[0][0].id == qb1[0].id
+
+    assert hadamard_count == 4

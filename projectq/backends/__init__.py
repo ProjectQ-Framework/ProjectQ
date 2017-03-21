@@ -16,9 +16,11 @@ Contains back-ends for ProjectQ.
 This includes:
 
 * a debugging tool to print all received commands (CommandPrinter)
-* a circuit drawing engine (which can be used anywhere within the compilation chain)
+* a circuit drawing engine (which can be used anywhere within the compilation
+  chain)
 * a simulator with emulation capabilities
-* a resource counter (counts gates and keeps track of the maximal width of the circuit)
+* a resource counter (counts gates and keeps track of the maximal width of the
+  circuit)
 * an interface to the IBM Quantum Experience chip (and simulator).
 """
 from ._printer import CommandPrinter
