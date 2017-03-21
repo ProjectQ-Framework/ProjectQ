@@ -10,26 +10,24 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for projectq.cengines._replacer._decompositionhandling.py."""
+"""Tests for projectq.cengines._replacer._decomposition_rule.py."""
 
 import pytest
 
 from projectq.ops import BasicRotationGate
-
-from projectq.cengines._replacer import _decompositionhandling
-from projectq.cengines import DecompositionRule
+from . import DecompositionRule, ThisIsNotAGateClassError
 
 
 def test_decomposition_rule_wrong_input():
     class WrongInput(BasicRotationGate):
         pass
 
-    with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
+    with pytest.raises(ThisIsNotAGateClassError):
         _ = DecompositionRule(WrongInput.__class__,
                               lambda cmd: None,
                               lambda cmd: None)
 
-    with pytest.raises(_decompositionhandling.ThisIsNotAGateClassError):
+    with pytest.raises(ThisIsNotAGateClassError):
         _ = DecompositionRule(WrongInput(0),
                               lambda cmd: None,
                               lambda cmd: None)

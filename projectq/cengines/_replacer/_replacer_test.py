@@ -71,7 +71,7 @@ def make_decomposition_rule_set():
     assert len(result.decompositions[TestGate.__class__.__name__]) == 2
     return result
 
-dh = make_decomposition_rule_set()
+rule_set = make_decomposition_rule_set()
 
 
 @pytest.fixture()
@@ -88,8 +88,9 @@ def test_auto_replacer_default_chooser(fixture_gate_filter):
     # Test that default decomposition_chooser takes always first rule.
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(dh), fixture_gate_filter])
-    assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     TestGate | qb
@@ -104,9 +105,10 @@ def test_auto_replacer_decomposition_chooser(fixture_gate_filter):
         return decomposition_list[-1]
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(dh, test_decomp_chooser),
-                     fixture_gate_filter])
-    assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set,
+                                                         test_decomp_chooser),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     TestGate | qb
@@ -125,7 +127,7 @@ def test_auto_replacer_no_rule_found():
     h_filter = _replacer.InstructionFilter(h_filter)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(dh), h_filter])
+                     engine_list=[_replacer.AutoReplacer(rule_set), h_filter])
     qubit = eng.allocate_qubit()
     with pytest.raises(_replacer.NoGateDecompositionError):
         H | qubit
@@ -148,15 +150,16 @@ def test_auto_replacer_use_inverse_decomposition():
         H | qb
     def recognize_no_magic_gate(cmd):
         return True
-    dh.add_decomposition_rule(DecompositionRule(NoMagicGate, decompose_no_magic_gate,
-                              recognize_no_magic_gate))
+    rule_set.add_decomposition_rule(DecompositionRule(NoMagicGate,
+                                                      decompose_no_magic_gate,
+                                                      recognize_no_magic_gate))
     def magic_filter(self, cmd):
         if cmd.gate == MagicGate():
             return False
         return True
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(dh),
+                     engine_list=[_replacer.AutoReplacer(rule_set),
                                   _replacer.InstructionFilter(magic_filter)])
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
@@ -173,8 +176,9 @@ def test_auto_replacer_adds_tags(fixture_gate_filter):
     # Test that AutoReplacer puts back the tags
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(dh), fixture_gate_filter])
-    assert len(dh.decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     cmd = Command(eng, TestGate, (qb,) )

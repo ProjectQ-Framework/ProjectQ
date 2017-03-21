@@ -62,7 +62,6 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    dh = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     correct_info = ('{"playground":[{"line":0,"name":"q","gates":[{"position"'
                     ':0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm'
                     '":"h"},{"position":3,"name":"measure","qasm":"measure"}]'
@@ -105,8 +104,13 @@ def test_ibm_backend_functional_test(monkeypatch):
     monkeypatch.setattr(_ibm, "send", mock_send)
 
     backend = _ibm.IBMBackend()
-    engine_list = [TagRemover(), LocalOptimizer(10), AutoReplacer(dh),
-                   TagRemover(), IBMCNOTMapper(), LocalOptimizer(10)]
+    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    engine_list = [TagRemover(),
+                   LocalOptimizer(10),
+                   AutoReplacer(rule_set),
+                   TagRemover(),
+                   IBMCNOTMapper(),
+                   LocalOptimizer(10)]
     eng = MainEngine(backend=backend, engine_list=engine_list)
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(3)

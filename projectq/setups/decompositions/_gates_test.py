@@ -59,10 +59,11 @@ def low_level_gates(eng, cmd):
 
 
 def test_entangle():
-    dh = DecompositionRuleSet(modules=[entangle])
+    rule_set = DecompositionRuleSet(modules=[entangle])
     sim = Simulator()
     eng = MainEngine(sim,
-                     [AutoReplacer(dh), InstructionFilter(low_level_gates)])
+                     [AutoReplacer(rule_set),
+                      InstructionFilter(low_level_gates)])
     qureg = eng.allocate_qureg(4)
     Entangle | qureg
 
@@ -78,9 +79,9 @@ def low_level_gates_noglobalphase(eng, cmd):
 
 
 def test_globalphase():
-    dh = DecompositionRuleSet(modules=[globalphase, r2rzandph])
+    rule_set = DecompositionRuleSet(modules=[globalphase, r2rzandph])
     dummy = DummyEngine(save_commands=True)
-    eng = MainEngine(dummy, [AutoReplacer(dh),
+    eng = MainEngine(dummy, [AutoReplacer(rule_set),
                              InstructionFilter(low_level_gates_noglobalphase)])
 
     qubit = eng.allocate_qubit()
@@ -110,13 +111,13 @@ def run_circuit(eng):
 def test_gate_decompositions():
     sim = Simulator()
     eng = MainEngine(sim, [])
-    dh = DecompositionRuleSet(
+    rule_set = DecompositionRuleSet(
         modules=[r2rzandph, crz2cxandrz, toffoli2cnotandtgate, ph2r])
 
     qureg = run_circuit(eng)
 
     sim2 = Simulator()
-    eng_lowlevel = MainEngine(sim2, [AutoReplacer(dh),
+    eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
                                      InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
 

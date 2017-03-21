@@ -75,8 +75,8 @@ class MainEngine(BasicEngine):
                 from projectq.cengines import TagRemover,AutoReplacer,LocalOptimizer,DecompositionRuleSet
                 from projectq.backends import Simulator
                 from projectq import MainEngine
-                dh = DecompositionRuleSet()
-                engines = [AutoReplacer(dh), TagRemover(), LocalOptimizer(3)]
+                rule_set = DecompositionRuleSet()
+                engines = [AutoReplacer(rule_set), TagRemover(), LocalOptimizer(3)]
                 eng = MainEngine(Simulator(), engines)
         """
         BasicEngine.__init__(self)

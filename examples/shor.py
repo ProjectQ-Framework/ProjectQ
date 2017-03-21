@@ -108,11 +108,16 @@ def high_level_gates(eng, cmd):
 if __name__ == "__main__":
     # build compilation engine list
     resource_counter = ResourceCounter()
-    dh = DecompositionRuleSet(modules=[projectq.libs.math,
-                                       projectq.setups.decompositions])
-    compilerengines = [AutoReplacer(dh), InstructionFilter(high_level_gates),
-                       TagRemover(), LocalOptimizer(3), AutoReplacer(dh),
-                       TagRemover(), LocalOptimizer(3), resource_counter]
+    rule_set = DecompositionRuleSet(modules=[projectq.libs.math,
+                                             projectq.setups.decompositions])
+    compilerengines = [AutoReplacer(rule_set),
+                       InstructionFilter(high_level_gates),
+                       TagRemover(),
+                       LocalOptimizer(3),
+                       AutoReplacer(rule_set),
+                       TagRemover(),
+                       LocalOptimizer(3),
+                       resource_counter]
 
     # make the compiler and run the circuit on the simulator backend
     eng = MainEngine(Simulator(), compilerengines)
