@@ -28,7 +28,7 @@ class DecompositionRule:
                  gate_recognizer=lambda cmd: True):
         """
         Args:
-            gate_class: The type of gate that this rule decomposes.
+            gate_class (type): The type of gate that this rule decomposes.
 
                 The gate class is redundant information used to make lookups
                 faster when iterating over a circuit and deciding "which rules
