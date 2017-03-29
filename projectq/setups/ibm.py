@@ -21,26 +21,23 @@ quantum experience backend. Among others it includes:
     * (controlled) Swap gates --> CNOTs and Toffolis
 """
 
-
 import projectq
+import projectq.setups.decompositions
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
-                               IBMCNOTMapper)
-from projectq.backends import IBMBackend
-from projectq.setups.decompositions import (crz2cxandrz,
-                                            r2rzandph,
-                                            ph2r,
-                                            globalphase,
-                                            swap2cnot,
-                                            toffoli2cnotandtgate,
-                                            entangle,
-                                            qft2crandhadamard)
+                               IBMCNOTMapper,
+                               DecompositionRuleSet)
 
 
 def ibm_default_engines():
-    return [TagRemover(), LocalOptimizer(10), AutoReplacer(), TagRemover(),
-            IBMCNOTMapper(), LocalOptimizer(10)]
+    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    return [TagRemover(),
+            LocalOptimizer(10),
+            AutoReplacer(rule_set),
+            TagRemover(),
+            IBMCNOTMapper(),
+            LocalOptimizer(10)]
 
 
 projectq.default_engines = ibm_default_engines

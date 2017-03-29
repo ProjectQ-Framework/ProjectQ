@@ -15,8 +15,7 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import (DummyEngine, register_decomposition,
-                               decompositions)
+from projectq.cengines import DummyEngine, DecompositionRuleSet, DecompositionRule
 from projectq.ops import H, X, Command, S, Rx, NotInvertible, Ry, BasicGate
 
 from projectq.cengines._replacer import _replacer
@@ -45,28 +44,38 @@ class TestGate(BasicGate):
 TestGate = TestGate()
 
 
-@pytest.fixture(scope='module')
-def test_gate_filter():
+def make_decomposition_rule_set():
+    result = DecompositionRuleSet()
     # BasicGate with no get_inverse used for testing:
     with pytest.raises(NotInvertible):
         TestGate.get_inverse()
-    # Loading of decomposition rules:
 
+    # Loading of decomposition rules:
     def decompose_test1(cmd):
         qb = cmd.qubits
         X | qb
 
     def recognize_test(cmd):
         return True
-    register_decomposition(TestGate.__class__, decompose_test1, recognize_test)
+
+    result.add_decomposition_rule(
+        DecompositionRule(TestGate.__class__, decompose_test1, recognize_test))
 
     def decompose_test2(cmd):
         qb = cmd.qubits
         H | qb
-    register_decomposition(TestGate.__class__, decompose_test2, recognize_test)
 
-    assert len(decompositions[TestGate.__class__.__name__]) == 2
+    result.add_decomposition_rule(
+        DecompositionRule(TestGate.__class__, decompose_test2, recognize_test))
 
+    assert len(result.decompositions[TestGate.__class__.__name__]) == 2
+    return result
+
+rule_set = make_decomposition_rule_set()
+
+
+@pytest.fixture()
+def fixture_gate_filter():
     # Filter which doesn't allow TestGate
     def test_gate_filter_func(self, cmd):
         if cmd.gate == TestGate:
@@ -75,12 +84,13 @@ def test_gate_filter():
     return _replacer.InstructionFilter(test_gate_filter_func)
 
 
-def test_auto_replacer_default_chooser(test_gate_filter):
+def test_auto_replacer_default_chooser(fixture_gate_filter):
     # Test that default decomposition_chooser takes always first rule.
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(), test_gate_filter])
-    assert len(decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     TestGate | qb
@@ -89,15 +99,16 @@ def test_auto_replacer_default_chooser(test_gate_filter):
     assert backend.received_commands[1].gate == X
 
 
-def test_auto_replacer_decomposition_chooser(test_gate_filter):
+def test_auto_replacer_decomposition_chooser(fixture_gate_filter):
     # Supply a decomposition chooser which always chooses last rule.
     def test_decomp_chooser(cmd, decomposition_list):
         return decomposition_list[-1]
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(test_decomp_chooser),
-                                  test_gate_filter])
-    assert len(decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set,
+                                                         test_decomp_chooser),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     TestGate | qb
@@ -116,7 +127,7 @@ def test_auto_replacer_no_rule_found():
     h_filter = _replacer.InstructionFilter(h_filter)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(), h_filter])
+                     engine_list=[_replacer.AutoReplacer(rule_set), h_filter])
     qubit = eng.allocate_qubit()
     with pytest.raises(_replacer.NoGateDecompositionError):
         H | qubit
@@ -130,28 +141,25 @@ def test_auto_replacer_use_inverse_decomposition():
     # Create test gate and inverse
     class NoMagicGate(BasicGate):
         pass
-
     class MagicGate(BasicGate):
         def get_inverse(self):
             return NoMagicGate()
-
     def decompose_no_magic_gate(cmd):
         qb = cmd.qubits
         Rx(0.6) | qb
         H | qb
-
     def recognize_no_magic_gate(cmd):
         return True
-    register_decomposition(NoMagicGate, decompose_no_magic_gate,
-                           recognize_no_magic_gate)
-
+    rule_set.add_decomposition_rule(DecompositionRule(NoMagicGate,
+                                                      decompose_no_magic_gate,
+                                                      recognize_no_magic_gate))
     def magic_filter(self, cmd):
         if cmd.gate == MagicGate():
             return False
         return True
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(),
+                     engine_list=[_replacer.AutoReplacer(rule_set),
                                   _replacer.InstructionFilter(magic_filter)])
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
@@ -164,15 +172,16 @@ def test_auto_replacer_use_inverse_decomposition():
     assert backend.received_commands[2].gate == Rx(-0.6)
 
 
-def test_auto_replacer_adds_tags(test_gate_filter):
+def test_auto_replacer_adds_tags(fixture_gate_filter):
     # Test that AutoReplacer puts back the tags
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(), test_gate_filter])
-    assert len(decompositions[TestGate.__class__.__name__]) == 2
+                     engine_list=[_replacer.AutoReplacer(rule_set),
+                                  fixture_gate_filter])
+    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    cmd = Command(eng, TestGate, (qb,))
+    cmd = Command(eng, TestGate, (qb,) )
     cmd.tags = ["AddedTag"]
     eng.send([cmd])
     eng.flush()

@@ -13,16 +13,15 @@
 from ._basics import (BasicEngine,
                       LastEngineException,
                       ForwarderEngine)
-from ._optimize import LocalOptimizer
-from ._tagremover import TagRemover
 from ._cmdmodifier import CommandModifier
-from ._replacer import (AutoReplacer,
-                        InstructionFilter,
-                        Decomposition,
-                        register_decomposition,
-                        decompositions)
 from ._ibmcnotmapper import IBMCNOTMapper
 from ._main import (MainEngine,
                     NotYetMeasuredError,
                     UnsupportedEngineError)
+from ._optimize import LocalOptimizer
+from ._replacer import (AutoReplacer,
+                        InstructionFilter,
+                        DecompositionRuleSet,
+                        DecompositionRule)
+from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine

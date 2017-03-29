@@ -14,16 +14,17 @@
 
 import pytest
 
+import projectq.setups.decompositions
 from projectq import MainEngine
+from projectq.backends._ibm import _ibm
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                IBMCNOTMapper,
-                               DummyEngine)
-from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, CNOT, Measure,
+                               DummyEngine,
+                               DecompositionRuleSet)
+from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, Measure,
                           Allocate, Deallocate, NOT, Rx, Entangle)
-
-from projectq.backends._ibm import _ibm
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -61,14 +62,6 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    from projectq.setups.decompositions import (crz2cxandrz,
-                                                r2rzandph,
-                                                ph2r,
-                                                globalphase,
-                                                swap2cnot,
-                                                toffoli2cnotandtgate,
-                                                entangle,
-                                                qft2crandhadamard)
     correct_info = ('{"playground":[{"line":0,"name":"q","gates":[{"position"'
                     ':0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm'
                     '":"h"},{"position":3,"name":"measure","qasm":"measure"}]'
@@ -111,8 +104,13 @@ def test_ibm_backend_functional_test(monkeypatch):
     monkeypatch.setattr(_ibm, "send", mock_send)
 
     backend = _ibm.IBMBackend()
-    engine_list = [TagRemover(), LocalOptimizer(10), AutoReplacer(),
-                   TagRemover(), IBMCNOTMapper(), LocalOptimizer(10)]
+    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    engine_list = [TagRemover(),
+                   LocalOptimizer(10),
+                   AutoReplacer(rule_set),
+                   TagRemover(),
+                   IBMCNOTMapper(),
+                   LocalOptimizer(10)]
     eng = MainEngine(backend=backend, engine_list=engine_list)
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(3)

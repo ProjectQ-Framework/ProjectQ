@@ -12,15 +12,23 @@
 
 import pytest
 
+import projectq.libs.math
+import projectq.setups.decompositions
+from projectq.backends._sim._simulator_test import sim
 from projectq.cengines import (MainEngine,
                                AutoReplacer,
+                               DecompositionRuleSet,
                                InstructionFilter,
                                LocalOptimizer,
                                TagRemover)
-from projectq.ops import X, H, QFT, BasicMathGate, Swap, get_inverse, Measure
-from projectq.meta import Control
 from projectq.libs.math import MultiplyByConstantModN
-from projectq.backends._sim._simulator_test import sim
+from projectq.meta import Control
+from projectq.ops import X, H, QFT, BasicMathGate, Swap, get_inverse, Measure
+
+rule_set = DecompositionRuleSet(modules=(projectq.libs.math,
+                                         projectq.setups.decompositions))
+
+assert sim  # Asserts to tools that the fixture import is used.
 
 
 def high_level_gates(eng, cmd):
@@ -33,9 +41,13 @@ def high_level_gates(eng, cmd):
 
 
 def get_main_engine(sim):
-    engine_list = [AutoReplacer(), InstructionFilter(high_level_gates),
-                   TagRemover(), LocalOptimizer(3), AutoReplacer(),
-                   TagRemover(), LocalOptimizer(3)]
+    engine_list = [AutoReplacer(rule_set),
+                   InstructionFilter(high_level_gates),
+                   TagRemover(),
+                   LocalOptimizer(3),
+                   AutoReplacer(rule_set),
+                   TagRemover(),
+                   LocalOptimizer(3)]
     return MainEngine(sim, engine_list)
 
 

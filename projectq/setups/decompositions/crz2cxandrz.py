@@ -16,7 +16,7 @@ Registers a decomposition for controlled z-rotation gates.
 It uses 2 z-rotations and 2 C^n NOT gates to achieve this gate.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
 from projectq.ops import NOT, Rz, C
 
@@ -39,4 +39,6 @@ def _recognize_CRz(cmd):
     return get_control_count(cmd) >= 1
 
 
-register_decomposition(Rz, _decompose_CRz, _recognize_CRz)
+all_defined_decomposition_rules = [
+    DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
+]

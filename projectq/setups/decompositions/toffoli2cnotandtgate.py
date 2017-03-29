@@ -16,7 +16,7 @@ Registers a decomposition rule for the Toffoli gate.
 Decomposes the Toffoli gate using Hadamard, T, Tdag, and CNOT gates.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
 from projectq.ops import NOT, CNOT, T, Tdag, H
 
@@ -52,4 +52,6 @@ def _recognize_toffoli(cmd):
     return get_control_count(cmd) == 2
 
 
-register_decomposition(NOT.__class__, _decompose_toffoli, _recognize_toffoli)
+all_defined_decomposition_rules = [
+    DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)
+]
