@@ -98,6 +98,7 @@ class ResourceCounter(BasicEngine):
             return ("\n".join(list(sorted(gate_list))) +
                     "\n\nMax. width (number of qubits) : " +
                     str(self.max_width) + ".")
+        return "(No quantum resources used)"
 
     def receive(self, command_list):
         """
