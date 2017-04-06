@@ -181,6 +181,7 @@ def test_basic_rotation_gate_comparison():
     # Test different types of gates
     basic_gate = _basics.BasicGate()
     assert not basic_gate == basic_rotation_gate6
+    assert basic_rotation_gate2 != _basics.BasicRotationGate(0.5 + 2 * math.pi)
 
 
 def test_basic_math_gate():

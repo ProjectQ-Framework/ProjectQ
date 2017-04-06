@@ -29,8 +29,8 @@ This means that for more than one quantum argument (right side of | ), a tuple
 needs to be made explicitely, while for one argument it is optional.
 """
 
-from copy import deepcopy
 import math
+from copy import deepcopy
 
 from projectq.types import BasicQubit
 from ._command import Command, apply_command
@@ -297,16 +297,11 @@ class BasicRotationGate(BasicGate):
         """ Return True if same class and same rotation angle. """
         tolerance = 1.e-12
         if isinstance(other, self.__class__):
-            difference = abs(self._angle - other._angle)
-            if difference < tolerance:
+            difference = abs(self._angle - other._angle) % (4 * math.pi)
+            # Return True if angles are close to each other modulo 4 * pi
+            if difference < tolerance or difference > 4 * math.pi - tolerance:
                 return True
-            else:  # if one angle is close to 0 and the other close to 4*pi:
-                if difference > 4 * math.pi - tolerance:
-                    return True
-                else:
-                    return False
-        else:
-            return False
+        return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
