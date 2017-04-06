@@ -16,7 +16,7 @@ Registers a decomposition rule for global phases.
 Deletes global phase gates (which can be ignored).
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
 from projectq.ops import Ph
 
@@ -31,4 +31,6 @@ def _recognize_PhNoCtrl(cmd):
     return get_control_count(cmd) == 0
 
 
-register_decomposition(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
+all_defined_decomposition_rules = [
+    DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
+]

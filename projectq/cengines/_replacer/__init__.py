@@ -10,8 +10,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._decomposition import Decomposition
-from ._decompositionhandling import register_decomposition, decompositions
+from ._decomposition_rule import DecompositionRule, ThisIsNotAGateClassError
+from ._decomposition_rule_set import DecompositionRuleSet
 from ._replacer import (AutoReplacer,
                         InstructionFilter,
                         NoGateDecompositionError)
+

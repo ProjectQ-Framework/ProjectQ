@@ -1,16 +1,25 @@
 from __future__ import print_function
-import sys
+
 import math
 import random
-from builtins import input
+import sys
 from fractions import Fraction, gcd
 
-import projectq.setups.default
+from builtins import input
+
+import projectq.libs.math
+import projectq.setups.decompositions
+from projectq.backends import Simulator, ResourceCounter
 from projectq.cengines import (MainEngine,
                                AutoReplacer,
                                LocalOptimizer,
                                TagRemover,
-                               InstructionFilter)
+                               InstructionFilter,
+                               DecompositionRuleSet)
+from projectq.libs.math import (AddConstant,
+                                AddConstantModN,
+                                MultiplyByConstantModN)
+from projectq.meta import Control
 from projectq.ops import (X,
                           Measure,
                           H,
@@ -19,11 +28,6 @@ from projectq.ops import (X,
                           Swap,
                           get_inverse,
                           BasicMathGate)
-from projectq.libs.math import (AddConstant,
-                                AddConstantModN,
-                                MultiplyByConstantModN)
-from projectq.meta import Control
-from projectq.backends import Simulator, ResourceCounter
 
 
 def run_shor(eng, N, a, verbose=False):
@@ -104,9 +108,16 @@ def high_level_gates(eng, cmd):
 if __name__ == "__main__":
     # build compilation engine list
     resource_counter = ResourceCounter()
-    compilerengines = [AutoReplacer(), InstructionFilter(high_level_gates),
-                       TagRemover(), LocalOptimizer(3), AutoReplacer(),
-                       TagRemover(), LocalOptimizer(3), resource_counter]
+    rule_set = DecompositionRuleSet(modules=[projectq.libs.math,
+                                             projectq.setups.decompositions])
+    compilerengines = [AutoReplacer(rule_set),
+                       InstructionFilter(high_level_gates),
+                       TagRemover(),
+                       LocalOptimizer(3),
+                       AutoReplacer(rule_set),
+                       TagRemover(),
+                       LocalOptimizer(3),
+                       resource_counter]
 
     # make the compiler and run the circuit on the simulator backend
     eng = MainEngine(Simulator(), compilerengines)
@@ -134,7 +145,7 @@ if __name__ == "__main__":
         f1 = gcd(apowrhalf + 1, N)
         f2 = gcd(apowrhalf - 1, N)
         if ((not f1 * f2 == N) and f1 * f2 > 1
-           and int(1. * N / (f1 * f2)) * f1 * f2 == N):
+            and int(1. * N / (f1 * f2)) * f1 * f2 == N):
             f1, f2 = f1*f2, int(N/(f1*f2))
         if f1 * f2 == N and f1 > 1 and f2 > 1:
             print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m"
