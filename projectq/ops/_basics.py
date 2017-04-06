@@ -295,27 +295,16 @@ class BasicRotationGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        if not isinstance(other, self.__class__):
-            return False
-        difference = abs(_signed_mod(self._angle - other._angle, 4 * math.pi))
         tolerance = 1.e-12
-        return difference <= tolerance
+        if isinstance(other, self.__class__):
+            difference = abs(self._angle - other._angle) % (4 * math.pi)
+            # Return True if angles are close to each other modulo 4 * pi
+            if difference < tolerance or difference > 4 * math.pi - tolerance:
+                return True
+        return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-
-def _signed_mod(value, modulus):
-    """
-    Args:
-        value: The dividend.
-        modulus: The divisor.
-
-    Returns: A signed remainder. A number congruent to the value, modulo the
-        modulus, but in the range [-modulus/2, modulus/2).
-    """
-    h = modulus / 2.0
-    return (value + h) % modulus - h
 
 
 # Classical instruction gates never have control qubits.
