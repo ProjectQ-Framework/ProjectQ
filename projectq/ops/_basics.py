@@ -410,16 +410,16 @@ class BasicMathGate(BasicGate):
         math_function = lambda x: list(math_fun(*x))
         self._math_function = math_function
 
-    """
-    Return the math function which corresponds to the action of this math
-    gate, given the input to the gate (a tuple of quantum registers).
-
-    Args:
-        qubits (tuple<Qureg>): Qubits to which the math gate is being applied.
-
-    Returns:
-        math_fun (function): Python function describing the action of this
-            gate. (See BasicMathGate.__init__ for an example).
-    """
     def get_math_function(self, qubits):
+        """
+        Return the math function which corresponds to the action of this math
+        gate, given the input to the gate (a tuple of quantum registers).
+
+        Args:
+            qubits (tuple<Qureg>): Qubits to which the math gate is being applied.
+
+        Returns:
+            math_fun (function): Python function describing the action of this
+                gate. (See BasicMathGate.__init__ for an example).
+        """
         return self._math_function
