@@ -56,6 +56,9 @@ class XGate(SelfInverseGate):
     def __str__(self):
         return "X"
 
+    def __repr__(self):
+        return "X"
+
     @property
     def matrix(self):
         return np.matrix([[0, 1], [1, 0]])
@@ -222,6 +225,9 @@ class AllocateQubitGate(ClassicalInstructionGate):
     def __str__(self):
         return "Allocate"
 
+    def __repr__(self):
+        return "Allocate"
+
     def get_inverse(self):
         return DeallocateQubitGate()
 
@@ -231,6 +237,9 @@ Allocate = AllocateQubitGate()
 class DeallocateQubitGate(FastForwardingGate):
     """ Qubit deallocation gate class """
     def __str__(self):
+        return "Deallocate"
+
+    def __repr__(self):
         return "Deallocate"
 
     def get_inverse(self):

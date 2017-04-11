@@ -56,28 +56,28 @@ def test_basic_gate_make_tuple_of_qureg(main_engine):
     assert case5 == (qureg, [qubit0])
 
 
-def test_basic_gate_generate_command(main_engine):
+def test_basic_gate_generate_commands(main_engine):
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
     qubit3 = Qubit(main_engine, 3)
     qureg = Qureg([qubit2, qubit3])
     basic_gate = _basics.BasicGate()
-    command1 = basic_gate.generate_command(qubit0)
-    assert command1 == Command(main_engine, basic_gate,
-                               ([qubit0],))
-    command2 = basic_gate.generate_command([qubit0, qubit1])
-    assert command2 == Command(main_engine, basic_gate,
-                               ([qubit0, qubit1],))
-    command3 = basic_gate.generate_command(qureg)
-    assert command3 == Command(main_engine, basic_gate,
-                               (qureg,))
-    command4 = basic_gate.generate_command((qubit0,))
-    assert command4 == Command(main_engine, basic_gate,
-                               ([qubit0],))
-    command5 = basic_gate.generate_command((qureg, qubit0))
-    assert command5 == Command(main_engine, basic_gate,
-                               (qureg, [qubit0]))
+    commands1 = basic_gate.generate_commands(qubit0)
+    assert commands1 == (Command(main_engine, basic_gate,
+                                 ([qubit0],)),)
+    commands2 = basic_gate.generate_commands([qubit0, qubit1])
+    assert commands2 == (Command(main_engine, basic_gate,
+                                 ([qubit0, qubit1],)),)
+    commands3 = basic_gate.generate_commands(qureg)
+    assert commands3 == (Command(main_engine, basic_gate,
+                                 (qureg,)),)
+    commands4 = basic_gate.generate_commands((qubit0,))
+    assert commands4 == (Command(main_engine, basic_gate,
+                                 ([qubit0],)),)
+    commands5 = basic_gate.generate_commands((qureg, qubit0))
+    assert commands5 == (Command(main_engine, basic_gate,
+                                 (qureg, [qubit0])),)
 
 
 def test_basic_gate_or():
@@ -90,23 +90,23 @@ def test_basic_gate_or():
     qubit3 = Qubit(main_engine, 3)
     qureg = Qureg([qubit2, qubit3])
     basic_gate = _basics.BasicGate()
-    command1 = basic_gate.generate_command(qubit0)
+    commands1 = basic_gate.generate_commands(qubit0)
     basic_gate | qubit0
-    command2 = basic_gate.generate_command([qubit0, qubit1])
+    commands2 = basic_gate.generate_commands([qubit0, qubit1])
     basic_gate | [qubit0, qubit1]
-    command3 = basic_gate.generate_command(qureg)
+    commands3 = basic_gate.generate_commands(qureg)
     basic_gate | qureg
-    command4 = basic_gate.generate_command((qubit0,))
+    commands4 = basic_gate.generate_commands((qubit0,))
     basic_gate | (qubit0,)
-    command5 = basic_gate.generate_command((qureg, qubit0))
+    commands5 = basic_gate.generate_commands((qureg, qubit0))
     basic_gate | (qureg, qubit0)
     received_commands = []
     # Remove Deallocate gates
     for cmd in saving_backend.received_commands:
         if not isinstance(cmd.gate, _basics.FastForwardingGate):
             received_commands.append(cmd)
-    assert received_commands == ([command1, command2, command3, command4,
-                                  command5])
+    assert received_commands == ([commands1, commands2, commands3, commands4,
+                                  commands5])
 
 
 def test_basic_gate_compare(main_engine):

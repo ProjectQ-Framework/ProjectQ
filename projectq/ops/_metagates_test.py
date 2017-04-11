@@ -22,7 +22,7 @@ from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (T, Y, NotInvertible, Entangle, Rx,
                           FastForwardingGate, Command,
-                          ClassicalInstructionGate)
+                          ClassicalInstructionGate, C, All, X, Allocate)
 
 from projectq.ops import _metagates
 
@@ -117,8 +117,8 @@ def test_controlled_gate_or():
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
     qubit3 = Qubit(main_engine, 3)
-    expected_cmd = Command(main_engine, gate, ([qubit3],))
-    expected_cmd.add_control_qubits([qubit0, qubit1, qubit2])
+    expected_cmd = Command(main_engine, gate, ([qubit3],),
+                           controls=[qubit0, qubit1, qubit2])
     received_commands = []
     # Option 1:
     _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0],
@@ -207,3 +207,22 @@ def test_tensor_or():
         assert cmd.gate == gate
         qubit_ids.append(cmd.qubits[0][0].id)
     assert sorted(qubit_ids) == [0, 0, 1, 1, 2, 2]
+
+
+def test_controlled_tensor():
+    saving_backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=saving_backend,
+                             engine_list=[DummyEngine()])
+
+    c = main_engine.allocate_qubit()
+    b = main_engine.allocate_qureg(5)
+    saving_backend.restart_recording()
+
+    C(All(X)) | (c, b)
+    assert tuple(saving_backend.received_commands) == (
+        Command(main_engine, X, ([b[0]],), controls=c),
+        Command(main_engine, X, ([b[1]],), controls=c),
+        Command(main_engine, X, ([b[2]],), controls=c),
+        Command(main_engine, X, ([b[3]],), controls=c),
+        Command(main_engine, X, ([b[4]],), controls=c),
+    )

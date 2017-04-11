@@ -166,6 +166,10 @@ class ControlledGate(BasicGate):
         """ Return string representation, i.e., CC...C(gate). """
         return "C" * self._n + str(self._gate)
 
+    def __repr__(self):
+        return ("ControlledGate(" + repr(self._gate) + ", " +
+                repr(self._n) + ")")
+
     def get_inverse(self):
         """
         Return inverse of a controlled gate, which is the controlled inverse
@@ -173,7 +177,7 @@ class ControlledGate(BasicGate):
         """
         return ControlledGate(get_inverse(self._gate), self._n)
 
-    def __or__(self, qubits):
+    def generate_commands(self, qubits):
         """
         Apply the controlled gate to qubits, using the first n qubits as
         controls.
@@ -203,9 +207,11 @@ class ControlledGate(BasicGate):
             raise ControlQubitError("Wrong number of control qubits. "
                                     "First qureg(s) need to contain exactly "
                                     "the required number of control qubits.")
-        cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
-        cmd.add_control_qubits(ctrl)
-        apply_command(cmd)
+        result = []
+        for cmd in self._gate.generate_commands(tuple(gate_quregs)):
+            cmd.add_control_qubits(ctrl)
+            result.append(cmd)
+        return result
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """
@@ -254,6 +260,9 @@ class Tensor(BasicGate):
         """ Return string representation. """
         return "Tensor(" + str(self._gate) + ")"
 
+    def __repr__(self):
+        return "Tensor(" + repr(self._gate) + ")"
+
     def get_inverse(self):
         """
         Return the inverse of this tensored gate (which is the tensored
@@ -267,13 +276,13 @@ class Tensor(BasicGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __or__(self, qubits):
-        """ Applies the gate to every qubit in the quantum register qubits. """
+    def generate_commands(self, qubits):
         if isinstance(qubits, tuple):
             assert len(qubits) == 1
             qubits = qubits[0]
         assert isinstance(qubits, list)
-        for qubit in qubits:
-            self._gate | qubit
+        return [cmd
+                for qubit in qubits
+                for cmd in self._gate.generate_commands(qubit)]
 
 All = Tensor

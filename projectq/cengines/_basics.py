@@ -137,7 +137,8 @@ class BasicEngine(object):
         Args:
             n (int): Number of qubits to allocate
         Returns:
-            Qureg of length n, a list of n newly allocated qubits.
+            Qureg:
+                Qureg of length n, a list of n newly allocated qubits.
         """
         return Qureg([self.allocate_qubit()[0] for _ in range(n)])
 
