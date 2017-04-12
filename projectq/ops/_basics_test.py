@@ -105,8 +105,11 @@ def test_basic_gate_or():
     for cmd in saving_backend.received_commands:
         if not isinstance(cmd.gate, _basics.FastForwardingGate):
             received_commands.append(cmd)
-    assert received_commands == ([commands1, commands2, commands3, commands4,
-                                  commands5])
+    assert received_commands == ([commands1[0],
+                                  commands2[0],
+                                  commands3[0],
+                                  commands4[0],
+                                  commands5[0]])
 
 
 def test_basic_gate_compare(main_engine):

@@ -115,7 +115,8 @@ class Command(object):
         self.qubits = qubits  # property
 
         # access via self.control_qubits property
-        self._control_qubits = list(controls)
+        self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id)
+                                for qubit in controls]
         self.engine = engine  # property
 
     @property
