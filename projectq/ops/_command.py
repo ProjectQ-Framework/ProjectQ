@@ -239,6 +239,9 @@ class Command(object):
         Returns a tuple T where T[0] is a quantum register (a list of
         WeakQubitRef objects) containing the control qubits and T[1:] contains
         the quantum registers to which the gate is applied.
+
+        Returns:
+            list[Qureg]:
         """
         return (self.control_qubits,) + self.qubits
 
