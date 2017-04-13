@@ -32,7 +32,7 @@ needs to be made explicitely, while for one argument it is optional.
 import math
 from copy import deepcopy
 
-from projectq.types import BasicQubit
+from projectq.types import BasicQubit, Qubit, Qureg
 from ._command import Command, apply_command
 
 
@@ -157,15 +157,17 @@ class BasicGate(object):
 
         return tuple(qubits)
 
-    def generate_command(self, qubits):
+    def generate_commands(self, qubits):
         """
         Return a Command object which represents the gate acting on qubits.
 
         Args:
-            qubits: see BasicGate.make_tuple_of_qureg(qubits)
+            qubits (Qubit|Qureg|list[Qubit|Qureg]|tuple[Qubit|Qureg]):
+                see BasicGate.make_tuple_of_qureg(qubits)
 
         Returns:
-            A Command object which represents the gate acting on qubits.
+            tuple[Command]|list[Command]:
+                A Command object which represents the gate acting on qubits.
         """
         qubits = self.make_tuple_of_qureg(qubits)
 
@@ -174,7 +176,8 @@ class BasicGate(object):
                 assert(qubits[i][j].engine == qubits[i][j + 1].engine)
             if i < len(qubits) - 1:
                 assert(qubits[i][-1].engine == qubits[i + 1][0].engine)
-        return Command(qubits[0][0].engine, self, qubits)
+
+        return Command(qubits[0][0].engine, self, qubits),
 
     def __or__(self, qubits):
         """ Operator| overload which enables the syntax Gate | qubits.
@@ -190,8 +193,8 @@ class BasicGate(object):
             qubits: a Qubit object, a list of Qubit objects, a Qureg object, or
                     a tuple of Qubit or Qureg objects (can be mixed).
         """
-        cmd = self.generate_command(qubits)
-        apply_command(cmd)
+        for cmd in self.generate_commands(qubits):
+            apply_command(cmd)
 
     def __eq__(self, other):
         """ Return True if equal (i.e., instance of same class). """

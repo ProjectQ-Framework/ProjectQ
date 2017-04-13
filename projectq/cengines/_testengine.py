@@ -111,6 +111,9 @@ class DummyEngine(BasicEngine):
     def is_available(self, cmd):
         return True
 
+    def restart_recording(self):
+        self.received_commands = []
+
     def receive(self, command_list):
         if self.save_commands:
             self.received_commands.extend(command_list)

@@ -50,6 +50,9 @@ class BasicQubit(object):
         self.id = idx
         self.engine = engine
 
+    def __repr__(self):
+        return "BasicQubit(idx={})".format(self.id)
+
     def __str__(self):
         """
         Return string representation of this qubit.
@@ -83,7 +86,8 @@ class BasicQubit(object):
         Args:
             other (BasicQubit): BasicQubit to which to compare this one
         """
-        return (isinstance(other, self.__class__) and self.id == other.id and
+        return (isinstance(other, BasicQubit) and
+                self.id == other.id and
                 self.engine == other.engine)
 
     def __ne__(self, other):
@@ -149,7 +153,8 @@ class WeakQubitRef(BasicQubit):
     garbage-collected (and, thus, cleaned up early). Otherwise there is no
     difference between a WeakQubitRef and a Qubit object.
     """
-    pass
+    def __repr__(self):
+        return "WeakQubitRef(idx={})".format(self.id)
 
 
 class Qureg(list):
