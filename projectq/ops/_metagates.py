@@ -200,7 +200,7 @@ class ControlledGate(BasicGate):
         # Test that there were enough control quregs and that that
         # the last control qubit was the last qubit in a qureg.
         if len(ctrl) != self._n:
-            raise ControlQubitError("Wrong number of control quregs. "
+            raise ControlQubitError("Wrong number of control qubits. "
                                     "First qureg(s) need to contain exactly "
                                     "the required number of control quregs.")
 
