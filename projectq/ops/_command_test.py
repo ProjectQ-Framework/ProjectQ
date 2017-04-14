@@ -65,7 +65,7 @@ def test_command_deepcopy(main_engine):
     qureg1 = Qureg([Qubit(main_engine, 1)])
     gate = BasicGate()
     cmd = _command.Command(main_engine, gate, (qureg0,))
-    cmd.add_control_qubits(qureg1)
+    cmd = cmd.with_extra_control_qubits(qureg1)
     cmd.tags.append("MyTestTag")
     copied_cmd = deepcopy(cmd)
     # Test that deepcopy gives same cmd
@@ -90,7 +90,7 @@ def test_command_get_inverse(main_engine):
     qubit = main_engine.allocate_qubit()
     ctrl_qubit = main_engine.allocate_qubit()
     cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
-    cmd.add_control_qubits(ctrl_qubit)
+    cmd = cmd.with_extra_control_qubits(ctrl_qubit)
     cmd.tags = [ComputeTag()]
     inverse_cmd = cmd.get_inverse()
     assert inverse_cmd.gate == Rx(-0.5 + 4 * math.pi)
@@ -110,14 +110,14 @@ def test_command_get_merged(main_engine):
     ctrl_qubit = main_engine.allocate_qubit()
     cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd.tags = ["TestTag"]
-    cmd.add_control_qubits(ctrl_qubit)
+    cmd = cmd.with_extra_control_qubits(ctrl_qubit)
     # Merge two commands
     cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
-    cmd2.add_control_qubits(ctrl_qubit)
+    cmd2 = cmd2.with_extra_control_qubits(ctrl_qubit)
     cmd2.tags = ["TestTag"]
     merged_cmd = cmd.get_merged(cmd2)
     expected_cmd = _command.Command(main_engine, Rx(1.0), (qubit,))
-    expected_cmd.add_control_qubits(ctrl_qubit)
+    expected_cmd = expected_cmd.with_extra_control_qubits(ctrl_qubit)
     expected_cmd.tags = ["TestTag"]
     # Don't merge commands as different control qubits
     cmd3 = _command.Command(main_engine, Rx(0.5), (qubit,))
@@ -126,7 +126,7 @@ def test_command_get_merged(main_engine):
         cmd.get_merged(cmd3)
     # Don't merge commands as different tags
     cmd4 = _command.Command(main_engine, Rx(0.5), (qubit,))
-    cmd4.add_control_qubits(ctrl_qubit)
+    cmd4 = cmd4.with_extra_control_qubits(ctrl_qubit)
     with pytest.raises(NotMergeable):
         cmd.get_merged(cmd4)
 
@@ -162,12 +162,12 @@ def test_command_interchangeable_qubit_indices(main_engine):
             cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]])
 
 
-def test_commmand_add_control_qubits(main_engine):
+def test_commmand_with_extra_control_qubits(main_engine):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit2 + qubit1)
+    cmd = cmd.with_extra_control_qubits(qubit2 + qubit1)
     assert cmd.control_qubits[0].id == 1
     assert cmd.control_qubits[1].id == 2
 
@@ -176,7 +176,7 @@ def test_command_all_qubits(main_engine):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit1)
+    cmd = cmd.with_extra_control_qubits(qubit1)
     all_qubits = cmd.all_qubits
     assert all_qubits[0][0].id == 1
     assert all_qubits[1][0].id == 0
@@ -186,7 +186,7 @@ def test_command_engine(main_engine):
     qubit0 = Qureg([Qubit("fake_engine", 0)])
     qubit1 = Qureg([Qubit("fake_engine", 1)])
     cmd = _command.Command("fake_engine", Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit1)
+    cmd = cmd.with_extra_control_qubits(qubit1)
     assert cmd.engine == "fake_engine"
     cmd.engine = main_engine
     assert id(cmd.engine) == id(main_engine)
@@ -199,16 +199,16 @@ def test_command_comparison(main_engine):
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
     cmd1 = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd1.tags = ["TestTag"]
-    cmd1.add_control_qubits(ctrl_qubit)
+    cmd1 = cmd1.with_extra_control_qubits(ctrl_qubit)
     # Test equality
     cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd2.tags = ["TestTag"]
-    cmd2.add_control_qubits(ctrl_qubit)
+    cmd2 = cmd2.with_extra_control_qubits(ctrl_qubit)
     assert cmd2 == cmd1
     # Test not equal because of tags
     cmd3 = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd3.tags = ["TestTag", "AdditionalTag"]
-    cmd3.add_control_qubits(ctrl_qubit)
+    cmd3 = cmd3.with_extra_control_qubits(ctrl_qubit)
     assert not cmd3 == cmd1
     # Test not equal because of control qubit
     cmd4 = _command.Command(main_engine, Rx(0.5), (qubit,))
@@ -218,12 +218,12 @@ def test_command_comparison(main_engine):
     qubit2 = Qureg([Qubit(main_engine, 2)])
     cmd5 = _command.Command(main_engine, Rx(0.5), (qubit2,))
     cmd5.tags = ["TestTag"]
-    cmd5.add_control_qubits(ctrl_qubit)
+    cmd5 = cmd5.with_extra_control_qubits(ctrl_qubit)
     assert cmd5 != cmd1
     # Test not equal because of engine
     cmd6 = _command.Command("FakeEngine", Rx(0.5), (qubit,))
     cmd6.tags = ["TestTag"]
-    cmd6.add_control_qubits(ctrl_qubit)
+    cmd6 = cmd6.with_extra_control_qubits(ctrl_qubit)
     assert cmd6 != cmd1
 
 
@@ -232,7 +232,7 @@ def test_command_str():
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd.tags = ["TestTag"]
-    cmd.add_control_qubits(ctrl_qubit)
+    cmd = cmd.with_extra_control_qubits(ctrl_qubit)
     assert str(cmd) == "CRx(0.5) | ( Qubit[1], Qubit[0] )"
     cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
     assert str(cmd2) == "Rx(0.5) | Qubit[0]"

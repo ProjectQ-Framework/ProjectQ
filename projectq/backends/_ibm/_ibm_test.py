@@ -56,8 +56,7 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
     ibm_backend = _ibm.IBMBackend()
-    cmd = Command(eng, NOT, (qubit1,))
-    cmd.add_control_qubits(qureg)
+    cmd = Command(eng, NOT, (qubit1,), controls=qureg)
     assert ibm_backend.is_available(cmd) == is_available
 
 

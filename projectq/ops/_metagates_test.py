@@ -117,8 +117,8 @@ def test_controlled_gate_or():
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
     qubit3 = Qubit(main_engine, 3)
-    expected_cmd = Command(main_engine, gate, ([qubit3],))
-    expected_cmd.add_control_qubits([qubit0, qubit1, qubit2])
+    expected_cmd = Command(main_engine, gate, ([qubit3],),
+                           controls=[qubit0, qubit1, qubit2])
     received_commands = []
     # Option 1:
     _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0],
