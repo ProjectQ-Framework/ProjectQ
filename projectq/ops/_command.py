@@ -81,7 +81,7 @@ class Command(object):
         all_qubits: A tuple of control_qubits + qubits
     """
 
-    def __init__(self, engine, gate, qubits):
+    def __init__(self, engine, gate, qubits, controls=(), tags=()):
         """
         Initialize a Command object.
 
@@ -93,18 +93,30 @@ class Command(object):
             (see WeakQubitRef).
 
         Args:
-            engine: engine which created the qubit (mostly the MainEngine)
-            gate: Gate to be executed
-            qubits: Tuple of quantum registers (to which the gate is applied)
+            engine (projectq.cengines.BasicEngine):
+                engine which created the qubit (mostly the MainEngine)
+            gate (projectq.ops.Gate):
+                Gate to be executed
+            qubits (tuple[Qureg]):
+                Tuple of quantum registers (to which the gate is applied)
+            controls (Qureg|list[Qubit]):
+                Qubits that condition the command.
+            tags (list[object]):
+                Tags associated with the command.
         """
-        qubits = tuple([[WeakQubitRef(qubit.engine, qubit.id)
-                         for qubit in qreg]
-                        for qreg in qubits])
+        qubits = tuple([WeakQubitRef(qubit.engine, qubit.id)
+                        for qubit in qreg]
+                       for qreg in qubits)
 
         self.gate = gate
-        self.tags = []
+        self.tags = list(tags)
         self.qubits = qubits  # property
-        self._control_qubits = []  # access via self.control_qubits property
+
+        # access via self.control_qubits property
+        self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id)
+                                for qubit in controls]
+        self._control_qubits = sorted(self._control_qubits,
+                                      key=lambda x: x.id)
         self.engine = engine  # property
 
     @property
@@ -117,10 +129,11 @@ class Command(object):
 
     def __deepcopy__(self, memo):
         """ Deepcopy implementation. Engine should stay a reference."""
-        cpy = Command(self.engine, deepcopy(self.gate), self.qubits)
-        cpy.tags = deepcopy(self.tags)
-        cpy.add_control_qubits(self.control_qubits)
-        return cpy
+        return Command(self.engine,
+                       deepcopy(self.gate),
+                       self.qubits,
+                       list(self.control_qubits),
+                       deepcopy(self.tags))
 
     def get_inverse(self):
         """
@@ -133,11 +146,11 @@ class Command(object):
             NotInvertible: If the gate does not provide an inverse (see
                 BasicGate.get_inverse)
         """
-        cmd = Command(self._engine, projectq.ops.get_inverse(self.gate),
-                      self.qubits)
-        cmd.tags = deepcopy(self.tags)
-        cmd.add_control_qubits(self.control_qubits)
-        return cmd
+        return Command(self._engine,
+                       projectq.ops.get_inverse(self.gate),
+                       self.qubits,
+                       list(self.control_qubits),
+                       deepcopy(self.tags))
 
     def get_merged(self, other):
         """
@@ -152,12 +165,12 @@ class Command(object):
                 or can't be merged for other reasons.
         """
         if (self.tags == other.tags and self.all_qubits == other.all_qubits and
-           self.engine == other.engine):
-            merged_command = Command(self.engine, self.gate, self.qubits)
-            merged_command.gate = merged_command.gate.get_merged(other.gate)
-            merged_command.add_control_qubits(self.control_qubits)
-            merged_command.tags = deepcopy(self.tags)
-            return merged_command
+                self.engine == other.engine):
+            return Command(self.engine,
+                           self.gate.get_merged(other.gate),
+                           self.qubits,
+                           self.control_qubits,
+                           deepcopy(self.tags))
         raise projectq.ops.NotMergeable("Commands not mergeable.")
 
     def _order_qubits(self, qubits):
@@ -207,29 +220,28 @@ class Command(object):
         Set control_qubits to qubits
 
         Args:
-            control_qubits (Qureg): quantum register
+            qubits (Qureg): quantum register
         """
         self._control_qubits = ([WeakQubitRef(qubit.engine, qubit.id)
                                  for qubit in qubits])
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
-    def add_control_qubits(self, qubits):
+    def with_extra_control_qubits(self, extra_controls):
         """
-        Add (additional) control qubits to this command object.
-
-        They are sorted to ensure a canonical order. Also Qubit objects
-        are converted to WeakQubitRef objects to allow garbage collection and
-        thus early deallocation of qubits.
+        Creates a command with more controls.
 
         Args:
-            qubits (list of Qubit objects): List of qubits which control this
-                gate, i.e., the gate is only executed if all qubits are
-                in state 1.
+            extra_controls (Qureg|list[Qubit]): Qubits to add as controls.
+        Returns:
+            Command:
+                The same command, but with more controls.
         """
-        assert(isinstance(qubits, list))
-        self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id)
-                                    for qubit in qubits])
-        self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
+        return Command(
+            self.engine,
+            self.gate,
+            self.qubits,
+            self.control_qubits + list(extra_controls),
+            deepcopy(self.tags))
 
     @property
     def all_qubits(self):
@@ -239,6 +251,9 @@ class Command(object):
         Returns a tuple T where T[0] is a quantum register (a list of
         WeakQubitRef objects) containing the control qubits and T[1:] contains
         the quantum registers to which the gate is applied.
+
+        Returns:
+            list[Qureg]:
         """
         return (self.control_qubits,) + self.qubits
 
@@ -247,6 +262,9 @@ class Command(object):
         """
         Return engine to which the qubits belong / on which the gates are
         executed.
+
+        Returns:
+            projectq.cengines.BasicEngine:
         """
         return self._engine
 
@@ -256,7 +274,8 @@ class Command(object):
         Set / Change engine of all qubits to engine.
 
         Args:
-            engine: New owner of qubits and owner of this Command object
+            engine (projectq.cengines.BasicEngine):
+                New owner of qubits and owner of this Command object
         """
         self._engine = engine
         for qureg in self.qubits:
@@ -275,13 +294,11 @@ class Command(object):
         Returns: True if Command objects are equal (same gate, applied to same
         qubits; ordered modulo interchangeability; and same tags)
         """
-        if (isinstance(other, self.__class__) and
-           self.gate == other.gate and
-           self.tags == other.tags and
-           self.engine == other.engine and
-           self.all_qubits == other.all_qubits):
-            return True
-        return False
+        return (isinstance(other, Command) and
+                self.gate == other.gate and
+                self.tags == other.tags and
+                self.engine == other.engine and
+                self.all_qubits == other.all_qubits)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -294,7 +311,6 @@ class Command(object):
         ctrlqubits = self.control_qubits
         if len(ctrlqubits) > 0:
             qubits = (self.control_qubits,) + qubits
-        qstring = ""
         if len(qubits) == 1:
             qstring = str(Qureg(qubits[0]))
         else:
@@ -303,6 +319,5 @@ class Command(object):
                 qstring += str(Qureg(qreg))
                 qstring += ", "
             qstring = qstring[:-2] + " )"
-        #qstring = convert_qubits_to_string(qubits)
         cstring = "C" * len(ctrlqubits)
         return cstring + str(self.gate) + " | " + qstring

@@ -204,8 +204,7 @@ class ControlledGate(BasicGate):
                                     "First qureg(s) need to contain exactly "
                                     "the required number of control qubits.")
         cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
-        cmd.add_control_qubits(ctrl)
-        apply_command(cmd)
+        apply_command(cmd.with_extra_control_qubits(ctrl))
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """
