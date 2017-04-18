@@ -416,7 +416,8 @@ class BasicMathGate(BasicGate):
         gate, given the input to the gate (a tuple of quantum registers).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the math gate is being applied.
+            qubits (tuple<Qureg>): Qubits to which the math gate is being
+                applied.
 
         Returns:
             math_fun (function): Python function describing the action of this
