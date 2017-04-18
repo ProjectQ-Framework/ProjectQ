@@ -108,6 +108,14 @@ def test_controlled_gate_get_inverse():
     assert one_control.get_inverse() == expected
 
 
+def test_controlled_gate_empty_controls():
+    eng = MainEngine(backend=DummyEngine())
+
+    a = eng.allocate_qureg(1)
+    cmd = _metagates.ControlledGate(Y, 0).generate_command(((), a))
+    assert cmd == Command(eng, Y, [a])
+
+
 def test_controlled_gate_or():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,

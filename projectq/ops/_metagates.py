@@ -173,7 +173,7 @@ class ControlledGate(BasicGate):
         """
         return ControlledGate(get_inverse(self._gate), self._n)
 
-    def __or__(self, qubits):
+    def generate_command(self, qubits):
         """
         Apply the controlled gate to qubits, using the first n qubits as
         controls.
@@ -187,25 +187,26 @@ class ControlledGate(BasicGate):
                 the gate.
         """
         qubits = BasicGate.make_tuple_of_qureg(qubits)
-        n = self._n
+
         ctrl = []
         gate_quregs = []
-        added_ctrl_qubits = 0
-        for qureg in qubits:
-            if added_ctrl_qubits < n:
-                ctrl = ctrl + qureg
-                added_ctrl_qubits += len(qureg)
+        adding_to_controls = True
+        for reg in qubits:
+            if adding_to_controls:
+                ctrl += reg
+                adding_to_controls = len(ctrl) < self._n
             else:
-                gate_quregs.append(qureg)
-        # Test that there were enough control qubits and that that
+                gate_quregs.append(reg)
+        # Test that there were enough control quregs and that that
         # the last control qubit was the last qubit in a qureg.
-        if added_ctrl_qubits != n:
+        if len(ctrl) != self._n:
             raise ControlQubitError("Wrong number of control qubits. "
                                     "First qureg(s) need to contain exactly "
-                                    "the required number of control qubits.")
+                                    "the required number of control quregs.")
+
         cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
         cmd.add_control_qubits(ctrl)
-        apply_command(cmd)
+        return cmd
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """
