@@ -205,6 +205,11 @@ class LimitedCapabilityEngine(BasicEngine):
                 (self.is_last_engine or self.next_engine.is_available(cmd)))
 
     def receive(self, command_list):
+        for cmd in command_list:
+            if not self._allow_command(cmd):
+                raise ValueError("Command not allowed: " + str(cmd))
+            if self._ban_command(cmd):
+                raise ValueError("Command banned: " + str(cmd))
         if not self.is_last_engine:
             self.send(command_list)
 
