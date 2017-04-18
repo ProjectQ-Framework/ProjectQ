@@ -1,5 +1,5 @@
 from projectq import MainEngine
-from projectq.ops import X, C_star, BasicMathGate
+from projectq.ops import X, C, BasicMathGate
 from ._classical_simulator import ClassicalSimulator
 
 
@@ -36,7 +36,7 @@ def test_simulator_triangle_increment_cycle():
     for t in range(1 << 6):
         assert sim.read_register(a) == t
         for i in range(6)[::-1]:
-            C_star(X) | (a[:i], a[i])
+            C(X, i) | (a[:i], a[i])
     assert sim.read_register(a) == 0
 
 
