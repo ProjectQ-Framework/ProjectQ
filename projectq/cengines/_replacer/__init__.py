@@ -15,4 +15,3 @@ from ._decomposition_rule_set import DecompositionRuleSet
 from ._replacer import (AutoReplacer,
                         InstructionFilter,
                         NoGateDecompositionError)
-
