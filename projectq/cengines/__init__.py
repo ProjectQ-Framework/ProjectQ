@@ -24,4 +24,4 @@ from ._replacer import (AutoReplacer,
                         DecompositionRuleSet,
                         DecompositionRule)
 from ._tagremover import TagRemover
-from ._testengine import CompareEngine, DummyEngine
+from ._testengine import CompareEngine, DummyEngine, LimitedCapabilityEngine

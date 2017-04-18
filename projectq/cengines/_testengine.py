@@ -202,7 +202,8 @@ class LimitedCapabilityEngine(BasicEngine):
     def is_available(self, cmd):
         return (self._allow_command(cmd) and
                 not self._ban_command(cmd) and
-                (self.is_last_engine or self.next_engine.is_available(cmd)))
+                (self.next_engine is None or
+                 self.next_engine.is_available(cmd)))
 
     def receive(self, command_list):
         for cmd in command_list:
@@ -220,11 +221,11 @@ class LimitedCapabilityEngine(BasicEngine):
         return self.ban_custom_predicate(cmd)
 
     def _allow_command(self, cmd):
-        if self.allow_arithmetic and isinstance(cmd.gate, BasicMathGate):
-            return True
-
         if (self.allow_classical_instructions and
                 isinstance(cmd.gate, ClassicalInstructionGate)):
+            return True
+
+        if self.allow_arithmetic and isinstance(cmd.gate, BasicMathGate):
             return True
 
         if (self.allow_toffoli and isinstance(cmd.gate, XGate) and
