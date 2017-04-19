@@ -18,8 +18,9 @@ from copy import deepcopy
 from projectq.cengines import (BasicEngine,
                                ForwarderEngine,
                                CommandModifier)
-from projectq.meta import get_control_count
-from projectq.ops import (CNOT,
+from projectq.meta import get_control_count, QubitPlacementTag
+from projectq.ops import (Allocate,
+                          CNOT,
                           NOT,
                           H,
                           FastForwardingGate,
@@ -76,7 +77,6 @@ class IBMCNOTMapper(BasicEngine):
         self._cmds = []
         self._interactions = dict()
         self._num_cnot_target = dict()
-        self._mapping = []
 
     def _is_cnot(self, cmd):
         """
@@ -99,8 +99,8 @@ class IBMCNOTMapper(BasicEngine):
                 the mapping was already determined but more CNOTs get sent
                 down the pipeline.
         """
-        mapping = self._mapping
-        if len(mapping) == 0 and len(self._interactions) > 0:
+        mapping = []
+        if len(self._interactions) > 0:
             ids_and_interactions = []
             qubits_to_map = set()
             for qubit_id, interactions in self._interactions.items():
@@ -168,6 +168,7 @@ class IBMCNOTMapper(BasicEngine):
 
         target_indices = {mp[0]: mp[1] for mp in mapping
                           if mp[1] <= 2}
+        all_indices = {mp[0]: mp[1] for mp in mapping}
         for cmd in self._cmds:
             if self._needs_flipping(cmd, target_indices):
                 # To have nicer syntax when flipping CNOTs, we'll use a
@@ -192,20 +193,14 @@ class IBMCNOTMapper(BasicEngine):
                 All(H) | (ctrl + qubit)
                 CNOT | (qubit, ctrl)
                 All(H) | (ctrl + qubit)
-                # This cmd would require remapping -->
-                # raise an exception if the CNOT id has already been
-                # determined.
-                if len(self._mapping) > 0:
-                    self._reset()
-                    raise Exception("\nIBM Quantum Experience does not allow "
-                                    "intermediate measurements / "
-                                    "\ndestruction of qubits! CNOT mapping "
-                                    "may be inconsistent.\n")
+            elif cmd.gate == Allocate:
+                cmd.tags += [QubitPlacementTag(
+                    all_indices[cmd.qubits[0][0].id])]
+                self.next_engine.receive([cmd])
             else:
                 self.next_engine.receive([cmd])
 
         self._cmds = []
-        self._mapping = mapping
 
     def _needs_flipping(self, cmd, target_idx_map):
         """
@@ -238,13 +233,13 @@ class IBMCNOTMapper(BasicEngine):
         Args:
             cmd (Command): A command to store
         """
+        apply_to = cmd.qubits[0][0].id
+        if not apply_to in self._interactions:
+            self._interactions[apply_to] = set()
+            self._num_cnot_target[apply_to] = 0
         if self._is_cnot(cmd):
             # CNOT encountered
-            apply_to = cmd.qubits[0][0].id
             ctrl = cmd.control_qubits[0].id
-            if not apply_to in self._interactions:
-                self._interactions[apply_to] = set()
-                self._num_cnot_target[apply_to] = 0
             if not ctrl in self._interactions:
                 self._interactions[ctrl] = set()
                 self._num_cnot_target[ctrl] = 0
@@ -271,7 +266,6 @@ class IBMCNOTMapper(BasicEngine):
         """
         for cmd in command_list:
             self._store(cmd)
-            if isinstance(cmd.gate, FastForwardingGate):
-                self._run()
             if isinstance(cmd.gate, FlushGate):
+                self._run()
                 self._reset()
