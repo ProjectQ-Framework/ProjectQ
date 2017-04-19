@@ -14,7 +14,6 @@
 # api documentation is at https://qcwi-staging.mybluemix.net/explorer/
 import requests
 import getpass
-import logging
 import sys
 import time
 from requests.compat import urljoin
@@ -65,7 +64,6 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
         if verbose:
             print("Waiting for results...")
         res = _get_result(execution_id, access_token)
-        logging.info(res)
         if verbose:
             print("Done.")
         return res
@@ -97,7 +95,6 @@ def _authenticate(email=None, password=None):
 
     r = requests.post(urljoin(_api_url, 'users/login'),
                       data={"email": email, "password": password})
-    logging.info(r.text)
     r.raise_for_status()
 
     json_data = r.json()
@@ -117,9 +114,6 @@ def _run(qasm, device, user_id, access_token, shots):
                               "fromCache": "false",
                               "shots": shots},
                       headers={"Content-Type": "application/json"})
-    logging.info(r.request.body)
-    logging.info(r.request.url)
-    logging.info(r.text)
     r.raise_for_status()
 
     r_json = r.json()
@@ -133,8 +127,6 @@ def _get_result(execution_id, access_token, num_retries=100, interval=1):
     for _ in range(num_retries):
         r = requests.get(urljoin(_api_url, suffix),
                          params={"access_token": access_token})
-        logging.info(r.request.url)
-        logging.info(r.text)
         r.raise_for_status()
 
         r_json = r.json()

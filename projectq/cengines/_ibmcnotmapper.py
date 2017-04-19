@@ -34,16 +34,14 @@ class IBMCNOTMapper(BasicEngine):
     """
     CNOT mapper for the IBM backend.
 
-    Transforms CNOTs such that all CNOTs within the circuit have the same
-    target qubit (required by IBM backend). If necessary, it will flip
-    around the CNOT gate by first applying Hadamard gates to both qubits, then
-    CNOT with swapped control and target qubit, and finally Hadamard gates to
-    both qubits.
+    Maps a given circuit to the IBM Quantum Experience chip.
+    If necessary, it will flip around the CNOT gate by first applying Hadamard
+    gates to both qubits, then CNOT with swapped control and target qubit, and
+    finally Hadamard gates to both qubits.
+    Furthermore, it adds QubitPlacementTags to Allocate gate commands.
 
     Note:
-        The mapper has to be run once on the entire circuit. Else, an
-        Exception will be raised (if, e.g., several measurements are performed
-        without re-initializing the mapper).
+        The mapper has to be run once on the entire circuit.
 
     Warning:
         If the provided circuit cannot be mapped to the hardware layout
