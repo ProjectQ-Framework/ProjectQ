@@ -111,12 +111,7 @@ class Command(object):
         self.gate = gate
         self.tags = list(tags)
         self.qubits = qubits  # property
-
-        # access via self.control_qubits property
-        self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id)
-                                for qubit in controls]
-        self._control_qubits = sorted(self._control_qubits,
-                                      key=lambda x: x.id)
+        self.control_qubits = controls  # property
         self.engine = engine  # property
 
     @property
