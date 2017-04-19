@@ -81,7 +81,7 @@ class Command(object):
         all_qubits: A tuple of control_qubits + qubits
     """
 
-    def __init__(self, engine, gate, qubits):
+    def __init__(self, engine, gate, qubits, controls=(), tags=()):
         """
         Initialize a Command object.
 
@@ -93,18 +93,27 @@ class Command(object):
             (see WeakQubitRef).
 
         Args:
-            engine: engine which created the qubit (mostly the MainEngine)
-            gate: Gate to be executed
-            qubits: Tuple of quantum registers (to which the gate is applied)
+            engine (projectq.cengines.BasicEngine):
+                engine which created the qubit (mostly the MainEngine)
+            gate (projectq.ops.Gate):
+                Gate to be executed
+            qubits (tuple[Qureg]):
+                Tuple of quantum registers (to which the gate is applied)
+            controls (Qureg|list[Qubit]):
+                Qubits that condition the command.
+            tags (list[object]):
+                Tags associated with the command.
         """
-        qubits = tuple([[WeakQubitRef(qubit.engine, qubit.id)
-                         for qubit in qreg]
-                        for qreg in qubits])
+        qubits = tuple([WeakQubitRef(qubit.engine, qubit.id)
+                        for qubit in qreg]
+                       for qreg in qubits)
 
         self.gate = gate
-        self.tags = []
+        self.tags = list(tags)
         self.qubits = qubits  # property
-        self._control_qubits = []  # access via self.control_qubits property
+
+        # access via self.control_qubits property
+        self.control_qubits = controls
         self.engine = engine  # property
 
     @property
@@ -117,10 +126,11 @@ class Command(object):
 
     def __deepcopy__(self, memo):
         """ Deepcopy implementation. Engine should stay a reference."""
-        cpy = Command(self.engine, deepcopy(self.gate), self.qubits)
-        cpy.tags = deepcopy(self.tags)
-        cpy.add_control_qubits(self.control_qubits)
-        return cpy
+        return Command(self.engine,
+                       deepcopy(self.gate),
+                       self.qubits,
+                       list(self.control_qubits),
+                       deepcopy(self.tags))
 
     def get_inverse(self):
         """
@@ -133,11 +143,11 @@ class Command(object):
             NotInvertible: If the gate does not provide an inverse (see
                 BasicGate.get_inverse)
         """
-        cmd = Command(self._engine, projectq.ops.get_inverse(self.gate),
-                      self.qubits)
-        cmd.tags = deepcopy(self.tags)
-        cmd.add_control_qubits(self.control_qubits)
-        return cmd
+        return Command(self._engine,
+                       projectq.ops.get_inverse(self.gate),
+                       self.qubits,
+                       list(self.control_qubits),
+                       deepcopy(self.tags))
 
     def get_merged(self, other):
         """
@@ -152,12 +162,12 @@ class Command(object):
                 or can't be merged for other reasons.
         """
         if (self.tags == other.tags and self.all_qubits == other.all_qubits and
-           self.engine == other.engine):
-            merged_command = Command(self.engine, self.gate, self.qubits)
-            merged_command.gate = merged_command.gate.get_merged(other.gate)
-            merged_command.add_control_qubits(self.control_qubits)
-            merged_command.tags = deepcopy(self.tags)
-            return merged_command
+                self.engine == other.engine):
+            return Command(self.engine,
+                           self.gate.get_merged(other.gate),
+                           self.qubits,
+                           self.control_qubits,
+                           deepcopy(self.tags))
         raise projectq.ops.NotMergeable("Commands not mergeable.")
 
     def _order_qubits(self, qubits):

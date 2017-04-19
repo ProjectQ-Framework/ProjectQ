@@ -21,7 +21,7 @@ from projectq.ops import Command
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
-from projectq.ops import _basics
+from projectq.ops import _basics, X, CNOT, Tensor
 
 
 @pytest.fixture
@@ -196,3 +196,56 @@ def test_basic_math_gate():
     # Test a=2, b=3, and c=5 should give a=2, b=3, c=11
     math_fun = gate.get_math_function(("qreg1", "qreg2", "qreg3"))
     assert math_fun([2, 3, 5]) == [2, 3, 11]
+
+
+def test_gate_with_included_controls_ccnot():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[])
+    a = eng.allocate_qubit()
+    b = eng.allocate_qubit()
+    c = eng.allocate_qubit()
+
+    cmd1 = (X & a).generate_command(b)
+    cmd2 = (X & a & b).generate_command(c)
+    assert cmd1 == Command(eng, X, (b,), controls=a)
+    assert cmd2 == Command(eng, X, (c,), controls=a + b)
+
+    backend.received_commands = []
+    X & a | b
+    X & a & b | c
+    assert backend.received_commands == [cmd1, cmd2]
+
+
+def test_gate_with_included_controls_empty():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[])
+    assert X & eng.allocate_qureg(0) is X
+
+
+def test_gate_with_included_controls_interaction_with_tensor():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[])
+    c = eng.allocate_qureg(2)
+    t = eng.allocate_qureg(3)
+
+    backend.received_commands = []
+    Tensor(X) & c | t
+    assert backend.received_commands == [
+        Command(eng, X, (t[0:1],), controls=c),
+        Command(eng, X, (t[1:2],), controls=c),
+        Command(eng, X, (t[2:3],), controls=c),
+    ]
+
+
+def test_gate_with_included_controls_interaction_with_controlled_gate():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[])
+    a = eng.allocate_qubit()
+    c = eng.allocate_qureg(2)
+    t = eng.allocate_qubit()
+
+    backend.received_commands = []
+    CNOT & c | (a, t)
+    assert backend.received_commands == [
+        Command(eng, X, (t,), controls=c + a),
+    ]
