@@ -194,8 +194,9 @@ class IBMCNOTMapper(BasicEngine):
                 CNOT | (qubit, ctrl)
                 All(H) | (ctrl + qubit)
             elif cmd.gate == Allocate:
+                ibm_order = [2, 1, 4, 0, 3]
                 cmd.tags += [QubitPlacementTag(
-                    all_indices[cmd.qubits[0][0].id])]
+                    ibm_order[all_indices[cmd.qubits[0][0].id]])]
                 self.next_engine.receive([cmd])
             else:
                 self.next_engine.receive([cmd])
@@ -233,10 +234,11 @@ class IBMCNOTMapper(BasicEngine):
         Args:
             cmd (Command): A command to store
         """
-        apply_to = cmd.qubits[0][0].id
-        if not apply_to in self._interactions:
-            self._interactions[apply_to] = set()
-            self._num_cnot_target[apply_to] = 0
+        if not cmd.gate == FlushGate():
+            apply_to = cmd.qubits[0][0].id
+            if not apply_to in self._interactions:
+                self._interactions[apply_to] = set()
+                self._num_cnot_target[apply_to] = 0
         if self._is_cnot(cmd):
             # CNOT encountered
             ctrl = cmd.control_qubits[0].id

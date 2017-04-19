@@ -1,4 +1,4 @@
-from projectq.setups.ibm import IBMBackend
+from projectq.backends import IBMBackend
 from projectq.ops import Measure, Entangle
 from projectq import MainEngine
 

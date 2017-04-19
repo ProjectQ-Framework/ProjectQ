@@ -28,15 +28,13 @@ class DeviceOfflineError(Exception):
     pass
 
 
-def send(json_qasm, name, device='sim_trivial_2', user=None, password=None,
+def send(qasm, device='sim_trivial_2', user=None, password=None,
          shots=1, verbose=False):
     """
-    Sends json QASM through the IBM API and runs the quantum circuit
-    represented by the json data.
+    Sends QASM through the IBM API and runs the quantum circuit.
 
     Args:
-        json_qasm: JSON QASM representation of the circuit to run.
-        name (str): Name of the experiment.
+        qasm: QASM representation of the circuit to run.
         device (str): 'sim_trivial_2' or 'real' to run on simulator or on the
             real chip, respectively.
         user (str): IBM quantum experience user.
@@ -46,28 +44,24 @@ def send(json_qasm, name, device='sim_trivial_2', user=None, password=None,
             measurement statistics. Otherwise, the backend simply registers
             one measurement result (same behavior as the projectq Simulator).
     """
-    # check if the device is online
-    if device == 'real':
-        r = requests.get(urljoin(_api_url_status, 'Status/queue'),
-                         params={"device": "chip_real"})
-        online = r.json()['state']
-
-        if not online:
-            print("The device is offline (for maintenance?). Use the "
-                  "simulator instead or try again later.")
-            raise DeviceOfflineError("Device is offline.")
-
     try:
+        # check if the device is online
+        if device == 'real':
+            r = requests.get(urljoin(_api_url_status, 'Status/queue'),
+                             params={"device": "chip_real"})
+            online = r.json()['state']
+
+            if not online:
+                print("The device is offline (for maintenance?). Use the "
+                      "simulator instead or try again later.")
+                raise DeviceOfflineError("Device is offline.")
+
         if verbose:
             print("Authenticating...")
         user_id, access_token = _authenticate(user, password)
         if verbose:
-            print("Saving code...")
-        code_id = _save_code(json_qasm, name, user_id, access_token)
-        if verbose:
             print("Running code...")
-        execution_id = _run(json_qasm, device, user_id, code_id, access_token,
-                            shots)
+        execution_id = _run(qasm, device, user_id, access_token, shots)
         if verbose:
             print("Waiting for results...")
         res = _get_result(execution_id, access_token)
@@ -113,33 +107,11 @@ def _authenticate(email=None, password=None):
     return user_id, access_token
 
 
-def _save_code(json_qasm, name, user_id, access_token):
-    suffix = 'users/{user_id}/codes'.format(user_id=user_id)
-
-    name_item = '"name":"{name}", "jsonQASM":'.format(name=name)
-    json_body = ''.join([name_item, json_qasm])
-    json_data = ''.join(['{', json_body, '}'])
+def _run(qasm, device, user_id, access_token, shots):
+    suffix = 'codes/execute'
 
     r = requests.post(urljoin(_api_url, suffix),
-                      data=json_data,
-                      params={"access_token": access_token},
-                      headers={"Content-Type": "application/json"})
-    logging.info(r.request.body)
-    logging.info(r.request.url)
-    logging.info(r.text)
-    r.raise_for_status()
-
-    return r.json()['idCode']
-
-
-def _run(json_qasm, device, user_id, code_id, access_token, shots):
-    suffix_tmpl = 'users/{user_id}/codes/{code_id}/executions'
-    suffix = suffix_tmpl.format(user_id=user_id, code_id=code_id)
-
-    json_data = ''.join(['{"jsonQasm":', json_qasm, '}'])
-
-    r = requests.post(urljoin(_api_url, suffix),
-                      data=json_data,
+                      data=qasm,
                       params={"access_token": access_token,
                               "deviceRunType": device,
                               "fromCache": "false",
@@ -151,7 +123,7 @@ def _run(json_qasm, device, user_id, code_id, access_token, shots):
     r.raise_for_status()
 
     r_json = r.json()
-    execution_id = r_json["execution"]["id"]
+    execution_id = r_json["id"]
     return execution_id
 
 
