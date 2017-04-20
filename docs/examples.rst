@@ -3,7 +3,7 @@
 Examples
 ========
 
-All example codes can be found on `GitHub <https://github.com/ProjectQ-Framework/ProjectQ/tree/master/examples/>`_.
+All of these example codes **and more** can be found on `GitHub <https://github.com/ProjectQ-Framework/ProjectQ/tree/master/examples/>`_.
 
 .. toctree::
    :maxdepth: 2	
