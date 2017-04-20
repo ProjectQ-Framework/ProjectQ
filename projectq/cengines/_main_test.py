@@ -24,7 +24,8 @@ def test_main_engine_init():
     ceng1 = DummyEngine()
     ceng2 = DummyEngine()
     test_backend = DummyEngine()
-    eng = _main.MainEngine(backend=test_backend, engine_list=[ceng1, ceng2])
+    engine_list = [ceng1, ceng2]
+    eng = _main.MainEngine(backend=test_backend, engine_list=engine_list)
     assert id(eng.next_engine) == id(ceng1)
     assert id(eng.main_engine) == id(eng)
     assert not eng.is_last_engine
@@ -37,6 +38,7 @@ def test_main_engine_init():
     assert test_backend.is_last_engine
     assert id(test_backend.main_engine) == id(eng)
     assert not test_backend.next_engine
+    assert len(engine_list) == 2
 
 
 def test_main_engine_init_failure():

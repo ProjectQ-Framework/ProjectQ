@@ -203,9 +203,9 @@ class ControlledGate(BasicGate):
             raise ControlQubitError("Wrong number of control qubits. "
                                     "First qureg(s) need to contain exactly "
                                     "the required number of control qubits.")
-        cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
-        cmd.add_control_qubits(ctrl)
-        apply_command(cmd)
+        import projectq.meta
+        with projectq.meta.Control(gate_quregs[0][0].engine, ctrl):
+            self._gate | tuple(gate_quregs)
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """
