@@ -13,6 +13,7 @@
 """Tests for projectq.backends._ibm._ibm.py."""
 
 import pytest
+import json
 
 import projectq.setups.decompositions
 from projectq import MainEngine
@@ -62,24 +63,11 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"playground":[{"line":0,"name":"q","gates":[{"position"'
-                    ':0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm'
-                    '":"h"},{"position":3,"name":"measure","qasm":"measure"}]'
-                    '},{"line":1,"name":"q","gates":[{"position":0,"name":"h"'
-                    ',"qasm":"h"},{"position":3,"name":"h","qasm":"h"},{'
-                    '"position":4,"name":"measure","qasm":"measure"}]},{'
-                    '"line":2,"name":"q","gates":[{"position":1,"name":"cx"'
-                    ',"qasm":"cx","to":0},{"position":2,"name":"cx","qasm":'
-                    '"cx","to":1},{"position":3,"name":"h","qasm":"h"},{'
-                    '"position":4,"name":"measure","qasm":"measure"}]},{'
-                    '"line":3,"name":"q","gates":[]},{"line":4,"name":"q",'
-                    '"gates":[]}],"numberColumns":40,"numberLines":5,'
-                    '"numberGates":200,"hasMeasures":true,"topology":'
-                    '"250e969c6b9e68aa2a045ffbceb3ac33"}')
+    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx q[0], q[2];\\ncx q[0], q[1];\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure q[1] -> c[1];", "codeType": "QASM2"}')
 
     # patch send
     def mock_send(*args, **kwargs):
-        assert args[0] == correct_info
+        assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
                 'data': {'time': 14.429004907608032, 'serialNumberDevice':
                          'Real5Qv1', 'p': {'labels': ['00000', '00001',
@@ -123,3 +111,6 @@ def test_ibm_backend_functional_test(monkeypatch):
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
     assert prob_dict['111'] == pytest.approx(0.38671875)
     assert prob_dict['101'] == pytest.approx(0.0263671875)
+
+    with pytest.raises(RuntimeError):
+        eng.backend.get_probabilities(eng.allocate_qubit())

@@ -40,23 +40,49 @@ def test_ibmcnotmapper_invalid_circuit():
     qb3 = eng.allocate_qubit()
     CNOT | (qb1, qb2)
     CNOT | (qb0, qb1)
+    CNOT | (qb0, qb2)
+    CNOT | (qb3, qb1)
     with pytest.raises(Exception):
         CNOT | (qb3, qb2)
         eng.flush()
 
 
-def test_ibmcnotmapper_nointermediate_measurements():
-    backend = DummyEngine()
+def test_ibmcnotmapper_valid_circuit1():
+    backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
                      engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
-
+    qb2 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()
+    qb4 = eng.allocate_qubit()
     CNOT | (qb0, qb1)
-    Measure | qb0
-    CNOT | (qb1, qb0)
-    with pytest.raises(Exception):
-        Measure | qb0
+    CNOT | (qb0, qb2)
+    CNOT | (qb0, qb3)
+    CNOT | (qb0, qb4)
+    CNOT | (qb1, qb2)
+    CNOT | (qb3, qb4)
+    CNOT | (qb4, qb3)
+    eng.flush()
+
+
+def test_ibmcnotmapper_valid_circuit2():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()
+    qb4 = eng.allocate_qubit()
+    CNOT | (qb3, qb1)
+    CNOT | (qb3, qb2)
+    CNOT | (qb3, qb0)
+    CNOT | (qb3, qb4)
+    CNOT | (qb1, qb2)
+    CNOT | (qb0, qb4)
+    CNOT | (qb2, qb1)
+    eng.flush()
 
 
 def test_ibmcnotmapper_optimizeifpossible():

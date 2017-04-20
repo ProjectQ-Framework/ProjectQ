@@ -40,7 +40,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     json_data = ''.join(['{', json_body, '}'])
     shots = 1
     device = "real"
-    json_data_run = ''.join(['{"jsonQasm":', json_qasm, '}'])
+    json_data_run = ''.join(['{"qasm":', json_qasm, '}'])
     execution_id = 3
     result_ready = [False]
     result = "my_result"
@@ -75,13 +75,13 @@ def test_send_real_device_online_verbose(monkeypatch):
         elif (args[0] == urljoin(_api_url,
               "Executions/{execution_id}".format(execution_id=execution_id))
               and kwargs["params"]["access_token"] == access_token and
-              not result_ready[0] and request_num[0] == 4):
+              not result_ready[0] and request_num[0] == 3):
             result_ready[0] = True
             return MockResponse({"status": {"id": "NotDone"}}, 200)
         elif (args[0] == urljoin(_api_url,
               "Executions/{execution_id}".format(execution_id=execution_id))
               and kwargs["params"]["access_token"] == access_token and
-              result_ready[0] and request_num[0] == 4):
+              result_ready[0] and request_num[0] == 3):
             return MockResponse({"status": {"id": "DONE"},
                                  "result": result}, 200)
 
@@ -110,28 +110,19 @@ def test_send_real_device_online_verbose(monkeypatch):
                 request_num[0] == 1):
             request_num[0] += 1
             return MockPostResponse({"userId": user_id, "id": access_token})
-        # Save code
-        elif (args[0] == urljoin(_api_url,
-                                 "users/{}/codes".format(user_id)) and
-                kwargs["data"] == json_data and
-                kwargs["params"]["access_token"] == access_token and
-                kwargs["headers"]["Content-Type"] == "application/json" and
-                request_num[0] == 2):
-            request_num[0] += 1
-            return MockPostResponse({"idCode": code_id})
         # Run code
-        elif (args[0] == urljoin(_api_url, "users/{user_id}/codes/{code_id}"
-                                 "/executions".format(user_id=user_id,
-                                                      code_id=code_id)) and
-                kwargs["data"] == json_data_run and
+        elif (args[0] == urljoin(_api_url, "codes/execute") and
+                kwargs["data"] == json_qasm and
                 kwargs["params"]["access_token"] == access_token and
                 kwargs["params"]["deviceRunType"] == device and
                 kwargs["params"]["fromCache"] == "false" and
                 kwargs["params"]["shots"] == shots and
                 kwargs["headers"]["Content-Type"] == "application/json" and
-                request_num[0] == 3):
+                request_num[0] == 2):
             request_num[0] += 1
-            return MockPostResponse({"execution": {"id": execution_id}})
+            return MockPostResponse({"id": execution_id})
+        else:
+            print(kwargs)
 
     monkeypatch.setattr("requests.get", mocked_requests_get)
     monkeypatch.setattr("requests.post", mocked_requests_post)
@@ -148,7 +139,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
 
     # Code to test:
-    res = _ibm_http_client.send(json_qasm, name=name,
+    res = _ibm_http_client.send(json_qasm,
                                 device="real",
                                 user=None, password=None,
                                 shots=shots, verbose=True)
@@ -175,7 +166,7 @@ def test_send_real_device_offline(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
-        _ibm_http_client.send(json_qasm, name=name,
+        _ibm_http_client.send(json_qasm,
                               device="real",
                               user=None, password=None,
                               shots=shots, verbose=True)
@@ -216,7 +207,7 @@ def test_send_that_errors_are_caught(monkeypatch):
     shots = 1
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
-    _ibm_http_client.send(json_qasm, name=name,
+    _ibm_http_client.send(json_qasm,
                           device="real",
                           user=None, password=None,
                           shots=shots, verbose=True)
@@ -257,7 +248,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
     shots = 1
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
-    _ibm_http_client.send(json_qasm, name=name,
+    _ibm_http_client.send(json_qasm,
                           device="real",
                           user=None, password=None,
                           shots=shots, verbose=True)
@@ -298,7 +289,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
     shots = 1
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
-    _ibm_http_client.send(json_qasm, name=name,
+    _ibm_http_client.send(json_qasm,
                           device="real",
                           user=None, password=None,
                           shots=shots, verbose=True)
