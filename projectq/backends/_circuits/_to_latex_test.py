@@ -19,11 +19,14 @@ import builtins
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
-from projectq.ops import (H,
+from projectq.ops import (BasicGate,
+                          H,
                           X,
                           CNOT,
                           Measure,
-                          Z)
+                          Z,
+                          Swap,
+                          C)
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
 
@@ -90,6 +93,38 @@ def test_header():
     assert 'minimum height=0cm' in header
 
 
+def test_large_gates():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    class MyLargeGate(BasicGate):
+        def __str__(self):
+            return "large_gate"
+
+    H | qubit2
+    MyLargeGate() | (qubit1, qubit3)
+    H | qubit2
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings)
+
+    assert code.count("large_gate") == 1  # 1 large gate was applied
+    # check that large gate draws lines, also for qubits it does not act upon
+    assert code.count("edge[") == 5
+    assert code.count("{H};") == 2
+
+
 def test_body():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
@@ -106,7 +141,9 @@ def test_body():
     Measure | qubit2
     CNOT | (qubit2, qubit1)
     Z | qubit2
-
+    C(Z) | (qubit1, qubit2)
+    Swap | (qubit1, qubit2)
+    
     del qubit1
     eng.flush()
 
@@ -117,6 +154,8 @@ def test_body():
     settings['gates']['AllocateQubitGate']['draw_id'] = True
     code = _to_latex._body(circuit_lines, settings)
 
+    assert code.count("swapstyle") == 6  # swap draws 2 nodes + 2 lines each
+    assert code.count("phase") == 4  # CZ is two phases plus 2 from CNOTs
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
     assert code.count("{$\Ket{0}") == 2  # two qubits allocated
     assert code.count("xstyle") == 3  # 1 cnot, 1 not gate
