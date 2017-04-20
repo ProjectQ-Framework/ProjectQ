@@ -134,9 +134,8 @@ class IBMBackend(BasicEngine):
                                                                     qb_pos)
 
         elif not (gate == NOT and get_control_count(cmd) == 1):
-            cls = gate.__class__.__name__
-            if cls in self._gate_names:
-                gate_str = self._gate_names[cls]
+            if str(gate) in self._gate_names:
+                gate_str = self._gate_names[str(gate)]
             else:
                 gate_str = str(gate).lower()
 
@@ -260,5 +259,5 @@ class IBMBackend(BasicEngine):
     """
     Mapping of gate names from our gate objects to the IBM QASM representation.
     """
-    _gate_names = {Tdag.__class__.__name__: "tdg",
-                   Sdag.__class__.__name__: "sdg"}
+    _gate_names = {str(Tdag): "tdg",
+                   str(Sdag): "sdg"}

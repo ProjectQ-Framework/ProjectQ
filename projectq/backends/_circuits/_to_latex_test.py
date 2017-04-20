@@ -133,7 +133,7 @@ def test_body():
 
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
-
+    qubit3 = eng.allocate_qubit()
     H | qubit1
     H | qubit2
     CNOT | (qubit1, qubit2)
@@ -142,7 +142,7 @@ def test_body():
     CNOT | (qubit2, qubit1)
     Z | qubit2
     C(Z) | (qubit1, qubit2)
-    Swap | (qubit1, qubit2)
+    C(Swap) | (qubit1, qubit2, qubit3)
     
     del qubit1
     eng.flush()
@@ -155,13 +155,14 @@ def test_body():
     code = _to_latex._body(circuit_lines, settings)
 
     assert code.count("swapstyle") == 6  # swap draws 2 nodes + 2 lines each
-    assert code.count("phase") == 4  # CZ is two phases plus 2 from CNOTs
+    # CZ is two phases plus 2 from CNOTs + 1 from cswap
+    assert code.count("phase") == 5
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
-    assert code.count("{$\Ket{0}") == 2  # two qubits allocated
+    assert code.count("{$\Ket{0}") == 3  # 3 qubits allocated
     assert code.count("xstyle") == 3  # 1 cnot, 1 not gate
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
-    assert code.count("{red}") == 2
+    assert code.count("{red}") == 3
 
 
 def test_qubit_lines_classicalvsquantum1():
