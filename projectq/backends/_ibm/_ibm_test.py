@@ -111,3 +111,6 @@ def test_ibm_backend_functional_test(monkeypatch):
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
     assert prob_dict['111'] == pytest.approx(0.38671875)
     assert prob_dict['101'] == pytest.approx(0.0263671875)
+
+    with pytest.raises(RuntimeError):
+        eng.backend.get_probabilities(eng.allocate_qubit())

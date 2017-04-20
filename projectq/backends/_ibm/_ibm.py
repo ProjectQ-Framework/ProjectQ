@@ -167,11 +167,15 @@ class IBMBackend(BasicEngine):
             probabilities.
 
         Raises:
-            Exception: If no data is available (i.e., if the circuit has not
-                been executed).
+            RuntimeError: If no data is available (i.e., if the circuit has
+                not been executed). Or if a qubit was supplied which was not
+                present in the circuit (might have gotten optimized away).
         """
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
+        if any(qb.id not in self._mapping for qb in qureg):
+            raise RuntimeError("Unknown qubit. Please, make sure that all "
+                               "provided qubits are present in the circuit.")
 
         probability_dict = dict()
 
