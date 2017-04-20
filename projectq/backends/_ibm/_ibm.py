@@ -196,7 +196,8 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];" + self.qasm)
+        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];"
+                + self.qasm)
         info = {}
         info['qasm'] = qasm
         info['codeType'] = "QASM2"
@@ -239,7 +240,6 @@ class IBMBackend(BasicEngine):
             self._reset()
         except TypeError:
             raise Exception("Failed to run the circuit. Aborting.")
-        
 
     def receive(self, command_list):
         """

@@ -161,7 +161,7 @@ class IBMCNOTMapper(BasicEngine):
                 for idx in interactions:
                     if last_mapped_id in interactions[idx]:
                         interactions[idx].remove(last_mapped_id)
-                
+
             self._interactions = dict()
 
         target_indices = {mp[0]: mp[1] for mp in mapping

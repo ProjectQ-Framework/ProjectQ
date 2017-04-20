@@ -75,7 +75,11 @@ def test_ibm_backend_requires_mapper():
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure q[1] -> c[1];", "codeType": "QASM2"}')
+    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
+                    'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
+                    ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
+                    'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
+                    ' q[1] -> c[1];", "codeType": "QASM2"}')
 
     # patch send
     def mock_send(*args, **kwargs):

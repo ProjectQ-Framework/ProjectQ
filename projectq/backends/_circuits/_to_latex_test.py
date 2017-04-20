@@ -143,7 +143,7 @@ def test_body():
     Z | qubit2
     C(Z) | (qubit1, qubit2)
     C(Swap) | (qubit1, qubit2, qubit3)
-    
+
     del qubit1
     eng.flush()
 
