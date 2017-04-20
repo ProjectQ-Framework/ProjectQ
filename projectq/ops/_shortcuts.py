@@ -22,7 +22,7 @@ from ._gates import Rz, NOT
 
 
 def CRz(angle):
-	return C(Rz(angle), n=1)
+    return C(Rz(angle), n=1)
 
 CNOT = CX = C(NOT)
 Toffoli = C(CNOT)

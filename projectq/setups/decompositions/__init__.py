@@ -10,3 +10,24 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from . import (crz2cxandrz,
+               entangle,
+               globalphase,
+               ph2r,
+               qft2crandhadamard,
+               r2rzandph,
+               swap2cnot,
+               toffoli2cnotandtgate)
+
+all_defined_decomposition_rules = [
+    rule
+    for module in [crz2cxandrz,
+                   entangle,
+                   globalphase,
+                   ph2r,
+                   qft2crandhadamard,
+                   r2rzandph,
+                   swap2cnot,
+                   toffoli2cnotandtgate]
+    for rule in module.all_defined_decomposition_rules
+]

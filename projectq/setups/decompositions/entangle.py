@@ -17,20 +17,22 @@ Applies a Hadamard gate to the first qubit and then, conditioned on this first
 qubit, CNOT gates to all others.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import Control, get_control_count
 from projectq.ops import X, H, Entangle, All
 
 
 def _decompose_entangle(cmd):
-	""" Decompose the entangle gate. """
-	qr = cmd.qubits[0]
-	eng = cmd.engine
-	
-	with Control(eng, cmd.control_qubits):
-		H | qr[0]
-		with Control(eng, qr[0]):
-			All(X) | qr[1:]
+    """ Decompose the entangle gate. """
+    qr = cmd.qubits[0]
+    eng = cmd.engine
+
+    with Control(eng, cmd.control_qubits):
+        H | qr[0]
+        with Control(eng, qr[0]):
+            All(X) | qr[1:]
 
 
-register_decomposition(Entangle.__class__, _decompose_entangle)
+all_defined_decomposition_rules = [
+    DecompositionRule(Entangle.__class__, _decompose_entangle)
+]

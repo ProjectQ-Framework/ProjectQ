@@ -10,17 +10,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for projectq.meta._dirtyqubit.py"""
-
-from projectq.meta import ComputeTag
-
-from projectq.meta import _dirtyqubit
+"""
+Defines the QubitPlacementTag meta tag.
+"""
 
 
-def test_dirty_qubit_tag():
-    tag0 = _dirtyqubit.DirtyQubitTag()
-    tag1 = _dirtyqubit.DirtyQubitTag()
-    tag2 = ComputeTag()
-    assert tag0 == tag1
-    assert not tag0 != tag1
-    assert not tag0 == tag2
+class QubitPlacementTag(object):
+    """
+    Qubit placement meta tag
+    """
+    def __init__(self, position):
+        self.position = position
+
+    def __eq__(self, other):
+        return (isinstance(other, QubitPlacementTag)
+                and self.position == other.position)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

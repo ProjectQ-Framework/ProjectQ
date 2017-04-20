@@ -16,26 +16,28 @@ Registers a decomposition rule for the quantum Fourier transform.
 Decomposes the QFT gate into Hadamard and controlled phase-shift gates (R).
 
 Warning:
-	The final Swaps are not included, as those are simply a re-indexing of
-	quantum registers.
+    The final Swaps are not included, as those are simply a re-indexing of
+    quantum registers.
 """
 
 import math
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.ops import H, R, QFT
 from projectq.meta import Control
 
 
 def _decompose_QFT(cmd):
-	qb = cmd.qubits[0]
-	eng = cmd.engine
-	with Control(eng, cmd.control_qubits):
-		for i in range(len(qb)):
-			H | qb[-1 - i]
-			for j in range(len(qb) - 1 - i):
-				with Control(eng, qb[-1 - (j + i + 1)]):
-					R(math.pi / (1 << (1 + j))) | qb[-1 - i]
+    qb = cmd.qubits[0]
+    eng = cmd.engine
+    with Control(eng, cmd.control_qubits):
+        for i in range(len(qb)):
+            H | qb[-1 - i]
+            for j in range(len(qb) - 1 - i):
+                with Control(eng, qb[-1 - (j + i + 1)]):
+                    R(math.pi / (1 << (1 + j))) | qb[-1 - i]
 
 
-register_decomposition(QFT.__class__, _decompose_QFT)
+all_defined_decomposition_rules = [
+    DecompositionRule(QFT.__class__, _decompose_QFT)
+]

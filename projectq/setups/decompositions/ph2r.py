@@ -17,24 +17,26 @@ Turns the controlled global phase gate into a (controlled) phase-shift gate.
 Each time this rule is applied, one control can be shaved off.
 """
 
-from projectq.cengines import register_decomposition
+from projectq.cengines import DecompositionRule
 from projectq.meta import Control, get_control_count
 from projectq.ops import Ph, R
 
 
 def _decompose_Ph(cmd):
-	""" Decompose the controlled phase gate (C^nPh(phase)). """
-	ctrl = cmd.control_qubits
-	gate = cmd.gate
-	eng = cmd.engine
-	
-	with Control(eng, ctrl[1:]):
-		R(gate._angle) | ctrl[0]
+    """ Decompose the controlled phase gate (C^nPh(phase)). """
+    ctrl = cmd.control_qubits
+    gate = cmd.gate
+    eng = cmd.engine
+
+    with Control(eng, ctrl[1:]):
+        R(gate._angle) | ctrl[0]
 
 
 def _recognize_Ph(cmd):
-	""" Recognize the controlled phase gate. """
-	return get_control_count(cmd) >= 1
+    """ Recognize the controlled phase gate. """
+    return get_control_count(cmd) >= 1
 
 
-register_decomposition(Ph, _decompose_Ph, _recognize_Ph)
+all_defined_decomposition_rules = [
+    DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)
+]

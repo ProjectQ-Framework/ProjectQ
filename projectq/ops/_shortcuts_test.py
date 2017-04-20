@@ -16,8 +16,9 @@ from projectq.ops import ControlledGate, Rz
 
 from projectq.ops import _shortcuts
 
+
 def test_crz():
-	gate = _shortcuts.CRz(0.5)
-	assert isinstance(gate, ControlledGate)
-	assert gate._gate == Rz(0.5)
-	assert gate._n == 1
+    gate = _shortcuts.CRz(0.5)
+    assert isinstance(gate, ControlledGate)
+    assert gate._gate == Rz(0.5)
+    assert gate._n == 1
