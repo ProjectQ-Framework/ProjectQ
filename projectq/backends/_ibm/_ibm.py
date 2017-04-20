@@ -134,9 +134,8 @@ class IBMBackend(BasicEngine):
                                                                     qb_pos)
 
         elif not (gate == NOT and get_control_count(cmd) == 1):
-            cls = gate.__class__.__name__
-            if cls in self._gate_names:
-                gate_str = self._gate_names[cls]
+            if str(gate) in self._gate_names:
+                gate_str = self._gate_names[str(gate)]
             else:
                 gate_str = str(gate).lower()
 
@@ -197,7 +196,8 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];" + self.qasm)
+        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];"
+                + self.qasm)
         info = {}
         info['qasm'] = qasm
         info['codeType'] = "QASM2"
@@ -240,7 +240,6 @@ class IBMBackend(BasicEngine):
             self._reset()
         except TypeError:
             raise Exception("Failed to run the circuit. Aborting.")
-        
 
     def receive(self, command_list):
         """
@@ -260,5 +259,5 @@ class IBMBackend(BasicEngine):
     """
     Mapping of gate names from our gate objects to the IBM QASM representation.
     """
-    _gate_names = {Tdag.__class__.__name__: "tdg",
-                   Sdag.__class__.__name__: "sdg"}
+    _gate_names = {str(Tdag): "tdg",
+                   str(Sdag): "sdg"}

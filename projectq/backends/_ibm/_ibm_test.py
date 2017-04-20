@@ -62,8 +62,24 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     assert ibm_backend.is_available(cmd) == is_available
 
 
+def test_ibm_backend_init():
+    backend = _ibm.IBMBackend(verbose=True, use_hardware=True)
+    assert backend.qasm == ""
+
+
+def test_ibm_backend_requires_mapper():
+    backend = _ibm.IBMBackend()
+    eng = MainEngine(backend, [])
+    with pytest.raises(Exception):
+        eng.allocate_qubit()
+
+
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx q[0], q[2];\\ncx q[0], q[1];\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure q[1] -> c[1];", "codeType": "QASM2"}')
+    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
+                    'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
+                    ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
+                    'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
+                    ' q[1] -> c[1];", "codeType": "QASM2"}')
 
     # patch send
     def mock_send(*args, **kwargs):
@@ -83,15 +99,13 @@ def test_ibm_backend_functional_test(monkeypatch):
                                                       0.0537109375,
                                                       0.38671875],
                                            'qubits': [0, 1, 2]},
-                         'qasm': ('IBMQASM 2.0;\n\ninclude "qelib1.inc";\n'
-                                  'qreg q[5];\ncreg c[5];\n\nh q[0];\n'
-                                  'h q[1];\nCX q[0],q[2];\nh q[0];\n'
-                                  'CX q[1],q[2];\nmeasure q[0] -> c[0];\n'
-                                  'h q[1];\nh q[2];\nmeasure q[1] -> c[1];\n'
-                                  'measure q[2] -> c[2];\n')}}
+                         'qasm': ('...')}}
     monkeypatch.setattr(_ibm, "send", mock_send)
 
-    backend = _ibm.IBMBackend()
+    backend = _ibm.IBMBackend(verbose=True)
+    # no circuit has been executed -> raises exception
+    with pytest.raises(RuntimeError):
+        backend.get_probabilities([])
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     engine_list = [TagRemover(),
                    LocalOptimizer(10),
@@ -104,6 +118,8 @@ def test_ibm_backend_functional_test(monkeypatch):
     qureg = eng.allocate_qureg(3)
     # entangle the qureg
     Entangle | qureg
+    Tdag | qureg[0]
+    Sdag | qureg[0]
     # measure; should be all-0 or all-1
     Measure | qureg
     # run the circuit

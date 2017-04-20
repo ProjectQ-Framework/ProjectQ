@@ -87,7 +87,7 @@ def get_default_settings():
                           'XGate': {'width': .35, 'height': .35,
                                     'offset': .1},
                           'SwapGate': {'width': .35, 'height': .35,
-                                    'offset': .1},
+                                       'offset': .1},
                           'Rx': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'Ry': {'width': 1., 'height': .8, 'pre_offset': .2,
@@ -336,7 +336,7 @@ class _Circ2Tikz(object):
                 self.pos[line] += (self._gate_width(gate) +
                                    self._gate_offset(gate))
             else:
-                # regular gate must draw the lines it does not act upon 
+                # regular gate must draw the lines it does not act upon
                 # if it spans multiple qubits
                 add_str = self._regular_gate(gate, lines, ctrl_lines)
                 for l in lines:
@@ -367,7 +367,7 @@ class _Circ2Tikz(object):
         except AttributeError:
             name = str(gate)
         return name
-    
+
     def _swap_gate(self, lines, ctrl_lines):
         """
         Return the TikZ code for a Swap-gate.
@@ -382,7 +382,7 @@ class _Circ2Tikz(object):
         delta_pos = self._gate_offset(Swap)
         gate_width = self._gate_width(Swap)
         lines.sort()
-        
+
         gate_str = ""
         for line in lines:
             op = self._op(line)
@@ -397,11 +397,11 @@ class _Circ2Tikz(object):
             gate_str += ("\n\\node[swapstyle] ({op}) at ({pos},-{line}) {{}};"
                          "\n\\draw[{swap_style}] ({s1})--({s2});\n"
                          "\\draw[{swap_style}] ({s3})--({s4});"
-                        ).format(op=op, s1=s1, s2=s2, s3=s3, s4=s4,
-                                 line=line, pos=self.pos[line],
-                                 swap_style=swap_style)
+                         ).format(op=op, s1=s1, s2=s2, s3=s3, s4=s4,
+                                  line=line, pos=self.pos[line],
+                                  swap_style=swap_style)
         gate_str += self._line(lines[0], lines[1])
-        
+
         if len(ctrl_lines) > 0:
             for ctrl in ctrl_lines:
                 gate_str += self._phase(ctrl, self.pos[lines[0]])
@@ -451,7 +451,7 @@ class _Circ2Tikz(object):
         for i in range(min(all_lines), max(all_lines)+1):
             self.pos[i] = new_pos
         return gate_str
-    
+
     def _cz_gate(self, lines):
         """
         Return the TikZ code for an n-controlled Z-gate.
@@ -464,7 +464,7 @@ class _Circ2Tikz(object):
         delta_pos = self._gate_offset(Z)
         gate_width = self._gate_width(Z)
         gate_str = self._phase(line, self.pos[line])
-        
+
         for ctrl in lines[1:]:
             gate_str += self._phase(ctrl, self.pos[line])
             gate_str += self._line(ctrl, line)
@@ -628,7 +628,7 @@ class _Circ2Tikz(object):
         """
         imax = max(lines)
         imin = min(lines)
-        
+
         gate_lines = lines + ctrl_lines
 
         delta_pos = self._gate_offset(gate)
