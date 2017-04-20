@@ -162,8 +162,8 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	Simulating Shor's algorithm at the level of single-qubit gates and CNOTs already takes quite a bit of time for larger numbers than 15. To turn on our **emulation feature**, which does not decompose the modular arithmetic to low-level gates, but carries it out directly instead, we can change the line
 	
 	.. literalinclude:: ../examples/shor.py
-		:lineno-start: 87
-		:lines: 87-98
+		:lineno-start: 91
+		:lines: 91-102
 		:emphasize-lines: 9
 		:linenos:
 		:tab-width: 2
@@ -173,8 +173,8 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	The most important part of the code is
 	
 	.. literalinclude:: ../examples/shor.py
-		:lines: 52-70
-		:lineno-start: 52
+		:lines: 56-74
+		:lineno-start: 56
 		:linenos:
 		:dedent: 1
 		:tab-width: 2
