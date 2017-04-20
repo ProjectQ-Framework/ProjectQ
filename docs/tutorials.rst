@@ -137,7 +137,7 @@ Detailed instructions and OS-specific hints
 The ProjectQ syntax
 -------------------
 
-Our goal is to have an intuitive syntax in order to enable a steep learning curve. Therefore, ProjectQ features a lean syntax which is close to the mathematical notation used in physics.
+Our goal is to have an intuitive syntax in order to enable an easy learning curve. Therefore, ProjectQ features a lean syntax which is close to the mathematical notation used in physics.
 
 For example, consider applying an x-rotation by an angle `theta` to a qubit. In ProjectQ, this looks as follows:
 
