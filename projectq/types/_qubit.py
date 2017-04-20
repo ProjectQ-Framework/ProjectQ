@@ -129,7 +129,7 @@ class Qubit(BasicQubit):
 
         Note:
             To prevent problems with automatic deallocation, qubits are not
-                copyable!
+            copyable!
         """
         return self
 
@@ -139,7 +139,7 @@ class Qubit(BasicQubit):
 
         Note:
             To prevent problems with automatic deallocation, qubits are not
-                deepcopyable!
+            deepcopyable!
         """
         return self
 

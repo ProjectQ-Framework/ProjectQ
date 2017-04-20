@@ -178,8 +178,8 @@ class BasicEngine(object):
 
         Returns:
             supported (bool): True if one of the further compiler engines is a
-                meta tag handler, i.e., engine.is_meta_tag_handler(meta_tag)
-                returns True.
+            meta tag handler, i.e., engine.is_meta_tag_handler(meta_tag)
+            returns True.
         """
         engine = self
         try:
