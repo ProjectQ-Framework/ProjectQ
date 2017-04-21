@@ -8,5 +8,5 @@ Module contents
 
 .. automodule:: projectq.ops
     :members:
-    :special-members: __init__
+    :special-members: __init__,__or__
     :imported-members:

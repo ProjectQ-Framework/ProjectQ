@@ -152,7 +152,7 @@ class BuildExt(build_ext):
 setup(
     name='projectq',
     version=__version__,
-    author='Thomas Haener, Damian Steiger',
+    author='ProjectQ',
     author_email='info@projectq.ch',
     url='http://www.projectq.ch',
     description=('ProjectQ - '

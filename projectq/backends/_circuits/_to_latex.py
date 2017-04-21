@@ -11,7 +11,7 @@
 #   limitations under the License.
 
 import json
-from projectq.ops import Measure, Allocate, Deallocate, X, Z
+from projectq.ops import Measure, Allocate, Deallocate, X, Z, Swap
 
 
 def to_latex(circuit):
@@ -86,6 +86,8 @@ def get_default_settings():
                                     'pre_offset': .1},
                           'XGate': {'width': .35, 'height': .35,
                                     'offset': .1},
+                          'SwapGate': {'width': .35, 'height': .35,
+                                       'offset': .1},
                           'Rx': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'Ry': {'width': 1., 'height': .8, 'pre_offset': .2,
@@ -158,7 +160,12 @@ def _header(settings):
                    "{linestyle}]\n"
                    ).format(x_rad=x_gate_radius,
                             linestyle=settings['lines']['style'])
-
+    if settings['gate_shadow']:
+        gate_style += ("\\tikzset{\nshadowed/.style={preaction={transform "
+                       "canvas={shift={(0.5pt,-0.5pt)}}, draw=gray, opacity="
+                       "0.4}},\n}\n")
+    gate_style += "\\tikzstyle{swapstyle}=["
+    gate_style += "inner sep=-1pt, outer sep=-1pt, minimum width=0pt]\n"
     edge_style = ("\\tikzstyle{edgestyle}=[" + settings['lines']['style'] +
                   "]\n")
 
@@ -275,6 +282,10 @@ class _Circ2Tikz(object):
                 if not self.is_quantum[lines[0]]:
                     if sum([self.is_quantum[i] for i in ctrl_lines]) > 0:
                         self.is_quantum[lines[0]] = True
+            elif gate == Z and len(ctrl_lines) > 0:
+                add_str = self._cz_gate(lines + ctrl_lines)
+            elif gate == Swap:
+                add_str = self._swap_gate(lines, ctrl_lines)
             elif gate == Measure:
                 # draw measurement gate
                 for l in lines:
@@ -325,6 +336,8 @@ class _Circ2Tikz(object):
                 self.pos[line] += (self._gate_width(gate) +
                                    self._gate_offset(gate))
             else:
+                # regular gate must draw the lines it does not act upon
+                # if it spans multiple qubits
                 add_str = self._regular_gate(gate, lines, ctrl_lines)
                 for l in lines:
                     self.is_quantum[l] = True
@@ -354,6 +367,57 @@ class _Circ2Tikz(object):
         except AttributeError:
             name = str(gate)
         return name
+
+    def _swap_gate(self, lines, ctrl_lines):
+        """
+        Return the TikZ code for a Swap-gate.
+
+        Args:
+            lines (list<int>): List of length 2 denoting the target qubit of
+                the Swap gate.
+            ctrl_lines (list<int>): List of qubit lines which act as controls.
+
+        """
+        assert(len(lines) == 2)  # NOT gate only acts on 1 qubit
+        delta_pos = self._gate_offset(Swap)
+        gate_width = self._gate_width(Swap)
+        lines.sort()
+
+        gate_str = ""
+        for line in lines:
+            op = self._op(line)
+            w = "{}cm".format(.5*gate_width)
+            s1 = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            s2 = "[xshift={w},yshift={w}]{op}.center".format(w=w, op=op)
+            s3 = "[xshift=-{w},yshift={w}]{op}.center".format(w=w, op=op)
+            s4 = "[xshift={w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            swap_style = "swapstyle,edgestyle"
+            if self.settings['gate_shadow']:
+                swap_style += ",shadowed"
+            gate_str += ("\n\\node[swapstyle] ({op}) at ({pos},-{line}) {{}};"
+                         "\n\\draw[{swap_style}] ({s1})--({s2});\n"
+                         "\\draw[{swap_style}] ({s3})--({s4});"
+                         ).format(op=op, s1=s1, s2=s2, s3=s3, s4=s4,
+                                  line=line, pos=self.pos[line],
+                                  swap_style=swap_style)
+        gate_str += self._line(lines[0], lines[1])
+
+        if len(ctrl_lines) > 0:
+            for ctrl in ctrl_lines:
+                gate_str += self._phase(ctrl, self.pos[lines[0]])
+                if ctrl > lines[1] or ctrl < lines[0]:
+                    closer_line = lines[0]
+                    if ctrl > lines[1]:
+                        closer_line = lines[1]
+                    gate_str += self._line(ctrl, closer_line)
+
+        all_lines = ctrl_lines + lines
+        new_pos = self.pos[lines[0]] + delta_pos + gate_width
+        for i in all_lines:
+            self.op_count[i] += 1
+        for i in range(min(all_lines), max(all_lines)+1):
+            self.pos[i] = new_pos
+        return gate_str
 
     def _x_gate(self, lines, ctrl_lines):
         """
@@ -385,6 +449,30 @@ class _Circ2Tikz(object):
         for i in all_lines:
             self.op_count[i] += 1
         for i in range(min(all_lines), max(all_lines)+1):
+            self.pos[i] = new_pos
+        return gate_str
+
+    def _cz_gate(self, lines):
+        """
+        Return the TikZ code for an n-controlled Z-gate.
+
+        Args:
+            lines (list<int>): List of all qubits involved.
+        """
+        assert len(lines) > 1
+        line = lines[0]
+        delta_pos = self._gate_offset(Z)
+        gate_width = self._gate_width(Z)
+        gate_str = self._phase(line, self.pos[line])
+
+        for ctrl in lines[1:]:
+            gate_str += self._phase(ctrl, self.pos[line])
+            gate_str += self._line(ctrl, line)
+
+        new_pos = self.pos[line] + delta_pos + gate_width
+        for i in lines:
+            self.op_count[i] += 1
+        for i in range(min(lines), max(lines)+1):
             self.pos[i] = new_pos
         return gate_str
 
@@ -541,6 +629,8 @@ class _Circ2Tikz(object):
         imax = max(lines)
         imin = min(lines)
 
+        gate_lines = lines + ctrl_lines
+
         delta_pos = self._gate_offset(gate)
         gate_width = self._gate_width(gate)
         gate_height = self._gate_height(gate)
@@ -562,6 +652,9 @@ class _Circ2Tikz(object):
             node3 = node_str.format(self._op(l, offset=2),
                                     pos + gate_width, l)
             tex_str += node1 + node2 + node3
+            if not l in gate_lines:
+                tex_str += self._line(self.op_count[l] - 1, self.op_count[l],
+                                      line=l)
 
         tex_str += ("\n\\draw[operator,edgestyle,outer sep={width}cm] (["
                     "yshift={half_height}cm]{op1}) rectangle ([yshift=-"

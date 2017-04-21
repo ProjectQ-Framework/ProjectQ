@@ -26,46 +26,8 @@ This allows users to
 Getting started
 ---------------
 
-To start using ProjectQ, simply run
-
-.. code:: bash
-
-    python -m pip install --user projectq
-
-Details regarding the installation on different operating systems can be
-found in the documentation (`getting started <http://projectq.ch/docs/tutorials.html#getting-startedd>`__).
-Alternatively, you can clone or download this repository and run
-
-.. code:: bash
-
-    python setup.py install --user
-
-or
-
-.. code:: bash
-
-    python -m pip install --user .
-
-Should something go wrong when compiling the C++ simulator extension in one of the above installation procedures,
-you can turn off this feature using the ``--without-cppsimulator``
-parameter (note: this only works if one of the above installation methods has been tried and hence 
-all requirements are now installed), i.e.,
-
-.. code:: bash
-
-    python setup.py --without-cppsimulator install --user
-
-If you are using pip, then this parameter can be supplied as follows
-
-.. code:: bash
-
-    python -m pip install --global-option=--without-cppsimulator --user .
-
-Then, please visit the `ProjectQ website <http://www.projectq.ch>`__,
-where you will find
-`tutorials <http://projectq.ch/docs/tutorials.html>`__,
-`code examples <http://projectq.ch/docs/examples.html>`__, and the
-`documentation <http://projectq.ch/docs/>`__.
+To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.ch/docs/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.ch/docs/examples.html>`__. Also, make sure to check out the `ProjectQ
+website <http://www.projectq.ch>`__ and the detailed `code documentation <http://projectq.ch/docs/>`__.
 
 How to contribute
 -----------------

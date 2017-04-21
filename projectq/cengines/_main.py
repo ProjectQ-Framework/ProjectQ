@@ -110,7 +110,7 @@ class MainEngine(BasicEngine):
                         "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
                         "of\n     MainEngine(engine_list=[AutoReplacer()])")
 
-        engine_list.append(backend)
+        engine_list = engine_list + [backend]
         self.backend = backend
 
         # Test that user did not supply twice the same engine instance

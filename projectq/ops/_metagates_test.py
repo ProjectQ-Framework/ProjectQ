@@ -21,10 +21,25 @@ from projectq.types import Qubit, Qureg
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (T, Y, NotInvertible, Entangle, Rx,
-                          FastForwardingGate, Command,
-                          ClassicalInstructionGate)
+                          FastForwardingGate, Command, C,
+                          ClassicalInstructionGate, All)
 
 from projectq.ops import _metagates
+
+
+def test_tensored_controlled_gate():
+    saving_backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=saving_backend,
+                             engine_list=[DummyEngine()])
+    gate = Rx(0.6)
+    qubit0 = Qubit(main_engine, 0)
+    qubit1 = Qubit(main_engine, 1)
+    qubit2 = Qubit(main_engine, 2)
+    target_qubits = [qubit1, qubit2]
+    C(All(gate)) | (qubit0, target_qubits)
+
+    assert saving_backend.received_commands[-1].gate == gate
+    assert len(saving_backend.received_commands[-1].control_qubits) == 1
 
 
 def test_daggered_gate_init():
