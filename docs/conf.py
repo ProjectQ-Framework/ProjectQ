@@ -54,8 +54,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ProjectQ'
-copyright = '2016, Thomas Häner, Damian Steiger, ETH Zürich'
-author = 'Thomas Häner, Damian Steiger'
+copyright = '2017, ProjectQ'
+author = 'ProjectQ'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -15,7 +15,9 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine, DecompositionRuleSet, DecompositionRule
+from projectq.cengines import (DummyEngine,
+                               DecompositionRuleSet,
+                               DecompositionRule)
 from projectq.ops import H, X, Command, S, Rx, NotInvertible, Ry, BasicGate
 
 from projectq.cengines._replacer import _replacer
@@ -59,14 +61,16 @@ def make_decomposition_rule_set():
         return True
 
     result.add_decomposition_rule(
-        DecompositionRule(TestGate.__class__, decompose_test1, recognize_test))
+        DecompositionRule(TestGate.__class__, decompose_test1,
+                          recognize_test))
 
     def decompose_test2(cmd):
         qb = cmd.qubits
         H | qb
 
     result.add_decomposition_rule(
-        DecompositionRule(TestGate.__class__, decompose_test2, recognize_test))
+        DecompositionRule(TestGate.__class__, decompose_test2,
+                          recognize_test))
 
     assert len(result.decompositions[TestGate.__class__.__name__]) == 2
     return result
@@ -141,22 +145,28 @@ def test_auto_replacer_use_inverse_decomposition():
     # Create test gate and inverse
     class NoMagicGate(BasicGate):
         pass
+
     class MagicGate(BasicGate):
         def get_inverse(self):
             return NoMagicGate()
+
     def decompose_no_magic_gate(cmd):
         qb = cmd.qubits
         Rx(0.6) | qb
         H | qb
+
     def recognize_no_magic_gate(cmd):
         return True
+
     rule_set.add_decomposition_rule(DecompositionRule(NoMagicGate,
                                                       decompose_no_magic_gate,
                                                       recognize_no_magic_gate))
+
     def magic_filter(self, cmd):
         if cmd.gate == MagicGate():
             return False
         return True
+
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
                      engine_list=[_replacer.AutoReplacer(rule_set),
@@ -181,7 +191,7 @@ def test_auto_replacer_adds_tags(fixture_gate_filter):
     assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    cmd = Command(eng, TestGate, (qb,) )
+    cmd = Command(eng, TestGate, (qb,))
     cmd.tags = ["AddedTag"]
     eng.send([cmd])
     eng.flush()

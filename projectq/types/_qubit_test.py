@@ -60,21 +60,27 @@ def test_basic_qubit_comparison(id0, id1, expected):
     assert qubit2 != qubit0
     assert qubit2 != qubit1
     # Same engines
-    if expected:
-        assert qubit0 == qubit1
-    else:
-        assert not (qubit0 == qubit1)
+    assert (qubit0 == qubit1) == expected
 
 
 def test_basic_qubit_hash():
     fake_engine = "Fake"
-    qubit0 = _qubit.BasicQubit(fake_engine, 0)
-    qubit1 = _qubit.BasicQubit(fake_engine, 1)
-    assert hash(qubit0) != hash(qubit1)
-    qubit0.id = -1
-    qubit1.id = -1
+    a = _qubit.BasicQubit(fake_engine, 1)
+    b = _qubit.BasicQubit(fake_engine, 1)
+    c = _qubit.WeakQubitRef(fake_engine, 1)
+    assert a == b and hash(a) == hash(b)
+    assert a == c and hash(a) == hash(c)
+
+    # For performance reasons, low ids should not collide.
+    assert len(set(hash(_qubit.BasicQubit(fake_engine, e))
+                   for e in range(100))) == 100
+
     # Important that weakref.WeakSet in projectq.cengines._main.py works.
-    assert hash(qubit0) != hash(qubit1)
+    # When id is -1, expect reference equality.
+    x = _qubit.BasicQubit(fake_engine, -1)
+    y = _qubit.BasicQubit(fake_engine, -1)
+    # Note hash(x) == hash(y) isn't technically a failure, but it's surprising.
+    assert x != y and hash(x) != hash(y)
 
 
 @pytest.fixture

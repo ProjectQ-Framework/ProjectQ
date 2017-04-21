@@ -173,7 +173,7 @@ class ControlledGate(BasicGate):
         """
         return ControlledGate(get_inverse(self._gate), self._n)
 
-    def generate_command(self, qubits):
+    def __or__(self, qubits):
         """
         Apply the controlled gate to qubits, using the first n qubits as
         controls.
@@ -204,9 +204,9 @@ class ControlledGate(BasicGate):
                                     "First qureg(s) need to contain exactly "
                                     "the required number of control quregs.")
 
-        cmd = BasicGate.generate_command(self._gate, tuple(gate_quregs))
-        cmd.add_control_qubits(ctrl)
-        return cmd
+        import projectq.meta
+        with projectq.meta.Control(gate_quregs[0][0].engine, ctrl):
+            self._gate | tuple(gate_quregs)
 
     def __eq__(self, other):
         """ Compare two ControlledGate objects (return True if equal). """

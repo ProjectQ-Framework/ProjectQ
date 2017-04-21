@@ -144,7 +144,7 @@ class BasicGate(object):
                 or a tuple of Qubit or Qureg objects (can be mixed).
         Returns:
             Canonical representation (tuple<qureg>): A tuple containing Qureg
-                (or list of Qubits) objects.
+            (or list of Qubits) objects.
         """
         if not isinstance(qubits, tuple):
             qubits = (qubits,)
@@ -159,13 +159,14 @@ class BasicGate(object):
 
     def generate_command(self, qubits):
         """
-        Return a Command object which represents the gate acting on qubits.
+        Helper function to generate a command consisting of the gate and
+        the qubits being acted upon.
 
         Args:
             qubits: see BasicGate.make_tuple_of_qureg(qubits)
 
         Returns:
-            A Command object which represents the gate acting on qubits.
+            A Command object containing the gate and the qubits.
         """
         qubits = self.make_tuple_of_qureg(qubits)
 
@@ -414,10 +415,11 @@ class BasicMathGate(BasicGate):
         gate, given the input to the gate (a tuple of quantum registers).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the math gate is being applied.
+            qubits (tuple<Qureg>): Qubits to which the math gate is being
+                applied.
 
         Returns:
             math_fun (function): Python function describing the action of this
-                gate. (See BasicMathGate.__init__ for an example).
+            gate. (See BasicMathGate.__init__ for an example).
         """
         return self._math_function
