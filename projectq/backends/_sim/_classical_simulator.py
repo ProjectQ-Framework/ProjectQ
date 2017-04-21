@@ -1,3 +1,15 @@
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 """
 A simulator that only permits classical operations, for faster/easier testing.
 """
@@ -51,6 +63,23 @@ class ClassicalSimulator(BasicEngine):
         else:
             self._state &= ~(1 << p)
 
+    def _mask(self, qureg):
+        """
+        Returns a mask, to compare against the state, with bits from the
+        register set to 1 and other bits set to 0.
+
+        Args:
+            qureg (projectq.types.Qureg):
+                The bits whose positions should be set.
+
+        Returns:
+            int: The mask.
+        """
+        t = 0
+        for q in qureg:
+            t |= 1 << self._bit_positions[q.id]
+        return t
+
     def read_register(self, qureg):
         """
         Reads a group of bits as a little-endian integer.
@@ -62,8 +91,10 @@ class ClassicalSimulator(BasicEngine):
         Returns:
             int: Little-endian register value.
         """
-        return sum(self.read_bit(qureg[i]) << i
-                   for i in range(len(qureg)))
+        t = 0
+        for i in range(len(qureg)):
+            t |= self.read_bit(qureg[i]) << i
+        return t
 
     def write_register(self, qureg, value):
         """
@@ -113,15 +144,18 @@ class ClassicalSimulator(BasicEngine):
             }
             return
 
+        controls_mask = self._mask(cmd.control_qubits)
+        meets_controls = self._state & controls_mask == controls_mask
+
         if isinstance(cmd.gate, XGate):
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             target = cmd.qubits[0][0]
-            if all(self.read_bit(c) for c in cmd.control_qubits):
+            if meets_controls:
                 self.write_bit(target, not self.read_bit(target))
             return
 
         if isinstance(cmd.gate, BasicMathGate):
-            if all(self.read_bit(c) for c in cmd.control_qubits):
+            if meets_controls:
                 ins = [self.read_register(reg) for reg in cmd.qubits]
                 outs = cmd.gate.get_math_function(None)(ins)
                 for reg, out in zip(cmd.qubits, outs):
