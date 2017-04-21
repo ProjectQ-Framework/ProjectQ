@@ -109,11 +109,12 @@ def test_controlled_gate_get_inverse():
 
 
 def test_controlled_gate_empty_controls():
-    eng = MainEngine(backend=DummyEngine())
+    rec = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=rec, engine_list=[])
 
     a = eng.allocate_qureg(1)
-    cmd = _metagates.ControlledGate(Y, 0).generate_command(((), a))
-    assert cmd == Command(eng, Y, [a])
+    _metagates.ControlledGate(Y, 0) | ((), a)
+    assert rec.received_commands[-1] == Command(eng, Y, [a])
 
 
 def test_controlled_gate_or():
