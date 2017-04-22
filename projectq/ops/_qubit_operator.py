@@ -67,18 +67,18 @@ class QubitOperator(object):
         hamiltonian = 0.5 * QubitOperator('X0 X5') + 0.3 * QubitOperator('Z0')
 
     Attributes:
-      terms (dict): key: A term represented by a tuple of tuples. Each tuple
-                         represents a local operator and is a Pauli operator
-                         ('I', 'X', 'Y', or 'Z') which acts on one qubit
-                         stored as a tuple. The first element is an integer
-                         indicating the qubit on which a non-trivial local
-                         operator acts and the second element is a string,
-                         either 'X', 'Y', or 'Z', indicating which non-trivial
-                         Pauli operator acts on that qubit.
-                         E.g. 'X1 Y5' is ((1, 'X'), (5, 'Y'))
-                         The tuples are sorted according to the qubit number
-                         they act on, starting from 0.
-                    value: Coefficient of this term as a (complex) float
+        terms (dict): **key**: A term represented by a tuple of tuples. Each
+                      tuple represents a local operator and is a Pauli
+                      operator ('I', 'X', 'Y', or 'Z') which acts on one qubit
+                      stored as a tuple. The first element is an integer
+                      indicating the qubit on which a non-trivial local
+                      operator acts and the second element is a string,
+                      either 'X', 'Y', or 'Z', indicating which non-trivial
+                      Pauli operator acts on that qubit.
+                      E.g. 'X1 Y5' is ((1, 'X'), (5, 'Y'))
+                      The tuples are sorted according to the qubit number
+                      they act on, starting from 0.
+                      **value**: Coefficient of this term as a (complex) float
     """
 
     def __init__(self, term=(), coefficient=1.):
@@ -92,10 +92,11 @@ class QubitOperator(object):
         Example:
             .. code-block:: python
 
-            ham = (QubitOperator('X0 Y3', 0.5) + 0.6 * QubitOperator('X0 Y3'))
-            # Equivalently
-            ham2 = QubitOperator('X0 Y3', 0.5)
-            ham2 += 0.6 * QubitOperator('X0 Y3')
+                ham = ((QubitOperator('X0 Y3', 0.5)
+                        + 0.6 * QubitOperator('X0 Y3')))
+                # Equivalently
+                ham2 = QubitOperator('X0 Y3', 0.5)
+                ham2 += 0.6 * QubitOperator('X0 Y3')
 
         Note:
             Adding terms to QubitOperator is faster using += (as this is done
@@ -416,8 +417,8 @@ class QubitOperator(object):
                 else:
                     assert operator[1] == 'Z'
                     tmp_string += ' Z{}'.format(operator[0])
-            string_rep += '{}\n'.format(tmp_string)
-        return string_rep
+            string_rep += '{} +\n'.format(tmp_string)
+        return string_rep[:-3]
 
     def __repr__(self):
         return str(self)
