@@ -27,4 +27,5 @@ from ._metagates import (DaggeredGate,
                          All)
 from ._gates import *
 from ._qftgate import QFT
+from ._qubit_operator import QubitOperator
 from ._shortcuts import *
