@@ -145,7 +145,7 @@ if __name__ == "__main__":
         f1 = gcd(apowrhalf + 1, N)
         f2 = gcd(apowrhalf - 1, N)
         if ((not f1 * f2 == N) and f1 * f2 > 1
-            and int(1. * N / (f1 * f2)) * f1 * f2 == N):
+           and int(1. * N / (f1 * f2)) * f1 * f2 == N):
             f1, f2 = f1*f2, int(N/(f1*f2))
         if f1 * f2 == N and f1 > 1 and f2 > 1:
             print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m"

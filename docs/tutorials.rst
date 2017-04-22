@@ -134,11 +134,27 @@ Detailed instructions and OS-specific hints
 	parameter.
 
 
+The ProjectQ syntax
+-------------------
+
+Our goal is to have an intuitive syntax in order to enable an easy learning curve. Therefore, ProjectQ features a lean syntax which is close to the mathematical notation used in physics.
+
+For example, consider applying an x-rotation by an angle `theta` to a qubit. In ProjectQ, this looks as follows:
+
+.. code-block:: python
+
+	Rx(theta) | qubit
+
+whereas the corresponding notation in physics would be
+
+:math:`R_x(\theta) \; |\text{qubit}\rangle`
+
+Moreover, the `|`-operator separates the classical arguments (on the left) from the quantum arguments (on the right). Next, you will see a basic quantum program using this syntax. Further examples can be found in the docs (`Examples` in the panel on the left) and in the ProjectQ examples folder on `GitHub <https://github.com/ProjectQ-Framework/ProjectQ>`_.
 
 Basic quantum program
 ---------------------
 
-To check whether the installation worked, try running the following basic example:
+To check out the ProjectQ syntax in action and to see whether the installation worked, try to run the following basic example
 
 .. code-block:: python
 

@@ -10,5 +10,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
-__version__ = "0.2.0"
+"""
+Defines the QubitPlacementTag meta tag.
+"""
+
+
+class QubitPlacementTag(object):
+    """
+    Qubit placement meta tag
+    """
+    def __init__(self, position):
+        self.position = position
+
+    def __eq__(self, other):
+        return (isinstance(other, QubitPlacementTag)
+                and self.position == other.position)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

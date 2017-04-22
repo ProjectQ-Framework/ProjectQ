@@ -13,6 +13,7 @@
 """Tests for projectq.backends._ibm._ibm.py."""
 
 import pytest
+import json
 
 import projectq.setups.decompositions
 from projectq import MainEngine
@@ -60,25 +61,28 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     assert ibm_backend.is_available(cmd) == is_available
 
 
+def test_ibm_backend_init():
+    backend = _ibm.IBMBackend(verbose=True, use_hardware=True)
+    assert backend.qasm == ""
+
+
+def test_ibm_backend_requires_mapper():
+    backend = _ibm.IBMBackend()
+    eng = MainEngine(backend, [])
+    with pytest.raises(Exception):
+        eng.allocate_qubit()
+
+
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"playground":[{"line":0,"name":"q","gates":[{"position"'
-                    ':0,"name":"h","qasm":"h"},{"position":2,"name":"h","qasm'
-                    '":"h"},{"position":3,"name":"measure","qasm":"measure"}]'
-                    '},{"line":1,"name":"q","gates":[{"position":0,"name":"h"'
-                    ',"qasm":"h"},{"position":3,"name":"h","qasm":"h"},{'
-                    '"position":4,"name":"measure","qasm":"measure"}]},{'
-                    '"line":2,"name":"q","gates":[{"position":1,"name":"cx"'
-                    ',"qasm":"cx","to":0},{"position":2,"name":"cx","qasm":'
-                    '"cx","to":1},{"position":3,"name":"h","qasm":"h"},{'
-                    '"position":4,"name":"measure","qasm":"measure"}]},{'
-                    '"line":3,"name":"q","gates":[]},{"line":4,"name":"q",'
-                    '"gates":[]}],"numberColumns":40,"numberLines":5,'
-                    '"numberGates":200,"hasMeasures":true,"topology":'
-                    '"250e969c6b9e68aa2a045ffbceb3ac33"}')
+    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
+                    'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
+                    ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
+                    'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
+                    ' q[1] -> c[1];", "codeType": "QASM2"}')
 
     # patch send
     def mock_send(*args, **kwargs):
-        assert args[0] == correct_info
+        assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
                 'data': {'time': 14.429004907608032, 'serialNumberDevice':
                          'Real5Qv1', 'p': {'labels': ['00000', '00001',
@@ -94,15 +98,13 @@ def test_ibm_backend_functional_test(monkeypatch):
                                                       0.0537109375,
                                                       0.38671875],
                                            'qubits': [0, 1, 2]},
-                         'qasm': ('IBMQASM 2.0;\n\ninclude "qelib1.inc";\n'
-                                  'qreg q[5];\ncreg c[5];\n\nh q[0];\n'
-                                  'h q[1];\nCX q[0],q[2];\nh q[0];\n'
-                                  'CX q[1],q[2];\nmeasure q[0] -> c[0];\n'
-                                  'h q[1];\nh q[2];\nmeasure q[1] -> c[1];\n'
-                                  'measure q[2] -> c[2];\n')}}
+                         'qasm': ('...')}}
     monkeypatch.setattr(_ibm, "send", mock_send)
 
-    backend = _ibm.IBMBackend()
+    backend = _ibm.IBMBackend(verbose=True)
+    # no circuit has been executed -> raises exception
+    with pytest.raises(RuntimeError):
+        backend.get_probabilities([])
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     engine_list = [TagRemover(),
                    LocalOptimizer(10),
@@ -115,6 +117,8 @@ def test_ibm_backend_functional_test(monkeypatch):
     qureg = eng.allocate_qureg(3)
     # entangle the qureg
     Entangle | qureg
+    Tdag | qureg[0]
+    Sdag | qureg[0]
     # measure; should be all-0 or all-1
     Measure | qureg
     # run the circuit
@@ -122,3 +126,6 @@ def test_ibm_backend_functional_test(monkeypatch):
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
     assert prob_dict['111'] == pytest.approx(0.38671875)
     assert prob_dict['101'] == pytest.approx(0.0263671875)
+
+    with pytest.raises(RuntimeError):
+        eng.backend.get_probabilities(eng.allocate_qubit())

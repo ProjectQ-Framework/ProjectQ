@@ -10,5 +10,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
-__version__ = "0.2.0"
+"""Tests for projectq.meta._qubitplacement.py"""
+
+from projectq.meta import ComputeTag
+
+from projectq.meta._qubitplacement import QubitPlacementTag
+
+
+def test_qubit_placement_tag():
+    tag0 = QubitPlacementTag(0)
+    tag1 = QubitPlacementTag(0)
+    tag2 = QubitPlacementTag(2)
+    tag3 = ComputeTag()
+    assert tag0 == tag1
+    assert not tag0 == tag2
+    assert not tag0 == tag3
+    assert not tag3 == tag2
