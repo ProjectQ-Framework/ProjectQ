@@ -62,8 +62,10 @@ def test_init_str():
 
 
 def test_init_str_identity():
-    qubit_op = qo.QubitOperator('')
+    qubit_op = qo.QubitOperator('', 2.)
+    assert len(qubit_op.terms) == 1
     assert () in qubit_op.terms
+    assert qubit_op.terms[()] == pytest.approx(2.)
 
 
 def test_init_bad_term():

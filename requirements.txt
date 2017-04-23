@@ -3,3 +3,4 @@ future
 pytest>=3.0
 pybind11>=1.7
 requests
+scipy

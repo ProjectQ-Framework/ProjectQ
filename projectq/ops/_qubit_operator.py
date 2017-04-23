@@ -115,7 +115,7 @@ class QubitOperator(object):
                    indicating which local operator acts on that qubit.
                 2) A string of the form 'X0 Z2 Y5', indicating an X on
                    qubit 0, Z on qubit 2, and Y on qubit 5. The string should
-                   be sorted by the qubit number.
+                   be sorted by the qubit number. '' is the identity.
                 3) default will result in identity operations on all qubits,
                    which is just an empty tuple '()'
 

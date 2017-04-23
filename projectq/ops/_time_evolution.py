@@ -12,6 +12,8 @@
 
 import copy
 
+from projectq.ops import Ph
+
 from ._basics import BasicGate, NotMergeable
 from ._qubit_operator import QubitOperator
 from ._command import apply_command
@@ -27,7 +29,8 @@ class TimeEvolution(BasicGate):
 
     This gate is the unitary time evolution propagator:
     exp(-i * H * t),
-    where H is the Hamiltonian of the system and t is the time.
+    where H is the Hamiltonian of the system and t is the time. Note that -i
+    factor is stored implicitely.
 
     Example:
         .. code-block:: python
@@ -74,7 +77,8 @@ class TimeEvolution(BasicGate):
                     self.hamiltonian.terms[term])
             else:
                 raise NotHermitianOperatorError("hamiltonian must be "
-                            "hermitian and hence only have real coefficients.")
+                                                "hermitian and hence only "
+                                                "have real coefficients.")
 
     def get_inverse(self):
         """
@@ -118,7 +122,7 @@ class TimeEvolution(BasicGate):
                 set(self.hamiltonian.terms) == set(other.hamiltonian.terms)):
             factor = None
             for term in self.hamiltonian.terms:
-                if factor == None:
+                if factor is None:
                     factor = self.hamiltonian.terms[term] / float(
                         other.hamiltonian.terms[term])
                 else:
@@ -176,6 +180,11 @@ class TimeEvolution(BasicGate):
         qubits = self.make_tuple_of_qureg(qubits)
         if len(qubits) != 1:
             raise TypeError("Only one qubit or qureg allowed.")
+        # Check that if hamiltonian has only an identity term,
+        # apply a global phase:
+        if len(self.hamiltonian.terms) == 1 and () in self.hamiltonian.terms:
+            Ph(-1 * self.time * self.hamiltonian.terms[()]) | qubits[0][0]
+            return
         num_qubits = len(qubits[0])
         non_trivial_qubits = set()
         for term in self.hamiltonian.terms:

@@ -11,6 +11,7 @@
 #   limitations under the License.
 
 """Tests for projectq.ops._time_evolution."""
+import cmath
 import copy
 
 import numpy
@@ -18,8 +19,9 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
+from projectq.ops import QubitOperator, BasicGate, NotMergeable, Ph
+
 from projectq.ops import _time_evolution as te
-from projectq.ops import QubitOperator, BasicGate, NotMergeable
 
 
 @pytest.mark.parametrize("coefficient", [0.5, numpy.float64(2.303)])
@@ -44,7 +46,7 @@ def test_init_makes_copy():
     hamiltonian = QubitOperator("X0 Z1")
     gate = te.TimeEvolution(2.1, hamiltonian)
     hamiltonian = None
-    assert gate.hamiltonian != None
+    assert gate.hamiltonian is not None
 
 
 def test_init_bad_time():
@@ -236,6 +238,25 @@ def test_or_gate_not_mutated():
     eng.flush()
     assert gate.hamiltonian.isclose(correct_h)
     assert gate.time == pytest.approx(2.1)
+
+
+def test_or_gate_identity():
+    saving_backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=saving_backend, engine_list=[])
+    qureg = eng.allocate_qureg(4)
+    hamiltonian = QubitOperator((), 3.4)
+    correct_h = copy.deepcopy(hamiltonian)
+    gate = te.TimeEvolution(2.1, hamiltonian)
+    gate | qureg
+    eng.flush()
+    cmd = saving_backend.received_commands[4]
+    assert isinstance(cmd.gate, Ph)
+    assert cmd.gate == Ph(-3.4 * 2.1)
+    correct = numpy.array([[cmath.exp(-1j * 3.4 * 2.1), 0],
+                           [0, cmath.exp(-1j * 3.4 * 2.1)]])
+    print(correct)
+    print(cmd.gate.matrix)
+    assert numpy.allclose(cmd.gate.matrix, correct)
 
 
 def test_eq_not_implemented():
