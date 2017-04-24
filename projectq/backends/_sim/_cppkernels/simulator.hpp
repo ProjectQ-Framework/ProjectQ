@@ -39,8 +39,11 @@ public:
     using StateVector = std::vector<complex_type, aligned_allocator<complex_type,64>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::mt19937;
+    using Term = std::vector<std::pair<unsigned, char>>;
+    using TermsDict = std::vector<std::pair<Term, calc_type>>;
 
-    Simulator(unsigned seed = 1) : N_(0), vec_(1,0.), fusion_qubits_min_(4), fusion_qubits_max_(5), rnd_eng_(seed) {
+    Simulator(unsigned seed = 1) : N_(0), vec_(1,0.), fusion_qubits_min_(4),
+                                   fusion_qubits_max_(5), rnd_eng_(seed) {
         vec_[0]=1.; // all-zero initial state
         std::uniform_real_distribution<double> dist(0., 1.);
         rng_ = std::bind(dist, std::ref(rnd_eng_));
@@ -56,7 +59,8 @@ public:
             vec_ = std::move(newvec);
         }
         else
-            throw(std::runtime_error("AllocateQubit: ID already exists. Qubit IDs should be unique."));
+            throw(std::runtime_error(
+                "AllocateQubit: ID already exists. Qubit IDs should be unique."));
     }
 
     bool get_classical_value(unsigned id, calc_type tol = 1.e-12){
@@ -101,14 +105,15 @@ public:
             #pragma omp parallel for schedule(static)
             for (std::size_t i = 0; i < vec_.size(); i += 2*delta){
                 for (std::size_t j = 0; j < delta; ++j)
-                    vec_[i+j+static_cast<unsigned>(!value)*delta] = 0.;
+                    vec_[i+j+static_cast<std::size_t>(!value)*delta] = 0.;
             }
         }
         else{
             StateVector newvec((1UL << (N_-1)));
             #pragma omp parallel for schedule(static)
             for (std::size_t i = 0; i < vec_.size(); i += 2*delta)
-                std::copy_n(&vec_[i + static_cast<unsigned>(value)*delta], delta, &newvec[i/2]);
+                std::copy_n(&vec_[i + static_cast<std::size_t>(value)*delta],
+                            delta, &newvec[i/2]);
             vec_ = std::move(newvec);
 
             for (auto& p : map_){
@@ -131,7 +136,7 @@ public:
         calc_type rnd = rng_();
 
         // pick entry at random with probability |entry|^2
-        unsigned pick = 0;
+        std::size_t pick = 0;
         while (P < rnd && pick < vec_.size())
             P += std::norm(vec_[pick++]);
 
@@ -168,6 +173,7 @@ public:
         measure_qubits(ids, ret);
         return ret;
     }
+
     void deallocate_qubit(unsigned id){
         run();
         assert(map_.count(id) == 1);
@@ -179,15 +185,18 @@ public:
     }
 
     template <class M>
-    void apply_controlled_gate(M const& m, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+    void apply_controlled_gate(M const& m, std::vector<unsigned> ids,
+                               std::vector<unsigned> ctrl){
         auto fused_gates = fused_gates_;
         fused_gates.insert(m, ids, ctrl);
 
-        if (fused_gates.num_qubits() >= fusion_qubits_min_ && fused_gates.num_qubits() <= fusion_qubits_max_){
+        if (fused_gates.num_qubits() >= fusion_qubits_min_
+                && fused_gates.num_qubits() <= fusion_qubits_max_){
             fused_gates_ = fused_gates;
             run();
         }
-        else if (fused_gates.num_qubits() > fusion_qubits_max_ || (fused_gates.num_qubits()-ids.size())>fused_gates_.num_qubits()){
+        else if (fused_gates.num_qubits() > fusion_qubits_max_
+                 || (fused_gates.num_qubits() - ids.size()) > fused_gates_.num_qubits()){
             run();
             fused_gates_.insert(m, ids, ctrl);
         }
@@ -197,7 +206,8 @@ public:
     }
 
     template <class F, class QuReg>
-    void emulate_math(F const& f, QuReg quregs, std::vector<unsigned> ctrl, unsigned num_threads=1){
+    void emulate_math(F const& f, QuReg quregs, std::vector<unsigned> ctrl,
+                      unsigned num_threads=1){
         run();
         auto ctrlmask = get_control_mask(ctrl);
 
@@ -230,6 +240,38 @@ public:
                 newvec[i] += vec_[i];
         }
         vec_ = std::move(newvec);
+    }
+
+    calc_type get_expectation_value(TermsDict const& td, std::vector<unsigned> const& ids){
+        run();
+        complex_type I(0., 1.);
+        Fusion::Matrix X = {{0., 1.}, {1., 0.}};
+        Fusion::Matrix Y = {{0., -I}, {I, 0.}};
+        Fusion::Matrix Z = {{1., 0.}, {0., -1.}};
+        std::vector<Fusion::Matrix> gates = {X, Y, Z};
+
+        calc_type expectation = 0.;
+        auto current_state = vec_;
+        for (auto const& term : td){
+            auto const& coefficient = term.second;
+            for (auto const& local_op : term.first){
+                unsigned id = ids[local_op.first];
+                apply_controlled_gate(gates[local_op.second - 'X'], {id}, {});
+            }
+            run();
+            calc_type delta = 0.;
+            #pragma omp parallel for reduction(+:delta) schedule(static)
+            for (std::size_t i = 0; i < vec_.size(); ++i){
+                auto const a1 = std::real(current_state[i]);
+                auto const b1 = -std::imag(current_state[i]);
+                auto const a2 = std::real(vec_[i]);
+                auto const b2 = std::imag(vec_[i]);
+                delta += a1 * a2 - b1 * b2;
+            }
+            expectation += coefficient * delta;
+            vec_ = current_state;
+        }
+        return expectation;
     }
 
     void run(){
@@ -271,12 +313,15 @@ public:
 
         fused_gates_ = Fusion();
     }
+
     std::tuple<Map, StateVector&> cheat(){
         run();
         return make_tuple(map_, std::ref(vec_));
     }
+
     ~Simulator(){
     }
+
 private:
     std::size_t get_control_mask(std::vector<unsigned> const& ctrls){
         std::size_t ctrlmask = 0;

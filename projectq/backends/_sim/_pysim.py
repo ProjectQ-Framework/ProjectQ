@@ -228,6 +228,33 @@ class Simulator(object):
 
         self._state = newstate
 
+    def get_expectation_value(self, terms_dict, ids):
+        """
+        Return the expectation value of a qubit operator w.r.t. qubit ids.
+
+        Args:
+            terms_dict (dict): Operator dictionary (see QubitOperator.terms)
+            ids (list[int]): List of qubit ids upon which the operator acts.
+
+        Returns:
+            Expectation value
+        """
+        X = [[0., 1.], [1., 0.]]
+        Y = [[0., -1j], [1j, 0.]]
+        Z = [[1., 0.], [0., -1.]]
+        gates = [X, Y, Z]
+        expectation = 0.
+        current_state = _np.copy(self._state)
+        for (term, coefficient) in terms_dict:
+            for local_op in term:
+                qb_id = ids[local_op[0]]
+                self.apply_controlled_gate(gates[ord(local_op[1]) - ord('X')],
+                                           [qb_id], [])
+            delta = coefficient * _np.vdot(current_state, self._state).real
+            expectation += delta
+            self._state = _np.copy(current_state)
+        return expectation
+
     def apply_controlled_gate(self, m, ids, ctrlids):
         """
         Applies the single qubit gate matrix m to the qubit with index ids[0],

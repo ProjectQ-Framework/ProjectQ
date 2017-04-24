@@ -1,5 +1,5 @@
 template <class V, class M>
-inline void kernel_core(V &psi, unsigned I, unsigned d0, unsigned d1, unsigned d2, unsigned d3, M const& m, M const& mt)
+inline void kernel_core(V &psi, std::size_t I, std::size_t d0, std::size_t d1, std::size_t d2, std::size_t d3, M const& m, M const& mt)
 {
     __m256d v[4];
 
