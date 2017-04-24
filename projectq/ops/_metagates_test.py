@@ -123,6 +123,15 @@ def test_controlled_gate_get_inverse():
     assert one_control.get_inverse() == expected
 
 
+def test_controlled_gate_empty_controls():
+    rec = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=rec, engine_list=[])
+
+    a = eng.allocate_qureg(1)
+    _metagates.ControlledGate(Y, 0) | ((), a)
+    assert rec.received_commands[-1] == Command(eng, Y, [a])
+
+
 def test_controlled_gate_or():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
@@ -132,8 +141,8 @@ def test_controlled_gate_or():
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
     qubit3 = Qubit(main_engine, 3)
-    expected_cmd = Command(main_engine, gate, ([qubit3],))
-    expected_cmd.add_control_qubits([qubit0, qubit1, qubit2])
+    expected_cmd = Command(main_engine, gate, ([qubit3],),
+                           controls=[qubit0, qubit1, qubit2])
     received_commands = []
     # Option 1:
     _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0],
