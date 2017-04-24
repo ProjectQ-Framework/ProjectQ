@@ -62,8 +62,10 @@ def test_init_str():
 
 
 def test_init_str_identity():
-    qubit_op = qo.QubitOperator('')
+    qubit_op = qo.QubitOperator('', 2.)
+    assert len(qubit_op.terms) == 1
     assert () in qubit_op.terms
+    assert qubit_op.terms[()] == pytest.approx(2.)
 
 
 def test_init_bad_term():
@@ -377,9 +379,18 @@ def test_neg():
 
 def test_str():
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
-    assert str(op) == "0.5 X1 Y3 Z8\n"
+    assert str(op) == "0.5 X1 Y3 Z8"
     op2 = qo.QubitOperator((), 2)
-    assert str(op2) == "2 I\n"
+    assert str(op2) == "2 I"
+
+
+def test_str_multiple_terms():
+    op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
+    op += qo.QubitOperator(((1, 'Y'), (3, 'Y'), (8, 'Z')), 0.6)
+    assert (str(op) == "0.5 X1 Y3 Z8 +\n0.6 Y1 Y3 Z8" or
+            str(op) == "0.6 Y1 Y3 Z8 +\n0.5 X1 Y3 Z8")
+    op2 = qo.QubitOperator((), 2)
+    assert str(op2) == "2 I"
 
 
 def test_rep():

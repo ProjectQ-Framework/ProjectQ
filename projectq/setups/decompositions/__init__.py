@@ -17,7 +17,8 @@ from . import (crz2cxandrz,
                qft2crandhadamard,
                r2rzandph,
                swap2cnot,
-               toffoli2cnotandtgate)
+               toffoli2cnotandtgate,
+               time_evolution)
 
 all_defined_decomposition_rules = [
     rule
@@ -28,6 +29,7 @@ all_defined_decomposition_rules = [
                    qft2crandhadamard,
                    r2rzandph,
                    swap2cnot,
-                   toffoli2cnotandtgate]
+                   toffoli2cnotandtgate,
+                   time_evolution]
     for rule in module.all_defined_decomposition_rules
 ]
