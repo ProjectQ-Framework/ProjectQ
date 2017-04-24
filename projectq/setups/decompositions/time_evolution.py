@@ -58,10 +58,7 @@ def _decompose_time_evolution_commuting_terms(cmd):
 
 
 def _recognize_time_evolution_individual_terms(cmd):
-    if len(cmd.gate.hamiltonian.terms) == 1:
-        return True
-    else:
-        return False
+    return len(cmd.gate.hamiltonian.terms) == 1
 
 
 def _decompose_time_evolution_individual_terms(cmd):
@@ -121,7 +118,7 @@ def _decompose_time_evolution_individual_terms(cmd):
                 # Compute parity
                 for i in range(len(qureg)-1):
                     CNOT | (qureg[i], qureg[i+1])
-            Rz(time * coefficient * 2.) | qureg[i+1]
+            Rz(time * coefficient * 2.) | qureg[-1]
             # Uncompute parity and basis change
             Uncompute(eng)
 
