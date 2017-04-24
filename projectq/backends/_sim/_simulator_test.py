@@ -223,8 +223,6 @@ def test_simulator_expectation(sim):
     assert -1. == pytest.approx(expectation)
 
     op_sum = QubitOperator('Y0 X1 Z2') + QubitOperator('X1')
-    op_sum += op_sum
-    op_sum /= 2.
     H | qureg[1]
     X | qureg[2]
     expectation = sim.get_expectation_value(op_sum, qureg)
@@ -234,6 +232,10 @@ def test_simulator_expectation(sim):
     X | qureg[2]
     expectation = sim.get_expectation_value(op_sum, qureg)
     assert 0. == pytest.approx(expectation)
+
+    op_id = .4 * QubitOperator()
+    expectation = sim.get_expectation_value(op_id, qureg)
+    assert .4 == pytest.approx(expectation)
 
 
 def test_simulator_no_uncompute_exception(sim):
