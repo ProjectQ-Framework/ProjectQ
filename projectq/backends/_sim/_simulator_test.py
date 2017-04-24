@@ -21,11 +21,15 @@ from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (H,
                           X,
+                          Y,
+                          Z,
+                          S,
                           CNOT,
                           Toffoli,
                           Measure,
                           BasicGate,
-                          BasicMathGate)
+                          BasicMathGate,
+                          QubitOperator)
 from projectq.meta import Control
 
 from projectq.backends import Simulator
@@ -189,6 +193,49 @@ def test_simulator_emulation(sim):
     assert 1. == pytest.approx(sim.cheat()[1][6])
 
     Measure | (qubit1 + qubit2 + qubit3)
+
+
+def test_simulator_expectation(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op0 = QubitOperator('Z0')
+    expectation = sim.get_expectation_value(op0, qureg)
+    assert 1. == pytest.approx(expectation)
+    X | qureg[0]
+    expectation = sim.get_expectation_value(op0, qureg)
+    assert -1. == pytest.approx(expectation)
+    H | qureg[0]
+    op1 = QubitOperator('X0')
+    expectation = sim.get_expectation_value(op1, qureg)
+    assert -1. == pytest.approx(expectation)
+    Z | qureg[0]
+    expectation = sim.get_expectation_value(op1, qureg)
+    assert 1. == pytest.approx(expectation)
+    X | qureg[0]
+    S | qureg[0]
+    Z | qureg[0]
+    X | qureg[0]
+    op2 = QubitOperator('Y0')
+    expectation = sim.get_expectation_value(op2, qureg)
+    assert 1. == pytest.approx(expectation)
+    Z | qureg[0]
+    expectation = sim.get_expectation_value(op2, qureg)
+    assert -1. == pytest.approx(expectation)
+
+    op_sum = QubitOperator('Y0 X1 Z2') + QubitOperator('X1')
+    H | qureg[1]
+    X | qureg[2]
+    expectation = sim.get_expectation_value(op_sum, qureg)
+    assert 2. == pytest.approx(expectation)
+
+    op_sum = QubitOperator('Y0 X1 Z2') + QubitOperator('X1')
+    X | qureg[2]
+    expectation = sim.get_expectation_value(op_sum, qureg)
+    assert 0. == pytest.approx(expectation)
+
+    op_id = .4 * QubitOperator()
+    expectation = sim.get_expectation_value(op_id, qureg)
+    assert .4 == pytest.approx(expectation)
 
 
 def test_simulator_no_uncompute_exception(sim):

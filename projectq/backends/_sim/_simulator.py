@@ -107,6 +107,23 @@ class Simulator(BasicEngine):
         except:
             return False
 
+    def get_expectation_value(self, qubit_operator, qureg):
+        """
+        Get the expectation value of qubit_operator w.r.t. the current wave
+        function represented by the supplied quantum register.
+
+        Args:
+            qubit_operator (projectq.ops.QubitOperator): Operator to measure.
+            qureg (list[Qubit],Qureg): Quantum bits to measure.
+
+        Returns:
+            Expectation value
+        """
+        operator = [(list(term), coeff) for (term, coeff)
+                    in qubit_operator.terms.items()]
+        return self._simulator.get_expectation_value(operator,
+                                                     [qb.id for qb in qureg])
+
     def cheat(self):
         """
         Access the ordering of the qubits and the state vector directly.

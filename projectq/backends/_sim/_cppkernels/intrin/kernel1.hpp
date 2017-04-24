@@ -1,5 +1,5 @@
 template <class V, class M>
-inline void kernel_core(V &psi, unsigned I, unsigned d0, M const& m, M const& mt)
+inline void kernel_core(V &psi, std::size_t I, std::size_t d0, M const& m, M const& mt)
 {
     __m256d v[2];
 
@@ -26,8 +26,7 @@ void kernel(V &psi, unsigned id0, M const& m, std::size_t ctrlmask)
         mmt[i] = _mm256_mul_pd(badc, neg);
     }
 
-    std::size_t dsorted[] = {d0 };
-    std::sort(dsorted, dsorted + 1, std::greater<std::size_t>());
+    std::size_t dsorted[] = {d0};
 
     if (ctrlmask == 0){
         #pragma omp for collapse(LOOP_COLLAPSE1) schedule(static)
