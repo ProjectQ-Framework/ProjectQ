@@ -157,7 +157,7 @@ class ClassicalSimulator(BasicEngine):
         if isinstance(cmd.gate, BasicMathGate):
             if meets_controls:
                 ins = [self.read_register(reg) for reg in cmd.qubits]
-                outs = cmd.gate.get_math_function(None)(ins)
+                outs = cmd.gate.get_math_function(cmd.qubits)(ins)
                 for reg, out in zip(cmd.qubits, outs):
                     self.write_register(reg, out & ((1 << len(reg)) - 1))
             return
