@@ -158,6 +158,8 @@ def test_qureg_measure_multi_qubit_int():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     a = eng.allocate_qureg(4)
 
+    assert int(_qubit.Qureg([])) == 0
+
     eng.set_measurement_result(a[3], False)
     eng.set_measurement_result(a[2], True)
     eng.set_measurement_result(a[1], False)
