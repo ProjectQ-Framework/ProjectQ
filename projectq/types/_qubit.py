@@ -187,11 +187,7 @@ class Qureg(list):
             Exception if more than 1 qubit resides in this register (then you
             need to specify which value to get using qureg[???])
         """
-        if len(self) == 1:
-            return int(self[0])
-        else:
-            raise Exception("__int__(qureg): Quantum register contains more "
-                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
+        return sum(1 << i if bool(self[i]) else 0 for i in range(len(self)))
 
     def __nonzero__(self):
         """
