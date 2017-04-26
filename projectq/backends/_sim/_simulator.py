@@ -26,7 +26,8 @@ from projectq.ops import (NOT,
                           FlushGate,
                           Allocate,
                           Deallocate,
-                          BasicMathGate)
+                          BasicMathGate,
+                          TimeEvolution)
 
 try:
     from ._cppsim import Simulator as SimulatorBackend
@@ -176,6 +177,13 @@ class Simulator(BasicEngine):
             math_fun = cmd.gate.get_math_function(cmd.qubits)
             self._simulator.emulate_math(math_fun, qubitids,
                                          [qb.id for qb in cmd.control_qubits])
+        elif isinstance(cmd.gate, TimeEvolution):
+            op = [(list(term), coeff) for (term, coeff)
+                  in cmd.gate.hamiltonian.terms.items()]
+            t = cmd.gate.time
+            qubitids = [qb.id for qb in cmd.qubits[0]]
+            ctrlids = [qb.id for qb in cmd.control_qubits]
+            self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
         elif len(cmd.gate.matrix) == 2:
             matrix = cmd.gate.matrix
             self._simulator.apply_controlled_gate(matrix.tolist(),

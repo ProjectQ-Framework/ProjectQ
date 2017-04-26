@@ -244,21 +244,11 @@ public:
 
     calc_type get_expectation_value(TermsDict const& td, std::vector<unsigned> const& ids){
         run();
-        complex_type I(0., 1.);
-        Fusion::Matrix X = {{0., 1.}, {1., 0.}};
-        Fusion::Matrix Y = {{0., -I}, {I, 0.}};
-        Fusion::Matrix Z = {{1., 0.}, {0., -1.}};
-        std::vector<Fusion::Matrix> gates = {X, Y, Z};
-
         calc_type expectation = 0.;
         auto current_state = vec_;
         for (auto const& term : td){
             auto const& coefficient = term.second;
-            for (auto const& local_op : term.first){
-                unsigned id = ids[local_op.first];
-                apply_controlled_gate(gates[local_op.second - 'X'], {id}, {});
-            }
-            run();
+            apply_term(term.first, ids, {});
             calc_type delta = 0.;
             #pragma omp parallel for reduction(+:delta) schedule(static)
             for (std::size_t i = 0; i < vec_.size(); ++i){
@@ -272,6 +262,56 @@ public:
             vec_ = current_state;
         }
         return expectation;
+    }
+
+    void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
+                                std::vector<unsigned> const& ids,
+                                std::vector<unsigned> const& ctrl){
+        run();
+        complex_type I(0., 1.);
+        calc_type tr = 0., op_nrm = 0.;
+        TermsDict td;
+        for (unsigned i = 0; i < tdict.size(); ++i){
+            if (tdict[i].first.size() == 0)
+                tr += tdict[i].second;
+            else{
+                td.push_back(tdict[i]);
+                op_nrm += std::norm(tdict[i].second);
+            }
+        }
+        unsigned s = std::sqrt(op_nrm) + 1.;
+        complex_type correction = std::exp(-time * I * tr / (double)s);
+        auto output_state = vec_;
+        for (unsigned i = 0; i < s; ++i){
+            calc_type nrm_change = 1.;
+            for (unsigned k = 0; nrm_change > 1.e-12; ++k){
+                auto coeff = (-time * I) / double(s * (k + 1));
+                auto current_state = vec_;
+                auto update = StateVector(vec_.size(), 0.);
+                for (auto const& tup : td){
+                    apply_term(tup.first, ids, ctrl);
+                    #pragma omp parallel for schedule(static)
+                    for (std::size_t j = 0; j < vec_.size(); ++j){
+                        update[j] += vec_[j] * tup.second;
+                        vec_[j] = current_state[j];
+                    }
+                }
+                nrm_change = 0.;
+                #pragma omp parallel for reduction(+:nrm_change) schedule(static)
+                for (std::size_t j = 0; j < vec_.size(); ++j){
+                    update[j] *= coeff;
+                    vec_[j] = update[j];
+                    output_state[j] += update[j];
+                    nrm_change += std::norm(update[j]);
+                }
+                nrm_change = std::sqrt(nrm_change);
+            }
+            #pragma omp parallel for schedule(static)
+            for (std::size_t j = 0; j < vec_.size(); ++j){
+                output_state[j] *= correction;
+                vec_[j] = output_state[j];
+            }
+        }
     }
 
     void run(){
@@ -323,6 +363,19 @@ public:
     }
 
 private:
+    void apply_term(Term const& term, std::vector<unsigned> const& ids,
+                    std::vector<unsigned> const& ctrl){
+        complex_type I(0., 1.);
+        Fusion::Matrix X = {{0., 1.}, {1., 0.}};
+        Fusion::Matrix Y = {{0., -I}, {I, 0.}};
+        Fusion::Matrix Z = {{1., 0.}, {0., -1.}};
+        std::vector<Fusion::Matrix> gates = {X, Y, Z};
+        for (auto const& local_op : term){
+            unsigned id = ids[local_op.first];
+            apply_controlled_gate(gates[local_op.second - 'X'], {id}, ctrl);
+        }
+        run();
+    }
     std::size_t get_control_mask(std::vector<unsigned> const& ctrls){
         std::size_t ctrlmask = 0;
         for (auto c : ctrls)
