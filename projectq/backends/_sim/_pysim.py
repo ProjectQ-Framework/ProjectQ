@@ -268,7 +268,7 @@ class Simulator(object):
         # terms:
         tr = sum([c for (t, c) in terms_dict if len(t) == 0])
         terms_dict = [(t, c) for (t, c) in terms_dict if len(t) > 0]
-        op_nrm = _np.sqrt(sum([abs(c)**2 for (_, c) in terms_dict]))
+        op_nrm = abs(time) * sum([abs(c) for (_, c) in terms_dict])
         # rescale the operator by s:
         s = int(op_nrm + 1.)
         correction = _np.exp(-1j * time * tr / float(s))

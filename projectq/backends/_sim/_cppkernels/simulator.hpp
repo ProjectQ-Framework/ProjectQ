@@ -276,10 +276,10 @@ public:
                 tr += tdict[i].second;
             else{
                 td.push_back(tdict[i]);
-                op_nrm += std::norm(tdict[i].second);
+                op_nrm += std::abs(tdict[i].second);
             }
         }
-        unsigned s = std::sqrt(op_nrm) + 1.;
+        unsigned s = std::abs(time) * op_nrm + 1.;
         complex_type correction = std::exp(-time * I * tr / (double)s);
         auto output_state = vec_;
         for (unsigned i = 0; i < s; ++i){

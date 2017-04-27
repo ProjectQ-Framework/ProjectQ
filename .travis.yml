@@ -41,7 +41,7 @@ install:
   - pip$PY install -e .
 
 # command to run tests
-script: pytest projectq --cov projectq
+script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq
 
 after_success:
   - coveralls
