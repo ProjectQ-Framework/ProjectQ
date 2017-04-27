@@ -334,7 +334,7 @@ class Simulator(object):
         """
         Applies a QubitOperator term to the state vector.
         (Helper function for time evolution & expectation)
-        
+
         Args:
             term: One term of QubitOperator.terms
             ids (list[int]): Term index to Qubit ID mapping

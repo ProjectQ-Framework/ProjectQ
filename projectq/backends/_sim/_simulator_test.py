@@ -248,8 +248,8 @@ def test_simulator_expectation(sim):
 
 
 def test_simulator_time_evolution(sim):
-    N = 9 # number of qubits
-    time_to_evolve = 1.1 # time to evolve for
+    N = 9  # number of qubits
+    time_to_evolve = 1.1  # time to evolve for
     eng = MainEngine(sim, [])
     qureg = eng.allocate_qureg(N)
     # initialize in random wavefunction by applying some gates:
@@ -264,10 +264,7 @@ def test_simulator_time_evolution(sim):
     op += 1.1 * Qop()
     op += -1.4 * Qop("Y0 Z1 X3 Y5")
     op += -1.1 * Qop("Y1 X2 X3 Y4")
-    import time
-    start = time.time()
     TimeEvolution(time_to_evolve, op) | qureg
-    print(time.time()-start)
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
     Measure | qureg
@@ -278,7 +275,6 @@ def test_simulator_time_evolution(sim):
         for i in range(1, len(list_single_matrices)):
             res = scipy.sparse.kron(res, list_single_matrices[i])
         return res
-    start = time.time()
     id_sp = scipy.sparse.identity(2, format="csr", dtype=complex)
     x_sp = scipy.sparse.csr_matrix([[0., 1.], [1., 0.]], dtype=complex)
     y_sp = scipy.sparse.csr_matrix([[0., -1.j], [1.j, 0.]], dtype=complex)
@@ -294,11 +290,10 @@ def test_simulator_time_evolution(sim):
         matrix.reverse()
         res_matrix += build_matrix(matrix) * c
     res_matrix *= -1j * time_to_evolve
-    
+
     init_wavefunction = numpy.array(init_wavefunction, copy=False)
     final_wavefunction = numpy.array(final_wavefunction, copy=False)
     res = scipy.sparse.linalg.expm_multiply(res_matrix, init_wavefunction)
-    print(time.time()-start)
     assert numpy.allclose(res, final_wavefunction)
 
 
