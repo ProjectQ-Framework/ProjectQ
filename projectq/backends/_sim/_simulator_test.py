@@ -15,7 +15,13 @@ Tests for projectq.backends._sim._simulator.py, using both the Python
 and the C++ simulator as backends.
 """
 
+import copy
+import numpy
 import pytest
+import random
+import scipy
+import scipy.sparse
+import scipy.sparse.linalg
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
@@ -24,12 +30,15 @@ from projectq.ops import (H,
                           Y,
                           Z,
                           S,
+                          Rx,
+                          Ry,
                           CNOT,
                           Toffoli,
                           Measure,
                           BasicGate,
                           BasicMathGate,
-                          QubitOperator)
+                          QubitOperator,
+                          TimeEvolution)
 from projectq.meta import Control
 
 from projectq.backends import Simulator
@@ -236,6 +245,56 @@ def test_simulator_expectation(sim):
     op_id = .4 * QubitOperator()
     expectation = sim.get_expectation_value(op_id, qureg)
     assert .4 == pytest.approx(expectation)
+
+
+def test_simulator_time_evolution(sim):
+    N = 9  # number of qubits
+    time_to_evolve = 1.1  # time to evolve for
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(N)
+    # initialize in random wavefunction by applying some gates:
+    for qb in qureg:
+        Rx(random.random()) | qb
+        Ry(random.random()) | qb
+    eng.flush()
+    # Use cheat to get initial start wavefunction:
+    qubit_to_bit_map, init_wavefunction = copy.deepcopy(eng.backend.cheat())
+    Qop = QubitOperator
+    op = 0.3 * Qop("X0 Y1 Z2 Y3 X4")
+    op += 1.1 * Qop()
+    op += -1.4 * Qop("Y0 Z1 X3 Y5")
+    op += -1.1 * Qop("Y1 X2 X3 Y4")
+    TimeEvolution(time_to_evolve, op) | qureg
+    eng.flush()
+    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+    Measure | qureg
+    # Check manually:
+
+    def build_matrix(list_single_matrices):
+        res = list_single_matrices[0]
+        for i in range(1, len(list_single_matrices)):
+            res = scipy.sparse.kron(res, list_single_matrices[i])
+        return res
+    id_sp = scipy.sparse.identity(2, format="csr", dtype=complex)
+    x_sp = scipy.sparse.csr_matrix([[0., 1.], [1., 0.]], dtype=complex)
+    y_sp = scipy.sparse.csr_matrix([[0., -1.j], [1.j, 0.]], dtype=complex)
+    z_sp = scipy.sparse.csr_matrix([[1., 0.], [0., -1.]], dtype=complex)
+    gates = [x_sp, y_sp, z_sp]
+
+    res_matrix = 0
+    for t, c in op.terms.items():
+        matrix = [id_sp] * N
+        for idx, gate in t:
+            matrix[qbit_to_bit_map[qureg[idx].id]] = gates[ord(gate) -
+                                                           ord('X')]
+        matrix.reverse()
+        res_matrix += build_matrix(matrix) * c
+    res_matrix *= -1j * time_to_evolve
+
+    init_wavefunction = numpy.array(init_wavefunction, copy=False)
+    final_wavefunction = numpy.array(final_wavefunction, copy=False)
+    res = scipy.sparse.linalg.expm_multiply(res_matrix, init_wavefunction)
+    assert numpy.allclose(res, final_wavefunction)
 
 
 def test_simulator_no_uncompute_exception(sim):

@@ -239,21 +239,60 @@ class Simulator(object):
         Returns:
             Expectation value
         """
-        X = [[0., 1.], [1., 0.]]
-        Y = [[0., -1j], [1j, 0.]]
-        Z = [[1., 0.], [0., -1.]]
-        gates = [X, Y, Z]
         expectation = 0.
         current_state = _np.copy(self._state)
         for (term, coefficient) in terms_dict:
-            for local_op in term:
-                qb_id = ids[local_op[0]]
-                self.apply_controlled_gate(gates[ord(local_op[1]) - ord('X')],
-                                           [qb_id], [])
+            self._apply_term(term, ids)
             delta = coefficient * _np.vdot(current_state, self._state).real
             expectation += delta
             self._state = _np.copy(current_state)
         return expectation
+
+    def emulate_time_evolution(self, terms_dict, time, ids, ctrlids):
+        """
+        Applies exp(-i*time*H) to the wave function, i.e., evolves under
+        the Hamiltonian H for a given time. The terms in the Hamiltonian
+        are not required to commute.
+
+        This function computes the action of the matrix exponential using
+        ideas from Al-Mohy and Higham, 2011.
+        TODO: Implement better estimates for s.
+
+        Args:
+            terms_dict (dict): Operator dictionary (see QubitOperator.terms)
+                defining the Hamiltonian.
+            time (scalar): Time to evolve for
+            ids (list): A list of qubit IDs to which to apply the evolution.
+            ctrlids (list): A list of control qubit IDs.
+        """
+        # Determine the (normalized) trace, which is nonzero only for identity
+        # terms:
+        tr = sum([c for (t, c) in terms_dict if len(t) == 0])
+        terms_dict = [(t, c) for (t, c) in terms_dict if len(t) > 0]
+        op_nrm = abs(time) * sum([abs(c) for (_, c) in terms_dict])
+        # rescale the operator by s:
+        s = int(op_nrm + 1.)
+        correction = _np.exp(-1j * time * tr / float(s))
+        output_state = _np.copy(self._state)
+        for i in range(s):
+            j = 0
+            nrm_change = 1.
+            while nrm_change > 1.e-12:
+                coeff = (-time * 1j) / float(s * (j + 1))
+                current_state = _np.copy(self._state)
+                update = 0j
+                for t, c in terms_dict:
+                    self._apply_term(t, ids, ctrlids)
+                    self._state *= c
+                    update += self._state
+                    self._state = _np.copy(current_state)
+                update *= coeff
+                self._state = update
+                output_state += update
+                nrm_change = _np.linalg.norm(update)
+                j += 1
+            output_state *= correction
+            self._state = _np.copy(output_state)
 
     def apply_controlled_gate(self, m, ids, ctrlids):
         """
@@ -291,3 +330,22 @@ class Simulator(object):
         Dummy function to implement the same interface as the c++ simulator.
         """
         pass
+
+    def _apply_term(self, term, ids, ctrlids=[]):
+        """
+        Applies a QubitOperator term to the state vector.
+        (Helper function for time evolution & expectation)
+
+        Args:
+            term: One term of QubitOperator.terms
+            ids (list[int]): Term index to Qubit ID mapping
+            ctrlids (list[int]): Control qubit IDs
+        """
+        X = [[0., 1.], [1., 0.]]
+        Y = [[0., -1j], [1j, 0.]]
+        Z = [[1., 0.], [0., -1.]]
+        gates = [X, Y, Z]
+        for local_op in term:
+            qb_id = ids[local_op[0]]
+            self.apply_controlled_gate(gates[ord(local_op[1]) - ord('X')],
+                                       [qb_id], ctrlids)
