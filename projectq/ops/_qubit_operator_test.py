@@ -41,8 +41,7 @@ def test_pauli_operator_product_unchanged():
 
 def test_init_defaults():
     loc_op = qo.QubitOperator()
-    assert len(loc_op.terms) == 1
-    assert loc_op.terms[()] == 1.0
+    assert len(loc_op.terms) == 0
 
 
 @pytest.mark.parametrize("coefficient", [0.5, 0.6j, numpy.float64(2.303),
