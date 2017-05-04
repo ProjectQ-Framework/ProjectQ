@@ -251,7 +251,8 @@ class Simulator(object):
     def emulate_time_evolution(self, terms_dict, time, ids, ctrlids):
         """
         Applies exp(-i*time*H) to the wave function, i.e., evolves under
-        the Hamiltonian H for a given time.
+        the Hamiltonian H for a given time. The terms in the Hamiltonian
+        are not required to commute.
 
         This function computes the action of the matrix exponential using
         ideas from Al-Mohy and Higham, 2011.
