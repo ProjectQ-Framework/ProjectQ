@@ -242,7 +242,7 @@ def test_simulator_expectation(sim):
     expectation = sim.get_expectation_value(op_sum, qureg)
     assert 0. == pytest.approx(expectation)
 
-    op_id = .4 * QubitOperator()
+    op_id = .4 * QubitOperator(())
     expectation = sim.get_expectation_value(op_id, qureg)
     assert .4 == pytest.approx(expectation)
 
@@ -261,7 +261,7 @@ def test_simulator_time_evolution(sim):
     qubit_to_bit_map, init_wavefunction = copy.deepcopy(eng.backend.cheat())
     Qop = QubitOperator
     op = 0.3 * Qop("X0 Y1 Z2 Y3 X4")
-    op += 1.1 * Qop()
+    op += 1.1 * Qop(())
     op += -1.4 * Qop("Y0 Z1 X3 Y5")
     op += -1.1 * Qop("Y1 X2 X3 Y4")
     TimeEvolution(time_to_evolve, op) | qureg
