@@ -159,6 +159,23 @@ class QubitOperator(object):
                                              'to QubitTerm: must be a'
                                              ' non-negative int.')
 
+    def compress(self, abs_tol=1e-12):
+        """
+        Eliminates all terms with coefficients close to zero and removes
+        imaginary parts of coefficients that are close to zero.
+
+        Args:
+            abs_tol(float): Absolute tolerance, must be at least 0.0
+        """
+        new_terms = {}
+        for term in self.terms:
+            coeff = self.terms[term]
+            if abs(coeff.imag) <= abs_tol:
+                coeff = coeff.real
+            if abs(coeff) > abs_tol:
+                new_terms[term] = coeff
+        self.terms = new_terms
+
     def isclose(self, other, rel_tol=1e-12, abs_tol=1e-12):
         """
         Returns True if other (QubitOperator) is close to self.
@@ -358,7 +375,10 @@ class QubitOperator(object):
         if isinstance(addend, QubitOperator):
             for term in addend.terms:
                 if term in self.terms:
-                    self.terms[term] += addend.terms[term]
+                    if abs(addend.terms[term] + self.terms[term]) > 0.:
+                        self.terms[term] += addend.terms[term]
+                    else:
+                        del self.terms[term]
                 else:
                     self.terms[term] = addend.terms[term]
         else:

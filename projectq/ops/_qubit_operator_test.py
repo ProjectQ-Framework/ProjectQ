@@ -111,6 +111,36 @@ def test_isclose_abs_tol():
     assert not a.isclose(c, rel_tol=1e-14, abs_tol=0.1)
 
 
+def test_compress():
+    a = qo.QubitOperator('X0', .9e-12)
+    assert len(a.terms) == 1
+    a.compress()
+    assert len(a.terms) == 0
+    a = qo.QubitOperator('X0', 1. + 1j)
+    a.compress(.5)
+    assert len(a.terms) == 1
+    for term in a.terms:
+        assert a.terms[term] == 1. + 1j
+    a = qo.QubitOperator('X0', 1.1 + 1j)
+    a.compress(1.)
+    assert len(a.terms) == 1
+    for term in a.terms:
+        assert a.terms[term] == 1.1
+    a = qo.QubitOperator('X0', 1.1 + 1j) + qo.QubitOperator('X1', 1.e-6j)
+    a.compress()
+    assert len(a.terms) == 2
+    for term in a.terms:
+        assert isinstance(a.terms[term], complex)
+    a.compress(1.e-5)
+    assert len(a.terms) == 1
+    for term in a.terms:
+        assert isinstance(a.terms[term], complex)
+    a.compress(1.)
+    assert len(a.terms) == 1
+    for term in a.terms:
+        assert isinstance(a.terms[term], float)
+
+
 def test_isclose_rel_tol():
     a = qo.QubitOperator('X0', 1)
     b = qo.QubitOperator('X0', 2)
@@ -285,6 +315,14 @@ def test_itruediv_bad_divisor():
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     with pytest.raises(TypeError):
         op /= "0.5"
+
+
+def test_iadd_cancellation():
+    term_a = ((1, 'X'), (3, 'Y'), (8, 'Z'))
+    term_b = ((1, 'X'), (3, 'Y'), (8, 'Z'))
+    a = qo.QubitOperator(term_a, 1.0)
+    a += qo.QubitOperator(term_b, -1.0)
+    assert len(a.terms) == 0
 
 
 def test_iadd_different_term():
