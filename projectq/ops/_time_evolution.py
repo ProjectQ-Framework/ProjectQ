@@ -201,7 +201,6 @@ class TimeEvolution(BasicGate):
         for i in range(len(non_trivial_qubits)):
             new_index[non_trivial_qubits[i]] = i
         new_hamiltonian = QubitOperator()
-        del new_hamiltonian.terms[()]  # remove default identity
         assert len(new_hamiltonian.terms) == 0
         for term in self.hamiltonian.terms:
             new_term = tuple([(new_index[index], action)
