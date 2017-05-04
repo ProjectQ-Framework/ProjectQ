@@ -161,9 +161,6 @@ class QubitOperator(object):
                 list_ops.append((int(el[1:]), el[0]))
             # Test that list_ops has correct format of tuples
             for local_operator in list_ops:
-                if (not isinstance(local_operator, tuple) or
-                        len(local_operator) != 2):
-                    raise ValueError("term specified incorrectly.")
                 qubit_num, action = local_operator
                 if not isinstance(action, str) or action not in 'XYZ':
                     raise ValueError("Invalid action provided: must be "

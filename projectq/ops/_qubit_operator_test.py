@@ -82,6 +82,16 @@ def test_init_bad_action():
         qubit_op = qo.QubitOperator('Q0')
 
 
+def test_init_bad_action_in_tuple():
+    with pytest.raises(ValueError):
+        qubit_op = qo.QubitOperator(((1,'Q'),))
+
+
+def test_init_bad_qubit_num_in_tuple():
+    with pytest.raises(qo.QubitOperatorError):
+        qubit_op = qo.QubitOperator((("1",'X'),))
+
+
 def test_init_bad_tuple():
     with pytest.raises(ValueError):
         qubit_op = qo.QubitOperator(((0, 1, 'X'),))
