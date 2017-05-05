@@ -73,6 +73,11 @@ def test_daggered_gate_str():
     assert str(daggered_gate) == str(Y) + "^\dagger"
 
 
+def test_daggered_gate_tex_str():
+    daggered_gate = _metagates.DaggeredGate(Y)
+    assert daggered_gate.tex_str() == str(Y) + "$^\dagger$"
+
+
 def test_daggered_gate_get_inverse():
     daggered_gate = _metagates.DaggeredGate(Y)
     assert daggered_gate.get_inverse() == Y
