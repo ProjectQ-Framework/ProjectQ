@@ -143,10 +143,10 @@ class BuildExt(build_ext):
             self.warning("")
 
     def warning(self, warning_text):
-        Exception(warning_text + "\nCould not install the C++-Simulator.\n"
-                  "ProjectQ will default to the (slow) Python simulator.\n"
-                  "Use --without-cppsimulator to skip building the (faster) "
-                  "C++ version of the simulator.")
+        raise Exception(warning_text + "\nCould not install the C++-Simulator."
+                        "\nProjectQ will default to the (slow) Python "
+                        "simulator.\nUse --without-cppsimulator to skip "
+                        "building the (faster) C++ version of the simulator.")
 
 
 setup(
