@@ -431,6 +431,11 @@ def test_str():
     assert str(op2) == "2 I"
 
 
+def test_str_empty():
+    op = qo.QubitOperator()
+    assert str(op) == '0'
+
+
 def test_str_multiple_terms():
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op += qo.QubitOperator(((1, 'Y'), (3, 'Y'), (8, 'Z')), 0.6)
