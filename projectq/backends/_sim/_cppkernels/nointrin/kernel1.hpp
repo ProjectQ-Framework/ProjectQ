@@ -1,5 +1,5 @@
 template <class V, class M>
-inline void kernel_core(V &psi, unsigned I, unsigned d0, M const& m)
+inline void kernel_core(V &psi, std::size_t I, std::size_t d0, M const& m)
 {
     std::complex<double> v[2];
     v[0] = psi[I];

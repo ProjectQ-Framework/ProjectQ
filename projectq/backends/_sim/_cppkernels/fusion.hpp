@@ -43,7 +43,7 @@ public:
     using Matrix = std::vector<std::vector<Complex, aligned_allocator<Complex, 64>>>;
     using ItemVector = std::vector<Item>;
 
-    std::size_t num_qubits() {
+    unsigned num_qubits() {
         return set_.size();
     }
 

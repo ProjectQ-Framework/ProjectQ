@@ -36,7 +36,8 @@ from ._basics import (BasicGate,
                       SelfInverseGate,
                       BasicRotationGate,
                       ClassicalInstructionGate,
-                      FastForwardingGate)
+                      FastForwardingGate,
+                      BasicMathGate)
 
 
 class HGate(SelfInverseGate):
@@ -113,9 +114,10 @@ T = TGate()
 Tdag = Tdagger = get_inverse(T)
 
 
-class SwapGate(SelfInverseGate):
+class SwapGate(SelfInverseGate, BasicMathGate):
     """ Swap gate class (swaps 2 qubits) """
     def __init__(self):
+        BasicMathGate.__init__(self, lambda x, y: (y, x))
         SelfInverseGate.__init__(self)
         self.interchangeable_qubit_indices = [[0, 1]]
 

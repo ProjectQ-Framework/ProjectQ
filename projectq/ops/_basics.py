@@ -19,9 +19,9 @@ Gates overload the | operator to allow the following syntax:
 
 .. code-block:: python
 
-    Gate | (qreg1, qreg2, qreg2)
-    Gate | (qreg, qubit)
-    Gate | qreg
+    Gate | (qureg1, qureg2, qureg2)
+    Gate | (qureg, qubit)
+    Gate | qureg
     Gate | qubit
     Gate | (qubit,)
 
@@ -34,6 +34,9 @@ from copy import deepcopy
 
 from projectq.types import BasicQubit
 from ._command import Command, apply_command
+
+
+EQ_TOLERANCE = 1e-12
 
 
 class NotMergeable(Exception):
@@ -170,15 +173,14 @@ class BasicGate(object):
         """
         qubits = self.make_tuple_of_qureg(qubits)
 
-        for i in range(len(qubits)):
-            for j in range(len(qubits[i]) - 1):
-                assert(qubits[i][j].engine == qubits[i][j + 1].engine)
-            if i < len(qubits) - 1:
-                assert(qubits[i][-1].engine == qubits[i + 1][0].engine)
-        return Command(qubits[0][0].engine, self, qubits)
+        engines = [q.engine for reg in qubits for q in reg]
+        eng = engines[0]
+        assert all(e is eng for e in engines)
+        return Command(eng, self, qubits)
 
     def __or__(self, qubits):
-        """ Operator| overload which enables the syntax Gate | qubits.
+        """
+        Operator| overload which enables the syntax Gate | qubits.
 
         Example:
             1) Gate | qubit
@@ -188,8 +190,8 @@ class BasicGate(object):
             5) Gate | (qureg, qubit)
 
         Args:
-            qubits: a Qubit object, a list of Qubit objects, a Qureg object, or
-                    a tuple of Qubit or Qureg objects (can be mixed).
+            qubits: a Qubit object, a list of Qubit objects, a Qureg object,
+                    or a tuple of Qubit or Qureg objects (can be mixed).
         """
         cmd = self.generate_command(qubits)
         apply_command(cmd)
@@ -296,7 +298,7 @@ class BasicRotationGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = 1.e-12
+        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
             difference = abs(self._angle - other._angle) % (4 * math.pi)
             # Return True if angles are close to each other modulo 4 * pi
