@@ -83,6 +83,12 @@ class DaggeredGate(BasicGate):
         """
         return str(self._gate) + "^\dagger"
 
+    def tex_str(self):
+        """
+        Return the Latex string representation of a Daggered gate.
+        """
+        return str(self._gate) + "$^\dagger$"
+
     def get_inverse(self):
         """
         Return the inverse gate (the inverse of the inverse of a gate is the
