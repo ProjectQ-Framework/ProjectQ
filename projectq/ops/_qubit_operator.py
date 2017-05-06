@@ -441,6 +441,8 @@ class QubitOperator(object):
 
     def __str__(self):
         """Return an easy-to-read string representation."""
+        if not self.terms:
+            return '0'
         string_rep = ''
         for term in self.terms:
             tmp_string = '{}'.format(self.terms[term])
