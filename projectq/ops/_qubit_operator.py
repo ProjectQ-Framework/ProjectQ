@@ -67,21 +67,22 @@ class QubitOperator(object):
         hamiltonian = 0.5 * QubitOperator('X0 X5') + 0.3 * QubitOperator('Z0')
 
     Attributes:
-        terms (dict): **key**: A term represented by a tuple of tuples. Each
-                      tuple represents a local operator and is a Pauli
-                      operator ('I', 'X', 'Y', or 'Z') which acts on one qubit
-                      stored as a tuple. The first element is an integer
+        terms (dict): **key**: A term represented by a tuple containing all
+                      non-trivial local Pauli operators ('X', 'Y', or 'Z').
+                      A non-trivial local Pauli operator is specified by a
+                      tuple with the first element being an integer
                       indicating the qubit on which a non-trivial local
-                      operator acts and the second element is a string,
+                      operator acts and the second element being a string,
                       either 'X', 'Y', or 'Z', indicating which non-trivial
-                      Pauli operator acts on that qubit.
-                      E.g. 'X1 Y5' is ((1, 'X'), (5, 'Y'))
-                      The tuples are sorted according to the qubit number
-                      they act on, starting from 0.
+                      Pauli operator acts on that qubit. Examples:
+                      ((1, 'X'),) or ((1, 'X'), (4,'Z')) or the identity ().
+                      The tuples representing the non-trivial local terms
+                      are sorted according to the qubit number they act on,
+                      starting from 0.
                       **value**: Coefficient of this term as a (complex) float
     """
 
-    def __init__(self, term=(), coefficient=1.):
+    def __init__(self, term=None, coefficient=1.):
         """
         Inits a QubitOperator.
 
@@ -107,57 +108,90 @@ class QubitOperator(object):
         Args:
             coefficient (complex float, optional): The coefficient of the
                 first term of this QubitOperator. Default is 1.0.
-            term (tuple of tuples, a string, or optional):
-                1) A sorted tuple of tuples. The first element of each tuple
+            term (optional, empy tuple, a tuple of tuples, or a string):
+                1) Default is None which means there are no terms in the
+                   QubitOperator hence it is the "zero" Operator
+                2) An empty tuple means there are no non-trivial Pauli
+                   operators acting on the qubits hence only identities
+                   with a coefficient (which by default is 1.0).
+                3) A sorted tuple of tuples. The first element of each tuple
                    is an integer indicating the qubit on which a non-trivial
                    local operator acts, starting from zero. The second element
                    of each tuple is a string, either 'X', 'Y' or 'Z',
                    indicating which local operator acts on that qubit.
-                2) A string of the form 'X0 Z2 Y5', indicating an X on
+                4) A string of the form 'X0 Z2 Y5', indicating an X on
                    qubit 0, Z on qubit 2, and Y on qubit 5. The string should
                    be sorted by the qubit number. '' is the identity.
-                3) default will result in identity operations on all qubits,
-                   which is just an empty tuple '()'
 
         Raises:
           QubitOperatorError: Invalid operators provided to QubitOperator.
         """
-        if not isinstance(term, (tuple, str)):
-            raise ValueError('term specified incorrectly.')
         if not isinstance(coefficient, (int, float, complex)):
             raise ValueError('Coefficient must be a numeric type.')
-
         self.terms = {}
-
-        if isinstance(term, str):
+        if term is None:
+            return
+        elif isinstance(term, tuple):
+            if term is ():
+                self.terms[()] = coefficient
+            else:
+                # Test that input is a tuple of tuples and correct action
+                for local_operator in term:
+                    if (not isinstance(local_operator, tuple) or
+                            len(local_operator) != 2):
+                        raise ValueError("term specified incorrectly.")
+                    qubit_num, action = local_operator
+                    if not isinstance(action, str) or action not in 'XYZ':
+                        raise ValueError("Invalid action provided: must be "
+                                         "string 'X', 'Y', or 'Z'.")
+                    if not (isinstance(qubit_num, int) and qubit_num >= 0):
+                        raise QubitOperatorError("Invalid qubit number "
+                                                 "provided to QubitTerm: "
+                                                 "must be a non-negative "
+                                                 "int.")
+                # Sort and add to self.terms:
+                term = list(term)
+                term.sort(key=lambda loc_operator: loc_operator[0])
+                self.terms[tuple(term)] = coefficient
+        elif isinstance(term, str):
             list_ops = []
             for el in term.split():
                 if len(el) < 2:
                     raise ValueError('term specified incorrectly.')
                 list_ops.append((int(el[1:]), el[0]))
-                list_ops.sort(key=lambda loc_operator: loc_operator[0])
-            self.terms[tuple(list_ops)] = coefficient
-        elif isinstance(term, tuple) and len(term) != 0:
-            term = list(term)
-            term.sort(key=lambda loc_operator: loc_operator[0])
-            self.terms[tuple(term)] = coefficient
-        else:
-            self.terms[()] = coefficient
-
-        # Test correctness
-        for term in self.terms:
-            for local_operator in term:
-                if (len(local_operator) != 2 or
-                        not isinstance(local_operator, tuple)):
-                    raise ValueError('term specified incorrectly.')
+            # Test that list_ops has correct format of tuples
+            for local_operator in list_ops:
                 qubit_num, action = local_operator
                 if not isinstance(action, str) or action not in 'XYZ':
-                    raise ValueError("Invalid action provided: must be string"
-                                     " 'X', 'Y', or 'Z'.")
+                    raise ValueError("Invalid action provided: must be "
+                                     "string 'X', 'Y', or 'Z'.")
                 if not (isinstance(qubit_num, int) and qubit_num >= 0):
-                    raise QubitOperatorError('Invalid qubit number provided '
-                                             'to QubitTerm: must be a'
-                                             ' non-negative int.')
+                    raise QubitOperatorError("Invalid qubit number "
+                                             "provided to QubitTerm: "
+                                             "must be a non-negative "
+                                             "int.")
+            # Sort and add to self.terms:
+            list_ops.sort(key=lambda loc_operator: loc_operator[0])
+            self.terms[tuple(list_ops)] = coefficient
+        else:
+            raise ValueError('term specified incorrectly.')
+
+    def compress(self, abs_tol=1e-12):
+        """
+        Eliminates all terms with coefficients close to zero and removes
+        imaginary parts of coefficients that are close to zero.
+
+        Args:
+            abs_tol(float): Absolute tolerance, must be at least 0.0
+        """
+        new_terms = {}
+        for term in self.terms:
+            coeff = self.terms[term]
+            if abs(coeff.imag) <= abs_tol:
+                coeff = coeff.real
+            if abs(coeff) > abs_tol:
+                new_terms[term] = coeff
+        self.terms = new_terms
 
     def isclose(self, other, rel_tol=1e-12, abs_tol=1e-12):
         """
@@ -358,7 +392,10 @@ class QubitOperator(object):
         if isinstance(addend, QubitOperator):
             for term in addend.terms:
                 if term in self.terms:
-                    self.terms[term] += addend.terms[term]
+                    if abs(addend.terms[term] + self.terms[term]) > 0.:
+                        self.terms[term] += addend.terms[term]
+                    else:
+                        del self.terms[term]
                 else:
                     self.terms[term] = addend.terms[term]
         else:
@@ -404,6 +441,8 @@ class QubitOperator(object):
 
     def __str__(self):
         """Return an easy-to-read string representation."""
+        if not self.terms:
+            return '0'
         string_rep = ''
         for term in self.terms:
             tmp_string = '{}'.format(self.terms[term])
