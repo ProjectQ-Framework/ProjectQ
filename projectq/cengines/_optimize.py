@@ -103,9 +103,9 @@ class LocalOptimizer(BasicEngine):
                                     for prev_cmd in self._l[idx][:i]
                                     if prev_cmd == cmd)
         indices = []
-        for k in range(N):
+        for Id in IDs:
             identical_indices = [i
-                                 for i, c in enumerate(self._l[IDs[k]])
+                                 for i, c in enumerate(self._l[Id])
                                  if c == cmd]
             indices.append(identical_indices[num_identical_to_skip])
         return indices
