@@ -56,7 +56,7 @@ class LocalOptimizer(BasicEngine):
                                      for qreg in il[i].all_qubits
                                      for qb in qreg
                                      if qb.id != idx]
-            for qb in other_involved_qubits:  # loop over tuples of quregs
+            for qb in other_involved_qubits:
                 Id = qb.id
                 try:
                     gateloc = 0
