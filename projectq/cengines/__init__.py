@@ -14,6 +14,7 @@ from ._basics import (BasicEngine,
                       LastEngineException,
                       ForwarderEngine)
 from ._cmdmodifier import CommandModifier
+from ._dirtyqubit import DirtyQubitTag
 from ._ibmcnotmapper import IBMCNOTMapper
 from ._main import (MainEngine,
                     NotYetMeasuredError,
