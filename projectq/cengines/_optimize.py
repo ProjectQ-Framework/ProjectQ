@@ -56,22 +56,18 @@ class LocalOptimizer(BasicEngine):
                 for qb in qreg:  # ... and qubits involved
                     Id = qb.id
                     if Id != idx:  # is a different qubit than the current one
-                        try:
-                            gateloc = 0
-                            # find location of this gate within its list
-                            while self._l[Id][gateloc] != il[i]:
-                                gateloc += 1
+                        gateloc = 0
+                        # find location of this gate within its list
+                        while self._l[Id][gateloc] != il[i]:
+                            gateloc += 1
 
-                            gateloc = self._optimize(Id, gateloc)
+                        gateloc = self._optimize(Id, gateloc)
 
-                            # flush the gates before the n-qubit gate
-                            self._send_qubit_pipeline(Id, gateloc)
-                            # delete the n-qubit gate, we're taking care of it
-                            # and don't want the other qubit to do so
-                            self._l[Id] = self._l[Id][1:]
-                        except IndexError:
-                            print("Invalid qubit pipeline encountered (in the"
-                                  " process of shutting down?).")
+                        # flush the gates before the n-qubit gate
+                        self._send_qubit_pipeline(Id, gateloc)
+                        # delete the n-qubit gate, we're taking care of it
+                        # and don't want the other qubit to do so
+                        self._l[Id] = self._l[Id][1:]
 
             # all qubits that need to be flushed have been flushed
             # --> send on the n-qubit gate
