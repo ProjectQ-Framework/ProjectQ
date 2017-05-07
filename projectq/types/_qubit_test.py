@@ -175,3 +175,15 @@ def test_qureg_engine():
     assert eng1 == qureg.engine
     qureg.engine = eng2
     assert qureg[0].engine == eng2 and qureg[1].engine == eng2
+
+
+def test_idempotent_del():
+    rec = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=rec, engine_list=[])
+    q = eng.allocate_qubit()[0]
+    rec.received_commands = []
+    assert len(rec.received_commands) == 0
+    q.__del__()
+    assert len(rec.received_commands) == 1
+    q.__del__()
+    assert len(rec.received_commands) == 1

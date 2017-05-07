@@ -116,10 +116,17 @@ class Qubit(BasicQubit):
     Thus the qubit is not copyable; only returns a reference to the same
     object.
     """
+    def __init__(self, engine, idx):
+        BasicQubit.__init__(self, engine, idx)
+        self._has_run_del = False
+
     def __del__(self):
         """
         Destroy the qubit and deallocate it (automatically).
         """
+        if self._has_run_del:
+            return
+        self._has_run_del = True
         self.engine.deallocate_qubit(self)
         self.id = -1
 
