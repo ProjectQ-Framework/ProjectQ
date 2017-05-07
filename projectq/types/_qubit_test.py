@@ -12,12 +12,13 @@
 
 """Tests for projectq.types._qubits."""
 
-import pytest
 from copy import copy, deepcopy
 
-from projectq import MainEngine
-from projectq.cengines import DummyEngine
+import pytest
 
+from projectq import MainEngine
+from projectq.cengines import BasicEngine, DummyEngine
+from projectq.ops import Deallocate
 from projectq.types import _qubit
 
 
@@ -187,3 +188,25 @@ def test_idempotent_del():
     assert len(rec.received_commands) == 1
     q.__del__()
     assert len(rec.received_commands) == 1
+
+
+def test_idempotent_del_on_failure():
+    class InjectedBugEngine(BasicEngine):
+        def receive(self, cmds):
+            for cmd in cmds:
+                if cmd.gate == Deallocate:
+                    raise ValueError()
+
+    eng = MainEngine(backend=InjectedBugEngine(), engine_list=[])
+    q = eng.allocate_qubit()[0]
+
+    # First call to __del__ triggers the bug.
+    try:
+        q.__del__()
+        assert False
+    except ValueError:
+        pass
+
+    # Later calls to __del__ do nothing.
+    assert q.id == -1
+    q.__del__()
