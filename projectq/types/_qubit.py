@@ -118,17 +118,16 @@ class Qubit(BasicQubit):
     """
     def __init__(self, engine, idx):
         BasicQubit.__init__(self, engine, idx)
-        self._has_run_del = False
 
     def __del__(self):
         """
         Destroy the qubit and deallocate it (automatically).
         """
-        if self._has_run_del:
+        if self.id == -1:
             return
-        self._has_run_del = True
-        self.engine.deallocate_qubit(self)
+        weak_copy = WeakQubitRef(self.engine, self.id)
         self.id = -1
+        self.engine.deallocate_qubit(weak_copy)
 
     def __copy__(self):
         """
