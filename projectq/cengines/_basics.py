@@ -149,11 +149,11 @@ class BasicEngine(object):
 
         Args:
             qubit (BasicQubit): Qubit to deallocate.
+        Raises:
+            ValueError: Qubit already deallocated. Caller likely has a bug.
         """
-
-        # Already deallocated?
         if qubit.id == -1:
-            return
+            raise ValueError("Already deallocated.")
 
         from projectq.meta import DirtyQubitTag
         is_dirty = qubit.id in self.main_engine.dirty_qubits
