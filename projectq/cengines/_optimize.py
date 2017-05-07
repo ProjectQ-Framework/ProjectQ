@@ -52,7 +52,7 @@ class LocalOptimizer(BasicEngine):
         for i in range(0, min(n, len(il))):  # loop over first n operations
             # send all gates before n-qubit gate for other qubits involved
             # --> recursively call send_helper
-            for qreg in il[i].all_qubits:  # loop over tuples of quregs
+            for qreg in il[i].all_quregs:  # loop over tuples of quregs
                 for qb in qreg:  # ... and qubits involved
                     Id = qb.id
                     if Id != idx:  # is a different qubit than the current one
@@ -138,7 +138,7 @@ class LocalOptimizer(BasicEngine):
 
             if inv == self._l[idx][i + 1]:
                 # determine index of this gate on all qubits
-                qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                qubitids = [qb.id for sublist in self._l[idx][i].all_quregs
                             for qb in sublist]
                 gid = self._get_gate_indices(idx, i, qubitids)
                 # check that there are no other gates between this and its
@@ -163,7 +163,7 @@ class LocalOptimizer(BasicEngine):
                 merged_command = self._l[idx][i].get_merged(
                     self._l[idx][i + 1])
                 # determine index of this gate on all qubits
-                qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                qubitids = [qb.id for sublist in self._l[idx][i].all_quregs
                             for qb in sublist]
                 gid = self._get_gate_indices(idx, i, qubitids)
 
@@ -211,7 +211,7 @@ class LocalOptimizer(BasicEngine):
         involved.
         """
         # are there qubit ids that haven't been added to the list?
-        idlist = [qubit.id for sublist in cmd.all_qubits for qubit in sublist]
+        idlist = [qubit.id for sublist in cmd.all_quregs for qubit in sublist]
         maxidx = int(0)
         for ID in idlist:
             maxidx = max(maxidx, ID)

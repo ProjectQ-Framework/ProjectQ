@@ -33,7 +33,7 @@ class CompareEngine(BasicEngine):
 
     def cache_cmd(self, cmd):
         # are there qubit ids that haven't been added to the list?
-        all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits
+        all_qubit_id_list = [qubit.id for qureg in cmd.all_quregs
                              for qubit in qureg]
         maxidx = int(0)
         for qubit_id in all_qubit_id_list:

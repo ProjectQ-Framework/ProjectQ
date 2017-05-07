@@ -233,7 +233,7 @@ class CircuitDrawer(BasicEngine):
                     m = int(m)
                     self.main_engine.set_measurement_result(qubit, m)
 
-        all_lines = [qb.id for qr in cmd.all_qubits for qb in qr]
+        all_lines = [qb.id for qr in cmd.all_quregs for qb in qr]
 
         gate = cmd.gate
         lines = [qb.id for qr in cmd.qubits for qb in qr]

@@ -78,7 +78,7 @@ class Command(object):
           is from the inner scope while tag[1] is from the other scope as the
           other scope receives the command after the inner scope LoopEngine
           and hence adds its LoopTag to the end.
-        all_qubits: A tuple of control_qubits + qubits
+        all_quregs: A tuple of control_qubits + qubits
     """
 
     def __init__(self, engine, gate, qubits, controls=(), tags=()):
@@ -159,7 +159,7 @@ class Command(object):
             NotMergeable: if the gates don't supply a get_merged()-function
                 or can't be merged for other reasons.
         """
-        if (self.tags == other.tags and self.all_qubits == other.all_qubits and
+        if (self.tags == other.tags and self.all_quregs == other.all_quregs and
                 self.engine == other.engine):
             return Command(self.engine,
                            self.gate.get_merged(other.gate),
@@ -240,7 +240,7 @@ class Command(object):
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
     @property
-    def all_qubits(self):
+    def all_quregs(self):
         """
         Get all qubits (gate and control qubits).
 
@@ -287,7 +287,7 @@ class Command(object):
            self.gate == other.gate and
            self.tags == other.tags and
            self.engine == other.engine and
-           self.all_qubits == other.all_qubits):
+           self.all_quregs == other.all_quregs):
             return True
         return False
 
