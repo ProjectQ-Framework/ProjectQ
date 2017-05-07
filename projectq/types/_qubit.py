@@ -120,8 +120,11 @@ class Qubit(BasicQubit):
         """
         Destroy the qubit and deallocate it (automatically).
         """
-        self.engine.deallocate_qubit(self)
+        if self.id == -1:
+            return
+        weak_copy = WeakQubitRef(self.engine, self.id)
         self.id = -1
+        self.engine.deallocate_qubit(weak_copy)
 
     def __copy__(self):
         """

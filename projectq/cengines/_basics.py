@@ -149,23 +149,27 @@ class BasicEngine(object):
 
         Args:
             qubit (BasicQubit): Qubit to deallocate.
+        Raises:
+            ValueError: Qubit already deallocated. Caller likely has a bug.
         """
-        if qubit.id != -1:
-            if qubit.id not in self.main_engine.dirty_qubits:
-                self.send([Command(self, Deallocate, ([qubit],))])
-            else:
-                from projectq.meta import DirtyQubitTag
-                oldnext = self.next_engine
+        if qubit.id == -1:
+            raise ValueError("Already deallocated.")
 
-                def cmd_modifier(cmd):
-                    assert(cmd.gate == Deallocate)
-                    cmd.tags += [DirtyQubitTag()]
-                    return cmd
-                self.next_engine = projectq.cengines.CommandModifier(
-                    cmd_modifier)
-                self.next_engine.next_engine = oldnext
-                self.send([Command(self, Deallocate, ([qubit],))])
-                self.next_engine = oldnext
+        if qubit.id not in self.main_engine.dirty_qubits:
+            self.send([Command(self, Deallocate, ([qubit],))])
+        else:
+            from projectq.meta import DirtyQubitTag
+            oldnext = self.next_engine
+
+            def cmd_modifier(cmd):
+                assert(cmd.gate == Deallocate)
+                cmd.tags += [DirtyQubitTag()]
+                return cmd
+            self.next_engine = projectq.cengines.CommandModifier(
+                cmd_modifier)
+            self.next_engine.next_engine = oldnext
+            self.send([Command(self, Deallocate, ([qubit],))])
+            self.next_engine = oldnext
 
     def is_meta_tag_supported(self, meta_tag):
         """
