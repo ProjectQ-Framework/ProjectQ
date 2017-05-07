@@ -303,7 +303,8 @@ def test_simulator_no_uncompute_exception(sim):
     H | qubit
     with pytest.raises(RuntimeError):
         qubit[0].__del__()
-    Measure | qubit
+    # If you wanted to keep using the qubit, you shouldn't have deleted it.
+    assert qubit[0].id == -1
 
 
 class MockSimulatorBackend(object):
