@@ -94,7 +94,7 @@ class ComputeEngine(BasicEngine):
             rewrite_id_map (dict[int, int]):
         """
 
-        if len(rewrite_id_map) != 0:
+        if rewrite_id_map:
             for qureg in cmd.all_qubits:
                 for qubit in qureg:
                     if qubit.id in rewrite_id_map:
