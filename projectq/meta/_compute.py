@@ -87,6 +87,21 @@ class ComputeEngine(BasicEngine):
         cmd.tags.append(UncomputeTag())
         return cmd
 
+    def _send_rewritten_command(self, cmd, rewrite_id_map):
+        """
+        Args:
+            cmd (projectq.ops.Command):
+            rewrite_id_map (dict[int, int]):
+        """
+
+        if len(rewrite_id_map) != 0:
+            for qureg in cmd.all_qubits:
+                for qubit in qureg:
+                    if qubit.id in rewrite_id_map:
+                        qubit.id = rewrite_id_map[qubit.id]
+
+        self.send([self._add_uncompute_tag(cmd.get_inverse())])
+
     def run_uncompute(self):
         """
         Send uncomputing gates.
@@ -191,32 +206,7 @@ class ComputeEngine(BasicEngine):
                     self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
             else:
-                if len(new_local_id) == 0:
-                    # No local qubits are active currently -> do standard
-                    # uncompute
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
-                else:
-                    # Process commands by replacing each local qubit from
-                    # compute section with new local qubit from the uncompute
-                    # section
-                    tmp_control_qubits = cmd.control_qubits
-                    changed = False
-                    for control_qubit in tmp_control_qubits:
-                        if control_qubit.id in new_local_id:
-                            control_qubit.id = new_local_id[control_qubit.id]
-                            changed = True
-                    if changed:
-                        cmd.control_qubits = tmp_control_qubits
-                    tmp_qubits = cmd.qubits
-                    changed = False
-                    for qureg in tmp_qubits:
-                        for qubit in qureg:
-                            if qubit.id in new_local_id:
-                                qubit.id = new_local_id[qubit.id]
-                                changed = True
-                    if changed:
-                        cmd.qubits = tmp_qubits
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
+                self._send_rewritten_command(cmd, new_local_id)
 
     def end_compute(self):
         """
