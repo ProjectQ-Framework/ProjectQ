@@ -14,7 +14,6 @@ import projectq.cengines
 from projectq.ops import Allocate, Deallocate
 from projectq.ops import Command
 from projectq.types import Qubit, Qureg
-from ._dirtyqubit import DirtyQubitTag
 
 
 class LastEngineException(Exception):
@@ -109,12 +108,12 @@ class BasicEngine(object):
         new_id = self.main_engine.get_new_qubit_id()
         qb = Qureg([Qubit(self, new_id)])
         if dirty:
-            if self.is_meta_tag_supported(DirtyQubitTag):
+            if self.is_meta_tag_supported(projectq.cengines.DirtyQubitTag):
                 oldnext = self.next_engine
 
                 def cmd_modifier(cmd):
                     assert(cmd.gate == Allocate)
-                    cmd.tags += [DirtyQubitTag()]
+                    cmd.tags += [projectq.cengines.DirtyQubitTag()]
                     return cmd
                 self.next_engine = projectq.cengines.CommandModifier(
                     cmd_modifier)
@@ -158,7 +157,7 @@ class BasicEngine(object):
 
                 def cmd_modifier(cmd):
                     assert(cmd.gate == Deallocate)
-                    cmd.tags += [DirtyQubitTag()]
+                    cmd.tags += [projectq.cengines.DirtyQubitTag()]
                     return cmd
                 self.next_engine = projectq.cengines.CommandModifier(
                     cmd_modifier)
