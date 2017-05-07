@@ -12,9 +12,8 @@
 
 """Tests for projectq.meta._dirtyqubit.py"""
 
+from projectq.cengines import _dirtyqubit
 from projectq.meta import ComputeTag
-
-from projectq.meta import _dirtyqubit
 
 
 def test_dirty_qubit_tag():
