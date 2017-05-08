@@ -13,22 +13,18 @@
 """Tests for projectq.cengines._basics.py."""
 
 import types
+
 import pytest
-# try:
-#     import mock
-# except ImportError:
-#     from unittest import mock
 
 from projectq import MainEngine
-from projectq.types import Qubit
 from projectq.cengines import DummyEngine, InstructionFilter
-from projectq.meta import DirtyQubitTag
+from projectq.cengines import _basics
 from projectq.ops import (AllocateQubitGate,
                           DeallocateQubitGate,
                           H, FastForwardingGate,
                           ClassicalInstructionGate)
-
-from projectq.cengines import _basics
+from projectq.tags import DirtyQubitTag
+from projectq.types import Qubit
 
 
 def test_basic_engine_init():

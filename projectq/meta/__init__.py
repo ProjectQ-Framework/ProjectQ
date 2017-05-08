@@ -21,7 +21,6 @@ and the compiler in writing/producing efficient code. It includes, e.g.,
 """
 
 
-from projectq.cengines import DirtyQubitTag
 from ._qubitplacement import QubitPlacementTag
 from ._loop import (LoopTag,
                     Loop)

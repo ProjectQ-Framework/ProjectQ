@@ -22,7 +22,6 @@ Tools to easily invert a sequence of gates.
 
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
-from projectq.meta import DirtyQubitTag
 
 
 class QubitManagementError(Exception):

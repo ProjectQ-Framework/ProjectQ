@@ -12,17 +12,16 @@
 
 """Tests for projectq.meta._compute.py"""
 
-import pytest
 import types
 import weakref
 
+import pytest
+
 from projectq import MainEngine
 from projectq.cengines import DummyEngine, CompareEngine
-from projectq.ops import H, Rx, Ry, Deallocate, Allocate, CNOT, NOT, FlushGate
-from projectq.types import WeakQubitRef
-from projectq.meta import DirtyQubitTag
-
 from projectq.meta import _compute
+from projectq.ops import H, Rx, Ry, Deallocate, Allocate, CNOT, NOT, FlushGate
+from projectq.tags import DirtyQubitTag
 
 
 def test_compute_tag():
