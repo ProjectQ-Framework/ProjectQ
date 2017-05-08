@@ -233,6 +233,6 @@ def test_command_str():
     cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd.tags = ["TestTag"]
     cmd.add_control_qubits(ctrl_qubit)
-    assert str(cmd) == "CRx(0.5) | ( Qubit[1], Qubit[0] )"
+    assert str(cmd) == "CRx(0.5) | ( Qureg[1], Qureg[0] )"
     cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
-    assert str(cmd2) == "Rx(0.5) | Qubit[0]"
+    assert str(cmd2) == "Rx(0.5) | Qureg[0]"
