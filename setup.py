@@ -11,6 +11,11 @@ exec(open('projectq/_version.py').read())
 # Readme file as long_description:
 long_description = open('README.rst').read()
 
+# Read in requirements.txt
+with open ('requirements.txt', 'r') as f_requirements:
+    requirements = f_requirements.readlines()
+requirements = [r.strip() for r in requirements]
+
 
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
@@ -159,8 +164,7 @@ setup(
                  'An open source software framework for quantum computing'),
     long_description=long_description,
     features={'cppsimulator': cppsim},
-    install_requires=['numpy', 'future', 'pytest>=3.0',
-                      'pybind11>=1.7', 'requests'],
+    install_requires=requirements,
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
     license='Apache 2',
