@@ -74,7 +74,7 @@ class TimeEvolution(BasicGate):
         for term in hamiltonian.terms:
             if self.hamiltonian.terms[term].imag == 0:
                 self.hamiltonian.terms[term] = float(
-                    self.hamiltonian.terms[term])
+                    self.hamiltonian.terms[term].real)
             else:
                 raise NotHermitianOperatorError("hamiltonian must be "
                                                 "hermitian and hence only "
