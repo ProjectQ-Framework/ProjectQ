@@ -7,6 +7,9 @@ ProjectQ - An open source software framework for quantum computing
 .. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
     :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
 
+.. image:: https://readthedocs.org/projects/projectq/badge/?version=latest
+    :target: http://projectq.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 ProjectQ is an open source effort for quantum computing.
 
@@ -26,8 +29,8 @@ This allows users to
 Getting started
 ---------------
 
-To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.ch/docs/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.ch/docs/examples.html>`__. Also, make sure to check out the `ProjectQ
-website <http://www.projectq.ch>`__ and the detailed `code documentation <http://projectq.ch/docs/>`__.
+To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.readthedocs.io/en/latest/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.readthedocs.io/en/latest/examples.html>`__. Also, make sure to check out the `ProjectQ
+website <http://www.projectq.ch>`__ and the detailed `code documentation <http://projectq.readthedocs.io/en/latest/>`__.
 
 How to contribute
 -----------------
