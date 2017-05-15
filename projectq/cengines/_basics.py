@@ -155,20 +155,11 @@ class BasicEngine(object):
         if qubit.id == -1:
             raise ValueError("Already deallocated.")
 
-        if qubit.id not in self.main_engine.dirty_qubits:
-            self.send([Command(self, Deallocate, ([qubit],))])
-        else:
-            oldnext = self.next_engine
-
-            def cmd_modifier(cmd):
-                assert(cmd.gate == Deallocate)
-                cmd.tags += [DirtyQubitTag()]
-                return cmd
-            self.next_engine = projectq.cengines.CommandModifier(
-                cmd_modifier)
-            self.next_engine.next_engine = oldnext
-            self.send([Command(self, Deallocate, ([qubit],))])
-            self.next_engine = oldnext
+        is_dirty = qubit.id in self.main_engine.dirty_qubits
+        self.send([Command(self,
+                           Deallocate,
+                           (Qureg([qubit]),),
+                           tags=[DirtyQubitTag()] if is_dirty else [])])
 
     def is_meta_tag_supported(self, meta_tag):
         """
