@@ -120,8 +120,11 @@ class Qubit(BasicQubit):
         """
         Destroy the qubit and deallocate it (automatically).
         """
-        self.engine.deallocate_qubit(self)
+        if self.id == -1:
+            return
+        weak_copy = WeakQubitRef(self.engine, self.id)
         self.id = -1
+        self.engine.deallocate_qubit(weak_copy)
 
     def __copy__(self):
         """
@@ -207,10 +210,27 @@ class Qureg(list):
         """
         Get string representation of a quantum register.
         """
-        if len(self) == 1:
-            return "Qubit[" + str(self[0]) + "]"
-        else:
-            return "Qureg" + str([q.id for q in self])
+        if len(self) == 0:
+            return "Qureg[]"
+
+        ids = [q.id for q in self[1:]]
+        ids.append(None)  # Forces a flush on last loop iteration.
+
+        out_list = []
+        start_id = self[0].id
+        count = 1
+        for qubit_id in ids:
+            if qubit_id == start_id + count:
+                count += 1
+                continue
+
+            out_list.append('{}-{}'.format(start_id, start_id + count - 1)
+                            if count > 1
+                            else '{}'.format(start_id))
+            start_id = qubit_id
+            count = 1
+
+        return "Qureg[{}]".format(', '.join(out_list))
 
     @property
     def engine(self):

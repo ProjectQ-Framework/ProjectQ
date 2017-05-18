@@ -87,9 +87,11 @@ class ComputeEngine(BasicEngine):
         cmd.tags.append(UncomputeTag())
         return cmd
 
-    def _undo_allocate_qubit_by_id(self, qubit_id):
+    def _suppress_default_dealloc(self, qubit_id):
         """
-        Deallocates the qubit with the given id in the main engine.
+        Prevents the qubit with the given id in the main engine from producing
+        a deallocate command when its __del__ method fires.
+
         Args:
             qubit_id (int):
         """
@@ -101,7 +103,8 @@ class ComputeEngine(BasicEngine):
             raise QubitManagementError(
                 'Q{} not in MainEngine.active_qubits.'.format(qubit_id))
 
-        matches_in_main[0].__del__()
+        # Block __del__ method by marking qubit as already deallocated.
+        matches_in_main[0].id = -1
 
     def _uncompute_assuming_no_deallocs(self):
         """
@@ -110,7 +113,9 @@ class ComputeEngine(BasicEngine):
         """
         for cmd in reversed(self._l):
             if cmd.gate == Allocate:
-                self._undo_allocate_qubit_by_id(cmd.qubits[0][0].id)
+                # We're going to send a tagged deallocate command instead of
+                # relying on the qubit's __del__ method.
+                self._suppress_default_dealloc(cmd.qubits[0][0].id)
 
             self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
@@ -190,7 +195,7 @@ class ComputeEngine(BasicEngine):
                     for active_qubit in self.main_engine.active_qubits:
                         if active_qubit.id == qubit_id:
                             active_qubit.id = -1
-                            del active_qubit
+                            active_qubit.__del__()
                             qubit_found = True
                             break
                     if not qubit_found:

@@ -12,12 +12,13 @@
 
 """Tests for projectq.types._qubits."""
 
-import pytest
 from copy import copy, deepcopy
 
-from projectq import MainEngine
-from projectq.cengines import DummyEngine
+import pytest
 
+from projectq import MainEngine
+from projectq.cengines import BasicEngine, DummyEngine
+from projectq.ops import Deallocate
 from projectq.types import _qubit
 
 
@@ -124,15 +125,26 @@ def test_weak_qubit_ref():
         qubit.__del__()
 
 
-@pytest.mark.parametrize("qubit_ids, expected",
-                         [([10], "Qubit[10]"), ([1, 2, 3], "Qureg[1, 2, 3]")])
-def test_qureg(qubit_ids, expected):
-    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
-    qureg = _qubit.Qureg()
-    for qubit_id in qubit_ids:
-        qubit = _qubit.Qubit(eng, qubit_id)
-        qureg.append(qubit)
-    assert str(qureg) == expected
+def test_qureg_str():
+    assert str(_qubit.Qureg([])) == 'Qureg[]'
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    a = eng.allocate_qureg(10)
+    b = eng.allocate_qureg(50)
+    c = eng.allocate_qubit()
+    d = eng.allocate_qubit()
+    e = eng.allocate_qubit()
+    assert str(a) == 'Qureg[0-9]'
+    assert str(b) == 'Qureg[10-59]'
+    assert str(c) == 'Qureg[60]'
+    assert str(d) == 'Qureg[61]'
+    assert str(e) == 'Qureg[62]'
+    assert str(_qubit.Qureg(c + e)) == 'Qureg[60, 62]'
+    assert str(_qubit.Qureg(a + b)) == 'Qureg[0-59]'
+    assert str(_qubit.Qureg(a + b + c)) == 'Qureg[0-60]'
+    assert str(_qubit.Qureg(a + b + d)) == 'Qureg[0-59, 61]'
+    assert str(_qubit.Qureg(a + b + e)) == 'Qureg[0-59, 62]'
+    assert str(_qubit.Qureg(b + a)) == 'Qureg[10-59, 0-9]'
+    assert str(_qubit.Qureg(e + b + a)) == 'Qureg[62, 10-59, 0-9]'
 
 
 def test_qureg_measure_if_qubit():
@@ -175,3 +187,37 @@ def test_qureg_engine():
     assert eng1 == qureg.engine
     qureg.engine = eng2
     assert qureg[0].engine == eng2 and qureg[1].engine == eng2
+
+
+def test_idempotent_del():
+    rec = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=rec, engine_list=[])
+    q = eng.allocate_qubit()[0]
+    rec.received_commands = []
+    assert len(rec.received_commands) == 0
+    q.__del__()
+    assert len(rec.received_commands) == 1
+    q.__del__()
+    assert len(rec.received_commands) == 1
+
+
+def test_idempotent_del_on_failure():
+    class InjectedBugEngine(BasicEngine):
+        def receive(self, cmds):
+            for cmd in cmds:
+                if cmd.gate == Deallocate:
+                    raise ValueError()
+
+    eng = MainEngine(backend=InjectedBugEngine(), engine_list=[])
+    q = eng.allocate_qubit()[0]
+
+    # First call to __del__ triggers the bug.
+    try:
+        q.__del__()
+        assert False
+    except ValueError:
+        pass
+
+    # Later calls to __del__ do nothing.
+    assert q.id == -1
+    q.__del__()
