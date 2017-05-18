@@ -87,8 +87,12 @@ class ComputeEngine(BasicEngine):
         cmd.tags.append(UncomputeTag())
         return cmd
 
-    def _send_rewritten_command(self, cmd, rewrite_id_map):
+    def _send_inverse_with_rewritten_qubits(self, cmd, rewrite_id_map):
         """
+        Rewrites the given command so it uses global qubit ids instead of
+        local-to-compute-block qubit ids, then forwards the command's inverse
+        to the next engine.
+
         Args:
             cmd (projectq.ops.Command):
             rewrite_id_map (dict[int, int]):
@@ -206,7 +210,9 @@ class ComputeEngine(BasicEngine):
                     self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
             else:
-                self._send_rewritten_command(cmd, new_local_id)
+                # Forward the inverse command, but with local-to-compute-block
+                # qubit ids changed to the corresponding global qubit ids.
+                self._send_inverse_with_rewritten_qubits(cmd, new_local_id)
 
     def end_compute(self):
         """
