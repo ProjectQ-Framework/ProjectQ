@@ -66,6 +66,13 @@ def test_init_not_hermitian():
         gate = te.TimeEvolution(1, hamiltonian)
 
 
+def test_init_cast_complex_to_float():
+    hamiltonian = QubitOperator("Z2", 2+0j)
+    gate = te.TimeEvolution(1, hamiltonian)
+    assert isinstance(gate.hamiltonian.terms[((2,'Z'),)], float)
+    pytest.approx(gate.hamiltonian.terms[((2,'Z'),)]) == 2.0
+
+
 def test_init_negative_time():
     hamiltonian = QubitOperator("Z2", 2)
     gate = te.TimeEvolution(-1, hamiltonian)
