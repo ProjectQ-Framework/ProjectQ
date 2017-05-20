@@ -127,7 +127,7 @@ class ComputeEngine(BasicEngine):
                     for active_qubit in self.main_engine.active_qubits:
                         if active_qubit.id == qubit_id:
                             active_qubit.id = -1
-                            del active_qubit
+                            active_qubit.__del__()
                             qubit_found = True
                             break
                     if not qubit_found:
@@ -181,7 +181,7 @@ class ComputeEngine(BasicEngine):
                     for active_qubit in self.main_engine.active_qubits:
                         if active_qubit.id == qubit_id:
                             active_qubit.id = -1
-                            del active_qubit
+                            active_qubit.__del__()
                             qubit_found = True
                             break
                     if not qubit_found:
