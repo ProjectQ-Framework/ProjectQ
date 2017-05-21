@@ -170,7 +170,7 @@ def test_automatic_deallocation_of_qubit_in_uncompute():
     assert not ancilla[0] in eng.active_qubits
     assert backend.received_commands[1].gate == Rx(0.6)
     assert backend.received_commands[2].gate == Rx(-0.6)
-    # Test that there are no two deallocate gates sent
+    # Test that there are no additional deallocate gates
     assert len(backend.received_commands) == 4
 
 
