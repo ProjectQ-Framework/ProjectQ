@@ -126,6 +126,40 @@ class Simulator(BasicEngine):
         return self._simulator.get_expectation_value(operator,
                                                      [qb.id for qb in qureg])
 
+    def get_probability(self, bit_string, qureg):
+        """
+        Return the probability of the outcome `bit_string` when measuring
+        the quantum register `qureg`.
+
+        Args:
+            bit_string (list[bool|int]|string[0|1]): Measurement outcome.
+            qureg (Qureg|list[Qubit]): Quantum register.
+
+        Returns:
+            Probability of measuring the provided bit string.
+        """
+        bit_string = [bool(int(b)) for b in bit_string]
+        return self._simulator.get_probability(bit_string,
+                                               [qb.id for qb in qureg])
+
+    def get_amplitude(self, bit_string, qureg):
+        """
+        Return the probability amplitude of the supplied `bit_string`.
+        The ordering is given by the quantum register `qureg`, which must
+        contain all allocated qubits.
+
+        Args:
+            bit_string (list[bool|int]|string[0|1]): Computational basis state
+            qureg (Qureg|list[Qubit]): Quantum register determining the
+                ordering. Must contain all allocated qubits.
+
+        Returns:
+            Probability amplitude of the provided bit string.
+        """
+        bit_string = [bool(int(b)) for b in bit_string]
+        return self._simulator.get_amplitude(bit_string,
+                                             [qb.id for qb in qureg])
+
     def cheat(self):
         """
         Access the ordering of the qubits and the state vector directly.
