@@ -52,6 +52,8 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("emulate_math", &emulate_math_wrapper<QuRegs>)
         .def("get_expectation_value", &Simulator::get_expectation_value)
         .def("emulate_time_evolution", &Simulator::emulate_time_evolution)
+        .def("get_probability", &Simulator::get_probability)
+        .def("get_amplitude", &Simulator::get_amplitude)
         .def("run", &Simulator::run)
         .def("cheat", &Simulator::cheat)
         ;

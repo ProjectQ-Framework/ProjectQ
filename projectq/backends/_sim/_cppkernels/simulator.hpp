@@ -264,6 +264,41 @@ public:
         return expectation;
     }
 
+    calc_type get_probability(std::vector<bool> const& bit_string,
+                              std::vector<unsigned> const& ids){
+        run();
+        for (auto id : ids)
+            if (map_.count(id) == 0)
+                throw(std::runtime_error("get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."));
+        std::size_t mask = 0, bit_str = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            mask |= 1UL << map_[ids[i]];
+            bit_str |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        calc_type probability = 0.;
+        #pragma omp parallel for reduction(+:probability) schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i)
+            if ((i & mask) == bit_str)
+                probability += std::norm(vec_[i]);
+        return probability;
+    }
+
+    complex_type const& get_amplitude(std::vector<bool> const& bit_string,
+                                      std::vector<unsigned> const& ids){
+        run();
+        std::size_t chk = 0;
+        std::size_t index = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            if (map_.count(ids[i]) == 0)
+                break;
+            chk |= 1UL << map_[ids[i]];
+            index |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        if (chk + 1 != vec_.size())
+            throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
+        return vec_[index];
+    }
+
     void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
                                 std::vector<unsigned> const& ids,
                                 std::vector<unsigned> const& ctrl){
