@@ -184,17 +184,12 @@ class Qureg(list):
 
     def __int__(self):
         """
-        Return measured value if Qureg consists of 1 qubit only.
+        Return the measured little-endian integer in the quregister.
 
         Raises:
-            Exception if more than 1 qubit resides in this register (then you
-            need to specify which value to get using qureg[???])
+            NotYetMeasuredError if any of the qubits isn't measured.
         """
-        if len(self) == 1:
-            return int(self[0])
-        else:
-            raise Exception("__int__(qureg): Quantum register contains more "
-                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
+        return sum(1 << i if bool(self[i]) else 0 for i in range(len(self)))
 
     def __nonzero__(self):
         """

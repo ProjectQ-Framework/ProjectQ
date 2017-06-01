@@ -166,6 +166,34 @@ def test_qureg_measure_if_qubit():
     assert qureg1.__nonzero__()
 
 
+def test_qureg_measure_multi_qubit_int():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    a = eng.allocate_qureg(4)
+
+    assert int(_qubit.Qureg([])) == 0
+
+    eng.set_measurement_result(a[3], False)
+    eng.set_measurement_result(a[2], True)
+    eng.set_measurement_result(a[1], False)
+    eng.set_measurement_result(a[0], True)
+    assert int(a) == 0b0101
+    assert int(_qubit.Qureg(reversed(a))) == 0b1010
+    assert int(_qubit.Qureg([a[0], a[2], a[1], a[3]])) == 0b0011
+    assert int(_qubit.Qureg([a[0], a[1]])) == 0b01
+
+    eng.set_measurement_result(a[3], True)
+    eng.set_measurement_result(a[2], True)
+    eng.set_measurement_result(a[1], True)
+    eng.set_measurement_result(a[0], True)
+    assert int(a) == 15
+
+    eng.set_measurement_result(a[3], False)
+    eng.set_measurement_result(a[2], False)
+    eng.set_measurement_result(a[1], False)
+    eng.set_measurement_result(a[0], True)
+    assert int(a) == 1
+
+
 def test_qureg_measure_exception():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qureg = _qubit.Qureg()
