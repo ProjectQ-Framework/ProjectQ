@@ -107,26 +107,13 @@ class BasicEngine(object):
         """
         new_id = self.main_engine.get_new_qubit_id()
         qb = Qureg([Qubit(self, new_id)])
+        cmd = Command(self, Allocate, (qb,))
         if dirty:
             from projectq.meta import DirtyQubitTag
-            if self.is_meta_tag_supported(DirtyQubitTag):
-                oldnext = self.next_engine
-
-                def cmd_modifier(cmd):
-                    assert(cmd.gate == Allocate)
-                    cmd.tags += [DirtyQubitTag()]
-                    return cmd
-                self.next_engine = projectq.cengines.CommandModifier(
-                    cmd_modifier)
-                self.next_engine.next_engine = oldnext
-                self.send([Command(self, Allocate, (qb,))])
-                self.next_engine = oldnext
-                self.main_engine.active_qubits.add(qb[0])
-                self.main_engine.dirty_qubits.add(qb[0].id)
-                return qb
-
-        self.send([Command(self, Allocate, (qb,))])
+            cmd.tags += [DirtyQubitTag()]
+            self.main_engine.dirty_qubits.add(qb[0].id)
         self.main_engine.active_qubits.add(qb[0])
+        self.send([cmd])
         return qb
 
     def allocate_qureg(self, n):
