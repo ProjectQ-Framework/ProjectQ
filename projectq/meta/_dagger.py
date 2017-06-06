@@ -20,8 +20,6 @@ Tools to easily invert a sequence of gates.
         Rz(0.5) | qubit2
 """
 
-from __future__ import absolute_import
-
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
 from ._util import insert_engine, drop_engine_after

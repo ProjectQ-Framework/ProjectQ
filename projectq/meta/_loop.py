@@ -21,8 +21,6 @@ Example:
         Rz(M_PI/3.) | qb
 """
 
-from __future__ import absolute_import
-
 from copy import deepcopy
 
 from projectq.cengines import BasicEngine

@@ -19,8 +19,6 @@ of the entire operation on the value of a qubit / register (only Action needs
 controls). This file also defines the corresponding meta tags.
 """
 
-from __future__ import absolute_import
-
 from copy import deepcopy
 
 import projectq

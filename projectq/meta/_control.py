@@ -21,8 +21,6 @@ Example:
             X | qubit3
 """
 
-from __future__ import absolute_import
-
 from projectq.cengines import BasicEngine
 from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import ClassicalInstructionGate
