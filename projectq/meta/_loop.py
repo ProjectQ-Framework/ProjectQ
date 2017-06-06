@@ -21,11 +21,13 @@ Example:
         Rz(M_PI/3.) | qb
 """
 
+from __future__ import absolute_import
+
 from copy import deepcopy
 
-from projectq.ops import Allocate, Deallocate
-
 from projectq.cengines import BasicEngine
+from projectq.ops import Allocate, Deallocate
+from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
@@ -232,19 +234,16 @@ class Loop(object):
         """
         self.engine = engine
         self.num = num
+        self._loop_eng = None
 
     def __enter__(self):
         if self.num > 1:
-            loop_eng = LoopEngine(self.num)
-            loop_eng.main_engine = self.engine.main_engine
-            oldnext = self.engine.next_engine
-            self.engine.next_engine = loop_eng
-            loop_eng.next_engine = oldnext
-            self._loop_eng = loop_eng
+            self._loop_eng = LoopEngine(self.num)
+            insert_engine(self.engine, self._loop_eng)
 
     def __exit__(self, type, value, traceback):
         if self.num > 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()
-            oldnext = self._loop_eng.next_engine
-            self.engine.next_engine = oldnext
+            self._loop_eng = None
+            drop_engine_after(self.engine)

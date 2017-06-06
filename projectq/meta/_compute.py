@@ -18,11 +18,15 @@ annotate Compute / Action / Uncompute sections, facilitating the conditioning
 of the entire operation on the value of a qubit / register (only Action needs
 controls). This file also defines the corresponding meta tags.
 """
+
+from __future__ import absolute_import
+
 from copy import deepcopy
 
 import projectq
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
+from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
@@ -145,17 +149,16 @@ class ComputeEngine(BasicEngine):
             if cmd.gate == Deallocate:
                 assert (cmd.qubits[0][0].id) in ids_local_to_compute
                 # Create new local qubit which lives within uncompute section
-                # Allocate needs to have old tags + uncompute tag
-                oldnext = self.next_engine
 
+                # Allocate needs to have old tags + uncompute tag
                 def add_uncompute(command, old_tags=deepcopy(cmd.tags)):
                     command.tags = old_tags + [UncomputeTag()]
                     return command
-                self.next_engine = projectq.cengines.CommandModifier(
-                    add_uncompute)
-                self.next_engine.next_engine = oldnext
+                tagger_eng = projectq.cengines.CommandModifier(add_uncompute)
+                insert_engine(self, tagger_eng)
                 new_local_qb = self.allocate_qubit()
-                self.next_engine = oldnext
+                drop_engine_after(self)
+
                 new_local_id[cmd.qubits[0][0].id] = deepcopy(
                     new_local_qb[0].id)
                 # Set id of new_local_qb to -1 such that it doesn't send a
@@ -351,18 +354,16 @@ class Compute(object):
                 commands (normally: MainEngine).
         """
         self.engine = engine
+        self._compute_eng = None
 
     def __enter__(self):
-        compute_eng = ComputeEngine()
-        compute_eng.main_engine = self.engine.main_engine
-        oldnext = self.engine.next_engine
-        self.engine.next_engine = compute_eng
-        compute_eng.next_engine = oldnext
-        self._compute_eng = compute_eng
+        self._compute_eng = ComputeEngine()
+        insert_engine(self.engine, self._compute_eng)
 
     def __exit__(self, type, value, traceback):
         # notify ComputeEngine that the compute section is done
         self._compute_eng.end_compute()
+        self._compute_eng = None
 
 
 class CustomUncompute(object):
@@ -407,16 +408,11 @@ class CustomUncompute(object):
         # after __enter__
         self._allocated_qubit_ids = compute_eng._allocated_qubit_ids.copy()
         self._deallocated_qubit_ids = compute_eng._deallocated_qubit_ids.copy()
-        oldnext = compute_eng.next_engine
-        self.engine.next_engine = oldnext
+        drop_engine_after(self.engine)
 
         # Now add uncompute engine
-        uncompute_eng = UncomputeEngine()
-        uncompute_eng.main_engine = self.engine.main_engine
-        oldnext = self.engine.next_engine
-        self.engine.next_engine = uncompute_eng
-        uncompute_eng.next_engine = oldnext
-        self._uncompute_eng = uncompute_eng
+        self._uncompute_eng = UncomputeEngine()
+        insert_engine(self.engine, self._uncompute_eng)
 
     def __exit__(self, type, value, traceback):
         # Check that all qubits allocated within Compute or within
@@ -431,8 +427,7 @@ class CustomUncompute(object):
                 "been allocated in the with Compute(eng) or with " +
                 "CustomUncompute(eng) context.")
         # remove uncompute engine
-        oldnext = self._uncompute_eng.next_engine
-        self.engine.next_engine = oldnext
+        drop_engine_after(self.engine)
 
 
 def Uncompute(engine):
@@ -453,5 +448,4 @@ def Uncompute(engine):
                                     "corresponding 'with Compute' statement "
                                     "found.")
     compute_eng.run_uncompute()
-    oldnext = compute_eng.next_engine
-    engine.next_engine = oldnext
+    drop_engine_after(engine)
