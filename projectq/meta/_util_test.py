@@ -24,6 +24,7 @@ def test_insert_then_drop():
 
     assert d1.next_engine is d3
     assert d2.next_engine is None
+    assert d3.next_engine is None
     assert d1.main_engine is eng
     assert d2.main_engine is None
     assert d3.main_engine is eng
@@ -31,6 +32,7 @@ def test_insert_then_drop():
     insert_engine(d1, d2)
     assert d1.next_engine is d2
     assert d2.next_engine is d3
+    assert d3.next_engine is None
     assert d1.main_engine is eng
     assert d2.main_engine is eng
     assert d3.main_engine is eng
@@ -38,6 +40,7 @@ def test_insert_then_drop():
     drop_engine_after(d1)
     assert d1.next_engine is d3
     assert d2.next_engine is None
+    assert d3.next_engine is None
     assert d1.main_engine is eng
     assert d2.main_engine is None
     assert d3.main_engine is eng
