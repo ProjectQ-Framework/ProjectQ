@@ -234,7 +234,7 @@ class Loop(object):
         self.num = num
 
     def __enter__(self):
-        if self.num > 1:
+        if self.num != 1:
             loop_eng = LoopEngine(self.num)
             loop_eng.main_engine = self.engine.main_engine
             oldnext = self.engine.next_engine
@@ -243,7 +243,7 @@ class Loop(object):
             self._loop_eng = loop_eng
 
     def __exit__(self, type, value, traceback):
-        if self.num > 1:
+        if self.num != 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()
             oldnext = self._loop_eng.next_engine
