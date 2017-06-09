@@ -231,8 +231,15 @@ class Loop(object):
                 with Loop(eng, 4):
                     H | qb
                     Rz(M_PI/3.) | qb
+        Raises:
+            TypeError: If number of iterations (num) is not an integer
+            ValueError: If number of iterations (num) is not >= 0
         """
         self.engine = engine
+        if not isinstance(num, int):
+            raise TypeError("Number of loop iterations must be an int.")
+        if num < 0:
+            raise ValueError("Number of loop iterations must be >=0.")
         self.num = num
 
     def __enter__(self):

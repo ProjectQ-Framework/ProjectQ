@@ -37,6 +37,20 @@ def test_loop_tag():
     assert not tag0 == other_tag
 
 
+def test_loop_wrong_input_type():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    qubit = eng.allocate_qubit()
+    with pytest.raises(TypeError):
+        _loop.Loop(eng, 1.1)
+
+
+def test_loop_negative_iteration_number():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    qubit = eng.allocate_qubit()
+    with pytest.raises(ValueError):
+        _loop.Loop(eng, -1)
+
+
 def test_loop_with_supported_loop_tag_and_local_qubits():
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
