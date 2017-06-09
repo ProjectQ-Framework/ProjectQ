@@ -113,6 +113,23 @@ def test_empty_loop():
         H | qubit
     assert len(backend.received_commands) == 1
 
+
+def test_empty_loop_when_loop_tag_supported_by_backend():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
+
+    def allow_loop_tags(self, meta_tag):
+            return meta_tag == _loop.LoopTag
+
+    backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
+    qubit = eng.allocate_qubit()
+
+    assert len(backend.received_commands) == 1
+    with _loop.Loop(eng, 0):
+        H | qubit
+    assert len(backend.received_commands) == 1
+
+
 def test_loop_with_supported_loop_tag_depending_on_num():
     # Test that if loop has only one iteration, there is no loop tag
     backend = DummyEngine(save_commands=True)

@@ -147,6 +147,8 @@ class LoopEngine(BasicEngine):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
+            if self._tag.num == 0:
+                return
             for cmd in command_list:
                 if cmd.gate == Allocate:
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
