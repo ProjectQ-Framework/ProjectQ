@@ -147,6 +147,8 @@ class LoopEngine(BasicEngine):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
+            if self._tag.num == 0:
+                return
             for cmd in command_list:
                 if cmd.gate == Allocate:
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
@@ -229,12 +231,19 @@ class Loop(object):
                 with Loop(eng, 4):
                     H | qb
                     Rz(M_PI/3.) | qb
+        Raises:
+            TypeError: If number of iterations (num) is not an integer
+            ValueError: If number of iterations (num) is not >= 0
         """
         self.engine = engine
+        if not isinstance(num, int):
+            raise TypeError("Number of loop iterations must be an int.")
+        if num < 0:
+            raise ValueError("Number of loop iterations must be >=0.")
         self.num = num
 
     def __enter__(self):
-        if self.num > 1:
+        if self.num != 1:
             loop_eng = LoopEngine(self.num)
             loop_eng.main_engine = self.engine.main_engine
             oldnext = self.engine.next_engine
@@ -243,7 +252,7 @@ class Loop(object):
             self._loop_eng = loop_eng
 
     def __exit__(self, type, value, traceback):
-        if self.num > 1:
+        if self.num != 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()
             oldnext = self._loop_eng.next_engine
