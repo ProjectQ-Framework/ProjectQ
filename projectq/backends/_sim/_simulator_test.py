@@ -363,6 +363,20 @@ def test_simulator_time_evolution(sim):
     assert numpy.allclose(res, final_wavefunction)
 
 
+def test_simulator_set_wavefunction(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(2)
+    wf = [0., 0., math.sqrt(0.2), math.sqrt(0.8)]
+    with pytest.raises(RuntimeError):
+        eng.backend.set_wavefunction(wf, qubits)
+    eng.flush()
+    eng.backend.set_wavefunction(wf, qubits)
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[0]])) == .8
+    assert pytest.approx(eng.backend.get_probability('01', qubits)) == .2
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[1]])) == 1.
+    Measure | qubits
+
+
 def test_simulator_no_uncompute_exception(sim):
     eng = MainEngine(sim, [])
     qubit = eng.allocate_qubit()

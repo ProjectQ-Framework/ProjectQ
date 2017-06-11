@@ -64,6 +64,7 @@ public:
     }
 
     bool get_classical_value(unsigned id, calc_type tol = 1.e-12){
+        run();
         unsigned pos = map_[id];
         std::size_t delta = (1UL << pos);
 
@@ -267,9 +268,8 @@ public:
     calc_type get_probability(std::vector<bool> const& bit_string,
                               std::vector<unsigned> const& ids){
         run();
-        for (auto id : ids)
-            if (map_.count(id) == 0)
-                throw(std::runtime_error("get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."));
+        if (!check_ids(ids))
+            throw(std::runtime_error("get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."));
         std::size_t mask = 0, bit_str = 0;
         for (unsigned i = 0; i < ids.size(); ++i){
             mask |= 1UL << map_[ids[i]];
@@ -349,6 +349,22 @@ public:
         }
     }
 
+    void set_wavefunction(StateVector const& wavefunction, std::vector<unsigned> const& ordering){
+        run();
+        // make sure there are 2^n amplitudes for n qubits
+        assert(wavefunction.size() == (1UL << ordering.size()));
+        // check that all qubits have been allocated previously
+        if (map_.size() != ordering.size() || !check_ids(ordering))
+            throw(std::runtime_error("set_wavefunction(): Invalid mapping provided. Please make sure all qubits have been allocated previously (call eng.flush())."));
+
+        // set mapping and wavefunction
+        for (unsigned i = 0; i < ordering.size(); ++i)
+            map_[ordering[i]] = i;
+        #pragma omp parallel for schedule(static)
+        for (std::size_t i = 0; i < wavefunction.size(); ++i)
+            vec_[i] = wavefunction[i];
+    }
+
     void run(){
         if (fused_gates_.size() < 1)
             return;
@@ -416,6 +432,13 @@ private:
         for (auto c : ctrls)
             ctrlmask |= (1UL << map_[c]);
         return ctrlmask;
+    }
+
+    bool check_ids(std::vector<unsigned> const& ids){
+        for (auto id : ids)
+            if (!map_.count(id))
+                return false;
+        return true;
     }
 
     unsigned N_; // #qubits

@@ -384,6 +384,28 @@ class Simulator(object):
                         self._state[id2],
                         m)
 
+    def set_wavefunction(self, wavefunction, ordering):
+        """
+        Set wavefunction and qubit ordering.
+
+        Args:
+            wavefunction (list[complex]): Array of complex amplitudes
+                describing the wavefunction (must be normalized).
+            ordering (list): List of ids describing the new ordering of qubits
+                (i.e., the ordering of the provided wavefunction).
+        """
+        # wavefunction contains 2^n values for n qubits
+        assert len(wavefunction) == (1 << len(ordering))
+        # all qubits must have been allocated before
+        if (not all([Id in self._map for Id in ordering])
+                or len(self._map) != len(ordering)):
+            raise RuntimeError("set_wavefunction(): Invalid mapping provided."
+                               " Please make sure all qubits have been "
+                               "allocated previously (call eng.flush()).")
+
+        self._state = _np.array(wavefunction)
+        self._map = {ordering[i]: i for i in range(len(ordering))}
+
     def run(self):
         """
         Dummy function to implement the same interface as the c++ simulator.
