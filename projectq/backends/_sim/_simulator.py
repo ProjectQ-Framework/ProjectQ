@@ -120,6 +120,11 @@ class Simulator(BasicEngine):
 
         Returns:
             Expectation value
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
         """
         operator = [(list(term), coeff) for (term, coeff)
                     in qubit_operator.terms.items()]
@@ -137,6 +142,11 @@ class Simulator(BasicEngine):
 
         Returns:
             Probability of measuring the provided bit string.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
         """
         bit_string = [bool(int(b)) for b in bit_string]
         return self._simulator.get_probability(bit_string,
@@ -155,10 +165,36 @@ class Simulator(BasicEngine):
 
         Returns:
             Probability amplitude of the provided bit string.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
         """
         bit_string = [bool(int(b)) for b in bit_string]
         return self._simulator.get_amplitude(bit_string,
                                              [qb.id for qb in qureg])
+
+    def set_wavefunction(self, wavefunction, qureg):
+        """
+        Set the wavefunction and the qubit ordering of the simulator.
+
+        The simulator will adopt the ordering of qureg (instead of reordering
+        the wavefunction).
+
+        Args:
+            wavefunction (list[complex]): Array of complex amplitudes
+                describing the wavefunction (must be normalized).
+            qureg (Qureg|list[Qubit]): Quantum register determining the
+                ordering. Must contain all allocated qubits.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
+        """
+        self._simulator.set_wavefunction(wavefunction,
+                                         [qb.id for qb in qureg])
 
     def cheat(self):
         """
@@ -171,6 +207,10 @@ class Simulator(BasicEngine):
             A tuple where the first entry is a dictionary mapping qubit
             indices to bit-locations and the second entry is the corresponding
             state vector.
+
+        Note:
+            Make sure all previous commands have passed through the
+            compilation chain (call main_engine.flush() to make sure).
         """
         return self._simulator.cheat()
 

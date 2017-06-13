@@ -54,6 +54,7 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("emulate_time_evolution", &Simulator::emulate_time_evolution)
         .def("get_probability", &Simulator::get_probability)
         .def("get_amplitude", &Simulator::get_amplitude)
+        .def("set_wavefunction", &Simulator::set_wavefunction)
         .def("run", &Simulator::run)
         .def("cheat", &Simulator::cheat)
         ;
