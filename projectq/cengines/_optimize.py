@@ -49,29 +49,31 @@ class LocalOptimizer(BasicEngine):
         Send n gate operations of the qubit with index idx to the next engine.
         """
         il = self._l[idx]  # temporary label for readability
-        for i in range(0, min(n, len(il))):  # loop over first n operations
+        for i in range(min(n, len(il))):  # loop over first n operations
             # send all gates before n-qubit gate for other qubits involved
             # --> recursively call send_helper
-            for qreg in il[i].all_qubits:  # loop over tuples of quregs
-                for qb in qreg:  # ... and qubits involved
-                    Id = qb.id
-                    if Id != idx:  # is a different qubit than the current one
-                        try:
-                            gateloc = 0
-                            # find location of this gate within its list
-                            while self._l[Id][gateloc] != il[i]:
-                                gateloc += 1
+            other_involved_qubits = [qb
+                                     for qreg in il[i].all_qubits
+                                     for qb in qreg
+                                     if qb.id != idx]
+            for qb in other_involved_qubits:
+                Id = qb.id
+                try:
+                    gateloc = 0
+                    # find location of this gate within its list
+                    while self._l[Id][gateloc] != il[i]:
+                        gateloc += 1
 
-                            gateloc = self._optimize(Id, gateloc)
+                    gateloc = self._optimize(Id, gateloc)
 
-                            # flush the gates before the n-qubit gate
-                            self._send_qubit_pipeline(Id, gateloc)
-                            # delete the n-qubit gate, we're taking care of it
-                            # and don't want the other qubit to do so
-                            self._l[Id] = self._l[Id][1:]
-                        except IndexError:
-                            print("Invalid qubit pipeline encountered (in the"
-                                  " process of shutting down?).")
+                    # flush the gates before the n-qubit gate
+                    self._send_qubit_pipeline(Id, gateloc)
+                    # delete the n-qubit gate, we're taking care of it
+                    # and don't want the other qubit to do so
+                    self._l[Id] = self._l[Id][1:]
+                except IndexError:
+                    print("Invalid qubit pipeline encountered (in the"
+                          " process of shutting down?).")
 
             # all qubits that need to be flushed have been flushed
             # --> send on the n-qubit gate
@@ -93,28 +95,21 @@ class LocalOptimizer(BasicEngine):
         # 1-qubit gate: only gate at index i in list #idx is involved
         if N == 1:
             return [i]
-        indices = [0] * N
 
-        numidentical = 0  # number of identical commands (gate & arguments)
-        j = 0
-        while j < i:
-            # this gate would otherwise be recognized as the right one in
-            # other qubits find #times this happens before the right gate
-            # is found
-            if self._l[idx][j] == self._l[idx][i]:
-                numidentical += 1
-            j += 1
-
-        for k in range(len(IDs)):
-            j = found = 0
-            while found <= numidentical:
-                # if ==, it may be the same gate, check using numidentical
-                if self._l[IDs[k]][j] == self._l[idx][i]:
-                    found += 1
-                j += 1
-
-            # this is the index of the gate in the gate list of qubit IDs[k]
-            indices[k] = j - 1
+        # When the same gate appears multiple time, we need to make sure not to
+        # match earlier instances of the gate applied to the same qubits. So we
+        # count how many there are, and skip over them when looking in the
+        # other lists.
+        cmd = self._l[idx][i]
+        num_identical_to_skip = sum(1
+                                    for prev_cmd in self._l[idx][:i]
+                                    if prev_cmd == cmd)
+        indices = []
+        for Id in IDs:
+            identical_indices = [i
+                                 for i, c in enumerate(self._l[Id])
+                                 if c == cmd]
+            indices.append(identical_indices[num_identical_to_skip])
         return indices
 
     def _optimize(self, idx, lim=None):

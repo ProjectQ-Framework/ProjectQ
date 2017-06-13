@@ -40,6 +40,9 @@ or, alternatively, `clone/download <https://github.com/projectq-framework>`_ thi
 
 	Please note that the compiler you specify must support **C++11**!
 
+.. note::
+	Please use pip version v6.1.0 or higher as this ensures that dependencies are installed in the `correct order <https://pip.pypa.io/en/stable/reference/pip_install/#installation-order>`_.
+
 
 Detailed instructions and OS-specific hints
 -------------------------------------------

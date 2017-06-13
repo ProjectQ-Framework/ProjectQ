@@ -64,6 +64,7 @@ public:
     }
 
     bool get_classical_value(unsigned id, calc_type tol = 1.e-12){
+        run();
         unsigned pos = map_[id];
         std::size_t delta = (1UL << pos);
 
@@ -264,6 +265,40 @@ public:
         return expectation;
     }
 
+    calc_type get_probability(std::vector<bool> const& bit_string,
+                              std::vector<unsigned> const& ids){
+        run();
+        if (!check_ids(ids))
+            throw(std::runtime_error("get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."));
+        std::size_t mask = 0, bit_str = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            mask |= 1UL << map_[ids[i]];
+            bit_str |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        calc_type probability = 0.;
+        #pragma omp parallel for reduction(+:probability) schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i)
+            if ((i & mask) == bit_str)
+                probability += std::norm(vec_[i]);
+        return probability;
+    }
+
+    complex_type const& get_amplitude(std::vector<bool> const& bit_string,
+                                      std::vector<unsigned> const& ids){
+        run();
+        std::size_t chk = 0;
+        std::size_t index = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            if (map_.count(ids[i]) == 0)
+                break;
+            chk |= 1UL << map_[ids[i]];
+            index |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        if (chk + 1 != vec_.size())
+            throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
+        return vec_[index];
+    }
+
     void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
                                 std::vector<unsigned> const& ids,
                                 std::vector<unsigned> const& ctrl){
@@ -312,6 +347,22 @@ public:
                 vec_[j] = output_state[j];
             }
         }
+    }
+
+    void set_wavefunction(StateVector const& wavefunction, std::vector<unsigned> const& ordering){
+        run();
+        // make sure there are 2^n amplitudes for n qubits
+        assert(wavefunction.size() == (1UL << ordering.size()));
+        // check that all qubits have been allocated previously
+        if (map_.size() != ordering.size() || !check_ids(ordering))
+            throw(std::runtime_error("set_wavefunction(): Invalid mapping provided. Please make sure all qubits have been allocated previously (call eng.flush())."));
+
+        // set mapping and wavefunction
+        for (unsigned i = 0; i < ordering.size(); ++i)
+            map_[ordering[i]] = i;
+        #pragma omp parallel for schedule(static)
+        for (std::size_t i = 0; i < wavefunction.size(); ++i)
+            vec_[i] = wavefunction[i];
     }
 
     void run(){
@@ -381,6 +432,13 @@ private:
         for (auto c : ctrls)
             ctrlmask |= (1UL << map_[c]);
         return ctrlmask;
+    }
+
+    bool check_ids(std::vector<unsigned> const& ids){
+        for (auto id : ids)
+            if (!map_.count(id))
+                return false;
+        return true;
     }
 
     unsigned N_; // #qubits

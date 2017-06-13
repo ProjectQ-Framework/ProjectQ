@@ -16,6 +16,7 @@ and the C++ simulator as backends.
 """
 
 import copy
+import math
 import numpy
 import pytest
 import random
@@ -38,7 +39,8 @@ from projectq.ops import (H,
                           BasicGate,
                           BasicMathGate,
                           QubitOperator,
-                          TimeEvolution)
+                          TimeEvolution,
+                          All)
 from projectq.meta import Control
 
 from projectq.backends import Simulator
@@ -204,6 +206,70 @@ def test_simulator_emulation(sim):
     Measure | (qubit1 + qubit2 + qubit3)
 
 
+def test_simulator_probability(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(6)
+    All(H) | qubits
+    eng.flush()
+    bits = [0, 0, 1, 0, 1, 0]
+    for i in range(6):
+        assert (eng.backend.get_probability(bits[:i], qubits[:i])
+                == pytest.approx(0.5**i))
+    extra_qubit = eng.allocate_qubit()
+    with pytest.raises(RuntimeError):
+        eng.backend.get_probability([0], extra_qubit)
+    del extra_qubit
+    All(H) | qubits
+    Ry(2 * math.acos(math.sqrt(0.3))) | qubits[0]
+    eng.flush()
+    assert eng.backend.get_probability([0], [qubits[0]]) == pytest.approx(0.3)
+    Ry(2 * math.acos(math.sqrt(0.4))) | qubits[2]
+    eng.flush()
+    assert eng.backend.get_probability([0], [qubits[2]]) == pytest.approx(0.4)
+    assert (eng.backend.get_probability([0, 0], qubits[:3:2])
+            == pytest.approx(0.12))
+    assert (eng.backend.get_probability([0, 1], qubits[:3:2])
+            == pytest.approx(0.18))
+    assert (eng.backend.get_probability([1, 0], qubits[:3:2])
+            == pytest.approx(0.28))
+    Measure | qubits
+
+
+def test_simulator_amplitude(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(6)
+    All(X) | qubits
+    All(H) | qubits
+    eng.flush()
+    bits = [0, 0, 1, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(1. / 8.)
+    bits = [0, 0, 0, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    bits = [0, 1, 1, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    All(H) | qubits
+    All(X) | qubits
+    Ry(2 * math.acos(0.3)) | qubits[0]
+    eng.flush()
+    bits = [0] * 6
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(0.3)
+    bits[0] = 1
+    assert (eng.backend.get_amplitude(bits, qubits)
+            == pytest.approx(math.sqrt(0.91)))
+    Measure | qubits
+    # raises if not all qubits are in the list:
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits[:-1])
+    # doesn't just check for length:
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits[:-1] + [qubits[0]])
+    extra_qubit = eng.allocate_qubit()
+    eng.flush()
+    # there is a new qubit now!
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits)
+
+
 def test_simulator_expectation(sim):
     eng = MainEngine(sim, [])
     qureg = eng.allocate_qureg(3)
@@ -297,13 +363,28 @@ def test_simulator_time_evolution(sim):
     assert numpy.allclose(res, final_wavefunction)
 
 
+def test_simulator_set_wavefunction(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(2)
+    wf = [0., 0., math.sqrt(0.2), math.sqrt(0.8)]
+    with pytest.raises(RuntimeError):
+        eng.backend.set_wavefunction(wf, qubits)
+    eng.flush()
+    eng.backend.set_wavefunction(wf, qubits)
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[0]])) == .8
+    assert pytest.approx(eng.backend.get_probability('01', qubits)) == .2
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[1]])) == 1.
+    Measure | qubits
+
+
 def test_simulator_no_uncompute_exception(sim):
     eng = MainEngine(sim, [])
     qubit = eng.allocate_qubit()
     H | qubit
     with pytest.raises(RuntimeError):
         qubit[0].__del__()
-    Measure | qubit
+    # If you wanted to keep using the qubit, you shouldn't have deleted it.
+    assert qubit[0].id == -1
 
 
 class MockSimulatorBackend(object):
