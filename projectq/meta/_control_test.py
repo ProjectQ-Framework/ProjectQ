@@ -14,14 +14,13 @@
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import Command, H, Rx
-from projectq.meta import (DirtyQubitTag,
-                           ComputeTag,
+from projectq.meta import (ComputeTag,
                            UncomputeTag,
                            Compute,
                            Uncompute)
-
 from projectq.meta import _control
+from projectq.ops import Command, H, Rx
+from projectq.tags import DirtyQubitTag
 
 
 def test_control_engine_has_compute_tag():

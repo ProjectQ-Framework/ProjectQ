@@ -10,16 +10,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for projectq.meta._dirtyqubit.py"""
+"""Tests for projectq.tags._dirtyqubit.py"""
 
 from projectq.meta import ComputeTag
-
-from projectq.meta import _dirtyqubit
+from projectq.tags import DirtyQubitTag
 
 
 def test_dirty_qubit_tag():
-    tag0 = _dirtyqubit.DirtyQubitTag()
-    tag1 = _dirtyqubit.DirtyQubitTag()
+    tag0 = DirtyQubitTag()
+    tag1 = DirtyQubitTag()
     tag2 = ComputeTag()
     assert tag0 == tag1
     assert not tag0 != tag1

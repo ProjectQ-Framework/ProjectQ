@@ -10,10 +10,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from projectq.ops import Allocate, Deallocate
-from projectq.types import Qubit, Qureg
-from projectq.ops import Command
 import projectq.cengines
+from projectq.ops import Allocate, Deallocate
+from projectq.ops import Command
+from projectq.tags import DirtyQubitTag
+from projectq.types import Qubit, Qureg
 
 
 class LastEngineException(Exception):
@@ -109,7 +110,6 @@ class BasicEngine(object):
         qb = Qureg([Qubit(self, new_id)])
         cmd = Command(self, Allocate, (qb,))
         if dirty:
-            from projectq.meta import DirtyQubitTag
             if self.is_meta_tag_supported(DirtyQubitTag):
                 cmd.tags += [DirtyQubitTag()]
                 self.main_engine.dirty_qubits.add(qb[0].id)
@@ -143,7 +143,6 @@ class BasicEngine(object):
         if qubit.id == -1:
             raise ValueError("Already deallocated.")
 
-        from projectq.meta import DirtyQubitTag
         is_dirty = qubit.id in self.main_engine.dirty_qubits
         self.send([Command(self,
                            Deallocate,
