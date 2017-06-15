@@ -110,8 +110,9 @@ class BasicEngine(object):
         cmd = Command(self, Allocate, (qb,))
         if dirty:
             from projectq.meta import DirtyQubitTag
-            cmd.tags += [DirtyQubitTag()]
-            self.main_engine.dirty_qubits.add(qb[0].id)
+            if self.is_meta_tag_supported(DirtyQubitTag):
+                cmd.tags += [DirtyQubitTag()]
+                self.main_engine.dirty_qubits.add(qb[0].id)
         self.main_engine.active_qubits.add(qb[0])
         self.send([cmd])
         return qb
