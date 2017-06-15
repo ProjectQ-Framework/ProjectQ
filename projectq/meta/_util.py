@@ -12,7 +12,11 @@
 
 
 def insert_engine(prev_engine, engine_to_insert):
-    """Inserts an engine into the singly-linked list of engines.
+    """
+    Inserts an engine into the singly-linked list of engines.
+
+    It also sets the correct main_engine for engine_to_insert.
+
     Args:
         prev_engine (projectq.cengines.BasicEngine):
             The engine just before the insertion point.
@@ -25,7 +29,9 @@ def insert_engine(prev_engine, engine_to_insert):
 
 
 def drop_engine_after(prev_engine):
-    """Removes an engine from the singly-linked list of engines.
+    """
+    Removes an engine from the singly-linked list of engines.
+    
     Args:
         prev_engine (projectq.cengines.BasicEngine):
             The engine just before the engine to drop.
