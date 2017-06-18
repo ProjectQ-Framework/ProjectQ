@@ -113,7 +113,7 @@ class BuildExt(build_ext):
         openmp = ''
         if has_flag(self.compiler, '-fopenmp'):
             openmp = '-fopenmp'
-        elif has_flag(self.compiler, '-openmp'):
+        elif has_flag(self.compiler, '-qopenmp'):
             openmp = '-openmp'
         if ct == 'msvc':
             openmp = ''  # supports only OpenMP 2.0
