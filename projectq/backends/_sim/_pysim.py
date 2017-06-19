@@ -430,7 +430,6 @@ class Simulator(object):
             pos = self._map[ids[i]]
             mask |= (1 << pos)
             val |= (int(values[i]) << pos)
-        
         nrm = 0.
         for i in range(len(self._state)):
             if (mask & i) == val:
