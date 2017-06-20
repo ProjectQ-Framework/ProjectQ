@@ -87,7 +87,10 @@ Detailed instructions and OS-specific hints
 
 	We will show two options on how to install the fast C++ simulator. The first one is the easiest and requires only the standard compiler which Apple distributes with XCode. The second option uses macports to install the simulator with additional support for multi-threading by using OpenMP which makes it slightly faster. We show how to install the required C++ compiler (clang) which supports OpenMP and additionally show how to install a newer python version.
 
-1. Installation using XCode and default python:
+.. note::
+	Depending on your system you might need to use `sudo` for the installation.
+
+1. Installation using XCode and the default python:
 
 	Install XCode by opening a terminal and run the following command:
 
