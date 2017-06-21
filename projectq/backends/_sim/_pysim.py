@@ -406,6 +406,44 @@ class Simulator(object):
         self._state = _np.array(wavefunction)
         self._map = {ordering[i]: i for i in range(len(ordering))}
 
+    def collapse_wavefunction(self, ids, values):
+        """
+        Collapse a quantum register onto a classical basis state.
+
+        Args:
+            ids (list[int]): Qubit IDs to collapse.
+            values (list[bool]): Measurement outcome for each of the qubit IDs
+                in `ids`.
+        Raises:
+            RuntimeError: If probability of outcome is ~0 or unknown qubits
+                are provided.
+        """
+        assert len(ids) == len(values)
+        # all qubits must have been allocated before
+        if not all([Id in self._map for Id in ids]):
+            raise RuntimeError("collapse_wavefunction(): Unknown qubit id(s)"
+                               " provided. Try calling eng.flush() before "
+                               "invoking this function.")
+        mask = 0
+        val = 0
+        for i in range(len(ids)):
+            pos = self._map[ids[i]]
+            mask |= (1 << pos)
+            val |= (int(values[i]) << pos)
+        nrm = 0.
+        for i in range(len(self._state)):
+            if (mask & i) == val:
+                nrm += _np.abs(self._state[i]) ** 2
+        if nrm < 1.e-12:
+            raise RuntimeError("collapse_wavefunction(): Invalid collapse! "
+                               "Probability is ~0.")
+        inv_nrm = 1. / _np.sqrt(nrm)
+        for i in range(len(self._state)):
+            if (mask & i) != val:
+                self._state[i] = 0.
+            else:
+                self._state[i] *= inv_nrm
+
     def run(self):
         """
         Dummy function to implement the same interface as the c++ simulator.
