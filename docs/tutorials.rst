@@ -85,26 +85,26 @@ Detailed instructions and OS-specific hints
 
 	In order to install the fast C++ simulator, we require that your system has a C++ compiler (see option 3 below on how to only install the slower Python simulator via the `--without-cppsimulator` parameter)
 
-	We will show two options on how to install the fast C++ simulator. The first one is the easiest and requires only the standard compiler which Apple distributes with XCode. The second option uses macports to install the simulator with additional support for multi-threading by using OpenMP which makes it slightly faster. We show how to install the required C++ compiler (clang) which supports OpenMP and additionally show how to install a newer python version.
+	Below you will find two options to install the fast C++ simulator. The first one is the easiest and requires only the standard compiler which Apple distributes with XCode. The second option uses macports to install the simulator with additional support for multi-threading by using OpenMP, which makes it slightly faster. We show how to install the required C++ compiler (clang) which supports OpenMP and additionally, we show how to install a newer python version.
 
 .. note::
 	Depending on your system you might need to use `sudo` for the installation.
 
 1. Installation using XCode and the default python:
 
-	Install XCode by opening a terminal and run the following command:
+	Install XCode by opening a terminal and running the following command:
 
 	.. code-block:: bash
 
 		xcode-select --install
 
-	Next, you need to install Python and pip. See option 2 on how to install a newer python version with macports. Here, we are using the standard python which is preinstalled with macOS. Pip can be installed by:
+	Next, you will need to install Python and pip. See option 2 for information on how to install a newer python version with macports. Here, we are using the standard python which is preinstalled with macOS. Pip can be installed by:
 
 	.. code-block:: bash
 
 		sudo easy_install pip
 
-	Now, you can install ProjectQ with the C++ simulator by the standard command:
+	Now, you can install ProjectQ with the C++ simulator using the standard command:
 
 	.. code-block:: bash
 
@@ -131,7 +131,7 @@ Detailed instructions and OS-specific hints
 
 		sudo port install py35-pip
 
-	Next, we can install ProjectQ with the high performance simulator written in C++. Therefore, we first need to install a suitable compiler with support for **C++11**, OpenMP, and instrinsics. The best option is to install clang 3.9 also using macports (note: gcc installed via macports does not work)
+	Next, we can install ProjectQ with the high performance simulator written in C++. First, we will need to install a suitable compiler with support for **C++11**, OpenMP, and instrinsics. The best option is to install clang 3.9 also using macports (note: gcc installed via macports does not work)
 
 	.. code-block:: bash
 
@@ -153,7 +153,7 @@ Detailed instructions and OS-specific hints
 
 		python -m pip install --user projectq
 
-	which most likely will fail and then try again with the flag ``--without-cppsimulator``:
+	which most likely will fail. Then, try again with the flag ``--without-cppsimulator``:
 
 	.. code-block:: bash
 
