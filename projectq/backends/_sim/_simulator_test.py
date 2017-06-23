@@ -313,6 +313,19 @@ def test_simulator_expectation(sim):
     assert .4 == pytest.approx(expectation)
 
 
+def test_simulator_expectation_exception(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('Z2')
+    sim.get_expectation_value(op, qureg)
+    op2 = QubitOperator('Z3')
+    with pytest.raises(Exception):
+        sim.get_expectation_value(op2, qureg)
+    op3 = QubitOperator('Z1') + QubitOperator('X1 Y3')
+    with pytest.raises(Exception):
+        sim.get_expectation_value(op3, qureg)
+
+
 def test_simulator_time_evolution(sim):
     N = 9  # number of qubits
     time_to_evolve = 1.1  # time to evolve for
