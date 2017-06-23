@@ -390,6 +390,33 @@ def test_simulator_set_wavefunction(sim):
     Measure | qubits
 
 
+def test_simulator_collapse_wavefunction(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(4)
+    # unknown qubits: raises
+    with pytest.raises(RuntimeError):
+        eng.backend.collapse_wavefunction(qubits, [0] * 4)
+    eng.flush()
+    eng.backend.collapse_wavefunction(qubits, [0] * 4)
+    assert pytest.approx(eng.backend.get_probability([0] * 4, qubits)) == 1.
+    All(H) | qubits[1:]
+    eng.flush()
+    assert pytest.approx(eng.backend.get_probability([0] * 4, qubits)) == .125
+    # impossible outcome: raises
+    with pytest.raises(RuntimeError):
+        eng.backend.collapse_wavefunction(qubits, [1] + [0] * 3)
+    eng.backend.collapse_wavefunction(qubits[:-1], [0, 1, 0])
+    assert (pytest.approx(eng.backend.get_probability([0, 1, 0, 1], qubits))
+            == .5)
+    eng.backend.set_wavefunction([1.] + [0.] * 15, qubits)
+    H | qubits[0]
+    CNOT | (qubits[0], qubits[1])
+    eng.flush()
+    eng.backend.collapse_wavefunction([qubits[0]], [1])
+    assert (pytest.approx(eng.backend.get_probability([1, 1], qubits[0:2]))
+            == 1.)
+
+
 def test_simulator_no_uncompute_exception(sim):
     eng = MainEngine(sim, [])
     qubit = eng.allocate_qubit()
