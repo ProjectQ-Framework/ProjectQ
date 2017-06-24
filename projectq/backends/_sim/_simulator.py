@@ -133,7 +133,7 @@ class Simulator(BasicEngine):
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
-                raise Exception("qubit_operator acts on more qubits than"
+                raise Exception("qubit_operator acts on more qubits than "
                                 "contained in the qureg.")
         operator = [(list(term), coeff) for (term, coeff)
                     in qubit_operator.terms.items()]
