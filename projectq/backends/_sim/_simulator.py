@@ -125,7 +125,16 @@ class Simulator(BasicEngine):
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
         """
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
         operator = [(list(term), coeff) for (term, coeff)
                     in qubit_operator.terms.items()]
         return self._simulator.get_expectation_value(operator,
