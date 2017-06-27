@@ -1,7 +1,7 @@
 Examples and Tutorials
 ======================
 
-This folder contains a collection of **examples** and **tutorials** for how to use ProjectQ. They offer a great way to get started. While this collection is growing, it will never by possible to cover everything. Therefore, we refer the reader to also have a look at:
+This folder contains a collection of **examples** and **tutorials** for how to use ProjectQ. They offer a great way to get started. While this collection is growing, it will never be possible to cover everything. Therefore, we refer the readers to also have a look at:
 
 * Our complete **code documentation** which can be found online `here <http://projectq.readthedocs.io/en/latest/>`__. Besides the newest version of the documentation it also provides older versions. Moreover, these docs can be downloaded for offline usage.
 
