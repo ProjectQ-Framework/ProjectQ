@@ -29,7 +29,9 @@ This allows users to
 Getting started
 ---------------
 
-To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.readthedocs.io/en/latest/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.readthedocs.io/en/latest/examples.html>`__. Also, make sure to check out the `ProjectQ
+To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.readthedocs.io/en/latest/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.readthedocs.io/en/latest/examples.html>`__. More example codes and tutorials can be found in the examples folder `here <https://github.com/ProjectQ-Framework/ProjectQ/tree/develop/examples>`__ on GitHub.
+
+Also, make sure to check out the `ProjectQ
 website <http://www.projectq.ch>`__ and the detailed `code documentation <http://projectq.readthedocs.io/en/latest/>`__.
 
 How to contribute
