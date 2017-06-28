@@ -13,7 +13,7 @@ ProjectQ - An open source software framework for quantum computing
 
 ProjectQ is an open source effort for quantum computing.
 
-The first version (v0.1) features a compilation framework capable of
+It features a compilation framework capable of
 targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
