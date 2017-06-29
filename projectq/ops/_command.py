@@ -311,6 +311,5 @@ class Command(object):
                 qstring += str(Qureg(qreg))
                 qstring += ", "
             qstring = qstring[:-2] + " )"
-        #qstring = convert_qubits_to_string(qubits)
         cstring = "C" * len(ctrlqubits)
         return cstring + str(self.gate) + " | " + qstring

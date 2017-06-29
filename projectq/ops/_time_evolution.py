@@ -123,11 +123,11 @@ class TimeEvolution(BasicGate):
             factor = None
             for term in self.hamiltonian.terms:
                 if factor is None:
-                    factor = self.hamiltonian.terms[term] / float(
-                        other.hamiltonian.terms[term])
+                    factor = (self.hamiltonian.terms[term] /
+                              float(other.hamiltonian.terms[term]))
                 else:
-                    tmp = self.hamiltonian.terms[term] / float(
-                        other.hamiltonian.terms[term])
+                    tmp = (self.hamiltonian.terms[term] /
+                           float(other.hamiltonian.terms[term]))
                     if not abs(factor - tmp) <= (
                             rel_tol * max(abs(factor), abs(tmp))):
                         raise NotMergeable("Cannot merge these two gates.")

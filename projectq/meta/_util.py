@@ -31,7 +31,7 @@ def insert_engine(prev_engine, engine_to_insert):
 def drop_engine_after(prev_engine):
     """
     Removes an engine from the singly-linked list of engines.
-    
+
     Args:
         prev_engine (projectq.cengines.BasicEngine):
             The engine just before the engine to drop.
