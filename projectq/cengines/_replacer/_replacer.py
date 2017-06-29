@@ -77,8 +77,9 @@ class AutoReplacer(BasicEngine):
     further. The loaded setup is used to find decomposition rules appropriate
     for each command (e.g., setups.default).
     """
-    def __init__(self, decompositionRuleSet, decomposition_chooser=
-                 lambda cmd, decomposition_list: decomposition_list[0]):
+    def __init__(self, decompositionRuleSet,
+                 decomposition_chooser=lambda cmd,
+                 decomposition_list: decomposition_list[0]):
         """
         Initialize an AutoReplacer.
 

@@ -257,7 +257,6 @@ class Simulator(BasicEngine):
             Exception: If a non-single-qubit gate needs to be processed
                 (which should never happen due to is_available).
         """
-        #print(cmd)
         if cmd.gate == Measure:
             assert(get_control_count(cmd) == 0)
             ids = [qb.id for qr in cmd.qubits for qb in qr]

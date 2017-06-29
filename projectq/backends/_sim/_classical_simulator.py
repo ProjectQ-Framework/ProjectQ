@@ -27,7 +27,7 @@ class ClassicalSimulator(BasicEngine):
     """
     A simple introspective simulator that only permits classical operations.
 
-    Allows allocation, deallocation, measuring (no-pop), flushing (no-op),
+    Allows allocation, deallocation, measuring (no-op), flushing (no-op),
     controls, NOTs, and any BasicMathGate. Supports reading/writing directly
     from/to bits and registers of bits.
     """
