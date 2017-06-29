@@ -66,6 +66,12 @@ def test_ibm_backend_init():
     assert backend.qasm == ""
 
 
+def test_ibm_empty_circuit():
+    backend = _ibm.IBMBackend(verbose=True)
+    eng = MainEngine(backend=backend)
+    eng.flush()
+
+
 def test_ibm_backend_requires_mapper():
     backend = _ibm.IBMBackend()
     eng = MainEngine(backend, [])
