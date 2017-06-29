@@ -79,6 +79,25 @@ def test_ibm_backend_requires_mapper():
         eng.allocate_qubit()
 
 
+def test_ibm_sent_error(monkeypatch):
+    # patch send
+    def mock_send(*args, **kwargs):
+        raise TypeError
+    monkeypatch.setattr(_ibm, "send", mock_send)
+
+    backend = _ibm.IBMBackend(verbose=True)
+    eng = MainEngine(backend=backend, engine_list=[IBMCNOTMapper()])
+    qubit = eng.allocate_qubit()
+    X | qubit
+    with pytest.raises(Exception):
+        qubit[0].__del__()
+        eng.flush()
+    # atexit sends another FlushGate, therefore we remove the backend:
+    dummy = DummyEngine()
+    dummy.is_last_engine = True
+    eng.next_engine = dummy
+
+
 def test_ibm_backend_functional_test(monkeypatch):
     correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
                     'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
