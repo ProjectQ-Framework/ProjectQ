@@ -5,7 +5,7 @@ This folder contains a collection of **examples** and **tutorials** for how to u
 
 * Our complete **code documentation** which can be found online `here <http://projectq.readthedocs.io/en/latest/>`__. Besides the newest version of the documentation it also provides older versions. Moreover, these docs can be downloaded for offline usage.
 
-* Our **unit tests**. You hear right, all our code is tested! In fact more than 99% of all the code lines are covered with various unit tests since the first release. Tests are that important to us (not like in other projects where tests are added every now and then...). Therefore, if you are wondering how a specific feature can be used, have a look at the **unit tests**, where you can find plenty of example usages. Finding the unit tests is very easy, e.g., the tests of the simulator implemented in *ProjectQ/projectq/backends/_sim/_simulator.py* can all be found in the same folder in the file *ProjectQ/projectq/backends/_sim/_simulator_test.py*.
+* Our **unit tests**. More than 99% of all lines of code are covered with various unit tests since the first release. Tests are really important to us. Therefore, if you are wondering how a specific feature can be used, have a look at the **unit tests**, where you can find plenty of examples. Finding the unit tests is very easy: E.g., the tests of the simulator implemented in *ProjectQ/projectq/backends/_sim/_simulator.py* can all be found in the same folder in the file *ProjectQ/projectq/backends/_sim/_simulator_test.py*.
 
 Getting started / background information
 ----------------------------------------
