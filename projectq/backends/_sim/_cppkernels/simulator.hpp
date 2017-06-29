@@ -365,6 +365,36 @@ public:
             vec_[i] = wavefunction[i];
     }
 
+    void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
+        run();
+        assert(ids.size() == values.size());
+        if (!check_ids(ids))
+            throw(std::runtime_error("collapse_wavefunction(): Unknown qubit id(s) provided. Try calling eng.flush() before invoking this function."));
+        std::size_t mask = 0, val = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            mask |= (1UL << map_[ids[i]]);
+            val |= ((values[i]?1UL:0UL) << map_[ids[i]]);
+        }
+        // set bad entries to 0 and compute probability of outcome to renormalize
+        calc_type N = 0.;
+        #pragma omp parallel for reduction(+:N) schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i){
+            if ((i & mask) == val)
+                N += std::norm(vec_[i]);
+        }
+        if (N < 1.e-12)
+            throw(std::runtime_error("collapse_wavefunction(): Invalid collapse! Probability is ~0."));
+        // re-normalize (if possible)
+        N = 1./std::sqrt(N);
+        #pragma omp parallel for schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i){
+            if ((i & mask) != val)
+                vec_[i] = 0.;
+            else
+                vec_[i] *= N;
+        }
+    }
+
     void run(){
         if (fused_gates_.size() < 1)
             return;

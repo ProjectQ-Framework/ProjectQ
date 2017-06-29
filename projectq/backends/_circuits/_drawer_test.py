@@ -94,9 +94,9 @@ def test_drawer_qubitmapping():
     # invalid mapping should raise an error:
     invalid_mappings = [{3: 1, 0: 2}, {0: 1, 2: 1}]
     for invalid_mapping in invalid_mappings:
+        drawer = CircuitDrawer()
         with pytest.raises(RuntimeError):
             drawer.set_qubit_locations(invalid_mapping)
-            drawer = CircuitDrawer()
 
     eng = MainEngine(drawer, [])
     qubit = eng.allocate_qubit()

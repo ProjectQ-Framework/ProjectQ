@@ -125,7 +125,16 @@ class Simulator(BasicEngine):
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
         """
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
         operator = [(list(term), coeff) for (term, coeff)
                     in qubit_operator.terms.items()]
         return self._simulator.get_expectation_value(operator,
@@ -196,6 +205,27 @@ class Simulator(BasicEngine):
         self._simulator.set_wavefunction(wavefunction,
                                          [qb.id for qb in qureg])
 
+    def collapse_wavefunction(self, qureg, values):
+        """
+        Collapse a quantum register onto a classical basis state.
+
+        Args:
+            qureg (Qureg|list[Qubit]): Qubits to collapse.
+            values (list[bool]): Measurement outcome for each of the qubits
+                in `qureg`.
+
+        Raises:
+            RuntimeError: If an outcome has probability (approximately) 0 or
+                if unknown qubits are provided (see note).
+
+        Note:
+            Make sure all previous commands have passed through the
+            compilation chain (call main_engine.flush() to make sure).
+        """
+        return self._simulator.collapse_wavefunction([qb.id for qb in qureg],
+                                                     [bool(v) for v in
+                                                      values])
+
     def cheat(self):
         """
         Access the ordering of the qubits and the state vector directly.
@@ -227,7 +257,6 @@ class Simulator(BasicEngine):
             Exception: If a non-single-qubit gate needs to be processed
                 (which should never happen due to is_available).
         """
-        #print(cmd)
         if cmd.gate == Measure:
             assert(get_control_count(cmd) == 0)
             ids = [qb.id for qr in cmd.qubits for qb in qr]

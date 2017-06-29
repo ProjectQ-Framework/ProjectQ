@@ -145,8 +145,13 @@ def test_basic_rotation_gate_str():
     assert str(basic_rotation_gate) == "BasicRotationGate(0.5)"
 
 
+def test_basic_rotation_tex_str():
+    basic_rotation_gate = _basics.BasicRotationGate(0.5)
+    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5}$"
+
+
 @pytest.mark.parametrize("input_angle, inverse_angle",
-                         [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5)])
+                         [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5), (0.0, 0)])
 def test_basic_rotation_gate_get_inverse(input_angle, inverse_angle):
     basic_rotation_gate = _basics.BasicRotationGate(input_angle)
     inverse = basic_rotation_gate.get_inverse()
