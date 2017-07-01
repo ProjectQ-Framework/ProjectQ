@@ -45,6 +45,9 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 .. note::
 	Please use pip version v6.1.0 or higher as this ensures that dependencies are installed in the `correct order <https://pip.pypa.io/en/stable/reference/pip_install/#installation-order>`_.
 
+.. note::
+	ProjectQ should be installed on each computer individually as the C++ simulator compilation creates binaries which are optimized for the specific hardware on which it is being installed (potentially using our AVX version and `-march=native`). Therefore, sharing the same ProjectQ installation across different hardware can cause problems.
+
 
 Detailed instructions and OS-specific hints
 -------------------------------------------
