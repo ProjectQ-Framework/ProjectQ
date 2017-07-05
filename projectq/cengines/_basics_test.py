@@ -77,9 +77,7 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
 
     # Allocate an actual dirty qubit
     def allow_dirty_qubits(self, meta_tag):
-        if meta_tag == DirtyQubitTag:
-            return True
-        return False
+        return meta_tag == DirtyQubitTag
 
     saving_backend.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
                                                           saving_backend)
@@ -127,6 +125,13 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     for cmd in saving_backend.received_commands[5:]:
         assert cmd.gate == DeallocateQubitGate()
     assert saving_backend.received_commands[7].tags == [DirtyQubitTag()]
+
+
+def test_deallocate_qubit_exception():
+    eng = _basics.BasicEngine()
+    qubit = Qubit(eng, -1)
+    with pytest.raises(ValueError):
+        eng.deallocate_qubit(qubit)
 
 
 def test_basic_engine_is_meta_tag_supported():

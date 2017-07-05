@@ -26,3 +26,7 @@ def test_qubit_placement_tag():
     assert not tag0 == tag2
     assert not tag0 == tag3
     assert not tag3 == tag2
+    assert not tag0 != tag1
+    assert tag0 != tag2
+    assert tag0 != tag3
+    assert tag3 != tag2
