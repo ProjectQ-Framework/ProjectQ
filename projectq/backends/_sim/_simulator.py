@@ -140,6 +140,40 @@ class Simulator(BasicEngine):
         return self._simulator.get_expectation_value(operator,
                                                      [qb.id for qb in qureg])
 
+    def apply_qubit_operator(self, qubit_operator, qureg):
+        """
+        Apply a (possibly non-unitary) qubit_operator to the current wave
+        function represented by the supplied quantum register.
+
+        Args:
+            qubit_operator (projectq.ops.QubitOperator): Operator to apply.
+            qureg (list[Qubit],Qureg): Quantum bits to which to apply the
+                operator.
+
+        Warning:
+            This function allows applying non-unitary gates and it will not
+            re-normalize the wave function! It is for numerical experiments
+            only and should not be used for other purposes.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
+        """
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff)
+                    in qubit_operator.terms.items()]
+        return self._simulator.apply_qubit_operator(operator,
+                                                    [qb.id for qb in qureg])
+
     def get_probability(self, bit_string, qureg):
         """
         Return the probability of the outcome `bit_string` when measuring

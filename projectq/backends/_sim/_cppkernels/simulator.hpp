@@ -265,6 +265,22 @@ public:
         return expectation;
     }
 
+    void apply_qubit_operator(TermsDict const& td, std::vector<unsigned> const& ids){
+        run();
+        auto new_state = StateVector(vec_.size(), 0.);
+        auto current_state = vec_;
+        for (auto const& term : td){
+            auto const& coefficient = term.second;
+            apply_term(term.first, ids, {});
+            #pragma omp parallel for schedule(static)
+            for (std::size_t i = 0; i < vec_.size(); ++i){
+                new_state[i] += coefficient * vec_[i];
+                vec_[i] = current_state[i];
+            }
+        }
+        vec_ = std::move(new_state);
+    }
+
     calc_type get_probability(std::vector<bool> const& bit_string,
                               std::vector<unsigned> const& ids){
         run();

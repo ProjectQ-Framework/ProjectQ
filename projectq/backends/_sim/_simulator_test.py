@@ -326,6 +326,43 @@ def test_simulator_expectation_exception(sim):
         sim.get_expectation_value(op3, qureg)
 
 
+def test_simulator_applyqubitoperator_exception(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('Z2')
+    sim.apply_qubit_operator(op, qureg)
+    op2 = QubitOperator('Z3')
+    with pytest.raises(Exception):
+        sim.apply_qubit_operator(op2, qureg)
+    op3 = QubitOperator('Z1') + QubitOperator('X1 Y3')
+    with pytest.raises(Exception):
+        sim.apply_qubit_operator(op3, qureg)
+
+
+def test_simulator_applyqubitoperator(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('X0 Y1 Z2')
+    sim.apply_qubit_operator(op, qureg)
+    X | qureg[0]
+    Y | qureg[1]
+    Z | qureg[2]
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1.)
+
+    H | qureg[0]
+    op_H = 1. / math.sqrt(2.) * (QubitOperator('X0') + QubitOperator('Z0'))
+    sim.apply_qubit_operator(op_H, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1.)
+
+    op_Proj0 = 0.5 * (QubitOperator('') + QubitOperator('Z0'))
+    op_Proj1 = 0.5 * (QubitOperator('') - QubitOperator('Z0'))
+    H | qureg[0]
+    sim.apply_qubit_operator(op_Proj0, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1. / math.sqrt(2.))
+    sim.apply_qubit_operator(op_Proj1, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(0.)
+
+
 def test_simulator_time_evolution(sim):
     N = 9  # number of qubits
     time_to_evolve = 1.1  # time to evolve for
