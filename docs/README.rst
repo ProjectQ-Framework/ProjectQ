@@ -11,14 +11,14 @@ Our detailed code documentation can be found online at `Read the Docs <http://pr
 Building the docs locally
 -------------------------
 
-Before submitting new code, please make sure that the new or changed docstrings render nicely by building the docs manually. Therefore, one has to install sphinx and the Read the Docs theme:
+Before submitting new code, please make sure that the new or changed docstrings render nicely by building the docs manually. To this end, one has to install sphinx and the Read the Docs theme:
 
 .. code-block:: bash
 
     python -m pip install sphinx
     python -m pip install sphinx_rtd_theme
 
-To build the documentation, go to this folder and execute:
+To build the documentation, navigate to this folder and execute:
 
 .. code-block:: bash
 
