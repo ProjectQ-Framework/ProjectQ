@@ -41,6 +41,7 @@ public:
     using RndEngine = std::mt19937;
     using Term = std::vector<std::pair<unsigned, char>>;
     using TermsDict = std::vector<std::pair<Term, calc_type>>;
+    using ComplexTermsDict = std::vector<std::pair<Term, complex_type>>;
 
     Simulator(unsigned seed = 1) : N_(0), vec_(1,0.), fusion_qubits_min_(4),
                                    fusion_qubits_max_(5), rnd_eng_(seed) {
@@ -203,7 +204,6 @@ public:
         }
         else
             fused_gates_ = fused_gates;
-        //run();
     }
 
     template <class F, class QuReg>
@@ -265,7 +265,7 @@ public:
         return expectation;
     }
 
-    void apply_qubit_operator(TermsDict const& td, std::vector<unsigned> const& ids){
+    void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
         run();
         auto new_state = StateVector(vec_.size(), 0.);
         auto current_state = vec_;
