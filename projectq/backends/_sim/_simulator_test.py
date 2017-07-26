@@ -42,7 +42,7 @@ from projectq.ops import (H,
                           QubitOperator,
                           TimeEvolution,
                           All)
-from projectq.meta import Control
+from projectq.meta import Control, Dagger
 
 from projectq.backends import Simulator
 
@@ -221,13 +221,28 @@ def test_simulator_kqubit_gate(sim):
 
     eng = MainEngine(sim, [])
     qureg = eng.allocate_qureg(4)
+    qubit = eng.allocate_qubit()
     Rx(-0.3) | qureg[0]
     Rx(-0.8) | qureg[1]
     Ry(-0.1) | qureg[2]
     Rz(-0.9) | qureg[3]
     Ry(0.1) | qureg[3]
-    KQubitGate() | qureg
-    assert sim.get_amplitude('0' * len(qureg), qureg) == pytest.approx(1.)
+    X | qubit
+    with Control(eng, qubit):
+        KQubitGate() | qureg
+    X | qubit
+    with Control(eng, qubit):
+        with Dagger(eng):
+            KQubitGate() | qureg
+    assert sim.get_amplitude('0' * 5, qubit + qureg) == pytest.approx(1.)
+
+    class LargerGate(BasicGate):
+        @property
+        def matrix(self):
+            return numpy.eye(2 ** 6)
+
+    with pytest.raises(Exception):
+        LargerGate() | (qureg + qubit)
 
 
 def test_simulator_probability(sim):
