@@ -33,6 +33,7 @@ from projectq.ops import (H,
                           S,
                           Rx,
                           Ry,
+                          Rz,
                           CNOT,
                           Toffoli,
                           Measure,
@@ -41,7 +42,7 @@ from projectq.ops import (H,
                           QubitOperator,
                           TimeEvolution,
                           All)
-from projectq.meta import Control
+from projectq.meta import Control, Dagger
 
 from projectq.backends import Simulator
 
@@ -87,7 +88,7 @@ class Mock1QubitGate(BasicGate):
             return [[0, 1], [1, 0]]
 
 
-class Mock2QubitGate(BasicGate):
+class Mock6QubitGate(BasicGate):
         def __init__(self):
             BasicGate.__init__(self)
             self.cnt = 0
@@ -95,7 +96,7 @@ class Mock2QubitGate(BasicGate):
         @property
         def matrix(self):
             self.cnt += 1
-            return [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+            return numpy.eye(2 ** 6)
 
 
 class MockNoMatrixGate(BasicGate):
@@ -128,7 +129,7 @@ def test_simulator_is_available(sim):
     assert sim.is_available(new_cmd)
     assert new_cmd.gate.cnt == 1
 
-    new_cmd.gate = Mock2QubitGate()
+    new_cmd.gate = Mock6QubitGate()
     assert not sim.is_available(new_cmd)
     assert new_cmd.gate.cnt == 1
 
@@ -204,6 +205,44 @@ def test_simulator_emulation(sim):
     assert 1. == pytest.approx(sim.cheat()[1][6])
 
     Measure | (qubit1 + qubit2 + qubit3)
+
+
+def test_simulator_kqubit_gate(sim):
+    m1 = Rx(0.3).matrix
+    m2 = Rx(0.8).matrix
+    m3 = Ry(0.1).matrix
+    m4 = Rz(0.9).matrix.dot(Ry(-0.1).matrix)
+    m = numpy.kron(m4, numpy.kron(m3, numpy.kron(m2, m1)))
+
+    class KQubitGate(BasicGate):
+        @property
+        def matrix(self):
+            return m
+
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(4)
+    qubit = eng.allocate_qubit()
+    Rx(-0.3) | qureg[0]
+    Rx(-0.8) | qureg[1]
+    Ry(-0.1) | qureg[2]
+    Rz(-0.9) | qureg[3]
+    Ry(0.1) | qureg[3]
+    X | qubit
+    with Control(eng, qubit):
+        KQubitGate() | qureg
+    X | qubit
+    with Control(eng, qubit):
+        with Dagger(eng):
+            KQubitGate() | qureg
+    assert sim.get_amplitude('0' * 5, qubit + qureg) == pytest.approx(1.)
+
+    class LargerGate(BasicGate):
+        @property
+        def matrix(self):
+            return numpy.eye(2 ** 6)
+
+    with pytest.raises(Exception):
+        LargerGate() | (qureg + qubit)
 
 
 def test_simulator_probability(sim):
