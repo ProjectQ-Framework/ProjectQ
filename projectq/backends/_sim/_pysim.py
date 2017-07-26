@@ -372,7 +372,7 @@ class Simulator(object):
 
     def apply_controlled_gate(self, m, ids, ctrlids):
         """
-        Applies the k-qubit gate matrix m to the qubit with indices ids,
+        Applies the k-qubit gate matrix m to the qubits with indices ids,
         using ctrlids as control qubits.
 
         Args:
