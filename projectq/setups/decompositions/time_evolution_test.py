@@ -178,14 +178,14 @@ def test_decompose_individual_terms():
         res = list_single_matrices[0]
         for i in range(1, len(list_single_matrices)):
             res = sps.kron(res, list_single_matrices[i])
-        return res
+        return res.tocsc()
 
-    id_sp = sps.identity(2, format="csr", dtype=complex)
-    x_sp = sps.csr_matrix([[0., 1.], [1., 0.]], dtype=complex)
-    y_sp = sps.csr_matrix([[0., -1.j], [1.j, 0.]], dtype=complex)
-    z_sp = sps.csr_matrix([[1., 0.], [0., -1.]], dtype=complex)
+    id_sp = sps.identity(2, format="csc", dtype=complex)
+    x_sp = sps.csc_matrix([[0., 1.], [1., 0.]], dtype=complex)
+    y_sp = sps.csc_matrix([[0., -1.j], [1.j, 0.]], dtype=complex)
+    z_sp = sps.csc_matrix([[1., 0.], [0., -1.]], dtype=complex)
 
-    matrix1 = (sps.identity(2**5, format="csr", dtype=complex) * 0.6 *
+    matrix1 = (sps.identity(2**5, format="csc", dtype=complex) * 0.6 *
                1.1 * -1.0j)
     step1 = scipy.sparse.linalg.expm(matrix1).dot(init_wavefunction)
     assert numpy.allclose(step1, final_wavefunction1)
