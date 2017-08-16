@@ -28,7 +28,7 @@ from . import arb1qubit2rzandry as arb1q
 
 
 def test_recognize_correct_gates():
-    saving_backend = DummyEngine()
+    saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend)
     qubit = eng.allocate_qubit()
     Ph(0.1) | qubit
@@ -36,12 +36,13 @@ def test_recognize_correct_gates():
     Rx(0.3) | qubit
     X | qubit
     eng.flush(deallocate_qubits=True)
-    for cmd in saving_backend.received_commands[1:-1]:
+    # Don't test initial allocate and trailing deallocate and flush gate.
+    for cmd in saving_backend.received_commands[1:-2]:
         assert arb1q._recognize_arb1qubit(cmd)
 
 
 def test_recognize_incorrect_gates():
-    saving_backend = DummyEngine()
+    saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend)
     qubit = eng.allocate_qubit()
     # Does not have matrix attribute:
@@ -51,7 +52,7 @@ def test_recognize_incorrect_gates():
     two_qubit_gate.matrix = [[1, 0, 0, 0], [0, 1, 0, 0],
                              [0, 0, 1, 0], [0, 0, 0, 1]]
     eng.flush(deallocate_qubits=True)
-    for cmd in saving_backend.received_commands[1:-1]:
+    for cmd in saving_backend.received_commands:
         assert not arb1q._recognize_arb1qubit(cmd)
 
 
