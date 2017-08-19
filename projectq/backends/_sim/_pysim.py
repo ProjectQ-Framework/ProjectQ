@@ -469,7 +469,7 @@ class Simulator(object):
                                " Please make sure all qubits have been "
                                "allocated previously (call eng.flush()).")
 
-        self._state = _np.array(wavefunction)
+        self._state = _np.array(wavefunction, dtype=_np.complex128)
         self._map = {ordering[i]: i for i in range(len(ordering))}
 
     def collapse_wavefunction(self, ids, values):
