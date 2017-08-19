@@ -390,6 +390,18 @@ def test_simulator_set_wavefunction(sim):
     Measure | qubits
 
 
+def test_simulator_set_wavefunction_always_complex(sim):
+    """ Checks that wavefunction is always complex """
+    eng = MainEngine(sim)
+    qubit = eng.allocate_qubit()
+    eng.flush()
+    wf = [1., 0]
+    eng.backend.set_wavefunction(wf, qubit)
+    Y | qubit
+    eng.flush()
+    assert eng.backend.get_amplitude('1', qubit) == pytest.approx(1j)
+
+
 def test_simulator_collapse_wavefunction(sim):
     eng = MainEngine(sim)
     qubits = eng.allocate_qureg(4)
