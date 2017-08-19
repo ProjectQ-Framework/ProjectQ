@@ -90,7 +90,7 @@ def _decompose_time_evolution_individual_terms(cmd):
     check_indices = set()
 
     # Check that hamiltonian is not identity term,
-    # Previous or operator should have apply a global phase instead:
+    # Previous __or__ operator should have apply a global phase instead:
     assert not term == ()
 
     # hamiltonian has only a single local operator
