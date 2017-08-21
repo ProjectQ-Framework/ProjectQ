@@ -20,7 +20,7 @@ import pytest
 
 from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               DummyEngine InstructionFilter, MainEngine)
+                               DummyEngine, InstructionFilter, MainEngine)
 from projectq.ops import (BasicGate, ClassicalInstructionGate, Measure, Ph, R,
                           Rx, Ry, Rz, X)
 
