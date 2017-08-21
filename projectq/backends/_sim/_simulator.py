@@ -87,7 +87,7 @@ class Simulator(BasicEngine):
         """
         Specialized implementation of is_available: The simulator can deal
         with all arbitrarily-controlled single-qubit gates which provide a
-        gate-matrix (via gate.get_matrix()).
+        gate-matrix (via gate.matrix).
 
         Args:
             cmd (Command): Command for which to check availability (single-

@@ -11,7 +11,10 @@
 #   limitations under the License.
 
 import math
-from fractions import gcd
+try:
+    from math import gcd
+except ImportError:
+    from fractions import gcd
 
 from projectq.ops import R, X, Swap, Measure, CNOT, QFT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
