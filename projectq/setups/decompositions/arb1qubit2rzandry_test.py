@@ -19,10 +19,10 @@ import numpy as np
 import pytest
 
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, InstructionFilter, MainEngine,
-                               DummyEngine, DecompositionRuleSet)
-from projectq.ops import (Ph, R, Rx, Ry, Rz, X, BasicGate,
-                          ClassicalInstructionGate, Measure)
+from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
+                               DummyEngine InstructionFilter, MainEngine)
+from projectq.ops import (BasicGate, ClassicalInstructionGate, Measure, Ph, R,
+                          Rx, Ry, Rz, X)
 
 from . import arb1qubit2rzandry as arb1q
 
@@ -51,6 +51,7 @@ def test_recognize_incorrect_gates():
     two_qubit_gate = BasicGate()
     two_qubit_gate.matrix = [[1, 0, 0, 0], [0, 1, 0, 0],
                              [0, 0, 1, 0], [0, 0, 0, 1]]
+    two_qubit_gate | qubit
     eng.flush(deallocate_qubits=True)
     for cmd in saving_backend.received_commands:
         assert not arb1q._recognize_arb1qubit(cmd)
@@ -92,10 +93,13 @@ def create_unitary_matrix(a, b, c, d):
 
 def create_test_matrices():
     params = [(0.2, 0.3, 0.5, math.pi * 0.4),
+              (1e-14, 0.3, 0.5, 0),
               (0.4, 0.0, math.pi * 2, 0.7),
               (0.0, 0.2, math.pi * 1.2, 1.5),  # element of SU(2)
               (0.4, 0.0, math.pi * 1.3, 0.8),
-              (0.4, 4.1, math.pi * 1.3, 0)]
+              (0.4, 4.1, math.pi * 1.3, 0),
+              (5.1, 1.2, math.pi * 1.5, math.pi/2.),
+              (1e-13, 1.2, math.pi * 3.7, math.pi/2.)]
     matrices = []
     for a, b, c, d in params:
         matrices.append(create_unitary_matrix(a, b, c, d))
@@ -137,3 +141,18 @@ def test_decomposition(gate_matrix):
 
         Measure | test_qb
         Measure | correct_qb
+
+
+@pytest.mark.parametrize("gate_matrix", [[[2, 0], [0, 4]],
+                                         [[0, 2], [4, 0]],
+                                         [[1, 2], [4, 0]]])
+def test_decomposition_errors(gate_matrix):
+    test_gate = BasicGate()
+    test_gate.matrix = np.matrix(gate_matrix)
+    rule_set = DecompositionRuleSet(modules=[arb1q])
+    eng = MainEngine(backend=DummyEngine(),
+                     engine_list=[AutoReplacer(rule_set),
+                                  InstructionFilter(z_y_decomp_gates)])
+    qb = eng.allocate_qubit()
+    with pytest.raises(Exception):
+        test_gate | qb
