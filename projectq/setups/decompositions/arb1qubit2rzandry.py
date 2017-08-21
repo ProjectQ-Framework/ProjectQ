@@ -104,9 +104,9 @@ def _find_parameters(matrix):
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a / 2.
+            a = two_a/2.
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][1]) - cmath.phase(matrix[0][0])
+        b = cmath.phase(matrix[1][1])-cmath.phase(matrix[0][0])
         possible_b_half = [(b/2.) % (2*math.pi), (b/2.+math.pi) % (2*math.pi)]
         # As we have fixed a, we need to find correct sign for cos(c/2)
         possible_c_half = [0.0, math.pi]
@@ -131,7 +131,7 @@ def _find_parameters(matrix):
         else:
             a = two_a/2.
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1]) + math.pi
+        b = cmath.phase(matrix[1][0])-cmath.phase(matrix[0][1]) + math.pi
         possible_b_half = [(b/2.) % (2*math.pi), (b/2.+math.pi) % (2*math.pi)]
         # As we have fixed a, we need to find correct sign for sin(c/2)
         possible_c_half = [math.pi/2., 3./2.*math.pi]
@@ -147,8 +147,7 @@ def _find_parameters(matrix):
                             "not unitary?")
     # Case 3: sin(c/2) != 0 and cos(c/2) !=0:
     else:
-        two_a = cmath.phase(matrix[0][0]*matrix[1][1] -
-                            matrix[0][1]*matrix[1][0])
+        two_a = cmath.phase(matrix[0][0]*matrix[1][1])
         if abs(two_a) < TOLERANCE:
             # from 2a==0, it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
@@ -158,9 +157,9 @@ def _find_parameters(matrix):
             a = two_a/2.
         two_d = 2.*cmath.phase(matrix[0][1])-2.*cmath.phase(matrix[0][0])
         possible_d_half = [two_d/4. % (2*math.pi),
-                           (two_d/4. + math.pi/2.) % (2*math.pi),
-                           (two_d/4. + math.pi) % (2*math.pi),
-                           (two_d/4. + 3./2.*math.pi) % (2*math.pi)]
+                           (two_d/4.+math.pi/2.) % (2*math.pi),
+                           (two_d/4.+math.pi) % (2*math.pi),
+                           (two_d/4.+3./2.*math.pi) % (2*math.pi)]
         two_b = 2.*cmath.phase(matrix[1][0])-2.*cmath.phase(matrix[0][0])
         possible_b_half = [two_b/4. % (2*math.pi),
                            (two_b/4.+math.pi/2.) % (2*math.pi),
