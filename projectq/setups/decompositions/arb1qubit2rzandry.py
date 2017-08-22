@@ -97,9 +97,9 @@ def _find_parameters(matrix):
     # Note: everything is modulo 2pi.
     # Case 1: sin(c/2) == 0:
     if abs(matrix[0][1]) < TOLERANCE:
-        two_a = cmath.phase(matrix[0][0]*matrix[1][1])
-        if abs(two_a) < TOLERANCE:
-            # from 2a==0, it follows that a==0 or a==pi,
+        two_a = cmath.phase(matrix[0][0]*matrix[1][1]) % (2*math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+            # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
@@ -122,9 +122,9 @@ def _find_parameters(matrix):
                             "not unitary?")
     # Case 2: cos(c/2) == 0:
     elif abs(matrix[0][0]) < TOLERANCE:
-        two_a = cmath.phase(-matrix[0][1]*matrix[1][0])
-        if abs(two_a) < TOLERANCE:
-            # from 2a==0, it follows that a==0 or a==pi,
+        two_a = cmath.phase(-matrix[0][1]*matrix[1][0]) % (2*math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+            # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
@@ -147,9 +147,9 @@ def _find_parameters(matrix):
                             "not unitary?")
     # Case 3: sin(c/2) != 0 and cos(c/2) !=0:
     else:
-        two_a = cmath.phase(matrix[0][0]*matrix[1][1])
-        if abs(two_a) < TOLERANCE:
-            # from 2a==0, it follows that a==0 or a==pi,
+        two_a = cmath.phase(matrix[0][0]*matrix[1][1]) % (2*math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+            # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0

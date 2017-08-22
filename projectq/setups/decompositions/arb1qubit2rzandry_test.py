@@ -99,7 +99,8 @@ def create_test_matrices():
               (0.4, 0.0, math.pi * 1.3, 0.8),
               (0.4, 4.1, math.pi * 1.3, 0),
               (5.1, 1.2, math.pi * 1.5, math.pi/2.),
-              (1e-13, 1.2, math.pi * 3.7, math.pi/2.)]
+              (1e-13, 1.2, math.pi * 3.7, math.pi/2.),
+              (0, math.pi/2., 0, 0)]
     matrices = []
     for a, b, c, d in params:
         matrices.append(create_unitary_matrix(a, b, c, d))
