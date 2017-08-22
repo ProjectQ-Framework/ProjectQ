@@ -11,6 +11,7 @@
 #   limitations under the License.
 
 from . import (arb1qubit2rzandry,
+               carb1qubit2cnotrzandry,
                crz2cxandrz,
                entangle,
                globalphase,
@@ -24,6 +25,7 @@ from . import (arb1qubit2rzandry,
 all_defined_decomposition_rules = [
     rule
     for module in [arb1qubit2rzandry,
+                   carb1qubit2cnotrzandry,
                    crz2cxandrz,
                    entangle,
                    globalphase,
