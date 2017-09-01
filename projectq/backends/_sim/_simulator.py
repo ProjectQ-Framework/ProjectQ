@@ -87,7 +87,7 @@ class Simulator(BasicEngine):
         """
         Specialized implementation of is_available: The simulator can deal
         with all arbitrarily-controlled single-qubit gates which provide a
-        gate-matrix (via gate.get_matrix()).
+        gate-matrix (via gate.matrix).
 
         Args:
             cmd (Command): Command for which to check availability (single-
@@ -103,7 +103,8 @@ class Simulator(BasicEngine):
             return True
         try:
             m = cmd.gate.matrix
-            if len(m) > 2:
+            # Allow up to 5-qubit gates
+            if len(m) > 2 ** 5:
                 return False
             return True
         except:
@@ -139,6 +140,40 @@ class Simulator(BasicEngine):
                     in qubit_operator.terms.items()]
         return self._simulator.get_expectation_value(operator,
                                                      [qb.id for qb in qureg])
+
+    def apply_qubit_operator(self, qubit_operator, qureg):
+        """
+        Apply a (possibly non-unitary) qubit_operator to the current wave
+        function represented by the supplied quantum register.
+
+        Args:
+            qubit_operator (projectq.ops.QubitOperator): Operator to apply.
+            qureg (list[Qubit],Qureg): Quantum bits to which to apply the
+                operator.
+
+        Warning:
+            This function allows applying non-unitary gates and it will not
+            re-normalize the wave function! It is for numerical experiments
+            only and should not be used for other purposes.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
+        """
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff)
+                    in qubit_operator.terms.items()]
+        return self._simulator.apply_qubit_operator(operator,
+                                                    [qb.id for qb in qureg])
 
     def get_probability(self, bit_string, qureg):
         """
@@ -288,18 +323,19 @@ class Simulator(BasicEngine):
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
             self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
-        elif len(cmd.gate.matrix) == 2:
+        elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
             self._simulator.apply_controlled_gate(matrix.tolist(),
-                                                  [cmd.qubits[0][0].id],
+                                                  ids,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
             if not self._gate_fusion:
                 self._simulator.run()
         else:
-            raise Exception("This simulator only supports controlled single-"
-                            "qubit gates!\nPlease add an auto-replacer engine"
-                            " to your list of compiler engines.")
+            raise Exception("This simulator only supports controlled k-qubit"
+                            " gates with k < 6!\nPlease add an auto-replacer"
+                            " engine to your list of compiler engines.")
 
     def receive(self, command_list):
         """
