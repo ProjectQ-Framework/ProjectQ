@@ -1,6 +1,6 @@
 numpy
 future
 pytest>=3.0
-pybind11>=1.7
+pybind11>=1.7,<2.2.0
 requests
 scipy
