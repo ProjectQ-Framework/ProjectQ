@@ -114,6 +114,28 @@ class LocalOptimizer(BasicEngine):
             indices.append(identical_indices[num_identical_to_skip])
         return indices
 
+    def _try_drop_gate_and_followup_inverse(self, idx, i):
+        inv = self._l[idx][i].get_inverse()
+        if inv != self._l[idx][i + 1]:
+            return False
+
+        # determine index of this gate on all qubits
+        involved_qubit_ids = [qb.id
+                              for sublist in self._l[idx][i].all_qubits
+                              for qb in sublist]
+        gate_locs = self._get_gate_indices(idx, i, involved_qubit_ids)
+        qids_locs = zip(involved_qubit_ids, gate_locs)
+
+        # check that there are no other gates between this and its
+        # inverse on any of the other qubits involved
+        if not all(inv == self._l[qid][loc + 1] for qid, loc in qids_locs):
+            return False
+
+        # drop these two gates and signal goto next iteration
+        for qid, loc in qids_locs:
+            del self._l[qid][loc:loc + 2]
+        return True
+
     def _optimize(self, idx, lim=None):
         """
         Try to merge or even cancel successive gates using the get_merged and
@@ -123,36 +145,16 @@ class LocalOptimizer(BasicEngine):
         """
         # loop over all qubit indices
         i = 0
-        new_gateloc = 0
         limit = len(self._l[idx])
         if not lim is None:
             limit = lim
-            new_gateloc = limit
 
         while i < limit - 1:
             # can be dropped if two in a row are self-inverses
-            inv = self._l[idx][i].get_inverse()
-
-            if inv == self._l[idx][i + 1]:
-                # determine index of this gate on all qubits
-                qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
-                            for qb in sublist]
-                gid = self._get_gate_indices(idx, i, qubitids)
-                # check that there are no other gates between this and its
-                # inverse on any of the other qubits involved
-                erase = True
-                for j in range(len(qubitids)):
-                    erase *= (inv == self._l[qubitids[j]][gid[j] + 1])
-
-                # drop these two gates if possible and goto next iteration
-                if erase:
-                    for j in range(len(qubitids)):
-                        new_list = (self._l[qubitids[j]][0:gid[j]] +
-                                    self._l[qubitids[j]][gid[j] + 2:])
-                        self._l[qubitids[j]] = new_list
-                    i = 0
-                    limit -= 2
-                    continue
+            if self._try_drop_gate_and_followup_inverse(idx, i):
+                i = max(0, i - 1)
+                limit -= 2
+                continue
 
             # gates are not each other's inverses --> check if they're
             # mergeable
