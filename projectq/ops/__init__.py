@@ -19,7 +19,8 @@ from ._basics import (NotMergeable,
                       BasicRotationGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
-                      BasicMathGate)
+                      BasicMathGate,
+                      BasicPhaseGate)
 from ._command import apply_command, Command
 from ._metagates import (DaggeredGate,
                          get_inverse,

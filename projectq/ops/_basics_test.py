@@ -191,6 +191,64 @@ def test_basic_rotation_gate_comparison():
     assert basic_rotation_gate2 != _basics.BasicRotationGate(0.5 + 2 * math.pi)
 
 
+@pytest.mark.parametrize("input_angle, modulo_angle",
+                         [(2.0, 2.0), (17., 4.4336293856408275),
+                          (-0.5 * math.pi, 1.5 * math.pi), (2 * math.pi, 0)])
+def test_basic_phase_gate_init(input_angle, modulo_angle):
+    # Test internal representation
+    gate = _basics.BasicPhaseGate(input_angle)
+    assert gate._angle == pytest.approx(modulo_angle)
+
+
+def test_basic_phase_gate_str():
+    basic_phase_gate = _basics.BasicPhaseGate(0.5)
+    assert str(basic_phase_gate) == "BasicPhaseGate(0.5)"
+
+
+def test_basic_phase_tex_str():
+    basic_phase_gate = _basics.BasicPhaseGate(0.5)
+    assert basic_phase_gate.tex_str() == "BasicPhaseGate$_{0.5}$"
+
+
+@pytest.mark.parametrize("input_angle, inverse_angle",
+                         [(2.0, -2.0 + 2 * math.pi), (-0.5, 0.5), (0.0, 0)])
+def test_basic_phase_gate_get_inverse(input_angle, inverse_angle):
+    basic_phase_gate = _basics.BasicPhaseGate(input_angle)
+    inverse = basic_phase_gate.get_inverse()
+    assert isinstance(inverse, _basics.BasicPhaseGate)
+    assert inverse._angle == pytest.approx(inverse_angle)
+
+
+def test_basic_phase_gate_get_merged():
+    basic_gate = _basics.BasicGate()
+    basic_phase_gate1 = _basics.BasicPhaseGate(0.5)
+    basic_phase_gate2 = _basics.BasicPhaseGate(1.0)
+    basic_phase_gate3 = _basics.BasicPhaseGate(1.5)
+    with pytest.raises(_basics.NotMergeable):
+        basic_phase_gate1.get_merged(basic_gate)
+    merged_gate = basic_phase_gate1.get_merged(basic_phase_gate2)
+    assert merged_gate == basic_phase_gate3
+
+
+def test_basic_phase_gate_comparison():
+    basic_phase_gate1 = _basics.BasicPhaseGate(0.5)
+    basic_phase_gate2 = _basics.BasicPhaseGate(0.5)
+    basic_phase_gate3 = _basics.BasicPhaseGate(0.5 + 2 * math.pi)
+    assert basic_phase_gate1 == basic_phase_gate2
+    assert basic_phase_gate1 == basic_phase_gate3
+    basic_phase_gate4 = _basics.BasicPhaseGate(0.50000001)
+    # Test __ne__:
+    assert basic_phase_gate4 != basic_phase_gate1
+    # Test one gate close to 2*pi the other one close to 0
+    basic_phase_gate5 = _basics.BasicPhaseGate(1.e-13)
+    basic_phase_gate6 = _basics.BasicPhaseGate(2 * math.pi - 1.e-13)
+    assert basic_phase_gate5 == basic_phase_gate6
+    # Test different types of gates
+    basic_gate = _basics.BasicGate()
+    assert not basic_gate == basic_phase_gate6
+    assert basic_phase_gate2 != _basics.BasicPhaseGate(0.5 + math.pi)
+
+
 def test_basic_math_gate():
     def my_math_function(a, b, c):
         return (a, b, c + a * b)
