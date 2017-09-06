@@ -91,6 +91,38 @@ class ComputeEngine(BasicEngine):
         cmd.tags.append(UncomputeTag())
         return cmd
 
+    def _suppress_default_dealloc(self, qubit_id):
+        """
+        Prevents the qubit with the given id in the main engine from producing
+        a deallocate command when its __del__ method fires.
+
+        Args:
+            qubit_id (int):
+        """
+        matches_in_main = [q
+                           for q in self.main_engine.active_qubits
+                           if q.id == qubit_id]
+
+        if len(matches_in_main) != 1:
+            raise QubitManagementError(
+                'Q{} not in MainEngine.active_qubits.'.format(qubit_id))
+
+        # Block __del__ method by marking qubit as already deallocated.
+        matches_in_main[0].id = -1
+
+    def _uncompute_assuming_no_deallocs(self):
+        """
+        Send uncomputing gates in the case where qubits weren't deallocated
+        during the Compute block.
+        """
+        for cmd in reversed(self._l):
+            if cmd.gate == Allocate:
+                # We're going to send a tagged deallocate command instead of
+                # relying on the qubit's __del__ method.
+                self._suppress_default_dealloc(cmd.qubits[0][0].id)
+
+            self.send([self._add_uncompute_tag(cmd.get_inverse())])
+
     def run_uncompute(self):
         """
         Send uncomputing gates.
@@ -121,27 +153,9 @@ class ComputeEngine(BasicEngine):
         # Don't inspect each command as below -> faster uncompute
         # Just find qubits which have been allocated and deallocate them
         if len(ids_local_to_compute) == 0:
-            for cmd in reversed(self._l):
-                if cmd.gate == Allocate:
-                    qubit_id = cmd.qubits[0][0].id
-                    # Remove this qubit from MainEngine.active_qubits and
-                    # set qubit.id to = -1 in Qubit object such that it won't
-                    # send another deallocate when it goes out of scope
-                    qubit_found = False
-                    for active_qubit in self.main_engine.active_qubits:
-                        if active_qubit.id == qubit_id:
-                            active_qubit.id = -1
-                            active_qubit.__del__()
-                            qubit_found = True
-                            break
-                    if not qubit_found:
-                        raise QubitManagementError(
-                            "\nQubit was not found in " +
-                            "MainEngine.active_qubits.\n")
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
-                else:
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
+            self._uncompute_assuming_no_deallocs()
             return
+
         # There was at least one qubit allocated and deallocated within
         # compute section. Handle uncompute in most general case
         new_local_id = dict()
