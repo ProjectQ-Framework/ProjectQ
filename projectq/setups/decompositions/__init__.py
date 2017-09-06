@@ -11,6 +11,7 @@
 #   limitations under the License.
 
 from . import (crz2cxandrz,
+               cnu2toffoliandcu,
                entangle,
                globalphase,
                ph2r,
