@@ -129,6 +129,31 @@ def test_rz(angle):
     assert np.allclose(gate.matrix, expected_matrix)
 
 
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi])
+def test_ph(angle):
+    gate = _gates.Ph(angle)
+    gate2 = _gates.Ph(angle + 2 * math.pi)
+    expected_matrix = np.matrix([[cmath.exp(1j * angle), 0],
+                                 [0, cmath.exp(1j * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+    assert gate2.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate2.matrix, expected_matrix)
+    assert gate == gate2
+
+
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi])
+def test_r(angle):
+    gate = _gates.R(angle)
+    gate2 = _gates.R(angle + 2 * math.pi)
+    expected_matrix = np.matrix([[1, 0], [0, cmath.exp(1j * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+    assert gate2.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate2.matrix, expected_matrix)
+    assert gate == gate2
+
+
 def test_flush_gate():
     gate = _gates.FlushGate()
     assert str(gate) == ""
