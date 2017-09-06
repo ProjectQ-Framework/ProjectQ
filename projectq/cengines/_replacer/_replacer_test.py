@@ -18,8 +18,8 @@ from projectq import MainEngine
 from projectq.cengines import (DummyEngine,
                                DecompositionRuleSet,
                                DecompositionRule)
-from projectq.ops import H, X, Command, S, Rx, NotInvertible, Ry, BasicGate
-
+from projectq.ops import (BasicGate, ClassicalInstructionGate, Command, H,
+                          NotInvertible, Rx, Ry, S, X)
 from projectq.cengines._replacer import _replacer
 
 
@@ -39,18 +39,19 @@ def test_filter_engine():
     assert not filter_eng.is_available(cmd2)
 
 
-class TestGate(BasicGate):
+class SomeGateClass(BasicGate):
     """ Test gate class """
+    pass
 
 
-TestGate = TestGate()
+SomeGate = SomeGateClass()
 
 
 def make_decomposition_rule_set():
     result = DecompositionRuleSet()
     # BasicGate with no get_inverse used for testing:
     with pytest.raises(NotInvertible):
-        TestGate.get_inverse()
+        SomeGate.get_inverse()
 
     # Loading of decomposition rules:
     def decompose_test1(cmd):
@@ -61,7 +62,7 @@ def make_decomposition_rule_set():
         return True
 
     result.add_decomposition_rule(
-        DecompositionRule(TestGate.__class__, decompose_test1,
+        DecompositionRule(SomeGate.__class__, decompose_test1,
                           recognize_test))
 
     def decompose_test2(cmd):
@@ -69,10 +70,10 @@ def make_decomposition_rule_set():
         H | qb
 
     result.add_decomposition_rule(
-        DecompositionRule(TestGate.__class__, decompose_test2,
+        DecompositionRule(SomeGateClass, decompose_test2,
                           recognize_test))
 
-    assert len(result.decompositions[TestGate.__class__.__name__]) == 2
+    assert len(result.decompositions[SomeGate.__class__.__name__]) == 2
     return result
 
 rule_set = make_decomposition_rule_set()
@@ -80,9 +81,9 @@ rule_set = make_decomposition_rule_set()
 
 @pytest.fixture()
 def fixture_gate_filter():
-    # Filter which doesn't allow TestGate
+    # Filter which doesn't allow SomeGate
     def test_gate_filter_func(self, cmd):
-        if cmd.gate == TestGate:
+        if cmd.gate == SomeGate:
             return False
         return True
     return _replacer.InstructionFilter(test_gate_filter_func)
@@ -94,10 +95,10 @@ def test_auto_replacer_default_chooser(fixture_gate_filter):
     eng = MainEngine(backend=backend,
                      engine_list=[_replacer.AutoReplacer(rule_set),
                                   fixture_gate_filter])
-    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
+    assert len(rule_set.decompositions[SomeGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    TestGate | qb
+    SomeGate | qb
     eng.flush()
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == X
@@ -112,10 +113,10 @@ def test_auto_replacer_decomposition_chooser(fixture_gate_filter):
                      engine_list=[_replacer.AutoReplacer(rule_set,
                                                          test_decomp_chooser),
                                   fixture_gate_filter])
-    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
+    assert len(rule_set.decompositions[SomeGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    TestGate | qb
+    SomeGate | qb
     eng.flush()
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == H
@@ -188,10 +189,10 @@ def test_auto_replacer_adds_tags(fixture_gate_filter):
     eng = MainEngine(backend=backend,
                      engine_list=[_replacer.AutoReplacer(rule_set),
                                   fixture_gate_filter])
-    assert len(rule_set.decompositions[TestGate.__class__.__name__]) == 2
+    assert len(rule_set.decompositions[SomeGate.__class__.__name__]) == 2
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
-    cmd = Command(eng, TestGate, (qb,))
+    cmd = Command(eng, SomeGate, (qb,))
     cmd.tags = ["AddedTag"]
     eng.send([cmd])
     eng.flush()
@@ -199,3 +200,23 @@ def test_auto_replacer_adds_tags(fixture_gate_filter):
     assert backend.received_commands[1].gate == X
     assert len(backend.received_commands[1].tags) == 1
     assert backend.received_commands[1].tags[0] == "AddedTag"
+
+
+def test_auto_replacer_searches_parent_class_for_rule():
+    class DerivedSomeGate(SomeGateClass):
+        pass
+
+    def test_gate_filter_func(self, cmd):
+        if (cmd.gate == X or cmd.gate == H or
+                isinstance(cmd.gate, ClassicalInstructionGate)):
+            return True
+        return False
+
+    i_filter = _replacer.InstructionFilter(test_gate_filter_func)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend,
+                     engine_list=[_replacer.AutoReplacer(rule_set),
+                                  i_filter])
+    qb = eng.allocate_qubit()
+    DerivedSomeGate() | qb
+    eng.flush()

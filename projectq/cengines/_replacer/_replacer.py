@@ -151,9 +151,25 @@ class AutoReplacer(BasicEngine):
                 if d.check(cmd):
                     decomp_list.append(d)
 
+            # If nothing found so far, check recursively parent classes:
             if len(decomp_list) == 0:
-                raise NoGateDecompositionError("\nNo replacement found for "
-                                               + str(cmd) + "!")
+                for parent_class in type(cmd.gate).mro()[1:-1]:
+                    name = parent_class.__name__
+                    try:
+                        rules = self.decompositionRuleSet.decompositions[name]
+                        potential_decomps = [d for d in rules]
+                    except KeyError:
+                        pass
+                    # throw out the ones which don't recognize the command
+                    for d in potential_decomps:
+                        if d.check(cmd):
+                            decomp_list.append(d)
+                    if len(decomp_list) != 0:
+                        break
+
+            if len(decomp_list) == 0:
+                raise NoGateDecompositionError("\nNo replacement found for " +
+                                               str(cmd) + "!")
 
             # use decomposition chooser to determine the best decomposition
             chosen_decomp = self._decomp_chooser(cmd, decomp_list)
