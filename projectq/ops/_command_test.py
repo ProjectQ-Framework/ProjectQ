@@ -174,14 +174,14 @@ def test_commmand_add_control_qubits(main_engine):
     assert cmd.control_qubits[1].id == 2
 
 
-def test_command_all_qubits(main_engine):
+def test_command_all_quregs(main_engine):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
     cmd.add_control_qubits(qubit1)
-    all_qubits = cmd.all_qubits
-    assert all_qubits[0][0].id == 1
-    assert all_qubits[1][0].id == 0
+    all_quregs = cmd.all_quregs
+    assert all_quregs[0][0].id == 1
+    assert all_quregs[1][0].id == 0
 
 
 def test_command_engine(main_engine):
