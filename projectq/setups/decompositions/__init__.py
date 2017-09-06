@@ -24,6 +24,7 @@ from . import (crz2cxandrz,
 all_defined_decomposition_rules = [
     rule
     for module in [crz2cxandrz,
+                   cnu2toffoliandcu,
                    entangle,
                    globalphase,
                    ph2r,
