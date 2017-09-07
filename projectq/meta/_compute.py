@@ -91,25 +91,6 @@ class ComputeEngine(BasicEngine):
         cmd.tags.append(UncomputeTag())
         return cmd
 
-    def _send_inverse_with_rewritten_qubits(self, cmd, rewrite_id_map):
-        """
-        Rewrites the given command so it uses global qubit ids instead of
-        local-to-compute-block qubit ids, then forwards the command's inverse
-        to the next engine.
-
-        Args:
-            cmd (projectq.ops.Command):
-            rewrite_id_map (dict[int, int]):
-        """
-
-        if rewrite_id_map:
-            for qureg in cmd.all_qubits:
-                for qubit in qureg:
-                    if qubit.id in rewrite_id_map:
-                        qubit.id = rewrite_id_map[qubit.id]
-
-        self.send([self._add_uncompute_tag(cmd.get_inverse())])
-
     def run_uncompute(self):
         """
         Send uncomputing gates.
@@ -213,9 +194,16 @@ class ComputeEngine(BasicEngine):
                     self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
             else:
-                # Forward the inverse command, but with local-to-compute-block
-                # qubit ids changed to the corresponding global qubit ids.
-                self._send_inverse_with_rewritten_qubits(cmd, new_local_id)
+                # Process commands by replacing each local qubit from       
+                # compute section with new local qubit from the uncompute     
+                # section
+                if new_local_id:  # Only if we still have local qubits
+                    for qureg in cmd.all_qubits:
+                        for qubit in qureg:
+                            if qubit.id in new_local_id:
+                                qubit.id = new_local_id[qubit.id]
+
+                self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
     def end_compute(self):
         """
