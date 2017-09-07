@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -33,3 +35,4 @@ from ._compute import (Compute,
 from ._control import (Control,
                        get_control_count)
 from ._dagger import Dagger
+from ._util import insert_engine, drop_engine_after

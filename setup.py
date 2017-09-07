@@ -12,7 +12,7 @@ exec(open('projectq/_version.py').read())
 long_description = open('README.rst').read()
 
 # Read in requirements.txt
-with open ('requirements.txt', 'r') as f_requirements:
+with open('requirements.txt', 'r') as f_requirements:
     requirements = f_requirements.readlines()
 requirements = [r.strip() for r in requirements]
 
@@ -113,8 +113,8 @@ class BuildExt(build_ext):
         openmp = ''
         if has_flag(self.compiler, '-fopenmp'):
             openmp = '-fopenmp'
-        elif has_flag(self.compiler, '-openmp'):
-            openmp = '-openmp'
+        elif has_flag(self.compiler, '-qopenmp'):
+            openmp = '-qopenmp'
         if ct == 'msvc':
             openmp = ''  # supports only OpenMP 2.0
 

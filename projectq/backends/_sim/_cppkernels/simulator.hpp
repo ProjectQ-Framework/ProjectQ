@@ -1,3 +1,5 @@
+// Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -41,6 +43,7 @@ public:
     using RndEngine = std::mt19937;
     using Term = std::vector<std::pair<unsigned, char>>;
     using TermsDict = std::vector<std::pair<Term, calc_type>>;
+    using ComplexTermsDict = std::vector<std::pair<Term, complex_type>>;
 
     Simulator(unsigned seed = 1) : N_(0), vec_(1,0.), fusion_qubits_min_(4),
                                    fusion_qubits_max_(5), rnd_eng_(seed) {
@@ -64,6 +67,7 @@ public:
     }
 
     bool get_classical_value(unsigned id, calc_type tol = 1.e-12){
+        run();
         unsigned pos = map_[id];
         std::size_t delta = (1UL << pos);
 
@@ -202,7 +206,6 @@ public:
         }
         else
             fused_gates_ = fused_gates;
-        //run();
     }
 
     template <class F, class QuReg>
@@ -264,6 +267,56 @@ public:
         return expectation;
     }
 
+    void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
+        run();
+        auto new_state = StateVector(vec_.size(), 0.);
+        auto current_state = vec_;
+        for (auto const& term : td){
+            auto const& coefficient = term.second;
+            apply_term(term.first, ids, {});
+            #pragma omp parallel for schedule(static)
+            for (std::size_t i = 0; i < vec_.size(); ++i){
+                new_state[i] += coefficient * vec_[i];
+                vec_[i] = current_state[i];
+            }
+        }
+        vec_ = std::move(new_state);
+    }
+
+    calc_type get_probability(std::vector<bool> const& bit_string,
+                              std::vector<unsigned> const& ids){
+        run();
+        if (!check_ids(ids))
+            throw(std::runtime_error("get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."));
+        std::size_t mask = 0, bit_str = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            mask |= 1UL << map_[ids[i]];
+            bit_str |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        calc_type probability = 0.;
+        #pragma omp parallel for reduction(+:probability) schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i)
+            if ((i & mask) == bit_str)
+                probability += std::norm(vec_[i]);
+        return probability;
+    }
+
+    complex_type const& get_amplitude(std::vector<bool> const& bit_string,
+                                      std::vector<unsigned> const& ids){
+        run();
+        std::size_t chk = 0;
+        std::size_t index = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            if (map_.count(ids[i]) == 0)
+                break;
+            chk |= 1UL << map_[ids[i]];
+            index |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+        }
+        if (chk + 1 != vec_.size())
+            throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
+        return vec_[index];
+    }
+
     void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
                                 std::vector<unsigned> const& ids,
                                 std::vector<unsigned> const& ctrl){
@@ -311,6 +364,52 @@ public:
                 output_state[j] *= correction;
                 vec_[j] = output_state[j];
             }
+        }
+    }
+
+    void set_wavefunction(StateVector const& wavefunction, std::vector<unsigned> const& ordering){
+        run();
+        // make sure there are 2^n amplitudes for n qubits
+        assert(wavefunction.size() == (1UL << ordering.size()));
+        // check that all qubits have been allocated previously
+        if (map_.size() != ordering.size() || !check_ids(ordering))
+            throw(std::runtime_error("set_wavefunction(): Invalid mapping provided. Please make sure all qubits have been allocated previously (call eng.flush())."));
+
+        // set mapping and wavefunction
+        for (unsigned i = 0; i < ordering.size(); ++i)
+            map_[ordering[i]] = i;
+        #pragma omp parallel for schedule(static)
+        for (std::size_t i = 0; i < wavefunction.size(); ++i)
+            vec_[i] = wavefunction[i];
+    }
+
+    void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
+        run();
+        assert(ids.size() == values.size());
+        if (!check_ids(ids))
+            throw(std::runtime_error("collapse_wavefunction(): Unknown qubit id(s) provided. Try calling eng.flush() before invoking this function."));
+        std::size_t mask = 0, val = 0;
+        for (unsigned i = 0; i < ids.size(); ++i){
+            mask |= (1UL << map_[ids[i]]);
+            val |= ((values[i]?1UL:0UL) << map_[ids[i]]);
+        }
+        // set bad entries to 0 and compute probability of outcome to renormalize
+        calc_type N = 0.;
+        #pragma omp parallel for reduction(+:N) schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i){
+            if ((i & mask) == val)
+                N += std::norm(vec_[i]);
+        }
+        if (N < 1.e-12)
+            throw(std::runtime_error("collapse_wavefunction(): Invalid collapse! Probability is ~0."));
+        // re-normalize (if possible)
+        N = 1./std::sqrt(N);
+        #pragma omp parallel for schedule(static)
+        for (std::size_t i = 0; i < vec_.size(); ++i){
+            if ((i & mask) != val)
+                vec_[i] = 0.;
+            else
+                vec_[i] *= N;
         }
     }
 
@@ -381,6 +480,13 @@ private:
         for (auto c : ctrls)
             ctrlmask |= (1UL << map_[c]);
         return ctrlmask;
+    }
+
+    bool check_ids(std::vector<unsigned> const& ids){
+        for (auto id : ids)
+            if (!map_.count(id))
+                return false;
+        return true;
     }
 
     unsigned N_; // #qubits

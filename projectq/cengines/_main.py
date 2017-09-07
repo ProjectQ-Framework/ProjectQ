@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -72,11 +74,14 @@ class MainEngine(BasicEngine):
         Example:
             .. code-block:: python
 
-                from projectq.cengines import TagRemover,AutoReplacer,LocalOptimizer,DecompositionRuleSet
+                from projectq.cengines import (TagRemover, AutoReplacer,
+                                               LocalOptimizer,
+                                               DecompositionRuleSet)
                 from projectq.backends import Simulator
                 from projectq import MainEngine
                 rule_set = DecompositionRuleSet()
-                engines = [AutoReplacer(rule_set), TagRemover(), LocalOptimizer(3)]
+                engines = [AutoReplacer(rule_set), TagRemover(),
+                           LocalOptimizer(3)]
                 eng = MainEngine(Simulator(), engines)
         """
         BasicEngine.__init__(self)

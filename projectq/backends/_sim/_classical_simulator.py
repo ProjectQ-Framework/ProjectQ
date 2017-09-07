@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -27,7 +29,7 @@ class ClassicalSimulator(BasicEngine):
     """
     A simple introspective simulator that only permits classical operations.
 
-    Allows allocation, deallocation, measuring (no-pop), flushing (no-op),
+    Allows allocation, deallocation, measuring (no-op), flushing (no-op),
     controls, NOTs, and any BasicMathGate. Supports reading/writing directly
     from/to bits and registers of bits.
     """

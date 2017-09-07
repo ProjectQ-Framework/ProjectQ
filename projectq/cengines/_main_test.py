@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -113,5 +115,5 @@ def test_main_engine_flush():
     eng.flush(deallocate_qubits=True)
     assert len(backend.received_commands) == 5
     assert backend.received_commands[3].gate == DeallocateQubitGate()
-    #keep the qubit alive until at least here
+    # keep the qubit alive until at least here
     assert len(str(qubit)) != 0

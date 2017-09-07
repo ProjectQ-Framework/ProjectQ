@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -17,7 +19,8 @@ from ._basics import (NotMergeable,
                       BasicRotationGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
-                      BasicMathGate)
+                      BasicMathGate,
+                      BasicPhaseGate)
 from ._command import apply_command, Command
 from ._metagates import (DaggeredGate,
                          get_inverse,

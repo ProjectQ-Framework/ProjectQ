@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -66,11 +68,36 @@ def test_ibm_backend_init():
     assert backend.qasm == ""
 
 
+def test_ibm_empty_circuit():
+    backend = _ibm.IBMBackend(verbose=True)
+    eng = MainEngine(backend=backend)
+    eng.flush()
+
+
 def test_ibm_backend_requires_mapper():
     backend = _ibm.IBMBackend()
     eng = MainEngine(backend, [])
     with pytest.raises(Exception):
         eng.allocate_qubit()
+
+
+def test_ibm_sent_error(monkeypatch):
+    # patch send
+    def mock_send(*args, **kwargs):
+        raise TypeError
+    monkeypatch.setattr(_ibm, "send", mock_send)
+
+    backend = _ibm.IBMBackend(verbose=True)
+    eng = MainEngine(backend=backend, engine_list=[IBMCNOTMapper()])
+    qubit = eng.allocate_qubit()
+    X | qubit
+    with pytest.raises(Exception):
+        qubit[0].__del__()
+        eng.flush()
+    # atexit sends another FlushGate, therefore we remove the backend:
+    dummy = DummyEngine()
+    dummy.is_last_engine = True
+    eng.next_engine = dummy
 
 
 def test_ibm_backend_functional_test(monkeypatch):

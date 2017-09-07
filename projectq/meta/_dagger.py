@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -22,7 +24,7 @@ Tools to easily invert a sequence of gates.
 
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
-from projectq.meta import DirtyQubitTag
+from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
@@ -123,18 +125,15 @@ class Dagger(object):
                 QFT | qubits
         """
         self.engine = engine
+        self._dagger_eng = None
 
     def __enter__(self):
-        dagger_eng = DaggerEngine()
-        dagger_eng.main_engine = self.engine.main_engine
-        oldnext = self.engine.next_engine
-        self.engine.next_engine = dagger_eng
-        dagger_eng.next_engine = oldnext
-        self._dagger_eng = dagger_eng
+        self._dagger_eng = DaggerEngine()
+        insert_engine(self.engine, self._dagger_eng)
 
     def __exit__(self, type, value, traceback):
         # run dagger engine
         self._dagger_eng.run()
+        self._dagger_eng = None
         # remove dagger handler from engine list (i.e. skip it)
-        oldnext = self._dagger_eng.next_engine
-        self.engine.next_engine = oldnext
+        drop_engine_after(self.engine)

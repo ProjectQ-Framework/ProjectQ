@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -22,9 +24,10 @@ Example:
 """
 
 from projectq.cengines import BasicEngine
-from projectq.ops import ClassicalInstructionGate
 from projectq.meta import ComputeTag, UncomputeTag
+from projectq.ops import ClassicalInstructionGate
 from projectq.types import BasicQubit
+from ._util import insert_engine, drop_engine_after
 
 
 class ControlEngine(BasicEngine):
@@ -101,17 +104,12 @@ class Control(object):
     def __enter__(self):
         if len(self._qubits) > 0:
             ce = ControlEngine(self._qubits)
-            ce.main_engine = self.engine.main_engine
-            oldnext = self.engine.next_engine
-            self.engine.next_engine = ce
-            ce.next_engine = oldnext
-            self._ce = ce
+            insert_engine(self.engine, ce)
 
     def __exit__(self, type, value, traceback):
         # remove control handler from engine list (i.e. skip it)
         if len(self._qubits) > 0:
-            oldnext = self._ce.next_engine
-            self.engine.next_engine = oldnext
+            drop_engine_after(self.engine)
 
 
 def get_control_count(cmd):

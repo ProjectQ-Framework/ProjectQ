@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -23,9 +25,9 @@ Example:
 
 from copy import deepcopy
 
-from projectq.ops import Allocate, Deallocate
-
 from projectq.cengines import BasicEngine
+from projectq.ops import Allocate, Deallocate
+from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
@@ -147,6 +149,8 @@ class LoopEngine(BasicEngine):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
+            if self._tag.num == 0:
+                return
             for cmd in command_list:
                 if cmd.gate == Allocate:
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
@@ -229,22 +233,26 @@ class Loop(object):
                 with Loop(eng, 4):
                     H | qb
                     Rz(M_PI/3.) | qb
+        Raises:
+            TypeError: If number of iterations (num) is not an integer
+            ValueError: If number of iterations (num) is not >= 0
         """
         self.engine = engine
+        if not isinstance(num, int):
+            raise TypeError("Number of loop iterations must be an int.")
+        if num < 0:
+            raise ValueError("Number of loop iterations must be >=0.")
         self.num = num
+        self._loop_eng = None
 
     def __enter__(self):
-        if self.num > 1:
-            loop_eng = LoopEngine(self.num)
-            loop_eng.main_engine = self.engine.main_engine
-            oldnext = self.engine.next_engine
-            self.engine.next_engine = loop_eng
-            loop_eng.next_engine = oldnext
-            self._loop_eng = loop_eng
+        if self.num != 1:
+            self._loop_eng = LoopEngine(self.num)
+            insert_engine(self.engine, self._loop_eng)
 
     def __exit__(self, type, value, traceback):
-        if self.num > 1:
+        if self.num != 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()
-            oldnext = self._loop_eng.next_engine
-            self.engine.next_engine = oldnext
+            self._loop_eng = None
+            drop_engine_after(self.engine)

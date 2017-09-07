@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -10,8 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import pytest
+
 from projectq import MainEngine
-from projectq.ops import X, C, BasicMathGate
+from projectq.ops import (X, NOT, C, BasicMathGate, Measure, FlushGate,
+                          Allocate, Deallocate, Command, Y)
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, DummyEngine
 from ._classical_simulator import ClassicalSimulator
 
 
@@ -103,3 +109,42 @@ def test_simulator_arithmetic():
     Sub() | (a, b)
     assert sim.read_register(a) == 11
     assert sim.read_register(b) == 24
+
+
+def test_write_register_value_error_exception():
+    sim = ClassicalSimulator()
+    eng = MainEngine(sim, [])
+    a = eng.allocate_qureg(3)
+    with pytest.raises(ValueError):
+        sim.write_register(a, -2)
+    sim.write_register(a, 7)
+    with pytest.raises(ValueError):
+        sim.write_register(a, 8)
+
+
+def test_available_gates():
+    sim = ClassicalSimulator()
+    eng = MainEngine(sim, [AutoReplacer(DecompositionRuleSet())])
+    a = eng.allocate_qubit()
+    X | a
+    NOT | a
+    Measure | a
+    eng.flush()
+
+
+def test_gates_are_forwarded_to_next_engine():
+    sim = ClassicalSimulator()
+    saving_eng = DummyEngine(save_commands=True)
+    eng = MainEngine(saving_eng, [sim])
+    a = eng.allocate_qubit()
+    X | a
+    a[0].__del__()
+    assert len(saving_eng.received_commands) == 3
+
+
+def test_wrong_gate():
+    sim = ClassicalSimulator()
+    eng = MainEngine(sim, [])
+    a = eng.allocate_qubit()
+    with pytest.raises(ValueError):
+        Y | a

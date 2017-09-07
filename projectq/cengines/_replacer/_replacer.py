@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -77,8 +79,9 @@ class AutoReplacer(BasicEngine):
     further. The loaded setup is used to find decomposition rules appropriate
     for each command (e.g., setups.default).
     """
-    def __init__(self, decompositionRuleSet, decomposition_chooser=
-                 lambda cmd, decomposition_list: decomposition_list[0]):
+    def __init__(self, decompositionRuleSet,
+                 decomposition_chooser=lambda cmd,
+                 decomposition_list: decomposition_list[0]):
         """
         Initialize an AutoReplacer.
 

@@ -51,7 +51,12 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("apply_controlled_gate", &Simulator::apply_controlled_gate<MatrixType>)
         .def("emulate_math", &emulate_math_wrapper<QuRegs>)
         .def("get_expectation_value", &Simulator::get_expectation_value)
+        .def("apply_qubit_operator", &Simulator::apply_qubit_operator)
         .def("emulate_time_evolution", &Simulator::emulate_time_evolution)
+        .def("get_probability", &Simulator::get_probability)
+        .def("get_amplitude", &Simulator::get_amplitude)
+        .def("set_wavefunction", &Simulator::set_wavefunction)
+        .def("collapse_wavefunction", &Simulator::collapse_wavefunction)
         .def("run", &Simulator::run)
         .def("cheat", &Simulator::cheat)
         ;

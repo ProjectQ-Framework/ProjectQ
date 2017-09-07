@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -311,6 +313,5 @@ class Command(object):
                 qstring += str(Qureg(qreg))
                 qstring += ", "
             qstring = qstring[:-2] + " )"
-        #qstring = convert_qubits_to_string(qubits)
         cstring = "C" * len(ctrlqubits)
         return cstring + str(self.gate) + " | " + qstring

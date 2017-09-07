@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -35,7 +37,7 @@ class TimeEvolution(BasicGate):
     Example:
         .. code-block:: python
 
-            wavefuction = eng.allocate_qureg(5)
+            wavefunction = eng.allocate_qureg(5)
             hamiltonian = 0.5 * QubitOperator("X0 Z1 Y5")
             # Apply exp(-i * H * t) to the wavefunction:
             TimeEvolution(time=2.0, hamiltonian=hamiltonian) | wavefunction
@@ -123,11 +125,11 @@ class TimeEvolution(BasicGate):
             factor = None
             for term in self.hamiltonian.terms:
                 if factor is None:
-                    factor = self.hamiltonian.terms[term] / float(
-                        other.hamiltonian.terms[term])
+                    factor = (self.hamiltonian.terms[term] /
+                              float(other.hamiltonian.terms[term]))
                 else:
-                    tmp = self.hamiltonian.terms[term] / float(
-                        other.hamiltonian.terms[term])
+                    tmp = (self.hamiltonian.terms[term] /
+                           float(other.hamiltonian.terms[term]))
                     if not abs(factor - tmp) <= (
                             rel_tol * max(abs(factor), abs(tmp))):
                         raise NotMergeable("Cannot merge these two gates.")
@@ -161,7 +163,7 @@ class TimeEvolution(BasicGate):
 
         While in the above example the TimeEvolution gate is applied to 5
         qubits, the hamiltonian of this TimeEvolution gate acts only
-        non-trivially on the two qubits wavefuction[1] and wavefunction[3].
+        non-trivially on the two qubits wavefunction[1] and wavefunction[3].
         Therefore, the operator| will rescale the indices in the hamiltonian
         and sends the equivalent of the following new gate to the MainEngine:
 

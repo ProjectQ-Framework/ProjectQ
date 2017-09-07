@@ -11,24 +11,20 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+"""Tests for projectq.setup.ibm."""
 
-"""Tests for projectq.meta._qubitplacement.py"""
-
-from projectq.meta import ComputeTag
-
-from projectq.meta._qubitplacement import QubitPlacementTag
+import projectq
+from projectq import MainEngine
+from projectq.cengines import IBMCNOTMapper
 
 
-def test_qubit_placement_tag():
-    tag0 = QubitPlacementTag(0)
-    tag1 = QubitPlacementTag(0)
-    tag2 = QubitPlacementTag(2)
-    tag3 = ComputeTag()
-    assert tag0 == tag1
-    assert not tag0 == tag2
-    assert not tag0 == tag3
-    assert not tag3 == tag2
-    assert not tag0 != tag1
-    assert tag0 != tag2
-    assert tag0 != tag3
-    assert tag3 != tag2
+def test_ibm_cnot_mapper_in_cengines():
+    import projectq.setups.ibm
+    found = False
+    for engine in projectq.setups.ibm.ibm_default_engines():
+        if isinstance(engine, IBMCNOTMapper):
+            found = True
+    # To undo the changes of loading the IBM setup:
+    import projectq.setups.default
+    projectq.default_engines = projectq.setups.default.default_engines
+    assert found

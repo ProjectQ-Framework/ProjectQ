@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -16,6 +18,7 @@ and the C++ simulator as backends.
 """
 
 import copy
+import math
 import numpy
 import pytest
 import random
@@ -32,14 +35,16 @@ from projectq.ops import (H,
                           S,
                           Rx,
                           Ry,
+                          Rz,
                           CNOT,
                           Toffoli,
                           Measure,
                           BasicGate,
                           BasicMathGate,
                           QubitOperator,
-                          TimeEvolution)
-from projectq.meta import Control
+                          TimeEvolution,
+                          All)
+from projectq.meta import Control, Dagger
 
 from projectq.backends import Simulator
 
@@ -85,7 +90,7 @@ class Mock1QubitGate(BasicGate):
             return [[0, 1], [1, 0]]
 
 
-class Mock2QubitGate(BasicGate):
+class Mock6QubitGate(BasicGate):
         def __init__(self):
             BasicGate.__init__(self)
             self.cnt = 0
@@ -93,7 +98,7 @@ class Mock2QubitGate(BasicGate):
         @property
         def matrix(self):
             self.cnt += 1
-            return [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+            return numpy.eye(2 ** 6)
 
 
 class MockNoMatrixGate(BasicGate):
@@ -126,7 +131,7 @@ def test_simulator_is_available(sim):
     assert sim.is_available(new_cmd)
     assert new_cmd.gate.cnt == 1
 
-    new_cmd.gate = Mock2QubitGate()
+    new_cmd.gate = Mock6QubitGate()
     assert not sim.is_available(new_cmd)
     assert new_cmd.gate.cnt == 1
 
@@ -204,6 +209,108 @@ def test_simulator_emulation(sim):
     Measure | (qubit1 + qubit2 + qubit3)
 
 
+def test_simulator_kqubit_gate(sim):
+    m1 = Rx(0.3).matrix
+    m2 = Rx(0.8).matrix
+    m3 = Ry(0.1).matrix
+    m4 = Rz(0.9).matrix.dot(Ry(-0.1).matrix)
+    m = numpy.kron(m4, numpy.kron(m3, numpy.kron(m2, m1)))
+
+    class KQubitGate(BasicGate):
+        @property
+        def matrix(self):
+            return m
+
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(4)
+    qubit = eng.allocate_qubit()
+    Rx(-0.3) | qureg[0]
+    Rx(-0.8) | qureg[1]
+    Ry(-0.1) | qureg[2]
+    Rz(-0.9) | qureg[3]
+    Ry(0.1) | qureg[3]
+    X | qubit
+    with Control(eng, qubit):
+        KQubitGate() | qureg
+    X | qubit
+    with Control(eng, qubit):
+        with Dagger(eng):
+            KQubitGate() | qureg
+    assert sim.get_amplitude('0' * 5, qubit + qureg) == pytest.approx(1.)
+
+    class LargerGate(BasicGate):
+        @property
+        def matrix(self):
+            return numpy.eye(2 ** 6)
+
+    with pytest.raises(Exception):
+        LargerGate() | (qureg + qubit)
+
+
+def test_simulator_probability(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(6)
+    All(H) | qubits
+    eng.flush()
+    bits = [0, 0, 1, 0, 1, 0]
+    for i in range(6):
+        assert (eng.backend.get_probability(bits[:i], qubits[:i])
+                == pytest.approx(0.5**i))
+    extra_qubit = eng.allocate_qubit()
+    with pytest.raises(RuntimeError):
+        eng.backend.get_probability([0], extra_qubit)
+    del extra_qubit
+    All(H) | qubits
+    Ry(2 * math.acos(math.sqrt(0.3))) | qubits[0]
+    eng.flush()
+    assert eng.backend.get_probability([0], [qubits[0]]) == pytest.approx(0.3)
+    Ry(2 * math.acos(math.sqrt(0.4))) | qubits[2]
+    eng.flush()
+    assert eng.backend.get_probability([0], [qubits[2]]) == pytest.approx(0.4)
+    assert (eng.backend.get_probability([0, 0], qubits[:3:2])
+            == pytest.approx(0.12))
+    assert (eng.backend.get_probability([0, 1], qubits[:3:2])
+            == pytest.approx(0.18))
+    assert (eng.backend.get_probability([1, 0], qubits[:3:2])
+            == pytest.approx(0.28))
+    Measure | qubits
+
+
+def test_simulator_amplitude(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(6)
+    All(X) | qubits
+    All(H) | qubits
+    eng.flush()
+    bits = [0, 0, 1, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(1. / 8.)
+    bits = [0, 0, 0, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    bits = [0, 1, 1, 0, 1, 0]
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    All(H) | qubits
+    All(X) | qubits
+    Ry(2 * math.acos(0.3)) | qubits[0]
+    eng.flush()
+    bits = [0] * 6
+    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(0.3)
+    bits[0] = 1
+    assert (eng.backend.get_amplitude(bits, qubits)
+            == pytest.approx(math.sqrt(0.91)))
+    Measure | qubits
+    # raises if not all qubits are in the list:
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits[:-1])
+    # doesn't just check for length:
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits[:-1] + [qubits[0]])
+    extra_qubit = eng.allocate_qubit()
+    eng.flush()
+    # there is a new qubit now!
+    with pytest.raises(RuntimeError):
+        eng.backend.get_amplitude(bits, qubits)
+
+
 def test_simulator_expectation(sim):
     eng = MainEngine(sim, [])
     qureg = eng.allocate_qureg(3)
@@ -245,6 +352,56 @@ def test_simulator_expectation(sim):
     op_id = .4 * QubitOperator(())
     expectation = sim.get_expectation_value(op_id, qureg)
     assert .4 == pytest.approx(expectation)
+
+
+def test_simulator_expectation_exception(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('Z2')
+    sim.get_expectation_value(op, qureg)
+    op2 = QubitOperator('Z3')
+    with pytest.raises(Exception):
+        sim.get_expectation_value(op2, qureg)
+    op3 = QubitOperator('Z1') + QubitOperator('X1 Y3')
+    with pytest.raises(Exception):
+        sim.get_expectation_value(op3, qureg)
+
+
+def test_simulator_applyqubitoperator_exception(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('Z2')
+    sim.apply_qubit_operator(op, qureg)
+    op2 = QubitOperator('Z3')
+    with pytest.raises(Exception):
+        sim.apply_qubit_operator(op2, qureg)
+    op3 = QubitOperator('Z1') + QubitOperator('X1 Y3')
+    with pytest.raises(Exception):
+        sim.apply_qubit_operator(op3, qureg)
+
+
+def test_simulator_applyqubitoperator(sim):
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    op = QubitOperator('X0 Y1 Z2')
+    sim.apply_qubit_operator(op, qureg)
+    X | qureg[0]
+    Y | qureg[1]
+    Z | qureg[2]
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1.)
+
+    H | qureg[0]
+    op_H = 1. / math.sqrt(2.) * (QubitOperator('X0') + QubitOperator('Z0'))
+    sim.apply_qubit_operator(op_H, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1.)
+
+    op_Proj0 = 0.5 * (QubitOperator('') + QubitOperator('Z0'))
+    op_Proj1 = 0.5 * (QubitOperator('') - QubitOperator('Z0'))
+    H | qureg[0]
+    sim.apply_qubit_operator(op_Proj0, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(1. / math.sqrt(2.))
+    sim.apply_qubit_operator(op_Proj1, [qureg[0]])
+    assert sim.get_amplitude('000', qureg) == pytest.approx(0.)
 
 
 def test_simulator_time_evolution(sim):
@@ -295,6 +452,59 @@ def test_simulator_time_evolution(sim):
     final_wavefunction = numpy.array(final_wavefunction, copy=False)
     res = scipy.sparse.linalg.expm_multiply(res_matrix, init_wavefunction)
     assert numpy.allclose(res, final_wavefunction)
+
+
+def test_simulator_set_wavefunction(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(2)
+    wf = [0., 0., math.sqrt(0.2), math.sqrt(0.8)]
+    with pytest.raises(RuntimeError):
+        eng.backend.set_wavefunction(wf, qubits)
+    eng.flush()
+    eng.backend.set_wavefunction(wf, qubits)
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[0]])) == .8
+    assert pytest.approx(eng.backend.get_probability('01', qubits)) == .2
+    assert pytest.approx(eng.backend.get_probability('1', [qubits[1]])) == 1.
+    Measure | qubits
+
+
+def test_simulator_set_wavefunction_always_complex(sim):
+    """ Checks that wavefunction is always complex """
+    eng = MainEngine(sim)
+    qubit = eng.allocate_qubit()
+    eng.flush()
+    wf = [1., 0]
+    eng.backend.set_wavefunction(wf, qubit)
+    Y | qubit
+    eng.flush()
+    assert eng.backend.get_amplitude('1', qubit) == pytest.approx(1j)
+
+
+def test_simulator_collapse_wavefunction(sim):
+    eng = MainEngine(sim)
+    qubits = eng.allocate_qureg(4)
+    # unknown qubits: raises
+    with pytest.raises(RuntimeError):
+        eng.backend.collapse_wavefunction(qubits, [0] * 4)
+    eng.flush()
+    eng.backend.collapse_wavefunction(qubits, [0] * 4)
+    assert pytest.approx(eng.backend.get_probability([0] * 4, qubits)) == 1.
+    All(H) | qubits[1:]
+    eng.flush()
+    assert pytest.approx(eng.backend.get_probability([0] * 4, qubits)) == .125
+    # impossible outcome: raises
+    with pytest.raises(RuntimeError):
+        eng.backend.collapse_wavefunction(qubits, [1] + [0] * 3)
+    eng.backend.collapse_wavefunction(qubits[:-1], [0, 1, 0])
+    assert (pytest.approx(eng.backend.get_probability([0, 1, 0, 1], qubits))
+            == .5)
+    eng.backend.set_wavefunction([1.] + [0.] * 15, qubits)
+    H | qubits[0]
+    CNOT | (qubits[0], qubits[1])
+    eng.flush()
+    eng.backend.collapse_wavefunction([qubits[0]], [1])
+    assert (pytest.approx(eng.backend.get_probability([1, 1], qubits[0:2]))
+            == 1.)
 
 
 def test_simulator_no_uncompute_exception(sim):

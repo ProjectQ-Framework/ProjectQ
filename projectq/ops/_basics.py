@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -303,6 +305,95 @@ class BasicRotationGate(BasicGate):
             difference = abs(self._angle - other._angle) % (4 * math.pi)
             # Return True if angles are close to each other modulo 4 * pi
             if difference < tolerance or difference > 4 * math.pi - tolerance:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class BasicPhaseGate(BasicGate):
+    """
+    Defines a base class of a phase gate.
+
+    A phase gate has a continuous parameter (the angle), labeled 'angle' /
+    self._angle. Its inverse is the same gate with the negated argument.
+    Phase gates of the same class can be merged by adding the angles.
+    The continuous parameter is modulo 2 * pi, self._angle is in the interval
+    [0, 2 * pi).
+    """
+    def __init__(self, angle):
+        """
+        Initialize a basic rotation gate.
+
+        Args:
+            angle (float): Angle of rotation (saved modulo 2 * pi)
+        """
+        BasicGate.__init__(self)
+        self._angle = float(angle) % (2. * math.pi)
+
+    def __str__(self):
+        """
+        Return the string representation of a BasicRotationGate.
+
+        Returns the class name and the angle as
+
+        .. code-block:: python
+
+            [CLASSNAME]([ANGLE])
+        """
+        return str(self.__class__.__name__) + "(" + str(self._angle) + ")"
+
+    def tex_str(self):
+        """
+        Return the Latex string representation of a BasicRotationGate.
+
+        Returns the class name and the angle as a subscript, i.e.
+
+        .. code-block:: latex
+
+            [CLASSNAME]$_[ANGLE]$
+        """
+        return str(self.__class__.__name__) + "$_{" + str(self._angle) + "}$"
+
+    def get_inverse(self):
+        """
+        Return the inverse of this rotation gate (negate the angle, return new
+        object).
+        """
+        if self._angle == 0:
+            return self.__class__(0)
+        else:
+            return self.__class__(-self._angle + 2 * math.pi)
+
+    def get_merged(self, other):
+        """
+        Return self merged with another gate.
+
+        Default implementation handles rotation gate of the same type, where
+        angles are simply added.
+
+        Args:
+            other: Rotation gate of same type.
+
+        Raises:
+            NotMergeable: For non-rotation gates or rotation gates of
+                different type.
+
+        Returns:
+            New object representing the merged gates.
+        """
+        if isinstance(other, self.__class__):
+            return self.__class__(self._angle + other._angle)
+        raise NotMergeable("Can't merge different types of rotation gates.")
+
+    def __eq__(self, other):
+        """ Return True if same class and same rotation angle. """
+        tolerance = EQ_TOLERANCE
+        if isinstance(other, self.__class__):
+            difference = abs(self._angle - other._angle) % (2 * math.pi)
+            # Return True if angles are close to each other modulo 4 * pi
+            if difference < tolerance or difference > 2 * math.pi - tolerance:
                 return True
         return False
 

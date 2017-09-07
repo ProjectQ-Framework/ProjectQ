@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -248,6 +250,82 @@ class Simulator(object):
             self._state = _np.copy(current_state)
         return expectation
 
+    def apply_qubit_operator(self, terms_dict, ids):
+        """
+        Apply a (possibly non-unitary) qubit operator to qubits.
+
+        Args:
+            terms_dict (dict): Operator dictionary (see QubitOperator.terms)
+            ids (list[int]): List of qubit ids upon which the operator acts.
+        """
+        new_state = _np.zeros_like(self._state)
+        current_state = _np.copy(self._state)
+        for (term, coefficient) in terms_dict:
+            self._apply_term(term, ids)
+            self._state *= coefficient
+            new_state += self._state
+            self._state = _np.copy(current_state)
+        self._state = new_state
+
+    def get_probability(self, bit_string, ids):
+        """
+        Return the probability of the outcome `bit_string` when measuring
+        the qubits given by the list of ids.
+
+        Args:
+            bit_string (list[bool|int]): Measurement outcome.
+            ids (list[int]): List of qubit ids determining the ordering.
+
+        Returns:
+            Probability of measuring the provided bit string.
+
+        Raises:
+            RuntimeError if an unknown qubit id was provided.
+        """
+        for i in range(len(ids)):
+            if ids[i] not in self._map:
+                raise RuntimeError("get_probability(): Unknown qubit id. "
+                                   "Please make sure you have called "
+                                   "eng.flush().")
+        mask = 0
+        bit_str = 0
+        for i in range(len(ids)):
+            mask |= (1 << self._map[ids[i]])
+            bit_str |= (bit_string[i] << self._map[ids[i]])
+        probability = 0.
+        for i in range(len(self._state)):
+            if (i & mask) == bit_str:
+                e = self._state[i]
+                probability += e.real**2 + e.imag**2
+        return probability
+
+    def get_amplitude(self, bit_string, ids):
+        """
+        Return the probability amplitude of the supplied `bit_string`.
+        The ordering is given by the list of qubit ids.
+
+        Args:
+            bit_string (list[bool|int]): Computational basis state
+            ids (list[int]): List of qubit ids determining the
+                ordering. Must contain all allocated qubits.
+
+        Returns:
+            Probability amplitude of the provided bit string.
+
+        Raises:
+            RuntimeError if the second argument is not a permutation of all
+            allocated qubits.
+        """
+        if not set(ids) == set(self._map):
+            raise RuntimeError("The second argument to get_amplitude() must"
+                               " be a permutation of all allocated qubits. "
+                               "Please make sure you have called "
+                               "eng.flush().")
+        index = 0
+        for i in range(len(ids)):
+            index |= (bit_string[i] << self._map[ids[i]])
+        return self._state[index]
+
     def emulate_time_evolution(self, terms_dict, time, ids, ctrlids):
         """
         Applies exp(-i*time*H) to the wave function, i.e., evolves under
@@ -296,27 +374,41 @@ class Simulator(object):
 
     def apply_controlled_gate(self, m, ids, ctrlids):
         """
-        Applies the single qubit gate matrix m to the qubit with index ids[0],
+        Applies the k-qubit gate matrix m to the qubits with indices ids,
         using ctrlids as control qubits.
 
         Args:
-            m (list<list>): 2x2 complex matrix describing the single-qubit
+            m (list[list]): 2^k x 2^k complex matrix describing the k-qubit
                 gate.
-            ids (list): A list containing the qubit ID to which to apply the
+            ids (list): A list containing the qubit IDs to which to apply the
                 gate.
             ctrlids (list): A list of control qubit IDs (i.e., the gate is
                 only applied where these qubits are 1).
         """
-        ID = ids[0]
-        pos = self._map[ID]
-
         mask = self._get_control_mask(ctrlids)
+        if len(m) == 2:
+            pos = self._map[ids[0]]
+            self._single_qubit_gate(m, pos, mask)
+        else:
+            pos = [self._map[ID] for ID in ids]
+            self._multi_qubit_gate(m, pos, mask)
 
+    def _single_qubit_gate(self, m, pos, mask):
+        """
+        Applies the single qubit gate matrix m to the qubit at position `pos`
+        using `mask` to identify control qubits.
+
+        Args:
+            m (list[list]): 2x2 complex matrix describing the single-qubit
+                gate.
+            pos (int): Bit-position of the qubit.
+            mask (int): Bit-mask where set bits indicate control qubits.
+        """
         def kernel(u, d, m):
             return u * m[0][0] + d * m[0][1], u * m[1][0] + d * m[1][1]
 
         for i in range(0, len(self._state), (1 << (pos + 1))):
-            for j in range(0, 1 << pos):
+            for j in range(1 << pos):
                 if ((i + j) & mask) == mask:
                     id1 = i + j
                     id2 = id1 + (1 << pos)
@@ -324,6 +416,101 @@ class Simulator(object):
                         self._state[id1],
                         self._state[id2],
                         m)
+
+    def _multi_qubit_gate(self, m, pos, mask):
+        """
+        Applies the k-qubit gate matrix m to the qubits at `pos`
+        using `mask` to identify control qubits.
+
+        Args:
+            m (list[list]): 2^k x 2^k complex matrix describing the k-qubit
+                gate.
+            pos (list[int]): List of bit-positions of the qubits.
+            mask (int): Bit-mask where set bits indicate control qubits.
+        """
+        # follows the description in https://arxiv.org/abs/1704.01127
+        inactive = [p for p in range(len(self._map)) if p not in pos]
+
+        matrix = _np.matrix(m)
+        subvec = _np.zeros(1 << len(pos), dtype=complex)
+        subvec_idx = [0] * len(subvec)
+        for c in range(1 << len(inactive)):
+            # determine base index (state of inactive qubits)
+            base = 0
+            for i in range(len(inactive)):
+                base |= ((c >> i) & 1) << inactive[i]
+            # check the control mask
+            if mask != (base & mask):
+                continue
+            # now gather all elements involved in mat-vec mul
+            for x in range(len(subvec_idx)):
+                offset = 0
+                for i in range(len(pos)):
+                    offset |= ((x >> i) & 1) << pos[i]
+                subvec_idx[x] = base | offset
+                subvec[x] = self._state[subvec_idx[x]]
+            # perform mat-vec mul
+            self._state[subvec_idx] = matrix.dot(subvec)
+
+    def set_wavefunction(self, wavefunction, ordering):
+        """
+        Set wavefunction and qubit ordering.
+
+        Args:
+            wavefunction (list[complex]): Array of complex amplitudes
+                describing the wavefunction (must be normalized).
+            ordering (list): List of ids describing the new ordering of qubits
+                (i.e., the ordering of the provided wavefunction).
+        """
+        # wavefunction contains 2^n values for n qubits
+        assert len(wavefunction) == (1 << len(ordering))
+        # all qubits must have been allocated before
+        if (not all([Id in self._map for Id in ordering])
+                or len(self._map) != len(ordering)):
+            raise RuntimeError("set_wavefunction(): Invalid mapping provided."
+                               " Please make sure all qubits have been "
+                               "allocated previously (call eng.flush()).")
+
+        self._state = _np.array(wavefunction, dtype=_np.complex128)
+        self._map = {ordering[i]: i for i in range(len(ordering))}
+
+    def collapse_wavefunction(self, ids, values):
+        """
+        Collapse a quantum register onto a classical basis state.
+
+        Args:
+            ids (list[int]): Qubit IDs to collapse.
+            values (list[bool]): Measurement outcome for each of the qubit IDs
+                in `ids`.
+        Raises:
+            RuntimeError: If probability of outcome is ~0 or unknown qubits
+                are provided.
+        """
+        assert len(ids) == len(values)
+        # all qubits must have been allocated before
+        if not all([Id in self._map for Id in ids]):
+            raise RuntimeError("collapse_wavefunction(): Unknown qubit id(s)"
+                               " provided. Try calling eng.flush() before "
+                               "invoking this function.")
+        mask = 0
+        val = 0
+        for i in range(len(ids)):
+            pos = self._map[ids[i]]
+            mask |= (1 << pos)
+            val |= (int(values[i]) << pos)
+        nrm = 0.
+        for i in range(len(self._state)):
+            if (mask & i) == val:
+                nrm += _np.abs(self._state[i]) ** 2
+        if nrm < 1.e-12:
+            raise RuntimeError("collapse_wavefunction(): Invalid collapse! "
+                               "Probability is ~0.")
+        inv_nrm = 1. / _np.sqrt(nrm)
+        for i in range(len(self._state)):
+            if (mask & i) != val:
+                self._state[i] = 0.
+            else:
+                self._state[i] *= inv_nrm
 
     def run(self):
         """

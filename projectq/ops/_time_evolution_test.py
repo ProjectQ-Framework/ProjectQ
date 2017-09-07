@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -69,8 +71,8 @@ def test_init_not_hermitian():
 def test_init_cast_complex_to_float():
     hamiltonian = QubitOperator("Z2", 2+0j)
     gate = te.TimeEvolution(1, hamiltonian)
-    assert isinstance(gate.hamiltonian.terms[((2,'Z'),)], float)
-    pytest.approx(gate.hamiltonian.terms[((2,'Z'),)]) == 2.0
+    assert isinstance(gate.hamiltonian.terms[((2, 'Z'),)], float)
+    pytest.approx(gate.hamiltonian.terms[((2, 'Z'),)]) == 2.0
 
 
 def test_init_negative_time():

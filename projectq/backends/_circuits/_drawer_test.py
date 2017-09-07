@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -94,9 +96,9 @@ def test_drawer_qubitmapping():
     # invalid mapping should raise an error:
     invalid_mappings = [{3: 1, 0: 2}, {0: 1, 2: 1}]
     for invalid_mapping in invalid_mappings:
+        drawer = CircuitDrawer()
         with pytest.raises(RuntimeError):
             drawer.set_qubit_locations(invalid_mapping)
-            drawer = CircuitDrawer()
 
     eng = MainEngine(drawer, [])
     qubit = eng.allocate_qubit()

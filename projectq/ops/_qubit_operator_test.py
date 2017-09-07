@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -84,12 +86,12 @@ def test_init_bad_action():
 
 def test_init_bad_action_in_tuple():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator(((1,'Q'),))
+        qubit_op = qo.QubitOperator(((1, 'Q'),))
 
 
 def test_init_bad_qubit_num_in_tuple():
     with pytest.raises(qo.QubitOperatorError):
-        qubit_op = qo.QubitOperator((("1",'X'),))
+        qubit_op = qo.QubitOperator((("1", 'X'),))
 
 
 def test_init_bad_tuple():
@@ -294,12 +296,16 @@ def test_rmul_bad_multiplier():
                          numpy.complex128(-1j), 2])
 def test_truediv_and_div(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
+    op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
     res = op / divisor
+    res2 = op2.__div__(divisor)  # To test python 2 version as well
     correct = op * (1. / divisor)
     assert res.isclose(correct)
+    assert res2.isclose(correct)
     # Test if done out of place
     assert op.isclose(original)
+    assert op2.isclose(original)
 
 
 def test_truediv_bad_divisor():
@@ -312,12 +318,16 @@ def test_truediv_bad_divisor():
                          numpy.complex128(-1j), 2])
 def test_itruediv_and_idiv(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
+    op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
     correct = op * (1. / divisor)
     op /= divisor
+    op2.__idiv__(divisor)  # To test python 2 version as well
     assert op.isclose(correct)
+    assert op2.isclose(correct)
     # Test if done in-place
     assert not op.isclose(original)
+    assert not op2.isclose(original)
 
 
 def test_itruediv_bad_divisor():

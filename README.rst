@@ -11,9 +11,15 @@ ProjectQ - An open source software framework for quantum computing
     :target: http://projectq.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://badge.fury.io/py/projectq.svg
+    :target: https://badge.fury.io/py/projectq
+    
+.. image:: https://img.shields.io/badge/python-2.7%2C%203.3%2C%203.4%2C%203.5%2C%203.6-brightgreen.svg
+
+
 ProjectQ is an open source effort for quantum computing.
 
-The first version (v0.1) features a compilation framework capable of
+It features a compilation framework capable of
 targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
@@ -29,7 +35,9 @@ This allows users to
 Getting started
 ---------------
 
-To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.readthedocs.io/en/latest/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.readthedocs.io/en/latest/examples.html>`__. Also, make sure to check out the `ProjectQ
+To start using ProjectQ, simply follow the installation instructions in the `tutorials <http://projectq.readthedocs.io/en/latest/tutorials.html>`__. There, you will also find OS-specific hints, a small introduction to the ProjectQ syntax, and a few `code examples <http://projectq.readthedocs.io/en/latest/examples.html>`__. More example codes and tutorials can be found in the examples folder `here <https://github.com/ProjectQ-Framework/ProjectQ/tree/develop/examples>`__ on GitHub.
+
+Also, make sure to check out the `ProjectQ
 website <http://www.projectq.ch>`__ and the detailed `code documentation <http://projectq.readthedocs.io/en/latest/>`__.
 
 How to contribute

@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -11,7 +13,10 @@
 #   limitations under the License.
 
 import math
-from fractions import gcd
+try:
+    from math import gcd
+except ImportError:
+    from fractions import gcd
 
 from projectq.ops import R, X, Swap, Measure, CNOT, QFT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
