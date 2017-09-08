@@ -79,12 +79,15 @@ def test_decomposition():
     for basis_state_index in range(0,16):
         basis_state = [0] * 16
         basis_state[basis_state_index] = 1.
-        correct_eng = MainEngine(backend=Simulator(), engine_list=[])
-
+        correct_dummy_eng = DummyEngine(save_commands=True)
+        correct_eng = MainEngine(backend=Simulator(), 
+                                 engine_list=[correct_dummy_eng])
         rule_set = DecompositionRuleSet(modules=[cnu2toffoliandcu])
+        test_dummy_eng = DummyEngine(save_commands=True)
         test_eng = MainEngine(backend=Simulator(),
                               engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(_decomp_gates)])
+                                           InstructionFilter(_decomp_gates),
+                                           test_dummy_eng])
         test_sim = test_eng.backend
         correct_sim = correct_eng.backend
         correct_qb = correct_eng.allocate_qubit()
@@ -111,11 +114,14 @@ def test_decomposition():
         test_eng.flush()
         correct_eng.flush()
 
-        for fstate in ['0000', '0001', '0010', '0011', '0100', '0101', '0110',
-                       '0111', '1000', '1001', '1010', '1011', '1100', '1101',
-                       '1110', '1111']:
-            test = test_sim.get_amplitude(fstate, test_qb + test_ctrl_qureg)
-            correct = correct_sim.get_amplitude(fstate, correct_qb +
+        assert len(correct_dummy_eng.received_commands) == 8
+        assert len(test_dummy_eng.received_commands) == 20
+
+        for fstate in range(16):
+            binary_state = format(fstate, '04b')
+            test = test_sim.get_amplitude(binary_state,
+                                          test_qb + test_ctrl_qureg)
+            correct = correct_sim.get_amplitude(binary_state, correct_qb +
                                                 correct_ctrl_qureg)
             assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
 
