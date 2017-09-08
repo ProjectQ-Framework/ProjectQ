@@ -222,3 +222,5 @@ def test_auto_replacer_searches_parent_class_for_rule():
     qb = eng.allocate_qubit()
     DerivedSomeGate() | qb
     eng.flush()
+    received_gate = backend.received_commands[1].gate
+    assert received_gate == X or received_gate == H
