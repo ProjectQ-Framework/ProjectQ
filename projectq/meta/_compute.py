@@ -194,32 +194,16 @@ class ComputeEngine(BasicEngine):
                     self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
             else:
-                if len(new_local_id) == 0:
-                    # No local qubits are active currently -> do standard
-                    # uncompute
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
-                else:
-                    # Process commands by replacing each local qubit from
-                    # compute section with new local qubit from the uncompute
-                    # section
-                    tmp_control_qubits = cmd.control_qubits
-                    changed = False
-                    for control_qubit in tmp_control_qubits:
-                        if control_qubit.id in new_local_id:
-                            control_qubit.id = new_local_id[control_qubit.id]
-                            changed = True
-                    if changed:
-                        cmd.control_qubits = tmp_control_qubits
-                    tmp_qubits = cmd.qubits
-                    changed = False
-                    for qureg in tmp_qubits:
+                # Process commands by replacing each local qubit from       
+                # compute section with new local qubit from the uncompute     
+                # section
+                if new_local_id:  # Only if we still have local qubits
+                    for qureg in cmd.all_qubits:
                         for qubit in qureg:
                             if qubit.id in new_local_id:
                                 qubit.id = new_local_id[qubit.id]
-                                changed = True
-                    if changed:
-                        cmd.qubits = tmp_qubits
-                    self.send([self._add_uncompute_tag(cmd.get_inverse())])
+
+                self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
     def end_compute(self):
         """
