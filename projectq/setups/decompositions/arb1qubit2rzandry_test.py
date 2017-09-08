@@ -114,18 +114,22 @@ def create_test_matrices():
 
 @pytest.mark.parametrize("gate_matrix", create_test_matrices())
 def test_decomposition(gate_matrix):
-    # Create single qubit gate with gate_matrix
-    test_gate = BasicGate()
-    test_gate.matrix = np.matrix(gate_matrix)
-
-    correct_eng = MainEngine(backend=Simulator(), engine_list=[])
-
-    rule_set = DecompositionRuleSet(modules=[arb1q])
-    test_eng = MainEngine(backend=Simulator(),
-                          engine_list=[AutoReplacer(rule_set),
-                                       InstructionFilter(z_y_decomp_gates)])
-
     for basis_state in ([1, 0], [0, 1]):
+        # Create single qubit gate with gate_matrix
+        test_gate = BasicGate()
+        test_gate.matrix = np.matrix(gate_matrix)
+
+        correct_dummy_eng = DummyEngine(save_commands=True)
+        correct_eng = MainEngine(backend=Simulator(),
+                                 engine_list=[correct_dummy_eng])
+
+        rule_set = DecompositionRuleSet(modules=[arb1q])
+        test_dummy_eng = DummyEngine(save_commands=True)
+        test_eng = MainEngine(backend=Simulator(),
+                              engine_list=[AutoReplacer(rule_set),
+                                           InstructionFilter(z_y_decomp_gates),
+                                           test_dummy_eng])
+
         correct_qb = correct_eng.allocate_qubit()
         correct_eng.flush()
         test_qb = test_eng.allocate_qubit()
@@ -139,6 +143,9 @@ def test_decomposition(gate_matrix):
 
         test_eng.flush()
         correct_eng.flush()
+
+        assert correct_dummy_eng.received_commands[2].gate == test_gate
+        assert test_dummy_eng.received_commands[2].gate != test_gate
 
         for fstate in ['0', '1']:
             test = test_eng.backend.get_amplitude(fstate, test_qb)

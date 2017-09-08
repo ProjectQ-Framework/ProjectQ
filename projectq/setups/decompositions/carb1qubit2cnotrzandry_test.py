@@ -99,12 +99,16 @@ def test_decomposition(gate_matrix):
 
     for basis_state in ([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
                         [0, 0, 0, 1]):
-        correct_eng = MainEngine(backend=Simulator(), engine_list=[])
+        correct_dummy_eng = DummyEngine(save_commands=True)
+        correct_eng = MainEngine(backend=Simulator(),
+                                 engine_list=[correct_dummy_eng])
 
         rule_set = DecompositionRuleSet(modules=[carb1q])
+        test_dummy_eng = DummyEngine(save_commands=True)
         test_eng = MainEngine(backend=Simulator(),
                               engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(_decomp_gates)])
+                                           InstructionFilter(_decomp_gates),
+                                           test_dummy_eng])
         test_sim = test_eng.backend
         correct_sim = correct_eng.backend
 
@@ -126,6 +130,9 @@ def test_decomposition(gate_matrix):
 
         test_eng.flush()
         correct_eng.flush()
+
+        assert correct_dummy_eng.received_commands[3].gate == test_gate
+        assert test_dummy_eng.received_commands[3].gate != test_gate
 
         for fstate in ['00', '01', '10', '11']:
             test = test_sim.get_amplitude(fstate, test_qb + test_ctrl_qb)
