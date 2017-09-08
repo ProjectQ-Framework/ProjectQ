@@ -12,7 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from . import (crz2cxandrz,
+from . import (arb1qubit2rzandry,
+               crz2cxandrz,
                cnu2toffoliandcu,
                entangle,
                globalphase,
@@ -25,7 +26,8 @@ from . import (crz2cxandrz,
 
 all_defined_decomposition_rules = [
     rule
-    for module in [crz2cxandrz,
+    for module in [arb1qubit2rzandry,
+                   crz2cxandrz,
                    cnu2toffoliandcu,
                    entangle,
                    globalphase,
