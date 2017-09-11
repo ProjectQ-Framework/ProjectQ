@@ -265,6 +265,7 @@ public:
         return expectation;
     }
 
+
     void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
         run();
         auto new_state = StateVector(vec_.size(), 0.);
