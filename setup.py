@@ -12,7 +12,7 @@ exec(open('projectq/_version.py').read())
 long_description = open('README.rst').read()
 
 # Read in requirements.txt
-with open ('requirements.txt', 'r') as f_requirements:
+with open('requirements.txt', 'r') as f_requirements:
     requirements = f_requirements.readlines()
 requirements = [r.strip() for r in requirements]
 

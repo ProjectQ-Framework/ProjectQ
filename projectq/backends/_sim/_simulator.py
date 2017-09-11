@@ -103,7 +103,8 @@ class Simulator(BasicEngine):
             return True
         try:
             m = cmd.gate.matrix
-            if len(m) > 2:
+            # Allow up to 5-qubit gates
+            if len(m) > 2 ** 5:
                 return False
             return True
         except:
@@ -322,18 +323,19 @@ class Simulator(BasicEngine):
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
             self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
-        elif len(cmd.gate.matrix) == 2:
+        elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
             self._simulator.apply_controlled_gate(matrix.tolist(),
-                                                  [cmd.qubits[0][0].id],
+                                                  ids,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
             if not self._gate_fusion:
                 self._simulator.run()
         else:
-            raise Exception("This simulator only supports controlled single-"
-                            "qubit gates!\nPlease add an auto-replacer engine"
-                            " to your list of compiler engines.")
+            raise Exception("This simulator only supports controlled k-qubit"
+                            " gates with k < 6!\nPlease add an auto-replacer"
+                            " engine to your list of compiler engines.")
 
     def receive(self, command_list):
         """
