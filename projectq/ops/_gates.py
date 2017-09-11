@@ -35,6 +35,7 @@ from projectq.ops import get_inverse
 from ._basics import (BasicGate,
                       SelfInverseGate,
                       BasicRotationGate,
+                      BasicPhaseGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
@@ -145,7 +146,7 @@ class EntangleGate(BasicGate):
 Entangle = EntangleGate()
 
 
-class Ph(BasicRotationGate):
+class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
     @property
     def matrix(self):
@@ -181,7 +182,7 @@ class Rz(BasicRotationGate):
                           [0, cmath.exp(.5 * 1j * self._angle)]])
 
 
-class R(BasicRotationGate):
+class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     @property
     def matrix(self):
