@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -90,7 +92,7 @@ def _decompose_time_evolution_individual_terms(cmd):
     check_indices = set()
 
     # Check that hamiltonian is not identity term,
-    # Previous or operator should have apply a global phase instead:
+    # Previous __or__ operator should have apply a global phase instead:
     assert not term == ()
 
     # hamiltonian has only a single local operator

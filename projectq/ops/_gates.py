@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -35,6 +37,7 @@ from projectq.ops import get_inverse
 from ._basics import (BasicGate,
                       SelfInverseGate,
                       BasicRotationGate,
+                      BasicPhaseGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
@@ -145,7 +148,7 @@ class EntangleGate(BasicGate):
 Entangle = EntangleGate()
 
 
-class Ph(BasicRotationGate):
+class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
     @property
     def matrix(self):
@@ -181,7 +184,7 @@ class Rz(BasicRotationGate):
                           [0, cmath.exp(.5 * 1j * self._angle)]])
 
 
-class R(BasicRotationGate):
+class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     @property
     def matrix(self):

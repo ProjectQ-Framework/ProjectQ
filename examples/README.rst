@@ -22,3 +22,5 @@ Examples and tutorials in this folder
 2. Take a look at the *simulator_tutorial.ipynb* for a detailed introduction to most of the features of our high performance quantum simulator.
 
 3. Running on the IBM QE chip is explained in more details in *ibm_entangle.ipynb*.
+
+4. A small tutorial on the compiler is available in *compiler_tutorial.ipynb* which explains how to compile to a specific gate set.

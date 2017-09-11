@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -124,7 +126,7 @@ class QubitOperator(object):
                    be sorted by the qubit number. '' is the identity.
 
         Raises:
-          QubitOperatorError: Invalid operators provided to QubitOperator.
+            QubitOperatorError: Invalid operators provided to QubitOperator.
         """
         if not isinstance(coefficient, (int, float, complex)):
             raise ValueError('Coefficient must be a numeric type.')
@@ -229,7 +231,7 @@ class QubitOperator(object):
         In-place multiply (*=) terms with scalar or QubitOperator.
 
         Args:
-          multiplier(complex float, or QubitOperator): multiplier
+            multiplier(complex float, or QubitOperator): multiplier
         """
         # Handle scalars.
         if isinstance(multiplier, (int, float, complex)):
@@ -305,13 +307,13 @@ class QubitOperator(object):
         Return self * multiplier for a scalar, or a QubitOperator.
 
         Args:
-          multiplier: A scalar, or a QubitOperator.
+            multiplier: A scalar, or a QubitOperator.
 
         Returns:
-          product: A QubitOperator.
+            product: A QubitOperator.
 
         Raises:
-          TypeError: Invalid type cannot be multiply with QubitOperator.
+            TypeError: Invalid type cannot be multiply with QubitOperator.
         """
         if (isinstance(multiplier, (int, float, complex)) or
                 isinstance(multiplier, QubitOperator)):
@@ -331,13 +333,13 @@ class QubitOperator(object):
         is also queried as the default behavior.
 
         Args:
-          multiplier: A scalar to multiply by.
+            multiplier: A scalar to multiply by.
 
         Returns:
-          product: A new instance of QubitOperator.
+            product: A new instance of QubitOperator.
 
         Raises:
-          TypeError: Object of invalid type cannot multiply QubitOperator.
+            TypeError: Object of invalid type cannot multiply QubitOperator.
         """
         if not isinstance(multiplier, (int, float, complex)):
             raise TypeError(
@@ -352,14 +354,13 @@ class QubitOperator(object):
             This is always floating point division.
 
         Args:
-          divisor: A scalar to divide by.
+            divisor: A scalar to divide by.
 
         Returns:
-          A new instance of QubitOperator.
+            A new instance of QubitOperator.
 
         Raises:
-          TypeError: Cannot divide local operator by non-scalar type.
-
+            TypeError: Cannot divide local operator by non-scalar type.
         """
         if not isinstance(divisor, (int, float, complex)):
             raise TypeError('Cannot divide QubitOperator by non-scalar type.')
@@ -384,10 +385,10 @@ class QubitOperator(object):
         In-place method for += addition of QubitOperator.
 
         Args:
-          addend: A QubitOperator.
+            addend: A QubitOperator.
 
         Raises:
-          TypeError: Cannot add invalid type.
+            TypeError: Cannot add invalid type.
         """
         if isinstance(addend, QubitOperator):
             for term in addend.terms:
@@ -408,33 +409,34 @@ class QubitOperator(object):
         summand += addend
         return summand
 
-    def __sub__(self, subtrahend):
-        """
-        Return self - subtrahend for a QubitOperator.
-
-        Args:
-          addend: A QubitOperator.
-
-        Raises:
-          TypeError: Cannot add invalid type.
-        """
-        if not isinstance(subtrahend, QubitOperator):
-            raise TypeError('Cannot subtract invalid type to QubitOperator.')
-        return self + (-1. * subtrahend)
-
     def __isub__(self, subtrahend):
         """
-        In-place method for -= addition of QubitOperator.
+        In-place method for -= subtraction of QubitOperator.
 
         Args:
-          subtrahend: A QubitOperator.
+            subtrahend: A QubitOperator.
 
         Raises:
-          TypeError: Cannot add invalid type.
+            TypeError: Cannot subtract invalid type from QubitOperator.
         """
-        if not isinstance(subtrahend, QubitOperator):
-            raise TypeError('Cannot subtract invalid type to QubitOperator.')
-        return self.__iadd__(-1. * subtrahend)
+        if isinstance(subtrahend, QubitOperator):
+            for term in subtrahend.terms:
+                if term in self.terms:
+                    if abs(self.terms[term] - subtrahend.terms[term]) > 0.:
+                        self.terms[term] -= subtrahend.terms[term]
+                    else:
+                        del self.terms[term]
+                else:
+                    self.terms[term] = -subtrahend.terms[term]
+        else:
+            raise TypeError('Cannot subtract invalid type from QubitOperator.')
+        return self
+
+    def __sub__(self, subtrahend):
+        """ Return self - subtrahend for a QubitOperator. """
+        minuend = copy.deepcopy(self)
+        minuend -= subtrahend
+        return minuend
 
     def __neg__(self):
         return -1. * self

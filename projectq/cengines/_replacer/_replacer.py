@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -126,34 +128,50 @@ class AutoReplacer(BasicEngine):
             # check for decomposition rules
             decomp_list = []
             potential_decomps = []
-            inv_list = []
 
-            # check for forward rules
-            cls = cmd.gate.__class__.__name__
-            try:
-                potential_decomps = [
-                    d for d in self.decompositionRuleSet.decompositions[cls]
-                ]
-            except KeyError:
-                pass
-            # check for rules implementing the inverse gate
-            # and run them in reverse
-            inv_cls = get_inverse(cmd.gate).__class__.__name__
-            try:
-                potential_decomps += [
-                    d.get_inverse_decomposition()
-                    for d in self.decompositionRuleSet.decompositions[inv_cls]
-                ]
-            except KeyError:
-                pass
-            # throw out the ones which don't recognize the command
-            for d in potential_decomps:
-                if d.check(cmd):
-                    decomp_list.append(d)
+            # First check for a decomposition rules of the gate class, then
+            # the gate class of the inverse gate. If nothing is found, do the 
+            # same for the first parent class, etc.
+            gate_mro = type(cmd.gate).mro()[:-1]
+            # If gate does not have an inverse it's parent classes are 
+            # DaggeredGate, BasicGate, object. Hence don't check the last two
+            inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
+            rules = self.decompositionRuleSet.decompositions
+            for level in range(max(len(gate_mro), len(inverse_mro))):
+                # Check for forward rules
+                if level < len(gate_mro):
+                    class_name = gate_mro[level].__name__
+                    try:
+                        potential_decomps = [d for d in rules[class_name]]
+                    except KeyError:
+                        pass
+                    # throw out the ones which don't recognize the command
+                    for d in potential_decomps:
+                        if d.check(cmd):
+                            decomp_list.append(d)
+                    if len(decomp_list) != 0:
+                        break
+                # Check for rules implementing the inverse gate
+                # and run them in reverse
+                if level < len(inverse_mro):
+                    inv_class_name = inverse_mro[level].__name__
+                    try:
+                        potential_decomps += [
+                            d.get_inverse_decomposition()
+                            for d in rules[inv_class_name]
+                        ]
+                    except KeyError:
+                        pass
+                    # throw out the ones which don't recognize the command
+                    for d in potential_decomps:
+                        if d.check(cmd):
+                            decomp_list.append(d)
+                    if len(decomp_list) != 0:
+                        break
 
             if len(decomp_list) == 0:
-                raise NoGateDecompositionError("\nNo replacement found for "
-                                               + str(cmd) + "!")
+                raise NoGateDecompositionError("\nNo replacement found for " +
+                                               str(cmd) + "!")
 
             # use decomposition chooser to determine the best decomposition
             chosen_decomp = self._decomp_chooser(cmd, decomp_list)

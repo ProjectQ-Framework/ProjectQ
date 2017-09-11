@@ -1,3 +1,5 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -10,7 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from . import (crz2cxandrz,
+from . import (arb1qubit2rzandry,
+               carb1qubit2cnotrzandry,
+               crz2cxandrz,
+               cnu2toffoliandcu,
                entangle,
                globalphase,
                ph2r,
@@ -22,7 +27,10 @@ from . import (crz2cxandrz,
 
 all_defined_decomposition_rules = [
     rule
-    for module in [crz2cxandrz,
+    for module in [arb1qubit2rzandry,
+                   carb1qubit2cnotrzandry,
+                   crz2cxandrz,
+                   cnu2toffoliandcu,
                    entangle,
                    globalphase,
                    ph2r,

@@ -1,3 +1,5 @@
+// Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -41,6 +43,7 @@ public:
     using RndEngine = std::mt19937;
     using Term = std::vector<std::pair<unsigned, char>>;
     using TermsDict = std::vector<std::pair<Term, calc_type>>;
+    using ComplexTermsDict = std::vector<std::pair<Term, complex_type>>;
 
     Simulator(unsigned seed = 1) : N_(0), vec_(1,0.), fusion_qubits_min_(4),
                                    fusion_qubits_max_(5), rnd_eng_(seed) {
@@ -203,7 +206,6 @@ public:
         }
         else
             fused_gates_ = fused_gates;
-        //run();
     }
 
     template <class F, class QuReg>
@@ -263,6 +265,22 @@ public:
             vec_ = current_state;
         }
         return expectation;
+    }
+
+    void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
+        run();
+        auto new_state = StateVector(vec_.size(), 0.);
+        auto current_state = vec_;
+        for (auto const& term : td){
+            auto const& coefficient = term.second;
+            apply_term(term.first, ids, {});
+            #pragma omp parallel for schedule(static)
+            for (std::size_t i = 0; i < vec_.size(); ++i){
+                new_state[i] += coefficient * vec_[i];
+                vec_[i] = current_state[i];
+            }
+        }
+        vec_ = std::move(new_state);
     }
 
     calc_type get_probability(std::vector<bool> const& bit_string,
