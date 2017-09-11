@@ -248,6 +248,23 @@ class Simulator(object):
             self._state = _np.copy(current_state)
         return expectation
 
+    def apply_qubit_operator(self, terms_dict, ids):
+        """
+        Apply a (possibly non-unitary) qubit operator to qubits.
+
+        Args:
+            terms_dict (dict): Operator dictionary (see QubitOperator.terms)
+            ids (list[int]): List of qubit ids upon which the operator acts.
+        """
+        new_state = _np.zeros_like(self._state)
+        current_state = _np.copy(self._state)
+        for (term, coefficient) in terms_dict:
+            self._apply_term(term, ids)
+            self._state *= coefficient
+            new_state += self._state
+            self._state = _np.copy(current_state)
+        self._state = new_state
+
     def get_probability(self, bit_string, ids):
         """
         Return the probability of the outcome `bit_string` when measuring
