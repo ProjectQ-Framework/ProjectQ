@@ -3,7 +3,11 @@ from __future__ import print_function
 import math
 import random
 import sys
-from fractions import Fraction, gcd
+from fractions import Fraction
+try:
+    from math import gcd
+except ImportError:
+    from fractions import gcd
 
 from builtins import input
 
