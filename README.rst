@@ -11,6 +11,12 @@ ProjectQ - An open source software framework for quantum computing
     :target: http://projectq.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://badge.fury.io/py/projectq.svg
+    :target: https://badge.fury.io/py/projectq
+    
+.. image:: https://img.shields.io/badge/python-2.7%2C%203.3%2C%203.4%2C%203.5%2C%203.6-brightgreen.svg
+
+
 ProjectQ is an open source effort for quantum computing.
 
 It features a compilation framework capable of
