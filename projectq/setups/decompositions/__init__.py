@@ -14,6 +14,7 @@
 
 from . import (arb1qubit2rzandry,
                crz2cxandrz,
+               cnu2toffoliandcu,
                entangle,
                globalphase,
                ph2r,
@@ -27,6 +28,7 @@ all_defined_decomposition_rules = [
     rule
     for module in [arb1qubit2rzandry,
                    crz2cxandrz,
+                   cnu2toffoliandcu,
                    entangle,
                    globalphase,
                    ph2r,
