@@ -123,8 +123,6 @@ def test_send_real_device_online_verbose(monkeypatch):
                 request_num[0] == 2):
             request_num[0] += 1
             return MockPostResponse({"id": execution_id})
-        else:
-            print(kwargs)
 
     monkeypatch.setattr("requests.get", mocked_requests_get)
     monkeypatch.setattr("requests.post", mocked_requests_post)
@@ -210,7 +208,7 @@ def test_send_that_errors_are_caught(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="real",
+                          device="ibmqx2",
                           user=None, password=None,
                           shots=shots, verbose=True)
 
@@ -251,7 +249,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="real",
+                          device="ibmqx2",
                           user=None, password=None,
                           shots=shots, verbose=True)
 
@@ -292,6 +290,6 @@ def test_send_that_errors_are_caught3(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="real",
+                          device="ibmqx2",
                           user=None, password=None,
                           shots=shots, verbose=True)
