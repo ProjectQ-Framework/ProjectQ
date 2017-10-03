@@ -47,8 +47,8 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     """
     try:
         # check if the device is online
-        if device == 'real':
-            url = 'Backends/ibmqx2/queue/status'
+        if device in ['ibmqx2', 'ibmqx3']:
+            url = 'Backends/{}/queue/status'.format(device)
             r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
 
@@ -56,6 +56,8 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
                 print("The device is offline (for maintenance?). Use the "
                       "simulator instead or try again later.")
                 raise DeviceOfflineError("Device is offline.")
+            if device == 'ibmqx2':
+                device = 'real'
 
         if verbose:
             print("Authenticating...")

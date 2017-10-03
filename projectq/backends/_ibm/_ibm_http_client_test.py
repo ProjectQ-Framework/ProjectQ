@@ -142,7 +142,7 @@ def test_send_real_device_online_verbose(monkeypatch):
 
     # Code to test:
     res = _ibm_http_client.send(json_qasm,
-                                device="real",
+                                device="ibmqx2",
                                 user=None, password=None,
                                 shots=shots, verbose=True)
     print(res)
@@ -169,21 +169,21 @@ def test_send_real_device_offline(monkeypatch):
     name = 'projectq_test'
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
         _ibm_http_client.send(json_qasm,
-                              device="real",
+                              device="ibmqx2",
                               user=None, password=None,
                               shots=shots, verbose=True)
 
 
 def test_send_that_errors_are_caught(monkeypatch):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
     def mocked_requests_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
         # Accessing status of device. Return online.
         status_url = 'Backends/ibmqx2/queue/status'
         if args[0] == urljoin(_api_url_status, status_url):

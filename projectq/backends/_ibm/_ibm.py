@@ -41,7 +41,7 @@ class IBMBackend(BasicEngine):
     QASM, and sends the circuit through the IBM API.
     """
     def __init__(self, use_hardware=False, num_runs=1024, verbose=False,
-                 user=None, password=None):
+                 user=None, password=None, device='ibmqx2'):
         """
         Initialize the Backend object.
 
@@ -55,13 +55,15 @@ class IBMBackend(BasicEngine):
                 circuit).
             user (string): IBM Quantum Experience user name
             password (string): IBM Quantum Experience password
+            device (string): Device to use ('ibmqx2' or 'ibmqx4') if
+                use_hardware is set to True. Default is ibmqx2.
         """
         BasicEngine.__init__(self)
         self._reset()
         if use_hardware:
-            self._device = 'real'
+            self.device = device
         else:
-            self._device = 'sim_trivial_2'
+            self.device = 'sim_trivial_2'
         self._num_runs = num_runs
         self._verbose = verbose
         self._user = user
@@ -207,7 +209,7 @@ class IBMBackend(BasicEngine):
         info = json.dumps(info)
 
         try:
-            res = send(info, device=self._device,
+            res = send(info, device=self.device,
                        user=self._user, password=self._password,
                        shots=self._num_runs, verbose=self._verbose)
 
