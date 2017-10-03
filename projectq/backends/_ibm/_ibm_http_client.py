@@ -47,15 +47,17 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     """
     try:
         # check if the device is online
-        if device == 'real':
-            r = requests.get(urljoin(_api_url_status, 'Status/queue'),
-                             params={"device": "chip_real"})
+        if device in ['ibmqx2', 'ibmqx4']:
+            url = 'Backends/{}/queue/status'.format(device)
+            r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
 
             if not online:
                 print("The device is offline (for maintenance?). Use the "
                       "simulator instead or try again later.")
                 raise DeviceOfflineError("Device is offline.")
+            if device == 'ibmqx2':
+                device = 'real'
 
         if verbose:
             print("Authenticating...")
@@ -123,7 +125,7 @@ def _run(qasm, device, user_id, access_token, shots):
     return execution_id
 
 
-def _get_result(execution_id, access_token, num_retries=100, interval=1):
+def _get_result(execution_id, access_token, num_retries=300, interval=1):
     suffix = 'Executions/{execution_id}'.format(execution_id=execution_id)
 
     for _ in range(num_retries):
