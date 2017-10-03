@@ -48,8 +48,8 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     try:
         # check if the device is online
         if device == 'real':
-            r = requests.get(urljoin(_api_url_status, 'Status/queue'),
-                             params={"device": "chip_real"})
+            url = 'Backends/ibmqx2/queue/status'
+            r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
 
             if not online:
