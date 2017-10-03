@@ -90,6 +90,7 @@ def test_ibmcnotmapper_valid_circuit2():
 
 def test_ibmcnotmapper_valid_circuit2_ibmqx4():
     backend = DummyEngine(save_commands=True)
+
     class FakeIBMBackend(IBMBackend):
         pass
 
@@ -117,6 +118,7 @@ def test_ibmcnotmapper_valid_circuit2_ibmqx4():
 
 def test_ibmcnotmapper_deviceexception():
     backend = DummyEngine(save_commands=True)
+
     class FakeIBMBackend(IBMBackend):
         pass
 
