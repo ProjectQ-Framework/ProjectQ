@@ -68,8 +68,8 @@ def test_send_real_device_online_verbose(monkeypatch):
                 pass
 
         # Accessing status of device. Return online.
-        if (args[0] == urljoin(_api_url_status, "Status/queue") and
-           kwargs["params"]["device"] == "chip_real" and
+        status_url = 'Backends/ibmqx2/queue/status'
+        if (args[0] == urljoin(_api_url_status, status_url) and
            request_num[0] == 0):
             request_num[0] += 1
             return MockResponse({"state": True}, 200)
@@ -160,8 +160,8 @@ def test_send_real_device_offline(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        if (args[0] == urljoin(_api_url_status, "Status/queue") and
-           kwargs["params"]["device"] == "chip_real"):
+        status_url = 'Backends/ibmqx2/queue/status'
+        if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": False}, 200)
     monkeypatch.setattr("requests.get", mocked_requests_get)
     shots = 1
@@ -185,8 +185,8 @@ def test_send_that_errors_are_caught(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        if (args[0] == urljoin(_api_url_status, "Status/queue") and
-           kwargs["params"]["device"] == "chip_real"):
+        status_url = 'Backends/ibmqx2/queue/status'
+        if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -226,8 +226,8 @@ def test_send_that_errors_are_caught2(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        if (args[0] == urljoin(_api_url_status, "Status/queue") and
-           kwargs["params"]["device"] == "chip_real"):
+        status_url = 'Backends/ibmqx2/queue/status'
+        if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -267,8 +267,8 @@ def test_send_that_errors_are_caught3(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        if (args[0] == urljoin(_api_url_status, "Status/queue") and
-           kwargs["params"]["device"] == "chip_real"):
+        status_url = 'Backends/ibmqx2/queue/status'
+        if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
     def mocked_requests_post(*args, **kwargs):
