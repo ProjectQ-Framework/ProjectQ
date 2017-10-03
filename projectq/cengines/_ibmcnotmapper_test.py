@@ -21,6 +21,7 @@ from projectq.cengines import DummyEngine
 from projectq.ops import H, CNOT, X, Measure
 
 from projectq.cengines import _ibmcnotmapper
+from projectq.backends import IBMBackend
 
 
 def test_ibmcnotmapper_is_available(monkeypatch):
@@ -84,6 +85,57 @@ def test_ibmcnotmapper_valid_circuit2():
     CNOT | (qb1, qb2)
     CNOT | (qb0, qb4)
     CNOT | (qb2, qb1)
+    eng.flush()
+
+
+def test_ibmcnotmapper_valid_circuit2_ibmqx4():
+    backend = DummyEngine(save_commands=True)
+
+    class FakeIBMBackend(IBMBackend):
+        pass
+
+    fake = FakeIBMBackend(device='ibmqx4', use_hardware=True)
+    fake.receive = backend.receive
+    fake.is_available = backend.is_available
+    backend.is_last_engine = True
+
+    eng = MainEngine(backend=fake,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()
+    qb4 = eng.allocate_qubit()
+    CNOT | (qb3, qb1)
+    CNOT | (qb3, qb2)
+    CNOT | (qb3, qb0)
+    CNOT | (qb3, qb4)
+    CNOT | (qb1, qb2)
+    CNOT | (qb0, qb4)
+    CNOT | (qb2, qb1)
+    eng.flush()
+
+
+def test_ibmcnotmapper_deviceexception():
+    backend = DummyEngine(save_commands=True)
+
+    class FakeIBMBackend(IBMBackend):
+        pass
+
+    fake = FakeIBMBackend(device='ibmqx5', use_hardware=True)
+    fake.receive = backend.receive
+    fake.is_available = backend.is_available
+    backend.is_last_engine = True
+
+    eng = MainEngine(backend=fake,
+                     engine_list=[_ibmcnotmapper.IBMCNOTMapper()])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    CNOT | (qb0, qb1)
+    with pytest.raises(Exception):
+        eng.flush()
+    fake.device = 'ibmqx4'
+    CNOT | (qb0, qb1)
     eng.flush()
 
 

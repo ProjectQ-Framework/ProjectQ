@@ -170,7 +170,7 @@ class IBMCNOTMapper(BasicEngine):
                           if mp[1] <= 2}
         all_indices = {mp[0]: mp[1] for mp in mapping}
         for cmd in self._cmds:
-            if self._needs_flipping(cmd, target_indices):
+            if self._needs_flipping(cmd, all_indices):
                 # To have nicer syntax when flipping CNOTs, we'll use a
                 # forwarder engine and a command modifier to get the tags
                 # right. (If the CNOT is an 'uncompute', then so must be the
@@ -203,29 +203,36 @@ class IBMCNOTMapper(BasicEngine):
 
         self._cmds = []
 
-    def _needs_flipping(self, cmd, target_idx_map):
+    def _needs_flipping(self, cmd, mapping):
         """
         Return True if cmd is a CNOT which needs to be flipped around.
 
         Args:
             cmd (Command): Command to check
-            target_idx_map (dict): Dictionary mapping all qubit indices
-                which may be a CNOT target to their position on the IBM QE
-                chip.
+            mapping (dict): Dictionary mapping all qubit indices
+                to their position on the IBM QE chip.
         """
         if not self._is_cnot(cmd):
             return False
 
-        target = cmd.qubits[0][0].id
-        control = cmd.control_qubits[0].id
+        target = mapping[cmd.qubits[0][0].id]
+        control = mapping[cmd.control_qubits[0].id]
 
-        if control in target_idx_map and not target in target_idx_map:
-            return True
+        if isinstance(self.main_engine.backend, IBMBackend):
+            device = self.main_engine.backend.device
+        else:
+            device = 'ibmqx2'
 
-        if (target in target_idx_map and control in target_idx_map
-           and target_idx_map[control] == 0):
-            return True
-        return False
+        if device in ['ibmqx2', 'real', 'sim_trivial_2']:
+            interactions = [(1, 0), (2, 0), (3, 0), (4, 0),
+                            (4, 2), (3, 1)]
+        elif device == 'ibmqx4':
+            interactions = [(0, 1), (0, 2), (0, 3), (4, 0),
+                            (4, 2), (1, 3)]
+        else:
+            raise Exception("Unknown backend type. Must be either ibmqx2 or "
+                            "ibmqx4.")
+        return not (control, target) in interactions
 
     def _store(self, cmd):
         """
