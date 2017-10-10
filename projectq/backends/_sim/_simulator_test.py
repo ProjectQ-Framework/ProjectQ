@@ -247,6 +247,26 @@ def test_simulator_kqubit_gate(sim):
         LargerGate() | (qureg + qubit)
 
 
+def test_simulator_kqubit_exception(sim):
+    m1 = Rx(0.3).matrix
+    m2 = Rx(0.8).matrix
+    m3 = Ry(0.1).matrix
+    m4 = Rz(0.9).matrix.dot(Ry(-0.1).matrix)
+    m = numpy.kron(m4, numpy.kron(m3, numpy.kron(m2, m1)))
+
+    class KQubitGate(BasicGate):
+        @property
+        def matrix(self):
+            return m
+
+    eng = MainEngine(sim, [])
+    qureg = eng.allocate_qureg(3)
+    with pytest.raises(Exception):
+        KQubitGate() | qureg
+    with pytest.raises(Exception):
+        H | qureg
+
+
 def test_simulator_probability(sim):
     eng = MainEngine(sim)
     qubits = eng.allocate_qureg(6)
