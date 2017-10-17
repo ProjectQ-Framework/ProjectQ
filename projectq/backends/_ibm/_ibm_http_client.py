@@ -36,7 +36,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
 
     Args:
         qasm: QASM representation of the circuit to run.
-        device (str): Either 'sim_trivial_2', 'ibmqx2', 'ibmqx4', or 'ibmqx5'.
+        device (str): Either 'simulator', 'ibmqx2', 'ibmqx4', or 'ibmqx5'.
         user (str): IBM quantum experience user.
         password (str): IBM quantum experience user password.
         shots (int): Number of runs of the same circuit to collect statistics.
