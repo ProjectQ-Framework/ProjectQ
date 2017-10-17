@@ -21,25 +21,25 @@ def run_test(eng):
                     (8, 7), (9, 8), (9, 10), (11, 10), (12, 11), (12, 13),
                     (13, 14), (15, 14)]
     H | qureg[0]
-    for e in interactions[0:0]:
+    for e in interactions:
         flip = e[0] > e[1]
         if flip:
             All(H) | [qureg[e[0]], qureg[e[1]]]
-            CNOT | (qureg[e[1]], qureg[e[0]])
+            CNOT | (qureg[e[0]], qureg[e[1]])
             All(H) | [qureg[e[0]], qureg[e[1]]]
         else:
             CNOT | (qureg[e[0]], qureg[e[1]])
 
     # measure; should be all-0 or all-1
-    Measure | qureg[0]
+    Measure | qureg
 
     # run the circuit
     eng.flush()
 
     # access the probabilities via the back-end:
     results = eng.backend.get_probabilities(qureg)
-    for state in results:
-        print("Measured {} with p = {}.".format(state, results[state]))
+    for state, probability in sorted(list(results.items())):
+        print("Measured {} with p = {}.".format(state, probability))
 
     # return one (random) measurement outcome.
     return [int(q) for q in qureg]

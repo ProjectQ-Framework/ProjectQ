@@ -63,7 +63,7 @@ class IBMBackend(BasicEngine):
         if use_hardware:
             self.device = device
         else:
-            self.device = 'sim_trivial_2'
+            self.device = 'simulator'
         self._num_runs = num_runs
         self._verbose = verbose
         self._user = user
@@ -200,30 +200,30 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        num_qubits = 5
-        if self.device not in ['sim_trivial_2', 'ibmqx2', 'ibmqx4']:
+        num_qubits = max(5, len(self._mapping))
+        if self.device not in ['simulator', 'ibmqx2', 'ibmqx4']:
             num_qubits = 16
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];"
                 + self.qasm).format(nq=num_qubits)
         info = {}
-        info['qasm'] = qasm
-        info['codeType'] = "QASM2"
-        info['name'] = "ProjectQ Experiment"
+        info['qasms'] = [{'qasm': qasm}]
+        info['shots'] = self._num_runs
+        info['maxCredits'] = 5
+        info['backend'] = {'name': self.device}
         info = json.dumps(info)
 
         try:
-            print(qasm)
             res = send(info, device=self.device,
                        user=self._user, password=self._password,
                        shots=self._num_runs, verbose=self._verbose)
 
-            data = res['data']['p']
-
+            counts = res['data']['counts']
             # Determine random outcome
             P = random.random()
             p_sum = 0.
             measured = ""
-            for state, probability in zip(data['labels'], data['values']):
+            for state in counts:
+                probability = counts[state] * 1. / self._num_runs
                 state = list(reversed(state))
                 state = "".join(state)
                 p_sum += probability
