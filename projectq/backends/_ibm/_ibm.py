@@ -55,8 +55,8 @@ class IBMBackend(BasicEngine):
                 circuit).
             user (string): IBM Quantum Experience user name
             password (string): IBM Quantum Experience password
-            device (string): Device to use ('ibmqx2' or 'ibmqx4') if
-                use_hardware is set to True. Default is ibmqx2.
+            device (string): Device to use ('ibmqx2', 'ibmqx4', or 'ibmqx5')
+                if use_hardware is set to True. Default is ibmqx2.
         """
         BasicEngine.__init__(self)
         self._reset()
@@ -200,8 +200,11 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];"
-                + self.qasm)
+        num_qubits = 5
+        if self.device not in ['sim_trivial_2', 'ibmqx2', 'ibmqx4']:
+            num_qubits = 16
+        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];"
+                + self.qasm).format(nq=num_qubits)
         info = {}
         info['qasm'] = qasm
         info['codeType'] = "QASM2"
@@ -209,6 +212,7 @@ class IBMBackend(BasicEngine):
         info = json.dumps(info)
 
         try:
+            print(qasm)
             res = send(info, device=self.device,
                        user=self._user, password=self._password,
                        shots=self._num_runs, verbose=self._verbose)

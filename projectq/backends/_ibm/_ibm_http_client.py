@@ -36,8 +36,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
 
     Args:
         qasm: QASM representation of the circuit to run.
-        device (str): 'sim_trivial_2' or 'real' to run on simulator or on the
-            real chip, respectively.
+        device (str): Either 'sim_trivial_2', 'ibmqx2', 'ibmqx4', or 'ibmqx5'.
         user (str): IBM quantum experience user.
         password (str): IBM quantum experience user password.
         shots (int): Number of runs of the same circuit to collect statistics.
@@ -47,7 +46,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     """
     try:
         # check if the device is online
-        if device in ['ibmqx2', 'ibmqx4']:
+        if device in ['ibmqx2', 'ibmqx4', 'ibmqx3', 'ibmqx5', 'ibmqx5qv2']:
             url = 'Backends/{}/queue/status'.format(device)
             r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
