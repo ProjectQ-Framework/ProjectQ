@@ -36,8 +36,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
 
     Args:
         qasm: QASM representation of the circuit to run.
-        device (str): 'sim_trivial_2' or 'real' to run on simulator or on the
-            real chip, respectively.
+        device (str): Either 'simulator', 'ibmqx2', 'ibmqx4', or 'ibmqx5'.
         user (str): IBM quantum experience user.
         password (str): IBM quantum experience user password.
         shots (int): Number of runs of the same circuit to collect statistics.
@@ -47,7 +46,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     """
     try:
         # check if the device is online
-        if device in ['ibmqx2', 'ibmqx4']:
+        if device in ['ibmqx2', 'ibmqx4', 'ibmqx5']:
             url = 'Backends/{}/queue/status'.format(device)
             r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
@@ -109,7 +108,7 @@ def _authenticate(email=None, password=None):
 
 
 def _run(qasm, device, user_id, access_token, shots):
-    suffix = 'codes/execute'
+    suffix = 'Jobs'
 
     r = requests.post(urljoin(_api_url, suffix),
                       data=qasm,
@@ -126,7 +125,7 @@ def _run(qasm, device, user_id, access_token, shots):
 
 
 def _get_result(execution_id, access_token, num_retries=300, interval=1):
-    suffix = 'Executions/{execution_id}'.format(execution_id=execution_id)
+    suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
 
     for _ in range(num_retries):
         r = requests.get(urljoin(_api_url, suffix),
@@ -134,7 +133,8 @@ def _get_result(execution_id, access_token, num_retries=300, interval=1):
         r.raise_for_status()
 
         r_json = r.json()
-        status = r_json["status"]["id"]
-        if status == "DONE":
-            return r_json["result"]
+        if 'qasms' in r_json:
+            qasm = r_json['qasms'][0]
+            if 'result' in qasm:
+                return qasm['result']
         time.sleep(interval)

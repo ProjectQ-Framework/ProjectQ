@@ -101,30 +101,20 @@ def test_ibm_sent_error(monkeypatch):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
+    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
                     'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
                     ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
                     'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
-                    ' q[1] -> c[1];", "codeType": "QASM2"}')
+                    ' q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
+                    ' "backend": {"name": "simulator"}}')
 
     # patch send
     def mock_send(*args, **kwargs):
         assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
-                'data': {'time': 14.429004907608032, 'serialNumberDevice':
-                         'Real5Qv1', 'p': {'labels': ['00000', '00001',
-                                                      '00010', '00011',
-                                                      '00100', '00101',
-                                                      '00110', '00111'],
-                                           'values': [0.4521484375,
-                                                      0.0419921875,
-                                                      0.0185546875,
-                                                      0.0146484375,
-                                                      0.005859375,
-                                                      0.0263671875,
-                                                      0.0537109375,
-                                                      0.38671875],
-                                           'qubits': [0, 1, 2]},
+                'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
+                                                                '00101': 27,
+                                                                '00000': 601},
                          'qasm': ('...')}}
     monkeypatch.setattr(_ibm, "send", mock_send)
 

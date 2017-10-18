@@ -75,17 +75,16 @@ def test_send_real_device_online_verbose(monkeypatch):
             return MockResponse({"state": True}, 200)
         # Getting result
         elif (args[0] == urljoin(_api_url,
-              "Executions/{execution_id}".format(execution_id=execution_id))
+              "Jobs/{execution_id}".format(execution_id=execution_id))
               and kwargs["params"]["access_token"] == access_token and
               not result_ready[0] and request_num[0] == 3):
             result_ready[0] = True
             return MockResponse({"status": {"id": "NotDone"}}, 200)
         elif (args[0] == urljoin(_api_url,
-              "Executions/{execution_id}".format(execution_id=execution_id))
+              "Jobs/{execution_id}".format(execution_id=execution_id))
               and kwargs["params"]["access_token"] == access_token and
               result_ready[0] and request_num[0] == 3):
-            return MockResponse({"status": {"id": "DONE"},
-                                 "result": result}, 200)
+            return MockResponse({"qasms": [{"result": result}]}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -113,7 +112,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             request_num[0] += 1
             return MockPostResponse({"userId": user_id, "id": access_token})
         # Run code
-        elif (args[0] == urljoin(_api_url, "codes/execute") and
+        elif (args[0] == urljoin(_api_url, "Jobs") and
                 kwargs["data"] == json_qasm and
                 kwargs["params"]["access_token"] == access_token and
                 kwargs["params"]["deviceRunType"] == device and

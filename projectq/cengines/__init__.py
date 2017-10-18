@@ -17,6 +17,7 @@ from ._basics import (BasicEngine,
                       ForwarderEngine)
 from ._cmdmodifier import CommandModifier
 from ._ibmcnotmapper import IBMCNOTMapper
+from ._manualmapper import ManualMapper
 from ._main import (MainEngine,
                     NotYetMeasuredError,
                     UnsupportedEngineError)
