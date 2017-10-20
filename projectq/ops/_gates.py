@@ -152,43 +152,43 @@ class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
     @property
     def matrix(self):
-        return np.matrix([[cmath.exp(1j * self._angle), 0],
-                          [0, cmath.exp(1j * self._angle)]])
+        return np.matrix([[cmath.exp(1j * self.angle), 0],
+                          [0, cmath.exp(1j * self.angle)]])
 
 
 class Rx(BasicRotationGate):
     """ RotationX gate class """
     @property
     def matrix(self):
-        return np.matrix([[math.cos(0.5 * self._angle),
-                           -1j * math.sin(0.5 * self._angle)],
-                          [-1j * math.sin(0.5 * self._angle),
-                           math.cos(0.5 * self._angle)]])
+        return np.matrix([[math.cos(0.5 * self.angle),
+                           -1j * math.sin(0.5 * self.angle)],
+                          [-1j * math.sin(0.5 * self.angle),
+                           math.cos(0.5 * self.angle)]])
 
 
 class Ry(BasicRotationGate):
     """ RotationX gate class """
     @property
     def matrix(self):
-        return np.matrix([[math.cos(0.5 * self._angle),
-                           -math.sin(0.5 * self._angle)],
-                          [math.sin(0.5 * self._angle),
-                           math.cos(0.5 * self._angle)]])
+        return np.matrix([[math.cos(0.5 * self.angle),
+                           -math.sin(0.5 * self.angle)],
+                          [math.sin(0.5 * self.angle),
+                           math.cos(0.5 * self.angle)]])
 
 
 class Rz(BasicRotationGate):
     """ RotationZ gate class """
     @property
     def matrix(self):
-        return np.matrix([[cmath.exp(-.5 * 1j * self._angle), 0],
-                          [0, cmath.exp(.5 * 1j * self._angle)]])
+        return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0],
+                          [0, cmath.exp(.5 * 1j * self.angle)]])
 
 
 class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     @property
     def matrix(self):
-        return np.matrix([[1, 0], [0, cmath.exp(1j * self._angle)]])
+        return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])
 
 
 class FlushGate(FastForwardingGate):

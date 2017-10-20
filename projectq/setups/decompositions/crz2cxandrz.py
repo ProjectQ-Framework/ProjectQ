@@ -30,9 +30,9 @@ def _decompose_CRz(cmd):
     gate = cmd.gate
     n = get_control_count(cmd)
 
-    Rz(0.5 * gate._angle) | qubit
+    Rz(0.5 * gate.angle) | qubit
     C(NOT, n) | (ctrl, qubit)
-    Rz(-0.5 * gate._angle) | qubit
+    Rz(-0.5 * gate.angle) | qubit
     C(NOT, n) | (ctrl, qubit)
 
 

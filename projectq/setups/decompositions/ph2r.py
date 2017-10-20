@@ -31,7 +31,7 @@ def _decompose_Ph(cmd):
     eng = cmd.engine
 
     with Control(eng, ctrl[1:]):
-        R(gate._angle) | ctrl[0]
+        R(gate.angle) | ctrl[0]
 
 
 def _recognize_Ph(cmd):

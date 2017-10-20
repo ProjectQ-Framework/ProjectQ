@@ -155,6 +155,14 @@ class IBMBackend(BasicEngine):
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
             self.qasm += qb_str[:-2] + ";"
+        elif (isinstance(gate, Rx) or isinstance(gate, Ry) or
+              isinstance(gate, Rz)):
+            assert get_control_count(cmd) == 0
+            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
+                      'Rz': 'u1({})'}
+            gate = u_strs[str(gate)[0:2]].format(gate.angle)
+            self.qasm += "\n{} q[{}];".format(gate, qb_pos)
         else:
             assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:

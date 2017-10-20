@@ -106,9 +106,9 @@ def test_ibm_backend_functional_test(monkeypatch):
     correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
                     'qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx'
                     ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
-                    'nbarrier q[0], q[2], q[1];\\'
-                    'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
-                    ' q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
+                    'nbarrier q[0], q[2], q[1];\\nu3(0.2, -pi/2, pi/2) q[0];'
+                    '\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeas'
+                    'ure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
                     ' "backend": {"name": "simulator"}}')
 
     # patch send
@@ -140,6 +140,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     Tdag | qureg[0]
     Sdag | qureg[0]
     Barrier | qureg
+    Rx(0.2) | qureg[0]
     del unused_qubit
     # measure; should be all-0 or all-1
     Measure | qureg
