@@ -31,8 +31,8 @@ def _decompose_R(cmd):
     gate = cmd.gate
 
     with Control(eng, ctrl):
-        Ph(.5 * gate._angle) | cmd.qubits
-        Rz(gate._angle) | cmd.qubits
+        Ph(.5 * gate.angle) | cmd.qubits
+        Rz(gate.angle) | cmd.qubits
 
 
 all_defined_decomposition_rules = [
