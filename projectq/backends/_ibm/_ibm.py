@@ -94,7 +94,7 @@ class IBMBackend(BasicEngine):
             if (g == T or g == Tdag or g == S or g == Sdag or g == H or g == Y
                or g == Z):
                 return True
-            if isinstance(g, Rx) or isinstance(g, Ry) or isinstance(g, Rz):
+            if isinstance(g, (Rx, Ry, Rz)):
                 return True
         if g == Measure or g == Allocate or g == Deallocate or g == Barrier:
             return True
@@ -155,8 +155,7 @@ class IBMBackend(BasicEngine):
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
             self.qasm += qb_str[:-2] + ";"
-        elif (isinstance(gate, Rx) or isinstance(gate, Ry) or
-              isinstance(gate, Rz)):
+        elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
             qb_pos = self._mapping[cmd.qubits[0][0].id]
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
