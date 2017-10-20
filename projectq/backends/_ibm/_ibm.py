@@ -27,9 +27,13 @@ from projectq.ops import (NOT,
                           S,
                           Sdag,
                           H,
+                          Rx,
+                          Ry,
+                          Rz,
                           Measure,
                           Allocate,
                           Deallocate,
+                          Barrier,
                           FlushGate)
 
 from ._ibm_http_client import send
@@ -77,7 +81,8 @@ class IBMBackend(BasicEngine):
         """
         Return true if the command can be executed.
 
-        The IBM quantum chip can do X, Y, Z, T, Tdag, S, Sdag, and CX / CNOT.
+        The IBM quantum chip can do X, Y, Z, T, Tdag, S, Sdag,
+        rotation gates, barriers, and CX / CNOT.
 
         Args:
             cmd (Command): Command for which to check availability
@@ -89,7 +94,9 @@ class IBMBackend(BasicEngine):
             if (g == T or g == Tdag or g == S or g == Sdag or g == H or g == Y
                or g == Z):
                 return True
-        if g == Measure or g == Allocate or g == Deallocate:
+            if isinstance(g, Rx) or isinstance(g, Ry) or isinstance(g, Rz):
+                return True
+        if g == Measure or g == Allocate or g == Deallocate or g == Barrier:
             return True
         return False
 
@@ -137,7 +144,19 @@ class IBMBackend(BasicEngine):
                     self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_pos,
                                                                     qb_pos)
 
-        elif not (gate == NOT and get_control_count(cmd) == 1):
+        elif gate == NOT and get_control_count(cmd) == 1:
+            ctrl_pos = self._mapping[cmd.control_qubits[0].id]
+            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+        elif gate == Barrier:
+            qb_pos = [self._mapping[qb.id] for qr in cmd.qubits for qb in qr]
+            self.qasm += "\nbarrier "
+            qb_str = ""
+            for pos in qb_pos:
+                qb_str += "q[{}], ".format(pos)
+            self.qasm += qb_str[:-2] + ";"
+        else:
+            assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:
                 gate_str = self._gate_names[str(gate)]
             else:
@@ -145,10 +164,6 @@ class IBMBackend(BasicEngine):
 
             qb_pos = self._mapping[cmd.qubits[0][0].id]
             self.qasm += "\n{} q[{}];".format(gate_str, qb_pos)
-        else:
-            ctrl_pos = self._mapping[cmd.control_qubits[0].id]
-            qb_pos = self._mapping[cmd.qubits[0][0].id]
-            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
 
     def get_probabilities(self, qureg):
         """
@@ -200,9 +215,7 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        num_qubits = max(5, len(self._mapping))
-        if self.device not in ['simulator', 'ibmqx2', 'ibmqx4']:
-            num_qubits = 16
+        num_qubits = max(self._mapping.values()) + 1
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];"
                 + self.qasm).format(nq=num_qubits)
         info = {}

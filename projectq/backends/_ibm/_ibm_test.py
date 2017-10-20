@@ -27,7 +27,8 @@ from projectq.cengines import (TagRemover,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, Measure,
-                          Allocate, Deallocate, NOT, Rx, Entangle)
+                          Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
+                          Entangle)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -43,7 +44,8 @@ _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 @pytest.mark.parametrize("single_qubit_gate, is_available", [
     (X, True), (Y, True), (Z, True), (T, True), (Tdag, True), (S, True),
     (Sdag, True), (Allocate, True), (Deallocate, True), (Measure, True),
-    (NOT, True), (Rx(0.5), False)])
+    (NOT, True), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), True),
+    (Barrier, True), (Entangle, False)])
 def test_ibm_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -102,8 +104,9 @@ def test_ibm_sent_error(monkeypatch):
 
 def test_ibm_backend_functional_test(monkeypatch):
     correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
-                    'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
+                    'qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx'
                     ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
+                    'nbarrier q[0], q[2], q[1];\\'
                     'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
                     ' q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
                     ' "backend": {"name": "simulator"}}')
@@ -136,6 +139,8 @@ def test_ibm_backend_functional_test(monkeypatch):
     Entangle | qureg
     Tdag | qureg[0]
     Sdag | qureg[0]
+    Barrier | qureg
+    del unused_qubit
     # measure; should be all-0 or all-1
     Measure | qureg
     # run the circuit

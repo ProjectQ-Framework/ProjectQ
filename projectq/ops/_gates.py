@@ -253,3 +253,14 @@ class AllocateDirtyQubitGate(ClassicalInstructionGate):
         return Deallocate
 
 AllocateDirty = AllocateDirtyQubitGate()
+
+
+class BarrierGate(BasicGate):
+    """ Barrier gate class """
+    def __str__(self):
+        return "Barrier"
+
+    def get_inverse(self):
+        return Barrier
+
+Barrier = BarrierGate()

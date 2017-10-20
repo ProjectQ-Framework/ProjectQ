@@ -14,6 +14,7 @@
 
 """Tests for projectq.backends._ibm_http_client._ibm.py."""
 
+import json
 import pytest
 import requests
 from requests.compat import urljoin
@@ -32,7 +33,8 @@ _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 
 
 def test_send_real_device_online_verbose(monkeypatch):
-    json_qasm = "my_json_qasm"
+    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    json_qasm = json.dumps(qasms)
     name = 'projectq_test'
     access_token = "access"
     user_id = 2016
