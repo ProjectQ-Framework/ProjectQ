@@ -51,8 +51,8 @@ def low_level_gates(eng, cmd):
     if isinstance(g, ClassicalInstructionGate):
         return True
     if len(cmd.control_qubits) == 0:
-        if (g == T or g == Tdag or g == H or isinstance(g, Rz)
-                or isinstance(g, Ph)):
+        if (g == T or g == Tdag or g == H or isinstance(g, Rz) or
+                isinstance(g, Ph)):
             return True
     else:
         if len(cmd.control_qubits) == 1 and cmd.gate == X:
@@ -76,8 +76,8 @@ def test_entangle():
 
 
 def low_level_gates_noglobalphase(eng, cmd):
-    return (low_level_gates(eng, cmd) and not isinstance(cmd.gate, Ph)
-            and not isinstance(cmd.gate, R))
+    return (low_level_gates(eng, cmd) and not isinstance(cmd.gate, Ph) and not
+            isinstance(cmd.gate, R))
 
 
 def test_globalphase():

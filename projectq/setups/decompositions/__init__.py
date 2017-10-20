@@ -22,6 +22,8 @@ from . import (arb1qubit2rzandry,
                ph2r,
                qft2crandhadamard,
                r2rzandph,
+               rx2rz,
+               ry2rz,
                swap2cnot,
                toffoli2cnotandtgate,
                time_evolution)
@@ -38,6 +40,8 @@ all_defined_decomposition_rules = [
                    ph2r,
                    qft2crandhadamard,
                    r2rzandph,
+                   rx2rz,
+                   ry2rz,
                    swap2cnot,
                    toffoli2cnotandtgate,
                    time_evolution]
