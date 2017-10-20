@@ -26,7 +26,7 @@ from projectq.ops import BasicGate, Toffoli, XGate
 
 
 def _recognize_CnU(cmd):
-    """ 
+    """
     Recognize an arbitrary gate which has n>=2 control qubits, except a
     Toffoli gate.
     """
@@ -39,7 +39,7 @@ def _recognize_CnU(cmd):
 
 
 def _decompose_CnU(cmd):
-    """ 
+    """
     Decompose a multi-controlled gate U into a single-controlled U.
 
     It uses (n-1) work qubits and 2 * (n-1) Toffoli gates.
@@ -53,7 +53,7 @@ def _decompose_CnU(cmd):
 
     with Compute(eng):
         Toffoli | (ctrl_qureg[0], ctrl_qureg[1], ancilla_qureg[0])
-        for ctrl_index in range(2,n):
+        for ctrl_index in range(2, n):
             Toffoli | (ctrl_qureg[ctrl_index], ancilla_qureg[ctrl_index-2],
                        ancilla_qureg[ctrl_index-1])
 

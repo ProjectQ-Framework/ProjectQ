@@ -22,6 +22,7 @@ from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Control, get_control_count, Uncompute
 from projectq.ops import Rx, Ry, Rz, H
 
+
 def _decompose_ry(cmd):
     """ Decompose the Ry gate."""
     qubit = cmd.qubits[0]
