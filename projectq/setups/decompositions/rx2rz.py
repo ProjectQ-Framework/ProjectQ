@@ -25,7 +25,7 @@ def _decompose_rx(cmd):
     """ Decompose the Rx gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
-    angle = cmd.gate._angle
+    angle = cmd.gate.angle
 
     with Control(eng, cmd.control_qubits):
         with Compute(eng):

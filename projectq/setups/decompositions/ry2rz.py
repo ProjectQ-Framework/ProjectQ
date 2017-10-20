@@ -26,7 +26,7 @@ def _decompose_ry(cmd):
     """ Decompose the Ry gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
-    angle = cmd.gate._angle
+    angle = cmd.gate.angle
 
     with Control(eng, cmd.control_qubits):
         with Compute(eng):
