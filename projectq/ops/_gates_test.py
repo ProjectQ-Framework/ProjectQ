@@ -186,3 +186,10 @@ def test_allocate_dirty_qubit_gate():
     assert str(gate) == "AllocateDirty"
     assert gate.get_inverse() == _gates.DeallocateQubitGate()
     assert isinstance(_gates.AllocateDirty, _gates.AllocateDirtyQubitGate)
+
+
+def test_barrier_gate():
+    gate = _gates.BarrierGate()
+    assert str(gate) == "Barrier"
+    assert gate.get_inverse() == _gates.BarrierGate()
+    assert isinstance(_gates.Barrier, _gates.BarrierGate)

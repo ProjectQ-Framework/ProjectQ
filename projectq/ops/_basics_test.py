@@ -139,7 +139,7 @@ def test_self_inverse_gate():
 def test_basic_rotation_gate_init(input_angle, modulo_angle):
     # Test internal representation
     gate = _basics.BasicRotationGate(input_angle)
-    assert gate._angle == pytest.approx(modulo_angle)
+    assert gate.angle == pytest.approx(modulo_angle)
 
 
 def test_basic_rotation_gate_str():
@@ -158,7 +158,7 @@ def test_basic_rotation_gate_get_inverse(input_angle, inverse_angle):
     basic_rotation_gate = _basics.BasicRotationGate(input_angle)
     inverse = basic_rotation_gate.get_inverse()
     assert isinstance(inverse, _basics.BasicRotationGate)
-    assert inverse._angle == pytest.approx(inverse_angle)
+    assert inverse.angle == pytest.approx(inverse_angle)
 
 
 def test_basic_rotation_gate_get_merged():
@@ -197,7 +197,7 @@ def test_basic_rotation_gate_comparison():
 def test_basic_phase_gate_init(input_angle, modulo_angle):
     # Test internal representation
     gate = _basics.BasicPhaseGate(input_angle)
-    assert gate._angle == pytest.approx(modulo_angle)
+    assert gate.angle == pytest.approx(modulo_angle)
 
 
 def test_basic_phase_gate_str():
@@ -216,7 +216,7 @@ def test_basic_phase_gate_get_inverse(input_angle, inverse_angle):
     basic_phase_gate = _basics.BasicPhaseGate(input_angle)
     inverse = basic_phase_gate.get_inverse()
     assert isinstance(inverse, _basics.BasicPhaseGate)
-    assert inverse._angle == pytest.approx(inverse_angle)
+    assert inverse.angle == pytest.approx(inverse_angle)
 
 
 def test_basic_phase_gate_get_merged():

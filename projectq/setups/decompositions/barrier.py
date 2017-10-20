@@ -13,34 +13,25 @@
 #   limitations under the License.
 
 """
-Registers a decomposition for controlled z-rotation gates.
+Registers a decomposition rule for barriers.
 
-It uses 2 z-rotations and 2 C^n NOT gates to achieve this gate.
+Deletes all barriers if they are not supported.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count
-from projectq.ops import NOT, Rz, C
+from projectq.ops import BarrierGate
 
 
-def _decompose_CRz(cmd):
-    """ Decompose the controlled Rz gate (into CNOT and Rz). """
-    qubit = cmd.qubits[0]
-    ctrl = cmd.control_qubits
-    gate = cmd.gate
-    n = get_control_count(cmd)
-
-    Rz(0.5 * gate.angle) | qubit
-    C(NOT, n) | (ctrl, qubit)
-    Rz(-0.5 * gate.angle) | qubit
-    C(NOT, n) | (ctrl, qubit)
+def _decompose_barrier(cmd):
+    """ Throw out all barriers if they are not supported. """
+    pass
 
 
-def _recognize_CRz(cmd):
-    """ Recognize the controlled Rz gate. """
-    return get_control_count(cmd) >= 1
+def _recognize_barrier(cmd):
+    """ Recognize all barriers. """
+    return True
 
 
 all_defined_decomposition_rules = [
-    DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
+    DecompositionRule(BarrierGate, _decompose_barrier, _recognize_barrier)
 ]

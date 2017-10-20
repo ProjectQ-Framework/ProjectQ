@@ -223,7 +223,7 @@ class IBMCNOTMapper(BasicEngine):
         else:
             device = 'ibmqx2'
 
-        if device in ['ibmqx2', 'real', 'sim_trivial_2']:
+        if device in ['ibmqx2', 'real', 'simulator']:
             interactions = [(1, 0), (2, 0), (3, 0), (4, 0),
                             (4, 2), (3, 1)]
         elif device == 'ibmqx4':

@@ -27,9 +27,13 @@ from projectq.ops import (NOT,
                           S,
                           Sdag,
                           H,
+                          Rx,
+                          Ry,
+                          Rz,
                           Measure,
                           Allocate,
                           Deallocate,
+                          Barrier,
                           FlushGate)
 
 from ._ibm_http_client import send
@@ -55,15 +59,15 @@ class IBMBackend(BasicEngine):
                 circuit).
             user (string): IBM Quantum Experience user name
             password (string): IBM Quantum Experience password
-            device (string): Device to use ('ibmqx2' or 'ibmqx4') if
-                use_hardware is set to True. Default is ibmqx2.
+            device (string): Device to use ('ibmqx2', 'ibmqx4', or 'ibmqx5')
+                if use_hardware is set to True. Default is ibmqx2.
         """
         BasicEngine.__init__(self)
         self._reset()
         if use_hardware:
             self.device = device
         else:
-            self.device = 'sim_trivial_2'
+            self.device = 'simulator'
         self._num_runs = num_runs
         self._verbose = verbose
         self._user = user
@@ -77,7 +81,8 @@ class IBMBackend(BasicEngine):
         """
         Return true if the command can be executed.
 
-        The IBM quantum chip can do X, Y, Z, T, Tdag, S, Sdag, and CX / CNOT.
+        The IBM quantum chip can do X, Y, Z, T, Tdag, S, Sdag,
+        rotation gates, barriers, and CX / CNOT.
 
         Args:
             cmd (Command): Command for which to check availability
@@ -89,7 +94,9 @@ class IBMBackend(BasicEngine):
             if (g == T or g == Tdag or g == S or g == Sdag or g == H or g == Y
                or g == Z):
                 return True
-        if g == Measure or g == Allocate or g == Deallocate:
+            if isinstance(g, (Rx, Ry, Rz)):
+                return True
+        if g == Measure or g == Allocate or g == Deallocate or g == Barrier:
             return True
         return False
 
@@ -137,7 +144,26 @@ class IBMBackend(BasicEngine):
                     self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_pos,
                                                                     qb_pos)
 
-        elif not (gate == NOT and get_control_count(cmd) == 1):
+        elif gate == NOT and get_control_count(cmd) == 1:
+            ctrl_pos = self._mapping[cmd.control_qubits[0].id]
+            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+        elif gate == Barrier:
+            qb_pos = [self._mapping[qb.id] for qr in cmd.qubits for qb in qr]
+            self.qasm += "\nbarrier "
+            qb_str = ""
+            for pos in qb_pos:
+                qb_str += "q[{}], ".format(pos)
+            self.qasm += qb_str[:-2] + ";"
+        elif isinstance(gate, (Rx, Ry, Rz)):
+            assert get_control_count(cmd) == 0
+            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
+                      'Rz': 'u1({})'}
+            gate = u_strs[str(gate)[0:2]].format(gate.angle)
+            self.qasm += "\n{} q[{}];".format(gate, qb_pos)
+        else:
+            assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:
                 gate_str = self._gate_names[str(gate)]
             else:
@@ -145,10 +171,6 @@ class IBMBackend(BasicEngine):
 
             qb_pos = self._mapping[cmd.qubits[0][0].id]
             self.qasm += "\n{} q[{}];".format(gate_str, qb_pos)
-        else:
-            ctrl_pos = self._mapping[cmd.control_qubits[0].id]
-            qb_pos = self._mapping[cmd.qubits[0][0].id]
-            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
 
     def get_probabilities(self, qureg):
         """
@@ -200,12 +222,14 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[5];\ncreg c[5];"
-                + self.qasm)
+        num_qubits = max(self._mapping.values()) + 1
+        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];"
+                + self.qasm).format(nq=num_qubits)
         info = {}
-        info['qasm'] = qasm
-        info['codeType'] = "QASM2"
-        info['name'] = "ProjectQ Experiment"
+        info['qasms'] = [{'qasm': qasm}]
+        info['shots'] = self._num_runs
+        info['maxCredits'] = 5
+        info['backend'] = {'name': self.device}
         info = json.dumps(info)
 
         try:
@@ -213,13 +237,13 @@ class IBMBackend(BasicEngine):
                        user=self._user, password=self._password,
                        shots=self._num_runs, verbose=self._verbose)
 
-            data = res['data']['p']
-
+            counts = res['data']['counts']
             # Determine random outcome
             P = random.random()
             p_sum = 0.
             measured = ""
-            for state, probability in zip(data['labels'], data['values']):
+            for state in counts:
+                probability = counts[state] * 1. / self._num_runs
                 state = list(reversed(state))
                 state = "".join(state)
                 p_sum += probability
