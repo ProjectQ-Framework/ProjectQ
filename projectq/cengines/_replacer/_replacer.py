@@ -130,10 +130,10 @@ class AutoReplacer(BasicEngine):
             potential_decomps = []
 
             # First check for a decomposition rules of the gate class, then
-            # the gate class of the inverse gate. If nothing is found, do the 
+            # the gate class of the inverse gate. If nothing is found, do the
             # same for the first parent class, etc.
             gate_mro = type(cmd.gate).mro()[:-1]
-            # If gate does not have an inverse it's parent classes are 
+            # If gate does not have an inverse it's parent classes are
             # DaggeredGate, BasicGate, object. Hence don't check the last two
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
             rules = self.decompositionRuleSet.decompositions

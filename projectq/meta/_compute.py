@@ -194,8 +194,8 @@ class ComputeEngine(BasicEngine):
                     self.send([self._add_uncompute_tag(cmd.get_inverse())])
 
             else:
-                # Process commands by replacing each local qubit from       
-                # compute section with new local qubit from the uncompute     
+                # Process commands by replacing each local qubit from
+                # compute section with new local qubit from the uncompute
                 # section
                 if new_local_id:  # Only if we still have local qubits
                     for qureg in cmd.all_qubits:
