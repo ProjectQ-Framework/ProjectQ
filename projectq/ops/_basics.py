@@ -501,7 +501,9 @@ class BasicMathGate(BasicGate):
 
         """
         BasicGate.__init__(self)
-        math_function = lambda x: list(math_fun(*x))
+
+        def math_function(x):
+            return list(math_fun(*x))
         self._math_function = math_function
 
     def get_math_function(self, qubits):

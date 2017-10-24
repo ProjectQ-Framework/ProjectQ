@@ -77,14 +77,14 @@ def test_send_real_device_online_verbose(monkeypatch):
             return MockResponse({"state": True}, 200)
         # Getting result
         elif (args[0] == urljoin(_api_url,
-              "Jobs/{execution_id}".format(execution_id=execution_id))
-              and kwargs["params"]["access_token"] == access_token and
-              not result_ready[0] and request_num[0] == 3):
+              "Jobs/{execution_id}".format(execution_id=execution_id)) and
+              kwargs["params"]["access_token"] == access_token and not
+              result_ready[0] and request_num[0] == 3):
             result_ready[0] = True
             return MockResponse({"status": {"id": "NotDone"}}, 200)
         elif (args[0] == urljoin(_api_url,
-              "Jobs/{execution_id}".format(execution_id=execution_id))
-              and kwargs["params"]["access_token"] == access_token and
+              "Jobs/{execution_id}".format(execution_id=execution_id)) and
+              kwargs["params"]["access_token"] == access_token and
               result_ready[0] and request_num[0] == 3):
             return MockResponse({"qasms": [{"result": result}]}, 200)
 

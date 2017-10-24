@@ -45,6 +45,6 @@ def test_manualmapper_mapping():
             tag = QubitPlacementTag(mapping(cmd.qubits[0][0].id))
             assert tag in cmd.tags
             wrong_tag = QubitPlacementTag(cmd.qubits[0][0].id)
-            assert not wrong_tag in cmd.tags
+            assert wrong_tag not in cmd.tags
             num_allocates += 1
     assert num_allocates == 2
