@@ -71,9 +71,9 @@ def test_header():
     header = _to_latex._header(settings)
 
     assert 'minimum' in header
-    assert not 'basicshadow' in header
+    assert 'basicshadow' not in header
     assert 'minimum height=0.5' in header
-    assert not 'minimum height=1cm' in header
+    assert 'minimum height=1cm' not in header
     assert 'minimum height=0cm' in header
 
     settings['control']['shadow'] = True

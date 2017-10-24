@@ -118,8 +118,8 @@ class IBMCNOTMapper(BasicEngine):
             corrected_counts = deepcopy(self._num_cnot_target)
             # correct CNOT target counts (the first ID is now fixed):
             for cmd in self._cmds:
-                if (self._is_cnot(cmd)
-                   and cmd.control_qubits[0].id == mapped_id):
+                if (self._is_cnot(cmd) and
+                        cmd.control_qubits[0].id == mapped_id):
                     corrected_counts[cmd.qubits[0][0].id] -= 1
             # update interaction counts
             for i in range(1, len(ids_and_interactions)):
@@ -137,8 +137,8 @@ class IBMCNOTMapper(BasicEngine):
             mapping = []
             while len(qubits_to_map) > 0:
                 last_mapped_id = ids_and_interactions[i][0]
-                ids_and_interactions = (ids_and_interactions[0:i]
-                                        + ids_and_interactions[i + 1:])
+                ids_and_interactions = (ids_and_interactions[0:i] +
+                                        ids_and_interactions[i + 1:])
                 current_place = places[place_idx]
                 mapping.append((last_mapped_id, current_place))
                 qubits_to_map.remove(last_mapped_id)
@@ -243,13 +243,13 @@ class IBMCNOTMapper(BasicEngine):
         """
         if not cmd.gate == FlushGate():
             apply_to = cmd.qubits[0][0].id
-            if not apply_to in self._interactions:
+            if apply_to not in self._interactions:
                 self._interactions[apply_to] = set()
                 self._num_cnot_target[apply_to] = 0
         if self._is_cnot(cmd):
             # CNOT encountered
             ctrl = cmd.control_qubits[0].id
-            if not ctrl in self._interactions:
+            if ctrl not in self._interactions:
                 self._interactions[ctrl] = set()
                 self._num_cnot_target[ctrl] = 0
             self._interactions[ctrl].add(apply_to)

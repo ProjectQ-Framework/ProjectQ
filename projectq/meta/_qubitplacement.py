@@ -25,8 +25,8 @@ class QubitPlacementTag(object):
         self.position = position
 
     def __eq__(self, other):
-        return (isinstance(other, QubitPlacementTag)
-                and self.position == other.position)
+        return (isinstance(other, QubitPlacementTag) and
+                self.position == other.position)
 
     def __ne__(self, other):
         return not self.__eq__(other)

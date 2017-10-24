@@ -42,9 +42,9 @@ class CircuitItem(object):
         self.id = -1
 
     def __eq__(self, other):
-        return (self.gate == other.gate and self.lines == other.lines
-                and self.ctrl_lines == other.ctrl_lines
-                and self.id == other.id)
+        return (self.gate == other.gate and self.lines == other.lines and
+                self.ctrl_lines == other.ctrl_lines and
+                self.id == other.id)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -191,7 +191,7 @@ class CircuitDrawer(BasicEngine):
                                " applying gates!")
 
         for k in range(min(id_to_loc), max(id_to_loc)+1):
-            if not k in id_to_loc:
+            if k not in id_to_loc:
                 raise RuntimeError("set_qubit_locations(): Invalid id_to_loc "
                                    "mapping provided. All ids in the provided"
                                    " range of qubit ids have to be mapped "
@@ -212,7 +212,7 @@ class CircuitDrawer(BasicEngine):
         """
         if cmd.gate == Allocate:
             qubit_id = cmd.qubits[0][0].id
-            if not qubit_id in self._map:
+            if qubit_id not in self._map:
                 self._map[qubit_id] = qubit_id
             self._qubit_lines[qubit_id] = []
 

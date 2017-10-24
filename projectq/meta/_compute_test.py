@@ -304,8 +304,8 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[12].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[13].qubits[0][0].id == qubit_id
     assert backend.received_commands[14].qubits[0][0].id == qubit_id
-    assert (backend.received_commands[14].control_qubits[0].id
-            == ancilla_uncompt_id)
+    assert (backend.received_commands[14].control_qubits[0].id ==
+            ancilla_uncompt_id)
     assert backend.received_commands[15].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[16].qubits[0][0].id == qubit_id
     assert backend.received_commands[17].qubits[0][0].id == ancilla2_id

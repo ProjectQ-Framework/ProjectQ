@@ -208,7 +208,8 @@ class ForwarderEngine(BasicEngine):
         self.main_engine = engine.main_engine
         self.next_engine = engine
         if cmd_mod_fun is None:
-            cmd_mod_fun = lambda cmd: cmd
+            def cmd_mod_fun(cmd):
+                return cmd
 
         self._cmd_mod_fun = cmd_mod_fun
 

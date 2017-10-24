@@ -91,12 +91,11 @@ class IBMBackend(BasicEngine):
         if g == NOT and get_control_count(cmd) <= 1:
             return True
         if get_control_count(cmd) == 0:
-            if (g == T or g == Tdag or g == S or g == Sdag or g == H or g == Y
-               or g == Z):
+            if g in (T, Tdag, S, Sdag, H, Y, Z):
                 return True
             if isinstance(g, (Rx, Ry, Rz)):
                 return True
-        if g == Measure or g == Allocate or g == Deallocate or g == Barrier:
+        if g in (Measure, Allocate, Deallocate, Barrier):
             return True
         return False
 
@@ -128,7 +127,7 @@ class IBMBackend(BasicEngine):
                     self._mapping[qb_id] = tag.position
                     self._inverse_mapping[tag.position] = qb_id
                     break
-            if not qb_id in self._mapping:
+            if qb_id not in self._mapping:
                 raise Exception("No qubit placement info found in Allocate.\n"
                                 "Please make sure you are using the IBM CNOT "
                                 "Mapper.")
@@ -223,8 +222,8 @@ class IBMBackend(BasicEngine):
         if self.qasm == "":
             return
         num_qubits = max(self._mapping.values()) + 1
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];"
-                + self.qasm).format(nq=num_qubits)
+        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
+                self.qasm).format(nq=num_qubits)
         info = {}
         info['qasms'] = [{'qasm': qasm}]
         info['shots'] = self._num_runs
