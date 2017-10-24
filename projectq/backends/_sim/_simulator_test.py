@@ -139,12 +139,6 @@ def test_simulator_is_available(sim):
     assert not sim.is_available(new_cmd)
     assert new_cmd.gate.cnt == 1
 
-    eng = MainEngine(sim, [])
-    qubit1 = eng.allocate_qubit()
-    qubit2 = eng.allocate_qubit()
-    with pytest.raises(Exception):
-        Mock2QubitGate() | (qubit1, qubit2)
-
 
 def test_simulator_cheat(sim):
     # cheat function should return a tuple
