@@ -18,7 +18,6 @@ Contains a (slow) Python simulator.
 Please compile the c++ simulator for large-scale simulations.
 """
 
-import cmath
 import random
 import numpy as _np
 
