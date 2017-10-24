@@ -131,7 +131,10 @@ class IBMCNOTMapper(BasicEngine):
             # where necessary. Else: map according to # of times the qubit
             # is a target qubit in a CNOT.
             interactions = deepcopy(self._interactions)
-            places = list(range(5))
+            if self.main_engine.backend.device=='ibmqx5':
+                places = list(range(16))
+            else:
+                places = list(range(5))
             i = 0
             place_idx = 0
             mapping = []
@@ -194,7 +197,10 @@ class IBMCNOTMapper(BasicEngine):
                 CNOT | (qubit, ctrl)
                 All(H) | (ctrl + qubit)
             elif cmd.gate == Allocate:
-                ibm_order = [2, 1, 4, 0, 3]
+                if self.main_engine.backend.device=='ibmqx5':
+                    ibm_order = range(16)
+                else:
+                    ibm_order = [2, 1, 4, 0, 3]
                 cmd.tags += [QubitPlacementTag(
                     ibm_order[all_indices[cmd.qubits[0][0].id]])]
                 self.next_engine.receive([cmd])
