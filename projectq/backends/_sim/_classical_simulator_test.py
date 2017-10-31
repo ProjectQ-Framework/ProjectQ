@@ -110,6 +110,15 @@ def test_simulator_arithmetic():
     assert sim.read_register(a) == 11
     assert sim.read_register(b) == 24
 
+    # also test via measurement:
+    Measure | (a, b)
+    eng.flush()
+
+    for i in range(len(a)):
+        assert int(a[i]) == ((11 >> i) & 1)
+    for i in range(len(b)):
+        assert int(b[i]) == ((24 >> i) & 1)
+
 
 def test_write_register_value_error_exception():
     sim = ClassicalSimulator()
