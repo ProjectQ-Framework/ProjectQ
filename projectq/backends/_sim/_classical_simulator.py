@@ -127,7 +127,14 @@ class ClassicalSimulator(BasicEngine):
             self.send(command_list)
 
     def _handle(self, cmd):
-        if cmd.gate == Measure or isinstance(cmd.gate, FlushGate):
+        if isinstance(cmd.gate, FlushGate):
+            return
+
+        if cmd.gate == Measure:
+            for qr in cmd.qubits:
+                for qb in qr:
+                    self.main_engine.set_measurement_result(qb,
+                                                            self.read_bit(qb))
             return
 
         if cmd.gate == Allocate:
