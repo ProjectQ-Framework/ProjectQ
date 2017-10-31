@@ -133,7 +133,8 @@ class ClassicalSimulator(BasicEngine):
         if cmd.gate == Measure:
             for qr in cmd.qubits:
                 for qb in qr:
-                    self.main_engine.set_measurement_result(qb, self.read_bit(qb))
+                    self.main_engine.set_measurement_result(qb,
+                                                            self.read_bit(qb))
             return
 
         if cmd.gate == Allocate:
