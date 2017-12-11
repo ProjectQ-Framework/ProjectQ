@@ -506,6 +506,9 @@ class BasicMathGate(BasicGate):
             return list(math_fun(*x))
         self._math_function = math_function
 
+    def __str__(self):
+        return "MATH"
+
     def get_math_function(self, qubits):
         """
         Return the math function which corresponds to the action of this math

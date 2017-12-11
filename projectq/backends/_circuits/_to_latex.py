@@ -13,7 +13,8 @@
 #   limitations under the License.
 
 import json
-from projectq.ops import Measure, Allocate, Deallocate, X, Z, Swap
+from projectq.ops import Measure, Allocate, Deallocate, X, Z,\
+    Swap, SqSwap, SqSwapdag
 
 
 def to_latex(circuit):
@@ -88,13 +89,19 @@ def get_default_settings():
                                     'pre_offset': .1},
                           'XGate': {'width': .35, 'height': .35,
                                     'offset': .1},
+                          'SqXGate': {'width': .6, 'offset': .3,
+                                      'pre_offset': .1},
                           'SwapGate': {'width': .35, 'height': .35,
                                        'offset': .1},
+                          'SqSwapGate': {'width': .35, 'height': .35,
+                                         'offset': .1},
                           'Rx': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'Ry': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'Rz': {'width': 1., 'height': .8, 'pre_offset': .2,
+                                 'offset': .3},
+                          'Ph': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'EntangleGate': {'width': 1.8, 'offset': .2,
                                            'pre_offset': .2},
@@ -158,7 +165,7 @@ def _header(settings):
                    "\\tikzstyle{xstyle}=[circle,basic,minimum height=")
     x_gate_radius = min(settings['gates']['XGate']['height'],
                         settings['gates']['XGate']['width'])
-    gate_style += ("{x_rad}cm,minimum width={x_rad}cm,inner sep=0pt,"
+    gate_style += ("{x_rad}cm,minimum width={x_rad}cm,inner sep=-1pt,"
                    "{linestyle}]\n"
                    ).format(x_rad=x_gate_radius,
                             linestyle=settings['lines']['style'])
@@ -211,6 +218,7 @@ class _Circ2Tikz(object):
 
     It uses the settings dictionary for gate offsets, sizes, spacing, ...
     """
+
     def __init__(self, settings, num_lines):
         """
         Initialize a circuit to latex converter object.
@@ -268,8 +276,8 @@ class _Circ2Tikz(object):
 
             all_lines = lines + ctrl_lines
             pos = max([self.pos[l] for l in range(min(all_lines),
-                                                  max(all_lines)+1)])
-            for l in range(min(all_lines), max(all_lines)+1):
+                                                  max(all_lines) + 1)])
+            for l in range(min(all_lines), max(all_lines) + 1):
                 self.pos[l] = pos + self._gate_pre_offset(gate)
 
             connections = ""
@@ -288,6 +296,10 @@ class _Circ2Tikz(object):
                 add_str = self._cz_gate(lines + ctrl_lines)
             elif gate == Swap:
                 add_str = self._swap_gate(lines, ctrl_lines)
+            elif gate == SqSwap:
+                add_str = self._sqswap_gate(lines, ctrl_lines, daggered=False)
+            elif gate == SqSwapdag:
+                add_str = self._sqswap_gate(lines, ctrl_lines, daggered=True)
             elif gate == Measure:
                 # draw measurement gate
                 for l in lines:
@@ -370,6 +382,72 @@ class _Circ2Tikz(object):
             name = str(gate)
         return name
 
+    def _sqswap_gate(self, lines, ctrl_lines, daggered):
+        """
+        Return the TikZ code for a Square-root Swap-gate.
+
+        Args:
+            lines (list<int>): List of length 2 denoting the target qubit of
+                the Swap gate.
+            ctrl_lines (list<int>): List of qubit lines which act as controls.
+            daggered (bool): Show the daggered one if True.
+        """
+        assert(len(lines) == 2)  # sqrt swap gate acts on 2 qubits
+        delta_pos = self._gate_offset(SqSwap)
+        gate_width = self._gate_width(SqSwap)
+        lines.sort()
+
+        gate_str = ""
+        for line in lines:
+            op = self._op(line)
+            w = "{}cm".format(.5 * gate_width)
+            s1 = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            s2 = "[xshift={w},yshift={w}]{op}.center".format(w=w, op=op)
+            s3 = "[xshift=-{w},yshift={w}]{op}.center".format(w=w, op=op)
+            s4 = "[xshift={w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            swap_style = "swapstyle,edgestyle"
+            if self.settings['gate_shadow']:
+                swap_style += ",shadowed"
+            gate_str += ("\n\\node[swapstyle] ({op}) at ({pos},-{line}) {{}};"
+                         "\n\\draw[{swap_style}] ({s1})--({s2});\n"
+                         "\\draw[{swap_style}] ({s3})--({s4});"
+                         ).format(op=op, s1=s1, s2=s2, s3=s3, s4=s4,
+                                  line=line, pos=self.pos[line],
+                                  swap_style=swap_style)
+
+        # add a circled 1/2
+        midpoint = (lines[0] + lines[1]) / 2.
+        pos = self.pos[lines[0]]
+        op_mid = "line{}_gate{}".format(
+            '{}-{}'.format(*lines), self.op_count[lines[0]])
+        gate_str += ("\n\\node[xstyle] ({op}) at ({pos},-{line})\
+                {{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"
+                     ).format(op=op_mid, line=midpoint, pos=pos,
+                              dagger='^{{\dagger}}' if daggered else '')
+
+        # add two vertical lines to connect circled 1/2
+        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(
+            self._op(lines[0]), op_mid)
+        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(
+            op_mid, self._op(lines[1]))
+
+        if len(ctrl_lines) > 0:
+            for ctrl in ctrl_lines:
+                gate_str += self._phase(ctrl, self.pos[lines[0]])
+                if ctrl > lines[1] or ctrl < lines[0]:
+                    closer_line = lines[0]
+                    if ctrl > lines[1]:
+                        closer_line = lines[1]
+                    gate_str += self._line(ctrl, closer_line)
+
+        all_lines = ctrl_lines + lines
+        new_pos = self.pos[lines[0]] + delta_pos + gate_width
+        for i in all_lines:
+            self.op_count[i] += 1
+        for i in range(min(all_lines), max(all_lines) + 1):
+            self.pos[i] = new_pos
+        return gate_str
+
     def _swap_gate(self, lines, ctrl_lines):
         """
         Return the TikZ code for a Swap-gate.
@@ -380,7 +458,7 @@ class _Circ2Tikz(object):
             ctrl_lines (list<int>): List of qubit lines which act as controls.
 
         """
-        assert(len(lines) == 2)  # NOT gate only acts on 1 qubit
+        assert(len(lines) == 2)  # swap gate acts on 2 qubits
         delta_pos = self._gate_offset(Swap)
         gate_width = self._gate_width(Swap)
         lines.sort()
@@ -388,7 +466,7 @@ class _Circ2Tikz(object):
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            w = "{}cm".format(.5*gate_width)
+            w = "{}cm".format(.5 * gate_width)
             s1 = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=w, op=op)
             s2 = "[xshift={w},yshift={w}]{op}.center".format(w=w, op=op)
             s3 = "[xshift=-{w},yshift={w}]{op}.center".format(w=w, op=op)
@@ -417,7 +495,7 @@ class _Circ2Tikz(object):
         new_pos = self.pos[lines[0]] + delta_pos + gate_width
         for i in all_lines:
             self.op_count[i] += 1
-        for i in range(min(all_lines), max(all_lines)+1):
+        for i in range(min(all_lines), max(all_lines) + 1):
             self.pos[i] = new_pos
         return gate_str
 
@@ -450,7 +528,7 @@ class _Circ2Tikz(object):
         new_pos = self.pos[line] + delta_pos + gate_width
         for i in all_lines:
             self.op_count[i] += 1
-        for i in range(min(all_lines), max(all_lines)+1):
+        for i in range(min(all_lines), max(all_lines) + 1):
             self.pos[i] = new_pos
         return gate_str
 
@@ -474,7 +552,7 @@ class _Circ2Tikz(object):
         new_pos = self.pos[line] + delta_pos + gate_width
         for i in lines:
             self.op_count[i] += 1
-        for i in range(min(lines), max(lines)+1):
+        for i in range(min(lines), max(lines) + 1):
             self.pos[i] = new_pos
         return gate_str
 
@@ -639,7 +717,7 @@ class _Circ2Tikz(object):
 
         name = self._gate_name(gate)
 
-        lines = list(range(imin, imax+1))
+        lines = list(range(imin, imax + 1))
 
         tex_str = ""
         pos = self.pos[lines[0]]
@@ -650,7 +728,7 @@ class _Circ2Tikz(object):
             node2 = ("\n\\node[none,minimum height={}cm,outer sep=0] ({}) at"
                      " ({},-{}) {{}};"
                      ).format(gate_height, self._op(l, offset=1),
-                              pos + gate_width/2., l)
+                              pos + gate_width / 2., l)
             node3 = node_str.format(self._op(l, offset=2),
                                     pos + gate_width, l)
             tex_str += node1 + node2 + node3
@@ -667,12 +745,12 @@ class _Circ2Tikz(object):
                              name=name)
 
         for l in lines:
-            self.pos[l] = pos + gate_width/2.
+            self.pos[l] = pos + gate_width / 2.
             self.op_count[l] += 1
 
         for ctrl in ctrl_lines:
             if ctrl not in lines:
-                tex_str += self._phase(ctrl, pos + gate_width/2.)
+                tex_str += self._phase(ctrl, pos + gate_width / 2.)
                 connect_to = imax
                 if abs(connect_to - ctrl) > abs(imin - ctrl):
                     connect_to = imin
@@ -683,6 +761,6 @@ class _Circ2Tikz(object):
         for l in lines:
             self.op_count[l] += 2
 
-        for l in range(min(ctrl_lines + lines), max(ctrl_lines + lines)+1):
+        for l in range(min(ctrl_lines + lines), max(ctrl_lines + lines) + 1):
             self.pos[l] = pos + delta_pos + gate_width
         return tex_str
