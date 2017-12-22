@@ -14,7 +14,7 @@
 
 import json
 from projectq.ops import Measure, Allocate, Deallocate, X, Z,\
-    Swap, SqSwap, SqSwapdag
+    Swap, SqrtSwap, get_inverse
 
 
 def to_latex(circuit):
@@ -89,12 +89,12 @@ def get_default_settings():
                                     'pre_offset': .1},
                           'XGate': {'width': .35, 'height': .35,
                                     'offset': .1},
-                          'SqXGate': {'width': .6, 'offset': .3,
-                                      'pre_offset': .1},
+                          'SqrtXGate': {'width': .6, 'offset': .3,
+                                        'pre_offset': .1},
                           'SwapGate': {'width': .35, 'height': .35,
                                        'offset': .1},
-                          'SqSwapGate': {'width': .35, 'height': .35,
-                                         'offset': .1},
+                          'SqrtSwapGate': {'width': .35, 'height': .35,
+                                           'offset': .1},
                           'Rx': {'width': 1., 'height': .8, 'pre_offset': .2,
                                  'offset': .3},
                           'Ry': {'width': 1., 'height': .8, 'pre_offset': .2,
@@ -296,9 +296,9 @@ class _Circ2Tikz(object):
                 add_str = self._cz_gate(lines + ctrl_lines)
             elif gate == Swap:
                 add_str = self._swap_gate(lines, ctrl_lines)
-            elif gate == SqSwap:
+            elif gate == SqrtSwap:
                 add_str = self._sqswap_gate(lines, ctrl_lines, daggered=False)
-            elif gate == SqSwapdag:
+            elif gate == get_inverse(SqrtSwap):
                 add_str = self._sqswap_gate(lines, ctrl_lines, daggered=True)
             elif gate == Measure:
                 # draw measurement gate
@@ -393,8 +393,8 @@ class _Circ2Tikz(object):
             daggered (bool): Show the daggered one if True.
         """
         assert(len(lines) == 2)  # sqrt swap gate acts on 2 qubits
-        delta_pos = self._gate_offset(SqSwap)
-        gate_width = self._gate_width(SqSwap)
+        delta_pos = self._gate_offset(SqrtSwap)
+        gate_width = self._gate_width(SqrtSwap)
         lines.sort()
 
         gate_str = ""

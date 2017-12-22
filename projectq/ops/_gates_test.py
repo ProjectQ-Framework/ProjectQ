@@ -80,14 +80,12 @@ def test_t_gate():
     assert isinstance(_gates.Tdagger, type(get_inverse(gate)))
 
 
-def test_sqx_gate():
-    gate = _gates.SqXGate()
-    assert str(gate) == "SqX"
+def test_sqrtx_gate():
+    gate = _gates.SqrtXGate()
+    assert str(gate) == "SqrtX"
     assert np.array_equal(gate.matrix * gate.matrix,
                           np.matrix([[0j, 1], [1, 0]]))
-    assert isinstance(_gates.SqX, _gates.SqXGate)
-    assert isinstance(_gates.SqXdag, type(get_inverse(gate)))
-    assert isinstance(_gates.SqXdagger, type(get_inverse(gate)))
+    assert isinstance(_gates.SqrtX, _gates.SqrtXGate)
 
 
 def test_swap_gate():
@@ -101,14 +99,12 @@ def test_swap_gate():
     assert isinstance(_gates.Swap, _gates.SwapGate)
 
 
-def test_sqswap_gate():
-    gate = _gates.SqSwapGate()
+def test_sqrtswap_gate():
+    gate = _gates.SqrtSwapGate()
     gate_sq = _gates.SwapGate()
-    assert str(gate) == "SqSwap"
+    assert str(gate) == "SqrtSwap"
     assert np.array_equal(gate.matrix * gate.matrix, gate_sq.matrix)
-    assert isinstance(_gates.SqSwap, _gates.SqSwapGate)
-    assert isinstance(_gates.SqSwapdag, type(get_inverse(gate)))
-    assert isinstance(_gates.SqSwapdagger, type(get_inverse(gate)))
+    assert isinstance(_gates.SqrtSwap, _gates.SqrtSwapGate)
 
 
 def test_engangle_gate():

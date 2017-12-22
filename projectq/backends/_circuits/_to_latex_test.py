@@ -28,6 +28,8 @@ from projectq.ops import (BasicGate,
                           Measure,
                           Z,
                           Swap,
+                          SqrtX,
+                          SqrtSwap,
                           C)
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
@@ -145,6 +147,8 @@ def test_body():
     Z | qubit2
     C(Z) | (qubit1, qubit2)
     C(Swap) | (qubit1, qubit2, qubit3)
+    SqrtX | qubit1
+    SqrtSwap | (qubit1, qubit2)
 
     del qubit1
     eng.flush()
@@ -156,12 +160,13 @@ def test_body():
     settings['gates']['AllocateQubitGate']['draw_id'] = True
     code = _to_latex._body(circuit_lines, settings)
 
-    assert code.count("swapstyle") == 6  # swap draws 2 nodes + 2 lines each
+    # swap draws 2 nodes + 2 lines each, so is sqrtswap gate.
+    assert code.count("swapstyle") == 12
     # CZ is two phases plus 2 from CNOTs + 1 from cswap
     assert code.count("phase") == 5
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
     assert code.count("{$\Ket{0}") == 3  # 3 qubits allocated
-    assert code.count("xstyle") == 3  # 1 cnot, 1 not gate
+    assert code.count("xstyle") == 4  # 1 cnot, 1 not gate, 1 SqrtSwap
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
