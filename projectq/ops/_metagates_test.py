@@ -77,7 +77,8 @@ def test_daggered_gate_str():
 
 def test_daggered_gate_tex_str():
     daggered_gate = _metagates.DaggeredGate(Y)
-    assert daggered_gate.tex_str() == str(Y) + "$^\dagger$"
+    str_Y = Y.tex_str() if hasattr(Y, 'tex_str') else str(Y)
+    assert daggered_gate.tex_str() == str_Y + "${}^\dagger$"
 
 
 def test_daggered_gate_get_inverse():
