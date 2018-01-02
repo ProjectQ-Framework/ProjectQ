@@ -125,13 +125,15 @@ def _decompose_time_evolution_individual_terms(cmd):
             Uncompute(eng)
 
 
-rule_commuting_terms = DecompositionRule(gate_class=TimeEvolution,
-                gate_decomposer=_decompose_time_evolution_commuting_terms,
-                gate_recognizer=_recognize_time_evolution_commuting_terms)
+rule_commuting_terms = DecompositionRule(
+    gate_class=TimeEvolution,
+    gate_decomposer=_decompose_time_evolution_commuting_terms,
+    gate_recognizer=_recognize_time_evolution_commuting_terms)
 
-rule_individual_terms = DecompositionRule(gate_class=TimeEvolution,
-                gate_decomposer=_decompose_time_evolution_individual_terms,
-                gate_recognizer=_recognize_time_evolution_individual_terms)
+rule_individual_terms = DecompositionRule(
+    gate_class=TimeEvolution,
+    gate_decomposer=_decompose_time_evolution_individual_terms,
+    gate_recognizer=_recognize_time_evolution_individual_terms)
 
 
 all_defined_decomposition_rules = [rule_commuting_terms,

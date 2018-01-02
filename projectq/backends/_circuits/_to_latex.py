@@ -144,15 +144,15 @@ def _header(settings):
 
     gate_style += ("\\tikzstyle{operator}=[basic,minimum size=1.5em]\n"
                    "\\tikzstyle{phase}=[fill=black,shape=circle," +
-                   "minimum size={}".format(settings['control']['size'])
-                   + "cm,inner sep=0pt,outer sep=0pt,draw=black"
+                   "minimum size={}".format(settings['control']['size']) +
+                   "cm,inner sep=0pt,outer sep=0pt,draw=black"
                    )
     if settings['control']['shadow']:
         gate_style += ",basicshadow"
     gate_style += ("]\n\\tikzstyle{none}=[inner sep=0pt,outer sep=-.5pt,"
                    "minimum height=0.5cm+1pt]\n"
-                   "\\tikzstyle{measure}=[operator,inner sep=0pt,minimum "
-                   + "height={}cm, minimum width={}cm]\n".format(
+                   "\\tikzstyle{measure}=[operator,inner sep=0pt,minimum " +
+                   "height={}cm, minimum width={}cm]\n".format(
                        settings['gates']['MeasureGate']['height'],
                        settings['gates']['MeasureGate']['width']) +
                    "\\tikzstyle{xstyle}=[circle,basic,minimum height=")
@@ -654,7 +654,7 @@ class _Circ2Tikz(object):
             node3 = node_str.format(self._op(l, offset=2),
                                     pos + gate_width, l)
             tex_str += node1 + node2 + node3
-            if not l in gate_lines:
+            if l not in gate_lines:
                 tex_str += self._line(self.op_count[l] - 1, self.op_count[l],
                                       line=l)
 
@@ -671,7 +671,7 @@ class _Circ2Tikz(object):
             self.op_count[l] += 1
 
         for ctrl in ctrl_lines:
-            if not ctrl in lines:
+            if ctrl not in lines:
                 tex_str += self._phase(ctrl, pos + gate_width/2.)
                 connect_to = imax
                 if abs(connect_to - ctrl) > abs(imin - ctrl):

@@ -18,7 +18,6 @@ Contains a (slow) Python simulator.
 Please compile the c++ simulator for large-scale simulations.
 """
 
-import cmath
 import random
 import numpy as _np
 
@@ -214,8 +213,8 @@ class Simulator(object):
                 arg_list = [0] * len(qb_locs)
                 for qr_i in range(len(qb_locs)):
                     for qb_i in range(len(qb_locs[qr_i])):
-                        arg_list[qr_i] |= (((i >> qb_locs[qr_i][qb_i]) & 1)
-                                           << qb_i)
+                        arg_list[qr_i] |= (((i >> qb_locs[qr_i][qb_i]) & 1) <<
+                                           qb_i)
 
                 res = f(arg_list)
                 new_i = i
@@ -465,8 +464,8 @@ class Simulator(object):
         # wavefunction contains 2^n values for n qubits
         assert len(wavefunction) == (1 << len(ordering))
         # all qubits must have been allocated before
-        if (not all([Id in self._map for Id in ordering])
-                or len(self._map) != len(ordering)):
+        if (not all([Id in self._map for Id in ordering]) or
+                len(self._map) != len(ordering)):
             raise RuntimeError("set_wavefunction(): Invalid mapping provided."
                                " Please make sure all qubits have been "
                                "allocated previously (call eng.flush()).")

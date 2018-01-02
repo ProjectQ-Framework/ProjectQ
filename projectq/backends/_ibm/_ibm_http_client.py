@@ -16,6 +16,7 @@
 # api documentation is at https://qcwi-staging.mybluemix.net/explorer/
 import requests
 import getpass
+import json
 import sys
 import time
 from requests.compat import urljoin
@@ -29,15 +30,14 @@ class DeviceOfflineError(Exception):
     pass
 
 
-def send(qasm, device='sim_trivial_2', user=None, password=None,
+def send(info, device='sim_trivial_2', user=None, password=None,
          shots=1, verbose=False):
     """
     Sends QASM through the IBM API and runs the quantum circuit.
 
     Args:
-        qasm: QASM representation of the circuit to run.
-        device (str): 'sim_trivial_2' or 'real' to run on simulator or on the
-            real chip, respectively.
+        info: Contains QASM representation of the circuit to run.
+        device (str): Either 'simulator', 'ibmqx2', 'ibmqx4', or 'ibmqx5'.
         user (str): IBM quantum experience user.
         password (str): IBM quantum experience user password.
         shots (int): Number of runs of the same circuit to collect statistics.
@@ -47,7 +47,7 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
     """
     try:
         # check if the device is online
-        if device in ['ibmqx2', 'ibmqx4']:
+        if device in ['ibmqx2', 'ibmqx4', 'ibmqx5']:
             url = 'Backends/{}/queue/status'.format(device)
             r = requests.get(urljoin(_api_url_status, url))
             online = r.json()['state']
@@ -60,25 +60,26 @@ def send(qasm, device='sim_trivial_2', user=None, password=None,
                 device = 'real'
 
         if verbose:
-            print("Authenticating...")
+            print("- Authenticating...")
         user_id, access_token = _authenticate(user, password)
         if verbose:
-            print("Running code...")
-        execution_id = _run(qasm, device, user_id, access_token, shots)
+            print("- Running code: {}".format(
+                json.loads(info)['qasms'][0]['qasm']))
+        execution_id = _run(info, device, user_id, access_token, shots)
         if verbose:
-            print("Waiting for results...")
+            print("- Waiting for results...")
         res = _get_result(execution_id, access_token)
         if verbose:
-            print("Done.")
+            print("- Done.")
         return res
     except requests.exceptions.HTTPError as err:
-        print("There was an error running your code:")
+        print("- There was an error running your code:")
         print(err)
     except requests.exceptions.RequestException as err:
-        print("Looks like something is wrong with server:")
+        print("- Looks like something is wrong with server:")
         print(err)
     except KeyError as err:
-        print("Failed to parse response:")
+        print("- Failed to parse response:")
         print(err)
 
 
@@ -109,7 +110,7 @@ def _authenticate(email=None, password=None):
 
 
 def _run(qasm, device, user_id, access_token, shots):
-    suffix = 'codes/execute'
+    suffix = 'Jobs'
 
     r = requests.post(urljoin(_api_url, suffix),
                       data=qasm,
@@ -126,7 +127,7 @@ def _run(qasm, device, user_id, access_token, shots):
 
 
 def _get_result(execution_id, access_token, num_retries=300, interval=1):
-    suffix = 'Executions/{execution_id}'.format(execution_id=execution_id)
+    suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
 
     for _ in range(num_retries):
         r = requests.get(urljoin(_api_url, suffix),
@@ -134,7 +135,8 @@ def _get_result(execution_id, access_token, num_retries=300, interval=1):
         r.raise_for_status()
 
         r_json = r.json()
-        status = r_json["status"]["id"]
-        if status == "DONE":
-            return r_json["result"]
+        if 'qasms' in r_json:
+            qasm = r_json['qasms'][0]
+            if 'result' in qasm:
+                return qasm['result']
         time.sleep(interval)

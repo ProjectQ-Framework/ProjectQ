@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 from . import (arb1qubit2rzandry,
+               barrier,
                carb1qubit2cnotrzandry,
                crz2cxandrz,
                cnu2toffoliandcu,
@@ -21,6 +22,8 @@ from . import (arb1qubit2rzandry,
                ph2r,
                qft2crandhadamard,
                r2rzandph,
+               rx2rz,
+               ry2rz,
                swap2cnot,
                toffoli2cnotandtgate,
                time_evolution)
@@ -28,6 +31,7 @@ from . import (arb1qubit2rzandry,
 all_defined_decomposition_rules = [
     rule
     for module in [arb1qubit2rzandry,
+                   barrier,
                    carb1qubit2cnotrzandry,
                    crz2cxandrz,
                    cnu2toffoliandcu,
@@ -36,6 +40,8 @@ all_defined_decomposition_rules = [
                    ph2r,
                    qft2crandhadamard,
                    r2rzandph,
+                   rx2rz,
+                   ry2rz,
                    swap2cnot,
                    toffoli2cnotandtgate,
                    time_evolution]

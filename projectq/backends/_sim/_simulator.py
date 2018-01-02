@@ -18,6 +18,7 @@ built first. If the c++ simulator is not exported to python, a (slow) python
 implementation is used as an alternative.
 """
 
+import math
 import random
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count
@@ -98,10 +99,10 @@ class Simulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        if (cmd.gate == Measure or cmd.gate == Allocate
-           or cmd.gate == Deallocate
-           or isinstance(cmd.gate, BasicMathGate)
-           or isinstance(cmd.gate, TimeEvolution)):
+        if (cmd.gate == Measure or cmd.gate == Allocate or
+                cmd.gate == Deallocate or
+                isinstance(cmd.gate, BasicMathGate) or
+                isinstance(cmd.gate, TimeEvolution)):
             return True
         try:
             m = cmd.gate.matrix
@@ -328,6 +329,12 @@ class Simulator(BasicEngine):
         elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]
+            if not 2 ** len(ids) == len(cmd.gate.matrix):
+                raise Exception("Simulator: Error applying {} gate: "
+                                "{}-qubit gate applied to {} qubits.".format(
+                                    str(cmd.gate),
+                                    int(math.log(len(cmd.gate.matrix), 2)),
+                                    len(ids)))
             self._simulator.apply_controlled_gate(matrix.tolist(),
                                                   ids,
                                                   [qb.id for qb in

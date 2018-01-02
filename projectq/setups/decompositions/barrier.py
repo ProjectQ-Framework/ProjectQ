@@ -13,20 +13,25 @@
 #   limitations under the License.
 
 """
-Defines the QubitPlacementTag meta tag.
+Registers a decomposition rule for barriers.
+
+Deletes all barriers if they are not supported.
 """
 
+from projectq.cengines import DecompositionRule
+from projectq.ops import BarrierGate
 
-class QubitPlacementTag(object):
-    """
-    Qubit placement meta tag
-    """
-    def __init__(self, position):
-        self.position = position
 
-    def __eq__(self, other):
-        return (isinstance(other, QubitPlacementTag) and
-                self.position == other.position)
+def _decompose_barrier(cmd):
+    """ Throw out all barriers if they are not supported. """
+    pass
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+
+def _recognize_barrier(cmd):
+    """ Recognize all barriers. """
+    return True
+
+
+all_defined_decomposition_rules = [
+    DecompositionRule(BarrierGate, _decompose_barrier, _recognize_barrier)
+]

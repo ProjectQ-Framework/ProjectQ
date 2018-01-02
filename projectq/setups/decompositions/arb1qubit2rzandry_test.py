@@ -25,6 +25,7 @@ from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 from projectq.ops import (BasicGate, ClassicalInstructionGate, Measure, Ph, R,
                           Rx, Ry, Rz, X)
+from projectq.meta import Control
 
 from . import arb1qubit2rzandry as arb1q
 
@@ -54,6 +55,10 @@ def test_recognize_incorrect_gates():
     two_qubit_gate.matrix = [[1, 0, 0, 0], [0, 1, 0, 0],
                              [0, 0, 1, 0], [0, 0, 0, 1]]
     two_qubit_gate | qubit
+    # Controlled single qubit gate:
+    ctrl_qubit = eng.allocate_qubit()
+    with Control(eng, ctrl_qubit):
+        Rz(0.1) | qubit
     eng.flush(deallocate_qubits=True)
     for cmd in saving_backend.received_commands:
         assert not arb1q._recognize_arb1qubit(cmd)

@@ -65,8 +65,8 @@ def test_s_gate():
     assert str(gate) == "S"
     assert np.array_equal(gate.matrix, np.matrix([[1, 0], [0, 1j]]))
     assert isinstance(_gates.S, _gates.SGate)
-    assert type(_gates.Sdag) == type(get_inverse(gate))
-    assert type(_gates.Sdagger) == type(get_inverse(gate))
+    assert isinstance(_gates.Sdag, type(get_inverse(gate)))
+    assert isinstance(_gates.Sdagger, type(get_inverse(gate)))
 
 
 def test_t_gate():
@@ -76,8 +76,8 @@ def test_t_gate():
                           np.matrix([[1, 0],
                                      [0, cmath.exp(1j * cmath.pi / 4)]]))
     assert isinstance(_gates.T, _gates.TGate)
-    assert type(_gates.Tdag) == type(get_inverse(gate))
-    assert type(_gates.Tdagger) == type(get_inverse(gate))
+    assert isinstance(_gates.Tdag, type(get_inverse(gate)))
+    assert isinstance(_gates.Tdagger, type(get_inverse(gate)))
 
 
 def test_swap_gate():
@@ -186,3 +186,10 @@ def test_allocate_dirty_qubit_gate():
     assert str(gate) == "AllocateDirty"
     assert gate.get_inverse() == _gates.DeallocateQubitGate()
     assert isinstance(_gates.AllocateDirty, _gates.AllocateDirtyQubitGate)
+
+
+def test_barrier_gate():
+    gate = _gates.BarrierGate()
+    assert str(gate) == "Barrier"
+    assert gate.get_inverse() == _gates.BarrierGate()
+    assert isinstance(_gates.Barrier, _gates.BarrierGate)

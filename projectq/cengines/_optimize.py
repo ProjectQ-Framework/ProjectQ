@@ -125,7 +125,7 @@ class LocalOptimizer(BasicEngine):
         i = 0
         new_gateloc = 0
         limit = len(self._l[idx])
-        if not lim is None:
+        if lim is not None:
             limit = lim
             new_gateloc = limit
 
@@ -191,12 +191,12 @@ class LocalOptimizer(BasicEngine):
         optimize the pipeline and then send it on.
         """
         for i in range(len(self._l)):
-            if (len(self._l[i]) >= self._m or len(self._l[i]) > 0
-               and isinstance(self._l[i][-1].gate, FastForwardingGate)):
+            if (len(self._l[i]) >= self._m or len(self._l[i]) > 0 and
+                    isinstance(self._l[i][-1].gate, FastForwardingGate)):
                 self._optimize(i)
-                if (len(self._l[i]) >= self._m
-                   and not isinstance(self._l[i][-1].gate,
-                                      FastForwardingGate)):
+                if (len(self._l[i]) >= self._m and not
+                        isinstance(self._l[i][-1].gate,
+                                   FastForwardingGate)):
                     self._send_qubit_pipeline(i, len(self._l[i]) - self._m + 1)
                 elif (len(self._l[i]) > 0 and
                       isinstance(self._l[i][-1].gate, FastForwardingGate)):
