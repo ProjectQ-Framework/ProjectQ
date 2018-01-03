@@ -205,6 +205,12 @@ class BasicGate(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        raise NotImplementedError('This gate does not implement __str__.')
+
+    def __hash__(self):
+        return hash(str(self))
+
 
 class SelfInverseGate(BasicGate):
     """
@@ -311,6 +317,9 @@ class BasicRotationGate(BasicGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class BasicPhaseGate(BasicGate):
     """
@@ -399,6 +408,9 @@ class BasicPhaseGate(BasicGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 # Classical instruction gates never have control qubits.
