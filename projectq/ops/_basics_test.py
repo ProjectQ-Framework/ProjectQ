@@ -258,6 +258,7 @@ def test_basic_math_gate():
             _basics.BasicMathGate.__init__(self, my_math_function)
 
     gate = MyMultiplyGate()
+    assert str(gate) == 'MATH'
     # Test a=2, b=3, and c=5 should give a=2, b=3, c=11
     math_fun = gate.get_math_function(("qreg1", "qreg2", "qreg3"))
     assert math_fun([2, 3, 5]) == [2, 3, 11]

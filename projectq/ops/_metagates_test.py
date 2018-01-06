@@ -80,6 +80,12 @@ def test_daggered_gate_tex_str():
     str_Y = Y.tex_str() if hasattr(Y, 'tex_str') else str(Y)
     assert daggered_gate.tex_str() == str_Y + "${}^\dagger$"
 
+    # test for a gate with tex_str method
+    rx = Rx(0.5)
+    daggered_rx = _metagates.DaggeredGate(rx)
+    str_rx = rx.tex_str() if hasattr(rx, 'tex_str') else str(rx)
+    assert daggered_rx.tex_str() == str_rx + "${}^\dagger$"
+
 
 def test_daggered_gate_get_inverse():
     daggered_gate = _metagates.DaggeredGate(Y)

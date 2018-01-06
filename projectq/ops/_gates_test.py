@@ -83,6 +83,8 @@ def test_t_gate():
 def test_sqrtx_gate():
     gate = _gates.SqrtXGate()
     assert str(gate) == "SqrtX"
+    assert np.array_equal(gate.matrix, np.matrix([[0.5 + 0.5j, 0.5 - 0.5j],
+                                                  [0.5 - 0.5j, 0.5 + 0.5j]]))
     assert np.array_equal(gate.matrix * gate.matrix,
                           np.matrix([[0j, 1], [1, 0]]))
     assert isinstance(_gates.SqrtX, _gates.SqrtXGate)
@@ -104,6 +106,11 @@ def test_sqrtswap_gate():
     gate_sq = _gates.SwapGate()
     assert str(gate) == "SqrtSwap"
     assert np.array_equal(gate.matrix * gate.matrix, gate_sq.matrix)
+    assert np.array_equal(gate.matrix,
+                          np.matrix([[1, 0, 0, 0],
+                                     [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                                     [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                                     [0, 0, 0, 1]]))
     assert isinstance(_gates.SqrtSwap, _gates.SqrtSwapGate)
 
 

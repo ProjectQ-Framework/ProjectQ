@@ -14,7 +14,7 @@
 
 import json
 from projectq.ops import Measure, Allocate, Deallocate, X, Z,\
-    Swap, SqrtSwap, get_inverse
+    Swap, SqrtSwap, get_inverse, DaggeredGate
 
 
 def to_latex(circuit):
@@ -89,7 +89,7 @@ def get_default_settings():
                                     'pre_offset': .1},
                           'XGate': {'width': .35, 'height': .35,
                                     'offset': .1},
-                          'SqrtXGate': {'width': .6, 'offset': .3,
+                          'SqrtXGate': {'width': .7, 'offset': .3,
                                         'pre_offset': .1},
                           'SwapGate': {'width': .35, 'height': .35,
                                        'offset': .1},
@@ -297,9 +297,10 @@ class _Circ2Tikz(object):
             elif gate == Swap:
                 add_str = self._swap_gate(lines, ctrl_lines)
             elif gate == SqrtSwap:
-                add_str = self._sqswap_gate(lines, ctrl_lines, daggered=False)
+                add_str = self._sqrtswap_gate(lines, ctrl_lines,
+                                              daggered=False)
             elif gate == get_inverse(SqrtSwap):
-                add_str = self._sqswap_gate(lines, ctrl_lines, daggered=True)
+                add_str = self._sqrtswap_gate(lines, ctrl_lines, daggered=True)
             elif gate == Measure:
                 # draw measurement gate
                 for l in lines:
@@ -382,7 +383,7 @@ class _Circ2Tikz(object):
             name = str(gate)
         return name
 
-    def _sqswap_gate(self, lines, ctrl_lines, daggered):
+    def _sqrtswap_gate(self, lines, ctrl_lines, daggered):
         """
         Return the TikZ code for a Square-root Swap-gate.
 
@@ -564,6 +565,8 @@ class _Circ2Tikz(object):
             gate_width (float): Width of the gate.
                 (settings['gates'][gate_class_name]['width'])
         """
+        if isinstance(gate, DaggeredGate):
+            gate = gate._gate
         try:
             gates = self.settings['gates']
             gate_width = gates[gate.__class__.__name__]['width']
@@ -579,6 +582,8 @@ class _Circ2Tikz(object):
             gate_pre_offset (float): Offset to use before the gate.
                 (settings['gates'][gate_class_name]['pre_offset'])
         """
+        if isinstance(gate, DaggeredGate):
+            gate = gate._gate
         try:
             gates = self.settings['gates']
             delta_pos = gates[gate.__class__.__name__]['pre_offset']
@@ -595,6 +600,8 @@ class _Circ2Tikz(object):
             gate_offset (float): Offset.
                 (settings['gates'][gate_class_name]['offset'])
         """
+        if isinstance(gate, DaggeredGate):
+            gate = gate._gate
         try:
             gates = self.settings['gates']
             delta_pos = gates[gate.__class__.__name__]['offset']
@@ -610,6 +617,8 @@ class _Circ2Tikz(object):
             gate_height (float): Height of the gate.
                 (settings['gates'][gate_class_name]['height'])
         """
+        if isinstance(gate, DaggeredGate):
+            gate = gate._gate
         try:
             height = self.settings['gates'][gate.__class__.__name__]['height']
         except KeyError:

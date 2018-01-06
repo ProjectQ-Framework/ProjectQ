@@ -124,7 +124,7 @@ class SqrtXGate(BasicGate):
         return 0.5 * np.matrix([[1+1j, 1-1j], [1-1j, 1+1j]])
 
     def tex_str(self):
-        return r'$\sqrt{\neg}$'
+        return r'$\sqrt{X}$'
 
     def __str__(self):
         return "SqrtX"
@@ -152,10 +152,10 @@ class SwapGate(SelfInverseGate, BasicMathGate):
 Swap = SwapGate()
 
 
-class SqrtSwapGate(BasicMathGate):
+class SqrtSwapGate(BasicGate):
     """ Square-root Swap gate class """
     def __init__(self):
-        BasicMathGate.__init__(self, lambda x, y: (y, x))
+        BasicGate.__init__(self)
         self.interchangeable_qubit_indices = [[0, 1]]
 
     def __str__(self):
