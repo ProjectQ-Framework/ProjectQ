@@ -151,7 +151,8 @@ def test_body():
     C(Swap) | (qubit1, qubit2, qubit3)
     SqrtX | qubit1
     SqrtSwap | (qubit1, qubit2)
-    C(get_inverse(SqrtSwap)) | (qubit1, qubit2, qubit3)
+    get_inverse(SqrtX) | (qubit1, qubit2)
+    C(SqrtSwap) | (qubit1, qubit2, qubit3)
 
     del qubit1
     eng.flush()
