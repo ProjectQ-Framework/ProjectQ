@@ -30,7 +30,9 @@ from projectq.ops import (BasicGate,
                           Swap,
                           SqrtX,
                           SqrtSwap,
-                          C)
+                          C,
+                          get_inverse,
+                          )
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
 
@@ -149,7 +151,7 @@ def test_body():
     C(Swap) | (qubit1, qubit2, qubit3)
     SqrtX | qubit1
     SqrtSwap | (qubit1, qubit2)
-    C(SqrtSwap) | (qubit1, qubit2, qubit3)
+    C(get_inverse(SqrtSwap)) | (qubit1, qubit2, qubit3)
 
     del qubit1
     eng.flush()
