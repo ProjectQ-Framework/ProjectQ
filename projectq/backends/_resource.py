@@ -18,7 +18,8 @@ gate used in a circuit, in addition to the max. number of active qubits.
 """
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.meta import get_control_count
-from projectq.ops import FlushGate, Deallocate, Allocate, Measure
+from projectq.ops import (FlushGate, Deallocate, Allocate, Measure,
+                          BasicRotationGate, BasicPhaseGate)
 
 
 class ResourceCounter(BasicEngine):
@@ -42,6 +43,7 @@ class ResourceCounter(BasicEngine):
         self.gate_counts = dict()
         self._active_qubits = 0
         self.max_width = 0
+        self.angle_precision = 12
 
     def is_available(self, cmd):
         """
@@ -77,6 +79,11 @@ class ResourceCounter(BasicEngine):
         self.max_width = max(self.max_width, self._active_qubits)
 
         ctrl_cnt = get_control_count(cmd)
+        gate_description = (cmd.gate, ctrl_cnt)
+
+        if (isinstance(cmd.gate, BasicRotationGate) or
+                isinstance(cmd.gate, BasicPhaseGate)):
+            cmd.gate.angle = round(cmd.gate.angle, self.angle_precision)
         gate_description = (cmd.gate, ctrl_cnt)
 
         try:
