@@ -260,11 +260,10 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = self.angle
+        rounded_angle = round(self.angle, EQ_PRECISION - 1)
         if (rounded_angle < EQ_TOLERANCE or
                 rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
             rounded_angle = 0.
-        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
 
         return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
@@ -278,11 +277,10 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = self.angle
+        rounded_angle = round(self.angle, EQ_PRECISION - 1)
         if (rounded_angle < EQ_TOLERANCE or
                 rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
             rounded_angle = 0.
-        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
 
         return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
@@ -364,11 +362,10 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = self.angle
+        rounded_angle = round(self.angle, EQ_PRECISION - 1)
         if (rounded_angle < EQ_TOLERANCE or
                 rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
             rounded_angle = 0.
-        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
 
         return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
@@ -382,11 +379,10 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = self.angle
+        rounded_angle = round(self.angle, EQ_PRECISION - 1)
         if (rounded_angle < EQ_TOLERANCE or
                 rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
             rounded_angle = 0.
-        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
 
         return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
