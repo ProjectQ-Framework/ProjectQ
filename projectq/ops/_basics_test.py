@@ -142,16 +142,6 @@ def test_basic_rotation_gate_init(input_angle, modulo_angle):
     assert gate.angle == pytest.approx(modulo_angle)
 
 
-@pytest.mark.parametrize("input_angle, modulo_angle",
-                         [(2.0, 2.0), (17., 4.4336293856408275),
-                          (-0.5 * math.pi, 3.5 * math.pi), (4 * math.pi, 0)])
-def test_basic_rotation_gate_hash(input_angle, modulo_angle):
-    # Test hash function
-    gate1 = _basics.BasicRotationGate(input_angle)
-    gate2 = _basics.BasicRotationGate(modulo_angle)
-    assert hash(gate1) == hash(gate2)
-
-
 def test_basic_rotation_gate_str():
     basic_rotation_gate = _basics.BasicRotationGate(0.5)
     assert str(basic_rotation_gate) == "BasicRotationGate(0.5)"
@@ -211,16 +201,6 @@ def test_basic_phase_gate_init(input_angle, modulo_angle):
     # Test internal representation
     gate = _basics.BasicPhaseGate(input_angle)
     assert gate.angle == pytest.approx(modulo_angle)
-
-
-@pytest.mark.parametrize("input_angle, modulo_angle",
-                         [(2.0, 2.0), (17., 4.4336293856408275),
-                          (-0.5 * math.pi, 1.5 * math.pi), (2 * math.pi, 0)])
-def test_basic_phase_gate_hash(input_angle, modulo_angle):
-    # Test hash function
-    gate1 = _basics.BasicRotationGate(input_angle)
-    gate2 = _basics.BasicRotationGate(modulo_angle)
-    assert hash(gate1) == hash(gate2)
 
 
 def test_basic_phase_gate_str():
