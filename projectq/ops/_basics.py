@@ -260,7 +260,13 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
+        rounded_angle = self.angle
+        if (rounded_angle < EQ_TOLERANCE or
+                rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
+            rounded_angle = 0.
+        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
+
+        return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
     def tex_str(self):
         """
@@ -272,7 +278,13 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
+        rounded_angle = self.angle
+        if (rounded_angle < EQ_TOLERANCE or
+                rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
+            rounded_angle = 0.
+        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
+
+        return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
     def get_inverse(self):
         """
@@ -344,7 +356,7 @@ class BasicPhaseGate(BasicGate):
 
     def __str__(self):
         """
-        Return the string representation of a BasicRotationGate.
+        Return the string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as
 
@@ -352,11 +364,17 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
+        rounded_angle = self.angle
+        if (rounded_angle < EQ_TOLERANCE or
+                rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
+            rounded_angle = 0.
+        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
+
+        return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
     def tex_str(self):
         """
-        Return the Latex string representation of a BasicRotationGate.
+        Return the Latex string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as a subscript, i.e.
 
@@ -364,7 +382,13 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
+        rounded_angle = self.angle
+        if (rounded_angle < EQ_TOLERANCE or
+                rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
+            rounded_angle = 0.
+        rounded_angle = round(rounded_angle, EQ_PRECISION - 1)
+
+        return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
     def get_inverse(self):
         """
