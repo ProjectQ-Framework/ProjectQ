@@ -39,6 +39,7 @@ from ._command import Command, apply_command
 
 
 EQ_TOLERANCE = 1e-12
+EQ_PRECISION = int(-math.log10(EQ_TOLERANCE))
 
 
 class NotMergeable(Exception):
