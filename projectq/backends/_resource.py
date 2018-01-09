@@ -33,7 +33,7 @@ class ResourceCounter(BasicEngine):
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
     """
-    def __init__(self):
+    def __init__(self, angle_precision=12):
         """
         Initialize a resource counter engine.
 
@@ -43,7 +43,7 @@ class ResourceCounter(BasicEngine):
         self.gate_counts = dict()
         self._active_qubits = 0
         self.max_width = 0
-        self.angle_precision = 12
+        self.angle_precision = angle_precision
 
     def is_available(self, cmd):
         """
