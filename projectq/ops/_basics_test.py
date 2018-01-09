@@ -152,6 +152,13 @@ def test_basic_rotation_tex_str():
     assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5}$"
 
 
+def test_basic_rotation_gate_hash(input_angle, modulo_angle):
+    # Test hash function
+    gate1 = _basics.BasicRotationGate(input_angle)
+    gate2 = _basics.BasicRotationGate(modulo_angle)
+    assert hash(gate1) == hash(gate2)
+
+
 @pytest.mark.parametrize("input_angle, inverse_angle",
                          [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5), (0.0, 0)])
 def test_basic_rotation_gate_get_inverse(input_angle, inverse_angle):
@@ -208,6 +215,13 @@ def test_basic_phase_gate_str():
 def test_basic_phase_tex_str():
     basic_phase_gate = _basics.BasicPhaseGate(0.5)
     assert basic_phase_gate.tex_str() == "BasicPhaseGate$_{0.5}$"
+
+
+def test_basic_phase_gate_hash(input_angle, modulo_angle):
+    # Test hash function
+    gate1 = _basics.BasicRotationGate(input_angle)
+    gate2 = _basics.BasicRotationGate(modulo_angle)
+    assert hash(gate1) == hash(gate2)
 
 
 @pytest.mark.parametrize("input_angle, inverse_angle",
