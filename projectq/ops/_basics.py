@@ -260,11 +260,9 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = round(self.angle, EQ_PRECISION - 1)
-        if (rounded_angle < EQ_TOLERANCE or
-                rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
+        rounded_angle = round(self.angle, EQ_PRECISION)
+        if rounded_angle > 4 * math.pi - EQ_TOLERANCE:
             rounded_angle = 0.
-
         return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
     def tex_str(self):
@@ -277,11 +275,9 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = round(self.angle, EQ_PRECISION - 1)
-        if (rounded_angle < EQ_TOLERANCE or
-                rounded_angle > 4 * math.pi - EQ_TOLERANCE): 
+        rounded_angle = round(self.angle, EQ_PRECISION)
+        if rounded_angle > 4 * math.pi - EQ_TOLERANCE:
             rounded_angle = 0.
-
         return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
     def get_inverse(self):
@@ -317,13 +313,16 @@ class BasicRotationGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self.angle - other.angle) % (4 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 4 * math.pi - tolerance:
-                return True
-        return False
+            self_rounded_angle = round(self.angle, EQ_PRECISION)
+            if self_rounded_angle > 4 * math.pi - EQ_TOLERANCE:
+                self_rounded_angle = 0.
+            other_rounded_angle = round(other.angle, EQ_PRECISION)
+            if other_rounded_angle > 4 * math.pi - EQ_TOLERANCE:
+                other_rounded_angle = 0.
+            return self_rounded_angle == other_rounded_angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -362,11 +361,9 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = round(self.angle, EQ_PRECISION - 1)
-        if (rounded_angle < EQ_TOLERANCE or
-                rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
+        rounded_angle = round(self.angle, EQ_PRECISION)
+        if rounded_angle > 2 * math.pi - EQ_TOLERANCE:
             rounded_angle = 0.
-
         return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
 
     def tex_str(self):
@@ -379,11 +376,9 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = round(self.angle, EQ_PRECISION - 1)
-        if (rounded_angle < EQ_TOLERANCE or
-                rounded_angle > 2 * math.pi - EQ_TOLERANCE): 
+        rounded_angle = round(self.angle, EQ_PRECISION)
+        if rounded_angle > 2 * math.pi - EQ_TOLERANCE:
             rounded_angle = 0.
-
         return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
 
     def get_inverse(self):
@@ -419,13 +414,16 @@ class BasicPhaseGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self.angle - other.angle) % (2 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 2 * math.pi - tolerance:
-                return True
-        return False
+            self_rounded_angle = round(self.angle, EQ_PRECISION)
+            if self_rounded_angle > 2 * math.pi - EQ_TOLERANCE:
+                self_rounded_angle = 0.
+            other_rounded_angle = round(other.angle, EQ_PRECISION)
+            if other_rounded_angle > 2 * math.pi - EQ_TOLERANCE:
+                other_rounded_angle = 0.
+            return self_rounded_angle == other_rounded_angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
