@@ -38,8 +38,8 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
-EQ_TOLERANCE = 1e-12
-EQ_PRECISION = int(-math.log10(EQ_TOLERANCE))
+ANGLE_PRECISION = 12
+ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 
 
 class NotMergeable(Exception):
@@ -248,7 +248,10 @@ class BasicRotationGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         BasicGate.__init__(self)
-        self.angle = float(angle) % (4. * math.pi)
+        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
@@ -260,10 +263,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = round(self.angle, EQ_PRECISION)
-        if rounded_angle > 4 * math.pi - EQ_TOLERANCE:
-            rounded_angle = 0.
-        return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
+        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
 
     def tex_str(self):
         """
@@ -275,10 +275,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = round(self.angle, EQ_PRECISION)
-        if rounded_angle > 4 * math.pi - EQ_TOLERANCE:
-            rounded_angle = 0.
-        return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
+        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
         """
@@ -314,13 +311,7 @@ class BasicRotationGate(BasicGate):
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
         if isinstance(other, self.__class__):
-            self_rounded_angle = round(self.angle, EQ_PRECISION)
-            if self_rounded_angle > 4 * math.pi - EQ_TOLERANCE:
-                self_rounded_angle = 0.
-            other_rounded_angle = round(other.angle, EQ_PRECISION)
-            if other_rounded_angle > 4 * math.pi - EQ_TOLERANCE:
-                other_rounded_angle = 0.
-            return self_rounded_angle == other_rounded_angle
+            return self.angle == other.angle
         else:
             return False
 
@@ -349,7 +340,10 @@ class BasicPhaseGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         BasicGate.__init__(self)
-        self.angle = float(angle) % (2. * math.pi)
+        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
@@ -361,10 +355,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        rounded_angle = round(self.angle, EQ_PRECISION)
-        if rounded_angle > 2 * math.pi - EQ_TOLERANCE:
-            rounded_angle = 0.
-        return str(self.__class__.__name__) + "(" + str(rounded_angle) + ")"
+        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
 
     def tex_str(self):
         """
@@ -376,10 +367,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        rounded_angle = round(self.angle, EQ_PRECISION)
-        if rounded_angle > 2 * math.pi - EQ_TOLERANCE:
-            rounded_angle = 0.
-        return str(self.__class__.__name__) + "$_{" + str(rounded_angle) + "}$"
+        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
         """
@@ -415,13 +403,7 @@ class BasicPhaseGate(BasicGate):
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
         if isinstance(other, self.__class__):
-            self_rounded_angle = round(self.angle, EQ_PRECISION)
-            if self_rounded_angle > 2 * math.pi - EQ_TOLERANCE:
-                self_rounded_angle = 0.
-            other_rounded_angle = round(other.angle, EQ_PRECISION)
-            if other_rounded_angle > 2 * math.pi - EQ_TOLERANCE:
-                other_rounded_angle = 0.
-            return self_rounded_angle == other_rounded_angle
+            return self.angle == other.angle
         else:
             return False
 
