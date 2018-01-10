@@ -111,20 +111,32 @@ def test_basic_gate_or():
                                   command5])
 
 
-def test_basic_gate_compare(main_engine):
+def test_basic_gate_compare():
     gate1 = _basics.BasicGate()
     gate2 = _basics.BasicGate()
     assert gate1 == gate2
     assert not (gate1 != gate2)
 
 
-def test_comparing_different_gates(main_engine):
+def test_comparing_different_gates():
     basic_gate = _basics.BasicGate()
     basic_rotation_gate = _basics.BasicRotationGate(1.0)
     self_inverse_gate = _basics.SelfInverseGate()
     assert not basic_gate == basic_rotation_gate
     assert not basic_gate == self_inverse_gate
     assert not self_inverse_gate == basic_rotation_gate
+
+
+def test_basic_gate_str():
+    basic_gate = _basics.BasicGate()
+    with pytest.raises(NotImplementedError):
+        _ = str(basic_gate)
+
+
+def test_basic_gate_hash():
+    basic_gate = _basics.BasicGate()
+    with pytest.raises(NotImplementedError):
+        _ = hash(basic_gate)
 
 
 def test_self_inverse_gate():
@@ -150,6 +162,8 @@ def test_basic_rotation_gate_str():
 def test_basic_rotation_tex_str():
     basic_rotation_gate = _basics.BasicRotationGate(0.5)
     assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5}$"
+    basic_rotation_gate = _basics.BasicRotationGate(4 * math.pi - 1e-13)
+    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.0}$"
 
 
 @pytest.mark.parametrize("input_angle, inverse_angle",
@@ -187,6 +201,7 @@ def test_basic_rotation_gate_comparison_and_hash():
     basic_rotation_gate5 = _basics.BasicRotationGate(1.e-13)
     basic_rotation_gate6 = _basics.BasicRotationGate(4 * math.pi - 1.e-13)
     assert basic_rotation_gate5 == basic_rotation_gate6
+    assert basic_rotation_gate6 == basic_rotation_gate5
     assert hash(basic_rotation_gate5) == hash(basic_rotation_gate6)
     # Test different types of gates
     basic_gate = _basics.BasicGate()
@@ -211,6 +226,8 @@ def test_basic_phase_gate_str():
 def test_basic_phase_tex_str():
     basic_phase_gate = _basics.BasicPhaseGate(0.5)
     assert basic_phase_gate.tex_str() == "BasicPhaseGate$_{0.5}$"
+    basic_rotation_gate = _basics.BasicPhaseGate(2 * math.pi - 1e-13)
+    assert basic_rotation_gate.tex_str() == "BasicPhaseGate$_{0.0}$"
 
 
 @pytest.mark.parametrize("input_angle, inverse_angle",
@@ -248,6 +265,7 @@ def test_basic_phase_gate_comparison_and_hash():
     basic_phase_gate5 = _basics.BasicPhaseGate(1.e-13)
     basic_phase_gate6 = _basics.BasicPhaseGate(2 * math.pi - 1.e-13)
     assert basic_phase_gate5 == basic_phase_gate6
+    assert basic_phase_gate6 == basic_phase_gate5
     assert hash(basic_phase_gate5) == hash(basic_phase_gate6)
     # Test different types of gates
     basic_gate = _basics.BasicGate()
