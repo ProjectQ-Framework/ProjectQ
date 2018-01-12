@@ -20,6 +20,7 @@ from projectq.cengines import LastEngineException, BasicEngine
 from projectq.meta import get_control_count
 from projectq.ops import (FlushGate, Deallocate, Allocate, Measure,
                           BasicRotationGate, BasicPhaseGate)
+from projectq.ops._basics import ANGLE_PRECISION
 
 
 class ResourceCounter(BasicEngine):
@@ -33,7 +34,7 @@ class ResourceCounter(BasicEngine):
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
     """
-    def __init__(self, angle_precision=12):
+    def __init__(self, angle_precision=ANGLE_PRECISION):
         """
         Initialize a resource counter engine.
 
