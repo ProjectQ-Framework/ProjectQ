@@ -67,6 +67,7 @@ def test_resource_counter():
     assert str_repr.count("H") == 1
     assert str_repr.count("X") == 2
     assert str_repr.count("CX") == 1
+    assert str_repr.count("Rz") == 2
     assert str_repr.count("Allocate : 3") == 1
     assert str_repr.count("Deallocate : 1") == 1
 
