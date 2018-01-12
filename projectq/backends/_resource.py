@@ -84,7 +84,8 @@ class ResourceCounter(BasicEngine):
 
         if (isinstance(cmd.gate, BasicRotationGate) or
                 isinstance(cmd.gate, BasicPhaseGate)):
-            cmd.gate.angle = round(cmd.gate.angle, self.angle_precision)
+            rounded_angle = round(cmd.gate.angle, self.angle_precision)
+            cmd.gate = cmd.gate.__class__(rounded_angle)
         gate_description = (cmd.gate, ctrl_cnt)
 
         try:

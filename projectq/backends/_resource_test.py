@@ -64,20 +64,11 @@ def test_resource_counter():
     assert resource_counter.max_width == 2
 
     str_repr = str(resource_counter)
-    assert str_repr.count(" HGate : 1") == 1
-    assert str_repr.count(" XGate : 1") == 1
-    assert str_repr.count(" CXGate : 1") == 1
-    assert str_repr.count(" Rz : 3") == 1
-    assert str_repr.count(" AllocateQubitGate : 3") == 1
-    assert str_repr.count(" DeallocateQubitGate : 1") == 1
-
-    assert str_repr.count(" H : 1") == 1
-    assert str_repr.count(" X : 1") == 1
-    assert str_repr.count(" CX : 1") == 1
-    assert str_repr.count(" Rz(0.1) : 1") == 1
-    assert str_repr.count(" Rz(0.3) : 2") == 1
-    assert str_repr.count(" Allocate : 3") == 1
-    assert str_repr.count(" Deallocate : 1") == 1
+    assert str_repr.count("H") == 1
+    assert str_repr.count("X") == 2
+    assert str_repr.count("CX") == 1
+    assert str_repr.count("Allocate : 3") == 1
+    assert str_repr.count("Deallocate : 1") == 1
 
     sent_gates = [cmd.gate for cmd in backend.received_commands]
     assert sent_gates.count(H) == 1
