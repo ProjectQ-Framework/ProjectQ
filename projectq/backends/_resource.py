@@ -79,13 +79,13 @@ class ResourceCounter(BasicEngine):
 
         self.max_width = max(self.max_width, self._active_qubits)
 
-        ctrl_cnt = get_control_count(cmd)
-        gate_description = (cmd.gate, ctrl_cnt)
-
+        # If the gate has an angle, round it
         if (isinstance(cmd.gate, BasicRotationGate) or
                 isinstance(cmd.gate, BasicPhaseGate)):
             rounded_angle = round(cmd.gate.angle, self.angle_precision)
             cmd.gate = cmd.gate.__class__(rounded_angle)
+
+        ctrl_cnt = get_control_count(cmd)
         gate_description = (cmd.gate, ctrl_cnt)
 
         try:
