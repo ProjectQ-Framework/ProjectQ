@@ -77,12 +77,12 @@ class ResourceCounter(BasicEngine):
         self.max_width = max(self.max_width, self._active_qubits)
 
         ctrl_cnt = get_control_count(cmd)
-        gate_name = ctrl_cnt * "C" + str(cmd.gate)
+        gate_description = (cmd.gate, ctrl_cnt)
 
         try:
-            self.gate_counts[gate_name] += 1
+            self.gate_counts[gate_description] += 1
         except KeyError:
-            self.gate_counts[gate_name] = 1
+            self.gate_counts[gate_description] = 1
 
     def __str__(self):
         """
@@ -95,8 +95,10 @@ class ResourceCounter(BasicEngine):
         """
         if len(self.gate_counts) > 0:
             gate_list = []
-            for gate, num in self.gate_counts.items():
-                gate_list.append(gate + " : " + str(num))
+            for gate_description, num in self.gate_counts.items():
+                gate, ctrl_cnt = gate_description
+                gate_name = ctrl_cnt * "C" + str(gate)
+                gate_list.append(gate_name + " : " + str(num))
             return ("\n".join(list(sorted(gate_list))) +
                     "\n\nMax. width (number of qubits) : " +
                     str(self.max_width) + ".")
