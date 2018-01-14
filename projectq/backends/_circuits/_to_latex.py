@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 import json
-from projectq.ops import Measure, Allocate, Deallocate, X, Z,\
-    Swap, SqrtSwap, get_inverse, DaggeredGate
+from projectq.ops import (Allocate, Deallocate, DaggeredGate, get_inverse,
+                          Measure, SqrtSwap, Swap, X, Z)
 
 
 def to_latex(circuit):
