@@ -151,8 +151,11 @@ def test_body():
     C(Swap) | (qubit1, qubit2, qubit3)
     SqrtX | qubit1
     SqrtSwap | (qubit1, qubit2)
-    get_inverse(SqrtX) | (qubit1, qubit2)
+    get_inverse(SqrtX) | qubit1
     C(SqrtSwap) | (qubit1, qubit2, qubit3)
+    get_inverse(SqrtSwap) | (qubit1, qubit2)
+    C(Swap) | (qubit3, qubit1, qubit2)
+    C(SqrtSwap) | (qubit3, qubit1, qubit2)
 
     del qubit1
     eng.flush()
@@ -164,13 +167,15 @@ def test_body():
     settings['gates']['AllocateQubitGate']['draw_id'] = True
     code = _to_latex._body(circuit_lines, settings)
 
-    # swap draws 2 nodes + 2 lines each, so is sqrtswap gate and csqrtswap.
-    assert code.count("swapstyle") == 18
-    # CZ is two phases plus 2 from CNOTs + 1 from cswap + 1 from csqrtswap
-    assert code.count("phase") == 6
+    # swap draws 2 nodes + 2 lines each, so is sqrtswap gate, csqrtswap,
+    # inv(sqrt_swap), and cswap.
+    assert code.count("swapstyle") == 36
+    # CZ is two phases plus 2 from CNOTs + 2 from cswap + 2 from csqrtswap
+    assert code.count("phase") == 8
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
     assert code.count("{$\Ket{0}") == 3  # 3 qubits allocated
-    assert code.count("xstyle") == 5  # 1 cnot, 1 not gate, 2 SqrtSwap
+    # 1 cnot, 1 not gate, 3 SqrtSwap, 1 inv(SqrtSwap)
+    assert code.count("xstyle") == 7
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3

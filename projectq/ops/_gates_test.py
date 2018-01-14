@@ -102,11 +102,12 @@ def test_swap_gate():
 
 
 def test_sqrtswap_gate():
-    gate = _gates.SqrtSwapGate()
-    gate_sq = _gates.SwapGate()
-    assert str(gate) == "SqrtSwap"
-    assert np.array_equal(gate.matrix * gate.matrix, gate_sq.matrix)
-    assert np.array_equal(gate.matrix,
+    sqrt_gate = _gates.SqrtSwapGate()
+    swap_gate = _gates.SwapGate()
+    assert str(sqrt_gate) == "SqrtSwap"
+    assert np.array_equal(sqrt_gate.matrix * sqrt_gate.matrix,
+                          swap_gate.matrix)
+    assert np.array_equal(sqrt_gate.matrix,
                           np.matrix([[1, 0, 0, 0],
                                      [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
                                      [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
