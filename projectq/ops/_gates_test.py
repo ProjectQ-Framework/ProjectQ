@@ -80,6 +80,16 @@ def test_t_gate():
     assert isinstance(_gates.Tdagger, type(get_inverse(gate)))
 
 
+def test_sqrtx_gate():
+    gate = _gates.SqrtXGate()
+    assert str(gate) == "SqrtX"
+    assert np.array_equal(gate.matrix, np.matrix([[0.5 + 0.5j, 0.5 - 0.5j],
+                                                  [0.5 - 0.5j, 0.5 + 0.5j]]))
+    assert np.array_equal(gate.matrix * gate.matrix,
+                          np.matrix([[0j, 1], [1, 0]]))
+    assert isinstance(_gates.SqrtX, _gates.SqrtXGate)
+
+
 def test_swap_gate():
     gate = _gates.SwapGate()
     assert gate == gate.get_inverse()
@@ -89,6 +99,20 @@ def test_swap_gate():
                           np.matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0],
                                      [0, 0, 0, 1]]))
     assert isinstance(_gates.Swap, _gates.SwapGate)
+
+
+def test_sqrtswap_gate():
+    sqrt_gate = _gates.SqrtSwapGate()
+    swap_gate = _gates.SwapGate()
+    assert str(sqrt_gate) == "SqrtSwap"
+    assert np.array_equal(sqrt_gate.matrix * sqrt_gate.matrix,
+                          swap_gate.matrix)
+    assert np.array_equal(sqrt_gate.matrix,
+                          np.matrix([[1, 0, 0, 0],
+                                     [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                                     [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                                     [0, 0, 0, 1]]))
+    assert isinstance(_gates.SqrtSwap, _gates.SqrtSwapGate)
 
 
 def test_engangle_gate():
@@ -115,8 +139,8 @@ def test_ry(angle):
     gate = _gates.Ry(angle)
     expected_matrix = np.matrix([[math.cos(0.5 * angle),
                                   -math.sin(0.5 * angle)],
-                                [math.sin(0.5 * angle),
-                                 math.cos(0.5 * angle)]])
+                                 [math.sin(0.5 * angle),
+                                  math.cos(0.5 * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
     assert np.allclose(gate.matrix, expected_matrix)
 
