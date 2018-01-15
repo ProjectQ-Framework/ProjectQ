@@ -40,7 +40,7 @@ def test_resource_counter_isavailable():
 
 
 def test_resource_counter():
-    resource_counter = ResourceCounter()
+    resource_counter = ResourceCounter(5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend, [resource_counter])
 
@@ -54,6 +54,7 @@ def test_resource_counter():
     CNOT | (qubit1, qubit3)
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
+    Rz(0.300001) | qubit1
 
     Measure | (qubit1, qubit3)
 
@@ -66,7 +67,7 @@ def test_resource_counter():
     assert str_repr.count(" HGate : 1") == 1
     assert str_repr.count(" XGate : 1") == 1
     assert str_repr.count(" CXGate : 1") == 1
-    assert str_repr.count(" Rz : 2") == 1
+    assert str_repr.count(" Rz : 3") == 1
     assert str_repr.count(" AllocateQubitGate : 3") == 1
     assert str_repr.count(" DeallocateQubitGate : 1") == 1
 
@@ -74,7 +75,7 @@ def test_resource_counter():
     assert str_repr.count(" X : 1") == 1
     assert str_repr.count(" CX : 1") == 1
     assert str_repr.count(" Rz(0.1) : 1") == 1
-    assert str_repr.count(" Rz(0.3) : 1") == 1
+    assert str_repr.count(" Rz(0.3) : 2") == 1
     assert str_repr.count(" Allocate : 3") == 1
     assert str_repr.count(" Deallocate : 1") == 1
 

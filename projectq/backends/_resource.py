@@ -18,7 +18,9 @@ gate used in a circuit, in addition to the max. number of active qubits.
 """
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.meta import get_control_count
-from projectq.ops import FlushGate, Deallocate, Allocate, Measure
+from projectq.ops import (FlushGate, Deallocate, Allocate, Measure,
+                          BasicRotationGate, BasicPhaseGate)
+from projectq.ops._basics import ANGLE_PRECISION
 
 
 class ResourceCounter(BasicEngine):
@@ -32,7 +34,7 @@ class ResourceCounter(BasicEngine):
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
     """
-    def __init__(self):
+    def __init__(self, angle_precision=ANGLE_PRECISION):
         """
         Initialize a resource counter engine.
 
@@ -43,6 +45,7 @@ class ResourceCounter(BasicEngine):
         self.gate_class_counts = {}
         self._active_qubits = 0
         self.max_width = 0
+        self.angle_precision = angle_precision
 
     def is_available(self, cmd):
         """
@@ -76,6 +79,12 @@ class ResourceCounter(BasicEngine):
                     self.main_engine.set_measurement_result(qubit, 0)
 
         self.max_width = max(self.max_width, self._active_qubits)
+
+        # If the gate has an angle, round it
+        if (isinstance(cmd.gate, BasicRotationGate) or
+                isinstance(cmd.gate, BasicPhaseGate)):
+            rounded_angle = round(cmd.gate.angle, self.angle_precision)
+            cmd.gate = cmd.gate.__class__(rounded_angle)
 
         ctrl_cnt = get_control_count(cmd)
         gate_description = (cmd.gate, ctrl_cnt)
