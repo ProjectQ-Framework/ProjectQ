@@ -16,7 +16,7 @@
 
 import pytest
 
-from projectq.types import Qubit, Qureg
+from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
