@@ -117,6 +117,21 @@ T = TGate()
 Tdag = Tdagger = get_inverse(T)
 
 
+class SqrtXGate(BasicGate):
+    """ Square-root X gate class """
+    @property
+    def matrix(self):
+        return 0.5 * np.matrix([[1+1j, 1-1j], [1-1j, 1+1j]])
+
+    def tex_str(self):
+        return r'$\sqrt{X}$'
+
+    def __str__(self):
+        return "SqrtX"
+
+SqrtX = SqrtXGate()
+
+
 class SwapGate(SelfInverseGate, BasicMathGate):
     """ Swap gate class (swaps 2 qubits) """
     def __init__(self):
@@ -135,6 +150,25 @@ class SwapGate(SelfInverseGate, BasicMathGate):
                           [0, 0, 0, 1]])
 
 Swap = SwapGate()
+
+
+class SqrtSwapGate(BasicGate):
+    """ Square-root Swap gate class """
+    def __init__(self):
+        BasicGate.__init__(self)
+        self.interchangeable_qubit_indices = [[0, 1]]
+
+    def __str__(self):
+        return "SqrtSwap"
+
+    @property
+    def matrix(self):
+        return np.matrix([[1, 0, 0, 0],
+                          [0, 0.5+0.5j, 0.5-0.5j, 0],
+                          [0, 0.5-0.5j, 0.5+0.5j, 0],
+                          [0, 0, 0, 1]])
+
+SqrtSwap = SqrtSwapGate()
 
 
 class EntangleGate(BasicGate):
