@@ -9,6 +9,7 @@ Subpackages
 .. toctree::
 
     projectq.libs.math
+    projectq.libs.revkit
 
 Module contents
 ---------------
