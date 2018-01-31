@@ -78,7 +78,7 @@ def test_daggered_gate_str():
 def test_daggered_gate_hashable():
     daggered_gate1 = _metagates.DaggeredGate(Y)
     daggered_gate2 = _metagates.DaggeredGate(T)
-    d = {daggered_gate1 : 1, daggered_gate2 : 3}
+    d = {daggered_gate1: 1, daggered_gate2: 3}
     assert len(d) == 2
     # for efficiency reasons the following should be true:
     assert hash(daggered_gate1) != hash(daggered_gate2)
