@@ -108,6 +108,9 @@ class DaggeredGate(BasicGate):
         """
         return isinstance(other, self.__class__) and self._gate == other._gate
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 def get_inverse(gate):
     """
