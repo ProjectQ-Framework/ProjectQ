@@ -48,7 +48,7 @@ class ControlFunctionOracle:
         Keyword Args:
             synth: A RevKit synthesis command which creates a reversible
                    circuit based on an And-inverter graph and requires no
-                   additional anciallae (e.g.,
+                   additional ancillae (e.g.,
                    ``revkit.esopbs(aig = True)``).  Can also be a nullary
                    lambda that calls several RevKit commands.
                    **Default:** ``lambda: revkit.esopbs(aig = True, exorcism = True)``
