@@ -26,7 +26,7 @@ from projectq.libs.revkit import ControlFunctionOracle
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
-def test_majority():
+def test_control_function_majority():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
@@ -40,7 +40,7 @@ def test_majority():
 
     assert len(saving_backend.received_commands) == 7
 
-def test_majority_grouped():
+def test_control_function_majority_grouped():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
@@ -54,7 +54,7 @@ def test_majority_grouped():
 
     assert len(saving_backend.received_commands) == 7
 
-def test_majority_from_python():
+def test_control_function_majority_from_python():
     dormouse = pytest.importorskip('dormouse')
 
     def maj(a, b, c):
