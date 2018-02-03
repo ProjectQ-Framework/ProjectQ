@@ -53,3 +53,20 @@ def test_majority_grouped():
     ControlFunctionOracle(0xe8) | ([qubit0, qubit1, qubit2], qubit3)
 
     assert len(saving_backend.received_commands) == 7
+
+def test_majority_from_python():
+    dormouse = pytest.importorskip('dormouse')
+
+    def maj(a, b, c):
+        return (a and b) or (a and c) or (b and c)
+
+    saving_backend = DummyEngine(save_commands=True)
+    main_engine = MainEngine(backend=saving_backend,
+                             engine_list=[DummyEngine()])
+
+    qubit0 = Qubit(main_engine, 0)
+    qubit1 = Qubit(main_engine, 1)
+    qubit2 = Qubit(main_engine, 2)
+    qubit3 = Qubit(main_engine, 3)
+
+    ControlFunctionOracle(maj) | ([qubit0, qubit1, qubit2], qubit3)

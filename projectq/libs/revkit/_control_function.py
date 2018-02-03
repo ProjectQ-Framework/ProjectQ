@@ -53,7 +53,18 @@ class ControlFunctionOracle:
                    lambda that calls several RevKit commands.
                    **Default:** ``lambda: revkit.esopbs(aig = True, exorcism = True)``
         """
-        self.function = function
+        if isinstance(function, int):
+            self.function = function
+        else:
+            try:
+                import dormouse
+                self.function = dormouse.to_truth_table(function)
+            except ModuleNotFoundError:
+                raise RuntimeError(
+                    "The dormouse library needs to be installed in order to "
+                    "automatically compile Python code into functions.  Try "
+                    "to install dormouse with 'pip install dormouse'."
+                )
         self.kwargs = kwargs
 
         self._check_function()
