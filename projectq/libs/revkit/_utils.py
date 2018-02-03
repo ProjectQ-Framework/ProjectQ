@@ -31,7 +31,7 @@ def _exec_from_file(filename, qubits, remove=True):
         qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
         remove (bool): Remove file after execution.
     """
-    from projectq.ops import C, NOT, Toffoli, Swap, H, T, Tdag, X
+    from projectq.ops import C, NOT, Toffoli, Swap, H, T, Tdag, X, Z
 
     with open(filename, "r") as f:
         exec(f.read().replace("\0", ""))
