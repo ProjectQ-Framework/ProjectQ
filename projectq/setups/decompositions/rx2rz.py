@@ -13,34 +13,32 @@
 #   limitations under the License.
 
 """
-Registers a decomposition for controlled z-rotation gates.
-
-It uses 2 z-rotations and 2 C^n NOT gates to achieve this gate.
+Registers a decomposition for the Rx gate into an Rz gate and Hadamard.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count
-from projectq.ops import NOT, Rz, C
+from projectq.meta import Compute, Control, get_control_count, Uncompute
+from projectq.ops import Rx, Rz, H
 
 
-def _decompose_CRz(cmd):
-    """ Decompose the controlled Rz gate (into CNOT and Rz). """
+def _decompose_rx(cmd):
+    """ Decompose the Rx gate."""
     qubit = cmd.qubits[0]
-    ctrl = cmd.control_qubits
-    gate = cmd.gate
-    n = get_control_count(cmd)
+    eng = cmd.engine
+    angle = cmd.gate.angle
 
-    Rz(0.5 * gate.angle) | qubit
-    C(NOT, n) | (ctrl, qubit)
-    Rz(-0.5 * gate.angle) | qubit
-    C(NOT, n) | (ctrl, qubit)
+    with Control(eng, cmd.control_qubits):
+        with Compute(eng):
+            H | qubit
+        Rz(angle) | qubit
+        Uncompute(eng)
 
 
-def _recognize_CRz(cmd):
-    """ Recognize the controlled Rz gate. """
-    return get_control_count(cmd) >= 1
+def _recognize_RxNoCtrl(cmd):
+    """ For efficiency reasons only if no control qubits."""
+    return get_control_count(cmd) == 0
 
 
 all_defined_decomposition_rules = [
-    DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
+    DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)
 ]

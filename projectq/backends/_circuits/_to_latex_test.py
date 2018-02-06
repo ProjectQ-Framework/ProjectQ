@@ -28,7 +28,11 @@ from projectq.ops import (BasicGate,
                           Measure,
                           Z,
                           Swap,
-                          C)
+                          SqrtX,
+                          SqrtSwap,
+                          C,
+                          get_inverse,
+                          )
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
 
@@ -71,9 +75,9 @@ def test_header():
     header = _to_latex._header(settings)
 
     assert 'minimum' in header
-    assert not 'basicshadow' in header
+    assert 'basicshadow' not in header
     assert 'minimum height=0.5' in header
-    assert not 'minimum height=1cm' in header
+    assert 'minimum height=1cm' not in header
     assert 'minimum height=0cm' in header
 
     settings['control']['shadow'] = True
@@ -145,6 +149,13 @@ def test_body():
     Z | qubit2
     C(Z) | (qubit1, qubit2)
     C(Swap) | (qubit1, qubit2, qubit3)
+    SqrtX | qubit1
+    SqrtSwap | (qubit1, qubit2)
+    get_inverse(SqrtX) | qubit1
+    C(SqrtSwap) | (qubit1, qubit2, qubit3)
+    get_inverse(SqrtSwap) | (qubit1, qubit2)
+    C(Swap) | (qubit3, qubit1, qubit2)
+    C(SqrtSwap) | (qubit3, qubit1, qubit2)
 
     del qubit1
     eng.flush()
@@ -156,12 +167,15 @@ def test_body():
     settings['gates']['AllocateQubitGate']['draw_id'] = True
     code = _to_latex._body(circuit_lines, settings)
 
-    assert code.count("swapstyle") == 6  # swap draws 2 nodes + 2 lines each
-    # CZ is two phases plus 2 from CNOTs + 1 from cswap
-    assert code.count("phase") == 5
+    # swap draws 2 nodes + 2 lines each, so is sqrtswap gate, csqrtswap,
+    # inv(sqrt_swap), and cswap.
+    assert code.count("swapstyle") == 36
+    # CZ is two phases plus 2 from CNOTs + 2 from cswap + 2 from csqrtswap
+    assert code.count("phase") == 8
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
     assert code.count("{$\Ket{0}") == 3  # 3 qubits allocated
-    assert code.count("xstyle") == 3  # 1 cnot, 1 not gate
+    # 1 cnot, 1 not gate, 3 SqrtSwap, 1 inv(SqrtSwap)
+    assert code.count("xstyle") == 7
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3

@@ -27,7 +27,8 @@ from projectq.cengines import (TagRemover,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, Measure,
-                          Allocate, Deallocate, NOT, Rx, Entangle)
+                          Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
+                          Entangle)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -43,7 +44,8 @@ _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 @pytest.mark.parametrize("single_qubit_gate, is_available", [
     (X, True), (Y, True), (Z, True), (T, True), (Tdag, True), (S, True),
     (Sdag, True), (Allocate, True), (Deallocate, True), (Measure, True),
-    (NOT, True), (Rx(0.5), False)])
+    (NOT, True), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), True),
+    (Barrier, True), (Entangle, False)])
 def test_ibm_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -101,30 +103,21 @@ def test_ibm_sent_error(monkeypatch):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"name": "ProjectQ Experiment", "qasm": "\\ninclude \\"'
-                    'qelib1.inc\\";\\nqreg q[5];\\ncreg c[5];\\nh q[0];\\ncx'
+    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
+                    'qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx'
                     ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
-                    'nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeasure'
-                    ' q[1] -> c[1];", "codeType": "QASM2"}')
+                    'nbarrier q[0], q[2], q[1];\\nu3(0.2, -pi/2, pi/2) q[0];'
+                    '\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeas'
+                    'ure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
+                    ' "backend": {"name": "simulator"}}')
 
     # patch send
     def mock_send(*args, **kwargs):
         assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
-                'data': {'time': 14.429004907608032, 'serialNumberDevice':
-                         'Real5Qv1', 'p': {'labels': ['00000', '00001',
-                                                      '00010', '00011',
-                                                      '00100', '00101',
-                                                      '00110', '00111'],
-                                           'values': [0.4521484375,
-                                                      0.0419921875,
-                                                      0.0185546875,
-                                                      0.0146484375,
-                                                      0.005859375,
-                                                      0.0263671875,
-                                                      0.0537109375,
-                                                      0.38671875],
-                                           'qubits': [0, 1, 2]},
+                'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
+                                                                '00101': 27,
+                                                                '00000': 601},
                          'qasm': ('...')}}
     monkeypatch.setattr(_ibm, "send", mock_send)
 
@@ -146,6 +139,9 @@ def test_ibm_backend_functional_test(monkeypatch):
     Entangle | qureg
     Tdag | qureg[0]
     Sdag | qureg[0]
+    Barrier | qureg
+    Rx(0.2) | qureg[0]
+    del unused_qubit
     # measure; should be all-0 or all-1
     Measure | qureg
     # run the circuit

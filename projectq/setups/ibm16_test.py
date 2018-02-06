@@ -11,22 +11,21 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+"""Tests for projectq.setup.ibm16."""
 
-"""
-Defines the QubitPlacementTag meta tag.
-"""
+import projectq
+from projectq.cengines import ManualMapper
 
 
-class QubitPlacementTag(object):
-    """
-    Qubit placement meta tag
-    """
-    def __init__(self, position):
-        self.position = position
+def test_manual_mapper_in_cengines():
+    import projectq.setups.ibm16
+    found = False
+    for engine in projectq.setups.ibm16.ibm16_default_engines():
+        if isinstance(engine, ManualMapper):
+            found = True
 
-    def __eq__(self, other):
-        return (isinstance(other, QubitPlacementTag) and
-                self.position == other.position)
+    # To undo the changes of loading the IBM setup:
+    import projectq.setups.default
+    projectq.default_engines = projectq.setups.default.default_engines
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    assert found

@@ -44,8 +44,8 @@ class LoopTag(object):
         LoopTag.loop_tag_id += 1
 
     def __eq__(self, other):
-        return (isinstance(other, LoopTag) and self.id == other.id
-                and self.num == other.num)
+        return (isinstance(other, LoopTag) and self.id == other.id and
+                self.num == other.num)
 
     def __ne__(self, other):
         return not self.__eq__(other)

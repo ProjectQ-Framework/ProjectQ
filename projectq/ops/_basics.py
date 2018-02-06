@@ -38,7 +38,8 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
-EQ_TOLERANCE = 1e-12
+ANGLE_PRECISION = 12
+ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 
 
 class NotMergeable(Exception):
@@ -205,6 +206,12 @@ class BasicGate(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        raise NotImplementedError('This gate does not implement __str__.')
+
+    def __hash__(self):
+        return hash(str(self))
+
 
 class SelfInverseGate(BasicGate):
     """
@@ -228,9 +235,9 @@ class BasicRotationGate(BasicGate):
     Defines a base class of a rotation gate.
 
     A rotation gate has a continuous parameter (the angle), labeled 'angle' /
-    self._angle. Its inverse is the same gate with the negated argument.
+    self.angle. Its inverse is the same gate with the negated argument.
     Rotation gates of the same class can be merged by adding the angles.
-    The continuous parameter is modulo 4 * pi, self._angle is in the interval
+    The continuous parameter is modulo 4 * pi, self.angle is in the interval
     [0, 4 * pi).
     """
     def __init__(self, angle):
@@ -241,7 +248,10 @@ class BasicRotationGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         BasicGate.__init__(self)
-        self._angle = float(angle) % (4. * math.pi)
+        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
@@ -253,7 +263,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self._angle) + ")"
+        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
 
     def tex_str(self):
         """
@@ -265,17 +275,17 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self._angle) + "}$"
+        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
         """
         Return the inverse of this rotation gate (negate the angle, return new
         object).
         """
-        if self._angle == 0:
+        if self.angle == 0:
             return self.__class__(0)
         else:
-            return self.__class__(-self._angle + 4 * math.pi)
+            return self.__class__(-self.angle + 4 * math.pi)
 
     def get_merged(self, other):
         """
@@ -295,21 +305,21 @@ class BasicRotationGate(BasicGate):
             New object representing the merged gates.
         """
         if isinstance(other, self.__class__):
-            return self.__class__(self._angle + other._angle)
+            return self.__class__(self.angle + other.angle)
         raise NotMergeable("Can't merge different types of rotation gates.")
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self._angle - other._angle) % (4 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 4 * math.pi - tolerance:
-                return True
-        return False
+            return self.angle == other.angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 class BasicPhaseGate(BasicGate):
@@ -317,9 +327,9 @@ class BasicPhaseGate(BasicGate):
     Defines a base class of a phase gate.
 
     A phase gate has a continuous parameter (the angle), labeled 'angle' /
-    self._angle. Its inverse is the same gate with the negated argument.
+    self.angle. Its inverse is the same gate with the negated argument.
     Phase gates of the same class can be merged by adding the angles.
-    The continuous parameter is modulo 2 * pi, self._angle is in the interval
+    The continuous parameter is modulo 2 * pi, self.angle is in the interval
     [0, 2 * pi).
     """
     def __init__(self, angle):
@@ -330,11 +340,14 @@ class BasicPhaseGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         BasicGate.__init__(self)
-        self._angle = float(angle) % (2. * math.pi)
+        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
-        Return the string representation of a BasicRotationGate.
+        Return the string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as
 
@@ -342,11 +355,11 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self._angle) + ")"
+        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
 
     def tex_str(self):
         """
-        Return the Latex string representation of a BasicRotationGate.
+        Return the Latex string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as a subscript, i.e.
 
@@ -354,17 +367,17 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self._angle) + "}$"
+        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
         """
         Return the inverse of this rotation gate (negate the angle, return new
         object).
         """
-        if self._angle == 0:
+        if self.angle == 0:
             return self.__class__(0)
         else:
-            return self.__class__(-self._angle + 2 * math.pi)
+            return self.__class__(-self.angle + 2 * math.pi)
 
     def get_merged(self, other):
         """
@@ -384,21 +397,21 @@ class BasicPhaseGate(BasicGate):
             New object representing the merged gates.
         """
         if isinstance(other, self.__class__):
-            return self.__class__(self._angle + other._angle)
+            return self.__class__(self.angle + other.angle)
         raise NotMergeable("Can't merge different types of rotation gates.")
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self._angle - other._angle) % (2 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 2 * math.pi - tolerance:
-                return True
-        return False
+            return self.angle == other.angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 # Classical instruction gates never have control qubits.
@@ -501,8 +514,13 @@ class BasicMathGate(BasicGate):
 
         """
         BasicGate.__init__(self)
-        math_function = lambda x: list(math_fun(*x))
+
+        def math_function(x):
+            return list(math_fun(*x))
         self._math_function = math_function
+
+    def __str__(self):
+        return "MATH"
 
     def get_math_function(self, qubits):
         """

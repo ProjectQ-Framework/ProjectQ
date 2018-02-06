@@ -18,7 +18,6 @@ Contains a (slow) Python simulator.
 Please compile the c++ simulator for large-scale simulations.
 """
 
-import cmath
 import random
 import numpy as _np
 
@@ -214,8 +213,8 @@ class Simulator(object):
                 arg_list = [0] * len(qb_locs)
                 for qr_i in range(len(qb_locs)):
                     for qb_i in range(len(qb_locs[qr_i])):
-                        arg_list[qr_i] |= (((i >> qb_locs[qr_i][qb_i]) & 1)
-                                           << qb_i)
+                        arg_list[qr_i] |= (((i >> qb_locs[qr_i][qb_i]) & 1) <<
+                                           qb_i)
 
                 res = f(arg_list)
                 new_i = i
@@ -352,6 +351,7 @@ class Simulator(object):
         s = int(op_nrm + 1.)
         correction = _np.exp(-1j * time * tr / float(s))
         output_state = _np.copy(self._state)
+        mask = self._get_control_mask(ctrlids)
         for i in range(s):
             j = 0
             nrm_change = 1.
@@ -360,16 +360,20 @@ class Simulator(object):
                 current_state = _np.copy(self._state)
                 update = 0j
                 for t, c in terms_dict:
-                    self._apply_term(t, ids, ctrlids)
+                    self._apply_term(t, ids)
                     self._state *= c
                     update += self._state
                     self._state = _np.copy(current_state)
                 update *= coeff
                 self._state = update
-                output_state += update
+                for i in range(len(update)):
+                    if (i & mask) == mask:
+                        output_state[i] += update[i]
                 nrm_change = _np.linalg.norm(update)
                 j += 1
-            output_state *= correction
+            for i in range(len(update)):
+                if (i & mask) == mask:
+                    output_state[i] *= correction
             self._state = _np.copy(output_state)
 
     def apply_controlled_gate(self, m, ids, ctrlids):
@@ -465,8 +469,8 @@ class Simulator(object):
         # wavefunction contains 2^n values for n qubits
         assert len(wavefunction) == (1 << len(ordering))
         # all qubits must have been allocated before
-        if (not all([Id in self._map for Id in ordering])
-                or len(self._map) != len(ordering)):
+        if (not all([Id in self._map for Id in ordering]) or
+                len(self._map) != len(ordering)):
             raise RuntimeError("set_wavefunction(): Invalid mapping provided."
                                " Please make sure all qubits have been "
                                "allocated previously (call eng.flush()).")

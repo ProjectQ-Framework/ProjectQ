@@ -117,6 +117,21 @@ T = TGate()
 Tdag = Tdagger = get_inverse(T)
 
 
+class SqrtXGate(BasicGate):
+    """ Square-root X gate class """
+    @property
+    def matrix(self):
+        return 0.5 * np.matrix([[1+1j, 1-1j], [1-1j, 1+1j]])
+
+    def tex_str(self):
+        return r'$\sqrt{X}$'
+
+    def __str__(self):
+        return "SqrtX"
+
+SqrtX = SqrtXGate()
+
+
 class SwapGate(SelfInverseGate, BasicMathGate):
     """ Swap gate class (swaps 2 qubits) """
     def __init__(self):
@@ -137,6 +152,25 @@ class SwapGate(SelfInverseGate, BasicMathGate):
 Swap = SwapGate()
 
 
+class SqrtSwapGate(BasicGate):
+    """ Square-root Swap gate class """
+    def __init__(self):
+        BasicGate.__init__(self)
+        self.interchangeable_qubit_indices = [[0, 1]]
+
+    def __str__(self):
+        return "SqrtSwap"
+
+    @property
+    def matrix(self):
+        return np.matrix([[1, 0, 0, 0],
+                          [0, 0.5+0.5j, 0.5-0.5j, 0],
+                          [0, 0.5-0.5j, 0.5+0.5j, 0],
+                          [0, 0, 0, 1]])
+
+SqrtSwap = SqrtSwapGate()
+
+
 class EntangleGate(BasicGate):
     """
     Entangle gate (Hadamard on first qubit, followed by CNOTs applied to all
@@ -152,43 +186,43 @@ class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
     @property
     def matrix(self):
-        return np.matrix([[cmath.exp(1j * self._angle), 0],
-                          [0, cmath.exp(1j * self._angle)]])
+        return np.matrix([[cmath.exp(1j * self.angle), 0],
+                          [0, cmath.exp(1j * self.angle)]])
 
 
 class Rx(BasicRotationGate):
     """ RotationX gate class """
     @property
     def matrix(self):
-        return np.matrix([[math.cos(0.5 * self._angle),
-                           -1j * math.sin(0.5 * self._angle)],
-                          [-1j * math.sin(0.5 * self._angle),
-                           math.cos(0.5 * self._angle)]])
+        return np.matrix([[math.cos(0.5 * self.angle),
+                           -1j * math.sin(0.5 * self.angle)],
+                          [-1j * math.sin(0.5 * self.angle),
+                           math.cos(0.5 * self.angle)]])
 
 
 class Ry(BasicRotationGate):
     """ RotationX gate class """
     @property
     def matrix(self):
-        return np.matrix([[math.cos(0.5 * self._angle),
-                           -math.sin(0.5 * self._angle)],
-                          [math.sin(0.5 * self._angle),
-                           math.cos(0.5 * self._angle)]])
+        return np.matrix([[math.cos(0.5 * self.angle),
+                           -math.sin(0.5 * self.angle)],
+                          [math.sin(0.5 * self.angle),
+                           math.cos(0.5 * self.angle)]])
 
 
 class Rz(BasicRotationGate):
     """ RotationZ gate class """
     @property
     def matrix(self):
-        return np.matrix([[cmath.exp(-.5 * 1j * self._angle), 0],
-                          [0, cmath.exp(.5 * 1j * self._angle)]])
+        return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0],
+                          [0, cmath.exp(.5 * 1j * self.angle)]])
 
 
 class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     @property
     def matrix(self):
-        return np.matrix([[1, 0], [0, cmath.exp(1j * self._angle)]])
+        return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])
 
 
 class FlushGate(FastForwardingGate):
@@ -253,3 +287,14 @@ class AllocateDirtyQubitGate(ClassicalInstructionGate):
         return Deallocate
 
 AllocateDirty = AllocateDirtyQubitGate()
+
+
+class BarrierGate(BasicGate):
+    """ Barrier gate class """
+    def __str__(self):
+        return "Barrier"
+
+    def get_inverse(self):
+        return Barrier
+
+Barrier = BarrierGate()

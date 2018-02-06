@@ -76,11 +76,11 @@ def _decomp_gates(eng, cmd):
 
 
 def test_decomposition():
-    for basis_state_index in range(0,16):
+    for basis_state_index in range(0, 16):
         basis_state = [0] * 16
         basis_state[basis_state_index] = 1.
         correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(), 
+        correct_eng = MainEngine(backend=Simulator(),
                                  engine_list=[correct_dummy_eng])
         rule_set = DecompositionRuleSet(modules=[cnu2toffoliandcu])
         test_dummy_eng = DummyEngine(save_commands=True)
