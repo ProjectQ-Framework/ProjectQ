@@ -14,35 +14,7 @@
 
 from projectq.ops import BasicGate
 
-
-def _get_temporary_name():
-    """
-    Returns a temporary file name.
-    """
-    from tempfile import _get_candidate_names, _get_default_tempdir
-
-    return "{}/{}".format(_get_default_tempdir(), next(_get_candidate_names()))
-
-
-def _exec_from_file(filename, qubits, remove=True):
-    """
-    Executes the Python code in 'filename'.
-
-    Args:
-        filename (string): Name of the file containing the Python code.
-        qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
-        remove (bool): Remove file after execution.
-    """
-    from projectq.ops import C, NOT, Toffoli, Swap, H, T, Tdag, X
-
-    with open(filename, "r") as f:
-        content = f.read()
-        print(content)
-        exec(content.replace("\0", ""))
-
-    if remove:
-        import os
-        os.remove(filename)
+from ._utils import _get_temporary_name, _exec_from_file
 
 
 class PermutationOracle:
@@ -55,9 +27,10 @@ class PermutationOracle:
 
     Example:
         .. code-block:: python
-        
+
             PermutationOracle([0, 2, 1, 3]) | (a, b)
     """
+
     def __init__(self, permutation, **kwargs):
         """
         Initializes a permutation oracle.
@@ -91,10 +64,10 @@ class PermutationOracle:
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
 
-        # Convert qubits to tuple
+        # convert qubits to tuple
         qs = BasicGate.make_tuple_of_qureg(qubits)
 
-        # Permutation must have 2*q elements, where q is the number of qubits
+        # permutation must have 2*q elements, where q is the number of qubits
         if 2**(len(qs)) != len(self.permutation):
             raise AttributeError(
                 "Number of qubits does not fit to the size of the permutation")

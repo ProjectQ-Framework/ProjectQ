@@ -20,75 +20,53 @@ from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
-from projectq.libs.revkit import PermutationOracle
+from projectq.libs.revkit import ControlFunctionOracle
 
 
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
-def test_basic_permutation():
+def test_control_function_majority():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
 
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
+    qubit2 = Qubit(main_engine, 2)
+    qubit3 = Qubit(main_engine, 3)
 
-    PermutationOracle([0, 2, 1, 3]) | (qubit0, qubit1)
+    ControlFunctionOracle(0xe8) | (qubit0, qubit1, qubit2, qubit3)
 
-    assert len(saving_backend.received_commands) == 3
+    assert len(saving_backend.received_commands) == 7
 
-
-def test_invalid_permutation():
-    main_engine = MainEngine(backend=DummyEngine(),
-                             engine_list=[DummyEngine()])
-
-    qubit0 = Qubit(main_engine, 0)
-    qubit1 = Qubit(main_engine, 1)
-
-    with pytest.raises(AttributeError):
-        PermutationOracle([1, 2, 3, 4]) | (qubit0, qubit1)
-
-    with pytest.raises(AttributeError):
-        PermutationOracle([0, 2, 3, 4]) | (qubit0, qubit1)
-
-    with pytest.raises(AttributeError):
-        PermutationOracle([0, 1, 1, 2]) | (qubit0, qubit1)
-
-    with pytest.raises(AttributeError):
-        PermutationOracle([0, 1, 2]) | (qubit0, qubit1)
-
-    with pytest.raises(AttributeError):
-        PermutationOracle([0, 1, 2, 3, 4]) | (qubit0, qubit1)
-
-def test_synthesis_with_adjusted_tbs():
+def test_control_function_majority_grouped():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
 
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
+    qubit2 = Qubit(main_engine, 2)
+    qubit3 = Qubit(main_engine, 3)
 
-    import revkit
-    synth = lambda: revkit.tbs(fredkin = True, fredkin_lookback = True)
+    ControlFunctionOracle(0xe8) | ([qubit0, qubit1, qubit2], qubit3)
 
-    PermutationOracle([0, 2, 1, 3], synth = synth) | (qubit0, qubit1)
+    assert len(saving_backend.received_commands) == 7
 
-    assert len(saving_backend.received_commands) == 1
+def test_control_function_majority_from_python():
+    dormouse = pytest.importorskip('dormouse')
 
-def test_synthesis_with_synthesis_script():
+    def maj(a, b, c):
+        return (a and b) or (a and c) or (b and c)
+
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
 
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
+    qubit2 = Qubit(main_engine, 2)
+    qubit3 = Qubit(main_engine, 3)
 
-    def synth():
-        import revkit
-        revkit.tbs(fredkin = True, fredkin_lookback = True)
-        revkit.tof()
-
-    PermutationOracle([0, 2, 1, 3], synth = synth) | (qubit0, qubit1)
-
-    assert len(saving_backend.received_commands) == 3
+    ControlFunctionOracle(maj) | ([qubit0, qubit1, qubit2], qubit3)

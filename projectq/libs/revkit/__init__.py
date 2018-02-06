@@ -13,3 +13,5 @@
 #   limitations under the License.
 
 from ._permutation import (PermutationOracle,)
+from ._control_function import (ControlFunctionOracle,)
+from ._phase import (PhaseOracle,)

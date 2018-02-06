@@ -7,6 +7,7 @@ library adds the following operations that can be used to construct quantum
 circuits:
 
 - :class:`~projectq.libs.revkit.PermutationOracle`: Synthesizes a reversible circuit for a permutation
+- :class:`~projectq.libs.revkit.ControlFunctionOracle`: Synthesizes a reversible circuit from Boolean control function
 
 Refer to `RevKit documentation <http://cirkit.readthedocs.io/en/latest/installation.html#python-interface>`_
 on how to compile RevKit as a Python module.
