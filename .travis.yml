@@ -6,8 +6,10 @@ matrix:
     python: "2.7"
     addons:
       apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9']
+        sources:
+          - 'ubuntu-toolchain-r-test'
+          - sourceline: 'ppa:msoeken/ppa'
+        packages: ['gcc-4.9', 'g++-4.9', 'cirkit']
     env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=2.7
   - os: linux
     python: "3.4"
@@ -38,6 +40,7 @@ install:
   - pip$PY install -r requirements.txt
   - pip$PY install pytest-cov
   - pip$PY install coveralls
+  - pip$PY install dormouse
   - pip$PY install -e .
 
 # command to run tests
