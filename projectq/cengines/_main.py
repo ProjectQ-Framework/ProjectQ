@@ -236,7 +236,8 @@ class MainEngine(BasicEngine):
                 id to -1).
         """
         if deallocate_qubits:
-            for qb in self.active_qubits:
+            while len(self.active_qubits):
+                qb = self.active_qubits.pop()
                 qb.__del__()
             self.active_qubits = weakref.WeakSet()
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])
