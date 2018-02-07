@@ -1,11 +1,11 @@
 sudo: false
 language: python
-virtualenv:
-  system_site_packages: true
 matrix:
   include:
   - os: linux
     python: "2.7"
+    virtualenv:
+      system_site_packages: true
     addons:
       apt:
         sources:
