@@ -151,7 +151,7 @@ class MainEngine(BasicEngine):
                 if not hasattr(sys, "last_type"):
                     eng.flush(deallocate_qubits=True)
                 # An exception causes the termination, don't send a flush and
-                # make sure no qubits send deallocation gate anymore as this
+                # make sure no qubits send deallocation gates anymore as this
                 # might trigger additional exceptions
                 else:
                     for qubit in eng.active_qubits:
