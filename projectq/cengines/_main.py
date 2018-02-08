@@ -259,12 +259,12 @@ class MainEngine(BasicEngine):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 # try:
                 last_line = traceback.format_exc().splitlines()
-                compact_exception = exc_type(str(exc_value)
-                                             + '\n raised in:\n'
-                                             + repr(last_line[-3])
-                                             + "\n" + repr(last_line[-2]))
+                compact_exception = exc_type(str(exc_value) +
+                                             '\n raised in:\n' +
+                                             repr(last_line[-3]) +
+                                             "\n" + repr(last_line[-2]))
                 compact_exception.__cause__ = None
-                raise compact_exception # use verbose=True for more info
+                raise compact_exception  # use verbose=True for more info
 
     def flush(self, deallocate_qubits=False):
         """

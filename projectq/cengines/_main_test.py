@@ -73,7 +73,7 @@ def test_main_engine_init_defaults():
 
 
 def test_main_engine_del():
-    #clear previous exceptions of other tests
+    # Clear previous exceptions of other tests
     sys.last_type = None
     del sys.last_type
     # need engine which caches commands to test that del calls flush
@@ -127,7 +127,7 @@ def test_main_engine_flush():
 
 
 def test_main_engine_atexit_no_error():
-    #clear previous exceptions of other tests
+    # Clear previous exceptions of other tests
     sys.last_type = None
     del sys.last_type
     backend = DummyEngine(save_commands=True)
@@ -157,6 +157,7 @@ def test_exceptions_are_forwarded():
     eng = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
         eng.allocate_qubit()
-    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[], verbose=True)
+    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[],
+                            verbose=True)
     with pytest.raises(TypeError):
         eng2.allocate_qubit()
