@@ -42,7 +42,7 @@ TOLERANCE = 1e-12
 
 
 def _recognize_arb1qubit(cmd):
-    """ 
+    """
     Recognize an arbitrary one qubit gate which has a matrix property.
 
     It does not allow gates which have control qubits as otherwise the

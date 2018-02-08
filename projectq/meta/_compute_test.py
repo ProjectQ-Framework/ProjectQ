@@ -389,3 +389,13 @@ def test_qubit_management_error2():
     eng.active_qubits = weakref.WeakSet()
     with pytest.raises(_compute.QubitManagementError):
         _compute.Uncompute(eng)
+
+
+def test_only_single_error_in_costum_uncompute():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    with _compute.Compute(eng):
+        qb = eng.allocate_qubit()
+    # Tests that QubitManagementError is not sent in addition
+    with pytest.raises(RuntimeError):
+        with _compute.CustomUncompute(eng):
+            raise RuntimeError

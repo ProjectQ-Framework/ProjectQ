@@ -13,11 +13,15 @@
 #   limitations under the License.
 
 """Tests for projectq.cengines._main.py."""
+import sys
+import weakref
 
 import pytest
+
 from projectq.cengines import DummyEngine, LocalOptimizer
 from projectq.backends import Simulator
-from projectq.ops import H, AllocateQubitGate, FlushGate, DeallocateQubitGate
+from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
+                          H, X)
 
 from projectq.cengines import _main
 
@@ -69,6 +73,9 @@ def test_main_engine_init_defaults():
 
 
 def test_main_engine_del():
+    # Clear previous exceptions of other tests
+    sys.last_type = None
+    del sys.last_type
     # need engine which caches commands to test that del calls flush
     caching_engine = LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
@@ -77,8 +84,8 @@ def test_main_engine_del():
     H | qubit
     assert len(backend.received_commands) == 0
     eng.__del__()
-    # Allocate, H, and Flush Gate
-    assert len(backend.received_commands) == 3
+    # Allocate, H, Deallocate, and Flush Gate
+    assert len(backend.received_commands) == 4
 
 
 def test_main_engine_set_and_get_measurement_result():
@@ -117,3 +124,40 @@ def test_main_engine_flush():
     assert backend.received_commands[3].gate == DeallocateQubitGate()
     # keep the qubit alive until at least here
     assert len(str(qubit)) != 0
+
+
+def test_main_engine_atexit_no_error():
+    # Clear previous exceptions of other tests
+    sys.last_type = None
+    del sys.last_type
+    backend = DummyEngine(save_commands=True)
+    eng = _main.MainEngine(backend=backend, engine_list=[])
+    qb = eng.allocate_qubit()
+    eng._delfun(weakref.ref(eng))
+    assert len(backend.received_commands) == 3
+    assert backend.received_commands[0].gate == AllocateQubitGate()
+    assert backend.received_commands[1].gate == DeallocateQubitGate()
+    assert backend.received_commands[2].gate == FlushGate()
+
+
+def test_main_engine_atexit_with_error():
+    sys.last_type = "Something"
+    backend = DummyEngine(save_commands=True)
+    eng = _main.MainEngine(backend=backend, engine_list=[])
+    qb = eng.allocate_qubit()
+    eng._delfun(weakref.ref(eng))
+    assert len(backend.received_commands) == 1
+    assert backend.received_commands[0].gate == AllocateQubitGate()
+
+
+def test_exceptions_are_forwarded():
+    class ErrorEngine(DummyEngine):
+        def receive(self, command_list):
+            raise TypeError
+    eng = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
+    with pytest.raises(TypeError):
+        eng.allocate_qubit()
+    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[],
+                            verbose=True)
+    with pytest.raises(TypeError):
+        eng2.allocate_qubit()

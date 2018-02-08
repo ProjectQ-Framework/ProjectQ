@@ -17,6 +17,8 @@ Contains the main engine of every compiler engine pipeline, called MainEngine.
 """
 
 import atexit
+import sys
+import traceback
 import weakref
 
 import projectq
@@ -51,7 +53,7 @@ class MainEngine(BasicEngine):
         backend (BasicEngine): Access the back-end.
 
     """
-    def __init__(self, backend=None, engine_list=None):
+    def __init__(self, backend=None, engine_list=None, verbose=False):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -62,6 +64,8 @@ class MainEngine(BasicEngine):
             backend (BasicEngine): Backend to send the circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
                 as compiler engines.
+            verbose (bool): Either print full or compact error messages.
+                            Default: False (i.e. compact error messages).
 
         Example:
             .. code-block:: python
@@ -138,10 +142,24 @@ class MainEngine(BasicEngine):
         self.active_qubits = weakref.WeakSet()
         self._measurements = dict()
         self.dirty_qubits = set()
+        self.verbose = verbose
 
-        # In order to terminate an example code without eng.flush or Measure
-        self._delfun = lambda x: x.flush(deallocate_qubits=True)
-        atexit.register(self._delfun, self)
+        # In order to terminate an example code without eng.flush
+        def atexit_function(weakref_main_eng):
+            eng = weakref_main_eng()
+            if eng is not None:
+                if not hasattr(sys, "last_type"):
+                    eng.flush(deallocate_qubits=True)
+                # An exception causes the termination, don't send a flush and
+                # make sure no qubits send deallocation gates anymore as this
+                # might trigger additional exceptions
+                else:
+                    for qubit in eng.active_qubits:
+                        qubit.id = -1
+
+        self._delfun = atexit_function
+        weakref_self = weakref.ref(self)
+        atexit.register(self._delfun, weakref_self)
 
     def __del__(self):
         """
@@ -150,7 +168,8 @@ class MainEngine(BasicEngine):
         Flushes the entire circuit down the pipeline, clearing all temporary
         buffers (in, e.g., optimizers).
         """
-        self.flush()
+        if not hasattr(sys, "last_type"):
+            self.flush(deallocate_qubits=True)
         try:
             atexit.unregister(self._delfun)  # only available in Python3
         except AttributeError:
@@ -225,6 +244,28 @@ class MainEngine(BasicEngine):
         """
         self.send(command_list)
 
+    def send(self, command_list):
+        """
+        Forward the list of commands to the next engine in the pipeline.
+
+        It also shortens exception stack traces if self.verbose is False.
+        """
+        try:
+            self.next_engine.receive(command_list)
+        except:
+            if self.verbose:
+                raise
+            else:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # try:
+                last_line = traceback.format_exc().splitlines()
+                compact_exception = exc_type(str(exc_value) +
+                                             '\n raised in:\n' +
+                                             repr(last_line[-3]) +
+                                             "\n" + repr(last_line[-2]))
+                compact_exception.__cause__ = None
+                raise compact_exception  # use verbose=True for more info
+
     def flush(self, deallocate_qubits=False):
         """
         Flush the entire circuit down the pipeline, clearing potential buffers
@@ -239,5 +280,4 @@ class MainEngine(BasicEngine):
             while len(self.active_qubits):
                 qb = self.active_qubits.pop()
                 qb.__del__()
-            self.active_qubits = weakref.WeakSet()
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])
