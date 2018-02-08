@@ -74,8 +74,8 @@ def test_main_engine_init_defaults():
 
 def test_main_engine_del():
     #clear previous exceptions of other tests
-    if hasattr(sys, "last_type"):
-        del sys.last_type
+    sys.last_type = None
+    del sys.last_type
     # need engine which caches commands to test that del calls flush
     caching_engine = LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
@@ -127,8 +127,9 @@ def test_main_engine_flush():
 
 
 def test_main_engine_atexit_no_error():
-    if hasattr(sys, "last_type"):
-        del sys.last_type
+    #clear previous exceptions of other tests
+    sys.last_type = None
+    del sys.last_type
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[])
     qb = eng.allocate_qubit()
