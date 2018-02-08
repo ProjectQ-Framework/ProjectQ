@@ -13,11 +13,14 @@
 #   limitations under the License.
 
 """Tests for projectq.cengines._main.py."""
+import sys
 
 import pytest
+
 from projectq.cengines import DummyEngine, LocalOptimizer
 from projectq.backends import Simulator
-from projectq.ops import H, AllocateQubitGate, FlushGate, DeallocateQubitGate
+from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
+                          H, X)
 
 from projectq.cengines import _main
 
@@ -69,6 +72,9 @@ def test_main_engine_init_defaults():
 
 
 def test_main_engine_del():
+    #clear previous exceptions of other tests
+    if hasattr(sys, "last_type"):
+        del sys.last_type
     # need engine which caches commands to test that del calls flush
     caching_engine = LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
@@ -77,8 +83,8 @@ def test_main_engine_del():
     H | qubit
     assert len(backend.received_commands) == 0
     eng.__del__()
-    # Allocate, H, and Flush Gate
-    assert len(backend.received_commands) == 3
+    # Allocate, H, Deallocate, and Flush Gate
+    assert len(backend.received_commands) == 4
 
 
 def test_main_engine_set_and_get_measurement_result():
