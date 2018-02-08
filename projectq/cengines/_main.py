@@ -248,7 +248,7 @@ class MainEngine(BasicEngine):
         """
         Forward the list of commands to the next engine in the pipeline.
 
-        It also shortens exception traces if self.verbose is False.
+        It also shortens exception stack traces if self.verbose is False.
         """
         try:
             self.next_engine.receive(command_list)
