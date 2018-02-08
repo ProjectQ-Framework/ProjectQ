@@ -242,8 +242,16 @@ class MainEngine(BasicEngine):
             command_list (list<Command>): List of commands to receive (and
                 then send on)
         """
+        self.send(command_list)
+
+    def send(self, command_list):
+        """
+        Forward the list of commands to the next engine in the pipeline.
+
+        It also shortens exception traces if self.verbose is False.
+        """
         try:
-            self.send(command_list)
+            self.next_engine.receive(command_list)
         except:
             if self.verbose:
                 raise
@@ -257,7 +265,6 @@ class MainEngine(BasicEngine):
                                              + "\n" + repr(last_line[-2]))
                 compact_exception.__cause__ = None
                 raise compact_exception # use verbose=True for more info
-
 
     def flush(self, deallocate_qubits=False):
         """
