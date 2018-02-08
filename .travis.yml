@@ -42,7 +42,6 @@ install:
   - pip$PY install -r requirements.txt
   - pip$PY install pytest-cov
   - pip$PY install coveralls
-  - pip$PY install dormouse
   - pip$PY install -e .
 
 # command to run tests
