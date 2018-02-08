@@ -59,7 +59,7 @@ class PhaseOracle:
             try:
                 import dormouse
                 self.function = dormouse.to_truth_table(function)
-            except ModuleNotFoundError:
+            except ImportError:
                 raise RuntimeError(
                     "The dormouse library needs to be installed in order to "
                     "automatically compile Python code into functions.  Try "
@@ -78,7 +78,7 @@ class PhaseOracle:
         """
         try:
             import revkit
-        except ModuleNotFoundError:
+        except ImportError:
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
