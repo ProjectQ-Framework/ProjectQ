@@ -46,7 +46,7 @@ install:
   - pip$PY install -r requirements.txt
   - pip$PY install pytest-cov
   - pip$PY install coveralls
-  - if [ "${PYTHON:0:1}" = "3.4" ]; then pip$PY install dormouse
+  - if [ "${PYTHON}" = "3.4" ]; then pip$PY install dormouse; fi
   - pip$PY install -e .
 
 # command to run tests
