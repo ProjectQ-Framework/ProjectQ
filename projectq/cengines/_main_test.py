@@ -18,6 +18,7 @@ import weakref
 
 import pytest
 
+import projectq.setups.default
 from projectq.cengines import DummyEngine, LocalOptimizer
 from projectq.backends import Simulator
 from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
@@ -48,6 +49,9 @@ def test_main_engine_init():
 
 
 def test_main_engine_init_failure():
+    with pytest.raises(ValueError):
+        eng = _main.MainEngine(engine_list=[DummyEngine()],
+                               setup=projectq.setups.default)
     with pytest.raises(_main.UnsupportedEngineError):
         eng = _main.MainEngine(backend=DummyEngine)
     with pytest.raises(_main.UnsupportedEngineError):
@@ -67,8 +71,9 @@ def test_main_engine_init_defaults():
         eng_list.append(current_engine)
         current_engine = current_engine.next_engine
     assert isinstance(eng_list[-1].next_engine, Simulator)
-    from projectq.setups.default import default_engines
-    for engine, expected in zip(eng_list, default_engines()):
+    import projectq.setups.default
+    default_engines = projectq.setups.default.get_engine_list()
+    for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
 
 

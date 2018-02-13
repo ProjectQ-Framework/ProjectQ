@@ -53,7 +53,8 @@ class MainEngine(BasicEngine):
         backend (BasicEngine): Access the back-end.
 
     """
-    def __init__(self, backend=None, engine_list=None, verbose=False):
+    def __init__(self, backend=None, engine_list=None, setup=None,
+                 verbose=False):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -64,6 +65,11 @@ class MainEngine(BasicEngine):
             backend (BasicEngine): Backend to send the circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
                 as compiler engines.
+            setup (module): Setup module which defines a function called
+                `get_engine_list()`. `get_engine_list()` returns the list
+                of engines to be used as compiler engines.
+                The default setup is `projectq.setups.default` (if no engine
+                list and no setup is provided).
             verbose (bool): Either print full or compact error messages.
                             Default: False (i.e. compact error messages).
 
@@ -100,16 +106,20 @@ class MainEngine(BasicEngine):
                     "Did you forget the brackets to create an instance?\n"
                     "E.g. MainEngine(backend=Simulator) instead of \n"
                     "     MainEngine(backend=Simulator())")
+        # default setup is projectq.setups.default
+        if engine_list is None and setup is None:
+            import projectq.setups.default
+            setup = projectq.setups.default
+
+        if not (engine_list is None or setup is None):  # can't provide both
+            raise ValueError("\nPlease provide either a setup or an engine "
+                             "list, but not both.")
+
         if engine_list is None:
-            try:
-                engine_list = projectq.default_engines()
-            except AttributeError:
-                from projectq.setups.default import default_engines
-                engine_list = default_engines()
-        else:  # Test that engine list elements are all BasicEngine objects
-            if not isinstance(engine_list, list):
-                raise UnsupportedEngineError(
-                    "\n The engine_list argument is not a list!\n")
+            engine_list = setup.get_engine_list()
+
+        if isinstance(engine_list, list):
+            # Test that engine list elements are all BasicEngine objects
             for current_eng in engine_list:
                 if not isinstance(current_eng, BasicEngine):
                     raise UnsupportedEngineError(
@@ -118,7 +128,9 @@ class MainEngine(BasicEngine):
                         "Did you forget the brackets to create an instance?\n"
                         "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
                         "of\n     MainEngine(engine_list=[AutoReplacer()])")
-
+        else:
+            raise UnsupportedEngineError(
+                "The provided list of engines is not a list!")
         engine_list = engine_list + [backend]
         self.backend = backend
 
@@ -126,9 +138,9 @@ class MainEngine(BasicEngine):
         num_different_engines = len(set([id(item) for item in engine_list]))
         if len(engine_list) != num_different_engines:
             raise UnsupportedEngineError(
-                "\n Error:\n You supplied twice the same engine as backend" +
-                " or item in engine_list. This doesn't work. Create two \n" +
-                " separate instances of a compiler engine if it is needed\n" +
+                "\nError:\n You supplied twice the same engine as backend"
+                " or item in engine_list. This doesn't work. Create two \n"
+                " separate instances of a compiler engine if it is needed\n"
                 " twice.\n")
 
         self._qubit_idx = int(0)

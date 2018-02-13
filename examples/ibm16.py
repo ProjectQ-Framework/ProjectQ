@@ -48,6 +48,7 @@ def run_test(eng):
 if __name__ == "__main__":
     # create main compiler engine for the 16-qubit IBM back-end
     eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
-                                verbose=False, device='ibmqx5'))
+                                verbose=False, device='ibmqx5'),
+                     setup=projectq.setups.ibm16)
     # run the circuit and print the result
     print(run_test(eng))

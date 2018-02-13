@@ -30,12 +30,10 @@ from projectq.cengines import (TagRemover,
                                DecompositionRuleSet)
 
 
-def default_engines():
+def get_engine_list():
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(),
             LocalOptimizer(10),
             AutoReplacer(rule_set),
             TagRemover(),
             LocalOptimizer(10)]
-
-projectq.default_engines = default_engines
