@@ -32,7 +32,7 @@ from projectq.cengines import (TagRemover,
                                DecompositionRuleSet)
 
 
-def ibm16_default_engines():
+def get_engine_list():
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(),
             LocalOptimizer(10),
@@ -40,6 +40,3 @@ def ibm16_default_engines():
             TagRemover(),
             ManualMapper(),
             LocalOptimizer(10)]
-
-
-projectq.default_engines = ibm16_default_engines

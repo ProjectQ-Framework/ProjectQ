@@ -67,8 +67,9 @@ def test_main_engine_init_defaults():
         eng_list.append(current_engine)
         current_engine = current_engine.next_engine
     assert isinstance(eng_list[-1].next_engine, Simulator)
-    from projectq.setups.default import default_engines
-    for engine, expected in zip(eng_list, default_engines()):
+    import projectq.setups.default
+    default_engines = projectq.setups.default.get_engine_list()
+    for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
 
 

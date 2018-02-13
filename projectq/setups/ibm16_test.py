@@ -20,12 +20,7 @@ from projectq.cengines import ManualMapper
 def test_manual_mapper_in_cengines():
     import projectq.setups.ibm16
     found = False
-    for engine in projectq.setups.ibm16.ibm16_default_engines():
+    for engine in projectq.setups.ibm16.get_engine_list():
         if isinstance(engine, ManualMapper):
             found = True
-
-    # To undo the changes of loading the IBM setup:
-    import projectq.setups.default
-    projectq.default_engines = projectq.setups.default.default_engines
-
     assert found

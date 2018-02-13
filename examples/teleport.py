@@ -1,4 +1,3 @@
-import projectq.setups.default
 from projectq.ops import H, X, Z, Rz, CNOT, Measure
 from projectq import MainEngine
 from projectq.meta import Dagger, Control

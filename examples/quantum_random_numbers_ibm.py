@@ -4,7 +4,7 @@ from projectq import MainEngine
 from projectq.backends import IBMBackend
 
 # create a main compiler engine
-eng = MainEngine(IBMBackend())
+eng = MainEngine(IBMBackend(), setup=projectq.setups.ibm)
 
 # allocate one qubit
 q1 = eng.allocate_qubit()
