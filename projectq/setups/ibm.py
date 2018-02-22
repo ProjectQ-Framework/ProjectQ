@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """
-Defines a setup useful for the IBM QE chip with 5 qubits. 
+Defines a setup useful for the IBM QE chip with 5 qubits.
 
 It provides the `engine_list` for the `MainEngine`, and contains an
 AutoReplacer with most of the gate decompositions of ProjectQ, among others
@@ -24,7 +24,7 @@ it includes:
     * m-Controlled global phases --> (m-1)-controlled phase-shifts
     * Global phases --> ignore
     * (controlled) Swap gates --> CNOTs and Toffolis
-    * Arbitrary single qubit gates --> Rz and 
+    * Arbitrary single qubit gates --> Rz and Ry
     * Controlled arbitrary single qubit gates --> Rz, Ry, and CNOT gates
 
 Moreover, it contains `LocalOptimizers` and a custom mapper for the CNOT
