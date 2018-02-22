@@ -28,7 +28,11 @@ class ResourceCounter(BasicEngine):
 
     Attributes:
         gate_counts (dict): Dictionary of gate counts.
-            The keys are string representations of the gate.
+            The keys are tuples of the form (cmd.gate, ctrl_cnt), where
+            ctrl_cnt is the number of control qubits.
+        gate_class_counts (dict): Dictionary of gate class counts.
+            The keys are tuples of the form (cmd.gate.__class__, ctrl_cnt),
+            where ctrl_cnt is the number of control qubits.
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
     """
@@ -123,8 +127,9 @@ class ResourceCounter(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, print the
-        commands, and then send them on to the next engine.
+        Receive a list of commands from the previous engine, increases the
+        counters of the received commands, and then send them on to the next
+        engine.
 
         Args:
             command_list (list<Command>): List of commands to receive (and

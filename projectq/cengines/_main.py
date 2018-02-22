@@ -79,6 +79,17 @@ class MainEngine(BasicEngine):
                 from projectq import MainEngine
                 eng = MainEngine() # uses default setup and the Simulator
 
+        Instead of the default setup one can use, e.g., one of the IBM setups
+        which defines a custom `engine_list` useful for one of the IBM chips
+
+        Example:
+            .. code-block:: python
+
+                import projectq.setups.ibm
+                from projectq import MainEngine
+                eng = MainEngine(setup=projectq.setups.ibm)
+                # eng uses the default Simulator backend
+
         Alternatively, one can specify all compiler engines explicitly, e.g.,
 
         Example:

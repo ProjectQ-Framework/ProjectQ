@@ -65,10 +65,10 @@ class Simulator(BasicEngine):
 
         Example of gate_fusion: Instead of applying a Hadamard gate to 5
         qubits, the simulator calculates the kronecker product of the 1-qubit
-        matrices and then applies 1 5-qubit gate. This increases operational
-        intensity and keeps the simulator from having to iterate through the
-        state vector multiple times. Depending on the system (and, especially,
-        number of threads), this may or may not be beneficial.
+        gate matrices and then applies one 5-qubit gate. This increases
+        operational intensity and keeps the simulator from having to iterate
+        through the state vector multiple times. Depending on the system (and,
+        especially, number of threads), this may or may not be beneficial.
 
         Note:
             If the C++ Simulator extension was not built or cannot be found,
@@ -89,8 +89,9 @@ class Simulator(BasicEngine):
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: The simulator can deal
-        with all arbitrarily-controlled single-qubit gates which provide a
-        gate-matrix (via gate.matrix).
+        with all arbitrarily-controlled gates which provide a
+        gate-matrix (via gate.matrix) and acts on 5 or less qubits (not
+        counting the control qubits).
 
         Args:
             cmd (Command): Command for which to check availability (single-
