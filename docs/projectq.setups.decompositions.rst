@@ -3,6 +3,26 @@ decompositions
 
 The decomposition package is a collection of gate decomposition / replacement rules which can be used by, e.g., the AutoReplacer engine.
 
+
+.. autosummary::
+
+    projectq.setups.decompositions.arb1qubit2rzandry
+    projectq.setups.decompositions.barrier
+    projectq.setups.decompositions.carb1qubit2cnotrzandry
+    projectq.setups.decompositions.cnu2toffoliandcu
+    projectq.setups.decompositions.crz2cxandrz
+    projectq.setups.decompositions.entangle
+    projectq.setups.decompositions.globalphase
+    projectq.setups.decompositions.ph2r
+    projectq.setups.decompositions.qft2crandhadamard
+    projectq.setups.decompositions.r2rzandph
+    projectq.setups.decompositions.rx2rz
+    projectq.setups.decompositions.ry2rz
+    projectq.setups.decompositions.swap2cnot
+    projectq.setups.decompositions.time_evolution
+    projectq.setups.decompositions.toffoli2cnotandtgate
+
+
 Submodules
 ----------
 

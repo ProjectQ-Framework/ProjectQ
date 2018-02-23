@@ -22,6 +22,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     projectq.setups.decompositions
 
@@ -29,6 +30,12 @@ Submodules
 ----------
 
 Each of the submodules contains a setup which can be loaded by the `MainEngine` :
+
+.. autosummary::
+
+    projectq.setups.default
+    projectq.setups.ibm
+    projectq.setups.ibm16
 
 default
 -------
