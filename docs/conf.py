@@ -377,6 +377,10 @@ def linkcode_resolve(domain, info):
                 request = requests.get(github_url + candidate_tag)
                 if request.status_code == 200:
                     github_tag = candidate_tag
+                request = requests.get("https://www.github.com")
+                if request.status_code == 200:
+                    github_tag = "yes"
+
     else:
         github_tag = 'v' + __version__
     if domain != 'py':
