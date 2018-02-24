@@ -351,11 +351,13 @@ texinfo_documents = [
 
 # -- Options for sphinx.ext.linkcode --------------------------------------
 import inspect
+import requests
 import projectq
 
 def linkcode_resolve(domain, info):
-    # Copyright 2018 ProjectQ (www.projectq.ch)
+    # Copyright 2018 ProjectQ (www.projectq.ch), all rights reserved.
     on_rtd = os.environ.get('READTHEDOCS') == 'True'
+    github_url = "https://github.com/ProjectQ-Framework/ProjectQ/tree/"
     if on_rtd:
         rtd_tag = os.environ.get('READTHEDOCS_VERSION')
         if rtd_tag == 'latest':
@@ -363,7 +365,18 @@ def linkcode_resolve(domain, info):
         elif rtd_tag == 'stable':
             github_tag = 'master'
         else:
+            # RTD changes "/" in branch name to "-"
+            # As we use branches like fix/cool-feature, this might be a
+            # problem -> hence let's check it works or potentially fix it
             github_tag = rtd_tag
+            request = requests.get(github_url + rtd_tag)
+            if not request.status_code == 200 and rtd_tag.counts('-'):
+                candidate_tag = list(rtd_tag)
+                candidate_tag[candidate_tag.index('-')] = '/'
+                candidate_tag = ''.join(candidate_tag)
+                request = requests.get(github_url + candidate_tag)
+                if request.status_code == 200:
+                    github_tag = candidate_tag
     else:
         github_tag = 'v' + __version__
     if domain != 'py':
@@ -401,7 +414,6 @@ def linkcode_resolve(domain, info):
         # Only require relative path projectq/relative_path
         projectq_path = inspect.getsourcefile(projectq)[:-11]
         relative_path = os.path.relpath(filepath, projectq_path)
-        url = ("https://github.com/ProjectQ-Framework/ProjectQ/tree/" +
-               github_tag + "/projectq/" + relative_path + "#L" +
+        url = (github_url + github_tag + "/projectq/" + relative_path + "#L" +
                str(line_number))
         return url
