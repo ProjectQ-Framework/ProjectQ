@@ -39,6 +39,7 @@ def _recognize_Ph(cmd):
     return get_control_count(cmd) >= 1
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)
 ]

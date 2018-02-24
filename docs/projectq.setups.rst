@@ -43,6 +43,7 @@ default
 .. automodule:: projectq.setups.default
     :members:
     :special-members: __init__
+    :undoc-members:
 
 ibm
 ---
@@ -50,6 +51,7 @@ ibm
 .. automodule:: projectq.setups.ibm
     :members:
     :special-members: __init__
+    :undoc-members:
 
 ibm16
 -----
@@ -57,6 +59,7 @@ ibm16
 .. automodule:: projectq.setups.ibm16
     :members:
     :special-members: __init__
+    :undoc-members:
 
 Module contents
 ---------------

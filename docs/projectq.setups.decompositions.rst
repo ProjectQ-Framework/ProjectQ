@@ -32,6 +32,7 @@ projectq.setups.decompositions.arb1qubit2rzandry module
 .. automodule:: projectq.setups.decompositions.arb1qubit2rzandry
     :members:
     :undoc-members:
+    
 
 projectq.setups.decompositions.barrier module
 ---------------------------------------------
