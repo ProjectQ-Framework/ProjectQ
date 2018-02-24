@@ -351,7 +351,6 @@ texinfo_documents = [
 
 # -- Options for sphinx.ext.linkcode --------------------------------------
 import inspect
-import requests
 import projectq
 
 def linkcode_resolve(domain, info):
@@ -366,21 +365,15 @@ def linkcode_resolve(domain, info):
             github_tag = 'master'
         else:
             # RTD changes "/" in branch name to "-"
-            # As we use branches like fix/cool-feature, this might be a
-            # problem -> hence let's check if it works or potentially fix it
-            github_tag = rtd_tag
-            request = requests.get(github_url + rtd_tag)
-            if not request.status_code == 200 and list(rtd_tag).count('-'):
-                candidate_tag = list(rtd_tag)
-                candidate_tag[candidate_tag.index('-')] = '/'
-                candidate_tag = ''.join(candidate_tag)
-                request = requests.get(github_url + candidate_tag)
-                if request.status_code == 200:
-                    github_tag = candidate_tag
-                request = requests.get("https://www.github.com")
-                if request.status_code == 200:
-                    github_tag = "yes"
-
+            # As we use branches like fix/cool-feature, this is a
+            # problem -> as a fix we require that all branch names
+            # which contain a '-' must first contain one '/':
+            if list(rtd_tag).count('-'):
+                github_tag = list(rtd_tag)
+                github_tag[github_tag.index('-')] = '/'
+                github_tag = ''.join(github_tag)
+            else:
+                github_tag = rtd_tag
     else:
         github_tag = 'v' + __version__
     if domain != 'py':
