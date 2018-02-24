@@ -370,7 +370,7 @@ def linkcode_resolve(domain, info):
             # problem -> hence let's check if it works or potentially fix it
             github_tag = rtd_tag
             request = requests.get(github_url + rtd_tag)
-            if not request.status_code == 200 and list(rtd_tag).counts('-'):
+            if not request.status_code == 200 and list(rtd_tag).count('-'):
                 candidate_tag = list(rtd_tag)
                 candidate_tag[candidate_tag.index('-')] = '/'
                 candidate_tag = ''.join(candidate_tag)
