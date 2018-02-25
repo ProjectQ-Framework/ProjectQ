@@ -353,6 +353,7 @@ texinfo_documents = [
 import inspect
 import projectq
 
+
 def linkcode_resolve(domain, info):
     # Copyright 2018 ProjectQ (www.projectq.ch), all rights reserved.
     on_rtd = os.environ.get('READTHEDOCS') == 'True'
@@ -380,7 +381,7 @@ def linkcode_resolve(domain, info):
         return None
     else:
         try:
-            obj = eval(info['module'] + '.'+ info['fullname'])
+            obj = eval(info['module'] + '.' + info['fullname'])
         except AttributeError:
             # Object might be a non-static attribute of a class, e.g.,
             # self.num_qubits, which would only exist after init was called.
@@ -391,19 +392,16 @@ def linkcode_resolve(domain, info):
             filepath = inspect.getsourcefile(obj)
             line_number = inspect.getsourcelines(obj)[1]
         except:
-
             # obj might be a property or a static class variable, e.g.,
             # loop_tag_id in which case obj is an int and inspect will fail
-            # For the moment we don't need a link to such static variables as
-            # there is a link for the class already
             try:
                 # load obj one hierarchy higher (either class or module)
-                new_high_name = info['fullname'].split('.')
-                if len(new_high_name) <= 1:
+                new_higher_name = info['fullname'].split('.')
+                if len(new_higher_name) <= 1:
                     obj = eval(info['module'])
                 else:
                     obj = eval(info['module'] + '.' +
-                               '.'.join(new_high_name[:-1]))
+                               '.'.join(new_higher_name[:-1]))
                 filepath = inspect.getsourcefile(obj)
                 line_number = inspect.getsourcelines(obj)[1]
             except:
