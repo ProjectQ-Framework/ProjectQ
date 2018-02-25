@@ -19,7 +19,9 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.Y
 	projectq.ops.Z
 	projectq.ops.S
+	projectq.ops.Sdag
 	projectq.ops.T
+	projectq.ops.Tdag
 	projectq.ops.SqrtX
 	projectq.ops.Swap
 	projectq.ops.SqrtSwap
@@ -31,13 +33,14 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.R
 	projectq.ops.FlushGate
 	projectq.ops.MeasureGate
-	projectq.ops.AllocateQubitGate
-	projectq.ops.DeallocateQubitGate
-	projectq.ops.AllocateDirtyQubitGate
-	projectq.ops.BarrierGate
+	projectq.ops.Allocate
+	projectq.ops.Deallocate
+	projectq.ops.AllocateDirty
+	projectq.ops.Barrier
 	projectq.ops.DaggeredGate
 	projectq.ops.ControlledGate
 	projectq.ops.C
+	projectq.ops.All
 	projectq.ops.Tensor
 	projectq.ops.QFT
 	projectq.ops.QubitOperator

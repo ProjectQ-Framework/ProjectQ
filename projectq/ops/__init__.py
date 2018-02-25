@@ -29,7 +29,7 @@ from ._metagates import (DaggeredGate,
                          Tensor,
                          All)
 from ._gates import *
-from ._qftgate import QFT
+from ._qftgate import QFT, QFTGate
 from ._qubit_operator import QubitOperator
 from ._shortcuts import *
 from ._time_evolution import TimeEvolution
