@@ -33,8 +33,11 @@ sys.path.insert(0, os.path.abspath('..'))
 import sphinx_rtd_theme
 
 extensions = [
-    'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.mathjax'
+    'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.mathjax',
+    'sphinx.ext.autosummary', 'sphinx.ext.linkcode',
 ]
+
+autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -89,7 +92,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -162,7 +165,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -345,3 +348,67 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+# -- Options for sphinx.ext.linkcode --------------------------------------
+import inspect
+import projectq
+
+
+def linkcode_resolve(domain, info):
+    # Copyright 2018 ProjectQ (www.projectq.ch), all rights reserved.
+    on_rtd = os.environ.get('READTHEDOCS') == 'True'
+    github_url = "https://github.com/ProjectQ-Framework/ProjectQ/tree/"
+    if on_rtd:
+        rtd_tag = os.environ.get('READTHEDOCS_VERSION')
+        if rtd_tag == 'latest':
+            github_tag = 'develop'
+        elif rtd_tag == 'stable':
+            github_tag = 'master'
+        else:
+            # RTD changes "/" in branch name to "-"
+            # As we use branches like fix/cool-feature, this is a
+            # problem -> as a fix we require that all branch names
+            # which contain a '-' must first contain one '/':
+            if list(rtd_tag).count('-'):
+                github_tag = list(rtd_tag)
+                github_tag[github_tag.index('-')] = '/'
+                github_tag = ''.join(github_tag)
+            else:
+                github_tag = rtd_tag
+    else:
+        github_tag = 'v' + __version__
+    if domain != 'py':
+        return None
+    else:
+        try:
+            obj = eval(info['module'] + '.' + info['fullname'])
+        except AttributeError:
+            # Object might be a non-static attribute of a class, e.g.,
+            # self.num_qubits, which would only exist after init was called.
+            # For the moment we don't need a link for that as there is a link
+            # for the class already
+            return None
+        try:
+            filepath = inspect.getsourcefile(obj)
+            line_number = inspect.getsourcelines(obj)[1]
+        except:
+            # obj might be a property or a static class variable, e.g.,
+            # loop_tag_id in which case obj is an int and inspect will fail
+            try:
+                # load obj one hierarchy higher (either class or module)
+                new_higher_name = info['fullname'].split('.')
+                if len(new_higher_name) <= 1:
+                    obj = eval(info['module'])
+                else:
+                    obj = eval(info['module'] + '.' +
+                               '.'.join(new_higher_name[:-1]))
+                filepath = inspect.getsourcefile(obj)
+                line_number = inspect.getsourcelines(obj)[1]
+            except:
+                return None
+        # Only require relative path projectq/relative_path
+        projectq_path = inspect.getsourcefile(projectq)[:-11]
+        relative_path = os.path.relpath(filepath, projectq_path)
+        url = (github_url + github_tag + "/projectq/" + relative_path + "#L" +
+               str(line_number))
+        return url

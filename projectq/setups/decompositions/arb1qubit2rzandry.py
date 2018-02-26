@@ -219,6 +219,7 @@ def _decompose_arb1qubit(cmd):
             Ph(a) | qb
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(BasicGate, _decompose_arb1qubit, _recognize_arb1qubit)
 ]

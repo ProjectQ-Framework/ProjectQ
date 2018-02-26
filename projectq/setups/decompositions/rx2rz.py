@@ -39,6 +39,7 @@ def _recognize_RxNoCtrl(cmd):
     return get_control_count(cmd) == 0
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)
 ]

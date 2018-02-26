@@ -291,4 +291,5 @@ class Tensor(BasicGate):
         for qubit in qubits:
             self._gate | qubit
 
+#: Shortcut (instance of) :class:`projectq.ops.Tensor`
 All = Tensor

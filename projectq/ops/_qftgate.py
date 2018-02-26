@@ -22,4 +22,5 @@ class QFTGate(BasicGate):
     def __str__(self):
         return "QFT"
 
+#: Shortcut (instance of) :class:`projectq.ops.QFTGate`
 QFT = QFTGate()

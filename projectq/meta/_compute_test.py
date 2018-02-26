@@ -361,8 +361,7 @@ def test_compute_uncompute_with_statement():
 def test_exception_if_no_compute_but_uncompute():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with pytest.raises(_compute.NoComputeSectionError):
-        with _compute.CustomUncompute(eng):
-            pass
+        with _compute.CustomUncompute(eng): pass
 
 
 def test_exception_if_no_compute_but_uncompute2():

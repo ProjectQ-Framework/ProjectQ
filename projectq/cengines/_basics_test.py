@@ -64,8 +64,7 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     # any allocate or deallocate gates
     cmd_sent_by_main_engine = []
 
-    def receive(self, cmd_list):
-        cmd_sent_by_main_engine.append(cmd_list)
+    def receive(self, cmd_list): cmd_sent_by_main_engine.append(cmd_list)
 
     eng.receive = types.MethodType(receive, eng)
     # Create test engines:
@@ -140,8 +139,7 @@ def test_basic_engine_is_meta_tag_supported():
     eng = _basics.BasicEngine()
     # BasicEngine needs receive function to function so let's add it:
 
-    def receive(self, cmd_list):
-        self.send(cmd_list)
+    def receive(self, cmd_list): self.send(cmd_list)
 
     eng.receive = types.MethodType(receive, eng)
     backend = DummyEngine()
