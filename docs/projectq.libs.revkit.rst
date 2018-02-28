@@ -14,8 +14,13 @@ on how to compile RevKit as a Python module.
 
 .. note::
 
-    The RevKit Python module must be in the Python module path.  You can add
-    it by modifying the ``PYTHONPATH`` environment variable.
+    The RevKit Python module must be installed in order to use this ProjectQ library.
+
+    There exist precompiled binaries for Ubuntu 14.04 (trusty), 16.04 (xenial), and 17.10 (artful).
+    These must be run with the Python installation from the distribution (either Python 2.x or Python 3.x).
+
+    For all other systems, RevKit must be compiled from scratch and the RevKit module must be in the Python module path.
+    One way to add it is by modifying the ``PYTHONPATH`` environment variable.
 
 Module contents
 ---------------
