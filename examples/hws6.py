@@ -21,14 +21,14 @@ y = qubits[1::2] # qubits on even lines
 with Compute(eng):
     All(H) | qubits
     All(X) | [x[0], x[1]]
-    PermutationCircuit(pi) | y
-PhaseCircuit(f) | qubits
+    PermutationOracle(pi) | y
+PhaseOracle(f) | qubits
 Uncompute(eng)
 
 with Compute(eng):
     with Dagger(eng):
-        PermutationCircuit(pi, synth = revkit.dbs) | x
-PhaseCircuit(f) | qubits
+        PermutationOracle(pi, synth = revkit.dbs) | x
+PhaseOracle(f) | qubits
 Uncompute(eng)
 
 All(H) | qubits
