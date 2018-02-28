@@ -1,7 +1,7 @@
 libs
 ====
 
-The library collection of ProjectQ which, for now, only consists of a tiny math library. Soon, more libraries will be added.
+The library collection of ProjectQ which, for now, consists of a tiny math library and an interface library to RevKit. Soon, more libraries will be added.
 
 Subpackages
 -----------

@@ -25,7 +25,7 @@ class ControlFunctionOracle:
     Boolean control function.  The control function is provided as integer
     representation of the function's truth table in binary notation.  For
     example, for the majority-of-three function, which truth table 11101000, the
-    value for function can be, e.g., ``0b11101000, ``0xe8``, or ``232``.
+    value for function can be, e.g., ``0b11101000``, ``0xe8``, or ``232``.
 
     Example:
 
