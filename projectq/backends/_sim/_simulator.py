@@ -60,7 +60,7 @@ class Simulator(BasicEngine):
             gate_fusion (bool): If True, gates are cached and only executed
                 once a certain gate-size has been reached (only has an effect
                 for the c++ simulator).
-            rnd_seed (int): Random seed (uses random.randint(0, 1024) by
+            rnd_seed (int): Random seed (uses random.randint(0, 4294967295) by
                 default).
 
         Example of gate_fusion: Instead of applying a Hadamard gate to 5
