@@ -38,7 +38,8 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
-EQ_TOLERANCE = 1e-12
+ANGLE_PRECISION = 12
+ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 
 
 class NotMergeable(Exception):
@@ -205,6 +206,12 @@ class BasicGate(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        raise NotImplementedError('This gate does not implement __str__.')
+
+    def __hash__(self):
+        return hash(str(self))
+
 
 class SelfInverseGate(BasicGate):
     """
@@ -241,7 +248,10 @@ class BasicRotationGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         BasicGate.__init__(self)
-        self.angle = float(angle) % (4. * math.pi)
+        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
@@ -300,16 +310,16 @@ class BasicRotationGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self.angle - other.angle) % (4 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 4 * math.pi - tolerance:
-                return True
-        return False
+            return self.angle == other.angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 class BasicPhaseGate(BasicGate):
@@ -330,11 +340,14 @@ class BasicPhaseGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         BasicGate.__init__(self)
-        self.angle = float(angle) % (2. * math.pi)
+        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
+            rounded_angle = 0.
+        self.angle = rounded_angle
 
     def __str__(self):
         """
-        Return the string representation of a BasicRotationGate.
+        Return the string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as
 
@@ -346,7 +359,7 @@ class BasicPhaseGate(BasicGate):
 
     def tex_str(self):
         """
-        Return the Latex string representation of a BasicRotationGate.
+        Return the Latex string representation of a BasicPhaseGate.
 
         Returns the class name and the angle as a subscript, i.e.
 
@@ -389,16 +402,16 @@ class BasicPhaseGate(BasicGate):
 
     def __eq__(self, other):
         """ Return True if same class and same rotation angle. """
-        tolerance = EQ_TOLERANCE
         if isinstance(other, self.__class__):
-            difference = abs(self.angle - other.angle) % (2 * math.pi)
-            # Return True if angles are close to each other modulo 4 * pi
-            if difference < tolerance or difference > 2 * math.pi - tolerance:
-                return True
-        return False
+            return self.angle == other.angle
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 # Classical instruction gates never have control qubits.
@@ -505,6 +518,9 @@ class BasicMathGate(BasicGate):
         def math_function(x):
             return list(math_fun(*x))
         self._math_function = math_function
+
+    def __str__(self):
+        return "MATH"
 
     def get_math_function(self, qubits):
         """
