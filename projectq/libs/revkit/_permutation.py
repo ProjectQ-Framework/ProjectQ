@@ -59,7 +59,7 @@ class PermutationOracle:
         """
         try:
             import revkit
-        except ImportError:
+        except ImportError: # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
