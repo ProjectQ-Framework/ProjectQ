@@ -419,7 +419,7 @@ def test_simulator_applyqubitoperator(sim):
 
 
 def test_simulator_time_evolution(sim):
-    N = 9  # number of qubits
+    N = 8  # number of qubits
     time_to_evolve = 1.1  # time to evolve for
     eng = MainEngine(sim, [])
     qureg = eng.allocate_qureg(N)
@@ -435,10 +435,13 @@ def test_simulator_time_evolution(sim):
     op += 1.1 * Qop(())
     op += -1.4 * Qop("Y0 Z1 X3 Y5")
     op += -1.1 * Qop("Y1 X2 X3 Y4")
-    TimeEvolution(time_to_evolve, op) | qureg
+    ctrl_qubit = eng.allocate_qubit()
+    H | ctrl_qubit
+    with Control(eng, ctrl_qubit):
+        TimeEvolution(time_to_evolve, op) | qureg
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    Measure | qureg
+    Measure | (qureg, ctrl_qubit)
     # Check manually:
 
     def build_matrix(list_single_matrices):
@@ -465,7 +468,13 @@ def test_simulator_time_evolution(sim):
     init_wavefunction = numpy.array(init_wavefunction, copy=False)
     final_wavefunction = numpy.array(final_wavefunction, copy=False)
     res = scipy.sparse.linalg.expm_multiply(res_matrix, init_wavefunction)
-    assert numpy.allclose(res, final_wavefunction)
+
+    half = int(len(final_wavefunction) / 2)
+    hadamard_f = 1. / math.sqrt(2.)
+    # check evolution and control
+    assert numpy.allclose(hadamard_f * res, final_wavefunction[half:])
+    assert numpy.allclose(final_wavefunction[:half], hadamard_f *
+                          init_wavefunction)
 
 
 def test_simulator_set_wavefunction(sim):

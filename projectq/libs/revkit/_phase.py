@@ -25,8 +25,12 @@ class PhaseOracle:
     of all amplitudes for which the function evaluates to 1.  The Boolean
     function is provided as integer representation of the function's truth table
     in binary notation.  For example, for the majority-of-three function, which
-    truth table 11101000, the value for function can be, e.g., ``0b11101000,
+    truth table 11101000, the value for function can be, e.g., ``0b11101000``,
     ``0xe8``, or ``232``.
+
+    Note that a phase circuit can only accurately be found for a normal function,
+    i.e., a function that maps the input pattern 0, 0, ..., 0 to 0.  The circuits
+    for a function and its inverse are the same.
 
     Example:
 
@@ -59,7 +63,7 @@ class PhaseOracle:
             try:
                 import dormouse
                 self.function = dormouse.to_truth_table(function)
-            except ModuleNotFoundError:
+            except ImportError: # pragma: no cover
                 raise RuntimeError(
                     "The dormouse library needs to be installed in order to "
                     "automatically compile Python code into functions.  Try "
@@ -78,7 +82,7 @@ class PhaseOracle:
         """
         try:
             import revkit
-        except ModuleNotFoundError:
+        except ImportError: # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
@@ -100,6 +104,7 @@ class PhaseOracle:
         revkit.convert(tt_to_aig = True)
 
         # create phase circuit from AIG
+        revkit.set(var = 'omit_runtime', value = '1')
         self.kwargs.get("synth", lambda: revkit.esopps())()
 
         # check whether circuit has correct signature
