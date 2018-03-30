@@ -42,7 +42,7 @@ TOLERANCE = 1e-12
 
 
 def _recognize_arb1qubit(cmd):
-    """ 
+    """
     Recognize an arbitrary one qubit gate which has a matrix property.
 
     It does not allow gates which have control qubits as otherwise the
@@ -219,6 +219,7 @@ def _decompose_arb1qubit(cmd):
             Ph(a) | qb
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(BasicGate, _decompose_arb1qubit, _recognize_arb1qubit)
 ]

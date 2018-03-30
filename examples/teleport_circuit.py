@@ -1,4 +1,3 @@
-import projectq.setups.default
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
 

@@ -60,15 +60,15 @@ class Simulator(BasicEngine):
             gate_fusion (bool): If True, gates are cached and only executed
                 once a certain gate-size has been reached (only has an effect
                 for the c++ simulator).
-            rnd_seed (int): Random seed (uses random.randint(0, 1024) by
+            rnd_seed (int): Random seed (uses random.randint(0, 4294967295) by
                 default).
 
         Example of gate_fusion: Instead of applying a Hadamard gate to 5
         qubits, the simulator calculates the kronecker product of the 1-qubit
-        matrices and then applies 1 5-qubit gate. This increases operational
-        intensity and keeps the simulator from having to iterate through the
-        state vector multiple times. Depending on the system (and, especially,
-        number of threads), this may or may not be beneficial.
+        gate matrices and then applies one 5-qubit gate. This increases
+        operational intensity and keeps the simulator from having to iterate
+        through the state vector multiple times. Depending on the system (and,
+        especially, number of threads), this may or may not be beneficial.
 
         Note:
             If the C++ Simulator extension was not built or cannot be found,
@@ -81,7 +81,7 @@ class Simulator(BasicEngine):
             extension.
         """
         if rnd_seed is None:
-            rnd_seed = random.randint(0, 1024)
+            rnd_seed = random.randint(0, 4294967295)
         BasicEngine.__init__(self)
         self._simulator = SimulatorBackend(rnd_seed)
         self._gate_fusion = gate_fusion
@@ -89,8 +89,9 @@ class Simulator(BasicEngine):
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: The simulator can deal
-        with all arbitrarily-controlled single-qubit gates which provide a
-        gate-matrix (via gate.matrix).
+        with all arbitrarily-controlled gates which provide a
+        gate-matrix (via gate.matrix) and acts on 5 or less qubits (not
+        counting the control qubits).
 
         Args:
             cmd (Command): Command for which to check availability (single-

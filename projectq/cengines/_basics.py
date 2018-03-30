@@ -178,7 +178,6 @@ class BasicEngine(object):
         except:
             return False
 
-    # sends the commandList to the next engine
     def send(self, command_list):
         """
         Forward the list of commands to the next engine in the pipeline.

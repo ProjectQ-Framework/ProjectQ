@@ -124,6 +124,12 @@ class Qubit(BasicQubit):
         """
         if self.id == -1:
             return
+        # If a user directly calls this function, then the qubit gets id == -1
+        # but stays in active_qubits as it is not yet deleted, hence remove
+        # it manually (if the garbage collector calls this function, then the
+        # WeakRef in active qubits is already gone):
+        if self in self.engine.main_engine.active_qubits:
+            self.engine.main_engine.active_qubits.remove(self)
         weak_copy = WeakQubitRef(self.engine, self.id)
         self.id = -1
         self.engine.deallocate_qubit(weak_copy)

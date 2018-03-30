@@ -91,6 +91,8 @@ def mock_main_engine():
     class MockMainEngine(object):
         def __init__(self):
             self.num_calls = 0
+            self.active_qubits = set()
+            self.main_engine = self
 
         def deallocate_qubit(self, qubit):
             self.num_calls += 1

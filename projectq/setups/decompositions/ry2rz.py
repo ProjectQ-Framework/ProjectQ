@@ -41,6 +41,7 @@ def _recognize_RyNoCtrl(cmd):
     return get_control_count(cmd) == 0
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Ry, _decompose_ry, _recognize_RyNoCtrl)
 ]
