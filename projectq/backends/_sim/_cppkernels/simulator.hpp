@@ -208,6 +208,36 @@ public:
             fused_gates_ = fused_gates;
     }
 
+    // TODO get rid of this
+    template <class V, class M>
+    inline void kernel_core_unif(V &psi, std::size_t I, std::size_t d0, M const& m)
+    {
+        std::complex<double> v[2];
+        v[0] = psi[I];
+        v[1] = psi[I + d0];
+
+        psi[I]      = v[0]*m[0][0] + v[1]*m[0][1];
+        psi[I + d0] = v[0]*m[1][0] + v[1]*m[1][1];
+    }
+
+    template <class M>
+    void apply_uniformly_controlled_gate(std::vector<M> &unitaries,
+                                         unsigned target_id,
+                                         std::vector<unsigned> choice_ids){
+        run();
+        std::size_t n = vec_.size();
+        std::size_t dist = 1UL << target_id;
+        for(std::size_t high = 0; high < n; high += 2*dist){
+            for(std::size_t low = 0; low < dist; ++low){
+                std::size_t entry = high+low;
+                unsigned u = 0;
+                for(std::size_t i = 0; i < choice_ids.size(); ++i)
+                    u |= ((entry >> choice_ids[i]) & 1) << i;
+                kernel_core_unif(vec_, entry, dist, unitaries[u]);
+            }
+        }
+    }
+
     template <class F, class QuReg>
     void emulate_math(F const& f, QuReg quregs, std::vector<unsigned> ctrl,
                       unsigned num_threads=1){

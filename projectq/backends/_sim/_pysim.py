@@ -397,6 +397,26 @@ class Simulator(object):
             pos = [self._map[ID] for ID in ids]
             self._multi_qubit_gate(m, pos, mask)
 
+    def apply_uniformly_controlled_gate(self, unitaries, target_id, choice_ids):
+
+        def kernel(u, d, m):
+            return u * m[0][0] + d * m[0][1], u * m[1][0] + d * m[1][1]
+
+        dist = 1 << target_id
+        n = len(self._state)
+        for high in range(0, n, 2*dist):
+            for low in range(0,dist):
+                entry = high+low
+                u = 0
+                for i in range(len(choice_ids)):
+                    u |= ((entry >> choice_ids[i]) & 1) << i
+                id1 = entry
+                id2 = entry + dist
+                self._state[id1], self._state[id2] = kernel(
+                    self._state[id1],
+                    self._state[id2],
+                    unitaries[u])
+
     def _single_qubit_gate(self, m, pos, mask):
         """
         Applies the single qubit gate matrix m to the qubit at position `pos`

@@ -33,3 +33,4 @@ from ._qftgate import QFT, QFTGate
 from ._qubit_operator import QubitOperator
 from ._shortcuts import *
 from ._time_evolution import TimeEvolution
+from ._uniformly_controlled_gate import UniformlyControlledGate
