@@ -27,7 +27,8 @@ from . import (arb1qubit2rzandry,
                swap2cnot,
                toffoli2cnotandtgate,
                time_evolution,
-               uniformly_controlled_gate)
+               uniformly_controlled_gate,
+               diagonal_gate)
 
 all_defined_decomposition_rules = [
     rule
@@ -46,6 +47,7 @@ all_defined_decomposition_rules = [
                    swap2cnot,
                    toffoli2cnotandtgate,
                    time_evolution,
-                   uniformly_controlled_gate]
+                   uniformly_controlled_gate,
+                   diagonal_gate]
     for rule in module.all_defined_decomposition_rules
 ]
