@@ -140,19 +140,16 @@ def test_apply_uniformly_controlled_rotation_3(init):
     print(cmath.phase(vec.item(init)))
     assert np.isclose(vec.item(init), 1)
 
-@pytest.mark.parametrize("init", range(8))
+@pytest.mark.parametrize("init", range(16))
 def test_decompose_diagonal_gate(init):
     angles = list(range(1,9))
     eng = MainEngine(verbose = True)
-    qureg = eng.allocate_qureg(3)
+    qureg = eng.allocate_qureg(4)
     eng.flush()
     create_initial_state(init, qureg)
 
-    target = qureg[0]
-    controls = qureg[1:]
-
-    D = DiagonalGate(angles)
-    cmd = D.generate_command(qureg)
+    D = DiagonalGate(angles=angles)
+    cmd = D.generate_command(qureg[1:])
     diag._decompose_diagonal_gate(cmd)
 
     eng.flush()
@@ -160,5 +157,5 @@ def test_decompose_diagonal_gate(init):
     print(qbit_to_bit_map)
     vec = np.array([final_wavefunction]).T
 
-    print(vec.item(init) - cmath.exp(1j*(init+1)))
-    assert np.isclose(vec.item(init), cmath.exp(1j*(init+1)))
+    print(vec.item(init) - cmath.exp(1j*(((init>>1)&7)+1)))
+    assert np.isclose(vec.item(init), cmath.exp(1j*(((init>>1)&7)+1)))

@@ -227,6 +227,8 @@ public:
         run();
         std::size_t n = vec_.size();
         std::size_t dist = 1UL << target_id;
+
+        #pragma omp parallel for collapse(2) schedule(static)
         for(std::size_t high = 0; high < n; high += 2*dist){
             for(std::size_t low = 0; low < dist; ++low){
                 std::size_t entry = high+low;
@@ -235,6 +237,23 @@ public:
                     u |= ((entry >> choice_ids[i]) & 1) << i;
                 kernel_core_unif(vec_, entry, dist, unitaries[u]);
             }
+        }
+    }
+
+    template <class M>
+    void apply_diagonal_gate(std::vector<calc_type> angles,
+                             std::vector<unsigned> ids)
+    {
+        run();
+        std::size_t n = vec_.size();
+        complex_type I(0., 1.);
+
+        #pragma omp parallel for schedule(static)
+        for(std::size_t entry = 0; entry < n; ++entry) {
+            unsigned a = 0;
+            for(std::size_t i = 0; i < ids.size(); ++i)
+                a |= ((entry >> ids[i]) & 1) << i;
+            vec_[entry] *= std::exp(I * angles[a]);
         }
     }
 

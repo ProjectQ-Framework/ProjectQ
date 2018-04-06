@@ -1,3 +1,4 @@
+import copy
 import math
 import cmath
 import numpy as np
@@ -31,7 +32,8 @@ def _decompose_diagonal_gate(cmd):
 
     Ph(angles[0]) | qureg[0]
 
-# uniformly controlled rotation
+
+# uniformly controlled rotation (one choice qubit)
 def _decompose_rotation(phi1, phi2):
     return (phi1 + phi2) / 2, (phi1 - phi2) / 2
 
@@ -54,7 +56,6 @@ def _decompose_rotations_reversed(angles, a, b):
     _decompose_rotations_reversed(angles, a+N//2, b)
 
 
-# has amortized constant time
 def _count_trailing_zero_bits(v):
     assert(v > 0)
     v = (v ^ (v - 1)) >> 1;
@@ -71,9 +72,7 @@ def _apply_uniformly_controlled_rotation(angles, qureg):
     assert 1 << n == N
     assert N > 0
 
-
     _decompose_rotations(angles, 0, N)
-    print(angles)
 
     target = qureg[0]
     controls = qureg[1:]

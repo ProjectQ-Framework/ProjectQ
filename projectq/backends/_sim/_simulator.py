@@ -31,7 +31,8 @@ from projectq.ops import (NOT,
                           Deallocate,
                           BasicMathGate,
                           TimeEvolution,
-                          UniformlyControlledGate)
+                          UniformlyControlledGate,
+                          DiagonalGate)
 
 try:
     from ._cppsim import Simulator as SimulatorBackend
@@ -101,13 +102,12 @@ class Simulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        #if(isinstance(cmd.gate, UniformlyControlledGate)):
-        #    return False
         if (cmd.gate == Measure or cmd.gate == Allocate or
                 cmd.gate == Deallocate or
                 isinstance(cmd.gate, BasicMathGate) or
                 isinstance(cmd.gate, TimeEvolution) or
-                isinstance(cmd.gate, UniformlyControlledGate)):
+                isinstance(cmd.gate, UniformlyControlledGate) or
+                isinstance(cmd.gate, DiagonalGate)):
             return True
         try:
             m = cmd.gate.matrix
@@ -311,13 +311,9 @@ class Simulator(BasicEngine):
                     i += 1
         elif cmd.gate == Allocate:
             ID = cmd.qubits[0][0].id
-            print(self)
-            print("Alloc: {}".format(ID))
             self._simulator.allocate_qubit(ID)
         elif cmd.gate == Deallocate:
             ID = cmd.qubits[0][0].id
-            print(self)
-            print("Dealloc: {}".format(ID))
             self._simulator.deallocate_qubit(ID)
         elif isinstance(cmd.gate, BasicMathGate):
             qubitids = []
@@ -337,12 +333,17 @@ class Simulator(BasicEngine):
             self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
         elif isinstance(cmd.gate, UniformlyControlledGate):
             assert(get_control_count(cmd) == 0)
-            choice_ids = [qb.id for qb in cmd.gate.choice_qubits]
-            target_id = cmd.qubits[0][0].id
+            choice_ids = [qb.id for qb in cmd.qubits[0]]
+            target_id = cmd.qubits[1][0].id
             unitaries = [gate.matrix.tolist() for gate in cmd.gate.gates]
             self._simulator.apply_uniformly_controlled_gate(unitaries,
                                                             target_id,
                                                             choice_ids)
+        elif isinstance(cmd.gate, DiagonalGate):
+            assert(get_control_count(cmd) == 0)
+            ids = [q.id for qr in cmd.qubits for q in qr]
+            angles = cmd.gate.angles
+            self._simulator.apply_diagonal_gate(angles, ids)
         elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]

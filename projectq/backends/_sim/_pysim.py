@@ -20,6 +20,7 @@ Please compile the c++ simulator for large-scale simulations.
 
 import random
 import numpy as _np
+import cmath
 
 
 class Simulator(object):
@@ -416,6 +417,14 @@ class Simulator(object):
                     self._state[id1],
                     self._state[id2],
                     unitaries[u])
+
+    def apply_diagonal_gate(self, angles, ids):
+        n = len(self._state)
+        for entry in range(n):
+            a = 0
+            for i in range(len(ids)):
+                a |= ((entry >> ids[i]) & 1) << i
+            self._state[entry] *= cmath.exp(1j*angles[a])
 
     def _single_qubit_gate(self, m, pos, mask):
         """
