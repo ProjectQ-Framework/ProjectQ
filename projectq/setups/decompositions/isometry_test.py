@@ -15,6 +15,8 @@ import pytest
 
 from . import isometry as iso
 
+#TODO test with many columns
+
 def normalize(v):
     return v/np.linalg.norm(v,2)
 
@@ -87,21 +89,21 @@ def test_2_columns():
     V = [col_0, col_1]
 
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    eng = MainEngine()
-    qureg = eng.allocate_qureg(3)
-    eng.flush() # order
+    # eng = MainEngine()
+    # qureg = eng.allocate_qureg(3)
+    # eng.flush() # order
+    #
+    # iso._apply_isometry(V,qureg)
+    # eng.flush()
+    # order, result = eng.backend.cheat()
+    # print(order)
+    # iso._print_vec(col_0)
+    # iso._print_qureg(qureg)
+    # assert np.allclose(result, col_0)
+    # Measure | qureg
+    # eng.flush()
 
-    iso._apply_isometry(V,qureg)
-    eng.flush()
-    order, result = eng.backend.cheat()
-    print(order)
-    iso._print_vec(col_0)
-    iso._print_qureg(qureg)
-    assert np.allclose(result, col_0)
-    Measure | qureg
-    eng.flush()
-
-    eng = MainEngine(engine_list=[AutoReplacer(rule_set)])
+    eng = MainEngine(engine_list=[AutoReplacer(rule_set), CommandPrinter()])
     qureg = eng.allocate_qureg(3)
     eng.flush() # order
     X | qureg[0]
@@ -115,6 +117,8 @@ def test_2_columns():
     Measure | qureg
     eng.flush()
 
+    assert False
+
     n = 5
     for k in range(1<<n):
         for s in range(n):
@@ -123,4 +127,6 @@ def test_2_columns():
                 print("Range(k={},s={}): {}, {}".format(k,s,range_l[0], range_l[-1]))
             else:
                 print("Range(k={},s={}): empty".format(k,s))
+            # if s > 0:
+            #     print("MCG {}".format(iso.b(k,s) + (iso.a(k,s) << (s-1))))
         print("--")

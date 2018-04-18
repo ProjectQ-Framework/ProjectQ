@@ -159,3 +159,23 @@ def test_decompose_diagonal_gate(init):
 
     print(vec.item(init) - cmath.exp(1j*(((init>>1)&7)+1)))
     assert np.isclose(vec.item(init), cmath.exp(1j*(((init>>1)&7)+1)))
+
+@pytest.mark.parametrize("init", range(4))
+def test_decompose_diagonal_gate_2(init):
+    angles = [0, np.pi/2, np.pi/4, -np.pi/4]
+    eng = MainEngine(verbose = True)
+    qureg = eng.allocate_qureg(2)
+    eng.flush()
+    create_initial_state(init, qureg)
+
+    D = DiagonalGate(angles=angles)
+    cmd = D.generate_command(qureg)
+    diag._decompose_diagonal_gate(cmd)
+
+    eng.flush()
+    qbit_to_bit_map, final_wavefunction = eng.backend.cheat()
+    print(qbit_to_bit_map)
+    vec = np.array([final_wavefunction]).T
+
+    print(vec.item(init) - cmath.exp(1j*angles[init]))
+    assert False

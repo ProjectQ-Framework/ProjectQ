@@ -22,14 +22,21 @@ def _decompose_diagonal_gate(cmd):
     n = len(qureg)
     assert 1 << n == N
 
+    print(angles)
+    print("--")
     for k in range(n):
         length = N >> k
         rotations = []
         for i in range(0,length,2):
             angles[i//2], rot = _basic_decomposition(angles[i], angles[i+1])
             rotations.append(rot)
+            print("rot {}".format(rot))
+        print(rotations)
         _apply_uniformly_controlled_rotation(rotations, qureg[k:])
-
+        print(angles)
+        print(rotations)
+        print("---")
+    print(angles[0])
     Ph(angles[0]) | qureg[0]
 
 

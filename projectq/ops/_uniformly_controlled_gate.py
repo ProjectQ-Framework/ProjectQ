@@ -63,7 +63,9 @@ class _SingleQubitGate(BasicGate):
         return _SingleQubitGate(self._matrix.getH())
 
     def __str__(self):
-        return "U"
+        return "U[{:.2f} {:.2f}; {:.2f} {:.2f}]".format(
+            abs(self.matrix.item((0,0))), abs(self.matrix.item((0,1))),
+            abs(self.matrix.item((1,0))), abs(self.matrix.item((1,1))))
 
     # make sure optimizer behaves well
     def __eq__(self, other):

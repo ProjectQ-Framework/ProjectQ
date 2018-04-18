@@ -116,7 +116,6 @@ def _reduce_column(k, local_quregs, user_qureg):
         print("local_quregs:")
         for i in range(len(local_quregs)):
             _print_qureg(local_quregs[i])
-        print("user_qureg")
         print("s = {} --------------------------- end".format(s))
 
 
@@ -149,12 +148,8 @@ def _disentangle(k, s, local_quregs, user_qureg):
         gate = ToOneGate
 
     gates = []
-    # fill with identities, might be improved upon
     if len(range_l) == 0:
         return
-
-    print("Range: {}, {}".format(range_l[0], range_l[-1]))
-
     for l in range(range_l[0]):
         gates.append(Rz(0))
     for l in range_l:
@@ -196,9 +191,13 @@ def _prepare_disentangle(k, s, local_quregs, user_qureg):
     U.c0 = c(qureg,2*a(k,s+1), k, s)
     U.c1 = c(qureg,2*a(k,s+1)+1, k, s)
 
+    print("PREPARE")
+    print("b(k,s+1) = {}".format(b(k,s+1)))
+    print("2*a(k,s+1) = {}".format(2*a(k,s+1)))
+
     other_qubits = qureg[:s]+qureg[s+1:]
     # cut out s-th bit
-    mask = b(k,s) + (a(k,s) << (s-1))
+    mask = b(k,s) + (a(k,s+1) << s)
 
     for q in local_quregs+[user_qureg]:
         qubits = q[:s]+q[s+1:]
@@ -219,7 +218,6 @@ def _prepare_disentangle(k, s, local_quregs, user_qureg):
 #     local_eng.flush()
 #     local_eng.backend.set_wavefunction(target_state, local_qureg)
 #
-#     #TODO measure known local qubits
 #     with Dagger(user_eng):
 #         for s in range(n):
 #             gates = []
