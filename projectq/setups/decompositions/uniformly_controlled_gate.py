@@ -3,31 +3,20 @@ import cmath
 import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.ops import UniformlyControlledGate, BasicGate, H, CNOT, Rz
-
-
-def _count_trailing_zero_bits(v):
-    assert(v > 0)
-    v = (v ^ (v - 1)) >> 1;
-    c = 0
-    while(v):
-        v >>= 1;
-        c += 1
-    return c
-
+from projectq.ops import UniformlyControlledGate, BasicGate, H, CNOT, Rz, DiagonalGate
+from projectq.isometries import _apply_uniformly_controlled_gate
 
 def _decompose_uniformly_controlled_gate(cmd):
-    gates = cmd.gate.decomposed_gates
-    target = cmd.qubits[1]
-    choice_reg = cmd.qubits[0]
+    ucg = cmd.gate
+    if not ucg.decomposed:
+        ucg.decompose()
+    decomposition = ucg.decomposition
 
-    for i in range(len(gates) - 1):
-        gates[i] | target
-        control_index = _count_trailing_zero_bits(i+1)
-        choice = choice_reg[control_index]
-        CNOT | (choice, target)
-        Rz(-np.pi/2) | choice
-    gates[-1] | target
+    choice_reg = cmd.qubits[0]
+    target = cmd.qubits[1]
+
+    reduced = ucg.up_to_diagonal
+    _apply_uniformly_controlled_gate(decomposition, target, choice_reg, reduced)
 
 
 all_defined_decomposition_rules = [

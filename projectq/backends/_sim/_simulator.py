@@ -19,6 +19,7 @@ implementation is used as an alternative.
 """
 
 import math
+import cmath
 import random
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count
@@ -339,6 +340,10 @@ class Simulator(BasicEngine):
             self._simulator.apply_uniformly_controlled_gate(unitaries,
                                                             target_id,
                                                             choice_ids)
+            if cmd.gate.up_to_diagonal:
+                angles = [-cmath.phase(p) for p in cmd.gate.phases]
+                ids = [target_id]+choice_ids
+                self._simulator.apply_diagonal_gate(angles, ids)
         elif isinstance(cmd.gate, DiagonalGate):
             assert(get_control_count(cmd) == 0)
             ids = [q.id for qr in cmd.qubits for q in qr]

@@ -28,7 +28,8 @@ from . import (arb1qubit2rzandry,
                toffoli2cnotandtgate,
                time_evolution,
                uniformly_controlled_gate,
-               diagonal_gate)
+               diagonal_gate,
+               isometry)
 
 all_defined_decomposition_rules = [
     rule
@@ -48,6 +49,7 @@ all_defined_decomposition_rules = [
                    toffoli2cnotandtgate,
                    time_evolution,
                    uniformly_controlled_gate,
-                   diagonal_gate]
+                   diagonal_gate,
+                   isometry]
     for rule in module.all_defined_decomposition_rules
 ]

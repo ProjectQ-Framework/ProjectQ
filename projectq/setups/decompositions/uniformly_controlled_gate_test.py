@@ -17,17 +17,7 @@ from projectq.ops import H,Rx,Ry,Rz,X,UniformlyControlledGate,CNOT
 
 from . import uniformly_controlled_gate as ucg
 
-from projectq.ops._uniformly_controlled_gate import _SingleQubitGate
-
-def test_count_trailing_zero_bits():
-    assert ucg._count_trailing_zero_bits(1) == 0
-    assert ucg._count_trailing_zero_bits(2) == 1
-    assert ucg._count_trailing_zero_bits(3) == 0
-    assert ucg._count_trailing_zero_bits(4) == 2
-    assert ucg._count_trailing_zero_bits(5) == 0
-    assert ucg._count_trailing_zero_bits(6) == 1
-    assert ucg._count_trailing_zero_bits(7) == 0
-
+from projectq.isometries import _SingleQubitGate
 
 def test_full_decomposition_1_choice():
     eng = MainEngine()
@@ -172,6 +162,5 @@ def test_diagonal_gate(init):
     print(qbit_to_bit_map)
     vec = np.array([final_wavefunction])
     k = 1 << len(choice)
-    diagonal = UCG.diagonal
-    print(cmath.phase(vec.item(init)/(diagonal[init])))
-    assert np.isclose(vec.item(init), diagonal[init])
+    print(cmath.phase(vec.item(init)))
+    assert np.isclose(vec.item(init), 1)
