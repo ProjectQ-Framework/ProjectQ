@@ -113,3 +113,61 @@ class CommandPrinter(BasicEngine):
             # (try to) send on
             if not self.is_last_engine:
                 self.send([cmd])
+
+
+class CommandLister(CommandPrinter):
+    """
+    CommandLister is a minor modification of CommandPrinter which stores the
+    commands in a list rather than outputting to stdout, which can be more
+    convenient in interactive/notebook environments. By creating this object
+    and passing it as the backend, we can later access the list of commands
+    by using CommandLister.cmd_list.
+    """
+    def __init__(self, accept_input=True, default_measure=False,
+                 in_place=False):
+        """
+        Initialize a CommandLister.
+        Args:
+            accept_input (bool): If accept_input is true, the printer queries
+                the user to input measurement results if the CommandPrinter is
+                the last engine. Otherwise, all measurements yield
+                default_measure.
+            default_measure (bool): Default measurement result (if
+                accept_input is False).
+            in_place (bool): If in_place is true, all output is written on the
+                same line of the terminal.
+        """
+        CommandPrinter.__init__(self, accept_input,default_measure, in_place)
+
+        #Initialize an empty list which we will fill with commands
+        self.cmd_list = [] 
+    
+    def _print_cmd(self, cmd):
+        """
+        Store a command or, if the command is a measurement instruction and
+        the CommandStorer is the last engine in the engine pipeline: Query
+        the user for the measurement result (if accept_input = True) / Set
+        the result to 0 (if it's False).
+        Args:
+            cmd (Command): Command to print.
+        """
+        if self.is_last_engine and cmd.gate == Measure:
+            assert(get_control_count(cmd) == 0)
+            self.cmd_list.append(str(cmd))
+            for qureg in cmd.qubits:
+                for qubit in qureg:
+                    if self._accept_input:
+                        m = None
+                        while m != '0' and m != '1' and m != 1 and m != 0:
+                            prompt = ("Input measurement result (0 or 1) for"
+                                      " qubit " + str(qubit) + ": ")
+                            m = input(prompt)
+                    else:
+                        m = self._default_measure
+                    m = int(m)
+                    self.main_engine.set_measurement_result(qubit, m)
+        else:
+            if self._in_place:
+                self.cmd_list.append("\0\r\t\x1b[K" + str(cmd) + "\r")
+            else:
+                self.cmd_list.append(str(cmd))
