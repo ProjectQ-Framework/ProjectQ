@@ -27,7 +27,9 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
+from projectq.cengines import (DummyEngine,
+                               LogicalQubitIDTag,
+                               NotYetMeasuredError)
 from projectq.ops import (H,
                           X,
                           Y,
@@ -43,8 +45,11 @@ from projectq.ops import (H,
                           BasicMathGate,
                           QubitOperator,
                           TimeEvolution,
-                          All)
+                          All,
+                          Allocate,
+                          Command)
 from projectq.meta import Control, Dagger
+from projectq.types import WeakQubitRef
 
 from projectq.backends import Simulator
 
@@ -177,6 +182,25 @@ def test_simulator_functional_measurement(sim):
 
     bit_value_sum = sum([int(qubit) for qubit in qubits])
     assert bit_value_sum == 0 or bit_value_sum == 5
+
+
+def test_simulator_measure_mapped_qubit(sim):
+    eng = MainEngine(sim, [])
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=X, qubits=([qb1],))
+    cmd2 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
+                   tags=[LogicalQubitIDTag(2)])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+    eng.send([cmd0, cmd1, cmd2])
+    eng.flush()
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 1
 
 
 class Plus2Gate(BasicMathGate):
