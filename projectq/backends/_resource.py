@@ -16,9 +16,12 @@
 Contains a compiler engine which counts the number of calls for each type of
 gate used in a circuit, in addition to the max. number of active qubits.
 """
-from projectq.cengines import LastEngineException, BasicEngine
+from projectq.cengines import (BasicEngine,
+                               LastEngineException,
+                               LogicalQubitIDTag)
 from projectq.meta import get_control_count
 from projectq.ops import FlushGate, Deallocate, Allocate, Measure
+from projectq.types import WeakQubitRef
 
 
 class ResourceCounter(BasicEngine):
@@ -74,9 +77,17 @@ class ResourceCounter(BasicEngine):
             self._active_qubits += 1
         elif cmd.gate == Deallocate:
             self._active_qubits -= 1
-        elif cmd.gate == Measure:
+        elif self.is_last_engine and cmd.gate == Measure:
             for qureg in cmd.qubits:
                 for qubit in qureg:
+                    # Check if a mapper assigned a different logical id
+                    logical_id_tag = None
+                    for tag in cmd.tags:
+                        if isinstance(tag, LogicalQubitIDTag):
+                            logical_id_tag = tag
+                    if logical_id_tag is not None:
+                        qubit = WeakQubitRef(qubit.engine, 
+                                             logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
 
         self.max_width = max(self.max_width, self._active_qubits)

@@ -18,8 +18,12 @@ Tests for projectq.backends._resource.py.
 
 import pytest
 
-from projectq.cengines import MainEngine, DummyEngine
-from projectq.ops import H, CNOT, X, Rz, Measure
+from projectq.cengines import (DummyEngine,
+                               LogicalQubitIDTag,
+                               MainEngine,
+                               NotYetMeasuredError)
+from projectq.ops import H, CNOT, X, Rz, Measure, Command, Allocate
+from projectq.types import WeakQubitRef
 
 from projectq.backends import ResourceCounter
 
@@ -37,6 +41,24 @@ def test_resource_counter_isavailable():
     resource_counter.is_last_engine = True
 
     assert resource_counter.is_available("test")
+
+
+def test_resource_counter_measurement():
+    eng = MainEngine(ResourceCounter(), [])
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
+                   tags=[LogicalQubitIDTag(2)])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+    eng.send([cmd0, cmd1])
+    eng.flush()
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 0
 
 
 def test_resource_counter():
@@ -57,8 +79,8 @@ def test_resource_counter():
 
     Measure | (qubit1, qubit3)
 
-    assert int(qubit1) == int(qubit3)
-    assert int(qubit1) == 0
+    with pytest.raises(NotYetMeasuredError):
+        int(qubit1)
 
     assert resource_counter.max_width == 2
 
