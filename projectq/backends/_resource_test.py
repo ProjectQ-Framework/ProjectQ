@@ -114,6 +114,7 @@ def test_resource_counter_str_when_empty():
 def test_resource_counter_depth():
     resource_counter = ResourceCounter()
     eng = MainEngine(resource_counter, [])
+    assert resource_counter.depth == 0
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -130,4 +131,9 @@ def test_resource_counter_depth():
     assert resource_counter.depth == 7
     CNOT | (qb1, qb2)
     Measure | qb2
+    assert resource_counter.depth == 9
+    qb1[0].__del__()
+    qb2[0].__del__()
+    assert resource_counter.depth == 9
+    qb0[0].__del__()
     assert resource_counter.depth == 9

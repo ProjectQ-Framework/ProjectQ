@@ -55,6 +55,7 @@ class ResourceCounter(BasicEngine):
         self.max_width = 0
         # key: qubit id, depth of this qubit
         self._depth_of_qubit = dict()
+        self._previous_max_depth = 0
 
     def is_available(self, cmd):
         """
@@ -76,7 +77,11 @@ class ResourceCounter(BasicEngine):
 
     @property
     def depth(self):
-        return max(self._depth_of_qubit.values())
+        if self._depth_of_qubit:
+            current_max = max(self._depth_of_qubit.values())
+            return max(current_max, self._previous_max_depth)
+        else:
+            return self._previous_max_depth
 
     def _add_cmd(self, cmd):
         """
@@ -87,6 +92,8 @@ class ResourceCounter(BasicEngine):
             self._depth_of_qubit[cmd.qubits[0][0].id] = 0
         elif cmd.gate == Deallocate:
             self._active_qubits -= 1
+            depth = self._depth_of_qubit[cmd.qubits[0][0].id]
+            self._previous_max_depth = max(self._previous_max_depth, depth)
             del self._depth_of_qubit[cmd.qubits[0][0].id]
         elif self.is_last_engine and cmd.gate == Measure:
             for qureg in cmd.qubits:
