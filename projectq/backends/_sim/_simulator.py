@@ -20,7 +20,7 @@ implementation is used as an alternative.
 
 import math
 import random
-from projectq.cengines import BasicEngine
+from projectq.cengines import BasicEngine, LogicalQubitIDTag
 from projectq.meta import get_control_count
 from projectq.ops import (NOT,
                           H,
@@ -31,6 +31,7 @@ from projectq.ops import (NOT,
                           Deallocate,
                           BasicMathGate,
                           TimeEvolution)
+from projectq.types import WeakQubitRef
 
 try:
     from ._cppsim import Simulator as SimulatorBackend
@@ -303,6 +304,14 @@ class Simulator(BasicEngine):
             i = 0
             for qr in cmd.qubits:
                 for qb in qr:
+                    # Check if a mapper assigned a different logical id
+                    logical_id_tag = None
+                    for tag in cmd.tags:
+                        if isinstance(tag, LogicalQubitIDTag):
+                            logical_id_tag = tag
+                    if logical_id_tag is not None:
+                        qb = WeakQubitRef(qb.engine, 
+                                          logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qb, out[i])
                     i += 1
         elif cmd.gate == Allocate:
