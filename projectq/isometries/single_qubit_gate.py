@@ -8,9 +8,9 @@ def _is_unitary(m):
 # Helper class
 class _SingleQubitGate(BasicGate):
     def __init__(self, m):
-        assert _is_unitary(m)
         self._matrix = m
         self.interchangeable_qubit_indices = []
+        self._error = np.linalg.norm(m*m.H - np.eye(2))
 
     @property
     def matrix(self):

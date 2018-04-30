@@ -1,12 +1,8 @@
-# try:
-#     from ._cppsim import Simulator as SimulatorBackend
-# except ImportError:
-#     from ._pysim import Simulator as SimulatorBackend
-#
 import numpy as np
 
-from projectq.ops import Rz, X, CNOT, UniformlyControlledGate, DiagonalGate, Ph
+from projectq.ops import Rz, X, CNOT, Ph
 from projectq.meta import Dagger, Control, Compute, Uncompute
+from . import _decompose_diagonal_gate
 
 def _count_trailing_zero_bits(v):
     assert v > 0
@@ -51,6 +47,9 @@ def _apply_uniformly_controlled_rotation(angles, qureg):
 def _apply_uniformly_controlled_gate(decomposition, target, choice_reg, up_to_diagonal):
     gates, phases = decomposition
 
+    assert len(gates) == 1<<len(choice_reg)
+    assert len(phases) == 2<<len(choice_reg)
+
     for i in range(len(gates) - 1):
         gates[i] | target
         control_index = _count_trailing_zero_bits(i+1)
@@ -62,8 +61,8 @@ def _apply_uniformly_controlled_gate(decomposition, target, choice_reg, up_to_di
     if up_to_diagonal:
         return
 
-    diagonal = DiagonalGate(phases=phases)
-    diagonal | (target, choice_reg)
+    decomposed_diagonal = _decompose_diagonal_gate(phases)
+    _apply_diagonal_gate(decomposed_diagonal, [target]+choice_reg)
 
 def _apply_mask(mask, qureg):
     n = len(qureg)
@@ -72,27 +71,50 @@ def _apply_mask(mask, qureg):
             X | qureg[pos]
 
 def _apply_isometry(decomposition, qureg):
-    reductions, phases = decomposition
+    reductions, decomposed_diagonal = decomposition
+    #assert False
     n = len(qureg)
-    with Dagger(qureg[0].engine):
+    eng = qureg[0].engine
+
+    # slightly faster an wrong?
+    # for k in reversed(range(len(reductions))):
+    #     for s in reversed(range(n)):
+    #         mcg, ucg = reductions[k][s]
+    #
+    #         mask = b(k,s) + (a(k,s+1) << s)
+    #         qubits = qureg[:s]+qureg[s+1:]
+    #         with Compute(eng):
+    #             _apply_mask(mask,qubits)
+    #         with Control(eng, qubits):
+    #             with Dagger(eng):
+    #                 mcg | qureg[s]
+    #         Uncompute(eng)
+    #
+    #         if len(ucg) > 0:
+    #             with Dagger(eng):
+    #                 _apply_uniformly_controlled_gate(ucg, qureg[s], qureg[s+1:], True)
+    #
+    # with Dagger(eng):
+    #     _apply_diagonal_gate(decomposed_diagonal, qureg)
+
+    with Dagger(eng):
         for k in range(len(reductions)):
             for s in range(n):
                 mcg, ucg = reductions[k][s]
-                # apply MCG
+
                 mask = b(k,s) + (a(k,s+1) << s)
                 qubits = qureg[:s]+qureg[s+1:]
-                e = qureg[0].engine
-                with Compute(e):
+                with Compute(eng):
                     _apply_mask(mask,qubits)
-                with Control(e, qubits):
+                with Control(eng, qubits):
                     mcg | qureg[s]
-                Uncompute(e)
-                #apply UCG
+                Uncompute(eng)
+
                 if len(ucg) > 0:
-                    UCG = UniformlyControlledGate(ucg, up_to_diagonal=True)
-                    UCG | (qureg[s+1:], qureg[s])
-        diagonal = DiagonalGate(phases=phases)
-        diagonal | qureg
+                    _apply_uniformly_controlled_gate(ucg, qureg[s], qureg[s+1:], True)
+
+        _apply_diagonal_gate(decomposed_diagonal, qureg)
+
 
 def a(k,s):
     return k >> s

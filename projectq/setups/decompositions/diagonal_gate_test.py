@@ -12,6 +12,10 @@ import pytest
 
 from . import diagonal_gate as diag
 
+def test_is_cpp_diagonal_decomposition():
+    import projectq.isometries.cppdec
+    assert projectq.isometries.cppdec
+
 # class _SingleDiagonalGate(BasicGate):
 #     def __init__(self, angles):
 #         a,b = cmath.exp(1j*angles[0]), cmath.exp(1j*angles[1])

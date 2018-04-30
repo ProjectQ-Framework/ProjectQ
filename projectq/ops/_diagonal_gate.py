@@ -4,66 +4,74 @@ import numpy as np
 import cmath
 import copy
 
-# I know this is ugly...
+def _is_power_of_2(k):
+    if(k <= 1):
+        return False
+    else:
+        return ((k-1) & k) == 0
+
 class DiagonalGate(BasicGate):
     """
     A diagonal gate is a unitary operation whose matrix representation
     in the computational basis is diagonal.
 
-    TODO:
-        D = DiagonalGate(complex_phases)
-        D | qureg
+    Example:
+        .. code-block:: python
+            phases = [1j, -1j]
+            D = DiagonalGate(phases=phases)
+            D | qureg
 
-    The order of the basis is given by the order of qureg....
+    Attributes:
+        phases: list of complex numbers with modulus one
+        angles: alternatively the real angles can be provided
+
+    Note:
+        The k-th phase will be applied to the k-th basis vector in the
+        usual lexicographic order of the basis vectors. The first qubit in
+        the qureg is in the least significant position.
     """
-    def __init__(self, angles=[], phases=[]):
-        # only ever need one of the two in any instance
-        assert len(angles) == 0 or len(phases) == 0
+    def __init__(self, phases=[], angles=[]):
+        if len(angles) > 0 and len(phases) > 0:
+            raise ValueError("Only provide either a list of angles or of phases")
+
         if len(angles) > 0:
-            print("Dont construct from angles")
+            if not _is_power_of_2(len(angles)):
+                raise ValueError("Number of angles must be 2^k for k=1,2,3...")
             self._angles = copy.copy(angles)
             self._phases = []
         elif len(phases) > 0:
+            if not _is_power_of_2(len(phases)):
+                raise ValueError("Number of angles must be 2^k for k=1,2,3...")
             self._phases = copy.copy(phases)
             self._angles = []
         else:
-            assert False
+            raise ValueError("Please provide either a list of angles or of phases")
         self.interchangeable_qubit_indices = []
-        self._decomposed = False
+        self._decomposition = None
 
     @property
     def angles(self):
-        if len(self._angles) > 0:
-            return self._angles
-        else:
-            print("not good 1")
-            return [cmath.phase(phase) for phase in self._phases]
+        if len(self._angles) == 0:
+            self._angles = [cmath.phase(phase) for phase in self.phases]
+        return self._angles
 
     @property
     def phases(self):
-        if len(self._phases) > 0:
-            return self._phases
-        else:
-            print("not good 2")
-            return [cmath.exp(1j*angle) for angle in self._angles]
+        if len(self._phases) == 0:
+            self._phases = [cmath.exp(1j*angle) for angle in self.angles]
+        return self._phases
 
     def get_inverse(self):
-        inv_phases = [p.conjugate() for p in self.phases]
-        return DiagonalGate(phases = inv_phases)
-
-    def decompose(self):
-        assert self._decomposed == False
-        # don't use classes
-        from projectq.isometries import _DecomposeDiagonal
-        self._decomposition = _DecomposeDiagonal(self.phases).get_decomposition()
-        self._decomposed = True
-
-    @property
-    def decomposed(self):
-        return self._decomposed
+        if len(self._angles) > 0:
+            return DiagonalGate(angles = [-a for a in self._angles])
+        else:
+            return DiagonalGate(phases = [p.conjugate() for p in self._phases])
 
     @property
     def decomposition(self):
+        if self._decomposition == None:
+            from projectq.isometries import _decompose_diagonal_gate
+            self._decomposition = _decompose_diagonal_gate(self.phases)
         return self._decomposition
 
     def __str__(self):

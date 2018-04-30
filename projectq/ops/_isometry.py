@@ -4,30 +4,26 @@ import copy
 
 class Isometry(BasicGate):
     """
-    Isometries ...
+    A gate that represents arbitrary Isometries.
+
+    Example:
+        .. code-block:: python
+            col_0 = [1j, -1j]
+            col_1 = ...
+            V = Isometry([col_0 col_1])
+            V | qureg
+
     """
     def __init__(self, cols):
-        self._cols = copy.deepcopy(cols)
+        self.cols = copy.deepcopy(cols)
         self.interchangeable_qubit_indices = []
-        self._decomposed = False
-
-    @property
-    def cols(self):
-        return self._cols
-
-    def decompose(self):
-        assert self._decomposed == False
-        # don't use classes
-        from projectq.isometries import _DecomposeIsometry
-        self._decomposition = _DecomposeIsometry(self._cols).get_decomposition()
-        self._decomposed = True
-
-    @property
-    def decomposed(self):
-        return self._decomposed
+        self._decomposition = None
 
     @property
     def decomposition(self):
+        if self._decomposition == None:
+            from projectq.isometries import _decompose_isometry
+            self._decomposition = _decompose_isometry(self.cols)
         return self._decomposition
 
     def __str__(self):

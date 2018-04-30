@@ -35,11 +35,9 @@ class _DecomposeIsometry(object):
 
         phases = [1./c(local_quregs[k],k) for k in range(len(self._cols))]
         phases = phases + [1.0]*((1<<n) - len(phases))
-        #diagonal = DiagonalGate(phases=phases)
-        #for q in local_quregs:
-        #    diagonal | q
+        diagonal = DiagonalGate(phases=phases)
 
-        return reductions, phases
+        return reductions, diagonal.decomposition
 
 
 def _print_qureg(qureg):
@@ -117,7 +115,7 @@ def _disentangle(k, s, local_quregs):
     assert 0 <= k and k < 2**n
     assert 0 <= s and s < n
 
-    eng = qureg.engine
+    #eng = qureg.engine
 
     mcg = Rz(0)
     if b(k,s+1) != 0 and ((k >> s) & 1) == 0:
@@ -148,11 +146,11 @@ def _disentangle(k, s, local_quregs):
         U.c1 = c(qureg, 2*l + 1, k, s)
         gates.append(U)
     UCG = UniformlyControlledGate(gates, up_to_diagonal=True)
-    UCG.decompose()
+    #UCG.decompose()
     for q in local_quregs:
         UCG | (q[s+1:], q[s])
 
-    return mcg, gates
+    return mcg, UCG.decomposition
 
 
 def _apply_mask(mask, qureg):
@@ -170,7 +168,7 @@ def _prepare_disentangle(k, s, local_quregs):
     assert (k >> s) & 1 == 0
     assert b(k,s+1) != 0
 
-    eng = qureg.engine
+    #eng = qureg.engine
 
     for l in range(a(k,s)):
         assert abs(c(qureg, l, k, s)) < tol
@@ -178,10 +176,6 @@ def _prepare_disentangle(k, s, local_quregs):
     U = ToZeroGate()
     U.c0 = c(qureg,2*a(k,s+1), k, s)
     U.c1 = c(qureg,2*a(k,s+1)+1, k, s)
-
-    print("PREPARE")
-    print("b(k,s+1) = {}".format(b(k,s+1)))
-    print("2*a(k,s+1) = {}".format(2*a(k,s+1)))
 
     # cut out s-th bit
     mask = b(k,s) + (a(k,s+1) << s)

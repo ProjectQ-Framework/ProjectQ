@@ -341,7 +341,7 @@ class Simulator(BasicEngine):
                                                             target_id,
                                                             choice_ids)
             if cmd.gate.up_to_diagonal:
-                angles = [-cmath.phase(p) for p in cmd.gate.phases]
+                angles = [-cmath.phase(p) for p in cmd.gate.decomposition[1]]
                 ids = [target_id]+choice_ids
                 self._simulator.apply_diagonal_gate(angles, ids)
         elif isinstance(cmd.gate, DiagonalGate):

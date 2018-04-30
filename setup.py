@@ -49,6 +49,22 @@ cppsim = Feature(
     ],
 )
 
+cppdec = Feature(
+    'C++ Decompositions',
+    standard=True,
+    ext_modules=[
+        Extension(
+            'projectq.isometries.cppdec',
+            ['projectq/isometries/cppdec.cpp'],
+            include_dirs=[
+                # Path to pybind11 headers
+                get_pybind_include(),
+                get_pybind_include(user=True)
+            ],
+            language='c++'
+        ),
+    ],
+)
 
 def has_flag(compiler, flagname=None):
     """
@@ -163,7 +179,7 @@ setup(
     description=('ProjectQ - '
                  'An open source software framework for quantum computing'),
     long_description=long_description,
-    features={'cppsimulator': cppsim},
+    features={'cppdecompositions': cppdec, 'cppsimulator': cppsim},
     install_requires=requirements,
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,

@@ -2,7 +2,6 @@
 #include <vector>
 #include <array>
 #include <complex>
-#include <omp.h>
 #include <cassert>
 #include <algorithm>
 #include <tuple>
@@ -11,151 +10,120 @@
 
 using calc_type = double;
 using complex_type = std::complex<calc_type>;
-
+using gate_type = std::array<std::array<complex_type, 2>, 2>;
 
 const double tol = 1e-12;
 const complex_type I(0., 1.);
 
-class Gate {
-public:
-    using gate_type = std::array<std::array<complex_type, 2>, 2>;
+gate_type operator*(const gate_type& l, const gate_type& r) {
+    complex_type a = l[0][0] * r[0][0] + l[0][1] * r[1][0];
+    complex_type b = l[0][0] * r[0][1] + l[0][1] * r[1][1];
+    complex_type c = l[1][0] * r[0][0] + l[1][1] * r[1][0];
+    complex_type d = l[1][0] * r[0][1] + l[1][1] * r[1][1];
+    return {{a,b,c,d}};
+}
 
-    Gate() {};
+gate_type operator*(complex_type c, const gate_type& g) {
+    return {{ c*g[0][0], c*g[0][1],
+              c*g[1][0], c*g[1][1] }};
+}
 
-    Gate(complex_type a, complex_type b, complex_type c, complex_type d) {
-        gate_[0][0] = a;
-        gate_[0][1] = b;
-        gate_[1][0] = c;
-        gate_[1][1] = d;
-    }
+gate_type operator+(const gate_type& a, const gate_type& b) {
+    return {{ a[0][0]+b[0][0], a[0][1]+b[0][1],
+              a[1][0]+b[1][0], a[1][1]+b[1][1] }};
+}
 
-    Gate& operator=(const Gate& o) {
-        gate_[0][0] = o.gate_[0][0];
-        gate_[0][1] = o.gate_[0][1];
-        gate_[1][0] = o.gate_[1][0];
-        gate_[1][1] = o.gate_[1][1];
-        return *this;
-    }
 
-    void mul(const Gate& o) {
-        complex_type a = gate_[0][0] * o.gate_[0][0] + gate_[0][1] * o.gate_[1][0];
-        complex_type b = gate_[0][0] * o.gate_[0][1] + gate_[0][1] * o.gate_[1][1];
-        complex_type c = gate_[1][0] * o.gate_[0][0] + gate_[1][1] * o.gate_[1][0];
-        complex_type d = gate_[1][0] * o.gate_[0][1] + gate_[1][1] * o.gate_[1][1];
-        gate_[0][0] = a;
-        gate_[0][1] = b;
-        gate_[1][0] = c;
-        gate_[1][1] = d;
-    }
+gate_type dagger(const gate_type& g) {
+    return {{std::conj(g[0][0]), std::conj(g[1][0]),
+             std::conj(g[0][1]), std::conj(g[1][1])}};
+}
+//
+// void print(const gate_type& g) {
+//     std::cout << g[0][0] << " " << g[0][1] << std::endl;
+//     std::cout << g[1][0] << " " << g[1][1] << std::endl;
+// }
 
-    void mul_left(const Gate& o) {
-        complex_type a = o.gate_[0][0] * gate_[0][0] + o.gate_[0][1] * gate_[1][0];
-        complex_type b = o.gate_[0][0] * gate_[0][1] + o.gate_[0][1] * gate_[1][1];
-        complex_type c = o.gate_[1][0] * gate_[0][0] + o.gate_[1][1] * gate_[1][0];
-        complex_type d = o.gate_[1][0] * gate_[0][1] + o.gate_[1][1] * gate_[1][1];
-        gate_[0][0] = a;
-        gate_[0][1] = b;
-        gate_[1][0] = c;
-        gate_[1][1] = d;
-    }
+// matrix containing normalized eigen vectors assuming eigenvalues
+// are (i, -i)
+gate_type eigen_vectors(const gate_type& gate) {
+    gate_type u;
+    if(std::abs(gate[1][0]) > tol) {
+        u[0][0] = I - gate[1][1];
+        u[0][1] = -I - gate[1][1];
+        u[1][0] = gate[1][0];
+        u[1][1] = gate[1][0];
+    } else if(std::abs(gate[0][1]) > tol) {
+        u[0][0] = gate[0][1];
+        u[0][1] = gate[0][1];
+        u[1][0] = I - gate[0][0];
+        u[1][1] = -I - gate[0][0];
+    } else {
+        if(std::abs(gate[0][0] - I) < tol) {
+            u[0][0] = 1;
+            u[1][0] = 0;
 
-    // matrix containing normalized eigen vectors assuming eigenvalues
-    // are (i, -i)
-    Gate eigen_vectors() const {
-        Gate u;
-        if(std::abs(gate_[1][0]) > tol) {
-            u.gate_[0][0] = I - gate_[1][1];
-            u.gate_[0][1] = -I - gate_[1][1];
-            u.gate_[1][0] = gate_[1][0];
-            u.gate_[1][1] = gate_[1][0];
-        } else if(std::abs(gate_[0][1]) > tol) {
-            u.gate_[0][0] = gate_[0][1];
-            u.gate_[0][1] = gate_[0][1];
-            u.gate_[1][0] = I - gate_[0][0];
-            u.gate_[1][1] = -I - gate_[0][0];
+            u[0][1] = 0;
+            u[1][1] = 1;
+        } else if(std::abs(gate[0][0] + I) < tol) {
+            u[0][0] = 0;
+            u[1][0] = 1;
+
+            u[0][1] = 1;
+            u[1][1] = 0;
         } else {
-            if(std::abs(gate_[0][0] - I) < tol) {
-                u.gate_[0][0] = 1;
-                u.gate_[1][0] = 0;
-
-                u.gate_[0][1] = 0;
-                u.gate_[1][1] = 1;
-            } else if(std::abs(gate_[0][0] + I) < tol) {
-                u.gate_[0][0] = 0;
-                u.gate_[1][0] = 1;
-
-                u.gate_[0][1] = 1;
-                u.gate_[1][1] = 0;
-            } else {
-                assert(false);
-            }
+            assert(false);
         }
-        u.normalize();
         return u;
     }
 
-    complex_type operator()(unsigned i, unsigned j) const {
-        assert(i == 0 || i == 1);
-        assert(j == 0 || j == 1);
-        return gate_[i][j];
-    }
+    calc_type norm = std::sqrt(std::norm(u[0][0]) + std::norm(u[1][0]));
+    u[0][0] /= norm;
+    u[1][0] /= norm;
+    norm = std::sqrt(std::norm(u[0][1]) + std::norm(u[1][1]));
+    u[0][1] /= norm;
+    u[1][1] /= norm;
 
-private:
-    void normalize() {
-        calc_type norm = std::sqrt(std::norm(gate_[0][0]) + std::norm(gate_[1][0]));
-        gate_[0][0] /= norm;
-        gate_[1][0] /= norm;
-        norm = std::sqrt(std::norm(gate_[0][1]) + std::norm(gate_[1][1]));
-        gate_[0][1] /= norm;
-        gate_[1][1] /= norm;
-    }
-
-    gate_type gate_;
-};
+    return u;
+}
 
 class MCG {
 public:
-    unsigned k, s;
-    Gate gate;
-    bool trivial;
+    gate_type gate;
+    using Decomposition = gate_type;
 
-    using Decomposition = Gate;
-
-    MCG(unsigned k, unsigned s) : k(k), s(s), trivial(true) { }
-
-    MCG(const Gate &gate, unsigned k, unsigned s)
-        : k(k), s(s), gate(gate), trivial(false) { }
+    MCG() { gate = {1,0,0,1}; }
+    MCG(const gate_type& gate) : gate(gate) { }
 
     MCG& operator=(const MCG& other) {
         gate = other.gate;
-        trivial = false;
         return *this;
     }
 
-    Decomposition get_decomposition() const {
-        return gate;
-    }
+    Decomposition get_decomposition() const { return gate; }
 };
 
 class Diagonal {
 public:
     using Decomposition = std::vector<std::vector<calc_type>>;
 
-    unsigned n, k, s;
+    unsigned n;
 
-    Diagonal(std::vector<complex_type> &phases, unsigned n, unsigned k, unsigned s)
-        : n(n), k(k), s(s), phases(phases) {
-        unsigned target_qubits = n-s;
-        assert(1<<target_qubits == phases.size());
-        angles = std::vector<calc_type>(1<<target_qubits);
-        for(unsigned i = 0; i < (1<<target_qubits); ++i)
-            angles[i] = std::arg(phases[i]);
+    Diagonal(std::vector<complex_type> &phases) : phases(phases) {
+        unsigned N = phases.size();
+        n = static_cast<unsigned>(std::log2(N));
+        assert(1<<n == N);
     }
 
     Decomposition get_decomposition() {
+        unsigned N = phases.size();
+        angles = std::vector<calc_type>(N);
+        for(unsigned i = 0; i < N; ++i)
+            angles[i] = std::arg(phases[i]);
+
         Decomposition decomposition;
-        for(unsigned i = 0; i < n-s; ++i) {
-            unsigned length = 1<<(n-s-i);
+        for(unsigned i = 0; i < n; ++i) {
+            unsigned length = 1<<(n-i);
             std::vector<calc_type> rotations(length/2);
             for(unsigned j = 0; j < length/2; ++j)
                 std::tie(angles[j], rotations[j])
@@ -174,6 +142,7 @@ public:
     complex_type phase(unsigned index) const { return phases[index]; }
 
 private:
+
 
     // global and relative phase
     std::tuple<calc_type, calc_type>
@@ -214,19 +183,20 @@ private:
 
 class UCG {
 public:
-    unsigned n,k,s;
+    unsigned n;
 
-    using Decomposition = std::vector<Gate>;
+    using PartialDecomposition = std::vector<gate_type>;
+    using Decomposition = std::tuple<PartialDecomposition,
+                                     std::vector<complex_type>>;
 
-    UCG(std::vector<Gate> &gates, unsigned n, unsigned k, unsigned s)
-        : gates_(gates) {
-        unsigned qubits = n-s;
-        diagonal_ = std::vector<complex_type>(1<<qubits, 1);
+    UCG(std::vector<gate_type> &gates) : gates_(gates) {
+        n = 1 + static_cast<unsigned>(std::log2(gates.size()));
     }
 
-    Decomposition get_decomposition() const {
-        assert(decomposed_);
-        return gates_;
+    Decomposition get_decomposition() {
+        if(decomposed_ == false)
+            decompose();
+        return std::make_tuple(gates_, phases_);
     }
 
     void decompose() {
@@ -235,55 +205,94 @@ public:
         ucg_decomposition();
     }
 
-    Gate& operator()(unsigned i) {
+    gate_type operator()(unsigned i) const {
+        if(i < 0 || i >= gates_.size())
+            std::cout << "Illegal UCG Index" << std::endl;
         return gates_[i];
     }
 
     Diagonal get_diagonal() {
         assert(decomposed_ == true);
-        return Diagonal(diagonal_, n,k,s);
+        return Diagonal(phases_);
     }
 
 private:
 
-    std::tuple<Gate,Gate,Gate> ucg_basic_decomposition(Gate a, Gate b) {
-        Gate x( // check
-            a(0,0)*std::conj(b(0,0)) + a(0,1)*std::conj(b(0,1)),
-            a(0,0)*std::conj(b(1,0)) + a(0,1)*std::conj(b(1,1)),
-            a(1,0)*std::conj(b(0,0)) + a(1,1)*std::conj(b(0,1)),
-            a(1,0)*std::conj(b(1,0)) + a(1,1)*std::conj(b(1,1))
-        );
-        complex_type det = x(0,0)*x(1,1) - x(1,0)*x(0,1);
-        complex_type x11 = x(0,0)/std::sqrt(det);
+    std::tuple<gate_type, gate_type, gate_type>
+    ucg_basic_decomposition(const gate_type& a, const gate_type& b) {
+        gate_type x = {
+            a[0][0]*std::conj(b[0][0]) + a[0][1]*std::conj(b[0][1]),
+            a[0][0]*std::conj(b[1][0]) + a[0][1]*std::conj(b[1][1]),
+            a[1][0]*std::conj(b[0][0]) + a[1][1]*std::conj(b[0][1]),
+            a[1][0]*std::conj(b[1][0]) + a[1][1]*std::conj(b[1][1])
+        };
+        complex_type det = x[0][0]*x[1][1] - x[1][0]*x[0][1];
+        complex_type x11 = x[0][0]/std::sqrt(det);
         calc_type delta = M_PI / 2.0;
         calc_type phi = std::arg(det);
         calc_type psi = std::arg(x11);
         complex_type r1 = std::exp(I * ((delta - phi/2 - psi) / 2));
         complex_type r2 = std::exp(I * ((delta - phi/2 + psi + M_PI) / 2));
-        Gate r(r1, 0.0, 0.0, r2);
-        Gate rxr(
-            r1*r1*x(0,0), r1*r2*x(0,1),
-            r1*r2*x(1,0), r2*r2*x(1,1)
-        );
-        Gate u(rxr.eigen_vectors());
+        gate_type r = {r1, 0.0, 0.0, r2};
+        gate_type rxr = {
+            r1*r1*x[0][0], r1*r2*x[0][1],
+            r1*r2*x[1][0], r2*r2*x[1][1]
+        };
+        gate_type u = eigen_vectors(rxr);
         complex_type z = std::exp(I*calc_type(M_PI/4));
         complex_type z_c = std::conj(z);
-        static Gate d(z, 0.0, 0.0, z_c);
-        Gate v(
-            z*std::conj(r1*u(0,0)), z*std::conj(r2*u(1,0)),
-            std::conj(z*r1*u(0,1)), std::conj(z*r2*u(1,1))
-        );
-        v.mul(b);
+        gate_type v = {
+            z*std::conj(r1*u[0][0]), z*std::conj(r2*u[1][0]),
+            std::conj(z*r1*u[0][1]), std::conj(z*r2*u[1][1])
+        };
+        v = v*b;
+
+        // static gate_type d = {z, 0.0, 0.0, z_c};
+        // std::cout << "::a::" << std::endl;
+        // print(a);
+        // std::cout << "::b::" << std::endl;
+        // print(b);
+        // std::cout << "::dagger(r)*u*d*v::" << std::endl;
+        // print(dagger(r)*u*d*v);
+        // std::cout << "::r*u*dagger(d)*v::" << std::endl;
+        // print(r*u*dagger(d)*v);
+
         return std::make_tuple(v,u,r);
     }
 
-    void ucg_decomposition() {
-        unsigned controls = n-s-1;
+    complex_type dot(const gate_type& a, const gate_type& b) {
+        return std::conj(a[0][0]) * b[0][0]
+             + std::conj(a[0][1]) * b[0][1]
+             + std::conj(a[1][0]) * b[1][0]
+             + std::conj(a[1][1]) * b[1][1];
+    }
 
+    void project_gate(gate_type& gate) {
+        calc_type norm = std::sqrt(std::norm(gate[0][1]) + std::norm(gate[1][1]));
+        gate[0][1] /= norm;
+        gate[1][1] /= norm;
+
+        complex_type inner = std::conj(gate[0][1])*gate[0][0] + std::conj(gate[1][1])*gate[1][0];
+        gate[0][0] -= inner*gate[0][1];
+        gate[1][0] -= inner*gate[1][1];
+
+        norm = std::sqrt(std::norm(gate[0][0]) + std::norm(gate[1][0]));
+        gate[0][0] /= norm;
+        gate[1][0] /= norm;
+
+
+    }
+
+    void ucg_decomposition() {
+        phases_ = std::vector<complex_type>(1<<n, 1);
+
+        unsigned controls = n-1;
         if(controls == 0)
             return;
 
         for(unsigned level = 0; level < controls; ++level) {
+//for(unsigned i = 0; i < (1<<controls); ++i)
+//    project_gate(gates_[i]);
             unsigned intervals = 1UL << level;
             unsigned interval_length = 1UL << (controls-level);
 
@@ -293,214 +302,316 @@ private:
                     unsigned offset = interval*interval_length;
                     auto& a = gates_[offset+i];
                     auto& b = gates_[offset+interval_length/2+i];
-                    Gate v,u,r;
+                    gate_type v,u,r;
                     std::tie(v,u,r) = ucg_basic_decomposition(a,b);
 
                     if(interval == intervals-1) {
                         for(unsigned m = 0; m < intervals; ++m) {
                             unsigned offset2 = m*interval_length;
                             unsigned index = 2*i + 2*offset2;
-                            diagonal_[index] *= std::conj(r(0,0));
-                            diagonal_[index+1] *= std::conj(r(1,1));
+                            phases_[index] *= std::conj(r[0][0]);
+                            phases_[index+1] *= std::conj(r[1][1]);
                             index = interval_length + 2*(i+offset2);
-                            diagonal_[index] *= r(0,0);
-                            diagonal_[index+1] *= r(1,1);
+                            phases_[index] *= r[0][0];
+                            phases_[index+1] *= r[1][1];
                         }
                     } else {
                         unsigned index = offset + interval_length + i;
-                        gates_[index](0,0) *= std::conj(r(0,0));
-                        gates_[index](1,0) *= std::conj(r(0,0));
-                        gates_[index](0,1) *= std::conj(r(1,1));
-                        gates_[index](1,1) *= std::conj(r(1,1));
+                        gates_[index][0][0] *= std::conj(r[0][0]);
+                        gates_[index][1][0] *= std::conj(r[0][0]);
+                        gates_[index][0][1] *= std::conj(r[1][1]);
+                        gates_[index][1][1] *= std::conj(r[1][1]);
                         index += interval_length/2;
-                        gates_[index](0,0) *= r(0,0);
-                        gates_[index](1,0) *= r(0,0);
-                        gates_[index](0,1) *= r(1,1);
-                        gates_[index](1,1) *= r(1,1);
+                        gates_[index][0][0] *= r[0][0];
+                        gates_[index][1][0] *= r[0][0];
+                        gates_[index][0][1] *= r[1][1];
+                        gates_[index][1][1] *= r[1][1];
                     }
 
                     gates_[offset + i] = v;
                     gates_[offset + i + interval_length/2] = u;
+
+                    //project_gate(gates_[offset + i]);
+                    //project_gate(gates_[offset + i + interval_length/2]);
                 }
             }
         }
 
         complex_type I(0,1);
-        calc_type x = 1/std::sqrt(2);
-        Gate H(x,x,x,-x);
-        complex_type z = std::exp(-I*calc_type(M_PI/4));
-        Gate R(z,0,0,std::conj(z));
-        Gate RH(z*x, z*x, std::conj(z)*x, -std::conj(z)*x);
+        calc_type x = 1.0/std::sqrt(2);
+        gate_type H = {x,x,x,-x};
+        complex_type z = std::exp(I*calc_type(M_PI/4));
+        gate_type RH = {z*x, z*x, std::conj(z)*x, -std::conj(z)*x};
 
-        gates_[0].mul_left(H);
-        for(unsigned i = 0; i < (1<<k)-1; ++i) {
-            gates_[i].mul_left(H);
-            gates_[i].mul(RH);
+        gates_[0] = H * gates_[0];
+        for(unsigned i = 1; i < (1<<controls)-1; ++i) {
+            gates_[i] = H * gates_[i];
+            gates_[i] = gates_[i] * RH;
         }
-        gates_[(1<<k)-1].mul(RH);
+        unsigned last = (1<<controls)-1;
+        gates_[last] = gates_[last] * RH;
 
-        complex_type phase = std::exp(-I*calc_type(((1<<k)-1)*M_PI/4));
-        for(auto& d : diagonal_)
+        complex_type phase = std::exp(-I*calc_type(((1<<controls)-1)*M_PI/4));
+        for(auto& d : phases_)
             d *= phase;
     }
 
-    std::vector<complex_type> diagonal_;
-    std::vector<Gate> gates_;
+    std::vector<complex_type> phases_;
+    std::vector<gate_type> gates_;
     bool decomposed_ = false;
 };
 
-/*
- Each colum of the isometry is stored in an object of class <Column>
- and all operations are applied to all columns.
- When reducing column k all previous columns are basis vectors and can
- be represented by a complex phase. The phase changes only from
- application of the diagonal gate. The current column is halved in size
- in each step, so we don't compute/store the zero entries.
- */
-class Column {
+class DecomposeIsometry {
+
 public:
     using StateVector = std::vector<complex_type>;
-    using Reduction = std::vector<std::tuple<MCG,UCG>>;
+    using Isometry = std::vector<StateVector>;
 
-    Column(StateVector& data, unsigned index)
-    : vec_(data), k(index) {
-        n = static_cast<unsigned>(std::log2(data.size()));
-        assert(n >= 1);
-        assert(0 <= index && index < (1<<n));
+    using ReductionStep = std::tuple<MCG,UCG>;
+    using Reduction = std::vector<ReductionStep>;
+
+    using ReductionStepDecomposition = std::tuple<MCG::Decomposition, UCG::Decomposition>;
+    using ReductionDecomposition = std::vector<ReductionStepDecomposition>;
+    using CompleteReductionDecomposition = std::vector<ReductionDecomposition>;
+    using Decomposition = std::tuple<CompleteReductionDecomposition, Diagonal::Decomposition>;
+
+    Isometry V; // list of column vectors
+    unsigned n;
+
+    DecomposeIsometry(Isometry V) : V(V) {
+        n = int(log2(V[0].size()));
     }
 
-    Reduction reduce() {
-        Reduction reduction;
-        for(unsigned s = 0; s < n; ++s)
-            reduction.push_back(disentangle(s));
-        return reduction;
-    }
-
-    complex_type get_phase() {
-        return vec_[0];
-    }
-
-    // O(1)
-    void apply_MCG(MCG mcg) {
-        if(k < mcg.k)
-            return;
-
-        if(k == mcg.k) {
-            unsigned s = mcg.s;
-            auto c0 = c(2*a(k,s+1));
-            auto c1 = c(2*a(k,s+1)+1);
-            // norm returns the magnitude squared
-            c(2*a(k,s+1)) = std::norm(c0) + std::norm(c1);
-            c(2*a(k,s+1)+1) = 0;
-        } else {
-            unsigned s = mcg.s;
-            auto c0 = c(2*a(k,s+1), s);
-            auto c1 = c(2*a(k,s+1)+1, s);
-            c(2*a(k,s+1), s) = std::norm(c0) + std::norm(c1);
-            c(2*a(k,s+1)+1, s) = 0;
+    Decomposition get_decomposition() {
+        CompleteReductionDecomposition complete_reduction_decomposition;
+        for(unsigned k = 0; k < V.size(); ++k) {
+            auto reduction_decomposition = reduce_column(k);
+            complete_reduction_decomposition.push_back(reduction_decomposition);
         }
-    }
 
-    // O(2^n)
-    void apply_UCG(UCG ucg) {
-        if(k < ucg.k)
-            return;
+        std::vector<complex_type> phases(1<<n, 1);
+        for(int k = 0; k < V.size(); ++k)
+            phases[k] = 1.0 / V[k][0]; // normalize?
+        auto diagonal = Diagonal(phases);
+        auto diagonal_decomposition = diagonal.get_decomposition();
 
-        if(k == ucg.k) { // only store non disentangled qubits
-            // TODO: ignore leading ids
-            unsigned s = ucg.s;
-            for(unsigned hi = a(k,s+1); hi < 1<<(n-1); ++hi) {
-                unsigned i0 = hi<<1;
-                unsigned i1 = (hi<<1) + 1;
-                c(i1>>1) = ucg(hi)(0,0)*c(i0) + ucg(hi)(0,1)*c(i1);
-            }
-            vec_.resize(n/=2);
-        } else {
-            unsigned s = ucg.s;
-            unsigned dist = 1<<s;
-            #pragma omp parallel for collapse(2) schedule(static)
-            for(unsigned hi = 0; hi < 1<<(n-1-s); ++hi)
-                for(unsigned lo = 0; lo < dist; ++lo) {
-                    unsigned i0 = (hi << s) + lo;
-                    unsigned i1 = i0 + dist;
-                    auto c0 = c(i0);
-                    auto c1 = c(i1);
-                    c(i0) = ucg(hi)(0,0)*c0 + ucg(hi)(0,1)*c1;
-                    c(i0) = ucg(hi)(1,0)*c0 + ucg(hi)(1,1)*c1;
-                }
-        }
-    }
-
-    // O(2^n)
-    void apply_diagonal(const Diagonal& diagonal) {
-        complex_type I(0.0, 1.0);
-        if(k < diagonal.k) {
-            c(0) *= diagonal.phase(k);
-        } else if(k == diagonal.k) {
-            unsigned s = diagonal.s;
-            #pragma omp parallel for schedule(static)
-            for(unsigned i = 0; i < 1<<(n-s); ++i)
-                c(i) *= diagonal.phase(i);
-        } else {
-            unsigned s = diagonal.s;
-            #pragma omp parallel for collapse(2) schedule(static)
-            for(unsigned hi = 0; hi < 1<<(n-s); ++hi) {
-                for(unsigned lo = 0; lo < 1<<s; ++lo) {
-                    c((hi<<s) + lo) *= diagonal.phase(hi);
-                }
-            }
-        }
+        return std::make_tuple(complete_reduction_decomposition, diagonal_decomposition);
     }
 
 private:
 
-    std::tuple<MCG,UCG>
-    disentangle(unsigned s) {
-        MCG mcg(k,s);
-        if(b(k,s+1) != 0 && ((k>>s)&1) == 0)
-            if(std::abs(c(2*a(k,s+1)+1, s)) > tol)
-                mcg = MCG(prepare_disentangle(s), k, s);
+    void debug() {
+        std::cout << "--- Debug: ---" << std::endl;
 
-        unsigned l_max = std::pow(2,n-s-1);
-        unsigned l_min = a(k,s+1) + (b(k,s+1) > 0);
-
-        std::vector<Gate> ucg;
-        ucg.reserve(l_max);
-        for(unsigned l = 0; l < l_min; ++l)
-            ucg.push_back(identity_gate());
-        for(unsigned l = l_min; l < l_max; ++l)
-            ucg.push_back(to_zero_gate(l,s));
-
-        return std::make_tuple(mcg, UCG(ucg, n, k, s));
+        for(unsigned k = 0; k < V.size(); ++k) {
+            for(unsigned i = 0; i < V[k].size(); ++i)
+                std::cout << V[k][i] << ", ";
+            std::cout << std::endl;
+        }
+        std::cout << std::endl << "--- /Debug: ---" << std::endl;
     }
 
-    Gate prepare_disentangle(unsigned s) {
+    ReductionDecomposition reduce_column(unsigned k) {
+        ReductionDecomposition reduction_decomposition;
+        for(unsigned s = 0; s < n; ++s)
+            reduction_decomposition.push_back(disentangle(k,s));
+        return reduction_decomposition;
+    }
+
+    ReductionStepDecomposition disentangle(unsigned k, unsigned s) {
+debug();
+        MCG mcg;
+        if(b(k,s+1) != 0 && ((k>>s)&1) == 0)
+            if(std::abs(c(k, 2*a(k,s+1)+1)) > tol)
+                mcg = prepare_disentangle(k, s);
+
+        for(unsigned l = 0; l < a(k,s); ++l)
+            assert(std::abs(c(k, l)) < tol); // ???
+
+        unsigned l_max = 1 << (n-1-s);
+        unsigned l_min = a(k,s+1);
+        if(b(k,s+1) > 0)
+            l_min += 1;
+
+        unsigned target_bit = a(k,s) & 1;
+std::cout << "ugc_c(";
+        std::vector<gate_type> gates;
+        gates.reserve(l_max);
+        for(unsigned l = 0; l < l_min; ++l)
+            gates.push_back(identity_gate());
+        if(target_bit == 0)
+            for(unsigned l = l_min; l < l_max; ++l)
+                gates.push_back(to_zero_gate(k, l));
+        else
+            for(unsigned l = l_min; l < l_max; ++l)
+                gates.push_back(to_one_gate(k, l));
+std::cout << ")";
+        UCG ucg(gates);
+        apply_ucg_up_to_diagonal_to_all(ucg, k, s);
+
+        return std::make_tuple(mcg.get_decomposition(),
+                               ucg.get_decomposition());
+    }
+
+    MCG prepare_disentangle(unsigned k, unsigned s) {
         assert(((k >> s) & 1) == 0);
         assert(b(k,s+1) != 0);
-        return to_zero_gate(2*a(k,s+1), s);
+        for(unsigned l = 0; l < a(k,s); ++l)
+            assert(std::abs(c(k, l)) < tol);
+std::cout << "mcg_c(";
+        MCG mcg(to_zero_gate(k, a(k,s+1)));
+std::cout << ")";
+        apply_MCG_to_all(mcg, k, s);
+        return mcg;
     }
 
-    Gate identity_gate() {
-        return Gate(1,0,
-                    0,1);
+    void apply_ucg_up_to_diagonal_to_all(UCG& ucg, unsigned k, unsigned s) {
+        apply_UCG_to_all(ucg, k, s);
+        ucg.decompose();
+        apply_inv_diagonal_to_all(ucg.get_diagonal(), k, s);
     }
 
-    Gate to_zero_gate(unsigned l, unsigned s) {
-        auto c0 = c(2*l, s);
-        auto c1 = c(2*l+1, s);
-        return Gate(
+    void apply_MCG_to_all(const MCG& mcg, unsigned k, unsigned s) {
+std::cout << "MCG(";
+        for(unsigned col = 0; col < V.size(); ++col)
+            apply_MCG(mcg, k, s, col);
+std::cout << ")";
+    }
+
+    void apply_UCG_to_all(const UCG& ucg, unsigned k, unsigned s) {
+std::cout << "UCG(";
+        for(unsigned col = 0; col < V.size(); ++col)
+            apply_UCG(ucg, k, s, col);
+std::cout << ")";
+    }
+
+    void apply_inv_diagonal_to_all(const Diagonal& diagonal, unsigned k, unsigned s) {
+std::cout << "Dia(";
+        for(unsigned col = 0; col < V.size(); ++col)
+            apply_inv_diagonal(diagonal, k, s, col);
+std::cout << ")";
+    }
+
+    void apply_MCG(const MCG& mcg, unsigned k, unsigned s, unsigned col) {
+        if(col < k)
+            return;
+
+        unsigned l = 2*a(k,s+1);
+        if(k == col)
+            s = 0;
+
+        // unsigned i0 = k & ~(1<<s);
+        // unsigned i1 = k | (1<<s);
+        // auto c0 = c(col, i0);
+        // auto c1 = c(col, i1);
+        auto c0 = c(col, l, k, s);
+        auto c1 = c(col, l+1, k, s);
+        // norm returns the magnitude squared
+        c(col, l,   k, s) = mcg.gate[0][0]*c0 + mcg.gate[0][1]*c1;
+        c(col, l+1, k, s) = mcg.gate[1][0]*c0 + mcg.gate[1][1]*c1;
+    }
+
+    // O(2^n)
+    void apply_UCG(const UCG& ucg, unsigned k, unsigned s, unsigned col) {
+        if(col < k)
+            return;
+        if(col == k) { // only store non disentangled qubits
+            // TODO: ignore leading ids
+            unsigned ctrl = n-1-s;
+            unsigned target_bit = a(k,s) & 1;
+            for(unsigned hi = 0; hi < (1<<ctrl); ++hi) {
+                unsigned i0 = hi<<1;
+                unsigned i1 = (hi<<1) + 1;
+                // if(std::abs(ucg(hi)[1][0]*c(col, i0) + ucg(hi)[1][1]*c(col, i1)) < tol)
+                //     std::cout << "tozerook" << std::endl;
+                // if(std::abs(ucg(hi)[0][0]*c(col, i0) + ucg(hi)[0][1]*c(col, i1)) < tol)
+                //     std::cout << "tooneok" << std::endl;
+                if(target_bit == 0) {
+                    c(col, hi) = ucg(hi)[0][0]*c(col, i0) + ucg(hi)[0][1]*c(col, i1);
+                } else {
+                    c(col, hi) = ucg(hi)[1][0]*c(col, i0) + ucg(hi)[1][1]*c(col, i1);
+                }
+            }
+            V[k].resize(V[k].size()/2);
+        } else {
+            unsigned dist = 1<<s;
+            #pragma omp parallel for collapse(2) schedule(static)
+            for(unsigned hi = 0; hi < 1<<(n-1-s); ++hi)
+                for(unsigned lo = 0; lo < dist; ++lo) {
+                    unsigned i0 = (hi << (s+1)) + lo;
+                    unsigned i1 = i0 + dist;
+                    auto c0 = c(col, i0);
+                    auto c1 = c(col, i1);
+                    c(col, i0) = ucg(hi)[0][0]*c0 + ucg(hi)[0][1]*c1;
+                    c(col, i1) = ucg(hi)[1][0]*c0 + ucg(hi)[1][1]*c1;
+                }
+        }
+    }
+
+    // O(2^n)
+    void apply_inv_diagonal(const Diagonal& diagonal, unsigned k, unsigned s, unsigned col) {
+        for(unsigned q = 0; q < 1<<(n-s); ++q)
+            if(std::abs(std::abs(std::conj(diagonal.phase(q)))-1.0) > tol)
+                std::cout << "bad phase: " << diagonal.phase(q) << std::endl;
+        if(col < k) {
+            c(col, 0) *= std::conj(diagonal.phase(col>>s));
+        } else if(col == k) {
+            unsigned target_bit = (k >> s) & 1;
+            #pragma omp parallel for schedule(static)
+            for(unsigned i = 0; i < 1<<(n-s-1); ++i) // use correct half
+                c(col, i) *= std::conj(diagonal.phase(2*i+target_bit));
+        } else {
+            #pragma omp parallel for collapse(2) schedule(static)
+            for(unsigned hi = 0; hi < 1<<(n-s); ++hi)
+                for(unsigned lo = 0; lo < 1<<s; ++lo)
+                    c(col, (hi<<s) + lo) *= std::conj(diagonal.phase(hi));
+        }
+    }
+
+    // UCGs already decomposed
+    // ReductionDecomposition decompose_reduction(Reduction reduction) {
+    //     ReductionDecomposition decomposition;
+    //     decomposition.reserve(reduction.size());
+    //     for(auto& op : reduction) {
+    //         auto& mcg = std::get<0>(op);
+    //         auto& ucg = std::get<1>(op);
+    //         decomposition.push_back(std::make_tuple(
+    //             mcg.get_decomposition(), ucg.get_decomposition()));
+    //     }
+    //     return decomposition;
+    // }
+
+
+    gate_type identity_gate() {
+        return {1,0,0,1};
+    }
+
+    gate_type to_zero_gate(unsigned col, unsigned l) {
+        auto c0 = c(col, 2*l);
+        auto c1 = c(col, 2*l+1);
+        auto r = std::sqrt(std::norm(c0) + std::norm(c1));
+        if(r < tol)
+            return identity_gate();
+        c0 /= r;
+        c1 /= r;
+        return {
             std::conj(c0), std::conj(c1),
                       -c1,           c0
-        );
+        };
     }
 
-    Gate to_one_gate(unsigned l, unsigned s) {
-        auto c0 = c(2*l, s);
-        auto c1 = c(2*l+1, s);
-        return Gate(
-                     -c1,            c0,
+    gate_type to_one_gate(unsigned col, unsigned l) {
+        auto c0 = c(col, 2*l);
+        auto c1 = c(col, 2*l+1);
+        auto r = std::sqrt(std::norm(c0) + std::norm(c1));
+        if(r < tol)
+            return identity_gate();
+        c0 /= r;
+        c1 /= r;
+        return {
+                     -c1,            c0 ,
             std::conj(c0), std::conj(c1)
-        );
+        };
     }
 
     // k = (a(k,s)<<s) + b(k,s)
@@ -515,165 +626,11 @@ private:
 
     // coefficient l of vec where the s least significant bit are assumed
     // to be disentangled in the state k
-    complex_type& c(unsigned l, unsigned s=0) {
-        unsigned N = vec_.size();
+    complex_type& c(unsigned col, unsigned l, unsigned k=0, unsigned s=0) {
+        unsigned N = V[col].size();
         unsigned index = b(k,s) + l * (1<<s);
-        assert(0 <= index && index < N);
-        return vec_[index];
+        if(!(0 <= index && index < N))
+            std::cout << "Illegal Index" << std::endl;
+        return V[col][index];
     }
-
-    StateVector& vec_;
-    Reduction reduction_;
-    unsigned n;
-    unsigned k;
 };
-
-class Decomposer {
-public:
-    using Isometry = std::vector<std::vector<complex_type>>;
-    using Reduction = std::vector<std::tuple<MCG::Decomposition, UCG::Decomposition>>;
-    using CompleteReduction = std::vector<Reduction>;
-    using Decomposition = std::tuple<CompleteReduction, Diagonal::Decomposition>;
-
-    Decomposer(Isometry &V) {
-        n = int(log2(V[0].size()));
-        for(unsigned k = 0; k < V.size(); ++k)
-            columns_.push_back(Column(V[k], k));
-        // assert
-    }
-
-    Decomposition run() {
-        CompleteReduction complete_reduction;
-        for(auto &col : columns_) {
-            Column::Reduction reduction = col.reduce();
-            apply_reduction(reduction);
-            complete_reduction.push_back(decompose_reduction(reduction));
-        }
-
-        unsigned n_cols = columns_.size();
-        std::vector<complex_type> phases(1<<n, 1);
-        for(int k = 0; k < n_cols; ++k)
-            phases[k] = columns_[k].get_phase();
-
-        auto diagonal = Diagonal(phases, n, n, 0);
-        auto diagonal_decomposition = diagonal.get_decomposition();
-        return std::make_tuple(complete_reduction, diagonal_decomposition);
-    }
-
-    // can use MPI if we have lots of colums
-    void apply_reduction(Column::Reduction &reduction) {
-        for(auto& col : columns_) {
-            for(auto& op : reduction) {
-                col.apply_MCG(std::get<0>(op));
-                col.apply_UCG(std::get<1>(op));
-            }
-        }
-
-        for(auto& op : reduction)
-            std::get<1>(op).decompose();
-
-        for(auto& col : columns_)
-            for(auto& op : reduction)
-                col.apply_diagonal(std::get<1>(op).get_diagonal());
-    }
-
-private:
-    // UCGs already decomposed
-    Reduction decompose_reduction(Column::Reduction reduction) {
-        Reduction decomposition;
-        decomposition.reserve(reduction.size());
-        for(const auto& op : reduction) {
-            auto& mcg = std::get<0>(op);
-            auto& ucg = std::get<1>(op);
-            decomposition.push_back(std::make_tuple(
-                mcg.get_decomposition(), ucg.get_decomposition()));
-        }
-        return decomposition;
-    }
-
-    std::vector<Column> columns_;
-    unsigned n;
-};
-
-/// Tests ///
-void test_gate() {
-    Gate a(1,2,3,4);
-    assert(a(0,0) == complex_type(1));
-    assert(a(0,1) == complex_type(2));
-    assert(a(1,0) == complex_type(3));
-    assert(a(1,1) == complex_type(4));
-
-    Gate b(5,6,7,8);
-    a.mul(b);
-    assert(a(0,0) == complex_type(19));
-    assert(a(0,1) == complex_type(22));
-    assert(a(1,0) == complex_type(43));
-    assert(a(1,1) == complex_type(50));
-
-    Gate c(1,2,3,4);
-    b.mul_left(c);
-    assert(b(0,0) == complex_type(19));
-    assert(b(0,1) == complex_type(22));
-    assert(b(1,0) == complex_type(43));
-    assert(b(1,1) == complex_type(50));
-
-    Gate d(I,0,0,-I);
-    Gate u = d.eigen_vectors();
-    assert(u(0,0) == complex_type(1));
-    assert(u(1,0) == complex_type(0));
-
-    assert(u(0,1) == complex_type(0));
-    assert(u(1,1) == complex_type(1));
-
-    Gate e(-I,0,0,I);
-    u = e.eigen_vectors();
-    assert(u(0,0) == complex_type(0));
-    assert(u(1,0) == complex_type(1));
-
-    assert(u(0,1) == complex_type(1));
-    assert(u(1,1) == complex_type(0));
-
-    Gate f(0,I,I,0);
-    u = f.eigen_vectors();
-    f.mul(u);
-    assert(std::abs(f(0,0)/u(0,0) - I) < tol);
-    assert(std::abs(f(1,0)/u(1,0) - I) < tol);
-    assert(std::abs(f(0,1)/u(0,1) + I) < tol);
-    assert(std::abs(f(1,1)/u(1,1) + I) < tol);
-}
-
-template<typename T1, typename T2> bool close(T1 a, T2 b) { return std::abs(a-b) < tol; }
-
-void test_diagonal() {
-    std::vector<complex_type> phases = {1, I, 1.+I, 1.-I};
-    auto diag = Diagonal(phases, 2, 0, 0);
-    assert(close(diag.phase(0), 1.));
-    assert(close(diag.phase(1), I));
-    assert(close(diag.phase(2), 1.+I));
-    assert(close(diag.phase(3), 1.-I));
-
-    Diagonal::Decomposition decomp = diag.get_decomposition();
-
-    assert(decomp.size() == 3);
-    assert(decomp[0].size() == 2);
-    assert(decomp[1].size() == 1);
-    assert(decomp[2].size() == 1);
-
-    calc_type r00 = decomp[0][0];
-    calc_type r01 = decomp[0][1];
-    calc_type r1 = decomp[1][0];
-    calc_type ph = 2*decomp[2][0];
-
-    assert(close(std::exp(I/2.*(-r00-r01-r1+ph)), 1.));
-    assert(close(std::exp(I/2.*(+r00+r01-r1+ph)), I));
-    assert(close(std::exp(I/2.*(+r00+r01+r1+ph)), (1.+I)/std::sqrt(2)));
-    assert(close(std::exp(I/2.*(-r00-r01+r1+ph)), (1.-I)/std::sqrt(2)));
-}
-
-void test_ucg() {}
-
-int main() {
-    test_gate();
-    test_diagonal();
-    return 0;
-}

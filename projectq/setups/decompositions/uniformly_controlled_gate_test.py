@@ -17,7 +17,50 @@ from projectq.ops import H,Rx,Ry,Rz,X,UniformlyControlledGate,CNOT
 
 from . import uniformly_controlled_gate as ucg
 
-from projectq.isometries import _SingleQubitGate
+from projectq.isometries import (_SingleQubitGate,
+                                 _decompose_uniformly_controlled_gate,
+                                 _apply_uniformly_controlled_gate)
+
+################################################################################
+
+# #@pytest.mark.parametrize("n", range(1,15))
+# #def test_numerical_error(n):
+# for n in range(1,15):
+#     random.seed(7)
+#     gates = []
+#     for i in range(1<<(n-1)):
+#         a = Rx(random.uniform(0,2*np.pi)).matrix
+#         b = Ry(random.uniform(0,2*np.pi)).matrix
+#         c = Rx(random.uniform(0,2*np.pi)).matrix
+#         gates.append(_SingleQubitGate(a*b*c))
+#
+#     decomposed_gates = _decompose_uniformly_controlled_gate(gates)[0]
+#     errors = [g._error for g in decomposed_gates]
+#     #print("Qubits: {} -----------".format(n))
+#     print("Uni: {}".format(np.linalg.norm(errors, np.inf)))
+#     #print("Dev: {}".format(np.sqrt(np.var(errors))))
+#     #print("Max Error: {}".format(np.linalg.norm(errors, np.inf)))
+#     #assert False
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(n)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     target = qureg[0]
+#     choice_reg = qureg[1:]
+#     UCG = UniformlyControlledGate(gates)
+#     decomposition = UCG.decomposition
+#     _apply_uniformly_controlled_gate(decomposition, target, choice_reg, False)
+#     with Dagger(eng):
+#         UCG | (choice_reg, target)
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = eng.backend.cheat()
+#     vec = np.array([final_wavefunction])
+#     init = np.zeros_like(vec, dtype="complex")
+#     init[0,0] = 1
+#     #print(vec-init)
+#     print(np.linalg.norm(vec-init, np.inf))
+
+################################################################################
+
 
 def test_full_decomposition_1_choice():
     eng = MainEngine()
