@@ -38,6 +38,9 @@ class ResourceCounter(BasicEngine):
             where ctrl_cnt is the number of control qubits.
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
+    Properties:
+        depth (int): Circuit depth. It is the longest path in the directed
+                     acyclic graph (DAG) of the program.
     """
     def __init__(self):
         """
@@ -50,6 +53,8 @@ class ResourceCounter(BasicEngine):
         self.gate_class_counts = {}
         self._active_qubits = 0
         self.max_width = 0
+        # key: qubit id, depth of this qubit
+        self._depth_of_qubit = dict()
 
     def is_available(self, cmd):
         """
@@ -69,17 +74,24 @@ class ResourceCounter(BasicEngine):
         except LastEngineException:
             return True
 
+    @property
+    def depth(self):
+        return max(self._depth_of_qubit.values())
+
     def _add_cmd(self, cmd):
         """
         Add a gate to the count.
         """
         if cmd.gate == Allocate:
             self._active_qubits += 1
+            self._depth_of_qubit[cmd.qubits[0][0].id] = 0
         elif cmd.gate == Deallocate:
             self._active_qubits -= 1
+            del self._depth_of_qubit[cmd.qubits[0][0].id]
         elif self.is_last_engine and cmd.gate == Measure:
             for qureg in cmd.qubits:
                 for qubit in qureg:
+                    self._depth_of_qubit[qubit.id] += 1
                     # Check if a mapper assigned a different logical id
                     logical_id_tag = None
                     for tag in cmd.tags:
@@ -89,6 +101,19 @@ class ResourceCounter(BasicEngine):
                         qubit = WeakQubitRef(qubit.engine, 
                                              logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
+        else:
+            qubit_ids = set()
+            for qureg in cmd.all_qubits:
+                for qubit in qureg:
+                    qubit_ids.add(qubit.id)
+            if len(qubit_ids) == 1:
+                self._depth_of_qubit[list(qubit_ids)[0]] += 1
+            else:
+                max_depth = 0
+                for qubit_id in qubit_ids:
+                    max_depth = max(max_depth, self._depth_of_qubit[qubit_id])
+                for qubit_id in qubit_ids:
+                    self._depth_of_qubit[qubit_id] = max_depth + 1
 
         self.max_width = max(self.max_width, self._active_qubits)
 

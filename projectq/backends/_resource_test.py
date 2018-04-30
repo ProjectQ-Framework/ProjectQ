@@ -22,7 +22,7 @@ from projectq.cengines import (DummyEngine,
                                LogicalQubitIDTag,
                                MainEngine,
                                NotYetMeasuredError)
-from projectq.ops import H, CNOT, X, Rz, Measure, Command, Allocate
+from projectq.ops import H, CNOT, X, Rz, Measure, Command, Allocate, QFT
 from projectq.types import WeakQubitRef
 
 from projectq.backends import ResourceCounter
@@ -83,6 +83,7 @@ def test_resource_counter():
         int(qubit1)
 
     assert resource_counter.max_width == 2
+    assert resource_counter.depth == 5
 
     str_repr = str(resource_counter)
     assert str_repr.count(" HGate : 1") == 1
@@ -108,3 +109,25 @@ def test_resource_counter():
 
 def test_resource_counter_str_when_empty():
     assert isinstance(str(ResourceCounter()), str)
+
+
+def test_resource_counter_depth():
+    resource_counter = ResourceCounter()
+    eng = MainEngine(resource_counter, [])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    QFT | qb0 + qb1 + qb2
+    assert resource_counter.depth == 1
+    H | qb0
+    H | qb0
+    assert resource_counter.depth == 3
+    CNOT | (qb0, qb1)
+    X | qb1
+    assert resource_counter.depth == 5
+    Measure | qb1
+    Measure | qb1
+    assert resource_counter.depth == 7
+    CNOT | (qb1, qb2)
+    Measure | qb2
+    assert resource_counter.depth == 9
