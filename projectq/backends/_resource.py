@@ -94,7 +94,7 @@ class ResourceCounter(BasicEngine):
             self._active_qubits -= 1
             depth = self._depth_of_qubit[cmd.qubits[0][0].id]
             self._previous_max_depth = max(self._previous_max_depth, depth)
-            del self._depth_of_qubit[cmd.qubits[0][0].id]
+            self._depth_of_qubit.pop(cmd.qubits[0][0].id)
         elif self.is_last_engine and cmd.gate == Measure:
             for qureg in cmd.qubits:
                 for qubit in qureg:
