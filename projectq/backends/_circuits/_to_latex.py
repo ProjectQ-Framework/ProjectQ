@@ -334,7 +334,8 @@ class _Circ2Tikz(object):
                     id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
                 xpos = self.pos[line]
                 try:
-                    if self.settings['gates']['AllocateQubitGate']['allocate_at_zero']:
+                    if (self.settings['gates']['AllocateQubitGate']
+                                     ['allocate_at_zero']):
                         xpos = 0.
                 except KeyError:
                     pass

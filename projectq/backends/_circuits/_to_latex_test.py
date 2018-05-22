@@ -190,10 +190,10 @@ def test_qubit_allocations_at_zero():
 
     a = eng.allocate_qureg(4)
 
-    CNOT | (a[0],a[2])
-    CNOT | (a[0],a[3])
-    CNOT | (a[0],a[2])
-    CNOT | (a[1],a[3])
+    CNOT | (a[0], a[2])
+    CNOT | (a[0], a[3])
+    CNOT | (a[0], a[2])
+    CNOT | (a[1], a[3])
 
     del a
     eng.flush()
