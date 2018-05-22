@@ -336,6 +336,7 @@ class _Circ2Tikz(object):
                 try:
                     if (self.settings['gates']['AllocateQubitGate']
                                      ['allocate_at_zero']):
+                        self.pos[line] -= self._gate_pre_offset(gate)
                         xpos = self._gate_pre_offset(gate)
                 except KeyError:
                     pass
