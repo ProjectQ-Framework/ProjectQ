@@ -332,11 +332,17 @@ class _Circ2Tikz(object):
                 id_str = ""
                 if self.settings['gates']['AllocateQubitGate']['draw_id']:
                     id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
-                add_str = add_str.format(self._op(line), self.pos[line], line,
+                xpos = self.pos[line]
+                try:
+                    if self.settings['gates']['AllocateQubitGate']['allocate_at_zero']:
+                        xpos = 0.
+                except KeyError:
+                    pass
+                self.pos[line] = max(xpos + self._gate_offset(gate) +
+                                     self._gate_width(gate), self.pos[line])
+                add_str = add_str.format(self._op(line), xpos, line,
                                          id_str)
                 self.op_count[line] += 1
-                self.pos[line] += (self._gate_offset(gate) +
-                                   self._gate_width(gate))
                 self.is_quantum[line] = self.settings['lines']['init_quantum']
             elif gate == Deallocate:
                 # draw 'end of line'
