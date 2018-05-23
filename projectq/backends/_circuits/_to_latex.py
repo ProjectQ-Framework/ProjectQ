@@ -111,7 +111,8 @@ def get_default_settings():
                           'AllocateQubitGate': {'height': .15, 'width': .2,
                                                 'offset': .1,
                                                 'pre_offset': .1,
-                                                'draw_id': False},
+                                                'draw_id': False,
+                                                'allocate_at_zero': False},
                           'MeasureGate': {'width': 0.75, 'offset': .2,
                                           'height': .5, 'pre_offset': .2}
                           })

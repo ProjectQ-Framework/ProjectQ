@@ -204,11 +204,14 @@ def test_qubit_allocations_at_zero():
     settings = _to_latex.get_default_settings()
     settings['gates']['AllocateQubitGate']['allocate_at_zero'] = True
     code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
-
     assert code.count("gate0) at (0") == 4
+
     settings['gates']['AllocateQubitGate']['allocate_at_zero'] = False
     code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
+    assert code.count("gate0) at (0") == 3
 
+    del settings['gates']['AllocateQubitGate']['allocate_at_zero']
+    code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
     assert code.count("gate0) at (0") == 3
 
 
