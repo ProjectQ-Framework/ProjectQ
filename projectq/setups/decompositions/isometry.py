@@ -29,12 +29,13 @@ def _print_vec(vec):
 def _decompose_isometry(cmd):
     iso = cmd.gate
     decomposition = iso.decomposition
+    threshold = iso._threshold
 
     qureg = []
     for reg in cmd.qubits:
         qureg.extend(reg)
 
-    _apply_isometry(decomposition, qureg)
+    _apply_isometry(decomposition, threshold, qureg)
 
 
 #: Decomposition rules

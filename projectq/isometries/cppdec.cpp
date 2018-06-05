@@ -27,7 +27,7 @@ PYBIND11_PLUGIN(cppdec) {
         ;
 
     py::class_<DecomposeIsometry>(m, "_BackendDecomposeIsometry")
-        .def(py::init<DecomposeIsometry::Isometry&>())
+        .def(py::init<DecomposeIsometry::Isometry&, unsigned>())
         .def("get_decomposition", &DecomposeIsometry::get_decomposition)
         ;
 

@@ -121,6 +121,9 @@ class BuildExt(build_ext):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
 
+        opts.append('-Wno-missing-braces')
+
+
         if not has_flag(self.compiler):
             self.warning("Something is wrong with your C++ compiler.\n"
                          "Failed to compile a simple test program!\n")

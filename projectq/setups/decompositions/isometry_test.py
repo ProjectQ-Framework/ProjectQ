@@ -1,10 +1,14 @@
 from projectq import MainEngine
-from projectq.ops import Measure, X, UniformlyControlledGate, Isometry
-from projectq.backends import CommandPrinter
+from projectq.ops import Measure, C, X, UniformlyControlledGate, Isometry
+from projectq.backends import CommandPrinter, ResourceCounter, Simulator, IBMBackend
 from projectq.ops._basics import BasicGate
-from projectq.meta import Control, Compute, Uncompute
+from projectq.meta import Control, Compute, Uncompute, get_control_count
 import projectq.setups.decompositions
-from projectq.cengines import InstructionFilter, AutoReplacer, DecompositionRuleSet
+from projectq.cengines import InstructionFilter, AutoReplacer, DecompositionRuleSet, DummyEngine
+from projectq.ops import (Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
+                          Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
+                          Entangle)
+from  projectq.setups.decompositions import all_defined_decomposition_rules
 
 import numpy as np
 import math
@@ -59,7 +63,7 @@ def test_state_prep():
     order, result = eng.backend.cheat()
     print(order)
 
-    assert False
+    #assert False
     iso._print_vec(target_state)
     iso._print_qureg(qureg)
     print(np.linalg.norm(result-target_state, 1))
@@ -104,7 +108,7 @@ def test_2_columns():
     Measure | qureg
     eng.flush()
 
-    eng = MainEngine() # fails without??
+    #eng = MainEngine() # fails without??
     qureg = eng.allocate_qureg(3)
     eng.flush() # order
     X | qureg[0]
@@ -138,11 +142,29 @@ def create_initial_state(mask, qureg):
         if ((mask >> pos) & 1) == 1:
             X | qureg[pos]
 
+def _my_is_available(cmd):
+    from projectq.ops import (Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
+                              Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
+                              Entangle, Ph)
+    from projectq.meta import Control, Compute, Uncompute, get_control_count
+
+    g = cmd.gate
+    if g == NOT and get_control_count(cmd) <= 1:
+        return True
+    if get_control_count(cmd) == 0:
+        if g in (T, Tdag, S, Sdag, H, Y, Z):
+            return True
+        if isinstance(g, (Rx, Ry, Rz, Ph)):
+            return True
+    if g in (Measure, Allocate, Deallocate, Barrier):
+        return True
+    return False
+
 @pytest.mark.parametrize("index", range(8))
 def test_full_unitary_3_qubits(index):
     n = 3
     N = 1<<n
-    np.random.seed(42)
+    np.random.seed(7)
     re = np.random.rand(N,N)
     im = np.random.rand(N,N)
     M = re + 1j*im
@@ -156,13 +178,18 @@ def test_full_unitary_3_qubits(index):
         for j in range(N):
             if i != j:
                 assert abs(np.vdot(U[:,i],U[:,j])) < 1e-14
+
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    eng = MainEngine(engine_list=[AutoReplacer(rule_set)])
+    backend = Simulator()
+    backend.is_available = _my_is_available
+    eng = MainEngine(backend, [AutoReplacer(rule_set)])
+
     #eng = MainEngine()
-    qureg = eng.allocate_qureg(3)
+    qureg = eng.allocate_qureg(n)
     eng.flush() # order
     create_initial_state(index, qureg)
-    Isometry(V) | qureg
+    isometry = Isometry(V)
+    isometry | qureg
     eng.flush()
     order, result = eng.backend.cheat()
     print(order)
@@ -176,7 +203,7 @@ def test_full_unitary_3_qubits(index):
 def test_full_permutation_matrix_3_qubits(index):
     n = 3
     N = 1<<n
-    np.random.seed(42)
+    np.random.seed(7)
     perm_mat = np.zeros((N,N), dtype=complex)
     perm = np.random.permutation(N)
     for i in range(N):
@@ -186,9 +213,9 @@ def test_full_permutation_matrix_3_qubits(index):
         V.append(perm_mat[:,i])
 
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    eng = MainEngine(engine_list=[AutoReplacer(rule_set)])
+    eng = MainEngine(verbose=True, engine_list=[AutoReplacer(rule_set)])
     #eng = MainEngine()
-    qureg = eng.allocate_qureg(3)
+    qureg = eng.allocate_qureg(n)
     eng.flush() # order
     create_initial_state(index, qureg)
     Isometry(V) | qureg

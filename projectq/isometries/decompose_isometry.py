@@ -10,8 +10,9 @@ import copy
 import random
 
 class _DecomposeIsometry(object):
-    def __init__(self, cols):
+    def __init__(self, cols, threshold):
         self._cols = cols
+        self._threshold = threshold
 
     def get_decomposition(self):
         n = int(round(np.log2(len(self._cols[0]))))
@@ -31,7 +32,7 @@ class _DecomposeIsometry(object):
 
         reductions = []
         for k in range(len(self._cols)):
-            reductions.append(_reduce_column(k, local_quregs))
+            reductions.append(_reduce_column(k, local_quregs, self._threshold))
 
         phases = [1./c(local_quregs[k],k) for k in range(len(self._cols))]
         phases = phases + [1.0]*((1<<n) - len(phases))
@@ -53,6 +54,26 @@ def _print_vec(vec):
         print("{}: {:.3f}, {}".format(i,abs(vec[i]), cmath.phase(vec[i])))
     print("-")
 
+def _pretty(num):
+    if abs(num) < 1e-10:
+        return "0"
+    return "*"
+
+def _debug(local_quregs):
+    matrix = []
+    for i in range(len(local_quregs)):
+        eng = local_quregs[i].engine
+        eng.flush()
+        bla, vec = eng.backend.cheat()
+        matrix.append(vec)
+
+    N = len(matrix)
+    for i in range(len(matrix[0])):
+        for j in range(N):
+            print(_pretty(matrix[j][i]), end=' ', flush=True)
+        print('')
+    print('-')
+
 def a(k,s):
     return k >> s
 
@@ -62,7 +83,7 @@ def b(k,s):
 def c(qureg, l, k=0, s=0):
     eng = qureg.engine
     n = len(qureg)
-    l = b(k,s) + l * 2**s #check
+    l = b(k,s) + l * 2**s
     assert 0 <= l and l <= 2**n - 1
     bit_string = ("{0:0"+str(n)+"b}").format(l)[::-1]
     eng.flush()
@@ -99,15 +120,15 @@ class ToOneGate(BasicGate):
 
 # compute G_k which reduces column k to |k>
 # and apply it to following columns and the user_qureg
-def _reduce_column(k, local_quregs):
+def _reduce_column(k, local_quregs, threshold):
     n = len(local_quregs[0])
     reduction = []
     for s in range(n):
-        reduction.append(_disentangle(k, s, local_quregs))
+        reduction.append(_disentangle(k, s, local_quregs, threshold))
     return reduction
 
 tol = 1e-12
-def _disentangle(k, s, local_quregs):
+def _disentangle(k, s, local_quregs, threshold):
     qureg = local_quregs[k]
     n = len(qureg)
 
@@ -117,10 +138,17 @@ def _disentangle(k, s, local_quregs):
 
     #eng = qureg.engine
 
-    mcg = Rz(0)
-    if b(k,s+1) != 0 and ((k >> s) & 1) == 0:
-        if c(qureg, 2*a(k,s+1)+1, k, s) != 0:
-            mcg = _prepare_disentangle(k, s, local_quregs)
+    print("Before k={}, s={}".format(k,s))
+    _debug(local_quregs)
+
+    # mcg = [Rz(0)]
+    # if b(k,s+1) != 0 and ((k >> s) & 1) == 0:
+    #     if abs(c(qureg, 2*a(k,s+1)+1, k, s)) > tol:
+    #         mcg = _prepare_disentangle(k, s, local_quregs)
+    mcg_decomposition = _prepare_disentangle(k, s, local_quregs, threshold)
+
+    print("Mid k={}, s={}".format(k,s))
+    _debug(local_quregs)
 
     for l in range(a(k,s)):
         assert abs(c(qureg, l, k, s)) < tol
@@ -137,7 +165,7 @@ def _disentangle(k, s, local_quregs):
 
     gates = []
     if len(range_l) == 0:
-        return [mcg, gates]
+        return [mcg_decomposition, gates]
     for l in range(range_l[0]):
         gates.append(Rz(0))
     for l in range_l:
@@ -146,11 +174,13 @@ def _disentangle(k, s, local_quregs):
         U.c1 = c(qureg, 2*l + 1, k, s)
         gates.append(U)
     UCG = UniformlyControlledGate(gates, up_to_diagonal=True)
-    #UCG.decompose()
     for q in local_quregs:
         UCG | (q[s+1:], q[s])
 
-    return mcg, UCG.decomposition
+    print("After k={}, s={}".format(k,s))
+    _debug(local_quregs)
+
+    return mcg_decomposition, UCG.decomposition
 
 
 def _apply_mask(mask, qureg):
@@ -159,16 +189,35 @@ def _apply_mask(mask, qureg):
         if ((mask >> pos) & 1) == 0:
             X | qureg[pos]
 
-# Lemma 16
-def _prepare_disentangle(k, s, local_quregs):
+def _get_one_bits(qureg, mask):
+    res = []
+    for i in range(len(qureg)):
+        if mask & (1<<i):
+            res.append(qureg[i])
+    return res
+
+def _count_one_bits(mask):
+    cnt = 0
+    while mask:
+        if mask & 1:
+            cnt += 1
+        mask >>= 1
+    return cnt
+
+def _prepare_disentangle(k, s, local_quregs, threshold):
     qureg = local_quregs[k]
     n = len(qureg)
+
+    if b(k,s+1) == 0 or ((k >> s) & 1) != 0:
+        return [Rz(0)], None
+    if abs(c(qureg, 2*a(k,s+1)+1, k, s)) <= tol:
+        return [Rz(0)], None
+
+
     assert 1 <= k and k <= 2**n-1
     assert 0 <= s and s <= n-1
     assert (k >> s) & 1 == 0
     assert b(k,s+1) != 0
-
-    #eng = qureg.engine
 
     for l in range(a(k,s)):
         assert abs(c(qureg, l, k, s)) < tol
@@ -177,16 +226,24 @@ def _prepare_disentangle(k, s, local_quregs):
     U.c0 = c(qureg,2*a(k,s+1), k, s)
     U.c1 = c(qureg,2*a(k,s+1)+1, k, s)
 
-    # cut out s-th bit
-    mask = b(k,s) + (a(k,s+1) << s)
+    mask = k #& ~(1<<s)
+
+    ctrl = _count_one_bits(mask)
+    if ctrl > 0 and ctrl < threshold:
+        gates = [Rz(0)] * ((1<<ctrl)-1) + [U]
+        UCG = UniformlyControlledGate(gates, up_to_diagonal=True)
+        for q in local_quregs:
+            controls = _get_one_bits(q,mask)
+            UCG | (controls, q[s])
+        return UCG.decomposition
 
     for q in local_quregs:
-        qubits = q[:s]+q[s+1:]
+        qubits = _get_one_bits(q,mask)
         e = q.engine
-        with Compute(e):
-            _apply_mask(mask,qubits)
-        with Control(e, qubits):
+        if len(qubits) == 0:
             U | q[s]
-        Uncompute(e)
+        else:
+            with Control(e, qubits):
+                U | q[s]
 
-    return U
+    return [U], None

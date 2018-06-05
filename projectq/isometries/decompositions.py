@@ -34,15 +34,15 @@ try:
     import numpy as np
 
     class _DecomposeIsometry(object):
-        def __init__(self, V):
-            self._backend = _BackendDecomposeIsometry(V)
+        def __init__(self, V, threshold):
+            self._backend = _BackendDecomposeIsometry(V, threshold)
 
         def get_decomposition(self):
             reductions, diagonal_decomposition = self._backend.get_decomposition()
             for k in range(len(reductions)):
                 for s in range(len(reductions[k])):
-                    mcg, (ucg, phases) = reductions[k][s]
-                    reductions[k][s] = _wrap([mcg])[0], (_wrap(ucg), phases)
+                    (mcg, phases1), (ucg, phases2) = reductions[k][s]
+                    reductions[k][s] = (_wrap(mcg), phases1), (_wrap(ucg), phases2)
             return reductions, diagonal_decomposition
 
 except ImportError:
@@ -55,5 +55,5 @@ def _decompose_diagonal_gate(phases):
 def _decompose_uniformly_controlled_gate(gates):
     return _DecomposeUCG(gates).get_decomposition()
 
-def _decompose_isometry(columns):
-    return _DecomposeIsometry(columns).get_decomposition()
+def _decompose_isometry(columns, threshold):
+    return _DecomposeIsometry(columns, threshold).get_decomposition()

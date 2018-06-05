@@ -6,16 +6,111 @@ import numpy as np
 import copy
 import math
 import cmath
-
-class _DecomposeUCG(object):
-    def __init__(self, gates):
-        self._gates = gates
-
-    def get_decomposition(self):
-        return _decompose_uniformly_controlled_gate(self._gates)
+import scipy.linalg
 
 # Decomposition taken from
 # http://lib.tkk.fi/Diss/2007/isbn9789512290918/article3.pdf
+class _DecomposeUCG(object):
+    def __init__(self, gates):
+        assert len(gates) > 0
+
+        self.gates = _unwrap(gates)
+        self.k = int(round(np.log2(len(gates))))
+        self.n = self.k+1
+        self.diagonal = np.ones(1<<self.n, dtype=complex)
+
+    # call only once
+    def get_decomposition(self):
+        if self.k == 0:
+            return _wrap(self.gates), self.diagonal
+
+        for level in range(self.k):
+            intervals = 1<<level
+            interval_length = 1<<(self.k-level)
+            for interval in range(intervals):
+                for i in range(interval_length//2):
+                    r = self._apply_basic_decomposition(level, interval, i)
+                    self._merge_controlled_rotations(level, interval, i, r)
+
+        self._decompose_diagonals()
+        return _wrap(self.gates), self.diagonal
+
+    def _apply_basic_decomposition(self, level, interval, i):
+        intervals = 1<<level
+        interval_length = 1<<(self.k-level)
+        offset = interval*interval_length
+
+        a = self.gates[offset + i]
+        b = self.gates[offset + interval_length//2 + i]
+        v,u,r = _basic_decomposition(a,b)
+
+        # store in place
+        self.gates[offset + i] = v
+        self.gates[offset + interval_length//2 + i] = u
+        return r
+
+    def _merge_controlled_rotations(self, level, interval, i, r):
+        intervals = 1<<level
+        interval_length = 1<<(self.k-level)
+        offset = interval*interval_length
+
+        if interval < intervals-1:
+            # merge with following UCG (not yet decomposed)
+            index = offset + interval_length + i
+            self.gates[index] = self.gates[index]*r.getH()
+            index = offset + 3*interval_length//2 + i
+            self.gates[index] = self.gates[index]*r
+        else:
+            # store trailing rotations in diagonal gate
+            for m in range(intervals):
+                off = m*interval_length
+                index =  2*i + 2*off
+                self.diagonal[index] *= r.getH().item((0,0))
+                self.diagonal[index+1] *= r.getH().item((1,1))
+                index = interval_length + 2*i + 2*off
+                self.diagonal[index] *= r.item((0,0))
+                self.diagonal[index+1] *= r.item((1,1))
+
+    def _decompose_diagonals(self):
+        # decompose diagonal gates to CNOTs and merge single qubit gates
+        h = H.matrix
+        rz = Rz(-np.pi/2).matrix
+        self.gates[0] = h*self.gates[0]
+        for i in range(1,(1<<self.k) - 1):
+            self.gates[i] = h*self.gates[i]*rz*h
+        self.gates[-1] = self.gates[-1]*rz*h
+
+        self.gates = [_closest_unitary(G) for G in self.gates]
+
+        # merge Rz gates into final diagonal
+        phi = cmath.exp(1j*np.pi/4)
+        N = 1<<self.n
+        if self.k >= 1:
+            self.diagonal[:N//2] *= phi
+            self.diagonal[N//2:] *= 1/phi
+        if self.k >= 2:
+            self.diagonal[:N//4] *= 1j
+            self.diagonal[N//4:N//2] *= -1j
+            self.diagonal[N//2:3*N//4] *= 1j
+            self.diagonal[3*N//4:] *= -1j
+
+        # global phase shift
+        phase = cmath.exp(-1j*((1<<self.k)-1)*np.pi/4)
+        if self.k >= 3:
+            phase *= -1
+
+        self.diagonal *= phase
+
+def _closest_unitary(A):
+    V, __, Wh = scipy.linalg.svd(A)
+    U = np.matrix(V.dot(Wh))
+    return U
+
+def _wrap(gates):
+    return [_SingleQubitGate(gate) for gate in gates]
+
+def _unwrap(gates):
+    return [gate.matrix for gate in gates]
 
 # a == r.getH()*u*d*v
 # b == r*u*d.getH()*v
@@ -37,58 +132,3 @@ def _basic_decomposition(a,b):
     d = np.diag(np.sqrt(d))
     v = d*u.getH()*r.getH()*b
     return v,u,r
-
-# U = D*U'
-def _decompose_uniformly_controlled_gate(uniform_gates):
-    gates = copy.deepcopy(uniform_gates)
-
-    assert len(gates) > 0
-    k = int(round(np.log2(len(gates))))
-    n = k+1
-    diagonal = np.ones(1<<n, dtype=complex)
-
-    if k == 0:
-        return gates, diagonal
-
-    # O(k*2^k)
-    for level in range(k):
-        intervals = 1<<level
-        interval_length = 1<<(k-level)
-        for interval in range(intervals):
-            for i in range(interval_length//2):
-                offset = interval*interval_length
-                a = gates[offset + i].matrix
-                b = gates[offset + interval_length//2 + i].matrix
-                v,u,r = _basic_decomposition(a,b)
-
-                if interval < intervals-1:
-                    # merge with following UCG (not yet decomposed)
-                    index = offset + interval_length + i
-                    gates[index] = _SingleQubitGate(gates[index].matrix*r.getH())
-                    index = offset + 3*interval_length//2 + i
-                    gates[index] = _SingleQubitGate(gates[index].matrix*r)
-                else:
-                    # store trailing rotations in diagonal gate
-                    for m in range(intervals):
-                        off = m*interval_length
-                        index =  2*i + 2*off
-                        diagonal[index] *= r.getH().item((0,0))
-                        diagonal[index+1] *= r.getH().item((1,1))
-                        index = interval_length + 2*i + 2*off
-                        diagonal[index] *= r.item((0,0))
-                        diagonal[index+1] *= r.item((1,1))
-
-                # store in place
-                gates[offset + i] = _SingleQubitGate(v)
-                gates[offset + interval_length//2 + i] = _SingleQubitGate(u)
-
-    # decompose diagonal gates to CNOTs and merge single qubit gates
-    h = H.matrix
-    rz = Rz(-np.pi/2).matrix
-    gates[0] = _SingleQubitGate(h*gates[0].matrix)
-    for i in range(1,(1<<k) - 1):
-        gates[i] = _SingleQubitGate(h*gates[i].matrix*rz*h)
-    gates[-1] = _SingleQubitGate(gates[-1].matrix*rz*h)
-
-    phase = cmath.exp(-1j*((1<<k)-1)*np.pi/4)
-    return gates, phase*diagonal

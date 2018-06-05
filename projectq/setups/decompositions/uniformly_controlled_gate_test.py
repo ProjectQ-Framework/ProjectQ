@@ -62,63 +62,63 @@ from projectq.isometries import (_SingleQubitGate,
 ################################################################################
 
 
-def test_full_decomposition_1_choice():
-    eng = MainEngine()
-    qureg = eng.allocate_qureg(2)
-    eng.flush() # makes sure the qubits are allocated in order
-    A = Rx(np.pi/5)
-    B = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B])
-    cmd = UCG.generate_command(([qureg[1]], qureg[0]))
-    with Dagger(eng):
-        ucg._decompose_uniformly_controlled_gate(cmd)
-    eng.flush()
-    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    vec = np.array([final_wavefunction]).T
-    reference = np.matrix(block_diag(A.matrix,B.matrix))
-    print(reference*vec)
-    assert np.isclose(abs((reference*vec).item(0)), 1)
-
-def test_full_decomposition_2_choice():
-    eng = MainEngine()
-    qureg = eng.allocate_qureg(3)
-    eng.flush() # makes sure the qubits are allocated in order
-    A = Rx(np.pi/5)
-    B = H
-    C = Rz(np.pi/5)
-    D = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B,C,D])
-    cmd = UCG.generate_command((qureg[1:], qureg[0]))
-    with Dagger(eng):
-        ucg._decompose_uniformly_controlled_gate(cmd)
-    eng.flush()
-    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    vec = np.array([final_wavefunction]).T
-    reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
-    print(reference*vec)
-    assert np.isclose(abs((reference*vec).item(0)), 1)
-
-def test_full_decomposition_2_choice_target_in_middle():
-    eng = MainEngine()
-    qureg = eng.allocate_qureg(3)
-    eng.flush() # makes sure the qubits are allocated in order
-    A = Rx(np.pi/5)
-    B = H
-    C = Rz(np.pi/5)
-    D = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B,C,D])
-    cmd = UCG.generate_command(([qureg[0],qureg[2]], qureg[1]))
-    with Dagger(eng):
-        ucg._decompose_uniformly_controlled_gate(cmd)
-    eng.flush()
-    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    print(qbit_to_bit_map)
-    vec = np.array([final_wavefunction]).T
-    vec[[1,2]] = vec[[2,1]] #reorder basis
-    vec[[5,6]] = vec[[6,5]]
-    reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
-    print(reference*vec)
-    assert np.isclose(abs((reference*vec).item(0)), 1)
+# def test_full_decomposition_1_choice():
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(2)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     A = Rx(np.pi/5)
+#     B = Ry(np.pi/3)
+#     UCG = UniformlyControlledGate([A,B])
+#     cmd = UCG.generate_command(([qureg[1]], qureg[0]))
+#     with Dagger(eng):
+#         ucg._decompose_uniformly_controlled_gate(cmd)
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+#     vec = np.array([final_wavefunction]).T
+#     reference = np.matrix(block_diag(A.matrix,B.matrix))
+#     print(reference*vec)
+#     assert np.isclose(abs((reference*vec).item(0)), 1)
+#
+# def test_full_decomposition_2_choice():
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(3)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     A = Rx(np.pi/5)
+#     B = H
+#     C = Rz(np.pi/5)
+#     D = Ry(np.pi/3)
+#     UCG = UniformlyControlledGate([A,B,C,D])
+#     cmd = UCG.generate_command((qureg[1:], qureg[0]))
+#     with Dagger(eng):
+#         ucg._decompose_uniformly_controlled_gate(cmd)
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+#     vec = np.array([final_wavefunction]).T
+#     reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
+#     print(reference*vec)
+#     assert np.isclose(abs((reference*vec).item(0)), 1)
+#
+# def test_full_decomposition_2_choice_target_in_middle():
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(3)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     A = Rx(np.pi/5)
+#     B = H
+#     C = Rz(np.pi/5)
+#     D = Ry(np.pi/3)
+#     UCG = UniformlyControlledGate([A,B,C,D])
+#     cmd = UCG.generate_command(([qureg[0],qureg[2]], qureg[1]))
+#     with Dagger(eng):
+#         ucg._decompose_uniformly_controlled_gate(cmd)
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+#     print(qbit_to_bit_map)
+#     vec = np.array([final_wavefunction]).T
+#     vec[[1,2]] = vec[[2,1]] #reorder basis
+#     vec[[5,6]] = vec[[6,5]]
+#     reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
+#     print(reference*vec)
+#     assert np.isclose(abs((reference*vec).item(0)), 1)
 
 def apply_mask(mask, qureg):
     n = len(qureg)
@@ -132,31 +132,33 @@ def create_initial_state(mask, qureg):
         if ((mask >> pos) & 1) == 1:
             X | qureg[pos]
 
-@pytest.mark.parametrize("init", range(32))
+@pytest.mark.parametrize("init", range(10))
 def test_full_decomposition_4_choice_target_in_middle(init):
+    n = 4
     eng = MainEngine()
-    qureg = eng.allocate_qureg(5)
+    qureg = eng.allocate_qureg(n)
     eng.flush() # makes sure the qubits are allocated in order
     create_initial_state(init,qureg)
 
     random.seed(42)
     gates = []
-    for i in range(8):
+    for i in range(1<<(n-1)):
         a = Rx(random.uniform(0,2*np.pi)).matrix
         b = Ry(random.uniform(0,2*np.pi)).matrix
         c = Rx(random.uniform(0,2*np.pi)).matrix
         gates.append(_SingleQubitGate(a*b*c))
 
-    choice = qureg[0:2]+qureg[3:4]
-    target = qureg[2]
-    ignore = qureg[4]
+    choice = qureg[1:]
+    target = qureg[0]
     print(len(choice))
     print(len(gates))
     UCG = UniformlyControlledGate(gates)
+    dec = UCG.decomposition
+
     cmd = UCG.generate_command((choice, target))
     with Dagger(eng):
         ucg._decompose_uniformly_controlled_gate(cmd)
-    for k in range(8):
+    for k in range(1<<(n-1)):
         with Compute(eng):
             apply_mask(k, choice)
         with Control(eng, choice):
@@ -171,39 +173,80 @@ def test_full_decomposition_4_choice_target_in_middle(init):
     assert np.isclose(abs((vec).item(init)), 1)
 
 
-@pytest.mark.parametrize("init", range(16))
-def test_diagonal_gate(init):
-    eng = MainEngine()
-    qureg = eng.allocate_qureg(4)
-    eng.flush() # makes sure the qubits are allocated in order
-    create_initial_state(init,qureg)
+# @pytest.mark.parametrize("init", range(32))
+# def test_full_decomposition_4_choice_target_in_middle(init):
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(5)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     create_initial_state(init,qureg)
+#
+#     random.seed(42)
+#     gates = []
+#     for i in range(8):
+#         a = Rx(random.uniform(0,2*np.pi)).matrix
+#         b = Ry(random.uniform(0,2*np.pi)).matrix
+#         c = Rx(random.uniform(0,2*np.pi)).matrix
+#         gates.append(_SingleQubitGate(a*b*c))
+#
+#     choice = qureg[0:2]+qureg[3:4]
+#     target = qureg[2]
+#     ignore = qureg[4]
+#     print(len(choice))
+#     print(len(gates))
+#     UCG = UniformlyControlledGate(gates)
+#     cmd = UCG.generate_command((choice, target))
+#     with Dagger(eng):
+#         ucg._decompose_uniformly_controlled_gate(cmd)
+#     for k in range(8):
+#         with Compute(eng):
+#             apply_mask(k, choice)
+#         with Control(eng, choice):
+#             gates[k] | target
+#         Uncompute(eng)
+#
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+#     print(qbit_to_bit_map)
+#     vec = np.array([final_wavefunction]).T
+#     print(vec)
+#     assert np.isclose(abs((vec).item(init)), 1)
 
-    random.seed(42)
-    gates = []
-    for i in range(8):
-        a = Rx(random.uniform(0,2*np.pi)).matrix
-        b = Ry(random.uniform(0,2*np.pi)).matrix
-        c = Rx(random.uniform(0,2*np.pi)).matrix
-        gates.append(_SingleQubitGate(a*b*c))
 
-    choice = qureg[1:]
-    target = qureg[0]
 
-    UCG = UniformlyControlledGate(gates)
-    cmd = UCG.generate_command((choice, target))
-    with Dagger(eng):
-        ucg._decompose_uniformly_controlled_gate(cmd)
-    for k in range(8):
-        with Compute(eng):
-            apply_mask(k, choice)
-        with Control(eng, choice):
-            gates[k] | target
-        Uncompute(eng)
-
-    eng.flush()
-    qbit_to_bit_map, final_wavefunction = eng.backend.cheat()
-    print(qbit_to_bit_map)
-    vec = np.array([final_wavefunction])
-    k = 1 << len(choice)
-    print(cmath.phase(vec.item(init)))
-    assert np.isclose(vec.item(init), 1)
+#
+# @pytest.mark.parametrize("init", range(16))
+# def test_diagonal_gate(init):
+#     eng = MainEngine()
+#     qureg = eng.allocate_qureg(4)
+#     eng.flush() # makes sure the qubits are allocated in order
+#     create_initial_state(init,qureg)
+#
+#     random.seed(42)
+#     gates = []
+#     for i in range(8):
+#         a = Rx(random.uniform(0,2*np.pi)).matrix
+#         b = Ry(random.uniform(0,2*np.pi)).matrix
+#         c = Rx(random.uniform(0,2*np.pi)).matrix
+#         gates.append(_SingleQubitGate(a*b*c))
+#
+#     choice = qureg[1:]
+#     target = qureg[0]
+#
+#     UCG = UniformlyControlledGate(gates)
+#     cmd = UCG.generate_command((choice, target))
+#     with Dagger(eng):
+#         ucg._decompose_uniformly_controlled_gate(cmd)
+#     for k in range(8):
+#         with Compute(eng):
+#             apply_mask(k, choice)
+#         with Control(eng, choice):
+#             gates[k] | target
+#         Uncompute(eng)
+#
+#     eng.flush()
+#     qbit_to_bit_map, final_wavefunction = eng.backend.cheat()
+#     print(qbit_to_bit_map)
+#     vec = np.array([final_wavefunction])
+#     k = 1 << len(choice)
+#     print(cmath.phase(vec.item(init)))
+#     assert np.isclose(vec.item(init), 1)

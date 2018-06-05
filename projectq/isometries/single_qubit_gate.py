@@ -24,7 +24,6 @@ class _SingleQubitGate(BasicGate):
             abs(self.matrix.item((0,0))), abs(self.matrix.item((0,1))),
             abs(self.matrix.item((1,0))), abs(self.matrix.item((1,1))))
 
-    # make sure optimizer behaves well
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return np.allclose(self.matrix, other.matrix)
