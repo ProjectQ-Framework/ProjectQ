@@ -23,7 +23,7 @@ from projectq.ops import (Allocate, BasicGate, CNOT, Command, Deallocate,
                           FlushGate, Measure, QFT, X)
 from projectq.types import WeakQubitRef
 
-import _linearmapper as lm
+from projectq.cengines import _linearmapper as lm
 
 
 def test_return_swap_depth():
