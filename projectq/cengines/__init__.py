@@ -18,6 +18,7 @@ from ._basics import (BasicEngine,
 from ._cmdmodifier import CommandModifier
 from ._basicmapper import BasicMapperEngine, LogicalQubitIDTag
 from ._ibmcnotmapper import IBMCNOTMapper
+from ._linearmapper import LinearMapper
 from ._manualmapper import ManualMapper
 from ._main import (MainEngine,
                     NotYetMeasuredError,
