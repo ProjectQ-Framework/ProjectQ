@@ -53,7 +53,7 @@ def return_swap_depth(swaps):
         max_depth = max(depth_of_qubits[qb0_id], depth_of_qubits[qb1_id])
         depth_of_qubits[qb0_id] = max_depth + 1
         depth_of_qubits[qb1_id] = max_depth + 1
-    return max(depth_of_qubits.values() + [0])
+    return max(list(depth_of_qubits.values()) + [0])
 
 
 class LinearMapper(BasicMapperEngine):
