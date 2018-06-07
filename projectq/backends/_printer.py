@@ -20,9 +20,12 @@ import sys
 
 from builtins import input
 
-from projectq.cengines import LastEngineException, BasicEngine
+from projectq.cengines import (BasicEngine, 
+                               LastEngineException,
+                               LogicalQubitIDTag)
 from projectq.ops import FlushGate, Measure
 from projectq.meta import get_control_count
+from projectq.types import WeakQubitRef
 
 
 class CommandPrinter(BasicEngine):
@@ -91,6 +94,14 @@ class CommandPrinter(BasicEngine):
                     else:
                         m = self._default_measure
                     m = int(m)
+                    # Check there was a mapper and redirect result
+                    logical_id_tag = None
+                    for tag in cmd.tags:
+                        if isinstance(tag, LogicalQubitIDTag):
+                            logical_id_tag = tag
+                    if logical_id_tag is not None:
+                        qubit = WeakQubitRef(qubit.engine, 
+                                             logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, m)
         else:
             if self._in_place:
