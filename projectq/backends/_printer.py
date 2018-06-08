@@ -20,7 +20,7 @@ import sys
 
 from builtins import input
 
-from projectq.cengines import (BasicEngine, 
+from projectq.cengines import (BasicEngine,
                                LastEngineException,
                                LogicalQubitIDTag)
 from projectq.ops import FlushGate, Measure
@@ -100,7 +100,7 @@ class CommandPrinter(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qubit = WeakQubitRef(qubit.engine, 
+                        qubit = WeakQubitRef(qubit.engine,
                                              logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, m)
         else:

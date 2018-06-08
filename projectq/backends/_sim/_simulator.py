@@ -310,7 +310,7 @@ class Simulator(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qb = WeakQubitRef(qb.engine, 
+                        qb = WeakQubitRef(qb.engine,
                                           logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qb, out[i])
                     i += 1
