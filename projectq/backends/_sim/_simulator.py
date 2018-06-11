@@ -333,22 +333,25 @@ class Simulator(BasicEngine):
             ctrlids = [qb.id for qb in cmd.control_qubits]
             self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
         elif isinstance(cmd.gate, UniformlyControlledGate):
-            assert(get_control_count(cmd) == 0)
             choice_ids = [qb.id for qb in cmd.qubits[0]]
+            ctrl_ids = [qb.id for qb in cmd.control_qubits]
             target_id = cmd.qubits[1][0].id
             unitaries = [gate.matrix.tolist() for gate in cmd.gate.gates]
+            assert len(unitaries) == 2**len(choice_ids)
             self._simulator.apply_uniformly_controlled_gate(unitaries,
                                                             target_id,
-                                                            choice_ids)
+                                                            choice_ids,
+                                                            ctrl_ids)
             if cmd.gate.up_to_diagonal:
                 angles = [-cmath.phase(p) for p in cmd.gate.decomposition[1]]
                 ids = [target_id]+choice_ids
-                self._simulator.apply_diagonal_gate(angles, ids)
+                self._simulator.apply_diagonal_gate(angles, ids, [])
         elif isinstance(cmd.gate, DiagonalGate):
-            assert(get_control_count(cmd) == 0)
             ids = [q.id for qr in cmd.qubits for q in qr]
+            ctrlids = [qb.id for qb in cmd.control_qubits]
             angles = cmd.gate.angles
-            self._simulator.apply_diagonal_gate(angles, ids)
+            assert len(angles) == 2**len(ids)
+            self._simulator.apply_diagonal_gate(angles, ids, ctrlids)
         elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]

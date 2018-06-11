@@ -1,21 +1,19 @@
-import copy
-import math
-import cmath
-import numpy as np
-
 from projectq.cengines import DecompositionRule
-from projectq.ops import BasicGate, CNOT, Rz, DiagonalGate, Ph
-from projectq.isometries import _apply_diagonal_gate
+from projectq.meta import Control
+from projectq.ops import DiagonalGate
+from projectq.libs.isometries import _apply_diagonal_gate
 
 def _decompose_diagonal_gate(cmd):
     diag = cmd.gate
     decomposition = diag.decomposition
+    ctrl = cmd.control_qubits
 
     qureg = []
     for reg in cmd.qubits:
         qureg.extend(reg)
 
-    _apply_diagonal_gate(decomposition, qureg)
+    with Control(cmd.engine, ctrl):
+        _apply_diagonal_gate(decomposition, qureg)
 
 
 all_defined_decomposition_rules = [

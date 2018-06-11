@@ -1,17 +1,10 @@
-from projectq import MainEngine
-from projectq.ops import Measure, X, Rz, Isometry, UniformlyControlledGate, DiagonalGate
-from projectq.ops._basics import BasicGate
-from projectq.meta import Control, Compute, Uncompute, Dagger
+from projectq.ops import Isometry
+from projectq.meta import Control
 from projectq.cengines import DecompositionRule
-import projectq.setups.decompositions
-from projectq.cengines import InstructionFilter, AutoReplacer, DecompositionRuleSet
-from projectq.isometries import _apply_isometry
+from projectq.libs.isometries import _apply_isometry
 
-import numpy as np
-import math
 import cmath
-import copy
-import random
+
 
 def _print_qureg(qureg):
     eng = qureg.engine
@@ -30,12 +23,14 @@ def _decompose_isometry(cmd):
     iso = cmd.gate
     decomposition = iso.decomposition
     threshold = iso._threshold
+    ctrl = cmd.control_qubits
 
     qureg = []
     for reg in cmd.qubits:
         qureg.extend(reg)
 
-    _apply_isometry(decomposition, threshold, qureg)
+    with Control(cmd.engine, ctrl):
+        _apply_isometry(decomposition, threshold, qureg)
 
 
 #: Decomposition rules

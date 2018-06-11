@@ -61,18 +61,37 @@ class DiagonalGate(BasicGate):
             self._phases = [cmath.exp(1j*angle) for angle in self.angles]
         return self._phases
 
+    @property
+    def decomposition(self):
+        if self._decomposition == None:
+            from projectq.libs.isometries import _decompose_diagonal_gate
+            self._decomposition = _decompose_diagonal_gate(self.phases)
+        return self._decomposition
+
     def get_inverse(self):
         if len(self._angles) > 0:
             return DiagonalGate(angles = [-a for a in self._angles])
         else:
             return DiagonalGate(phases = [p.conjugate() for p in self._phases])
 
-    @property
-    def decomposition(self):
-        if self._decomposition == None:
-            from projectq.isometries import _decompose_diagonal_gate
-            self._decomposition = _decompose_diagonal_gate(self.phases)
-        return self._decomposition
+    #TODO: can also be merged with uniformly controlled gates
+    def get_merged(self, other):
+        if isinstance(other, DiagonalGate):
+            other_phases = other.phases
+            if len(self.phases) != len(other_phases):
+                raise NotMergeable("Cannot merge these two gates.")
+            new_phases = [self.phases[i]*other_phases[i] for i in range(len(other_phases))]
+            return DiagonalGate(phases=new_phases)
+        else:
+            raise NotMergeable("Cannot merge these two gates.")
+
+    def __eq__(self, other):
+        """ Not implemented as this object is a floating point type."""
+        return NotImplemented
+
+    def __ne__(self, other):
+        """ Not implemented as this object is a floating point type."""
+        return NotImplemented
 
     def __str__(self):
         return "D"

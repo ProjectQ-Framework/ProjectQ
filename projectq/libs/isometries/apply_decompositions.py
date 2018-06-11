@@ -58,7 +58,6 @@ def _apply_uniformly_controlled_gate(decomposition, target, choice_reg, up_to_di
         control_index = _count_trailing_zero_bits(i+1)
         choice = choice_reg[control_index]
         CNOT | (choice, target)
-        #print(_is_unitary(gates[i].matrix))
     gates[-1] | target
 
     if up_to_diagonal:
@@ -89,12 +88,6 @@ def _apply_multi_controlled_gate(decomposition, k, s, threshold, qureg):
     if len(gates) == 1:
         if np.allclose(gates[0].matrix, Rz(0).matrix):
             return
-
-    #U = np.matrix([[(-0.7108860402090058-0.7033072016973199j),
-    #                (-9.403468524726843e-05+9.504800300819127e-05j)],
-    #               [(-9.507314515605492e-05+9.400926537078691e-05j),
-    #                (-0.7031170805491339-0.7110740841596025j)]])
-    #print(_is_unitary(U))
 
     if len(ctrl) == 0:
         gates[0] | qureg[s]

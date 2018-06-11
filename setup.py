@@ -54,8 +54,8 @@ cppdec = Feature(
     standard=True,
     ext_modules=[
         Extension(
-            'projectq.isometries.cppdec',
-            ['projectq/isometries/cppdec.cpp'],
+            'projectq.libs.isometries.cppdec',
+            ['projectq/libs/isometries/cppdec.cpp'],
             include_dirs=[
                 # Path to pybind11 headers
                 get_pybind_include(),
@@ -121,8 +121,8 @@ class BuildExt(build_ext):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
 
+        #TODO find better place for this
         opts.append('-Wno-missing-braces')
-
 
         if not has_flag(self.compiler):
             self.warning("Something is wrong with your C++ compiler.\n"

@@ -1,42 +1,83 @@
 from ._basics import BasicGate
 
-
 import copy
 import numpy as np
 
-
-
 class Isometry(BasicGate):
     """
-    A gate that represents arbitrary isometries.
+    A gate that represents an arbitrary isometry. It is constructed from a matrix
+    of size 2^n by k. The isometry acts on n qubits, the action on states |i>
+    with i >= k is undefined. The value of k must be in [1,2^n].
 
     Example:
         .. code-block:: python
-            col_0 = [1j, -1j]
-            col_1 = ...
-            V = Isometry([col_0 col_1])
+            matrix([[1./sqrt(2), 0],
+                    [0, 1./sqrt(2)]
+                    [1./sqrt(2), 0]
+                    [0, 1./sqrt(2)]]
+            V = Isometry([col_0, col_1])
             V | qureg
 
+    Attributes:
+        matrix: 2^n by k matrix with orthonormal columns
+
+    Note:
+        If possible use DiagonalGate of UniformlyControlledGate instead. In
+        general the gate complexity is exponential in the number of qubits,
+        so it is very inefficient to decompose large isometries.
     """
-    def __init__(self, cols):
-        self.cols = copy.deepcopy(cols)
+    def __init__(self, matrix):
+        array = np.asarray(matrix)
+        cols = []
+        for i in range(array.shape[1]):
+            cols.append(matrix[:,i])
+
+        k = len(cols)
+        if k == 0:
+            raise ValueError("An isometry needs at least one column.")
+        n = int(np.log2(len(cols[0])))
+        if 2**n != len(cols[0]):
+            raise ValueError("The length of the columns of an isometry must be a power of 2.")
+        if k > 2**n:
+            raise ValueError("An isometry can contain at most 2^n columns.")
+        for i in range(k):
+            if len(cols[i]) != 2**n:
+                raise ValueError("All columns of an isometry must have the same length.")
+
+        for i in range(k):
+            if not np.isclose(np.linalg.norm(cols[i]), 1):
+                raise ValueError("The columns of an isometry have to be normalized.")
+            for j in range(k):
+                if i != j:
+                    if not np.isclose(np.vdot(cols[i],cols[j]), 0):
+                        raise ValueError("The columns of an isometry have to be orthogonal.")
+
+        self.cols = cols
         self.interchangeable_qubit_indices = []
         self._decomposition = None
-        n = int(np.log2(len(cols[0])))
-        #print("n={} th={}".format(n,_get_ucg_mcg_threshold(n)))
         self._threshold = _get_ucg_mcg_threshold(n)
 
     @property
     def decomposition(self):
         if self._decomposition == None:
-            from projectq.isometries import _decompose_isometry
+            from projectq.libs.isometries import _decompose_isometry
             self._decomposition = _decompose_isometry(self.cols, self._threshold)
         return self._decomposition
 
     def __str__(self):
         return "V"
 
+    def __eq__(self, other):
+        """ Not implemented as this object is a floating point type."""
+        return NotImplemented
 
+    def __ne__(self, other):
+        """ Not implemented as this object is a floating point type."""
+        return NotImplemented
+
+
+# When decomposing up to diagonal gate, for a small number of controls
+# a UCG is cheaper than a MCG. Here we empirically find that threshold
 def _my_is_available(cmd):
     from projectq.ops import (Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
                               Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,

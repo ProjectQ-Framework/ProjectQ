@@ -1,11 +1,11 @@
 try:
-    from projectq.isometries.cppdec import _DecomposeDiagonal
+    from projectq.libs.isometries.cppdec import _DecomposeDiagonal
 except ImportError:
     from .decompose_diagonal import _DecomposeDiagonal
 
 
 
-from projectq.isometries.single_qubit_gate import _SingleQubitGate
+from projectq.libs.isometries.single_qubit_gate import _SingleQubitGate
 def _wrap(gates):
     return [_SingleQubitGate(np.matrix(gate)) for gate in gates]
 
@@ -13,7 +13,7 @@ def _unwrap(gates):
     return [gate.matrix.tolist() for gate in gates]
 
 try:
-    from projectq.isometries.cppdec import _BackendDecomposeUCG
+    from projectq.libs.isometries.cppdec import _BackendDecomposeUCG
     import numpy as np
 
     class _DecomposeUCG(object):
@@ -30,7 +30,7 @@ except ImportError:
 
 
 try:
-    from projectq.isometries.cppdec import _BackendDecomposeIsometry
+    from projectq.libs.isometries.cppdec import _BackendDecomposeIsometry
     import numpy as np
 
     class _DecomposeIsometry(object):
