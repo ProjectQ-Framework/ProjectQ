@@ -104,7 +104,7 @@ def test_resource_counter():
     sent_gates = [cmd.gate for cmd in backend.received_commands]
     assert sent_gates.count(H) == 1
     assert sent_gates.count(X) == 2
-    assert sent_gates.count(Measure) == 1
+    assert sent_gates.count(Measure) == 2
 
 
 def test_resource_counter_str_when_empty():
