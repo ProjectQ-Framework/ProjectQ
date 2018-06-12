@@ -281,7 +281,7 @@ class MeasureGate(FastForwardingGate):
                 num_qubits += 1
                 cmd = self.generate_command(([qubit],))
                 apply_command(cmd)
-        if num_qubits >= 1:
+        if num_qubits > 1:
             warnings.warn("Pending syntax change in future versions of " +
                           "ProjectQ: \n Measure will be a single qubit gate " +
                           "only. Use `All(Measure) | qureg` instead to " +
