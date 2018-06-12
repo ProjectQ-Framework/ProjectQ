@@ -271,9 +271,10 @@ class MeasureGate(FastForwardingGate):
 
     def __or__(self, qubits):
         """ 
-        Previously (ProjectQ <= v0.3.6) All(Measure) was equal to Measure
-        But we will change it to Measure being strictly a single qubit gate in
-        the coming releases.
+        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
+        applied to any number of quantum registers. Now the MeasureGate/Measure
+        is strictly a single qubit gate. In the coming releases the backward
+        compatibility will be removed!
         """
         num_qubits = 0
         for qureg in self.make_tuple_of_qureg(qubits):

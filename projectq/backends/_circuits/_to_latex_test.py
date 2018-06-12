@@ -18,6 +18,7 @@ Tests for projectq.backends._circuits._to_latex.py.
 
 import pytest
 import builtins
+import copy
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
@@ -179,6 +180,39 @@ def test_body():
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
+
+
+def test_qubit_allocations_at_zero():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x: x
+
+    a = eng.allocate_qureg(4)
+
+    CNOT | (a[0], a[2])
+    CNOT | (a[0], a[3])
+    CNOT | (a[0], a[2])
+    CNOT | (a[1], a[3])
+
+    del a
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['allocate_at_zero'] = True
+    code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
+    assert code.count("gate0) at (0") == 4
+
+    settings['gates']['AllocateQubitGate']['allocate_at_zero'] = False
+    code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
+    assert code.count("gate0) at (0") == 3
+
+    del settings['gates']['AllocateQubitGate']['allocate_at_zero']
+    code = _to_latex._body(copy.deepcopy(circuit_lines), settings)
+    assert code.count("gate0) at (0") == 3
 
 
 def test_qubit_lines_classicalvsquantum1():

@@ -1,4 +1,4 @@
-from projectq.ops import H, X, Z, Rz, CNOT, Measure
+from projectq.ops import All, CNOT, H, Measure, Rz, X, Z
 from projectq import MainEngine
 from projectq.meta import Dagger, Control
 
@@ -57,7 +57,8 @@ def run_teleport(eng, state_creation_function, verbose=False):
 
     # measure two values (once in Hadamard basis) and send the bits to Bob
     H | psi
-    Measure | (psi, b1)
+    Measure | psi
+    Measure | b1
     msg_to_bob = [int(psi), int(b1)]
     if verbose:
         print("Alice is sending the message {} to Bob.".format(msg_to_bob))

@@ -18,11 +18,9 @@ Tests for projectq.backends._resource.py.
 
 import pytest
 
-from projectq.cengines import (DummyEngine,
-                               LogicalQubitIDTag,
-                               MainEngine,
+from projectq.cengines import (DummyEngine, LogicalQubitIDTag, MainEngine,
                                NotYetMeasuredError)
-from projectq.ops import H, CNOT, X, Rz, Measure, Command, Allocate, QFT
+from projectq.ops import All, Allocate, CNOT, Command, H, Measure, QFT, Rz, X
 from projectq.types import WeakQubitRef
 
 from projectq.backends import ResourceCounter
@@ -77,7 +75,7 @@ def test_resource_counter():
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
 
-    Measure | (qubit1, qubit3)
+    All(Measure) | qubit1 + qubit3
 
     with pytest.raises(NotYetMeasuredError):
         int(qubit1)
