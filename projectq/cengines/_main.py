@@ -22,7 +22,7 @@ import traceback
 import weakref
 
 import projectq
-from projectq.cengines import BasicEngine
+from projectq.cengines import BasicEngine, BasicMapperEngine
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
 from projectq.backends import Simulator
@@ -51,6 +51,7 @@ class MainEngine(BasicEngine):
         active_qubits (WeakSet): WeakSet containing all active qubits
         dirty_qubits (Set): Containing all dirty qubit ids
         backend (BasicEngine): Access the back-end.
+        mapper (BasicMapperEngine): Access to the mapper if there is one.
 
     """
     def __init__(self, backend=None, engine_list=None, setup=None,
@@ -64,7 +65,8 @@ class MainEngine(BasicEngine):
         Args:
             backend (BasicEngine): Backend to send the circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
-                as compiler engines.
+                as compiler engines. Note: The engine list can currently only
+                contain at most one mapper (instance of BasicMapperEngine).
             setup (module): Setup module which defines a function called
                 `get_engine_list()`. `get_engine_list()` returns the list
                 of engines to be used as compiler engines.
@@ -128,7 +130,7 @@ class MainEngine(BasicEngine):
 
         if engine_list is None:
             engine_list = setup.get_engine_list()
-
+        self.mapper = None
         if isinstance(engine_list, list):
             # Test that engine list elements are all BasicEngine objects
             for current_eng in engine_list:
@@ -139,6 +141,12 @@ class MainEngine(BasicEngine):
                         "Did you forget the brackets to create an instance?\n"
                         "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
                         "of\n     MainEngine(engine_list=[AutoReplacer()])")
+                if isinstance(current_eng, BasicMapperEngine):
+                    if self.mapper is None:
+                        self.mapper = current_eng
+                    else:
+                        raise UnsupportedEngineError(
+                            "More than one mapper engine is not supported.")
         else:
             raise UnsupportedEngineError(
                 "The provided list of engines is not a list!")
