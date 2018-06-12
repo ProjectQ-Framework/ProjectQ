@@ -15,9 +15,10 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import (X, NOT, C, BasicMathGate, Measure, FlushGate,
-                          Allocate, Deallocate, Command, Y)
+from projectq.ops import (All, Allocate, BasicMathGate, C, Command, Deallocate,
+                          FlushGate, Measure, NOT, X, Y)
 from projectq.cengines import AutoReplacer, DecompositionRuleSet, DummyEngine
+
 from ._classical_simulator import ClassicalSimulator
 
 
@@ -111,7 +112,7 @@ def test_simulator_arithmetic():
     assert sim.read_register(b) == 24
 
     # also test via measurement:
-    Measure | (a, b)
+    All(Measure) | a + b
     eng.flush()
 
     for i in range(len(a)):

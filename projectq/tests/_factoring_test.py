@@ -25,7 +25,8 @@ from projectq.cengines import (MainEngine,
                                TagRemover)
 from projectq.libs.math import MultiplyByConstantModN
 from projectq.meta import Control
-from projectq.ops import X, H, QFT, BasicMathGate, Swap, get_inverse, Measure
+from projectq.ops import (All, BasicMathGate, get_inverse, H, Measure, QFT,
+                          Swap, X)
 
 rule_set = DecompositionRuleSet(modules=(projectq.libs.math,
                                          projectq.setups.decompositions))
@@ -101,4 +102,4 @@ def test_factoring(sim):
     assert probability == pytest.approx(.5)
 
     Measure | ctrl_qubit
-    Measure | x
+    All(Measure) | x

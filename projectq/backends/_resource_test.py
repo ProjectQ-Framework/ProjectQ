@@ -19,7 +19,7 @@ Tests for projectq.backends._resource.py.
 import pytest
 
 from projectq.cengines import MainEngine, DummyEngine
-from projectq.ops import H, CNOT, X, Rz, Measure
+from projectq.ops import All, CNOT, H, Measure, Rz, X 
 
 from projectq.backends import ResourceCounter
 
@@ -55,7 +55,7 @@ def test_resource_counter():
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
 
-    Measure | (qubit1, qubit3)
+    All(Measure) | qubit1 + qubit3
 
     assert int(qubit1) == int(qubit3)
     assert int(qubit1) == 0
@@ -81,7 +81,7 @@ def test_resource_counter():
     sent_gates = [cmd.gate for cmd in backend.received_commands]
     assert sent_gates.count(H) == 1
     assert sent_gates.count(X) == 2
-    assert sent_gates.count(Measure) == 1
+    assert sent_gates.count(Measure) == 2
 
 
 def test_resource_counter_str_when_empty():
