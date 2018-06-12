@@ -71,7 +71,8 @@ class BasicMapperEngine(BasicEngine):
         qubits = new_cmd.qubits
         for qureg in qubits:
             for qubit in qureg:
-                qubit.id = self.current_mapping[qubit.id]
+                if qubit.id != -1:
+                    qubit.id = self.current_mapping[qubit.id]
         control_qubits = new_cmd.control_qubits
         for qubit in control_qubits:
             qubit.id = self.current_mapping[qubit.id]
