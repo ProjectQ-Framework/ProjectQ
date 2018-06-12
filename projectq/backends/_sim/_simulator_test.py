@@ -27,8 +27,8 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 from projectq import MainEngine
-from projectq.cengines import (DummyEngine,
-                               LogicalQubitIDTag,
+from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
+                               LocalOptimizer, LogicalQubitIDTag,
                                NotYetMeasuredError)
 from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
@@ -67,6 +67,33 @@ def sim(request):
         sim = Simulator()
         sim._simulator = PySim(1)
         return sim
+
+
+@pytest.fixture(params=["mapper", "no_mapper"])
+def mapper(request):
+    """
+    Adds a mapper which changes qubit ids by adding 1
+    """
+    if request.param == "mapper":
+
+        class TrivialMapper(BasicMapperEngine):
+            def __init__(self):
+                BasicEngine.__init__(self)
+                self.current_mapping = dict()
+
+            def receive(self, command_list):
+                for cmd in command_list:
+                    for qureg in cmd.all_qubits:
+                        for qubit in qureg:
+                            if qubit.id == -1:
+                                continue
+                            elif qubit.id not in self.current_mapping:
+                                self.current_mapping[qubit.id] = qubit.id + 1
+                    self._send_cmd_with_mapped_ids(cmd)
+
+        return TrivialMapper()
+    if request.param == "no_mapper":
+        return None
 
 
 class Mock1QubitGate(BasicGate):
@@ -270,8 +297,11 @@ def test_simulator_kqubit_exception(sim):
         H | qureg
 
 
-def test_simulator_probability(sim):
-    eng = MainEngine(sim)
+def test_simulator_probability(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(6)
     All(H) | qubits
     eng.flush()
