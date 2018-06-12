@@ -115,6 +115,28 @@ class Simulator(BasicEngine):
         except:
             return False
 
+    def _convert_logical_to_mapped_qureg(self, qureg):
+        """
+        Converts a qureg from logical to mapped qubits if there is a mapper.
+
+        Args:
+            qureg (list[Qubit],Qureg): Logical quantum bits
+        """
+        mapper = self.main_engine.mapper
+        if mapper is not None:
+            mapped_qureg = []
+            for qubit in qureg:
+                if qubit.id not in mapper.current_mapping:
+                    raise RuntimeError("Unknown qubit id. "
+                                       "Please make sure you have called "
+                                       "eng.flush().")
+                new_qubit = WeakQubitRef(qubit.engine,
+                                         mapper.current_mapping[qubit.id])
+                mapped_qureg.append(new_qubit)
+            return mapped_qureg
+        else:
+            return qureg
+
     def get_expectation_value(self, qubit_operator, qureg):
         """
         Get the expectation value of qubit_operator w.r.t. the current wave
@@ -197,6 +219,7 @@ class Simulator(BasicEngine):
             passed through the compilation chain (call main_engine.flush() to
             make sure).
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
         return self._simulator.get_probability(bit_string,
                                                [qb.id for qb in qureg])
