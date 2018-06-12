@@ -656,3 +656,20 @@ def test_simulator_functional_entangle(sim):
         assert 0. == pytest.approx(abs(sim.cheat()[1][i]))
 
     All(Measure) | qubits
+
+
+def test_simulator_convert_logical_to_mapped_qubits(sim):
+    mapper = BasicMapperEngine()
+
+    def receive(command_list):
+        pass
+
+    mapper.receive = receive
+    eng = MainEngine(sim, [mapper])
+    qubit0 = eng.allocate_qubit()
+    qubit1 = eng.allocate_qubit()
+    mapper.current_mapping = dict()
+    mapper.current_mapping[qubit0[0].id] = qubit1[0].id
+    mapper.current_mapping[qubit1[0].id] = qubit0[0].id
+    assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
+            qubit1 + qubit0)
