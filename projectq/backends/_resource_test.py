@@ -18,8 +18,10 @@ Tests for projectq.backends._resource.py.
 
 import pytest
 
-from projectq.cengines import MainEngine, DummyEngine
-from projectq.ops import All, CNOT, H, Measure, Rz, X 
+from projectq.cengines import DummyEngine, MainEngine, NotYetMeasuredError
+from projectq.meta import LogicalQubitIDTag
+from projectq.ops import All, Allocate, CNOT, Command, H, Measure, QFT, Rz, X
+from projectq.types import WeakQubitRef
 
 from projectq.backends import ResourceCounter
 
@@ -37,6 +39,24 @@ def test_resource_counter_isavailable():
     resource_counter.is_last_engine = True
 
     assert resource_counter.is_available("test")
+
+
+def test_resource_counter_measurement():
+    eng = MainEngine(ResourceCounter(), [])
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
+                   tags=[LogicalQubitIDTag(2)])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+    eng.send([cmd0, cmd1])
+    eng.flush()
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 0
 
 
 def test_resource_counter():
@@ -57,10 +77,11 @@ def test_resource_counter():
 
     All(Measure) | qubit1 + qubit3
 
-    assert int(qubit1) == int(qubit3)
-    assert int(qubit1) == 0
+    with pytest.raises(NotYetMeasuredError):
+        int(qubit1)
 
     assert resource_counter.max_width == 2
+    assert resource_counter.depth_of_dag == 5
 
     str_repr = str(resource_counter)
     assert str_repr.count(" HGate : 1") == 1
@@ -86,3 +107,31 @@ def test_resource_counter():
 
 def test_resource_counter_str_when_empty():
     assert isinstance(str(ResourceCounter()), str)
+
+
+def test_resource_counter_depth_of_dag():
+    resource_counter = ResourceCounter()
+    eng = MainEngine(resource_counter, [])
+    assert resource_counter.depth_of_dag == 0
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    qb2 = eng.allocate_qubit()
+    QFT | qb0 + qb1 + qb2
+    assert resource_counter.depth_of_dag == 1
+    H | qb0
+    H | qb0
+    assert resource_counter.depth_of_dag == 3
+    CNOT | (qb0, qb1)
+    X | qb1
+    assert resource_counter.depth_of_dag == 5
+    Measure | qb1
+    Measure | qb1
+    assert resource_counter.depth_of_dag == 7
+    CNOT | (qb1, qb2)
+    Measure | qb2
+    assert resource_counter.depth_of_dag == 9
+    qb1[0].__del__()
+    qb2[0].__del__()
+    assert resource_counter.depth_of_dag == 9
+    qb0[0].__del__()
+    assert resource_counter.depth_of_dag == 9

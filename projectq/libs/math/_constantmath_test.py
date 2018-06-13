@@ -21,8 +21,8 @@ from projectq.cengines import (InstructionFilter,
                                AutoReplacer,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
-from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate, Measure,
-                          X)
+from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
+                          Measure, X)
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot

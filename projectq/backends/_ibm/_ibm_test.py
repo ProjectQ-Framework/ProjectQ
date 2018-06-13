@@ -26,8 +26,9 @@ from projectq.cengines import (TagRemover,
                                IBMCNOTMapper,
                                DummyEngine,
                                DecompositionRuleSet)
-from projectq.ops import (All, Allocate, Barrier, Command, Deallocate, Entangle,
-                          Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z)
+from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
+                          Entangle, Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag,
+                          X, Y, Z)
 
 
 # Insure that no HTTP request can be made in all tests in this module
