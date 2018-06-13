@@ -16,10 +16,9 @@
 Contains a compiler engine which counts the number of calls for each type of
 gate used in a circuit, in addition to the max. number of active qubits.
 """
-from projectq.cengines import (BasicEngine,
-                               LastEngineException,
-                               LogicalQubitIDTag)
-from projectq.meta import get_control_count
+
+from projectq.cengines import BasicEngine, LastEngineException
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import FlushGate, Deallocate, Allocate, Measure
 from projectq.types import WeakQubitRef
 
@@ -39,8 +38,8 @@ class ResourceCounter(BasicEngine):
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
     Properties:
-        depth (int): Circuit depth. It is the longest path in the directed
-                     acyclic graph (DAG) of the program.
+        depth_of_dag (int): It is the longest path in the directed
+                            acyclic graph (DAG) of the program.
     """
     def __init__(self):
         """
@@ -76,7 +75,7 @@ class ResourceCounter(BasicEngine):
             return True
 
     @property
-    def depth(self):
+    def depth_of_dag(self):
         if self._depth_of_qubit:
             current_max = max(self._depth_of_qubit.values())
             return max(current_max, self._previous_max_depth)
@@ -105,7 +104,7 @@ class ResourceCounter(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qubit = WeakQubitRef(qubit.engine, 
+                        qubit = WeakQubitRef(qubit.engine,
                                              logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
         else:

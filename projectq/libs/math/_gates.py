@@ -52,6 +52,9 @@ class AddConstant(BasicMathGate):
     def __eq__(self, other):
         return isinstance(other, AddConstant) and self.a == other.a
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -117,6 +120,9 @@ class AddConstantModN(BasicMathGate):
         return (isinstance(other, AddConstantModN) and self.a == other.a and
                 self.N == other.N)
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -179,6 +185,9 @@ class MultiplyByConstantModN(BasicMathGate):
     def __eq__(self, other):
         return (isinstance(other, MultiplyByConstantModN) and
                 self.a == other.a and self.N == other.N)
+
+    def __hash__(self):
+        return hash(str(self))
 
     def __ne__(self, other):
         return not self.__eq__(other)

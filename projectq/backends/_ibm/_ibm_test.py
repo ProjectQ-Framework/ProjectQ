@@ -26,9 +26,9 @@ from projectq.cengines import (TagRemover,
                                IBMCNOTMapper,
                                DummyEngine,
                                DecompositionRuleSet)
-from projectq.ops import (Command, X, Y, Z, T, Tdag, S, Sdag, Measure,
-                          Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
-                          Entangle)
+from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
+                          Entangle, Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag,
+                          X, Y, Z)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -143,7 +143,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     Rx(0.2) | qureg[0]
     del unused_qubit
     # measure; should be all-0 or all-1
-    Measure | qureg
+    All(Measure) | qureg
     # run the circuit
     eng.flush()
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])

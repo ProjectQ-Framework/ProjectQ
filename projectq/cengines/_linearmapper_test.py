@@ -17,8 +17,8 @@ from copy import deepcopy
 
 import pytest
 
-from projectq.cengines import DummyEngine, LogicalQubitIDTag
-from projectq.meta import QubitPlacementTag
+from projectq.cengines import DummyEngine
+from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
 from projectq.ops import (Allocate, BasicGate, CNOT, Command, Deallocate,
                           FlushGate, Measure, QFT, X)
 from projectq.types import WeakQubitRef

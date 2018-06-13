@@ -20,8 +20,8 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 from projectq.meta import Control
-from projectq.ops import (ClassicalInstructionGate, Measure, Ph, QFT, Rx, Ry,
-                          X, XGate)
+from projectq.ops import (All, ClassicalInstructionGate, Measure, Ph, QFT, Rx,
+                          Ry, X, XGate)
 
 from . import cnu2toffoliandcu
 
@@ -125,7 +125,7 @@ def test_decomposition():
                                                 correct_ctrl_qureg)
             assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
 
-        Measure | test_qb + test_ctrl_qureg
-        Measure | correct_qb + correct_ctrl_qureg
+        All(Measure) | test_qb + test_ctrl_qureg
+        All(Measure) | correct_qb + correct_ctrl_qureg
         test_eng.flush(deallocate_qubits=True)
         correct_eng.flush(deallocate_qubits=True)
