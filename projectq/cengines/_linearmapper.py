@@ -189,7 +189,7 @@ class LinearMapper(BasicMapperEngine):
                     neighbour_ids[qubit_id] = set()
                 for tag in cmd.tags:
                     if isinstance(tag, QubitPlacementTag):
-                        raise Exception("This mapper does not support " +
+                        raise Exception("This mapper does not support "
                                         "previous QubitPlacementTags")
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
@@ -596,9 +596,9 @@ class LinearMapper(BasicMapperEngine):
             self.send([cmd])
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
-            raise RuntimeError("Mapper is potentially in an infinite loop. " +
-                               "It is likely that the algorithm requires " +
-                               "too many qubits. Increase the number of " +
+            raise RuntimeError("Mapper is potentially in an infinite loop. "
+                               "It is likely that the algorithm requires "
+                               "too many qubits. Increase the number of "
                                "qubits for this mapper.")
 
     def receive(self, command_list):
