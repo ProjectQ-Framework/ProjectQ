@@ -28,12 +28,11 @@ import scipy.sparse.linalg
 
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
-                               LocalOptimizer, LogicalQubitIDTag,
-                               NotYetMeasuredError)
+                               LocalOptimizer, NotYetMeasuredError)
 from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
-from projectq.meta import Control, Dagger
+from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 from projectq.backends import Simulator

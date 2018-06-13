@@ -65,8 +65,8 @@ class MainEngine(BasicEngine):
         Args:
             backend (BasicEngine): Backend to send the circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
-                as compiler engines. Note: The engine list can currently only
-                contain at most one mapper (instance of BasicMapperEngine).
+                as compiler engines. Note: The engine list must not contain
+                multiple mappers (instances of BasicMapperEngine).
             setup (module): Setup module which defines a function called
                 `get_engine_list()`. `get_engine_list()` returns the list
                 of engines to be used as compiler engines.

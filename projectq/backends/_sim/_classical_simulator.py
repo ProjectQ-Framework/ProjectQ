@@ -16,7 +16,8 @@
 A simulator that only permits classical operations, for faster/easier testing.
 """
 
-from projectq.cengines import BasicEngine, LogicalQubitIDTag
+from projectq.cengines import BasicEngine
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (XGate,
                           BasicMathGate,
                           Measure,

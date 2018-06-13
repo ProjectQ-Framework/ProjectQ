@@ -20,8 +20,8 @@ implementation is used as an alternative.
 
 import math
 import random
-from projectq.cengines import BasicEngine, LogicalQubitIDTag
-from projectq.meta import get_control_count
+from projectq.cengines import BasicEngine
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (NOT,
                           H,
                           R,

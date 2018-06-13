@@ -20,11 +20,9 @@ import sys
 
 from builtins import input
 
-from projectq.cengines import (BasicEngine,
-                               LastEngineException,
-                               LogicalQubitIDTag)
+from projectq.cengines import BasicEngine, LastEngineException
 from projectq.ops import FlushGate, Measure
-from projectq.meta import get_control_count
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 

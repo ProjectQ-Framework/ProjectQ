@@ -36,3 +36,4 @@ from ._control import (Control,
                        get_control_count)
 from ._dagger import Dagger
 from ._util import insert_engine, drop_engine_after
+from ._logicalqubit import LogicalQubitIDTag

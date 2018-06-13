@@ -17,25 +17,12 @@
 from copy import deepcopy
 
 from projectq.cengines import DummyEngine
-from projectq.meta import ComputeTag
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
                           Measure)
 from projectq.types import WeakQubitRef
 
 from projectq.cengines import _basicmapper
-
-
-def test_logical_qubit_id_tag():
-    tag0 = _basicmapper.LogicalQubitIDTag(10)
-    tag1 = _basicmapper.LogicalQubitIDTag(1)
-    tag2 = tag0
-    tag3 = deepcopy(tag0)
-    tag3.logical_qubit_id = 9
-    other_tag = ComputeTag()
-    assert tag0 == tag2
-    assert tag0 != tag1
-    assert not tag0 == tag3
-    assert not tag0 == other_tag
 
 
 def test_basic_mapper_engine_send_cmd_with_mapped_ids():
@@ -74,7 +61,7 @@ def test_basic_mapper_engine_send_cmd_with_mapped_ids():
     assert rcmd1.qubits == ([qb2],)
     assert rcmd2.gate == Measure
     assert rcmd2.qubits == ([qb1],)
-    assert rcmd2.tags == ["SomeTag", _basicmapper.LogicalQubitIDTag(2)]
+    assert rcmd2.tags == ["SomeTag", LogicalQubitIDTag(2)]
     assert rcmd3.gate == BasicGate()
     assert rcmd3.qubits == ([qb3, qb2], [qb1])
     assert rcmd3.control_qubits == [qb0]
