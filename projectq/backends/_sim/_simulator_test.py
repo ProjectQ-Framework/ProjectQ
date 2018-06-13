@@ -175,7 +175,7 @@ def test_simulator_cheat(sim):
     assert len(sim.cheat()[1]) == 2
     assert 1. == pytest.approx(abs(sim.cheat()[1][0]))
 
-    del qubit
+    qubit[0].__del__()
     # should be empty:
     assert len(sim.cheat()[0]) == 0
     # state vector should only have 1 entry:
