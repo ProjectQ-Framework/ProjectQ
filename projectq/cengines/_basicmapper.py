@@ -15,7 +15,7 @@
 """
 Defines the parent class from which all mappers should be derived.
 
-There is only one engine currently allowed to be derived from 
+There is only one engine currently allowed to be derived from
 BasicMapperEngine. This allows the simulator to automatically translate
 logical qubit ids to mapped ids.
 """
@@ -60,11 +60,13 @@ class BasicMapperEngine(BasicEngine):
             qubit.id = self.current_mapping[qubit.id]
         if isinstance(new_cmd.gate, MeasureGate):
             assert len(new_cmd.qubits) == 1 and len(new_cmd.qubits[0]) == 1
+
             # Add LogicalQubitIDTag to MeasureGate
             def add_logical_id(command, old_tags=deepcopy(cmd.tags)):
                 command.tags = (old_tags +
                                 [LogicalQubitIDTag(cmd.qubits[0][0].id)])
                 return command
+
             tagger_eng = CommandModifier(add_logical_id)
             insert_engine(self, tagger_eng)
             self.send([new_cmd])

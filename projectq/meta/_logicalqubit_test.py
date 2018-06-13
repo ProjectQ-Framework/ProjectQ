@@ -18,6 +18,7 @@ from copy import deepcopy
 
 from projectq.meta import ComputeTag, _logicalqubit
 
+
 def test_logical_qubit_id_tag():
     tag0 = _logicalqubit.LogicalQubitIDTag(10)
     tag1 = _logicalqubit.LogicalQubitIDTag(1)

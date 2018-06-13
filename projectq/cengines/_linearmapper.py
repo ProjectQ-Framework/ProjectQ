@@ -22,6 +22,7 @@ Output: Quantum circuit in which qubits are placed in 1-D chain in which only
         nearest neighbour qubits can perform a 2 qubit gate. The mapper uses
         Swap gates in order to move qubits next to each other.
 """
+
 from collections import deque
 from copy import deepcopy
 
@@ -134,7 +135,7 @@ class LinearMapper(BasicMapperEngine):
 
         Args:
             num_qubits(int): Total number of qubits in the linear chain
-            cyclic(bool): If 1D chain is a cycle. 
+            cyclic(bool): If 1D chain is a cycle.
             currently_allocated_ids(set of int): Logical qubit ids for which
                                                  the Allocate gate has already
                                                  been processed and sent to
@@ -333,7 +334,7 @@ class LinearMapper(BasicMapperEngine):
         return
 
     @staticmethod
-    def _return_new_mapping_from_segments(num_qubits, segments, 
+    def _return_new_mapping_from_segments(num_qubits, segments,
                                           allocated_qubits, current_mapping):
         """
         Combines the individual segments into a new mapping.
@@ -561,8 +562,8 @@ class LinearMapper(BasicMapperEngine):
             cmd = Command(engine=self, gate=Allocate, qubits=([qb],))
             self.send([cmd])
         # Send swap operations to arrive at new_mapping:
-        swaps = self._odd_even_transposition_sort_swaps(old_mapping=
-                                self.current_mapping, new_mapping=new_mapping)
+        swaps = self._odd_even_transposition_sort_swaps(
+            old_mapping=self.current_mapping, new_mapping=new_mapping)
         for qubit_id0, qubit_id1 in swaps:
             q0 = WeakQubitRef(engine=self, idx=qubit_id0)
             q1 = WeakQubitRef(engine=self, idx=qubit_id1)
