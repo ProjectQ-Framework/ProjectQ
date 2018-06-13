@@ -88,7 +88,7 @@ The complete example looks as follows:
 
 .. literalinclude:: ../examples/teleport.py
 	:linenos:
-	:lines: 1-6,18-27,44-99
+	:lines: 1-6,18-27,44-100
 	:tab-width: 2
 
 and the corresponding circuit can be generated using
@@ -162,9 +162,9 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	Simulating Shor's algorithm at the level of single-qubit gates and CNOTs already takes quite a bit of time for larger numbers than 15. To turn on our **emulation feature**, which does not decompose the modular arithmetic to low-level gates, but carries it out directly instead, we can change the line
 	
 	.. literalinclude:: ../examples/shor.py
-		:lineno-start: 94
-		:lines: 94-106
-		:emphasize-lines: 10
+		:lineno-start: 86
+		:lines: 86-99
+		:emphasize-lines: 8
 		:linenos:
 		:tab-width: 2
 	
@@ -173,8 +173,8 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 	The most important part of the code is
 	
 	.. literalinclude:: ../examples/shor.py
-		:lines: 59-78
-		:lineno-start: 59
+		:lines: 50-69
+		:lineno-start: 50
 		:linenos:
 		:dedent: 1
 		:tab-width: 2
