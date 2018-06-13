@@ -16,13 +16,14 @@
 A simulator that only permits classical operations, for faster/easier testing.
 """
 
-from projectq.cengines import BasicEngine
+from projectq.cengines import BasicEngine, LogicalQubitIDTag
 from projectq.ops import (XGate,
                           BasicMathGate,
                           Measure,
                           FlushGate,
                           Allocate,
                           Deallocate)
+from projectq.types import WeakQubitRef
 
 
 class ClassicalSimulator(BasicEngine):
@@ -38,9 +39,32 @@ class ClassicalSimulator(BasicEngine):
         self._state = 0
         self._bit_positions = {}
 
+    def _convert_logical_to_mapped_qubit(self, qubit):
+        """
+        Converts a qubit from a logical to a mapped qubit if there is a mapper.
+
+        Args:
+            qubit (projectq.types.Qubit): Logical quantum bit
+        """
+        mapper = self.main_engine.mapper
+        if mapper is not None:
+            if qubit.id not in mapper.current_mapping:
+                raise RuntimeError("Unknown qubit id. "
+                                   "Please make sure you have called "
+                                   "eng.flush().")
+            return WeakQubitRef(qubit.engine,
+                                mapper.current_mapping[qubit.id])
+        else:
+            return qubit
+
     def read_bit(self, qubit):
         """
         Reads a bit.
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
 
         Args:
             qubit (projectq.types.Qubit): The bit to read.
@@ -48,6 +72,11 @@ class ClassicalSimulator(BasicEngine):
         Returns:
             int: 0 if the target bit is off, 1 if it's on.
         """
+        qubit = self._convert_logical_to_mapped_qubit(qubit)
+        return self._read_bit(qubit)
+
+    def _read_bit(self, qubit):
+        """ Internal use only. Does not change logical to mapped qubits."""
         p = self._bit_positions[qubit.id]
         return (self._state >> p) & 1
 
@@ -55,10 +84,20 @@ class ClassicalSimulator(BasicEngine):
         """
         Resets/sets a bit to the given value.
 
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+
         Args:
             qubit (projectq.types.Qubit): The bit to write.
             value (bool|int): Writes 1 if this value is truthy, else 0.
         """
+        qubit = self._convert_logical_to_mapped_qubit(qubit)
+        self._write_bit(qubit, value)
+
+    def _write_bit(self, qubit, value):
+        """ Internal use only. Does not change logical to mapped qubits."""
         p = self._bit_positions[qubit.id]
         if value:
             self._state |= 1 << p
@@ -86,6 +125,11 @@ class ClassicalSimulator(BasicEngine):
         """
         Reads a group of bits as a little-endian integer.
 
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+
         Args:
             qureg (projectq.types.Qureg):
                 The group of bits to read, in little-endian order.
@@ -93,24 +137,43 @@ class ClassicalSimulator(BasicEngine):
         Returns:
             int: Little-endian register value.
         """
+        new_qureg = []
+        for qubit in qureg:
+            new_qureg.append(self._convert_logical_to_mapped_qubit(qubit))
+        return self._read_register(new_qureg)
+
+    def _read_register(self, qureg):
+        """ Internal use only. Does not change logical to mapped qubits."""
         t = 0
         for i in range(len(qureg)):
-            t |= self.read_bit(qureg[i]) << i
+            t |= self._read_bit(qureg[i]) << i
         return t
 
     def write_register(self, qureg, value):
         """
         Sets a group of bits to store a little-endian integer value.
 
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+
         Args:
             qureg (projectq.types.Qureg):
                 The bits to write, in little-endian order.
             value (int): The integer value to store. Must fit in the register.
         """
+        new_qureg = []
+        for qubit in qureg:
+            new_qureg.append(self._convert_logical_to_mapped_qubit(qubit))
+        self._write_register(new_qureg, value)
+
+    def _write_register(self, qureg, value):
+        """ Internal use only. Does not change logical to mapped qubits."""
         if value < 0 or value >= 1 << len(qureg):
             raise ValueError("Value won't fit in register.")
         for i in range(len(qureg)):
-            self.write_bit(qureg[i], (value >> i) & 1)
+            self._write_bit(qureg[i], (value >> i) & 1)
 
     def is_available(self, cmd):
         return (cmd.gate == Measure or
@@ -133,8 +196,17 @@ class ClassicalSimulator(BasicEngine):
         if cmd.gate == Measure:
             for qr in cmd.qubits:
                 for qb in qr:
-                    self.main_engine.set_measurement_result(qb,
-                                                            self.read_bit(qb))
+                    # Check if a mapper assigned a different logical id
+                    logical_id_tag = None
+                    for tag in cmd.tags:
+                        if isinstance(tag, LogicalQubitIDTag):
+                            logical_id_tag = tag
+                    log_qb = qb
+                    if logical_id_tag is not None:
+                        log_qb = WeakQubitRef(qb.engine,
+                                              logical_id_tag.logical_qubit_id)
+                    self.main_engine.set_measurement_result(log_qb,
+                                                            self._read_bit(qb))
             return
 
         if cmd.gate == Allocate:
@@ -160,15 +232,15 @@ class ClassicalSimulator(BasicEngine):
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             target = cmd.qubits[0][0]
             if meets_controls:
-                self.write_bit(target, not self.read_bit(target))
+                self._write_bit(target, not self._read_bit(target))
             return
 
         if isinstance(cmd.gate, BasicMathGate):
             if meets_controls:
-                ins = [self.read_register(reg) for reg in cmd.qubits]
+                ins = [self._read_register(reg) for reg in cmd.qubits]
                 outs = cmd.gate.get_math_function(cmd.qubits)(ins)
                 for reg, out in zip(cmd.qubits, outs):
-                    self.write_register(reg, out & ((1 << len(reg)) - 1))
+                    self._write_register(reg, out & ((1 << len(reg)) - 1))
             return
 
         raise ValueError("Only support alloc/dealloc/measure/not/math ops.")
