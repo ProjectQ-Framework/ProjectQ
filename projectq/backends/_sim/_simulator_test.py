@@ -329,8 +329,11 @@ def test_simulator_probability(sim, mapper):
     All(Measure) | qubits
 
 
-def test_simulator_amplitude(sim):
-    eng = MainEngine(sim)
+def test_simulator_amplitude(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(6)
     All(X) | qubits
     All(H) | qubits
@@ -364,8 +367,11 @@ def test_simulator_amplitude(sim):
         eng.backend.get_amplitude(bits, qubits)
 
 
-def test_simulator_expectation(sim):
-    eng = MainEngine(sim, [])
+def test_simulator_expectation(sim, mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qureg = eng.allocate_qureg(3)
     op0 = QubitOperator('Z0')
     expectation = sim.get_expectation_value(op0, qureg)
@@ -433,8 +439,11 @@ def test_simulator_applyqubitoperator_exception(sim):
         sim.apply_qubit_operator(op3, qureg)
 
 
-def test_simulator_applyqubitoperator(sim):
-    eng = MainEngine(sim, [])
+def test_simulator_applyqubitoperator(sim, mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qureg = eng.allocate_qureg(3)
     op = QubitOperator('X0 Y1 Z2')
     sim.apply_qubit_operator(op, qureg)
@@ -516,8 +525,11 @@ def test_simulator_time_evolution(sim):
                           init_wavefunction)
 
 
-def test_simulator_set_wavefunction(sim):
-    eng = MainEngine(sim)
+def test_simulator_set_wavefunction(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(2)
     wf = [0., 0., math.sqrt(0.2), math.sqrt(0.8)]
     with pytest.raises(RuntimeError):
@@ -542,8 +554,11 @@ def test_simulator_set_wavefunction_always_complex(sim):
     assert eng.backend.get_amplitude('1', qubit) == pytest.approx(1j)
 
 
-def test_simulator_collapse_wavefunction(sim):
-    eng = MainEngine(sim)
+def test_simulator_collapse_wavefunction(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(4)
     # unknown qubits: raises
     with pytest.raises(RuntimeError):

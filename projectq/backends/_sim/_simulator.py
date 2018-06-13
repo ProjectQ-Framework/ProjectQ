@@ -154,10 +154,16 @@ class Simulator(BasicEngine):
             passed through the compilation chain (call main_engine.flush() to
             make sure).
 
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+
         Raises:
             Exception: If `qubit_operator` acts on more qubits than present in
                 the `qureg` argument.
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
@@ -178,6 +184,10 @@ class Simulator(BasicEngine):
             qureg (list[Qubit],Qureg): Quantum bits to which to apply the
                 operator.
 
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
+
         Warning:
             This function allows applying non-unitary gates and it will not
             re-normalize the wave function! It is for numerical experiments
@@ -188,10 +198,12 @@ class Simulator(BasicEngine):
             passed through the compilation chain (call main_engine.flush() to
             make sure).
 
-        Raises:
-            Exception: If `qubit_operator` acts on more qubits than present in
-                the `qureg` argument.
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
@@ -218,6 +230,11 @@ class Simulator(BasicEngine):
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
@@ -242,7 +259,13 @@ class Simulator(BasicEngine):
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
         return self._simulator.get_amplitude(bit_string,
                                              [qb.id for qb in qureg])
@@ -264,7 +287,13 @@ class Simulator(BasicEngine):
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         self._simulator.set_wavefunction(wavefunction,
                                          [qb.id for qb in qureg])
 
@@ -284,7 +313,13 @@ class Simulator(BasicEngine):
         Note:
             Make sure all previous commands have passed through the
             compilation chain (call main_engine.flush() to make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
         """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
         return self._simulator.collapse_wavefunction([qb.id for qb in qureg],
                                                      [bool(v) for v in
                                                       values])
@@ -304,6 +339,11 @@ class Simulator(BasicEngine):
         Note:
             Make sure all previous commands have passed through the
             compilation chain (call main_engine.flush() to make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            DOES NOT automatically convert from logical qubits to mapped
+            qubits.
         """
         return self._simulator.cheat()
 
