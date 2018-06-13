@@ -17,8 +17,10 @@ import pytest
 from projectq import MainEngine
 from projectq.ops import (All, Allocate, BasicMathGate, C, Command, Deallocate,
                           FlushGate, Measure, NOT, X, Y)
-from projectq.cengines import AutoReplacer, DecompositionRuleSet, DummyEngine
+from projectq.cengines import (AutoReplacer, BasicMapperEngine,
+                               DecompositionRuleSet, DummyEngine)
 from ._simulator_test import mapper
+from projectq.types import WeakQubitRef
 
 from ._classical_simulator import ClassicalSimulator
 
@@ -174,3 +176,12 @@ def test_wrong_gate():
     a = eng.allocate_qubit()
     with pytest.raises(ValueError):
         Y | a
+
+
+def test_runtime_error():
+    sim = ClassicalSimulator()
+    mapper = BasicMapperEngine()
+    mapper.current_mapping = {}
+    eng = MainEngine(sim, [mapper])
+    with pytest.raises(RuntimeError):
+        eng.backend.read_bit(WeakQubitRef(None, 1))

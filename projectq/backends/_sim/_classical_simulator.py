@@ -73,11 +73,11 @@ class ClassicalSimulator(BasicEngine):
             int: 0 if the target bit is off, 1 if it's on.
         """
         qubit = self._convert_logical_to_mapped_qubit(qubit)
-        return self._read_bit(qubit)
+        return self._read_mapped_bit(qubit)
 
-    def _read_bit(self, qubit):
+    def _read_mapped_bit(self, mapped_qubit):
         """ Internal use only. Does not change logical to mapped qubits."""
-        p = self._bit_positions[qubit.id]
+        p = self._bit_positions[mapped_qubit.id]
         return (self._state >> p) & 1
 
     def write_bit(self, qubit, value):
@@ -94,11 +94,11 @@ class ClassicalSimulator(BasicEngine):
             value (bool|int): Writes 1 if this value is truthy, else 0.
         """
         qubit = self._convert_logical_to_mapped_qubit(qubit)
-        self._write_bit(qubit, value)
+        self._write_mapped_bit(qubit, value)
 
-    def _write_bit(self, qubit, value):
+    def _write_mapped_bit(self, mapped_qubit, value):
         """ Internal use only. Does not change logical to mapped qubits."""
-        p = self._bit_positions[qubit.id]
+        p = self._bit_positions[mapped_qubit.id]
         if value:
             self._state |= 1 << p
         else:
@@ -140,13 +140,13 @@ class ClassicalSimulator(BasicEngine):
         new_qureg = []
         for qubit in qureg:
             new_qureg.append(self._convert_logical_to_mapped_qubit(qubit))
-        return self._read_register(new_qureg)
+        return self._read_mapped_register(new_qureg)
 
-    def _read_register(self, qureg):
+    def _read_mapped_register(self, mapped_qureg):
         """ Internal use only. Does not change logical to mapped qubits."""
         t = 0
-        for i in range(len(qureg)):
-            t |= self._read_bit(qureg[i]) << i
+        for i in range(len(mapped_qureg)):
+            t |= self._read_mapped_bit(mapped_qureg[i]) << i
         return t
 
     def write_register(self, qureg, value):
@@ -166,14 +166,14 @@ class ClassicalSimulator(BasicEngine):
         new_qureg = []
         for qubit in qureg:
             new_qureg.append(self._convert_logical_to_mapped_qubit(qubit))
-        self._write_register(new_qureg, value)
+        self._write_mapped_register(new_qureg, value)
 
-    def _write_register(self, qureg, value):
+    def _write_mapped_register(self, mapped_qureg, value):
         """ Internal use only. Does not change logical to mapped qubits."""
-        if value < 0 or value >= 1 << len(qureg):
+        if value < 0 or value >= 1 << len(mapped_qureg):
             raise ValueError("Value won't fit in register.")
-        for i in range(len(qureg)):
-            self._write_bit(qureg[i], (value >> i) & 1)
+        for i in range(len(mapped_qureg)):
+            self._write_mapped_bit(mapped_qureg[i], (value >> i) & 1)
 
     def is_available(self, cmd):
         return (cmd.gate == Measure or
@@ -206,7 +206,7 @@ class ClassicalSimulator(BasicEngine):
                         log_qb = WeakQubitRef(qb.engine,
                                               logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(log_qb,
-                                                            self._read_bit(qb))
+                        self._read_mapped_bit(qb))
             return
 
         if cmd.gate == Allocate:
@@ -232,15 +232,17 @@ class ClassicalSimulator(BasicEngine):
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             target = cmd.qubits[0][0]
             if meets_controls:
-                self._write_bit(target, not self._read_bit(target))
+                self._write_mapped_bit(target,
+                                       not self._read_mapped_bit(target))
             return
 
         if isinstance(cmd.gate, BasicMathGate):
             if meets_controls:
-                ins = [self._read_register(reg) for reg in cmd.qubits]
+                ins = [self._read_mapped_register(reg) for reg in cmd.qubits]
                 outs = cmd.gate.get_math_function(cmd.qubits)(ins)
                 for reg, out in zip(cmd.qubits, outs):
-                    self._write_register(reg, out & ((1 << len(reg)) - 1))
+                    self._write_mapped_register(reg,
+                                                out & ((1 << len(reg)) - 1))
             return
 
         raise ValueError("Only support alloc/dealloc/measure/not/math ops.")

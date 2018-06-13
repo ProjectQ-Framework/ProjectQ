@@ -50,11 +50,11 @@ def test_multiplybyconstmodn():
 
     assert str(MultiplyByConstantModN(3, 4)) == "MultiplyByConstantModN(3, 4)"
 
+
 def test_hash_function_implemented():
     assert hash(AddConstant(3)) == hash(str(AddConstant(3)))
     assert hash(SubConstant(-3)) == hash(str(AddConstant(3)))
-    assert hash(AddConstantModN(7,4)) == hash(str(AddConstantModN(7,4)))
-    assert hash(SubConstantModN(7,4)) == hash(str(AddConstantModN(-3,4)))
+    assert hash(AddConstantModN(7, 4)) == hash(str(AddConstantModN(7, 4)))
+    assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
     assert hash(MultiplyByConstantModN(3, 5)) == hash(
         MultiplyByConstantModN(3, 5))
-
