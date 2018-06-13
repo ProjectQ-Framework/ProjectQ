@@ -270,7 +270,7 @@ class MeasureGate(FastForwardingGate):
         return "Measure"
 
     def __or__(self, qubits):
-        """
+        """ 
         Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
         applied to any number of quantum registers. Now the MeasureGate/Measure
         is strictly a single qubit gate. In the coming releases the backward
