@@ -95,9 +95,11 @@ class SquareGridMapper(BasicMapperEngine):
         self.storage = storage
         self.optimization_function = optimization_function
         self.num_optimization_steps = num_optimization_steps
-        # Randomness to pick permutations if there are too many
-        self._seed = 11
-        random.seed(self._seed)
+        # Randomness to pick permutations if there are too many.
+        # This creates an own instance of Random in order to not influence
+        # the bound methods of the random module which might be used in other
+        # places.
+        self._rng = random.Random(11)
         # Storing commands
         self._stored_commands = list()
         # Logical qubit ids for which the Allocate gate has already been
@@ -466,8 +468,8 @@ class SquareGridMapper(BasicMapperEngine):
         else:
             permutations = []
             for _ in range(self.num_optimization_steps):
-                permutations.append(random.sample(matchings_numbers,
-                                                  self.num_rows))
+                permutations.append(self._rng.sample(matchings_numbers,
+                                                     self.num_rows))
         for permutation in permutations:
             trial_swaps = self.return_swaps(old_mapping=self.current_mapping,
                                             new_mapping=new_mapping,
