@@ -206,8 +206,8 @@ class ClassicalSimulator(BasicEngine):
                     if logical_id_tag is not None:
                         log_qb = WeakQubitRef(qb.engine,
                                               logical_id_tag.logical_qubit_id)
-                    self.main_engine.set_measurement_result(log_qb,
-                        self._read_mapped_bit(qb))
+                    self.main_engine.set_measurement_result(
+                        log_qb, self._read_mapped_bit(qb))
             return
 
         if cmd.gate == Allocate:

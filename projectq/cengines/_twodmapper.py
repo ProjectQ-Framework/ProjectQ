@@ -29,7 +29,8 @@ import random
 
 import networkx as nx
 
-from projectq.cengines import BasicMapperEngine, LinearMapper, return_swap_depth
+from projectq.cengines import (BasicMapperEngine, LinearMapper,
+                               return_swap_depth)
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
@@ -157,7 +158,7 @@ class SquareGridMapper(BasicMapperEngine):
                 old_mapping_1d[logical_id] = self._map_2d_to_1d[mapped_id]
         else:
             old_mapping_1d = self.current_mapping
-        
+
         new_mapping_1d = LinearMapper.return_new_mapping(
             num_qubits=self.num_qubits,
             cyclic=False,

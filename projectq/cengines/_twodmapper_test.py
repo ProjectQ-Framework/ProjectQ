@@ -230,6 +230,7 @@ def test_send_possible_commands_one_inactive_qubit():
     mapper._send_possible_commands()
     assert mapper._stored_commands == [cmd1]
 
+
 @pytest.mark.parametrize("num_optimization_steps", [1, 10])
 def test_run_and_receive(num_optimization_steps):
     def choose_last_permutation(swaps):
