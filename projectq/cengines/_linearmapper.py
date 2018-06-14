@@ -93,7 +93,7 @@ class LinearMapper(BasicMapperEngine):
         Args:
             num_qubits(int): Number of physical qubits in chain
             cyclic(bool): If 1D chain is a cycle. Default is False.
-            storage: Number of gates to temporarily store
+            storage(int): Number of gates to temporarily store, default is 1000
         """
         BasicMapperEngine.__init__(self)
         self.num_qubits = num_qubits
@@ -128,7 +128,7 @@ class LinearMapper(BasicMapperEngine):
         """
         Builds a mapping of qubits to a linear chain.
 
-        It goes through self._saved_commands and tries to find a
+        It goes through stored_commands and tries to find a
         mapping to apply these gates on a first come first served basis.
         More compilicated scheme could try to optimize to apply as many gates
         as possible between the Swaps.
