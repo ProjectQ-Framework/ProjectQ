@@ -15,7 +15,7 @@
 """
 Defines the parent class from which all mappers should be derived.
 
-There is only one engine currently allowed to be derived from 
+There is only one engine currently allowed to be derived from
 BasicMapperEngine. This allows the simulator to automatically translate
 logical qubit ids to mapped ids.
 """

@@ -16,6 +16,7 @@
 Contains a compiler engine which counts the number of calls for each type of
 gate used in a circuit, in addition to the max. number of active qubits.
 """
+
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import FlushGate, Deallocate, Allocate, Measure
