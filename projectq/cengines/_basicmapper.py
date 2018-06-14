@@ -15,33 +15,15 @@
 """
 Defines the parent class from which all mappers should be derived.
 
-And defines the LogicalQubitIDTag used to annotate MeasureGates. There is only
-one engine currently allowed to be derived from BasicMapperEngine. This allows
-the simulator to automatically translate logical qubit ids to mapped ids.
+There is only one engine currently allowed to be derived from
+BasicMapperEngine. This allows the simulator to automatically translate
+logical qubit ids to mapped ids.
 """
 from copy import deepcopy
 
 from projectq.cengines import BasicEngine, CommandModifier
-from projectq.meta import drop_engine_after, insert_engine
+from projectq.meta import drop_engine_after, insert_engine, LogicalQubitIDTag
 from projectq.ops import MeasureGate
-
-
-class LogicalQubitIDTag(object):
-    """
-    LogicalQubitIDTag for a mapped qubit to annotate a MeasureGate.
-
-    Attributes:
-        logical_qubit_id (int): Logical qubit id
-    """
-    def __init__(self, logical_qubit_id):
-        self.logical_qubit_id = logical_qubit_id
-
-    def __eq__(self, other):
-        return (isinstance(other, LogicalQubitIDTag) and
-                self.logical_qubit_id == other.logical_qubit_id)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class BasicMapperEngine(BasicEngine):
@@ -71,17 +53,20 @@ class BasicMapperEngine(BasicEngine):
         qubits = new_cmd.qubits
         for qureg in qubits:
             for qubit in qureg:
-                qubit.id = self.current_mapping[qubit.id]
+                if qubit.id != -1:
+                    qubit.id = self.current_mapping[qubit.id]
         control_qubits = new_cmd.control_qubits
         for qubit in control_qubits:
             qubit.id = self.current_mapping[qubit.id]
         if isinstance(new_cmd.gate, MeasureGate):
             assert len(new_cmd.qubits) == 1 and len(new_cmd.qubits[0]) == 1
+
             # Add LogicalQubitIDTag to MeasureGate
             def add_logical_id(command, old_tags=deepcopy(cmd.tags)):
                 command.tags = (old_tags +
                                 [LogicalQubitIDTag(cmd.qubits[0][0].id)])
                 return command
+
             tagger_eng = CommandModifier(add_logical_id)
             insert_engine(self, tagger_eng)
             self.send([new_cmd])

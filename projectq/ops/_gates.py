@@ -31,6 +31,8 @@ and meta gates, i.e.,
 
 import math
 import cmath
+import warnings
+
 import numpy as np
 
 from projectq.ops import get_inverse
@@ -41,6 +43,8 @@ from ._basics import (BasicGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
+from ._command import apply_command
+from projectq.types import BasicQubit
 
 
 class HGate(SelfInverseGate):
@@ -261,9 +265,28 @@ class FlushGate(FastForwardingGate):
 
 
 class MeasureGate(FastForwardingGate):
-    """ Measurement gate class """
+    """ Measurement gate class (for single qubits)."""
     def __str__(self):
         return "Measure"
+
+    def __or__(self, qubits):
+        """
+        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
+        applied to any number of quantum registers. Now the MeasureGate/Measure
+        is strictly a single qubit gate. In the coming releases the backward
+        compatibility will be removed!
+        """
+        num_qubits = 0
+        for qureg in self.make_tuple_of_qureg(qubits):
+            for qubit in qureg:
+                num_qubits += 1
+                cmd = self.generate_command(([qubit],))
+                apply_command(cmd)
+        if num_qubits > 1:
+            warnings.warn("Pending syntax change in future versions of "
+                          "ProjectQ: \n Measure will be a single qubit gate "
+                          "only. Use `All(Measure) | qureg` instead to "
+                          "measure multiple qubits.")
 
 #: Shortcut (instance of) :class:`projectq.ops.MeasureGate`
 Measure = MeasureGate()

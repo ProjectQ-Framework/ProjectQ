@@ -14,24 +14,14 @@ from builtins import input
 import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.backends import Simulator, ResourceCounter
-from projectq.cengines import (MainEngine,
-                               AutoReplacer,
-                               LocalOptimizer,
-                               TagRemover,
-                               InstructionFilter,
-                               DecompositionRuleSet)
-from projectq.libs.math import (AddConstant,
-                                AddConstantModN,
+from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
+                               InstructionFilter, LocalOptimizer,
+                               MainEngine, TagRemover)
+from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
 from projectq.meta import Control
-from projectq.ops import (X,
-                          Measure,
-                          H,
-                          R,
-                          QFT,
-                          Swap,
-                          get_inverse,
-                          BasicMathGate)
+from projectq.ops import (All, BasicMathGate, get_inverse, H, Measure, QFT, R,
+                          Swap, X)
 
 
 def run_shor(eng, N, a, verbose=False):
@@ -81,7 +71,7 @@ def run_shor(eng, N, a, verbose=False):
             print("\033[95m{}\033[0m".format(measurements[k]), end="")
             sys.stdout.flush()
 
-    Measure | x
+    All(Measure) | x
     # turn the measured values into a number in [0,1)
     y = sum([(measurements[2 * n - 1 - i]*1. / (1 << (i + 1)))
              for i in range(2 * n)])

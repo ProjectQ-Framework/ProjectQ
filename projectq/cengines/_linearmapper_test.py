@@ -17,8 +17,8 @@ from copy import deepcopy
 
 import pytest
 
-from projectq.cengines import DummyEngine, LogicalQubitIDTag
-from projectq.meta import QubitPlacementTag
+from projectq.cengines import DummyEngine
+from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
 from projectq.ops import (Allocate, BasicGate, CNOT, Command, Deallocate,
                           FlushGate, Measure, QFT, X)
 from projectq.types import WeakQubitRef
@@ -29,9 +29,9 @@ from projectq.cengines import _linearmapper as lm
 def test_return_swap_depth():
     swaps = []
     assert lm.return_swap_depth(swaps) == 0
-    swaps += [(0,1), (0,1), (1,2)]
+    swaps += [(0, 1), (0, 1), (1, 2)]
     assert lm.return_swap_depth(swaps) == 3
-    swaps.append((2,3))
+    swaps.append((2, 3))
     assert lm.return_swap_depth(swaps) == 4
 
 
@@ -334,9 +334,9 @@ def test_process_two_qubit_gate_already_connected():
     assert active_qubits == set([0, 1, 2])
 
 
-@pytest.mark.parametrize("qb0, qb1, result_seg",
-    [(0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
-     (1, 3, [0, 1, 3, 2])])
+@pytest.mark.parametrize("qb0, qb1, result_seg", [
+    (0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
+    (1, 3, [0, 1, 3, 2])])
 def test_process_two_qubit_gate_combine_segments(qb0, qb1, result_seg):
     mapper = lm.LinearMapper(num_qubits=4, cyclic=False)
     segments = [[0, 1], [2, 3]]
@@ -354,9 +354,9 @@ def test_process_two_qubit_gate_combine_segments(qb0, qb1, result_seg):
     assert qb0 in neighbour_ids[qb1]
 
 
-@pytest.mark.parametrize("qb0, qb1, result_seg",
-    [(0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
-     (1, 3, [0, 1, 3, 2])])
+@pytest.mark.parametrize("qb0, qb1, result_seg", [
+    (0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
+    (1, 3, [0, 1, 3, 2])])
 def test_process_two_qubit_gate_combine_segments_cycle(qb0, qb1, result_seg):
     mapper = lm.LinearMapper(num_qubits=4, cyclic=True)
     segments = [[0, 1], [2, 3]]
@@ -376,9 +376,9 @@ def test_process_two_qubit_gate_combine_segments_cycle(qb0, qb1, result_seg):
     assert result_seg[-1] in neighbour_ids[result_seg[0]]
 
 
-@pytest.mark.parametrize("qb0, qb1, result_seg",
-    [(0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
-     (1, 3, [0, 1, 3, 2])])
+@pytest.mark.parametrize("qb0, qb1, result_seg", [
+    (0, 2, [1, 0, 2, 3]), (0, 3, [2, 3, 0, 1]), (1, 2, [0, 1, 2, 3]),
+    (1, 3, [0, 1, 3, 2])])
 def test_process_two_qubit_gate_combine_segments_cycle2(qb0, qb1, result_seg):
     # Not long enough segment for cyclic
     mapper = lm.LinearMapper(num_qubits=5, cyclic=True)
@@ -399,12 +399,12 @@ def test_process_two_qubit_gate_combine_segments_cycle2(qb0, qb1, result_seg):
     assert result_seg[-1] not in neighbour_ids[result_seg[0]]
 
 
-@pytest.mark.parametrize("segments, current_chain, correct_chain, " +
-                          "allocated_qubits",
-    [([[0, 2, 4]], [0, 1, 2, 3, 4], [0, 2, 4, 3, 1], [0, 1, 2, 3, 4]),
-    ([[0, 2, 4]], [0, 1, 2, 3, 4], [0, 2, 4, 3, None], [0, 2, 3, 4]),
-    ([[1, 2], [3, 0]], [0, 1, 2, 3, 4], [None, 1, 2, 3, 0], [0, 1, 2, 3]),
-    ([[1, 2], [3, 0]], [0, 1, 2, 3, 4], [1, 2, 3, 0, 4], [0, 1, 2, 3, 4])])
+@pytest.mark.parametrize(
+    "segments, current_chain, correct_chain, allocated_qubits", [
+        ([[0, 2, 4]], [0, 1, 2, 3, 4], [0, 2, 4, 3, 1], [0, 1, 2, 3, 4]),
+        ([[0, 2, 4]], [0, 1, 2, 3, 4], [0, 2, 4, 3, None], [0, 2, 3, 4]),
+        ([[1, 2], [3, 0]], [0, 1, 2, 3, 4], [None, 1, 2, 3, 0], [0, 1, 2, 3]),
+        ([[1, 2], [3, 0]], [0, 1, 2, 3, 4], [1, 2, 3, 0, 4], [0, 1, 2, 3, 4])])
 def test_return_new_mapping_from_segments(segments, current_chain,
                                           correct_chain, allocated_qubits):
     mapper = lm.LinearMapper(num_qubits=5, cyclic=False)
@@ -621,10 +621,10 @@ def test_run_and_receive():
     assert 2 in mapper.current_mapping
     assert len(backend.received_commands) == 11
     assert (backend.received_commands[9] == Command(None, X,
-        qubits=([WeakQubitRef(engine=None,
-                              idx=mapper.current_mapping[qb0.id])],),
-        controls=[WeakQubitRef(engine=None,
-                               idx=mapper.current_mapping[qb2.id])]))
+            qubits=([WeakQubitRef(engine=None,
+                                  idx=mapper.current_mapping[qb0.id])],),
+            controls=[WeakQubitRef(engine=None,
+                                   idx=mapper.current_mapping[qb2.id])]))
     assert mapper.num_mappings == 2
     assert mapper.depth_of_swaps == {0: 1, 1: 1}
     assert mapper.num_of_swaps_per_mapping == {0: 1, 1: 1}

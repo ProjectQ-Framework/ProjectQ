@@ -16,7 +16,7 @@ from ._basics import (BasicEngine,
                       LastEngineException,
                       ForwarderEngine)
 from ._cmdmodifier import CommandModifier
-from ._basicmapper import BasicMapperEngine, LogicalQubitIDTag
+from ._basicmapper import BasicMapperEngine
 from ._ibmcnotmapper import IBMCNOTMapper
 from ._linearmapper import LinearMapper, return_swap_depth
 from ._manualmapper import ManualMapper

@@ -22,11 +22,12 @@ Output: Quantum circuit in which qubits are placed in 1-D chain in which only
         nearest neighbour qubits can perform a 2 qubit gate. The mapper uses
         Swap gates in order to move qubits next to each other.
 """
+
 from collections import deque
 from copy import deepcopy
 
-from projectq.cengines import BasicMapperEngine, LogicalQubitIDTag
-from projectq.meta import QubitPlacementTag
+from projectq.cengines import BasicMapperEngine
+from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
 from projectq.ops import (Allocate, AllocateQubitGate, Deallocate,
                           DeallocateQubitGate, Command, FlushGate,
                           MeasureGate, Swap)
@@ -92,7 +93,7 @@ class LinearMapper(BasicMapperEngine):
         Args:
             num_qubits(int): Number of physical qubits in chain
             cyclic(bool): If 1D chain is a cycle. Default is False.
-            storage: Number of gates to temporarily store
+            storage(int): Number of gates to temporarily store, default is 1000
         """
         BasicMapperEngine.__init__(self)
         self.num_qubits = num_qubits
@@ -127,14 +128,14 @@ class LinearMapper(BasicMapperEngine):
         """
         Builds a mapping of qubits to a linear chain.
 
-        It goes through self._saved_commands and tries to find a
+        It goes through stored_commands and tries to find a
         mapping to apply these gates on a first come first served basis.
         More compilicated scheme could try to optimize to apply as many gates
         as possible between the Swaps.
 
         Args:
             num_qubits(int): Total number of qubits in the linear chain
-            cyclic(bool): If 1D chain is a cycle. 
+            cyclic(bool): If 1D chain is a cycle.
             currently_allocated_ids(set of int): Logical qubit ids for which
                                                  the Allocate gate has already
                                                  been processed and sent to
@@ -189,7 +190,7 @@ class LinearMapper(BasicMapperEngine):
                     neighbour_ids[qubit_id] = set()
                 for tag in cmd.tags:
                     if isinstance(tag, QubitPlacementTag):
-                        raise Exception("This mapper does not support " +
+                        raise Exception("This mapper does not support "
                                         "previous QubitPlacementTags")
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
@@ -333,7 +334,7 @@ class LinearMapper(BasicMapperEngine):
         return
 
     @staticmethod
-    def _return_new_mapping_from_segments(num_qubits, segments, 
+    def _return_new_mapping_from_segments(num_qubits, segments,
                                           allocated_qubits, current_mapping):
         """
         Combines the individual segments into a new mapping.
@@ -561,8 +562,8 @@ class LinearMapper(BasicMapperEngine):
             cmd = Command(engine=self, gate=Allocate, qubits=([qb],))
             self.send([cmd])
         # Send swap operations to arrive at new_mapping:
-        swaps = self._odd_even_transposition_sort_swaps(old_mapping=
-                                self.current_mapping, new_mapping=new_mapping)
+        swaps = self._odd_even_transposition_sort_swaps(
+            old_mapping=self.current_mapping, new_mapping=new_mapping)
         for qubit_id0, qubit_id1 in swaps:
             q0 = WeakQubitRef(engine=self, idx=qubit_id0)
             q1 = WeakQubitRef(engine=self, idx=qubit_id1)
@@ -596,9 +597,9 @@ class LinearMapper(BasicMapperEngine):
             self.send([cmd])
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
-            raise RuntimeError("Mapper is potentially in an infinite loop. " +
-                               "It is likely that the algorithm requires " +
-                               "too many qubits. Increase the number of " +
+            raise RuntimeError("Mapper is potentially in an infinite loop. "
+                               "It is likely that the algorithm requires "
+                               "too many qubits. Increase the number of "
                                "qubits for this mapper.")
 
     def receive(self, command_list):

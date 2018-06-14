@@ -24,26 +24,12 @@ from projectq.cengines import (MainEngine,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
-from projectq.ops import (H,
-                          CRz,
-                          Rz,
-                          T,
-                          Tdag,
-                          X,
-                          Toffoli,
-                          Entangle,
-                          R,
-                          Ph,
-                          ClassicalInstructionGate,
-                          All,
-                          Measure)
+from projectq.ops import (All, ClassicalInstructionGate, CRz, Entangle, H,
+                          Measure, Ph, R, Rz, T, Tdag, Toffoli, X)
 from projectq.meta import Control
-from projectq.setups.decompositions import (entangle,
-                                            globalphase,
-                                            r2rzandph,
-                                            crz2cxandrz,
-                                            toffoli2cnotandtgate,
-                                            ph2r)
+from projectq.setups.decompositions import (crz2cxandrz, entangle,
+                                            globalphase, ph2r, r2rzandph,
+                                            toffoli2cnotandtgate)
 
 
 def low_level_gates(eng, cmd):
@@ -72,7 +58,7 @@ def test_entangle():
     assert .5 == pytest.approx(abs(sim.cheat()[1][0])**2)
     assert .5 == pytest.approx(abs(sim.cheat()[1][-1])**2)
 
-    Measure | qureg
+    All(Measure) | qureg
 
 
 def low_level_gates_noglobalphase(eng, cmd):
@@ -126,5 +112,5 @@ def test_gate_decompositions():
     for i in range(len(sim.cheat()[1])):
         assert sim.cheat()[1][i] == pytest.approx(sim2.cheat()[1][i])
 
-    Measure | qureg
-    Measure | qureg2
+    All(Measure) | qureg
+    All(Measure) | qureg2

@@ -28,10 +28,10 @@ def zoo_profile():
         (Rz(0.5), 1), (Ph(0.5), 0), (S, 3), (T, 2), (H, 1),
         (Toffoli, (0, 1, 2)), (Barrier, None), (Swap, (0, 3)),
         (SqrtSwap, (0, 1)), (get_inverse(SqrtSwap), (2, 3)),
-        (SqrtX, 2), (C(get_inverse(SqrtX)), (0, 2)), (C(Ry(0.5)), (2, 3)), (CNOT, (2, 1)),
-        (Entangle, None), (te_gate, None), (QFT, None), (Tensor(H), None),
-        (BasicMathGate(add), (2, 3)),
-        (Measure, None),
+        (SqrtX, 2), (C(get_inverse(SqrtX)), (0, 2)), (C(Ry(0.5)), (2, 3)),
+        (CNOT, (2, 1)), (Entangle, None), (te_gate, None), (QFT, None),
+        (Tensor(H), None), (BasicMathGate(add), (2, 3)),
+        (All(Measure), None),
     ]
 
     # apply them
