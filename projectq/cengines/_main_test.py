@@ -19,7 +19,7 @@ import weakref
 import pytest
 
 import projectq.setups.default
-from projectq.cengines import DummyEngine, LocalOptimizer
+from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
 from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
                           H, X)
@@ -75,6 +75,24 @@ def test_main_engine_init_defaults():
     default_engines = projectq.setups.default.get_engine_list()
     for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
+
+
+def test_main_engine_init_mapper():
+
+    class LinearMapper(BasicMapperEngine):
+        pass
+
+    mapper1 = LinearMapper()
+    mapper2 = BasicMapperEngine()
+    engine_list1 = [mapper1]
+    eng1 = _main.MainEngine(engine_list=engine_list1)
+    assert eng1.mapper == mapper1
+    engine_list2 = [mapper2]
+    eng2 = _main.MainEngine(engine_list=engine_list2)
+    assert eng2.mapper == mapper2
+    engine_list3 = [mapper1, mapper2]
+    with pytest.raises(_main.UnsupportedEngineError):
+        eng3 = _main.MainEngine(engine_list=engine_list3)
 
 
 def test_main_engine_del():

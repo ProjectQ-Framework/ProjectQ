@@ -49,7 +49,7 @@ def run_grover(eng, n, oracle):
 
         Uncompute(eng)
 
-    Measure | x
+    All(Measure) | x
     Measure | oracle_out
 
     eng.flush()
