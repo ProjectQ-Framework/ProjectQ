@@ -134,7 +134,7 @@ def test_simulator_is_available(sim):
     qubit = eng.allocate_qubit()
     Measure | qubit
     BasicMathGate(lambda x: x) | qubit
-    del qubit
+    qubit[0].__del__()
     assert len(backend.received_commands) == 4
 
     # Test that allocate, measure, basic math, and deallocate are available.
