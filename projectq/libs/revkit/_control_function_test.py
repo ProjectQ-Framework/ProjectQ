@@ -26,6 +26,7 @@ from projectq.libs.revkit import ControlFunctionOracle
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
+
 def test_control_function_majority():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
@@ -39,6 +40,7 @@ def test_control_function_majority():
     ControlFunctionOracle(0xe8) | (qubit0, qubit1, qubit2, qubit3)
 
     assert len(saving_backend.received_commands) == 7
+
 
 def test_control_function_majority_grouped():
     saving_backend = DummyEngine(save_commands=True)
@@ -54,11 +56,12 @@ def test_control_function_majority_grouped():
 
     assert len(saving_backend.received_commands) == 7
 
+
 def test_control_function_majority_from_python():
     dormouse = pytest.importorskip('dormouse')
 
     def maj(a, b, c):
-        return (a and b) or (a and c) or (b and c) # pragma: no cover
+        return (a and b) or (a and c) or (b and c)  # pragma: no cover
 
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
@@ -71,10 +74,11 @@ def test_control_function_majority_from_python():
 
     ControlFunctionOracle(maj) | ([qubit0, qubit1, qubit2], qubit3)
 
+
 def test_control_function_invalid_function():
     main_engine = MainEngine(backend=DummyEngine(),
                              engine_list=[DummyEngine()])
-                            
+
     qureg = main_engine.allocate_qureg(3)
 
     with pytest.raises(AttributeError):

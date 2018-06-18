@@ -28,7 +28,8 @@ def _exec_from_file(filename, qubits, remove=True):
 
     Args:
         filename (string): Name of the file containing the Python code.
-        qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
+        qubits (tuple<Qureg>): Qubits to which the permutation is being
+                               applied.
         remove (bool): Remove file after execution.
     """
     from projectq.ops import C, NOT, Toffoli, Swap, H, T, Tdag, X, Z

@@ -21,9 +21,9 @@ class PermutationOracle:
     """
     Synthesizes a permutation using RevKit.
 
-    Given a permutation over `2**q` elements (starting from 0), this class helps
-    to automatically find a reversible circuit over `q` qubits that realizes
-    that permutation.
+    Given a permutation over `2**q` elements (starting from 0), this class
+    helps to automatically find a reversible circuit over `q` qubits that
+    realizes that permutation.
 
     Example:
         .. code-block:: python
@@ -41,7 +41,7 @@ class PermutationOracle:
         Keyword Args:
             synth: A RevKit synthesis command which creates a reversible
                    circuit based on a reversible truth table (e.g.,
-                   ``revkit.tbs`` or ``revkit.dbs``).  Can also be a 
+                   ``revkit.tbs`` or ``revkit.dbs``).  Can also be a
                    nullary lambda that calls several RevKit commands.
                    **Default:** ``revkit.tbs``
         """
@@ -55,11 +55,12 @@ class PermutationOracle:
         Applies permutation to qubits (and synthesizes circuit).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
+            qubits (tuple<Qureg>): Qubits to which the permutation is being
+                                   applied.
         """
         try:
             import revkit
-        except ImportError: # pragma: no cover
+        except ImportError:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
@@ -89,6 +90,8 @@ class PermutationOracle:
         """
         Checks whether permutation is valid.
         """
-        # permutation must start from 0, has no duplicates and all elements are consecutive
-        if sorted(list(set(self.permutation))) != list(range(len(self.permutation))):
+        # permutation must start from 0, has no duplicates and all elements are
+        # consecutive
+        if (sorted(list(set(self.permutation))) !=
+                list(range(len(self.permutation)))):
             raise AttributeError("Invalid permutation (does it start from 0?)")

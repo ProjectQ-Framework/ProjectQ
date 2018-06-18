@@ -26,6 +26,7 @@ from projectq.libs.revkit import PermutationOracle
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
+
 def test_basic_permutation():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
@@ -61,6 +62,7 @@ def test_invalid_permutation():
     with pytest.raises(AttributeError):
         PermutationOracle([0, 1, 2, 3, 4]) | (qubit0, qubit1)
 
+
 def test_synthesis_with_adjusted_tbs():
     saving_backend = DummyEngine(save_commands=True)
     main_engine = MainEngine(backend=saving_backend,
@@ -70,11 +72,12 @@ def test_synthesis_with_adjusted_tbs():
     qubit1 = Qubit(main_engine, 1)
 
     import revkit
-    synth = lambda: revkit.tbs(fredkin = True, fredkin_lookback = True)
+    synth = lambda: revkit.tbs(fredkin=True, fredkin_lookback=True)
 
-    PermutationOracle([0, 2, 1, 3], synth = synth) | (qubit0, qubit1)
+    PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 
     assert len(saving_backend.received_commands) == 1
+
 
 def test_synthesis_with_synthesis_script():
     saving_backend = DummyEngine(save_commands=True)
@@ -86,9 +89,9 @@ def test_synthesis_with_synthesis_script():
 
     def synth():
         import revkit
-        revkit.tbs(fredkin = True, fredkin_lookback = True)
+        revkit.tbs(fredkin=True, fredkin_lookback=True)
         revkit.tof()
 
-    PermutationOracle([0, 2, 1, 3], synth = synth) | (qubit0, qubit1)
+    PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 
     assert len(saving_backend.received_commands) == 3

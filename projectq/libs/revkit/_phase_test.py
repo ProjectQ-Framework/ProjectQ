@@ -29,6 +29,7 @@ import numpy as np
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
+
 def test_phase_majority():
     sim = Simulator()
     main_engine = MainEngine(sim)
@@ -39,14 +40,16 @@ def test_phase_majority():
 
     main_engine.flush()
 
-    assert np.array_equal(np.sign(sim.cheat()[1]), [1., 1., 1., -1., 1., -1., -1., -1.])
+    assert np.array_equal(np.sign(sim.cheat()[1]),
+                          [1., 1., 1., -1., 1., -1., -1., -1.])
     All(Measure) | qureg
+
 
 def test_phase_majority_from_python():
     dormouse = pytest.importorskip('dormouse')
 
     def maj(a, b, c):
-        return (a and b) or (a and c) or (b and c) # pragma: no cover
+        return (a and b) or (a and c) or (b and c)  # pragma: no cover
 
     sim = Simulator()
     main_engine = MainEngine(sim)
@@ -57,13 +60,15 @@ def test_phase_majority_from_python():
 
     main_engine.flush()
 
-    assert np.array_equal(np.sign(sim.cheat()[1]), [1., 1., 1., -1., 1., -1., -1., -1.])
+    assert np.array_equal(np.sign(sim.cheat()[1]),
+                          [1., 1., 1., -1., 1., -1., -1., -1.])
     All(Measure) | qureg
+
 
 def test_phase_invalid_function():
     main_engine = MainEngine(backend=DummyEngine(),
                              engine_list=[DummyEngine()])
-                            
+
     qureg = main_engine.allocate_qureg(3)
 
     with pytest.raises(AttributeError):
@@ -74,4 +79,3 @@ def test_phase_invalid_function():
 
     with pytest.raises(RuntimeError):
         PhaseOracle(0x8e, synth=lambda: revkit.esopbs(aig=True)) | qureg
-

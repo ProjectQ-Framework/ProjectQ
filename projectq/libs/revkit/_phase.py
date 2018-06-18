@@ -23,14 +23,14 @@ class PhaseOracle:
 
     This creates a phase circuit from a Boolean function.  It inverts the phase
     of all amplitudes for which the function evaluates to 1.  The Boolean
-    function is provided as integer representation of the function's truth table
-    in binary notation.  For example, for the majority-of-three function, which
-    truth table 11101000, the value for function can be, e.g., ``0b11101000``,
-    ``0xe8``, or ``232``.
+    function is provided as integer representation of the function's truth
+    table in binary notation.  For example, for the majority-of-three function,
+    which truth table 11101000, the value for function can be, e.g.,
+    ``0b11101000``, ``0xe8``, or ``232``.
 
-    Note that a phase circuit can only accurately be found for a normal function,
-    i.e., a function that maps the input pattern 0, 0, ..., 0 to 0.  The circuits
-    for a function and its inverse are the same.
+    Note that a phase circuit can only accurately be found for a normal
+    function, i.e., a function that maps the input pattern 0, 0, ..., 0 to 0.
+    The circuits for a function and its inverse are the same.
 
     Example:
 
@@ -63,7 +63,7 @@ class PhaseOracle:
             try:
                 import dormouse
                 self.function = dormouse.to_truth_table(function)
-            except ImportError: # pragma: no cover
+            except ImportError:  # pragma: no cover
                 raise RuntimeError(
                     "The dormouse library needs to be installed in order to "
                     "automatically compile Python code into functions.  Try "
@@ -78,11 +78,12 @@ class PhaseOracle:
         Applies phase circuit to qubits (and synthesizes circuit).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the phase circuit is being applied.
+            qubits (tuple<Qureg>): Qubits to which the phase circuit is being
+                                   applied.
         """
         try:
             import revkit
-        except ImportError: # pragma: no cover
+        except ImportError:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
@@ -92,7 +93,8 @@ class PhaseOracle:
         for item in BasicGate.make_tuple_of_qureg(qubits):
             qs += item if isinstance(item, list) else [item]
 
-        # function truth table cannot be larger than number of control qubits allow
+        # function truth table cannot be larger than number of control qubits
+        # allow
         if 2**(2**len(qs)) <= self.function:
             raise AttributeError(
                 "Function truth table exceeds number of control qubits")
@@ -101,15 +103,16 @@ class PhaseOracle:
         revkit.tt(load="0d{}:{}".format(len(qs), self.function))
 
         # translate truth table into AIG
-        revkit.convert(tt_to_aig = True)
+        revkit.convert(tt_to_aig=True)
 
         # create phase circuit from AIG
-        revkit.set(var = 'omit_runtime', value = '1')
+        revkit.set(var='omit_runtime', value='1')
         self.kwargs.get("synth", lambda: revkit.esopps())()
 
         # check whether circuit has correct signature
-        if revkit.ps(circuit = True, silent = True)['lines'] != len(qs):
-            raise RuntimeError("Generated circuit lines does not match provided qubits")
+        if revkit.ps(circuit=True, silent=True)['lines'] != len(qs):
+            raise RuntimeError("Generated circuit lines does not match "
+                               "provided qubits")
 
         # write phase circuit to ProjectQ code
         filename = _get_temporary_name()
@@ -122,6 +125,7 @@ class PhaseOracle:
         """
         Checks whether function is valid.
         """
-        # function must be positive.  We check in __or__ whether function is too large
+        # function must be positive.  We check in __or__ whether function is
+        # too large
         if self.function < 0:
             raise AttributeError("Function must be a postive integer")
