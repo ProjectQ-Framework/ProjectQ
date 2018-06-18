@@ -111,7 +111,7 @@ class ControlFunctionOracle:
 
         # check whether circuit has correct signature
         if revkit.ps(circuit=True, silent=True)['lines'] != len(qs):
-            raise RuntimeError("Generated circuit lines does not match"
+            raise RuntimeError("Generated circuit lines does not match "
                                "provided qubits")
 
         # write reversible circuit to ProjectQ code
