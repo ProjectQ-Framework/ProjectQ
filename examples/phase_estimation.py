@@ -1,4 +1,4 @@
-from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse, All, Measure, C, T, S, Tdag, Sdag
+from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse, All, Measure, QubitOperator, C, T, S, Tdag, Sdag
 from projectq import MainEngine
 
 def phase_estimation(eng,unitary,eigenvector,n_ancillas):
@@ -10,13 +10,12 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
    Tensor(H) | ancilla
 
    # Control U on the eigenvector
-   # Por ahora solo funciona con unitary = X *************
-   unitario = X # ****** unitary
+   unitario = unitary
+
    for i in range(n_ancillas):
-      if i %2 == 0:
-         C(unitario) | (ancilla[i],eigenvector[0])
-      else:
-         pass
+      C(unitario) | (ancilla[i],eigenvector)
+      for j in range(i):
+         C(unitario) | (ancilla[i],eigenvector)
 
    # Inverse QFT on the ancilla
    get_inverse(QFT) | ancilla
@@ -42,10 +41,11 @@ if __name__ == "__main__":
    eng = MainEngine()
    
    # Create the Unitary Operator and the eigenvector
-   unitario = X
-   autovector = eng.allocate_qureg(1)
-   X | autovector[0]
-   H | autovector[0]
+   unitario = QubitOperator('X0 X1')
+   #unitario = X
+   autovector = eng.allocate_qureg(2)
+   X | autovector[1]
+   All(H) | autovector
 
    # Ask for the number of ancillas to use
    ene = int(input("How many ancillas?: "))
