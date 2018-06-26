@@ -1,4 +1,6 @@
-from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse, All, Measure, QubitOperator, C, T, S, Tdag, Sdag
+from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse
+from projectq.ops import All, Measure, QubitOperator, TimeEvolution
+from projectq.meta import Control
 from projectq import MainEngine
 
 def phase_estimation(eng,unitary,eigenvector,n_ancillas):
@@ -13,9 +15,11 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
    unitario = unitary
 
    for i in range(n_ancillas):
-      C(unitario) | (ancilla[i],eigenvector)
+      with Control(eng,ancilla[i]):
+         unitario | eigenvector
       for j in range(i):
-         C(unitario) | (ancilla[i],eigenvector)
+         with Control(eng,ancilla[i]):
+            unitario | eigenvector
 
    # Inverse QFT on the ancilla
    get_inverse(QFT) | ancilla
@@ -43,6 +47,9 @@ if __name__ == "__main__":
    # Create the Unitary Operator and the eigenvector
    unitario = QubitOperator('X0 X1')
    #unitario = X
+   
+   unit = TimeEvolution(1.0,unitario)
+
    autovector = eng.allocate_qureg(2)
    X | autovector[1]
    All(H) | autovector
@@ -50,8 +57,21 @@ if __name__ == "__main__":
    # Ask for the number of ancillas to use
    ene = int(input("How many ancillas?: "))
    # Call the phase_estimation function
-   fase = phase_estimation(eng,unitario,autovector,ene)
+   fase = phase_estimation(eng,unit,autovector,ene)
 
+#======== Testing ====
+
+   #unit | autovector
+   eng.flush()
+   amp_after1 = eng.backend.get_amplitude('00', autovector)
+   amp_after2 = eng.backend.get_amplitude('01', autovector)
+   amp_after3 = eng.backend.get_amplitude('10', autovector)
+   amp_after4 = eng.backend.get_amplitude('11', autovector)
+
+   print("Amplitude saved in amp_after1: {}".format(amp_after1))
+   print("Amplitude saved in amp_after2: {}".format(amp_after2))
+   print("Amplitude saved in amp_after3: {}".format(amp_after3))
+   print("Amplitude saved in amp_after4: {}".format(amp_after4))
 
    # Deferred measure del estado para que pueda imprimir cosas
 
