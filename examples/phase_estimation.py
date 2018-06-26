@@ -1,4 +1,4 @@
-from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse, Measure, C, T, S, Tdag, Sdag
+from projectq.ops import H, X, Y, Z, Tensor, QFT, get_inverse, All, Measure, C, T, S, Tdag, Sdag
 from projectq import MainEngine
 
 def phase_estimation(eng,unitary,eigenvector,n_ancillas):
@@ -22,7 +22,7 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
    get_inverse(QFT) | ancilla
 
    # Ancilla measurement
-   Measure | ancilla
+   All(Measure) | ancilla
 
    # Compute the phase from the ancilla measurement (https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
    fasebinlist = [int(q) for q in ancilla]
@@ -55,6 +55,6 @@ if __name__ == "__main__":
 
    # Deferred measure del estado para que pueda imprimir cosas
 
-   Measure | autovector
+   All(Measure) | autovector
 
    eng.flush()
