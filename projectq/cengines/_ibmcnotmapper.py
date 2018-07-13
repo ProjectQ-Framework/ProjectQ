@@ -227,7 +227,7 @@ class IBMCNOTMapper(BasicEngine):
             interactions = [(1, 0), (2, 0), (3, 0), (4, 0),
                             (4, 2), (3, 1)]
         elif device == 'ibmqx4':
-            interactions = [(0, 1), (0, 2), (0, 3), (4, 0),
+            interactions = [(0, 1), (2, 0), (0, 3), (4, 0),
                             (4, 2), (1, 3)]
         else:
             raise Exception("Unknown backend type. Must be either ibmqx2 or "
