@@ -54,8 +54,7 @@ class MainEngine(BasicEngine):
         mapper (BasicMapperEngine): Access to the mapper if there is one.
 
     """
-    def __init__(self, backend=None, engine_list=None, setup=None,
-                 verbose=False):
+    def __init__(self, backend=None, engine_list=None, verbose=False):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -63,15 +62,11 @@ class MainEngine(BasicEngine):
         engines and adds the back-end as the last engine.
 
         Args:
-            backend (BasicEngine): Backend to send the circuit to.
+            backend (BasicEngine): Backend to send the compiled circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
                 as compiler engines. Note: The engine list must not contain
                 multiple mappers (instances of BasicMapperEngine).
-            setup (module): Setup module which defines a function called
-                `get_engine_list()`. `get_engine_list()` returns the list
-                of engines to be used as compiler engines.
-                The default setup is `projectq.setups.default` (if no engine
-                list and no setup is provided).
+                Default: projectq.setups.default.get_engine_list()
             verbose (bool): Either print full or compact error messages.
                             Default: False (i.e. compact error messages).
 
@@ -79,17 +74,18 @@ class MainEngine(BasicEngine):
             .. code-block:: python
 
                 from projectq import MainEngine
-                eng = MainEngine() # uses default setup and the Simulator
+                eng = MainEngine() # uses default engine_list and the Simulator
 
-        Instead of the default setup one can use, e.g., one of the IBM setups
-        which defines a custom `engine_list` useful for one of the IBM chips
+        Instead of the default `engine_list` one can use, e.g., one of the IBM
+        setups which defines a custom `engine_list` useful for one of the IBM
+        chips
 
         Example:
             .. code-block:: python
 
-                import projectq.setups.ibm
+                import projectq.setups.ibm as ibm_setup
                 from projectq import MainEngine
-                eng = MainEngine(setup=projectq.setups.ibm)
+                eng = MainEngine(engine_list=ibm_setup.get_engine_list())
                 # eng uses the default Simulator backend
 
         Alternatively, one can specify all compiler engines explicitly, e.g.,
@@ -119,17 +115,11 @@ class MainEngine(BasicEngine):
                     "Did you forget the brackets to create an instance?\n"
                     "E.g. MainEngine(backend=Simulator) instead of \n"
                     "     MainEngine(backend=Simulator())")
-        # default setup is projectq.setups.default
-        if engine_list is None and setup is None:
-            import projectq.setups.default
-            setup = projectq.setups.default
-
-        if not (engine_list is None or setup is None):  # can't provide both
-            raise ValueError("\nPlease provide either a setup or an engine "
-                             "list, but not both.")
-
+        # default engine_list is projectq.setups.default.get_engine_list()
         if engine_list is None:
-            engine_list = setup.get_engine_list()
+            import projectq.setups.default
+            engine_list = projectq.setups.default.get_engine_list()
+
         self.mapper = None
         if isinstance(engine_list, list):
             # Test that engine list elements are all BasicEngine objects
