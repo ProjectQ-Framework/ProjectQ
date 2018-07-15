@@ -1,18 +1,15 @@
 setups
 ======
 
-The setups package contains a collection of setups which can be loaded by the `MainEngine`. Each setup then loads its own set of decomposition rules and default compiler engines. 
+The setups package contains a collection of setups which can be loaded by the `MainEngine`. Each setup contains a `get_engine_list` function which returns a list of compiler engines:
 
 Example:
     .. code-block:: python
 
-        import projectq.setups.ibm
+        import projectq.setups.ibm as ibm_setup
         from projectq import MainEngine
-        eng = MainEngine(setup=projectq.setups.ibm)
+        eng = MainEngine(engine_list=ibm_setup.get_engine_list())
         # eng uses the default Simulator backend
-
-Note:
-	One can either provide an `engine_list` or a `setup` to the `MainEngine` but not both.
 
 The subpackage decompositions contains all the individual decomposition rules
 which can be given to, e.g., an `AutoReplacer`.
@@ -29,7 +26,8 @@ Subpackages
 Submodules
 ----------
 
-Each of the submodules contains a setup which can be loaded by the `MainEngine` :
+Each of the submodules contains a setup which can be used to specify the
+`engine_list` used by the `MainEngine` :
 
 .. autosummary::
 
