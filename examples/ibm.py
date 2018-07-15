@@ -1,6 +1,6 @@
 import projectq.setups.ibm
 from projectq.backends import IBMBackend
-from projectq.ops import Measure, Entangle
+from projectq.ops import Measure, Entangle, All
 from projectq import MainEngine
 
 
@@ -22,7 +22,7 @@ def run_entangle(eng, num_qubits=5):
     Entangle | qureg
 
     # measure; should be all-0 or all-1
-    Measure | qureg
+    All(Measure) | qureg
 
     # run the circuit
     eng.flush()
