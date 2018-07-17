@@ -28,8 +28,8 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-7', 'g++-7']
-    env: CC=gcc-7 CXX=g++-7 PYTHON=3.6
+        packages: ['gcc-8', 'g++-8']
+    env: CC=gcc-8 CXX=g++-8 PYTHON=3.6
 
 install:
   - if [ "${PYTHON:0:1}" = "3" ]; then export PY=3; fi
