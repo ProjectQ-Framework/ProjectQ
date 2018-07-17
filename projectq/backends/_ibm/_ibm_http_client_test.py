@@ -398,8 +398,6 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
         login_url = 'users/login'
         if args[0] == urljoin(_api_url, login_url):
             return MockPostResponse({"userId": "1", "id": "12"})
-        else:
-            assert False  # should not post anything else
 
     monkeypatch.setattr("requests.get", mocked_requests_get)
     monkeypatch.setattr("requests.post", mocked_requests_post)
@@ -455,8 +453,6 @@ def test_retrieve(monkeypatch):
         login_url = 'users/login'
         if args[0] == urljoin(_api_url, login_url):
             return MockPostResponse({"userId": "1", "id": "12"})
-        else:
-            assert False  # should not post anything else
 
     monkeypatch.setattr("requests.get", mocked_requests_get)
     monkeypatch.setattr("requests.post", mocked_requests_post)
