@@ -65,8 +65,9 @@ class PermutationOracle:
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function")
 
-        # convert qubits to tuple
+        # convert qubits to flattened list
         qs = BasicGate.make_tuple_of_qureg(qubits)
+        qs = sum(qs, [])
 
         # permutation must have 2*q elements, where q is the number of qubits
         if 2**(len(qs)) != len(self.permutation):
@@ -74,17 +75,14 @@ class PermutationOracle:
                 "Number of qubits does not fit to the size of the permutation")
 
         # create reversible truth table from permutation
-        revkit.read_spec(permutation=" ".join(map(str, self.permutation)))
+        revkit.perm(permutation=" ".join(map(str, self.permutation)))
 
         # create reversible circuit from reversible truth table
         self.kwargs.get("synth", revkit.tbs)()
 
-        # write reversible circuit to ProjectQ code
-        filename = _get_temporary_name()
-        revkit.write_projectq(filename=filename)
-
-        # evaluate ProjectQ code in place
-        _exec_from_file(filename, qs)
+        # convert reversible circuit to ProjectQ code and execute it
+        from projectq.ops import C, X, All
+        exec(revkit.write_projectq(log=True)["contents"])
 
     def _check_permutation(self):
         """

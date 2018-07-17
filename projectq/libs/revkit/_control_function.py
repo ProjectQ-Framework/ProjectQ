@@ -99,27 +99,20 @@ class ControlFunctionOracle:
                 "Function truth table exceeds number of control qubits")
 
         # create truth table from function integer
-        revkit.tt(load="0d{}:{}".format(len(qs) - 1, self.function))
+        hex_length = max(2**(len(qs) - 1) // 4, 1)
+        revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
 
-        # translate truth table into AIG
-        revkit.convert(tt_to_aig=True)
-
-        # create reversible circuit from AIG
-        revkit.set(var='omit_runtime', value='1')
-        self.kwargs.get("synth", lambda: revkit.esopbs(aig=True,
-                                                       exorcism=True))()
+        # create reversible circuit from truth table
+        self.kwargs.get("synth", lambda: revkit.esopbs())()
 
         # check whether circuit has correct signature
-        if revkit.ps(circuit=True, silent=True)['lines'] != len(qs):
+        if revkit.ps(mct=True, silent=True)['qubits'] != len(qs):
             raise RuntimeError("Generated circuit lines does not match "
                                "provided qubits")
 
-        # write reversible circuit to ProjectQ code
-        filename = _get_temporary_name()
-        revkit.write_projectq(filename=filename)
-
-        # evaluate ProjectQ code in place
-        _exec_from_file(filename, qs)
+        # convert reversible circuit to ProjectQ code and execute it
+        from projectq.ops import C, X, All
+        exec(revkit.write_projectq(log=True)["contents"])
 
     def _check_function(self):
         """

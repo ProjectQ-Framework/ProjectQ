@@ -78,4 +78,4 @@ def test_phase_invalid_function():
         PhaseOracle(0xcafe) | qureg
 
     with pytest.raises(RuntimeError):
-        PhaseOracle(0x8e, synth=lambda: revkit.esopbs(aig=True)) | qureg
+        PhaseOracle(0x8e, synth=lambda: revkit.esopbs()) | qureg

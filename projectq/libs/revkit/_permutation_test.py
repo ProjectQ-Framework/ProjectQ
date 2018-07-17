@@ -72,11 +72,11 @@ def test_synthesis_with_adjusted_tbs():
     qubit1 = Qubit(main_engine, 1)
 
     import revkit
-    synth = lambda: revkit.tbs(fredkin=True, fredkin_lookback=True)
+    synth = lambda: revkit.tbs()
 
     PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 
-    assert len(saving_backend.received_commands) == 1
+    assert len(saving_backend.received_commands) == 3
 
 
 def test_synthesis_with_synthesis_script():
@@ -89,8 +89,7 @@ def test_synthesis_with_synthesis_script():
 
     def synth():
         import revkit
-        revkit.tbs(fredkin=True, fredkin_lookback=True)
-        revkit.tof()
+        revkit.tbs()
 
     PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 

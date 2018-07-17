@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for libs.revkit._permutation."""
+"""Tests for libs.revkit._control_function."""
 
 import pytest
 
@@ -39,7 +39,7 @@ def test_control_function_majority():
 
     ControlFunctionOracle(0xe8) | (qubit0, qubit1, qubit2, qubit3)
 
-    assert len(saving_backend.received_commands) == 7
+    assert len(saving_backend.received_commands) == 3
 
 
 def test_control_function_majority_grouped():
@@ -54,7 +54,7 @@ def test_control_function_majority_grouped():
 
     ControlFunctionOracle(0xe8) | ([qubit0, qubit1, qubit2], qubit3)
 
-    assert len(saving_backend.received_commands) == 7
+    assert len(saving_backend.received_commands) == 3
 
 
 def test_control_function_majority_from_python():
