@@ -18,7 +18,7 @@ from copy import deepcopy
 import pytest
 
 from projectq.cengines import DummyEngine
-from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, CNOT, Command, Deallocate,
                           FlushGate, Measure, QFT, X)
 from projectq.types import WeakQubitRef
@@ -112,21 +112,6 @@ def test_return_new_mapping_allocate_only_once():
         currently_allocated_ids=mapper._currently_allocated_ids,
         stored_commands=mapper._stored_commands,
         current_mapping=mapper.current_mapping)
-
-
-def test_return_new_mapping_qubit_placement_tag():
-    mapper = lm.LinearMapper(num_qubits=1, cyclic=False)
-    qb0 = WeakQubitRef(engine=None, idx=0)
-    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],), controls=[],
-                   tags=[QubitPlacementTag(1)])
-    mapper._stored_commands = [cmd0]
-    with pytest.raises(Exception):
-        new_mapping = mapper.return_new_mapping(
-            num_qubits=mapper.num_qubits,
-            cyclic=mapper.cyclic,
-            currently_allocated_ids=mapper._currently_allocated_ids,
-            stored_commands=mapper._stored_commands,
-            current_mapping=mapper.current_mapping)
 
 
 def test_return_new_mapping_possible_map():

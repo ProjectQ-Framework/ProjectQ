@@ -23,7 +23,8 @@ from projectq.backends._ibm import _ibm
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
-                               IBMCNOTMapper,
+                               IBM5QubitMapper,
+                               SwapAndCNOTFlipper,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
@@ -76,13 +77,6 @@ def test_ibm_empty_circuit():
     eng.flush()
 
 
-def test_ibm_backend_requires_mapper():
-    backend = _ibm.IBMBackend()
-    eng = MainEngine(backend, [])
-    with pytest.raises(Exception):
-        eng.allocate_qubit()
-
-
 def test_ibm_sent_error(monkeypatch):
     # patch send
     def mock_send(*args, **kwargs):
@@ -90,7 +84,9 @@ def test_ibm_sent_error(monkeypatch):
     monkeypatch.setattr(_ibm, "send", mock_send)
 
     backend = _ibm.IBMBackend(verbose=True)
-    eng = MainEngine(backend=backend, engine_list=[IBMCNOTMapper()])
+    eng = MainEngine(backend=backend,
+                     engine_list=[IBM5QubitMapper(),
+                                  SwapAndCNOTFlipper(set())])
     qubit = eng.allocate_qubit()
     X | qubit
     with pytest.raises(Exception):
@@ -102,6 +98,44 @@ def test_ibm_sent_error(monkeypatch):
     eng.next_engine = dummy
 
 
+def test_ibm_retrieve(monkeypatch):
+    # patch send
+    def mock_retrieve(*args, **kwargs):
+        return {'date': '2017-01-19T14:28:47.622Z',
+                'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
+                                                                '00101': 27,
+                                                                '00000': 601},
+                'qasm': ('...')}}
+    monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
+    backend = _ibm.IBMBackend(retrieve_execution="ab1s2")
+    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    connectivity = set([(1, 2), (2, 4), (0, 2), (3, 2), (4, 3), (0, 1)])
+    engine_list = [TagRemover(),
+                   LocalOptimizer(10),
+                   AutoReplacer(rule_set),
+                   TagRemover(),
+                   IBM5QubitMapper(),
+                   SwapAndCNOTFlipper(connectivity),
+                   LocalOptimizer(10)]
+    eng = MainEngine(backend=backend, engine_list=engine_list)
+    unused_qubit = eng.allocate_qubit()
+    qureg = eng.allocate_qureg(3)
+    # entangle the qureg
+    Entangle | qureg
+    Tdag | qureg[0]
+    Sdag | qureg[0]
+    Barrier | qureg
+    Rx(0.2) | qureg[0]
+    del unused_qubit
+    # measure; should be all-0 or all-1
+    All(Measure) | qureg
+    # run the circuit
+    eng.flush()
+    prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
+    assert prob_dict['111'] == pytest.approx(0.38671875)
+    assert prob_dict['101'] == pytest.approx(0.0263671875)
+
+
 def test_ibm_backend_functional_test(monkeypatch):
     correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
                     'qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx'
@@ -110,9 +144,10 @@ def test_ibm_backend_functional_test(monkeypatch):
                     '\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeas'
                     'ure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
                     ' "backend": {"name": "simulator"}}')
-
+    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx q[0], q[2];\\nh q[1];\\ncx q[1], q[2];\\nh q[2];\\ntdg q[2];\\nsdg q[2];\\nh q[0];\\nh q[1];\\nbarrier q[2], q[0], q[1];\\nu3(0.2, -pi/2, pi/2) q[2];\\nmeasure q[2] -> c[2];\\nmeasure q[0] -> c[0];\\nmeasure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5, "backend": {"name": "simulator"}}')
     # patch send
     def mock_send(*args, **kwargs):
+        print(json.loads(args[0]))
         assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
                 'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
@@ -126,11 +161,13 @@ def test_ibm_backend_functional_test(monkeypatch):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    connectivity = set([(1, 2), (2, 4), (0, 2), (3, 2), (4, 3), (0, 1)])
     engine_list = [TagRemover(),
                    LocalOptimizer(10),
                    AutoReplacer(rule_set),
                    TagRemover(),
-                   IBMCNOTMapper(),
+                   IBM5QubitMapper(),
+                   SwapAndCNOTFlipper(connectivity),
                    LocalOptimizer(10)]
     eng = MainEngine(backend=backend, engine_list=engine_list)
     unused_qubit = eng.allocate_qubit()

@@ -15,12 +15,11 @@
 """
 Contains a compiler engine to add mapping information
 """
-from projectq.cengines import BasicEngine
-from projectq.meta import QubitPlacementTag
-from projectq.ops import Allocate
+from projectq.cengines import BasicMapperEngine
+from projectq.ops import Measure
 
 
-class ManualMapper(BasicEngine):
+class ManualMapper(BasicMapperEngine):
     """
     Manual Mapper which adds QubitPlacementTags to Allocate gate commands
     according to a user-specified mapping.
@@ -37,10 +36,11 @@ class ManualMapper(BasicEngine):
 
         Args:
             map_fun (function): Function which, given the qubit id, returns
-                an integer describing the physical location.
+                an integer describing the physical location (must be constant).
         """
-        BasicEngine.__init__(self)
+        BasicMapperEngine.__init__(self)
         self.map = map_fun
+        self.current_mapping = dict()
 
     def receive(self, command_list):
         """
@@ -52,6 +52,9 @@ class ManualMapper(BasicEngine):
                 receive.
         """
         for cmd in command_list:
-            if cmd.gate == Allocate:
-                cmd.tags += [QubitPlacementTag(self.map(cmd.qubits[0][0].id))]
-            self.send([cmd])
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            ids += [qb.id for qb in cmd.control_qubits]
+            for ID in ids:
+                if not ID in self.current_mapping:
+                    self.current_mapping[ID] = self.map(ID)
+            self._send_cmd_with_mapped_ids(cmd)
