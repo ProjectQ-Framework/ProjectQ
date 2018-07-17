@@ -36,9 +36,9 @@ from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
 from projectq.types import WeakQubitRef
 
 
-class SquareGridMapper(BasicMapperEngine):
+class GridMapper(BasicMapperEngine):
     """
-    Mapper to a 2-D square grid graph.
+    Mapper to a 2-D grid graph.
 
     Physical qubits on the grid are numbered in row-major order. E.g. for
     3 rows and 2 columns:
@@ -74,7 +74,7 @@ class SquareGridMapper(BasicMapperEngine):
                  optimization_function=lambda x: return_swap_depth(x),
                  num_optimization_steps=50):
         """
-        Initialize an linear chain mapper compiler engine.
+        Initialize a GridMapper compiler engine.
 
         Args:
             num_rows(int): Number of rows in the grid

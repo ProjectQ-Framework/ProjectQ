@@ -17,18 +17,18 @@
 import pytest
 
 import projectq
-from projectq.cengines import DummyEngine, SquareGridMapper
+from projectq.cengines import DummyEngine, GridMapper
 from projectq.libs.math import AddConstant
 from projectq.ops import BasicGate, CNOT, H, Measure, Rx, Rz, Swap, X
 
-import projectq.setups.squaregrid as squaregrid_setup
+import projectq.setups.grid as grid_setup
 
 
 def test_mapper_present_and_correct_params():
     found = False
     mapper = None
-    for engine in squaregrid_setup.get_engine_list(num_rows=3, num_columns=2):
-        if isinstance(engine, SquareGridMapper):
+    for engine in grid_setup.get_engine_list(num_rows=3, num_columns=2):
+        if isinstance(engine, GridMapper):
             mapper = engine
             found = True
     assert found
@@ -37,9 +37,9 @@ def test_mapper_present_and_correct_params():
 
 
 def test_parameter_any():
-    engine_list = squaregrid_setup.get_engine_list(num_rows=3, num_columns=2,
-                                                   one_qubit_gates="any",
-                                                   two_qubit_gates="any")
+    engine_list = grid_setup.get_engine_list(num_rows=3, num_columns=2,
+                                             one_qubit_gates="any",
+                                             two_qubit_gates="any")
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list)
     qubit1 = eng.allocate_qubit()
@@ -54,10 +54,10 @@ def test_parameter_any():
 
 
 def test_restriction():
-    engine_list = squaregrid_setup.get_engine_list(num_rows=3, num_columns=2,
-                                                   one_qubit_gates=(Rz, H),
-                                                   two_qubit_gates=(
-                                                       CNOT, AddConstant))
+    engine_list = grid_setup.get_engine_list(num_rows=3, num_columns=2,
+                                             one_qubit_gates=(Rz, H),
+                                             two_qubit_gates=(CNOT,
+                                                              AddConstant))
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list)
     qubit1 = eng.allocate_qubit()
@@ -85,12 +85,12 @@ def test_restriction():
 
 def test_wrong_init():
     with pytest.raises(TypeError):
-        engine_list = squaregrid_setup.get_engine_list(num_rows=3,
-                                                       num_columns=2,
-                                                       one_qubit_gates="any",
-                                                       two_qubit_gates=(CNOT))
+        engine_list = grid_setup.get_engine_list(num_rows=3,
+                                                 num_columns=2,
+                                                 one_qubit_gates="any",
+                                                 two_qubit_gates=(CNOT))
     with pytest.raises(TypeError):
-        engine_list = squaregrid_setup.get_engine_list(num_rows=3,
-                                                       num_columns=2,
-                                                       one_qubit_gates="Any",
-                                                       two_qubit_gates=(CNOT,))
+        engine_list = grid_setup.get_engine_list(num_rows=3,
+                                                 num_columns=2,
+                                                 one_qubit_gates="Any",
+                                                 two_qubit_gates=(CNOT,))
