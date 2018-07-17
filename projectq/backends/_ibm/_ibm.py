@@ -247,7 +247,7 @@ class IBMBackend(BasicEngine):
         info['backend'] = {'name': self.device}
         info = json.dumps(info)
 
-        if True:
+        try:
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,
                            user=self._user, password=self._password,
@@ -286,8 +286,8 @@ class IBMBackend(BasicEngine):
                 result = int(measured[location])
                 self.main_engine.set_measurement_result(QB(ID), result)
             self._reset()
-        #except TypeError:
-        #    raise Exception("Failed to run the circuit. Aborting.")
+        except TypeError:
+            raise Exception("Failed to run the circuit. Aborting.")
 
     def receive(self, command_list):
         """
