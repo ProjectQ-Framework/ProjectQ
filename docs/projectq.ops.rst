@@ -46,6 +46,7 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.QubitOperator
 	projectq.ops.CRz
 	projectq.ops.CNOT
+	projectq.ops.CZ
 	projectq.ops.Toffoli
 	projectq.ops.TimeEvolution
 

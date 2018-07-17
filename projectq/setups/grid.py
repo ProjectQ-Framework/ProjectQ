@@ -71,7 +71,7 @@ def get_engine_list(num_rows, num_columns, one_qubit_gates="any",
         to double check and potentially extend the decomposition rules.
         This implemention currently requires that the one qubit gates must
         contain Rz and at least one of {Ry(best), Rx, H} and the two qubit gate
-        must contain CNOT.
+        must contain CNOT (recommended) or CZ.
 
     Note:
         Classical instructions gates such as e.g. Flush and Measure are
