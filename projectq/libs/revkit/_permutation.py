@@ -14,7 +14,7 @@
 
 from projectq.ops import BasicGate
 
-from ._utils import _get_temporary_name, _exec_from_file
+from ._utils import _exec
 
 
 class PermutationOracle:
@@ -81,8 +81,7 @@ class PermutationOracle:
         self.kwargs.get("synth", revkit.tbs)()
 
         # convert reversible circuit to ProjectQ code and execute it
-        from projectq.ops import C, X, All
-        exec(revkit.write_projectq(log=True)["contents"])
+        _exec(revkit.write_projectq(log=True)["contents"], qs)
 
     def _check_permutation(self):
         """
