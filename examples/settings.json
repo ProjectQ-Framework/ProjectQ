@@ -1,0 +1,89 @@
+{
+    "control": {
+        "shadow": false,
+        "size": 0.1
+    },
+    "gate_shadow": true,
+    "gates": {
+        "AllocateQubitGate": {
+            "allocate_at_zero": false,
+            "draw_id": false,
+            "height": 0.15,
+            "offset": 0.1,
+            "pre_offset": 0.1,
+            "width": 0.2
+        },
+        "DeallocateQubitGate": {
+            "height": 0.15,
+            "offset": 0.2,
+            "pre_offset": 0.1,
+            "width": 0.2
+        },
+        "EntangleGate": {
+            "offset": 0.2,
+            "pre_offset": 0.2,
+            "width": 1.8
+        },
+        "HGate": {
+            "offset": 0.3,
+            "pre_offset": 0.1,
+            "width": 0.5
+        },
+        "MeasureGate": {
+            "height": 0.5,
+            "offset": 0.2,
+            "pre_offset": 0.2,
+            "width": 0.75
+        },
+        "Ph": {
+            "height": 0.8,
+            "offset": 0.3,
+            "pre_offset": 0.2,
+            "width": 1.0
+        },
+        "Rx": {
+            "height": 0.8,
+            "offset": 0.3,
+            "pre_offset": 0.2,
+            "width": 1.0
+        },
+        "Ry": {
+            "height": 0.8,
+            "offset": 0.3,
+            "pre_offset": 0.2,
+            "width": 1.0
+        },
+        "Rz": {
+            "height": 0.8,
+            "offset": 0.3,
+            "pre_offset": 0.2,
+            "width": 1.0
+        },
+        "SqrtSwapGate": {
+            "height": 0.35,
+            "offset": 0.1,
+            "width": 0.35
+        },
+        "SqrtXGate": {
+            "offset": 0.3,
+            "pre_offset": 0.1,
+            "width": 0.7
+        },
+        "SwapGate": {
+            "height": 0.35,
+            "offset": 0.1,
+            "width": 0.35
+        },
+        "XGate": {
+            "height": 0.35,
+            "offset": 0.1,
+            "width": 0.35
+        }
+    },
+    "lines": {
+        "double_classical": true,
+        "double_lines_sep": 0.04,
+        "init_quantum": true,
+        "style": "very thin"
+    }
+}

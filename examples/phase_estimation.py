@@ -3,6 +3,11 @@ from projectq.ops import All, Measure, QubitOperator, TimeEvolution
 from projectq.meta import Control
 from projectq import MainEngine
 
+import cmath
+import numpy as np
+from projectq.ops import (BasicGate)
+from projectq.types import BasicQubit
+
 def phase_estimation(eng,unitary,eigenvector,n_ancillas):
 
    # create the ancillas and are left to |0>
@@ -38,7 +43,21 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
    print (fasebin, faseint,"fase final = ", fase)
    return fase
 
+class PhaseX(BasicGate):
+   """ 
+   A phase gate on X gate with
+   eigenvectors H|0> and HX|0> and 
+   eivenvalues exp(i2pi theta) and -exp(i2pi theta)
+   theta needs to be defined into the class by now
+   """
+   @property
+   def matrix(self):
+      theta = 0.1234
+      return np.matrix([[0,cmath.exp(1j * 2.0 * cmath.pi * theta)],
+                        [cmath.exp(1j * 2.0 * cmath.pi * theta),0]])
 
+   def __str__(self):
+      return "PhaseX(theta)"
 
 if __name__ == "__main__":
    #Create the compiler engine
@@ -48,11 +67,24 @@ if __name__ == "__main__":
    unitario = QubitOperator('X0 X1')
    #unitario = X
    
-   unit = TimeEvolution(1.0,unitario)
+   ### Example ###unit = TimeEvolution(1.0,unitario)
+   ### Example ###autovector = eng.allocate_qureg(2)
 
-   autovector = eng.allocate_qureg(2)
-   X | autovector[1]
-   All(H) | autovector
+   ### Example ####unit = X
+   ### Example ####autovector = eng.allocate_qureg(1)
+
+   #### Defined phase with X ###
+
+   autovector = eng.allocate_qureg(1)
+   H | autovector
+   unit = PhaseX
+   print(type(unit))
+   
+   #### END Defined phase with X ###
+
+   ### Example ###X | autovector[1]
+   ### Example ####X | autovector[0]
+   ### Example ###All(H) | autovector
 
    # Ask for the number of ancillas to use
    ene = int(input("How many ancillas?: "))
