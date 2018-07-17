@@ -17,7 +17,6 @@ ProjectQ - An open source software framework for quantum computing
 
 Get started:
     Simply import the main compiler engine (from projectq import MainEngine)
-    together with your setup of choice (e.g., import projectq.setups.default)
     and start coding!
 
     For examples, see the example folder, which features implementation of

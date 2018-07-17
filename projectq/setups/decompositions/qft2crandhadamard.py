@@ -40,6 +40,7 @@ def _decompose_QFT(cmd):
                     R(math.pi / (1 << (1 + j))) | qb[-1 - i]
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(QFT.__class__, _decompose_QFT)
 ]

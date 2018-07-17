@@ -54,6 +54,7 @@ def _recognize_toffoli(cmd):
     return get_control_count(cmd) == 2
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)
 ]

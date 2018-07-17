@@ -35,6 +35,7 @@ def _decompose_swap(cmd):
     Uncompute(eng)
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Swap.__class__, _decompose_swap)
 ]

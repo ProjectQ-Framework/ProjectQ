@@ -21,7 +21,8 @@ from projectq.cengines import (InstructionFilter,
                                AutoReplacer,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
-from projectq.ops import X, BasicMathGate, ClassicalInstructionGate, Measure
+from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
+                          Measure, X)
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
@@ -69,7 +70,7 @@ def test_adder():
     AddConstant(15) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
 
-    Measure | qureg
+    All(Measure) | qureg
 
 
 def test_modadder():
@@ -90,7 +91,7 @@ def test_modadder():
     AddConstantModN(10, 13) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
 
-    Measure | qureg
+    All(Measure) | qureg
 
 
 def test_modmultiplier():
@@ -111,4 +112,4 @@ def test_modmultiplier():
     MultiplyByConstantModN(4, 13) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
 
-    Measure | qureg
+    All(Measure) | qureg

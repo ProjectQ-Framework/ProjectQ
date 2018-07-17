@@ -223,6 +223,7 @@ def _decompose_carb1qubit(cmd):
                 Ph(a) | qb
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(BasicGate, _decompose_carb1qubit, _recognize_carb1qubit)
 ]

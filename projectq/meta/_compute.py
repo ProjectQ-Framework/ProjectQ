@@ -399,6 +399,11 @@ class CustomUncompute(object):
         insert_engine(self.engine, self._uncompute_eng)
 
     def __exit__(self, type, value, traceback):
+        # If an error happens in this context, qubits might not have been
+        # deallocated because that code section was not yet executed,
+        # so don't check and raise an additional error.
+        if type is not None:
+            return
         # Check that all qubits allocated within Compute or within
         # CustomUncompute have been deallocated.
         all_allocated_qubits = self._allocated_qubit_ids.union(

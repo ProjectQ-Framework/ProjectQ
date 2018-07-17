@@ -15,15 +15,22 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import (X, NOT, C, BasicMathGate, Measure, FlushGate,
-                          Allocate, Deallocate, Command, Y)
-from projectq.cengines import AutoReplacer, DecompositionRuleSet, DummyEngine
+from projectq.ops import (All, Allocate, BasicMathGate, C, Command, Deallocate,
+                          FlushGate, Measure, NOT, X, Y)
+from projectq.cengines import (AutoReplacer, BasicMapperEngine,
+                               DecompositionRuleSet, DummyEngine)
+from ._simulator_test import mapper
+from projectq.types import WeakQubitRef
+
 from ._classical_simulator import ClassicalSimulator
 
 
-def test_simulator_read_write():
+def test_simulator_read_write(mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
     sim = ClassicalSimulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, engine_list)
     a = eng.allocate_qureg(32)
     b = eng.allocate_qureg(32)
 
@@ -46,9 +53,12 @@ def test_simulator_read_write():
     assert sim.read_bit(b[0]) == 1
 
 
-def test_simulator_triangle_increment_cycle():
+def test_simulator_triangle_increment_cycle(mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
     sim = ClassicalSimulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, engine_list)
 
     a = eng.allocate_qureg(6)
     for t in range(1 << 6):
@@ -58,9 +68,12 @@ def test_simulator_triangle_increment_cycle():
     assert sim.read_register(a) == 0
 
 
-def test_simulator_bit_repositioning():
+def test_simulator_bit_repositioning(mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
     sim = ClassicalSimulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, engine_list)
     a = eng.allocate_qureg(4)
     b = eng.allocate_qureg(5)
     c = eng.allocate_qureg(6)
@@ -73,7 +86,7 @@ def test_simulator_bit_repositioning():
     assert sim.read_register(c) == 33
 
 
-def test_simulator_arithmetic():
+def test_simulator_arithmetic(mapper):
     class Offset(BasicMathGate):
         def __init__(self, amount):
             BasicMathGate.__init__(self, lambda x: (x+amount,))
@@ -82,8 +95,11 @@ def test_simulator_arithmetic():
         def __init__(self):
             BasicMathGate.__init__(self, lambda x, y: (x, y-x))
 
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
     sim = ClassicalSimulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, engine_list)
     a = eng.allocate_qureg(4)
     b = eng.allocate_qureg(5)
     sim.write_register(a, 9)
@@ -111,7 +127,7 @@ def test_simulator_arithmetic():
     assert sim.read_register(b) == 24
 
     # also test via measurement:
-    Measure | (a, b)
+    All(Measure) | a + b
     eng.flush()
 
     for i in range(len(a)):
@@ -120,9 +136,12 @@ def test_simulator_arithmetic():
         assert int(b[i]) == ((24 >> i) & 1)
 
 
-def test_write_register_value_error_exception():
+def test_write_register_value_error_exception(mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
     sim = ClassicalSimulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, engine_list)
     a = eng.allocate_qureg(3)
     with pytest.raises(ValueError):
         sim.write_register(a, -2)
@@ -157,3 +176,12 @@ def test_wrong_gate():
     a = eng.allocate_qubit()
     with pytest.raises(ValueError):
         Y | a
+
+
+def test_runtime_error():
+    sim = ClassicalSimulator()
+    mapper = BasicMapperEngine()
+    mapper.current_mapping = {}
+    eng = MainEngine(sim, [mapper])
+    with pytest.raises(RuntimeError):
+        eng.backend.read_bit(WeakQubitRef(None, 1))

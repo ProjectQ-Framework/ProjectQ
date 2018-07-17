@@ -17,10 +17,12 @@ Contains the main engine of every compiler engine pipeline, called MainEngine.
 """
 
 import atexit
+import sys
+import traceback
 import weakref
 
 import projectq
-from projectq.cengines import BasicEngine
+from projectq.cengines import BasicEngine, BasicMapperEngine
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
 from projectq.backends import Simulator
@@ -49,9 +51,10 @@ class MainEngine(BasicEngine):
         active_qubits (WeakSet): WeakSet containing all active qubits
         dirty_qubits (Set): Containing all dirty qubit ids
         backend (BasicEngine): Access the back-end.
+        mapper (BasicMapperEngine): Access to the mapper if there is one.
 
     """
-    def __init__(self, backend=None, engine_list=None):
+    def __init__(self, backend=None, engine_list=None, verbose=False):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -59,15 +62,31 @@ class MainEngine(BasicEngine):
         engines and adds the back-end as the last engine.
 
         Args:
-            backend (BasicEngine): Backend to send the circuit to.
+            backend (BasicEngine): Backend to send the compiled circuit to.
             engine_list (list<BasicEngine>): List of engines / backends to use
-                as compiler engines.
+                as compiler engines. Note: The engine list must not contain
+                multiple mappers (instances of BasicMapperEngine).
+                Default: projectq.setups.default.get_engine_list()
+            verbose (bool): Either print full or compact error messages.
+                            Default: False (i.e. compact error messages).
 
         Example:
             .. code-block:: python
 
                 from projectq import MainEngine
-                eng = MainEngine() # uses default setup and the Simulator
+                eng = MainEngine() # uses default engine_list and the Simulator
+
+        Instead of the default `engine_list` one can use, e.g., one of the IBM
+        setups which defines a custom `engine_list` useful for one of the IBM
+        chips
+
+        Example:
+            .. code-block:: python
+
+                import projectq.setups.ibm as ibm_setup
+                from projectq import MainEngine
+                eng = MainEngine(engine_list=ibm_setup.get_engine_list())
+                # eng uses the default Simulator backend
 
         Alternatively, one can specify all compiler engines explicitly, e.g.,
 
@@ -96,16 +115,14 @@ class MainEngine(BasicEngine):
                     "Did you forget the brackets to create an instance?\n"
                     "E.g. MainEngine(backend=Simulator) instead of \n"
                     "     MainEngine(backend=Simulator())")
+        # default engine_list is projectq.setups.default.get_engine_list()
         if engine_list is None:
-            try:
-                engine_list = projectq.default_engines()
-            except AttributeError:
-                from projectq.setups.default import default_engines
-                engine_list = default_engines()
-        else:  # Test that engine list elements are all BasicEngine objects
-            if not isinstance(engine_list, list):
-                raise UnsupportedEngineError(
-                    "\n The engine_list argument is not a list!\n")
+            import projectq.setups.default
+            engine_list = projectq.setups.default.get_engine_list()
+
+        self.mapper = None
+        if isinstance(engine_list, list):
+            # Test that engine list elements are all BasicEngine objects
             for current_eng in engine_list:
                 if not isinstance(current_eng, BasicEngine):
                     raise UnsupportedEngineError(
@@ -114,7 +131,15 @@ class MainEngine(BasicEngine):
                         "Did you forget the brackets to create an instance?\n"
                         "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
                         "of\n     MainEngine(engine_list=[AutoReplacer()])")
-
+                if isinstance(current_eng, BasicMapperEngine):
+                    if self.mapper is None:
+                        self.mapper = current_eng
+                    else:
+                        raise UnsupportedEngineError(
+                            "More than one mapper engine is not supported.")
+        else:
+            raise UnsupportedEngineError(
+                "The provided list of engines is not a list!")
         engine_list = engine_list + [backend]
         self.backend = backend
 
@@ -122,9 +147,9 @@ class MainEngine(BasicEngine):
         num_different_engines = len(set([id(item) for item in engine_list]))
         if len(engine_list) != num_different_engines:
             raise UnsupportedEngineError(
-                "\n Error:\n You supplied twice the same engine as backend" +
-                " or item in engine_list. This doesn't work. Create two \n" +
-                " separate instances of a compiler engine if it is needed\n" +
+                "\nError:\n You supplied twice the same engine as backend"
+                " or item in engine_list. This doesn't work. Create two \n"
+                " separate instances of a compiler engine if it is needed\n"
                 " twice.\n")
 
         self._qubit_idx = int(0)
@@ -138,10 +163,24 @@ class MainEngine(BasicEngine):
         self.active_qubits = weakref.WeakSet()
         self._measurements = dict()
         self.dirty_qubits = set()
+        self.verbose = verbose
 
-        # In order to terminate an example code without eng.flush or Measure
-        self._delfun = lambda x: x.flush(deallocate_qubits=True)
-        atexit.register(self._delfun, self)
+        # In order to terminate an example code without eng.flush
+        def atexit_function(weakref_main_eng):
+            eng = weakref_main_eng()
+            if eng is not None:
+                if not hasattr(sys, "last_type"):
+                    eng.flush(deallocate_qubits=True)
+                # An exception causes the termination, don't send a flush and
+                # make sure no qubits send deallocation gates anymore as this
+                # might trigger additional exceptions
+                else:
+                    for qubit in eng.active_qubits:
+                        qubit.id = -1
+
+        self._delfun = atexit_function
+        weakref_self = weakref.ref(self)
+        atexit.register(self._delfun, weakref_self)
 
     def __del__(self):
         """
@@ -150,7 +189,8 @@ class MainEngine(BasicEngine):
         Flushes the entire circuit down the pipeline, clearing all temporary
         buffers (in, e.g., optimizers).
         """
-        self.flush()
+        if not hasattr(sys, "last_type"):
+            self.flush(deallocate_qubits=True)
         try:
             atexit.unregister(self._delfun)  # only available in Python3
         except AttributeError:
@@ -225,6 +265,28 @@ class MainEngine(BasicEngine):
         """
         self.send(command_list)
 
+    def send(self, command_list):
+        """
+        Forward the list of commands to the next engine in the pipeline.
+
+        It also shortens exception stack traces if self.verbose is False.
+        """
+        try:
+            self.next_engine.receive(command_list)
+        except:
+            if self.verbose:
+                raise
+            else:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # try:
+                last_line = traceback.format_exc().splitlines()
+                compact_exception = exc_type(str(exc_value) +
+                                             '\n raised in:\n' +
+                                             repr(last_line[-3]) +
+                                             "\n" + repr(last_line[-2]))
+                compact_exception.__cause__ = None
+                raise compact_exception  # use verbose=True for more info
+
     def flush(self, deallocate_qubits=False):
         """
         Flush the entire circuit down the pipeline, clearing potential buffers
@@ -236,7 +298,7 @@ class MainEngine(BasicEngine):
                 id to -1).
         """
         if deallocate_qubits:
-            for qb in self.active_qubits:
+            while len(self.active_qubits):
+                qb = self.active_qubits.pop()
                 qb.__del__()
-            self.active_qubits = weakref.WeakSet()
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])
