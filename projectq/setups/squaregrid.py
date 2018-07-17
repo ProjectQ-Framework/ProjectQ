@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """
-Defines a setup to compile to qubits placed in a linear chain or a circle.
+Defines a setup to compile to qubits placed in 2-D square grid.
 
 It provides the `engine_list` for the `MainEngine`. This engine list contains
 an AutoReplacer with most of the gate decompositions of ProjectQ, which are
