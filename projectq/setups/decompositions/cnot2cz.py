@@ -30,8 +30,10 @@ def _decompose_cnot(cmd):
     CZ | (ctrl[0], cmd.qubits[0][0])
     Uncompute(eng)
 
+
 def _recognize_cnot(cmd):
     return get_control_count(cmd) == 1
+
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
