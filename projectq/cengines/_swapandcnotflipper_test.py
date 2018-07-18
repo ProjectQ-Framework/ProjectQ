@@ -18,8 +18,9 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, CNOT, X, Measure, Swap
-from projectq.meta import Control
+from projectq.ops import All, H, CNOT, X, Measure, Swap
+from projectq.meta import (Control, Compute, Uncompute, ComputeTag,
+                           UncomputeTag)
 from projectq.cengines import _swapandcnotflipper
 from projectq.backends import IBMBackend
 
@@ -126,3 +127,26 @@ def test_swapandcnotflipper_optimize_swaps():
             assert cmd.qubits[0][0].id == 1
             assert cmd.control_qubits[0].id == 0
     assert hgates == 4
+
+
+def test_swapandcnotflipper_keeps_tags():
+    backend = DummyEngine(save_commands=True)
+    connectivity = set([(1, 0)])
+    flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
+    eng = MainEngine(backend=backend, engine_list=[flipper])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    with Compute(eng):
+        All(H) | (qb0 + qb1)
+        CNOT | (qb0, qb1)
+        CNOT | (qb1, qb0)
+        Swap | (qb0, qb1)
+    Uncompute(eng)
+    hgates = 0
+    for cmd in backend.received_commands:
+        if cmd.gate == H:
+            for t in cmd.tags:
+                if isinstance(t, (ComputeTag, UncomputeTag)):
+                    hgates += 1
+                    break
+    assert hgates == 20

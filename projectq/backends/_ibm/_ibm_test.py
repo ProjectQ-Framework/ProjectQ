@@ -31,6 +31,8 @@ from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
                           Entangle, Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag,
                           X, Y, Z)
 
+from projectq.setups.ibm import ibmqx4_connections
+
 
 # Insure that no HTTP request can be made in all tests in this module
 @pytest.fixture(autouse=True)
@@ -105,7 +107,7 @@ def test_ibm_retrieve(monkeypatch):
                 'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
                                                                 '00101': 27,
                                                                 '00000': 601},
-                'qasm': ('...')}}
+                         'qasm': ('...')}}
     monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
     backend = _ibm.IBMBackend(retrieve_execution="ab1s2")
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
@@ -137,17 +139,16 @@ def test_ibm_retrieve(monkeypatch):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"'
-                    'qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx'
-                    ' q[0], q[2];\\ncx q[0], q[1];\\ntdg q[0];\\nsdg q[0];\\'
-                    'nbarrier q[0], q[2], q[1];\\nu3(0.2, -pi/2, pi/2) q[0];'
-                    '\\nmeasure q[0] -> c[0];\\nmeasure q[2] -> c[2];\\nmeas'
-                    'ure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5,'
-                    ' "backend": {"name": "simulator"}}')
-    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"qelib1.inc\\";\\nqreg q[3];\\ncreg c[3];\\nh q[0];\\ncx q[0], q[2];\\nh q[1];\\ncx q[1], q[2];\\nh q[2];\\ntdg q[2];\\nsdg q[2];\\nh q[0];\\nh q[1];\\nbarrier q[2], q[0], q[1];\\nu3(0.2, -pi/2, pi/2) q[2];\\nmeasure q[2] -> c[2];\\nmeasure q[0] -> c[0];\\nmeasure q[1] -> c[1];"}], "shots": 1024, "maxCredits": 5, "backend": {"name": "simulator"}}')
-    # patch send
+    correct_info = ('{"qasms": [{"qasm": "\\ninclude \\"qelib1.inc\\";'
+                    '\\nqreg q[3];\\ncreg c[3];\\nh q[2];\\ncx q[2], q[0];'
+                    '\\ncx q[2], q[1];\\ntdg q[2];\\nsdg q[2];'
+                    '\\nbarrier q[2], q[0], q[1];'
+                    '\\nu3(0.2, -pi/2, pi/2) q[2];\\nmeasure q[2] -> '
+                    'c[2];\\nmeasure q[0] -> c[0];\\nmeasure q[1] -> c[1];"}]'
+                    ', "shots": 1024, "maxCredits": 5, "backend": {"name": '
+                    '"simulator"}}')
+
     def mock_send(*args, **kwargs):
-        print(json.loads(args[0]))
         assert json.loads(args[0]) == json.loads(correct_info)
         return {'date': '2017-01-19T14:28:47.622Z',
                 'data': {'time': 14.429004907608032, 'counts': {'00111': 396,
@@ -161,13 +162,13 @@ def test_ibm_backend_functional_test(monkeypatch):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    connectivity = set([(1, 2), (2, 4), (0, 2), (3, 2), (4, 3), (0, 1)])
+
     engine_list = [TagRemover(),
                    LocalOptimizer(10),
                    AutoReplacer(rule_set),
                    TagRemover(),
                    IBM5QubitMapper(),
-                   SwapAndCNOTFlipper(connectivity),
+                   SwapAndCNOTFlipper(ibmqx4_connections),
                    LocalOptimizer(10)]
     eng = MainEngine(backend=backend, engine_list=engine_list)
     unused_qubit = eng.allocate_qubit()

@@ -301,6 +301,7 @@ def test_timeout_exception(monkeypatch):
     qasms = {'qasms': [{'qasm': 'my qasm'}]}
     json_qasm = json.dumps(qasms)
     tries = [0]
+
     def mocked_requests_get(*args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -321,10 +322,12 @@ def test_timeout_exception(monkeypatch):
         if args[0] == urljoin(_api_url, job_url):
             tries[0] += 1
             return MockResponse({"noqasms": "not done"}, 200)
+
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
             def __init__(self, url=""):
                 self.url = url
+
         class MockPostResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
@@ -336,6 +339,7 @@ def test_timeout_exception(monkeypatch):
 
             def raise_for_status(self):
                 pass
+
         login_url = 'users/login'
         if args[0] == urljoin(_api_url, login_url):
             return MockPostResponse({"userId": "1", "id": "12"})
@@ -350,7 +354,7 @@ def test_timeout_exception(monkeypatch):
                               device="ibmqx4",
                               user="test", password="test",
                               shots=1, verbose=False)
-    assert "123e" in str(excinfo.value)  # check that job id is in exception text
+    assert "123e" in str(excinfo.value)  # check that job id is in exception
     assert tries[0] > 0
 
 
@@ -358,6 +362,7 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
     qasms = {'qasms': [{'qasm': 'my qasm'}]}
     json_qasm = json.dumps(qasms)
     request_num = [0]
+
     def mocked_requests_get(*args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -380,10 +385,12 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
         if args[0] == urljoin(_api_url, job_url):
             request_num[0] += 1
             return MockResponse({"noqasms": "not done"}, 200)
+
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
             def __init__(self, url=""):
                 self.url = url
+
         class MockPostResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
@@ -395,6 +402,7 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
 
             def raise_for_status(self):
                 pass
+
         login_url = 'users/login'
         if args[0] == urljoin(_api_url, login_url):
             return MockPostResponse({"userId": "1", "id": "12"})
@@ -412,6 +420,7 @@ def test_retrieve(monkeypatch):
     qasms = {'qasms': [{'qasm': 'my qasm'}]}
     json_qasm = json.dumps(qasms)
     request_num = [0]
+
     def mocked_requests_get(*args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -435,10 +444,12 @@ def test_retrieve(monkeypatch):
         elif args[0] == urljoin(_api_url, job_url):
             return MockResponse({"qasms": [{'qasm': 'qasm',
                                             'result': 'correct'}]}, 200)
+
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
             def __init__(self, url=""):
                 self.url = url
+
         class MockPostResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
@@ -450,6 +461,7 @@ def test_retrieve(monkeypatch):
 
             def raise_for_status(self):
                 pass
+
         login_url = 'users/login'
         if args[0] == urljoin(_api_url, login_url):
             return MockPostResponse({"userId": "1", "id": "12"})
