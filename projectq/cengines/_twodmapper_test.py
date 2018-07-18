@@ -90,7 +90,7 @@ def test_return_swaps_random(num_rows, num_columns, seed, none_old, none_new):
             new_mapping.pop(logical_id)
 
     mapper = two_d.GridMapper(num_rows=num_rows,
-                                    num_columns=num_columns)
+                              num_columns=num_columns)
     swaps = mapper.return_swaps(old_mapping, new_mapping)
     # Check that Swaps are allowed
     all_allowed_swaps = set()
