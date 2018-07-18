@@ -147,6 +147,8 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
     suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
     status_url = urljoin(_api_url, 'Backends/{}/queue/status'.format(device))
 
+    print("Waiting for results. [Job ID: {}]".format(execution_id))
+
     for retries in range(num_retries):
         r = requests.get(urljoin(_api_url, suffix),
                          params={"access_token": access_token})
