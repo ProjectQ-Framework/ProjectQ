@@ -56,5 +56,5 @@ class ManualMapper(BasicMapperEngine):
             ids += [qb.id for qb in cmd.control_qubits]
             for ID in ids:
                 if ID not in self.current_mapping:
-                    self.current_mapping[ID] = self.map(ID)
+                    self._current_mapping[ID] = self.map(ID)
             self._send_cmd_with_mapped_ids(cmd)

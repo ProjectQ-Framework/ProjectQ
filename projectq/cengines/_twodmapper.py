@@ -53,7 +53,7 @@ class GridMapper(BasicMapperEngine):
     the qubits on the grid differently (e.g. not row-major), we call these
     backend qubit ids. If the backend qubit ids are not row-major, one can
     pass a dictionary translating from our row-major mapped ids to these
-    backend ids. 
+    backend ids.
 
     Note: The algorithm sorts twice inside each column and once inside each
           row.
@@ -75,7 +75,7 @@ class GridMapper(BasicMapperEngine):
 
     """
     def __init__(self, num_rows, num_columns, mapped_ids_to_backend_ids=None,
-                 storage=1000, 
+                 storage=1000,
                  optimization_function=lambda x: return_swap_depth(x),
                  num_optimization_steps=50):
         """
@@ -101,9 +101,10 @@ class GridMapper(BasicMapperEngine):
             num_optimization_steps(int): Number of different permutations to
                                          of the matching to try and minimize
                                          the cost.
+        Raises:
+            RuntimeError: if incorrect `mapped_ids_to_backend_ids` parameter
         """
         BasicMapperEngine.__init__(self)
-        self._current_mapping = None # Must use property access below
         self.num_rows = num_rows
         self.num_columns = num_columns
         self.num_qubits = num_rows * num_columns
@@ -114,6 +115,11 @@ class GridMapper(BasicMapperEngine):
             self._mapped_ids_to_backend_ids = dict()
             for i in range(self.num_qubits):
                 self._mapped_ids_to_backend_ids[i] = i
+        if (not (set(self._mapped_ids_to_backend_ids.keys()) ==
+                 set(list(range(self.num_qubits)))) or not (
+                 len(set(self._mapped_ids_to_backend_ids.values())) ==
+                 self.num_qubits)):
+            raise RuntimeError("Incorrect mapped_ids_to_backend_ids parameter")
         self._backend_ids_to_mapped_ids = dict()
         for mapped_id, backend_id in self._mapped_ids_to_backend_ids.items():
             self._backend_ids_to_mapped_ids[backend_id] = mapped_id
@@ -169,7 +175,8 @@ class GridMapper(BasicMapperEngine):
         else:
             self._current_row_major_mapping = dict()
             for logical_id, backend_id in current_mapping.items():
-                self._current_row_major_mapping[logical_id] = self._backend_ids_to_mapped_ids[backend_id]
+                self._current_row_major_mapping[logical_id] = (
+                    self._backend_ids_to_mapped_ids[backend_id])
 
     def is_available(self, cmd):
         """
@@ -196,12 +203,13 @@ class GridMapper(BasicMapperEngine):
         square grid.
 
         Returns: A new mapping as a dict. key is logical qubit id,
-                 value is placement id
+                 value is mapped id
         """
         # Change old mapping to 1D in order to use LinearChain heuristic
         if self._current_row_major_mapping:
             old_mapping_1d = dict()
-            for logical_id, mapped_id in self._current_row_major_mapping.items():
+            for logical_id, mapped_id in (
+                    self._current_row_major_mapping.items()):
                 old_mapping_1d[logical_id] = self._map_2d_to_1d[mapped_id]
         else:
             old_mapping_1d = self._current_row_major_mapping
@@ -450,7 +458,7 @@ class GridMapper(BasicMapperEngine):
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
                     self._current_row_major_mapping.pop(cmd.qubits[0][0].id)
-                    self._current_mapping.pop(cmd.qubits[0][0].id) ###########################
+                    self._current_mapping.pop(cmd.qubits[0][0].id)
                 else:
                     new_stored_commands.append(cmd)
             else:
@@ -461,7 +469,8 @@ class GridMapper(BasicMapperEngine):
                         if qubit.id not in active_ids:
                             send_gate = False
                             break
-                        mapped_ids.add(self._current_row_major_mapping[qubit.id])
+                        mapped_ids.add(
+                            self._current_row_major_mapping[qubit.id])
                 # Check that mapped ids are nearest neighbour on 2D grid
                 if len(mapped_ids) == 2:
                     qb0, qb1 = sorted(list(mapped_ids))
@@ -473,8 +482,8 @@ class GridMapper(BasicMapperEngine):
                 if send_gate:
                     # Note: This sends the cmd correctly with the backend ids
                     #       as it looks up the mapping in self.current_mapping
-                    #       and not our internal mapping 
-                    #.      self._current_row_major_mapping
+                    #       and not our internal mapping
+                    #       self._current_row_major_mapping
                     self._send_cmd_with_mapped_ids(cmd)
                 else:
                     for qureg in cmd.all_qubits:
@@ -495,8 +504,7 @@ class GridMapper(BasicMapperEngine):
         """
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
-            self.current_mapping = dict() ###########################################
-            self._current_row_major_mapping = dict()
+            self.current_mapping = dict()
         new_row_major_mapping = self._return_new_mapping()
         # Allocate all mapped qubit ids
         mapped_ids_used = set()
@@ -505,7 +513,8 @@ class GridMapper(BasicMapperEngine):
         not_allocated_ids = set(range(self.num_qubits)).difference(
             mapped_ids_used)
         for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
+            qb = WeakQubitRef(engine=self,
+                              idx=self._mapped_ids_to_backend_ids[mapped_id])
             cmd = Command(engine=self, gate=AllocateQubitGate(),
                           qubits=([qb],))
             self.send([cmd])
@@ -523,9 +532,10 @@ class GridMapper(BasicMapperEngine):
                 permutations.append(self._rng.sample(matchings_numbers,
                                                      self.num_rows))
         for permutation in permutations:
-            trial_swaps = self.return_swaps(old_mapping=self._current_row_major_mapping,
-                                            new_mapping=new_row_major_mapping,
-                                            permutation=permutation)
+            trial_swaps = self.return_swaps(
+                old_mapping=self._current_row_major_mapping,
+                new_mapping=new_row_major_mapping,
+                permutation=permutation)
             if swaps is None:
                 swaps = trial_swaps
                 lowest_cost = self.optimization_function(trial_swaps)
@@ -534,8 +544,10 @@ class GridMapper(BasicMapperEngine):
                 lowest_cost = self.optimization_function(trial_swaps)
         # Send swap operations to arrive at new_mapping:
         for qubit_id0, qubit_id1 in swaps:
-            q0 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id0])
-            q1 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id1])
+            q0 = WeakQubitRef(engine=self,
+                              idx=self._mapped_ids_to_backend_ids[qubit_id0])
+            q1 = WeakQubitRef(engine=self,
+                              idx=self._mapped_ids_to_backend_ids[qubit_id1])
             cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
             self.send([cmd])
         # Register statistics:
@@ -553,7 +565,8 @@ class GridMapper(BasicMapperEngine):
         self._current_row_major_mapping = new_row_major_mapping
         new_mapping = dict()
         for logical_id, mapped_id in new_row_major_mapping.items():
-            new_mapping[logical_id] = self._mapped_ids_to_backend_ids[mapped_id]
+            new_mapping[logical_id] = (
+                self._mapped_ids_to_backend_ids[mapped_id])
         self.current_mapping = new_mapping
 
         # Send possible gates:
@@ -565,7 +578,8 @@ class GridMapper(BasicMapperEngine):
         not_allocated_ids = set(range(self.num_qubits)).difference(
             mapped_ids_used)
         for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
+            qb = WeakQubitRef(engine=self,
+                              idx=self._mapped_ids_to_backend_ids[mapped_id])
             cmd = Command(engine=self, gate=DeallocateQubitGate(),
                           qubits=([qb],))
             self.send([cmd])

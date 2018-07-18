@@ -497,7 +497,7 @@ class LinearMapper(BasicMapperEngine):
                     # Note: Deallocate gates get send everytime by self._run()
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
-                    self.current_mapping.pop(cmd.qubits[0][0].id)
+                    self._current_mapping.pop(cmd.qubits[0][0].id)
                 else:
                     new_stored_commands.append(cmd)
             else:
