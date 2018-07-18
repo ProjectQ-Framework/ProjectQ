@@ -55,6 +55,14 @@ def test_wrong_init_mapped_ids_to_backend_ids():
                          mapped_ids_to_backend_ids=test)
 
 
+def test_resetting_mapping_to_none():
+    mapper = two_d.GridMapper(num_rows=2, num_columns=3)
+    mapper.current_mapping = {0: 1}
+    assert mapper._current_row_major_mapping == {0: 1}
+    mapper.current_mapping = None
+    assert mapper._current_row_major_mapping is None
+
+
 @pytest.mark.parametrize("different_backend_ids", [False, True])
 def test_return_new_mapping(different_backend_ids):
     if different_backend_ids:
