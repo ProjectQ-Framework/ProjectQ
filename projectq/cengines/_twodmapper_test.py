@@ -161,7 +161,7 @@ def test_send_possible_commands_allocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # in mapping:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._send_possible_commands()
     assert len(mapper._stored_commands) == 0
     # Only self._run() sends Allocate gates
@@ -185,7 +185,7 @@ def test_send_possible_commands_deallocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # allocated:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._currently_allocated_ids.add(0)
     mapper._send_possible_commands()
     # Only self._run() send Deallocate gates
