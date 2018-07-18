@@ -27,7 +27,7 @@ from collections import deque
 from copy import deepcopy
 
 from projectq.cengines import BasicMapperEngine
-from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, AllocateQubitGate, Deallocate,
                           DeallocateQubitGate, Command, FlushGate,
                           MeasureGate, Swap)
@@ -82,8 +82,7 @@ class LinearMapper(BasicMapperEngine):
         1) Gates are cached and only mapped from time to time. A
            FastForwarding gate doesn't empty the cache, only a FlushGate does.
         2) Only 1 and two qubit gates allowed.
-        3) No previous QubitPlacementTag allowed.
-        4) Does not optimize for dirty qubits.
+        3) Does not optimize for dirty qubits.
     """
 
     def __init__(self, num_qubits, cyclic=False, storage=1000):
@@ -155,7 +154,7 @@ class LinearMapper(BasicMapperEngine):
                  value is placement id
         """
         # allocated_qubits is used as this mapper currently does not reassign
-        # a QubitPlacement to a new qubit if the previous qubit at that
+        # a qubit placement to a new qubit if the previous qubit at that
         # location has been deallocated. This is done after the next swaps.
         allocated_qubits = deepcopy(currently_allocated_ids)
         active_qubits = deepcopy(currently_allocated_ids)
@@ -188,10 +187,6 @@ class LinearMapper(BasicMapperEngine):
                     allocated_qubits.add(qubit_id)
                     active_qubits.add(qubit_id)
                     neighbour_ids[qubit_id] = set()
-                for tag in cmd.tags:
-                    if isinstance(tag, QubitPlacementTag):
-                        raise Exception("This mapper does not support "
-                                        "previous QubitPlacementTags")
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id

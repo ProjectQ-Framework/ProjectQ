@@ -43,7 +43,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     json_body = ''.join([name_item, json_qasm])
     json_data = ''.join(['{', json_body, '}'])
     shots = 1
-    device = "real"
+    device = "ibmqx4"
     json_data_run = ''.join(['{"qasm":', json_qasm, '}'])
     execution_id = 3
     result_ready = [False]
@@ -70,9 +70,9 @@ def test_send_real_device_online_verbose(monkeypatch):
                 pass
 
         # Accessing status of device. Return online.
-        status_url = 'Backends/ibmqx2/queue/status'
+        status_url = 'Backends/ibmqx4/queue/status'
         if (args[0] == urljoin(_api_url_status, status_url) and
-           request_num[0] == 0):
+                (request_num[0] == 0 or request_num[0] == 3)):
             request_num[0] += 1
             return MockResponse({"state": True}, 200)
         # Getting result
@@ -85,7 +85,8 @@ def test_send_real_device_online_verbose(monkeypatch):
         elif (args[0] == urljoin(_api_url,
               "Jobs/{execution_id}".format(execution_id=execution_id)) and
               kwargs["params"]["access_token"] == access_token and
-              result_ready[0] and request_num[0] == 3):
+              result_ready[0] and request_num[0] == 4):
+            print("state ok")
             return MockResponse({"qasms": [{"result": result}]}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -141,7 +142,7 @@ def test_send_real_device_online_verbose(monkeypatch):
 
     # Code to test:
     res = _ibm_http_client.send(json_qasm,
-                                device="ibmqx2",
+                                device="ibmqx4",
                                 user=None, password=None,
                                 shots=shots, verbose=True)
     print(res)
@@ -159,7 +160,7 @@ def test_send_real_device_offline(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        status_url = 'Backends/ibmqx2/queue/status'
+        status_url = 'Backends/ibmqx4/queue/status'
         if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": False}, 200)
     monkeypatch.setattr("requests.get", mocked_requests_get)
@@ -168,7 +169,7 @@ def test_send_real_device_offline(monkeypatch):
     name = 'projectq_test'
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
         _ibm_http_client.send(json_qasm,
-                              device="ibmqx2",
+                              device="ibmqx4",
                               user=None, password=None,
                               shots=shots, verbose=True)
 
@@ -184,7 +185,7 @@ def test_send_that_errors_are_caught(monkeypatch):
 
     def mocked_requests_get(*args, **kwargs):
         # Accessing status of device. Return online.
-        status_url = 'Backends/ibmqx2/queue/status'
+        status_url = 'Backends/ibmqx4/queue/status'
         if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
@@ -209,7 +210,7 @@ def test_send_that_errors_are_caught(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="ibmqx2",
+                          device="ibmqx4",
                           user=None, password=None,
                           shots=shots, verbose=True)
 
@@ -225,7 +226,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        status_url = 'Backends/ibmqx2/queue/status'
+        status_url = 'Backends/ibmqx4/queue/status'
         if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
@@ -250,7 +251,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="ibmqx2",
+                          device="ibmqx4",
                           user=None, password=None,
                           shots=shots, verbose=True)
 
@@ -266,7 +267,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
                 return self.json_data
 
         # Accessing status of device. Return online.
-        status_url = 'Backends/ibmqx2/queue/status'
+        status_url = 'Backends/ibmqx4/queue/status'
         if args[0] == urljoin(_api_url_status, status_url):
             return MockResponse({"state": True}, 200)
 
@@ -291,6 +292,184 @@ def test_send_that_errors_are_caught3(monkeypatch):
     json_qasm = "my_json_qasm"
     name = 'projectq_test'
     _ibm_http_client.send(json_qasm,
-                          device="ibmqx2",
+                          device="ibmqx4",
                           user=None, password=None,
                           shots=shots, verbose=True)
+
+
+def test_timeout_exception(monkeypatch):
+    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    json_qasm = json.dumps(qasms)
+    tries = [0]
+
+    def mocked_requests_get(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Accessing status of device. Return online.
+        status_url = 'Backends/ibmqx4/queue/status'
+        if args[0] == urljoin(_api_url, status_url):
+            return MockResponse({"state": True}, 200)
+        job_url = 'Jobs/{}'.format("123e")
+        if args[0] == urljoin(_api_url, job_url):
+            tries[0] += 1
+            return MockResponse({"noqasms": "not done"}, 200)
+
+    def mocked_requests_post(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, url=""):
+                self.url = url
+
+        class MockPostResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        login_url = 'users/login'
+        if args[0] == urljoin(_api_url, login_url):
+            return MockPostResponse({"userId": "1", "id": "12"})
+        if args[0] == urljoin(_api_url, 'Jobs'):
+            return MockPostResponse({"id": "123e"})
+
+    monkeypatch.setattr("requests.get", mocked_requests_get)
+    monkeypatch.setattr("requests.post", mocked_requests_post)
+    _ibm_http_client.time.sleep = lambda x: x
+    with pytest.raises(Exception) as excinfo:
+        _ibm_http_client.send(json_qasm,
+                              device="ibmqx4",
+                              user="test", password="test",
+                              shots=1, verbose=False)
+    assert "123e" in str(excinfo.value)  # check that job id is in exception
+    assert tries[0] > 0
+
+
+def test_retrieve_and_device_offline_exception(monkeypatch):
+    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    json_qasm = json.dumps(qasms)
+    request_num = [0]
+
+    def mocked_requests_get(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Accessing status of device. Return online.
+        status_url = 'Backends/ibmqx4/queue/status'
+        if args[0] == urljoin(_api_url, status_url) and request_num[0] < 2:
+            return MockResponse({"state": True, "lengthQueue": 10}, 200)
+        elif args[0] == urljoin(_api_url, status_url):
+            return MockResponse({"state": False}, 200)
+        job_url = 'Jobs/{}'.format("123e")
+        if args[0] == urljoin(_api_url, job_url):
+            request_num[0] += 1
+            return MockResponse({"noqasms": "not done"}, 200)
+
+    def mocked_requests_post(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, url=""):
+                self.url = url
+
+        class MockPostResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        login_url = 'users/login'
+        if args[0] == urljoin(_api_url, login_url):
+            return MockPostResponse({"userId": "1", "id": "12"})
+
+    monkeypatch.setattr("requests.get", mocked_requests_get)
+    monkeypatch.setattr("requests.post", mocked_requests_post)
+    _ibm_http_client.time.sleep = lambda x: x
+    with pytest.raises(_ibm_http_client.DeviceOfflineError):
+        _ibm_http_client.retrieve(device="ibmqx4",
+                                  user="test", password="test",
+                                  jobid="123e")
+
+
+def test_retrieve(monkeypatch):
+    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    json_qasm = json.dumps(qasms)
+    request_num = [0]
+
+    def mocked_requests_get(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Accessing status of device. Return online.
+        status_url = 'Backends/ibmqx4/queue/status'
+        if args[0] == urljoin(_api_url, status_url):
+            return MockResponse({"state": True}, 200)
+        job_url = 'Jobs/{}'.format("123e")
+        if args[0] == urljoin(_api_url, job_url) and request_num[0] < 1:
+            request_num[0] += 1
+            return MockResponse({"noqasms": "not done"}, 200)
+        elif args[0] == urljoin(_api_url, job_url):
+            return MockResponse({"qasms": [{'qasm': 'qasm',
+                                            'result': 'correct'}]}, 200)
+
+    def mocked_requests_post(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, url=""):
+                self.url = url
+
+        class MockPostResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        login_url = 'users/login'
+        if args[0] == urljoin(_api_url, login_url):
+            return MockPostResponse({"userId": "1", "id": "12"})
+
+    monkeypatch.setattr("requests.get", mocked_requests_get)
+    monkeypatch.setattr("requests.post", mocked_requests_post)
+    _ibm_http_client.time.sleep = lambda x: x
+    res = _ibm_http_client.retrieve(device="ibmqx4",
+                                    user="test", password="test",
+                                    jobid="123e")
+    assert res == 'correct'
