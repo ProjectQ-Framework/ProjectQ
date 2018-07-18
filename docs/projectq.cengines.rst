@@ -7,7 +7,8 @@ The ProjectQ compiler engines package.
 	projectq.cengines.BasicEngine
 	projectq.cengines.ForwarderEngine
 	projectq.cengines.CommandModifier
-	projectq.cengines.IBMCNOTMapper
+	projectq.cengines.SwapAndCNOTFlipper
+	projectq.cengines.IBM5QubitMapper
 	projectq.cengines.ManualMapper
 	projectq.cengines.MainEngine
 	projectq.cengines.LocalOptimizer
