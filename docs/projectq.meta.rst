@@ -8,7 +8,7 @@ Examples are `with Compute`, followed by an automatic uncompute or `with Control
 .. autosummary::
 
 	projectq.meta.DirtyQubitTag
-	projectq.meta.QubitPlacementTag
+	projectq.meta.LogicalQubitIDTag
 	projectq.meta.LoopTag
 	projectq.meta.Loop
 	projectq.meta.Compute

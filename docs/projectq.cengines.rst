@@ -15,11 +15,12 @@ The ProjectQ compiler engines package.
 	projectq.cengines.ForwarderEngine
 	projectq.cengines.GridMapper
 	projectq.cengines.InstructionFilter
-	projectq.cengines.IBMCNOTMapper
+	projectq.cengines.IBM5QubitMapper
 	projectq.cengines.LinearMapper
 	projectq.cengines.LocalOptimizer
 	projectq.cengines.ManualMapper
 	projectq.cengines.MainEngine
+  projectq.cengines.SwapAndCNOTFlipper
 	projectq.cengines.TagRemover
 
 
