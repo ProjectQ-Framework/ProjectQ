@@ -17,7 +17,7 @@
 import pytest
 
 import projectq
-from projectq.cengines import DummyEngine, SquareGridMapper
+from projectq.cengines import DummyEngine
 from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
 from projectq.ops import (BasicGate, CNOT, H, Measure, QFT, QubitOperator, Rx,

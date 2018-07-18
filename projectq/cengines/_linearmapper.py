@@ -59,9 +59,9 @@ def return_swap_depth(swaps):
 
 class LinearMapper(BasicMapperEngine):
     """
-    Maps a quantum circuit to a 1-D chain of nearest neighbour interactions.
+    Maps a quantum circuit to a linear chain of nearest neighbour interactions.
 
-    Maps a quantum circuit to a 1-D chain of qubits with nearest neighbour
+    Maps a quantum circuit to a linear chain of qubits with nearest neighbour
     interactions using Swap gates. It supports open or cyclic boundary
     conditions.
 
@@ -87,10 +87,10 @@ class LinearMapper(BasicMapperEngine):
 
     def __init__(self, num_qubits, cyclic=False, storage=1000):
         """
-        Initialize an linear chain mapper compiler engine.
+        Initialize a LinearMapper compiler engine.
 
         Args:
-            num_qubits(int): Number of physical qubits in chain
+            num_qubits(int): Number of physical qubits in the linear chain
             cyclic(bool): If 1D chain is a cycle. Default is False.
             storage(int): Number of gates to temporarily store, default is 1000
         """
@@ -134,7 +134,7 @@ class LinearMapper(BasicMapperEngine):
 
         Args:
             num_qubits(int): Total number of qubits in the linear chain
-            cyclic(bool): If 1D chain is a cycle.
+            cyclic(bool): If linear chain is a cycle.
             currently_allocated_ids(set of int): Logical qubit ids for which
                                                  the Allocate gate has already
                                                  been processed and sent to
@@ -227,7 +227,7 @@ class LinearMapper(BasicMapperEngine):
 
         Args:
             num_qubits (int): Total number of qubits in the chain
-            cyclic (bool): If 1D chain is a cycle
+            cyclic (bool): If linear chain is a cycle
             qubit0 (int): qubit.id of one of the qubits
             qubit1 (int): qubit.id of the other qubit
             active_qubits (set): contains all qubit ids which for which gates
@@ -342,7 +342,7 @@ class LinearMapper(BasicMapperEngine):
         groups without interactions between the groups.
 
         Args:
-            num_qubits (int): Total number of qubits in the chain
+            num_qubits (int): Total number of qubits in the linear chain
             segments: List of segments. A segment is a list of qubit ids which
                       should be nearest neighbour in the new map.
                       Individual qubits are in allocated_qubits but not in

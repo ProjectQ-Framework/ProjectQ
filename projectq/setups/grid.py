@@ -13,12 +13,12 @@
 #   limitations under the License.
 
 """
-Defines a setup to compile to qubits placed in 2-D square grid.
+Defines a setup to compile to qubits placed in 2-D grid.
 
 It provides the `engine_list` for the `MainEngine`. This engine list contains
 an AutoReplacer with most of the gate decompositions of ProjectQ, which are
 used to decompose a circuit into only two qubit gates and arbitrary single
-qubit gates. ProjectQ's SquareGridMapper is then used to introduce the
+qubit gates. ProjectQ's GridMapper is then used to introduce the
 necessary Swap operations to route interacting qubits next to each other.
 This setup allows to choose the final gate set (with some limitations).
 """
@@ -29,8 +29,8 @@ import projectq
 import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               InstructionFilter, LocalOptimizer,
-                               SquareGridMapper, TagRemover)
+                               InstructionFilter, GridMapper,
+                               LocalOptimizer, TagRemover)
 from projectq.ops import (BasicMathGate, ClassicalInstructionGate, CNOT,
                           ControlledGate, get_inverse, QFT, Swap)
 
@@ -61,7 +61,7 @@ def one_and_two_qubit_gates(eng, cmd):
 def get_engine_list(num_rows, num_columns, one_qubit_gates="any",
                     two_qubit_gates=(CNOT, Swap)):
     """
-    Returns an engine list to compile to a 2-D square grid graph of qubits.
+    Returns an engine list to compile to a 2-D grid of qubits.
 
     Note:
         If you choose a new gate set for which the compiler does not yet have
@@ -160,7 +160,7 @@ def get_engine_list(num_rows, num_columns, one_qubit_gates="any",
             TagRemover(),
             InstructionFilter(one_and_two_qubit_gates),
             LocalOptimizer(5),
-            SquareGridMapper(num_rows=num_rows, num_columns=num_columns),
+            GridMapper(num_rows=num_rows, num_columns=num_columns),
             AutoReplacer(rule_set),
             TagRemover(),
             InstructionFilter(low_level_gates),

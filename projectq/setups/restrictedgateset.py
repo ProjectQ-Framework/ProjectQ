@@ -28,7 +28,7 @@ import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                InstructionFilter, LocalOptimizer,
-                               SquareGridMapper, TagRemover)
+                               TagRemover)
 from projectq.ops import (BasicMathGate, ClassicalInstructionGate, CNOT,
                           ControlledGate, get_inverse, QFT, Swap)
 

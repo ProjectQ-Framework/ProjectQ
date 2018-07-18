@@ -31,4 +31,4 @@ from ._replacer import (AutoReplacer,
                         DecompositionRule)
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
-from ._twodmapper import SquareGridMapper
+from ._twodmapper import GridMapper

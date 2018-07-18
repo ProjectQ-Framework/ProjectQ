@@ -29,7 +29,7 @@ from projectq.cengines import _twodmapper as two_d
 
 
 def test_is_available():
-    mapper = two_d.SquareGridMapper(num_rows=2, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=2, num_columns=2)
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
     qb2 = WeakQubitRef(engine=None, idx=2)
@@ -44,7 +44,7 @@ def test_is_available():
 
 
 def test_return_new_mapping():
-    mapper = two_d.SquareGridMapper(num_rows=4, num_columns=3)
+    mapper = two_d.GridMapper(num_rows=4, num_columns=3)
     linear_chain_ids = [33, 22, 11, 2, 3, 0, 6, 7, 9, 12, 4, 88]
     mapper._stored_commands = []
     for i in range(12):
@@ -89,7 +89,7 @@ def test_return_swaps_random(num_rows, num_columns, seed, none_old, none_new):
         for logical_id in new_none_ids:
             new_mapping.pop(logical_id)
 
-    mapper = two_d.SquareGridMapper(num_rows=num_rows,
+    mapper = two_d.GridMapper(num_rows=num_rows,
                                     num_columns=num_columns)
     swaps = mapper.return_swaps(old_mapping, new_mapping)
     # Check that Swaps are allowed
@@ -117,7 +117,7 @@ def test_return_swaps_random(num_rows, num_columns, seed, none_old, none_new):
 
 
 def test_send_possible_commands():
-    mapper = two_d.SquareGridMapper(num_rows=2, num_columns=4)
+    mapper = two_d.GridMapper(num_rows=2, num_columns=4)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -145,7 +145,7 @@ def test_send_possible_commands():
 
 
 def test_send_possible_commands_allocate():
-    mapper = two_d.SquareGridMapper(num_rows=3, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -170,7 +170,7 @@ def test_send_possible_commands_allocate():
 
 
 def test_send_possible_commands_deallocate():
-    mapper = two_d.SquareGridMapper(num_rows=3, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -196,7 +196,7 @@ def test_send_possible_commands_deallocate():
 
 
 def test_send_possible_commands_keep_remaining_gates():
-    mapper = two_d.SquareGridMapper(num_rows=3, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -216,7 +216,7 @@ def test_send_possible_commands_keep_remaining_gates():
 
 
 def test_send_possible_commands_one_inactive_qubit():
-    mapper = two_d.SquareGridMapper(num_rows=3, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -237,7 +237,7 @@ def test_run_and_receive(num_optimization_steps):
         choose_last_permutation.counter -= 1
         return choose_last_permutation.counter
     choose_last_permutation.counter = 100
-    mapper = two_d.SquareGridMapper(
+    mapper = two_d.GridMapper(
         num_rows=2,
         num_columns=2,
         optimization_function=choose_last_permutation,
@@ -286,7 +286,7 @@ def test_run_and_receive(num_optimization_steps):
 
 
 def test_run_infinite_loop_detection():
-    mapper = two_d.SquareGridMapper(num_rows=2, num_columns=2)
+    mapper = two_d.GridMapper(num_rows=2, num_columns=2)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
