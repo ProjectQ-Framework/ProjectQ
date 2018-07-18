@@ -108,8 +108,8 @@ class GridMapper(BasicMapperEngine):
         self.num_rows = num_rows
         self.num_columns = num_columns
         self.num_qubits = num_rows * num_columns
-        # Internally we use the mapped ids until sending a command when it gets
-        # translated using this mapping:
+        # Internally we use the mapped ids until sending a command.
+        # Before sending we use this map to translate to backend ids:
         self._mapped_ids_to_backend_ids = mapped_ids_to_backend_ids
         if self._mapped_ids_to_backend_ids is None:
             self._mapped_ids_to_backend_ids = dict()
