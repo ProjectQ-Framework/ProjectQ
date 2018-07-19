@@ -48,18 +48,15 @@ class PhaseX(BasicGate):
    A phase gate on X gate with
    eigenvectors H|0> and HX|0> and 
    eivenvalues exp(i2pi theta) and -exp(i2pi theta)
-   theta needs to be defined into the class by now
    """
 
-#   def __init__(self,fase):
-#      self.fase = fase
+   def __init__(self,phase):
+      BasicGate.__init__(self)      
+      self.phase = phase
 
    @property
    def matrix(self):
-      theta = 0.5
-#      print (theta)
-#      print ("2.0 * cmath.pi * theta = ", 2.0 * cmath.pi * theta)
-#      print ("Calculated theta = ", (2.0 * cmath.pi * theta)/(2.0 * cmath.pi))
+      theta = self.phase
 
       return np.matrix([[0,cmath.exp(1j * 2.0 * cmath.pi * theta)],
                         [cmath.exp(1j * 2.0 * cmath.pi * theta),0]])
@@ -83,11 +80,11 @@ if __name__ == "__main__":
 
    #### Defined phase with X ###
 
+   print("Example: Defined phase with X")
    autovector = eng.allocate_qureg(1)
    H | autovector
-#   theta = float(input ("Enter phase [0,1): "))
-#   print (type(theta),"=====")
-   unit = PhaseX()
+   theta = float(input ("Enter phase [0,1): "))
+   unit = PhaseX(theta)
    print(type(unit))
    
    #### END Defined phase with X ###
