@@ -60,7 +60,7 @@ class GridMapper(BasicMapperEngine):
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
-                          are backend qubit ids.
+                          is backend qubit id.
         storage(int): Number of gate it caches before mapping.
         num_rows(int): Number of rows in the grid
         num_columns(int): Number of columns in the grid
