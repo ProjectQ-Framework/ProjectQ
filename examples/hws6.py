@@ -33,7 +33,7 @@ Uncompute(eng)
 
 All(H) | qubits
 
-Measure | qubits
+All(Measure) | qubits
 
 # measurement result
 print("Shift is {}".format(sum(int(q) << i for i, q in enumerate(qubits))))

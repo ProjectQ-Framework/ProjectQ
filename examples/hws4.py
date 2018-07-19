@@ -18,7 +18,7 @@ Uncompute(eng)
 
 PhaseOracle(f) | qubits
 All(H) | qubits
-Measure | qubits
+All(Measure) | qubits
 
 eng.flush()
 
