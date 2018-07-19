@@ -3,6 +3,8 @@ from projectq.ops import All, Measure, QubitOperator, TimeEvolution
 from projectq.meta import Control
 from projectq import MainEngine
 
+from projectq.backends import CircuitDrawer
+
 import cmath
 import numpy as np
 from projectq.ops import (BasicGate)
@@ -64,9 +66,24 @@ class PhaseX(BasicGate):
    def __str__(self):
       return "PhaseX(theta)"
 
+   def tex_str(self):
+      """
+      Return the Latex string representation of a PhaseX Gate.
+      Returns the class name and the angle as a subscript, i.e.
+      .. code-block:: latex
+         [CLASSNAME]$_[ANGLE]$
+      """
+
+      return str("PhX") + "$_{" + str(self.phase) + "}$"
+
+
+
 if __name__ == "__main__":
    #Create the compiler engine
-   eng = MainEngine()
+
+   drawing_engine = CircuitDrawer()
+   
+   eng = MainEngine(drawing_engine)
    
    # Create the Unitary Operator and the eigenvector
    unitario = QubitOperator('X0 X1')
@@ -82,6 +99,7 @@ if __name__ == "__main__":
 
    print("Example: Defined phase with X")
    autovector = eng.allocate_qureg(1)
+   X | autovector
    H | autovector
    theta = float(input ("Enter phase [0,1): "))
    unit = PhaseX(theta)
@@ -101,19 +119,22 @@ if __name__ == "__main__":
 #======== Testing ====
 
    #unit | autovector
-   eng.flush()
-   amp_after1 = eng.backend.get_amplitude('00', autovector)
-   amp_after2 = eng.backend.get_amplitude('01', autovector)
-   amp_after3 = eng.backend.get_amplitude('10', autovector)
-   amp_after4 = eng.backend.get_amplitude('11', autovector)
+#== Testing==   eng.flush()
 
-   print("Amplitude saved in amp_after1: {}".format(amp_after1))
-   print("Amplitude saved in amp_after2: {}".format(amp_after2))
-   print("Amplitude saved in amp_after3: {}".format(amp_after3))
-   print("Amplitude saved in amp_after4: {}".format(amp_after4))
+#== Testing==   amp_after1 = eng.backend.get_amplitude('00', autovector)
+#== Testing==   amp_after2 = eng.backend.get_amplitude('01', autovector)
+#== Testing==   amp_after3 = eng.backend.get_amplitude('10', autovector)
+#== Testing==   amp_after4 = eng.backend.get_amplitude('11', autovector)
+
+#== Testing==   print("Amplitude saved in amp_after1: {}".format(amp_after1))
+#== Testing==   print("Amplitude saved in amp_after2: {}".format(amp_after2))
+#== Testing==   print("Amplitude saved in amp_after3: {}".format(amp_after3))
+#== Testing==   print("Amplitude saved in amp_after4: {}".format(amp_after4))
 
    # Deferred measure del estado para que pueda imprimir cosas
 
    All(Measure) | autovector
 
    eng.flush()
+   
+   print(drawing_engine.get_latex())
