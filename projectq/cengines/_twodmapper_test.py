@@ -20,6 +20,7 @@ import random
 
 import pytest
 
+import projectq
 from projectq.cengines import DummyEngine
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
                           X)
@@ -43,8 +44,35 @@ def test_is_available():
     assert not mapper.is_available(cmd3)
 
 
-def test_return_new_mapping():
-    mapper = two_d.GridMapper(num_rows=4, num_columns=3)
+def test_wrong_init_mapped_ids_to_backend_ids():
+    with pytest.raises(RuntimeError):
+        test = {0: 1, 1: 0, 2: 2, 3: 3, 4: 4}
+        two_d.GridMapper(num_rows=2, num_columns=3,
+                         mapped_ids_to_backend_ids=test)
+    with pytest.raises(RuntimeError):
+        test = {0: 1, 1: 0, 2: 2, 3: 3, 4: 4, 5: 2}
+        two_d.GridMapper(num_rows=2, num_columns=3,
+                         mapped_ids_to_backend_ids=test)
+
+
+def test_resetting_mapping_to_none():
+    mapper = two_d.GridMapper(num_rows=2, num_columns=3)
+    mapper.current_mapping = {0: 1}
+    assert mapper._current_row_major_mapping == {0: 1}
+    mapper.current_mapping = None
+    assert mapper._current_row_major_mapping is None
+
+
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_return_new_mapping(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 1, 3: 4, 4: 5, 5: 6, 6: 10,
+                              7: 7, 8: 0, 9: 56, 10: 55, 11: 9}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=4, num_columns=3,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
+    eng = projectq.MainEngine(DummyEngine(), [mapper])
     linear_chain_ids = [33, 22, 11, 2, 3, 0, 6, 7, 9, 12, 4, 88]
     mapper._stored_commands = []
     for i in range(12):
@@ -63,6 +91,19 @@ def test_return_new_mapping():
                            2: 8, 11: 11, 22: 10, 33: 9}
     assert (new_mapping == possible_solution_1 or
             new_mapping == possible_solution_2)
+    eng.flush()
+    if different_backend_ids:
+        transformed_sol1 = dict()
+        for logical_id, mapped_id in possible_solution_1.items():
+            transformed_sol1[logical_id] = map_to_backend_ids[mapped_id]
+        transformed_sol2 = dict()
+        for logical_id, mapped_id in possible_solution_2.items():
+            transformed_sol2[logical_id] = map_to_backend_ids[mapped_id]
+        assert (mapper.current_mapping == transformed_sol1 or
+                mapper.current_mapping == transformed_sol2)
+    else:
+        assert (mapper.current_mapping == possible_solution_1 or
+                mapper.current_mapping == possible_solution_2)
 
 
 @pytest.mark.parametrize("num_rows, num_columns, seed, none_old, none_new",
@@ -116,13 +157,25 @@ def test_return_swaps_random(num_rows, num_columns, seed, none_old, none_new):
             assert test_chain[i] == new_chain[i]
 
 
-def test_send_possible_commands():
-    mapper = two_d.GridMapper(num_rows=2, num_columns=4)
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_send_possible_commands(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 1, 3: 4, 4: 5, 5: 6, 6: 10,
+                              7: 7}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=2, num_columns=4,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
     # mapping is identical except 5 <-> 0
-    mapper.current_mapping = {5: 0, 1: 1, 2: 2, 3: 3, 4: 4, 0: 5, 6: 6, 7: 7}
+    if different_backend_ids:
+        mapper.current_mapping = {0: 6, 1: 32, 2: 1, 3: 4, 4: 5, 5: 21, 6: 10,
+                                  7: 7}
+    else:
+        mapper.current_mapping = {5: 0, 1: 1, 2: 2, 3: 3, 4: 4, 0: 5, 6: 6,
+                                  7: 7}
     neighbours = [(5, 1), (1, 2), (2, 3), (4, 0), (0, 6), (6, 7),
                   (5, 4), (1, 0), (2, 6), (3, 7)]
     for qb0_id, qb1_id in neighbours:
@@ -144,8 +197,14 @@ def test_send_possible_commands():
             assert len(mapper._stored_commands) == 1
 
 
-def test_send_possible_commands_allocate():
-    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_send_possible_commands_allocate(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 3, 3: 4, 4: 5, 5: 6}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -161,7 +220,7 @@ def test_send_possible_commands_allocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # in mapping:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._send_possible_commands()
     assert len(mapper._stored_commands) == 0
     # Only self._run() sends Allocate gates
@@ -169,8 +228,14 @@ def test_send_possible_commands_allocate():
     assert mapper._currently_allocated_ids == set([10, 0])
 
 
-def test_send_possible_commands_deallocate():
-    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_send_possible_commands_deallocate(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 3, 3: 4, 4: 5, 5: 6}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -185,7 +250,7 @@ def test_send_possible_commands_deallocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # allocated:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._currently_allocated_ids.add(0)
     mapper._send_possible_commands()
     # Only self._run() send Deallocate gates
@@ -195,8 +260,14 @@ def test_send_possible_commands_deallocate():
     assert mapper._currently_allocated_ids == set([10])
 
 
-def test_send_possible_commands_keep_remaining_gates():
-    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_send_possible_commands_keep_remaining_gates(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 3, 3: 0, 4: 5, 5: 6}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -215,8 +286,14 @@ def test_send_possible_commands_keep_remaining_gates():
     assert mapper._stored_commands == [cmd2]
 
 
-def test_send_possible_commands_one_inactive_qubit():
-    mapper = two_d.GridMapper(num_rows=3, num_columns=2)
+@pytest.mark.parametrize("different_backend_ids", [False, True])
+def test_send_possible_commands_one_inactive_qubit(different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 3, 3: 0, 4: 5, 5: 6}
+    else:
+        map_to_backend_ids = None
+    mapper = two_d.GridMapper(num_rows=3, num_columns=2,
+                              mapped_ids_to_backend_ids=map_to_backend_ids)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -231,15 +308,23 @@ def test_send_possible_commands_one_inactive_qubit():
     assert mapper._stored_commands == [cmd1]
 
 
+@pytest.mark.parametrize("different_backend_ids", [False, True])
 @pytest.mark.parametrize("num_optimization_steps", [1, 10])
-def test_run_and_receive(num_optimization_steps):
+def test_run_and_receive(num_optimization_steps, different_backend_ids):
+    if different_backend_ids:
+        map_to_backend_ids = {0: 21, 1: 32, 2: 3, 3: 0}
+    else:
+        map_to_backend_ids = None
+
     def choose_last_permutation(swaps):
         choose_last_permutation.counter -= 1
         return choose_last_permutation.counter
+
     choose_last_permutation.counter = 100
     mapper = two_d.GridMapper(
         num_rows=2,
         num_columns=2,
+        mapped_ids_to_backend_ids=map_to_backend_ids,
         optimization_function=choose_last_permutation,
         num_optimization_steps=num_optimization_steps)
     backend = DummyEngine(save_commands=True)
@@ -267,10 +352,16 @@ def test_run_and_receive(num_optimization_steps):
     assert mapper._stored_commands == []
     assert len(backend.received_commands) == 10
     assert mapper._currently_allocated_ids == set([0, 2, 3])
-    assert (mapper.current_mapping == {0: 0, 2: 2, 3: 3} or
-            mapper.current_mapping == {0: 1, 2: 3, 3: 0} or
-            mapper.current_mapping == {0: 2, 2: 0, 3: 1} or
-            mapper.current_mapping == {0: 3, 2: 1, 3: 2})
+    if different_backend_ids:
+        assert (mapper.current_mapping == {0: 21, 2: 3, 3: 0} or
+                mapper.current_mapping == {0: 32, 2: 0, 3: 21} or
+                mapper.current_mapping == {0: 3, 2: 21, 3: 32} or
+                mapper.current_mapping == {0: 0, 2: 32, 3: 3})
+    else:
+        assert (mapper.current_mapping == {0: 0, 2: 2, 3: 3} or
+                mapper.current_mapping == {0: 1, 2: 3, 3: 0} or
+                mapper.current_mapping == {0: 2, 2: 0, 3: 1} or
+                mapper.current_mapping == {0: 3, 2: 1, 3: 2})
     cmd9 = Command(None, X, qubits=([qb0],), controls=[qb2])
     mapper.storage = 1
     mapper.receive([cmd9])

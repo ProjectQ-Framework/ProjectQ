@@ -164,7 +164,7 @@ class IBM5QubitMapper(BasicMapperEngine):
                 new_max = 0
                 if len(self.current_mapping) > 0:
                     new_max = max(self.current_mapping.values()) + 1
-                self.current_mapping[target] = new_max
+                self._current_mapping[target] = new_max
         self._cmds.append(cmd)
 
     def receive(self, command_list):

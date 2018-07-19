@@ -38,7 +38,15 @@ class BasicMapperEngine(BasicEngine):
 
     def __init__(self):
         BasicEngine.__init__(self)
-        self.current_mapping = None
+        self._current_mapping = None
+
+    @property
+    def current_mapping(self):
+        return deepcopy(self._current_mapping)
+
+    @current_mapping.setter
+    def current_mapping(self, current_mapping):
+        self._current_mapping = current_mapping
 
     def _send_cmd_with_mapped_ids(self, cmd):
         """
