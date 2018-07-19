@@ -28,20 +28,26 @@ it includes:
     * Controlled arbitrary single qubit gates --> Rz, Ry, and CNOT gates
 
 Moreover, it contains `LocalOptimizers`.
-
-Note:
-    This setup does not yet contain an automatic mapper. The mapping
-    needs to be done manually using the `ManualMapper`.
-
 """
 
 import projectq
 import projectq.setups.decompositions
-from projectq.cengines import (TagRemover,
+from projectq.cengines import (AutoReplacer,
+                               DecompositionRuleSet,
+                               GridMapper,
                                LocalOptimizer,
-                               AutoReplacer,
-                               ManualMapper,
-                               DecompositionRuleSet)
+                               SwapAndCNOTFlipper,
+                               TagRemover)
+
+
+ibmqx5_connections = set([(1, 0), (1, 2), (2, 3), (3, 4), (3, 14), (5, 4),
+                          (6, 5), (6, 7), (6, 11), (7, 10), (8, 7), (9, 8),
+                          (9, 10), (11, 10), (12, 5), (12, 11), (12, 13),
+                          (13, 4), (13, 14), (15, 0), (15, 2), (15, 14)])
+
+
+grid_to_physical = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 0,
+                    9: 15, 10: 14, 11: 13, 12: 12, 13: 11, 14: 10, 15: 9}
 
 
 def get_engine_list():
@@ -50,5 +56,7 @@ def get_engine_list():
             LocalOptimizer(10),
             AutoReplacer(rule_set),
             TagRemover(),
-            ManualMapper(),
+            GridMapper(2, 8, grid_to_physical),
+            LocalOptimizer(10),
+            SwapAndCNOTFlipper(ibmqx5_connections),
             LocalOptimizer(10)]

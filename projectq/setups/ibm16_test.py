@@ -14,13 +14,15 @@
 """Tests for projectq.setup.ibm16."""
 
 import projectq
-from projectq.cengines import ManualMapper
+from projectq.cengines import GridMapper, SwapAndCNOTFlipper
 
 
 def test_manual_mapper_in_cengines():
     import projectq.setups.ibm16
-    found = False
+    found = 0
     for engine in projectq.setups.ibm16.get_engine_list():
-        if isinstance(engine, ManualMapper):
-            found = True
-    assert found
+        if isinstance(engine, GridMapper):
+            found |= 1
+        if isinstance(engine, SwapAndCNOTFlipper):
+            found |= 2
+    assert found == 3
