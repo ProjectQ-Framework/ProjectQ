@@ -22,6 +22,7 @@ import pytest
 
 import projectq
 from projectq.cengines import DummyEngine
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
                           X)
 from projectq.types import WeakQubitRef
@@ -224,7 +225,10 @@ def test_send_possible_commands_allocate(different_backend_ids):
     mapper._send_possible_commands()
     assert len(mapper._stored_commands) == 0
     # Only self._run() sends Allocate gates
-    assert len(backend.received_commands) == 0
+    mapped0 = WeakQubitRef(engine=None, idx=3)
+    received_cmd = Command(engine=mapper, gate=Allocate, qubits=([mapped0],),
+                           controls=[], tags=[LogicalQubitIDTag(0)])
+    assert backend.received_commands[0] == received_cmd
     assert mapper._currently_allocated_ids == set([10, 0])
 
 
@@ -253,8 +257,7 @@ def test_send_possible_commands_deallocate(different_backend_ids):
     mapper.current_mapping = {0: 3}
     mapper._currently_allocated_ids.add(0)
     mapper._send_possible_commands()
-    # Only self._run() send Deallocate gates
-    assert len(backend.received_commands) == 0
+    assert len(backend.received_commands) == 1
     assert len(mapper._stored_commands) == 0
     assert mapper.current_mapping == dict()
     assert mapper._currently_allocated_ids == set([10])
@@ -362,7 +365,7 @@ def test_run_and_receive(num_optimization_steps, different_backend_ids):
                 mapper.current_mapping == {0: 1, 2: 3, 3: 0} or
                 mapper.current_mapping == {0: 2, 2: 0, 3: 1} or
                 mapper.current_mapping == {0: 3, 2: 1, 3: 2})
-    cmd9 = Command(None, X, qubits=([qb0],), controls=[qb2])
+    cmd9 = Command(None, X, qubits=([qb0],), controls=[qb3])
     mapper.storage = 1
     mapper.receive([cmd9])
     assert mapper._currently_allocated_ids == set([0, 2, 3])
@@ -371,9 +374,7 @@ def test_run_and_receive(num_optimization_steps, different_backend_ids):
     assert 0 in mapper.current_mapping
     assert 2 in mapper.current_mapping
     assert 3 in mapper.current_mapping
-    assert mapper.num_mappings == 2
-    assert mapper.depth_of_swaps[0] == 1
-    assert mapper.num_of_swaps_per_mapping[0] == 1
+    assert mapper.num_mappings == 1
 
 
 def test_run_infinite_loop_detection():
