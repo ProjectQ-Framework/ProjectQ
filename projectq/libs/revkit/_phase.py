@@ -51,11 +51,10 @@ class PhaseOracle:
 
         Keyword Args:
             synth: A RevKit synthesis command which creates a reversible
-                   circuit based on an And-inverter graph and requires no
-                   additional ancillae (e.g.,
-                   ``revkit.esopps()``).  Can also be a nullary
+                   circuit based on a truth table and requires no additional
+                   ancillae (e.g., ``revkit.esopps``).  Can also be a nullary
                    lambda that calls several RevKit commands.
-                   **Default:** ``lambda: revkit.esopps()``
+                   **Default:** ``revkit.esopps``
         """
         if isinstance(function, int):
             self.function = function

@@ -47,12 +47,10 @@ class ControlFunctionOracle:
 
         Keyword Args:
             synth: A RevKit synthesis command which creates a reversible
-                   circuit based on an And-inverter graph and requires no
-                   additional ancillae (e.g.,
-                   ``revkit.esopbs(aig = True)``).  Can also be a nullary
+                   circuit based on a truth table and requires no additional
+                   ancillae (e.g., ``revkit.esopbs``).  Can also be a nullary
                    lambda that calls several RevKit commands.
-                   **Default:** ``lambda: revkit.esopbs(aig = True,
-                                                        exorcism = True)``
+                   **Default:** ``revkit.esopbs``
         """
         if isinstance(function, int):
             self.function = function
@@ -103,7 +101,7 @@ class ControlFunctionOracle:
         revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
 
         # create reversible circuit from truth table
-        self.kwargs.get("synth", lambda: revkit.esopbs())()
+        self.kwargs.get("synth", revkit.esopbs)()
 
         # check whether circuit has correct signature
         if revkit.ps(mct=True, silent=True)['qubits'] != len(qs):
