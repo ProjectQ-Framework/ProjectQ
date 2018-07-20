@@ -29,5 +29,4 @@ Examples and tutorials in this folder
 
 4. A small tutorial on the compiler is available in *compiler_tutorial.ipynb* which explains how to compile to a specific gate set.
 
-5. A small tutorial on the mappers is available in *mapper_tutorial.ipynb* which explains how to map a
-quantum circuit to a linear chain or grid of physical qubits.
+5. A small tutorial on the mappers is available in *mapper_tutorial.ipynb* which explains how to map a quantum circuit to a linear chain or grid of physical qubits.
