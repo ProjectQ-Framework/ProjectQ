@@ -160,7 +160,7 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
             if 'result' in qasm:
                 return qasm['result']
         time.sleep(interval)
-        if retries % 60 == 0:
+        if device in ['ibmqx4', 'ibmqx5'] and retries % 60 == 0:
             r = requests.get(status_url)
             r_json = r.json()
             if 'state' in r_json and not r_json['state']:

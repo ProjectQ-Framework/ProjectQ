@@ -106,6 +106,7 @@ class IBMBackend(BasicEngine):
     def _reset(self):
         """ Reset all temporary variables (after flush gate). """
         self._clear = True
+        self._measured_ids = []
 
     def _store(self, cmd):
         """
@@ -120,7 +121,6 @@ class IBMBackend(BasicEngine):
             self._probabilities = dict()
             self._clear = False
             self.qasm = ""
-            self._measured_ids = []
             self._allocated_qubits = set()
 
         gate = cmd.gate
@@ -142,9 +142,6 @@ class IBMBackend(BasicEngine):
                     break
             assert logical_id is not None
             self._measured_ids += [logical_id]
-            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_id,
-                                                            qb_id)
-
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
@@ -237,9 +234,15 @@ class IBMBackend(BasicEngine):
         """
         if self.qasm == "":
             return
-        num_qubits = len(self._allocated_qubits)
+        # finally: add measurements (no intermediate measurements are allowed)
+        for measured_id in self._measured_ids:
+            qb_loc = self.main_engine.mapper.current_mapping[measured_id]
+            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
+                                                            qb_loc)
+
+        max_qubit_id = max(self._allocated_qubits)
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
-                self.qasm).format(nq=num_qubits)
+                self.qasm).format(nq=max_qubit_id + 1)
         info = {}
         info['qasms'] = [{'qasm': qasm}]
         info['shots'] = self._num_runs

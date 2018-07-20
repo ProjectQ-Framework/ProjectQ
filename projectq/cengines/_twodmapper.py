@@ -613,6 +613,7 @@ class GridMapper(BasicMapperEngine):
             new_mapping[logical_id] = (
                 self._mapped_ids_to_backend_ids[mapped_id])
         self.current_mapping = new_mapping
+
         # Send possible gates:
         self._send_possible_commands()
         # Check that mapper actually made progress
