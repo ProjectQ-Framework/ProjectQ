@@ -651,12 +651,12 @@ def test_logical_id_tags_allocate_and_deallocate():
     qb_flush = WeakQubitRef(engine=None, idx=-1)
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
     mapper.receive([cmd0, cmd1, cmd2, cmd_flush])
-    backend.received_commands[0].gate == Allocate
-    backend.received_commands[0].qubits[0][0].id == 0
-    backend.received_commands[0].tags = [LogicalQubitIDTag(0)]
-    backend.received_commands[1].gate == Allocate
-    backend.received_commands[1].qubits[0][0].id == 0
-    backend.received_commands[1].tags = [LogicalQubitIDTag(0)]
+    assert backend.received_commands[0].gate == Allocate
+    assert backend.received_commands[0].qubits[0][0].id == 0
+    assert backend.received_commands[0].tags == [LogicalQubitIDTag(0)]
+    assert backend.received_commands[1].gate == Allocate
+    assert backend.received_commands[1].qubits[0][0].id == 3
+    assert backend.received_commands[1].tags == [LogicalQubitIDTag(1)]
     for cmd in backend.received_commands[2:]:
         if cmd.gate == Allocate:
             assert cmd.tags == []
