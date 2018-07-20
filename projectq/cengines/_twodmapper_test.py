@@ -397,3 +397,83 @@ def test_run_infinite_loop_detection():
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb2],))
     with pytest.raises(RuntimeError):
         mapper.receive([cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd_flush])
+
+
+def test_correct_stats():
+    # Should test stats for twice same mapping but depends on heuristic
+    mapper = two_d.GridMapper(num_rows=3, num_columns=1)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1],))
+    cmd2 = Command(engine=None, gate=Allocate, qubits=([qb2],))
+    cmd3 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd4 = Command(None, X, qubits=([qb1],), controls=[qb2])
+    cmd5 = Command(None, X, qubits=([qb0],), controls=[qb2])
+    cmd6 = Command(None, X, qubits=([qb2],), controls=[qb1])
+    cmd7 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd8 = Command(None, X, qubits=([qb1],), controls=[qb2])
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
+    mapper.receive([cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8,
+                    cmd_flush])
+    assert mapper.num_mappings == 2
+
+
+def test_send_possible_cmds_before_new_mapping():
+    mapper = two_d.GridMapper(num_rows=3, num_columns=1)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+
+    def dont_call_mapping(): raise Exception
+
+    mapper._return_new_mapping = dont_call_mapping
+    mapper.current_mapping = {0: 1}
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    qb2 = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb2],))
+    mapper.receive([cmd0, cmd_flush])
+
+
+def test_logical_id_tags_allocate_and_deallocate():
+    mapper = two_d.GridMapper(num_rows=2, num_columns=2)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1],))
+    cmd2 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd3 = Command(engine=None, gate=Deallocate, qubits=([qb0],))
+    cmd4 = Command(engine=None, gate=Deallocate, qubits=([qb1],))
+    mapper.current_mapping = {0: 0, 1: 3}
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
+    mapper.receive([cmd0, cmd1, cmd2, cmd_flush])
+    backend.received_commands[0].gate == Allocate
+    backend.received_commands[0].qubits[0][0].id == 0
+    backend.received_commands[0].tags = [LogicalQubitIDTag(0)]
+    backend.received_commands[1].gate == Allocate
+    backend.received_commands[1].qubits[0][0].id == 0
+    backend.received_commands[1].tags = [LogicalQubitIDTag(0)]
+    for cmd in backend.received_commands[2:]:
+        if cmd.gate == Allocate:
+            assert cmd.tags == []
+        elif cmd.gate == Deallocate:
+            assert cmd.tags == []
+    mapped_id_for_0 = mapper.current_mapping[0]
+    mapped_id_for_1 = mapper.current_mapping[1]
+    mapper.receive([cmd3, cmd4, cmd_flush])
+    assert backend.received_commands[-3].gate == Deallocate
+    assert backend.received_commands[-3].qubits[0][0].id == mapped_id_for_0
+    assert backend.received_commands[-3].tags == [LogicalQubitIDTag(0)]
+    assert backend.received_commands[-2].gate == Deallocate
+    assert backend.received_commands[-2].qubits[0][0].id == mapped_id_for_1
+    assert backend.received_commands[-2].tags == [LogicalQubitIDTag(1)]

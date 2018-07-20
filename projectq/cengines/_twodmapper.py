@@ -453,7 +453,8 @@ class GridMapper(BasicMapperEngine):
 
                     mapped_id = self._current_row_major_mapping[
                         cmd.qubits[0][0].id]
-                    qb = WeakQubitRef(engine=self,
+                    qb = WeakQubitRef(
+                        engine=self,
                         idx=self._mapped_ids_to_backend_ids[mapped_id])
                     new_cmd = Command(
                         engine=self,
@@ -467,7 +468,8 @@ class GridMapper(BasicMapperEngine):
                 if cmd.qubits[0][0].id in active_ids:
                     mapped_id = self._current_row_major_mapping[
                         cmd.qubits[0][0].id]
-                    qb = WeakQubitRef(engine=self,
+                    qb = WeakQubitRef(
+                        engine=self,
                         idx=self._mapped_ids_to_backend_ids[mapped_id])
                     new_cmd = Command(
                         engine=self,
@@ -554,25 +556,29 @@ class GridMapper(BasicMapperEngine):
                 swaps = trial_swaps
                 lowest_cost = self.optimization_function(trial_swaps)
         if swaps:  # first mapping requires no swaps
-            # Allocate all mapped qubit ids (which are not already allocated, i.e.,
-            # contained in self._currently_allocated_ids)
+            # Allocate all mapped qubit ids (which are not already allocated,
+            # i.e., contained in self._currently_allocated_ids)
             mapped_ids_used = set()
             for logical_id in self._currently_allocated_ids:
-                mapped_ids_used.add(self._current_row_major_mapping[logical_id])
+                mapped_ids_used.add(
+                    self._current_row_major_mapping[logical_id])
             not_allocated_ids = set(range(self.num_qubits)).difference(
                 mapped_ids_used)
             for mapped_id in not_allocated_ids:
-                qb = WeakQubitRef(engine=self,
-                                  idx=self._mapped_ids_to_backend_ids[mapped_id])
+                qb = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[mapped_id])
                 cmd = Command(engine=self, gate=AllocateQubitGate(),
                               qubits=([qb],))
                 self.send([cmd])
             # Send swap operations to arrive at new_mapping:
             for qubit_id0, qubit_id1 in swaps:
-                q0 = WeakQubitRef(engine=self,
-                                  idx=self._mapped_ids_to_backend_ids[qubit_id0])
-                q1 = WeakQubitRef(engine=self,
-                                  idx=self._mapped_ids_to_backend_ids[qubit_id1])
+                q0 = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[qubit_id0])
+                q1 = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[qubit_id1])
                 cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
                 self.send([cmd])
             # Register statistics:
@@ -594,8 +600,9 @@ class GridMapper(BasicMapperEngine):
             not_needed_anymore = set(range(self.num_qubits)).difference(
                 mapped_ids_used)
             for mapped_id in not_needed_anymore:
-                qb = WeakQubitRef(engine=self,
-                                  idx=self._mapped_ids_to_backend_ids[mapped_id])
+                qb = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[mapped_id])
                 cmd = Command(engine=self, gate=DeallocateQubitGate(),
                               qubits=([qb],))
                 self.send([cmd])
