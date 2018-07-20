@@ -21,7 +21,7 @@ import random
 import pytest
 
 import projectq
-from projectq.cengines import DummyEngine
+from projectq.cengines import DummyEngine, LocalOptimizer
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
                           X)
@@ -477,3 +477,29 @@ def test_logical_id_tags_allocate_and_deallocate():
     assert backend.received_commands[-2].gate == Deallocate
     assert backend.received_commands[-2].qubits[0][0].id == mapped_id_for_1
     assert backend.received_commands[-2].tags == [LogicalQubitIDTag(1)]
+
+
+def test_check_that_local_optimizer_doesnt_merge():
+    mapper = two_d.GridMapper(num_rows=2, num_columns=2)
+    optimizer = LocalOptimizer(10)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = optimizer
+    optimizer.next_engine = backend
+    mapper.current_mapping = {0: 0}
+    mapper.storage = 1
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    cmd1 = Command(None, X, qubits=([qb0],))
+    cmd2 = Command(engine=None, gate=Deallocate, qubits=([qb0],))
+    mapper.receive([cmd0, cmd1, cmd2])
+    assert len(mapper._stored_commands) == 0
+    mapper.current_mapping = {1: 0}
+    cmd3 = Command(engine=None, gate=Allocate, qubits=([qb1],))
+    cmd4 = Command(None, X, qubits=([qb1],))
+    cmd5 = Command(engine=None, gate=Deallocate, qubits=([qb1],))
+    mapper.receive([cmd3, cmd4, cmd5, cmd_flush])
+    assert len(backend.received_commands) == 7
