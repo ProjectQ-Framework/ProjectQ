@@ -22,11 +22,10 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
    unitario = unitary
 
    for i in range(n_ancillas):
+      ipower = int(2**i)
       with Control(eng,ancilla[i]):
-         unitario | eigenvector
-      for j in range(i):
-         with Control(eng,ancilla[i]):
-            unitario | eigenvector
+         for j in range(ipower):
+            unitario | eigenvector 
 
    # Inverse QFT on the ancilla
    get_inverse(QFT) | ancilla
@@ -36,7 +35,7 @@ def phase_estimation(eng,unitary,eigenvector,n_ancillas):
 
    # Compute the phase from the ancilla measurement (https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
    fasebinlist = [int(q) for q in ancilla]
-   print (fasebinlist, type(fasebinlist))
+   print (fasebinlist)
 
    fasebin = ''.join(str(j) for j in fasebinlist)
    faseint = int(fasebin,2)
@@ -84,6 +83,7 @@ if __name__ == "__main__":
    drawing_engine = CircuitDrawer()
    
    eng = MainEngine(drawing_engine)
+##   eng = MainEngine()
    
    # Create the Unitary Operator and the eigenvector
    unitario = QubitOperator('X0 X1')
@@ -119,17 +119,18 @@ if __name__ == "__main__":
 #======== Testing ====
 
    #unit | autovector
-#== Testing==   eng.flush()
+   eng.flush()
+   print(drawing_engine.get_latex(),file=open("pe.tex", "w"))
 
-#== Testing==   amp_after1 = eng.backend.get_amplitude('00', autovector)
-#== Testing==   amp_after2 = eng.backend.get_amplitude('01', autovector)
-#== Testing==   amp_after3 = eng.backend.get_amplitude('10', autovector)
-#== Testing==   amp_after4 = eng.backend.get_amplitude('11', autovector)
+#======== Testing ====   amp_after1 = eng.backend.get_amplitude('00', autovector)
+#======== Testing ====   amp_after2 = eng.backend.get_amplitude('01', autovector)
+#======== Testing ====   amp_after3 = eng.backend.get_amplitude('10', autovector)
+#======== Testing ====   amp_after4 = eng.backend.get_amplitude('11', autovector)
 
-#== Testing==   print("Amplitude saved in amp_after1: {}".format(amp_after1))
-#== Testing==   print("Amplitude saved in amp_after2: {}".format(amp_after2))
-#== Testing==   print("Amplitude saved in amp_after3: {}".format(amp_after3))
-#== Testing==   print("Amplitude saved in amp_after4: {}".format(amp_after4))
+#======== Testing ====   print("Amplitude saved in amp_after1: {}".format(amp_after1))
+#======== Testing ====   print("Amplitude saved in amp_after2: {}".format(amp_after2))
+#======== Testing ====   print("Amplitude saved in amp_after3: {}".format(amp_after3))
+#======== Testing ====   print("Amplitude saved in amp_after4: {}".format(amp_after4))
 
    # Deferred measure del estado para que pueda imprimir cosas
 
@@ -137,4 +138,3 @@ if __name__ == "__main__":
 
    eng.flush()
    
-   print(drawing_engine.get_latex())
