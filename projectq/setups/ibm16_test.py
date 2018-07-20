@@ -17,7 +17,7 @@ import projectq
 from projectq.cengines import GridMapper, SwapAndCNOTFlipper
 
 
-def test_manual_mapper_in_cengines():
+def test_mappers_in_cengines():
     import projectq.setups.ibm16
     found = 0
     for engine in projectq.setups.ibm16.get_engine_list():
