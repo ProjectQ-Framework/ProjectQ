@@ -36,6 +36,7 @@ Example
 -------
 
 .. code-block:: python
+
     from projectq import MainEngine  # import the main compiler engine
     from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
 
@@ -57,7 +58,7 @@ The same statement in ProjectQ's syntax is:
 
 .. code-block:: python
 
-  Rx(theta) | qubit
+    Rx(theta) | qubit
 
 Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
 
