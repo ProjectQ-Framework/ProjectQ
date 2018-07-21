@@ -32,13 +32,24 @@ Each of the submodules contains a setup which can be used to specify the
 .. autosummary::
 
     projectq.setups.default
+    projectq.setups.grid
     projectq.setups.ibm
     projectq.setups.ibm16
+    projectq.setups.linear
+    projectq.setups.restrictedgateset
 
 default
 -------
 
 .. automodule:: projectq.setups.default
+    :members:
+    :special-members: __init__
+    :undoc-members:
+
+grid
+----
+
+.. automodule:: projectq.setups.grid
     :members:
     :special-members: __init__
     :undoc-members:
@@ -55,6 +66,22 @@ ibm16
 -----
 
 .. automodule:: projectq.setups.ibm16
+    :members:
+    :special-members: __init__
+    :undoc-members:
+
+linear
+------
+
+.. automodule:: projectq.setups.linear
+    :members:
+    :special-members: __init__
+    :undoc-members:
+
+restrictedgateset
+-----------------
+
+.. automodule:: projectq.setups.restrictedgateset
     :members:
     :special-members: __init__
     :undoc-members:

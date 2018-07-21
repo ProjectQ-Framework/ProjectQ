@@ -1,6 +1,6 @@
 import projectq.setups.ibm16
 from projectq.backends import IBMBackend
-from projectq.ops import Measure, CNOT, H, All
+from projectq.ops import All, Entangle, Measure
 from projectq import MainEngine
 
 
@@ -15,23 +15,12 @@ def run_test(eng):
         measurement (list<int>): List of measurement outcomes.
     """
     # allocate the quantum register to entangle
-    qureg = eng.allocate_qureg(16)
+    qureg = eng.allocate_qureg(8)
 
-    interactions = [(1, 0), (1, 2), (2, 3), (3, 4), (5, 4), (6, 5), (6, 7),
-                    (8, 7), (9, 8), (9, 10), (11, 10), (12, 11), (12, 13),
-                    (13, 14), (15, 14)]
-    H | qureg[0]
-    for e in interactions:
-        flip = e[0] > e[1]
-        if flip:
-            All(H) | [qureg[e[0]], qureg[e[1]]]
-            CNOT | (qureg[e[0]], qureg[e[1]])
-            All(H) | [qureg[e[0]], qureg[e[1]]]
-        else:
-            CNOT | (qureg[e[0]], qureg[e[1]])
+    Entangle | qureg
 
     # measure; should be all-0 or all-1
-    Measure | qureg
+    All(Measure) | qureg
 
     # run the circuit
     eng.flush()
