@@ -32,8 +32,10 @@ This allows users to
 -  export quantum programs as circuits (using TikZ)
 -  get resource estimates
 
-Example
--------
+Examples
+--------
+
+**First quantum program**
 
 .. code-block:: python
 
