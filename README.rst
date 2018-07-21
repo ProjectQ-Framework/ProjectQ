@@ -54,10 +54,8 @@ Examples
 
 ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example a rotation of a qubit around the x-axis is usually specified as:
 
-.. image:: ./docs/images/braket_notation.svg
-
+.. image:: docs/images/braket_notation.svg
     :alt: Rx(theta)|qubit>
-
     :width: 100px
 
 The same statement in ProjectQ's syntax is:
