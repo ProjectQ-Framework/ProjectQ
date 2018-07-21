@@ -32,30 +32,14 @@ def test_control_function_majority():
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
 
-    qubit0 = Qubit(main_engine, 0)
-    qubit1 = Qubit(main_engine, 1)
-    qubit2 = Qubit(main_engine, 2)
-    qubit3 = Qubit(main_engine, 3)
+    qubit0 = main_engine.allocate_qubit()
+    qubit1 = main_engine.allocate_qubit()
+    qubit2 = main_engine.allocate_qubit()
+    qubit3 = main_engine.allocate_qubit()
 
     ControlFunctionOracle(0xe8) | (qubit0, qubit1, qubit2, qubit3)
 
-    assert len(saving_backend.received_commands) == 3
-
-
-def test_control_function_majority_grouped():
-    saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
-
-    qubit0 = Qubit(main_engine, 0)
-    qubit1 = Qubit(main_engine, 1)
-    qubit2 = Qubit(main_engine, 2)
-    qubit3 = Qubit(main_engine, 3)
-
-    ControlFunctionOracle(0xe8) | ([qubit0, qubit1, qubit2], qubit3)
-
-    assert len(saving_backend.received_commands) == 3
-
+    assert len(saving_backend.received_commands) == 7
 
 def test_control_function_majority_from_python():
     dormouse = pytest.importorskip('dormouse')
@@ -67,12 +51,12 @@ def test_control_function_majority_from_python():
     main_engine = MainEngine(backend=saving_backend,
                              engine_list=[DummyEngine()])
 
-    qubit0 = Qubit(main_engine, 0)
-    qubit1 = Qubit(main_engine, 1)
-    qubit2 = Qubit(main_engine, 2)
-    qubit3 = Qubit(main_engine, 3)
+    qubit0 = main_engine.allocate_qubit()
+    qubit1 = main_engine.allocate_qubit()
+    qubit2 = main_engine.allocate_qubit()
+    qubit3 = main_engine.allocate_qubit()
 
-    ControlFunctionOracle(maj) | ([qubit0, qubit1, qubit2], qubit3)
+    ControlFunctionOracle(maj) | (qubit0, qubit1, qubit2, qubit3)
 
 
 def test_control_function_invalid_function():
