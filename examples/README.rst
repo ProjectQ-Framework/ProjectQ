@@ -14,6 +14,10 @@ It might be a good starting point to have a look at our paper which explains the
 
 * Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An Open Source Software Framework for Quantum Computing" `[arxiv:1612.08091] <https://arxiv.org/abs/1612.08091>`__
 
+Our second paper looks at a few aspects of ProjectQ in more details:
+
+* Damian S. Steiger, Thomas Häner, and Matthias Troyer "Advantages of a modular high-level quantum programming framework" `[arxiv:1806.01861] <https://arxiv.org/abs/1806.01861>`__
+
 Examples and tutorials in this folder
 -------------------------------------
 
@@ -24,3 +28,5 @@ Examples and tutorials in this folder
 3. Running on the IBM QE chip is explained in more details in *ibm_entangle.ipynb*.
 
 4. A small tutorial on the compiler is available in *compiler_tutorial.ipynb* which explains how to compile to a specific gate set.
+
+5. A small tutorial on the mappers is available in *mapper_tutorial.ipynb* which explains how to map a quantum circuit to a linear chain or grid of physical qubits.
