@@ -52,9 +52,9 @@ Examples
     print("Measured {}".format(int(qubit)))  # output measurement result
 
 
-ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example a rotation of a qubit around the x-axis is usually specified as Rx(theta)|qubit>
+ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example a rotation of a qubit around the x-axis is usually specified as:
 
-.. image:: docs/images/braket_notation.svg
+.. image:: ./docs/images/braket_notation.svg
 
     :alt: Rx(theta)|qubit>
 
