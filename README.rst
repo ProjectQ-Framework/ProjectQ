@@ -32,6 +32,36 @@ This allows users to
 -  export quantum programs as circuits (using TikZ)
 -  get resource estimates
 
+Example
+-------
+
+```python
+from projectq import MainEngine  # import the main compiler engine
+from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
+
+eng = MainEngine()  # create a default compiler (the back-end is a simulator)
+qubit = eng.allocate_qubit()  # allocate a qunatum register with 1 qubit
+
+H | qubit  # apply a Hadamard gate
+Measure | qubit  # measure the qubit
+
+eng.flush()  # flush all gates (and execute measurements)
+print("Measured {}".format(int(qubit)))  # output measurement result
+```
+
+ProjectQ features a lean syntax which is close to the mathematical notation used in physics. For example a rotation of a qubit around the x-axis is usually specified as:
+
+:math:`R_x(\theta) \; |\text{qubit}\rangle`
+
+The same statement in ProjectQ's syntax is:
+
+.. code-block:: python
+
+  Rx(theta) | qubit
+
+Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
+
+
 Getting started
 ---------------
 
