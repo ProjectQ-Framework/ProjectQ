@@ -35,19 +35,19 @@ This allows users to
 Example
 -------
 
-```python
-from projectq import MainEngine  # import the main compiler engine
-from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
+.. code-block:: python
+    from projectq import MainEngine  # import the main compiler engine
+    from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
 
-eng = MainEngine()  # create a default compiler (the back-end is a simulator)
-qubit = eng.allocate_qubit()  # allocate a qunatum register with 1 qubit
+    eng = MainEngine()  # create a default compiler (the back-end is a simulator)
+    qubit = eng.allocate_qubit()  # allocate a qunatum register with 1 qubit
 
-H | qubit  # apply a Hadamard gate
-Measure | qubit  # measure the qubit
+    H | qubit  # apply a Hadamard gate
+    Measure | qubit  # measure the qubit
 
-eng.flush()  # flush all gates (and execute measurements)
-print("Measured {}".format(int(qubit)))  # output measurement result
-```
+    eng.flush()  # flush all gates (and execute measurements)
+    print("Measured {}".format(int(qubit)))  # output measurement result
+
 
 ProjectQ features a lean syntax which is close to the mathematical notation used in physics. For example a rotation of a qubit around the x-axis is usually specified as:
 
