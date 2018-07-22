@@ -100,7 +100,7 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
     #       SwapGate : 262
 
 
-**Running program on IBM's QE chips**
+**Running a quantum program on IBM's QE chips**
 
 To run a program on the IBM Quantum Experience chips, all one has to do is choose the `IBMBackend` and the corresponding compiler:
 
