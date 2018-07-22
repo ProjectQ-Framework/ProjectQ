@@ -130,10 +130,10 @@ The advanced features of the simulator are also particulary useful to investigat
     hamiltonian = QubitOperator("X0 X1") + 0.5 * QubitOperator("Y0 Y1")
     # Apply exp(-i * Hamiltonian * time) (without Trotter error)
     TimeEvolution(time=1, hamiltonian=hamiltonian) | wavefunction
-    # Measure expection values:
+    # Measure the expection value using the simulator shortcut:
     eng.flush()
     value = eng.backend.get_expectation_value(hamiltonian, wavefunction)
-    
+
     # Last operation in any program should be measuring all qubits
     All(Measure) | qureg
     eng.flush()
