@@ -120,17 +120,19 @@ ProjectQ has a high-performance simulator. This allows to easily simulate 30-qub
 The advanced features of the simulator are also particulary useful to investigate algorithms for the simulation of quantum systems. For example, the simulator can evolve a quantum system in time (without Trotter errors) and it gives direct access to expectation values of Hamiltonians leading to extremly fast simulations of VQE type algorithms:
 
 .. code-block:: python
-
+    
+    from projectq import MainEngine
     from projectq.ops import QubitOperator, TimeEvolution
     eng = MainEngine()
     wavefunction = eng.allocate_qureg(2)
     # Specify a Hamiltonian in terms of Pauli operators:
     hamiltonian = QubitOperator("X0 X1") + 0.5 * QubitOperator("Y0 Y1")
     # Apply exp(-i * Hamiltonian * time) (without Trotter error)
-    TimeEvolution(time=1, hamiltonian) | wavefunction
+    TimeEvolution(time=1, hamiltonian=hamiltonian) | wavefunction
     # Measure expection values:
     eng.flush()
     value = eng.backend.get_expectation_value(hamiltonian, wavefunction)
+    ...
 
 
 Getting started
