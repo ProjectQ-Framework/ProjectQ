@@ -112,7 +112,7 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
                      engine_list=compiler_engines)
 
 
-** Classically simulate a quantum program **
+**Classically simulate a quantum program**
 
 ProjectQ has a high-performance simulator. This allows to easily simulate 30-qubit circuit if the computer has 16GB or RAM. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information.
 
