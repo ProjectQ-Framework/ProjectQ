@@ -66,7 +66,7 @@ The same statement in ProjectQ's syntax is:
 
 Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
 
-**Changing the compiler and using a resource counter as back-end**
+**Changing the compiler and using a resource counter as a back-end**
 
 Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged in linear chain and the architecture supports any single-qubit gate as well as the two-qubit CNOT and Swap operation:
 
@@ -114,7 +114,8 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
 
 **Classically simulate a quantum program**
 
-ProjectQ has a high-performance simulator. This allows to easily simulate 30-qubit circuit if the computer has 16GB or RAM. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information.
+ProjectQ has a high-performance simulator. This allows to easily simulate 30-qubit circuit if the computer has 16GB of RAM. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information.
+
 
 
 Getting started
@@ -139,10 +140,11 @@ When using ProjectQ for research projects, please cite
 
 -  Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An
    Open Source Software Framework for Quantum Computing"
-   `[arxiv:1612.08091] <https://arxiv.org/abs/1612.08091>`__
+   `Quantum 2, 49 (2018) <https://doi.org/10.22331/q-2018-01-31-49>`__
+   (published on `[arXiv] <https://arxiv.org/abs/1612.08091>`__ on 23 Dec 2016)
 -  Thomas Häner, Damian S. Steiger, Krysta M. Svore, and Matthias Troyer
-   "A Software Methodology for Compiling Quantum Programs"
-   `[arxiv:1604.01401] <http://arxiv.org/abs/1604.01401>`__
+   "A Software Methodology for Compiling Quantum Programs" `[Quantum Sci. Technol. 3 (2018) 020501] <https://doi.org/10.1088/2058-9565/aaa5cc>`__ 
+   (published on `[arXiv] <http://arxiv.org/abs/1604.01401>`__ on 5 Apr 2016)
 
 Authors
 -------
