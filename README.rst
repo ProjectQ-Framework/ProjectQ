@@ -66,9 +66,9 @@ The same statement in ProjectQ's syntax is:
 
 Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
 
-**Changing the compiler and using a resource counter as backend**
+**Changing the compiler and using a resource counter as back-end**
 
-Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged in linear chain and the architecture supports any single qubit gate as well as the two qubit CNOT and Swap operation:
+Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged in linear chain and the architecture supports any single-qubit gate as well as the two-qubit CNOT and Swap operation:
 
 .. code-block:: python
 
@@ -89,7 +89,8 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
     print(resource_counter)
 
     # This will output, among other information,
-    # how many operations one needed, e.g.:
+    # how many operations are needed to perform
+    # this quantum fourier transform (QFT), e.g.:
     #   Gate class counts:
     #       AllocateQubitGate : 16
     #       CXGate : 240
@@ -97,6 +98,23 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
     #       R : 120
     #       Rz : 240
     #       SwapGate : 262
+
+
+**Running program on IBM's QE chips**
+
+To run a program on the IBM Quantum Experience chips, all one has to do is choose the `IBMBackend` and the corresponding compiler:
+
+.. code-blcok:: python
+
+    compiler_engines = projectq.setups.ibm16.get_engine_list()
+    eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
+                                verbose=False, device='ibmqx5'),
+                     engine_list=compiler_engines)
+
+
+** Classically simulate a quantum program **
+
+ProjectQ has a high-performance simulator. This allows to easily simulate 30-qubit circuit if the computer has 16GB or RAM. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information.
 
 
 Getting started
