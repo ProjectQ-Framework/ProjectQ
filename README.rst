@@ -49,7 +49,7 @@ Examples
     Measure | qubit  # measure the qubit
 
     eng.flush()  # flush all gates (and execute measurements)
-    print("Measured {}".format(int(qubit)))  # output measurement result
+    print("Measured {}".format(int(qubit)))  # converting a qubit to int or bool gives access to the measurement result
 
 
 ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example a rotation of a qubit around the x-axis is usually specified as:
@@ -65,6 +65,38 @@ The same statement in ProjectQ's syntax is:
     Rx(theta) | qubit
 
 Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
+
+**Changing the compiler and using a resource counter as backend**
+
+Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged in linear chain and the architecture supports any single qubit gate as well as the two qubit CNOT and Swap operation:
+
+.. code-block:: python
+
+    from projectq import MainEngine
+    from projectq.backends import ResourceCounter
+    from projectq.ops import QFT
+    from projectq.setups import linear
+
+    compiler_engines = linear.get_engine_list(num_qubits=16,
+                                              one_qubit_gates='any',
+                                              two_qubit_gates=(CNOT, Swap))
+    resource_counter = ResourceCounter()
+    eng = MainEngine(backend=resource_counter, engine_list=compiler_engines)
+    qureg = eng.allocate_qureg(16)
+    QFT | qureg
+    eng.flush()
+
+    print(resource_counter)
+
+    # This will output, among other information,
+    # how many operations one needed, e.g.:
+    #   Gate class counts:
+    #       AllocateQubitGate : 16
+    #       CXGate : 240
+    #       HGate : 16
+    #       R : 120
+    #       Rz : 240
+    #       SwapGate : 262
 
 
 Getting started
