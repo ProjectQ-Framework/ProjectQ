@@ -157,6 +157,8 @@ in the group of `Prof. Dr. Matthias
 Troyer <http://www.comp.phys.ethz.ch/people/troyer.html>`__ at ETH
 Zurich.
 
+ProjectQ is constantly growing and `many other people <https://github.com/ProjectQ-Framework/ProjectQ/graphs/contributors>`__ have already contributed to it in the meantime.
+
 License
 -------
 
