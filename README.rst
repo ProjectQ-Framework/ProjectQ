@@ -104,7 +104,7 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
 
 To run a program on the IBM Quantum Experience chips, all one has to do is choose the `IBMBackend` and the corresponding compiler:
 
-.. code-blcok:: python
+.. code-block:: python
 
     compiler_engines = projectq.setups.ibm16.get_engine_list()
     eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
