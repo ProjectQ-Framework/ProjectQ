@@ -82,12 +82,8 @@ if __name__ == "__main__":
 
    drawing_engine = CircuitDrawer()
    
-   eng = MainEngine(drawing_engine)
-##   eng = MainEngine()
-   
-   # Create the Unitary Operator and the eigenvector
-   unitario = QubitOperator('X0 X1')
-   #unitario = X
+##   eng = MainEngine(drawing_engine)
+   eng = MainEngine()
    
    ### Example ###unit = TimeEvolution(1.0,unitario)
    ### Example ###autovector = eng.allocate_qureg(2)
@@ -95,15 +91,24 @@ if __name__ == "__main__":
    ### Example ####unit = X
    ### Example ####autovector = eng.allocate_qureg(1)
 
-   #### Defined phase with X ###
+   #### Defined phase with X:PhX ###
 
-   print("Example: Defined phase with X")
-   autovector = eng.allocate_qureg(1)
-   X | autovector
-   H | autovector
-   theta = float(input ("Enter phase [0,1): "))
-   unit = PhaseX(theta)
-   print(type(unit))
+   ####print("Example: Defined phase with PhX: Example |-> theta: .65625 (.15625) #ancillas:5")
+   ####autovector = eng.allocate_qureg(1)
+   ####X | autovector
+   ####H | autovector
+   ####theta = float(input ("Enter phase [0,1): "))
+   ####unit = PhaseX(theta)
+   
+   #### END Defined phase with X:PhX ###
+
+   #### Defined phase with PhX (x) X ###
+
+   print("Example: X (x) X: Example |->|-> theta: NO, NO ES ESTO. Hay que usar TimeEvolution.65625 (.15625) #ancillas:5")
+   autovector = eng.allocate_qureg(2)
+   Tensor(X) | autovector
+   Tensor(H) | autovector
+   unit = QubitOperator('X0 X1')
    
    #### END Defined phase with X ###
 
