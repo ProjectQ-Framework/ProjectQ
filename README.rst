@@ -122,7 +122,8 @@ The advanced features of the simulator are also particulary useful to investigat
 .. code-block:: python
     
     from projectq import MainEngine
-    from projectq.ops import QubitOperator, TimeEvolution
+    from projectq.ops import All, Measure, QubitOperator, TimeEvolution
+
     eng = MainEngine()
     wavefunction = eng.allocate_qureg(2)
     # Specify a Hamiltonian in terms of Pauli operators:
@@ -132,7 +133,11 @@ The advanced features of the simulator are also particulary useful to investigat
     # Measure expection values:
     eng.flush()
     value = eng.backend.get_expectation_value(hamiltonian, wavefunction)
-    ...
+    
+    # Last operation in any program should be measuring all qubits
+    All(Measure) | qureg
+    eng.flush()
+
 
 
 Getting started
