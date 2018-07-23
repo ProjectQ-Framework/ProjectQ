@@ -42,8 +42,8 @@ Examples
     from projectq import MainEngine  # import the main compiler engine
     from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
 
-    eng = MainEngine()  # create a default compiler (the back-end is a simulator)
-    qubit = eng.allocate_qubit()  # allocate a qunatum register with 1 qubit
+    eng = MainEngine()  # create a default compiler (the backend is a simulator)
+    qubit = eng.allocate_qubit()  # allocate a quantum register with 1 qubit
 
     H | qubit  # apply a Hadamard gate
     Measure | qubit  # measure the qubit
@@ -52,7 +52,7 @@ Examples
     print("Measured {}".format(int(qubit)))  # converting a qubit to int or bool gives access to the measurement result
 
 
-ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example a rotation of a qubit around the x-axis is usually specified as:
+ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example, a rotation of a qubit around the x-axis is usually specified as:
 
 .. image:: docs/images/braket_notation.svg
     :alt: Rx(theta)|qubit>
@@ -64,11 +64,11 @@ The same statement in ProjectQ's syntax is:
 
     Rx(theta) | qubit
 
-Everything to the left of **|**-operator specifies the gate operation and on the right-hand side are the quantum bits to which the operation is applied to.
+The **|**-operator separates the specification of the gate operation (left-hand side) from the quantum bits to which the operation is applied (right-hand side).
 
 **Changing the compiler and using a resource counter as a back-end**
 
-Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged in linear chain and the architecture supports any single-qubit gate as well as the two-qubit CNOT and Swap operation:
+Instead of simulating a quantum program, one can use our resource counter (as a back-end) to determine how many operations it would take on a future quantum computer with a given architecture. Suppose the qubits are arranged on a linear chain and the architecture supports any single-qubit gate as well as the two-qubit CNOT and Swap operations:
 
 .. code-block:: python
 
@@ -90,7 +90,7 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
 
     # This will output, among other information,
     # how many operations are needed to perform
-    # this quantum fourier transform (QFT), e.g.:
+    # this quantum fourier transform (QFT), i.e.,
     #   Gate class counts:
     #       AllocateQubitGate : 16
     #       CXGate : 240
@@ -114,10 +114,10 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
 
 **Classically simulate a quantum program**
 
-ProjectQ has a high-performance simulator. This allows to easily simulate 30-qubit circuit if the computer has 16GB of RAM. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information. Using the emulation features of our simulator (fast classical shortcuts), one can easily emulate Shor's algorithm for problem sizes for which a quantum computer would require above 50 qubits, see our `example codes <http://projectq.readthedocs.io/en/latest/examples.html#shor-s-algorithm-for-factoring>`__.
+ProjectQ has a high-performance simulator which allows simulating up to about 30 qubits on a regular laptop. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information. Using the emulation features of our simulator (fast classical shortcuts), one can easily emulate Shor's algorithm for problem sizes for which a quantum computer would require above 50 qubits, see our `example codes <http://projectq.readthedocs.io/en/latest/examples.html#shor-s-algorithm-for-factoring>`__.
 
 
-The advanced features of the simulator are also particulary useful to investigate algorithms for the simulation of quantum systems. For example, the simulator can evolve a quantum system in time (without Trotter errors) and it gives direct access to expectation values of Hamiltonians leading to extremly fast simulations of VQE type algorithms:
+The advanced features of the simulator are also particularly useful to investigate algorithms for the simulation of quantum systems. For example, the simulator can evolve a quantum system in time (without Trotter errors) and it gives direct access to expectation values of Hamiltonians leading to extremely fast simulations of VQE type algorithms:
 
 .. code-block:: python
     
