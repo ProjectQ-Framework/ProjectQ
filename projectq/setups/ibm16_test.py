@@ -14,18 +14,34 @@
 """Tests for projectq.setup.ibm16."""
 
 import projectq
-from projectq.cengines import ManualMapper
+import projectq.setups.ibm16
+from projectq import MainEngine
+from projectq.cengines import GridMapper, SwapAndCNOTFlipper, DummyEngine
+from projectq.libs.math import AddConstant
+from projectq.ops import QFT, get_inverse
 
 
-def test_manual_mapper_in_cengines():
-    import projectq.setups.ibm16
-    found = False
-    for engine in projectq.setups.ibm16.ibm16_default_engines():
-        if isinstance(engine, ManualMapper):
-            found = True
+def test_mappers_in_cengines():
+    found = 0
+    for engine in projectq.setups.ibm16.get_engine_list():
+        if isinstance(engine, GridMapper):
+            found |= 1
+        if isinstance(engine, SwapAndCNOTFlipper):
+            found |= 2
+    assert found == 3
 
-    # To undo the changes of loading the IBM setup:
-    import projectq.setups.default
-    projectq.default_engines = projectq.setups.default.default_engines
 
-    assert found
+def test_high_level_gate_set():
+    mod_list = projectq.setups.ibm16.get_engine_list()
+    saving_engine = DummyEngine(save_commands=True)
+    mod_list = mod_list[:6] + [saving_engine] + mod_list[6:]
+    eng = MainEngine(DummyEngine(),
+                     engine_list=mod_list)
+    qureg = eng.allocate_qureg(3)
+    AddConstant(3) | qureg
+    QFT | qureg
+    eng.flush()
+    received_gates = [cmd.gate for cmd in saving_engine.received_commands]
+    assert sum([1 for g in received_gates if g == QFT]) == 1
+    assert get_inverse(QFT) not in received_gates
+    assert AddConstant(3) not in received_gates

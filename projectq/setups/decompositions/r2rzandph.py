@@ -35,6 +35,7 @@ def _decompose_R(cmd):
         Rz(gate.angle) | cmd.qubits
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(R, _decompose_R)
 ]

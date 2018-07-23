@@ -132,6 +132,11 @@ class Dagger(object):
         insert_engine(self.engine, self._dagger_eng)
 
     def __exit__(self, type, value, traceback):
+        # If an error happens in this context, qubits might not have been
+        # deallocated because that code section was not yet executed,
+        # so don't check and raise an additional error.
+        if type is not None:
+            return
         # run dagger engine
         self._dagger_eng.run()
         self._dagger_eng = None

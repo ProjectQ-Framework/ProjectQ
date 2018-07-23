@@ -16,9 +16,11 @@
 Contains a compiler engine which counts the number of calls for each type of
 gate used in a circuit, in addition to the max. number of active qubits.
 """
-from projectq.cengines import LastEngineException, BasicEngine
-from projectq.meta import get_control_count
+
+from projectq.cengines import BasicEngine, LastEngineException
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import FlushGate, Deallocate, Allocate, Measure
+from projectq.types import WeakQubitRef
 
 
 class ResourceCounter(BasicEngine):
@@ -28,9 +30,16 @@ class ResourceCounter(BasicEngine):
 
     Attributes:
         gate_counts (dict): Dictionary of gate counts.
-            The keys are string representations of the gate.
+            The keys are tuples of the form (cmd.gate, ctrl_cnt), where
+            ctrl_cnt is the number of control qubits.
+        gate_class_counts (dict): Dictionary of gate class counts.
+            The keys are tuples of the form (cmd.gate.__class__, ctrl_cnt),
+            where ctrl_cnt is the number of control qubits.
         max_width (int): Maximal width (=max. number of active qubits at any
             given point).
+    Properties:
+        depth_of_dag (int): It is the longest path in the directed
+                            acyclic graph (DAG) of the program.
     """
     def __init__(self):
         """
@@ -43,6 +52,9 @@ class ResourceCounter(BasicEngine):
         self.gate_class_counts = {}
         self._active_qubits = 0
         self.max_width = 0
+        # key: qubit id, depth of this qubit
+        self._depth_of_qubit = dict()
+        self._previous_max_depth = 0
 
     def is_available(self, cmd):
         """
@@ -62,18 +74,52 @@ class ResourceCounter(BasicEngine):
         except LastEngineException:
             return True
 
+    @property
+    def depth_of_dag(self):
+        if self._depth_of_qubit:
+            current_max = max(self._depth_of_qubit.values())
+            return max(current_max, self._previous_max_depth)
+        else:
+            return self._previous_max_depth
+
     def _add_cmd(self, cmd):
         """
         Add a gate to the count.
         """
         if cmd.gate == Allocate:
             self._active_qubits += 1
+            self._depth_of_qubit[cmd.qubits[0][0].id] = 0
         elif cmd.gate == Deallocate:
             self._active_qubits -= 1
-        elif cmd.gate == Measure:
+            depth = self._depth_of_qubit[cmd.qubits[0][0].id]
+            self._previous_max_depth = max(self._previous_max_depth, depth)
+            self._depth_of_qubit.pop(cmd.qubits[0][0].id)
+        elif self.is_last_engine and cmd.gate == Measure:
             for qureg in cmd.qubits:
                 for qubit in qureg:
+                    self._depth_of_qubit[qubit.id] += 1
+                    # Check if a mapper assigned a different logical id
+                    logical_id_tag = None
+                    for tag in cmd.tags:
+                        if isinstance(tag, LogicalQubitIDTag):
+                            logical_id_tag = tag
+                    if logical_id_tag is not None:
+                        qubit = WeakQubitRef(qubit.engine,
+                                             logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
+        else:
+            qubit_ids = set()
+            for qureg in cmd.all_qubits:
+                for qubit in qureg:
+                    qubit_ids.add(qubit.id)
+            if len(qubit_ids) == 1:
+                self._depth_of_qubit[list(qubit_ids)[0]] += 1
+            else:
+                max_depth = 0
+                for qubit_id in qubit_ids:
+                    max_depth = max(max_depth, self._depth_of_qubit[qubit_id])
+                for qubit_id in qubit_ids:
+                    self._depth_of_qubit[qubit_id] = max_depth + 1
 
         self.max_width = max(self.max_width, self._active_qubits)
 
@@ -123,8 +169,9 @@ class ResourceCounter(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, print the
-        commands, and then send them on to the next engine.
+        Receive a list of commands from the previous engine, increases the
+        counters of the received commands, and then send them on to the next
+        engine.
 
         Args:
             command_list (list<Command>): List of commands to receive (and

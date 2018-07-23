@@ -13,14 +13,23 @@
 #   limitations under the License.
 
 """
-Registers a variety of useful gate decompositions, specifically for the IBM
-quantum experience backend. Among others it includes:
+Defines a setup useful for the IBM QE chip with 5 qubits.
+
+It provides the `engine_list` for the `MainEngine`, and contains an
+AutoReplacer with most of the gate decompositions of ProjectQ, among others
+it includes:
 
     * Controlled z-rotations --> Controlled NOTs and single-qubit rotations
     * Toffoli gate --> CNOT and single-qubit gates
     * m-Controlled global phases --> (m-1)-controlled phase-shifts
     * Global phases --> ignore
     * (controlled) Swap gates --> CNOTs and Toffolis
+    * Arbitrary single qubit gates --> Rz and Ry
+    * Controlled arbitrary single qubit gates --> Rz, Ry, and CNOT gates
+
+Moreover, it contains `LocalOptimizers` and a custom mapper for the CNOT
+gates.
+
 """
 
 import projectq
@@ -28,18 +37,20 @@ import projectq.setups.decompositions
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
-                               IBMCNOTMapper,
+                               IBM5QubitMapper,
+                               SwapAndCNOTFlipper,
                                DecompositionRuleSet)
 
 
-def ibm_default_engines():
+ibmqx4_connections = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+
+
+def get_engine_list():
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(),
             LocalOptimizer(10),
             AutoReplacer(rule_set),
             TagRemover(),
-            IBMCNOTMapper(),
+            IBM5QubitMapper(),
+            SwapAndCNOTFlipper(ibmqx4_connections),
             LocalOptimizer(10)]
-
-
-projectq.default_engines = ibm_default_engines

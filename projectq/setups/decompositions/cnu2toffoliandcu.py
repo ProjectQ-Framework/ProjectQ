@@ -63,6 +63,7 @@ def _decompose_CnU(cmd):
     Uncompute(eng)
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(BasicGate, _decompose_CnU, _recognize_CnU)
 ]

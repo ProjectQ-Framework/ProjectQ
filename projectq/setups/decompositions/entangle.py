@@ -35,6 +35,7 @@ def _decompose_entangle(cmd):
             All(X) | qr[1:]
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Entangle.__class__, _decompose_entangle)
 ]

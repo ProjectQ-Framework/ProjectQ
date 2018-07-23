@@ -20,11 +20,20 @@ Defines a few shortcuts for certain gates such as
 """
 
 from ._metagates import C
-from ._gates import Rz, NOT
+from ._gates import NOT, Rz, Z
 
 
 def CRz(angle):
+    """
+    Shortcut for C(Rz(angle), n=1).
+    """
     return C(Rz(angle), n=1)
 
+
 CNOT = CX = C(NOT)
+
+
+CZ = C(Z)
+
+
 Toffoli = C(CNOT)

@@ -15,16 +15,15 @@
 
 import projectq
 from projectq import MainEngine
-from projectq.cengines import IBMCNOTMapper
+from projectq.cengines import IBM5QubitMapper, SwapAndCNOTFlipper
 
 
 def test_ibm_cnot_mapper_in_cengines():
     import projectq.setups.ibm
-    found = False
-    for engine in projectq.setups.ibm.ibm_default_engines():
-        if isinstance(engine, IBMCNOTMapper):
-            found = True
-    # To undo the changes of loading the IBM setup:
-    import projectq.setups.default
-    projectq.default_engines = projectq.setups.default.default_engines
-    assert found
+    found = 0
+    for engine in projectq.setups.ibm.get_engine_list():
+        if isinstance(engine, IBM5QubitMapper):
+            found |= 1
+        if isinstance(engine, SwapAndCNOTFlipper):
+            found |= 2
+    assert found == 3

@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,20 +13,23 @@
 #   limitations under the License.
 
 """
-Defines the QubitPlacementTag meta tag.
+Defines LogicalQubitIDTag to annotate a MeasureGate for mapped qubits.
 """
 
 
-class QubitPlacementTag(object):
+class LogicalQubitIDTag(object):
     """
-    Qubit placement meta tag
+    LogicalQubitIDTag for a mapped qubit to annotate a MeasureGate.
+
+    Attributes:
+        logical_qubit_id (int): Logical qubit id
     """
-    def __init__(self, position):
-        self.position = position
+    def __init__(self, logical_qubit_id):
+        self.logical_qubit_id = logical_qubit_id
 
     def __eq__(self, other):
-        return (isinstance(other, QubitPlacementTag) and
-                self.position == other.position)
+        return (isinstance(other, LogicalQubitIDTag) and
+                self.logical_qubit_id == other.logical_qubit_id)
 
     def __ne__(self, other):
         return not self.__eq__(other)

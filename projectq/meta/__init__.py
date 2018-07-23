@@ -24,7 +24,6 @@ and the compiler in writing/producing efficient code. It includes, e.g.,
 
 
 from ._dirtyqubit import DirtyQubitTag
-from ._qubitplacement import QubitPlacementTag
 from ._loop import (LoopTag,
                     Loop)
 from ._compute import (Compute,
@@ -36,3 +35,4 @@ from ._control import (Control,
                        get_control_count)
 from ._dagger import Dagger
 from ._util import insert_engine, drop_engine_after
+from ._logicalqubit import LogicalQubitIDTag

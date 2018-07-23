@@ -1,8 +1,15 @@
 backends
 ========
 
-.. toctree::
-	:maxdepth: 2
+.. autosummary::
+	
+	projectq.backends.CommandPrinter
+	projectq.backends.CircuitDrawer
+	projectq.backends.Simulator
+	projectq.backends.ClassicalSimulator
+	projectq.backends.ResourceCounter
+	projectq.backends.IBMBackend
+
 
 Module contents
 ---------------

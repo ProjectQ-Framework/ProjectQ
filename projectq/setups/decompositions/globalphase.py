@@ -33,6 +33,7 @@ def _recognize_PhNoCtrl(cmd):
     return get_control_count(cmd) == 0
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
 ]

@@ -32,6 +32,7 @@ def _recognize_barrier(cmd):
     return True
 
 
+#: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(BarrierGate, _decompose_barrier, _recognize_barrier)
 ]

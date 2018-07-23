@@ -31,6 +31,8 @@ and meta gates, i.e.,
 
 import math
 import cmath
+import warnings
+
 import numpy as np
 
 from projectq.ops import get_inverse
@@ -41,6 +43,8 @@ from ._basics import (BasicGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
+from ._command import apply_command
+from projectq.types import BasicQubit
 
 
 class HGate(SelfInverseGate):
@@ -52,6 +56,7 @@ class HGate(SelfInverseGate):
     def matrix(self):
         return 1. / cmath.sqrt(2.) * np.matrix([[1, 1], [1, -1]])
 
+#: Shortcut (instance of) :class:`projectq.ops.HGate`
 H = HGate()
 
 
@@ -64,6 +69,7 @@ class XGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, 1], [1, 0]])
 
+#: Shortcut (instance of) :class:`projectq.ops.XGate`
 X = NOT = XGate()
 
 
@@ -76,6 +82,7 @@ class YGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, -1j], [1j, 0]])
 
+#: Shortcut (instance of) :class:`projectq.ops.YGate`
 Y = YGate()
 
 
@@ -88,6 +95,7 @@ class ZGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[1, 0], [0, -1]])
 
+#: Shortcut (instance of) :class:`projectq.ops.ZGate`
 Z = ZGate()
 
 
@@ -100,7 +108,9 @@ class SGate(BasicGate):
     def __str__(self):
         return "S"
 
+#: Shortcut (instance of) :class:`projectq.ops.SGate`
 S = SGate()
+#: Shortcut (instance of) :class:`projectq.ops.SGate`
 Sdag = Sdagger = get_inverse(S)
 
 
@@ -113,7 +123,9 @@ class TGate(BasicGate):
     def __str__(self):
         return "T"
 
+#: Shortcut (instance of) :class:`projectq.ops.TGate`
 T = TGate()
+#: Shortcut (instance of) :class:`projectq.ops.TGate`
 Tdag = Tdagger = get_inverse(T)
 
 
@@ -129,6 +141,7 @@ class SqrtXGate(BasicGate):
     def __str__(self):
         return "SqrtX"
 
+#: Shortcut (instance of) :class:`projectq.ops.SqrtXGate`
 SqrtX = SqrtXGate()
 
 
@@ -149,6 +162,7 @@ class SwapGate(SelfInverseGate, BasicMathGate):
                           [0, 1, 0, 0],
                           [0, 0, 0, 1]])
 
+#: Shortcut (instance of) :class:`projectq.ops.SwapGate`
 Swap = SwapGate()
 
 
@@ -168,6 +182,7 @@ class SqrtSwapGate(BasicGate):
                           [0, 0.5-0.5j, 0.5+0.5j, 0],
                           [0, 0, 0, 1]])
 
+#: Shortcut (instance of) :class:`projectq.ops.SqrtSwapGate`
 SqrtSwap = SqrtSwapGate()
 
 
@@ -179,6 +194,7 @@ class EntangleGate(BasicGate):
     def __str__(self):
         return "Entangle"
 
+#: Shortcut (instance of) :class:`projectq.ops.EntangleGate`
 Entangle = EntangleGate()
 
 
@@ -249,10 +265,30 @@ class FlushGate(FastForwardingGate):
 
 
 class MeasureGate(FastForwardingGate):
-    """ Measurement gate class """
+    """ Measurement gate class (for single qubits)."""
     def __str__(self):
         return "Measure"
 
+    def __or__(self, qubits):
+        """
+        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
+        applied to any number of quantum registers. Now the MeasureGate/Measure
+        is strictly a single qubit gate. In the coming releases the backward
+        compatibility will be removed!
+        """
+        num_qubits = 0
+        for qureg in self.make_tuple_of_qureg(qubits):
+            for qubit in qureg:
+                num_qubits += 1
+                cmd = self.generate_command(([qubit],))
+                apply_command(cmd)
+        if num_qubits > 1:
+            warnings.warn("Pending syntax change in future versions of "
+                          "ProjectQ: \n Measure will be a single qubit gate "
+                          "only. Use `All(Measure) | qureg` instead to "
+                          "measure multiple qubits.")
+
+#: Shortcut (instance of) :class:`projectq.ops.MeasureGate`
 Measure = MeasureGate()
 
 
@@ -264,6 +300,7 @@ class AllocateQubitGate(ClassicalInstructionGate):
     def get_inverse(self):
         return DeallocateQubitGate()
 
+#: Shortcut (instance of) :class:`projectq.ops.AllocateQubitGate`
 Allocate = AllocateQubitGate()
 
 
@@ -275,6 +312,7 @@ class DeallocateQubitGate(FastForwardingGate):
     def get_inverse(self):
         return Allocate
 
+#: Shortcut (instance of) :class:`projectq.ops.DeallocateQubitGate`
 Deallocate = DeallocateQubitGate()
 
 
@@ -286,6 +324,7 @@ class AllocateDirtyQubitGate(ClassicalInstructionGate):
     def get_inverse(self):
         return Deallocate
 
+#: Shortcut (instance of) :class:`projectq.ops.AllocateDirtyQubitGate`
 AllocateDirty = AllocateDirtyQubitGate()
 
 
@@ -297,4 +336,5 @@ class BarrierGate(BasicGate):
     def get_inverse(self):
         return Barrier
 
+#: Shortcut (instance of) :class:`projectq.ops.BarrierGate`
 Barrier = BarrierGate()
