@@ -75,6 +75,40 @@ class PhaseX(BasicGate):
 
       return str("PhX") + "$_{" + str(self.phase) + "}$"
 
+class PhaseXxX(BasicGate):
+   """ 
+   A phase gate on X (x) X : PhX(x)X gate with
+   eigenvectors: |+>|+>, |+>|->,|->|+>,|->|->,  and 
+   eivenvalues exp(i2pi theta) and -exp(i2pi theta)
+   """
+
+   def __init__(self,phase):
+      BasicGate.__init__(self)      
+      self.phase = phase
+
+   @property
+   def matrix(self):
+      theta = self.phase
+      
+      return np.matrix([[0,0,0,cmath.exp(1j * 2.0 * cmath.pi * theta)],
+                        [0,0,cmath.exp(1j * 2.0 * cmath.pi * theta),0],
+                        [0,cmath.exp(1j * 2.0 * cmath.pi * theta),0,0],
+                        [cmath.exp(1j * 2.0 * cmath.pi * theta),0,0,0]])
+
+   def __str__(self):
+      return "PhaseX(theta)(x)X"
+
+   def tex_str(self):
+      """
+      Return the Latex string representation of a PhaseX Gate.
+      Returns the class name and the angle as a subscript, i.e.
+      .. code-block:: latex
+         [CLASSNAME]$_[ANGLE]$
+      """
+
+      return str("PhX") + "$_{" + str(self.phase) + "}$" + str(" (x) X")
+
+
 
 
 if __name__ == "__main__":
@@ -85,6 +119,9 @@ if __name__ == "__main__":
 ##   eng = MainEngine(drawing_engine)
    eng = MainEngine()
    
+   ### Select an example an uncomment/comment as needed ###
+
+   ### Example ###unit = QubitOperator('X0 X1') 
    ### Example ###unit = TimeEvolution(1.0,unitario)
    ### Example ###autovector = eng.allocate_qureg(2)
 
@@ -104,11 +141,12 @@ if __name__ == "__main__":
 
    #### Defined phase with PhX (x) X ###
 
-   print("Example: X (x) X: Example |->|-> theta: NO, NO ES ESTO. Hay que usar TimeEvolution.65625 (.15625) #ancillas:5")
+   print("Example: PhX (x) X: Example |->|-> theta: .65625 (.15625) #ancillas:5")
    autovector = eng.allocate_qureg(2)
    Tensor(X) | autovector
    Tensor(H) | autovector
-   unit = QubitOperator('X0 X1')
+   theta = float(input ("Enter phase [0,1): "))
+   unit = PhaseXxX(theta)
    
    #### END Defined phase with X ###
 
