@@ -12,7 +12,7 @@ Getting started / background information
 
 It might be a good starting point to have a look at our paper which explains the goals of the ProjectQ framework and also gives a good overview:
 
-* Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An Open Source Software Framework for Quantum Computing" `[arxiv:1612.08091] <https://arxiv.org/abs/1612.08091>`__
+* Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An Open Source Software Framework for Quantum Computing" `Quantum 2, 49 (2018) <https://doi.org/10.22331/q-2018-01-31-49>`__ (published on `arXiv <https://arxiv.org/abs/1612.08091>`__ on 23 Dec 2016)
 
 Our second paper looks at a few aspects of ProjectQ in more details:
 
