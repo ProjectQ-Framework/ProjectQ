@@ -18,8 +18,8 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, Allocate
-from projectq.meta import QubitPlacementTag
+from projectq.ops import H, Allocate, Measure, All
+from projectq.meta import LogicalQubitIDTag
 
 from projectq.cengines import ManualMapper
 from projectq.backends import IBMBackend
@@ -37,14 +37,15 @@ def test_manualmapper_mapping():
     qb1 = eng.allocate_qubit()
     H | qb0
     H | qb1
+    All(Measure) | (qb0 + qb1)
     eng.flush()
 
-    num_allocates = 0
+    num_measurements = 0
     for cmd in backend.received_commands:
-        if cmd.gate == Allocate:
-            tag = QubitPlacementTag(mapping(cmd.qubits[0][0].id))
+        if cmd.gate == Measure:
+            tag = LogicalQubitIDTag(mapping(cmd.qubits[0][0].id))
             assert tag in cmd.tags
-            wrong_tag = QubitPlacementTag(cmd.qubits[0][0].id)
+            wrong_tag = LogicalQubitIDTag(cmd.qubits[0][0].id)
             assert wrong_tag not in cmd.tags
-            num_allocates += 1
-    assert num_allocates == 2
+            num_measurements += 1
+    assert num_measurements == 2

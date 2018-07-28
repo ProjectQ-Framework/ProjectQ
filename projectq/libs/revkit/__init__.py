@@ -12,23 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for projectq.meta._qubitplacement.py"""
-
-from projectq.meta import ComputeTag
-
-from projectq.meta._qubitplacement import QubitPlacementTag
-
-
-def test_qubit_placement_tag():
-    tag0 = QubitPlacementTag(0)
-    tag1 = QubitPlacementTag(0)
-    tag2 = QubitPlacementTag(2)
-    tag3 = ComputeTag()
-    assert tag0 == tag1
-    assert not tag0 == tag2
-    assert not tag0 == tag3
-    assert not tag3 == tag2
-    assert not tag0 != tag1
-    assert tag0 != tag2
-    assert tag0 != tag3
-    assert tag3 != tag2
+from ._permutation import PermutationOracle
+from ._control_function import ControlFunctionOracle
+from ._phase import PhaseOracle

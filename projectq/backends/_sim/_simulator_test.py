@@ -87,7 +87,9 @@ def mapper(request):
                             if qubit.id == -1:
                                 continue
                             elif qubit.id not in self.current_mapping:
-                                self.current_mapping[qubit.id] = qubit.id + 1
+                                previous_map = self.current_mapping
+                                previous_map[qubit.id] = qubit.id + 1
+                                self.current_mapping = previous_map
                     self._send_cmd_with_mapped_ids(cmd)
 
         return TrivialMapper()
@@ -682,8 +684,7 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
     eng = MainEngine(sim, [mapper])
     qubit0 = eng.allocate_qubit()
     qubit1 = eng.allocate_qubit()
-    mapper.current_mapping = dict()
-    mapper.current_mapping[qubit0[0].id] = qubit1[0].id
-    mapper.current_mapping[qubit1[0].id] = qubit0[0].id
+    mapper.current_mapping = {qubit0[0].id: qubit1[0].id,
+                              qubit1[0].id: qubit0[0].id}
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)

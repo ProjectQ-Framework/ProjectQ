@@ -12,21 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Defines the QubitPlacementTag meta tag.
-"""
 
-
-class QubitPlacementTag(object):
+def _exec(code, qs):
     """
-    Qubit placement meta tag
+    Executes the Python code in 'filename'.
+
+    Args:
+        code (string): ProjectQ code.
+        qs (tuple<Qureg>): Qubits to which the permutation is being
+                           applied.
     """
-    def __init__(self, position):
-        self.position = position
-
-    def __eq__(self, other):
-        return (isinstance(other, QubitPlacementTag) and
-                self.position == other.position)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    from projectq.ops import C, X, Z, All
+    exec(code)
