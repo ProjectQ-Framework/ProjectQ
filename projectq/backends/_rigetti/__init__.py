@@ -12,23 +12,4 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Contains back-ends for ProjectQ.
-
-This includes:
-
-* a debugging tool to print all received commands (CommandPrinter)
-* a circuit drawing engine (which can be used anywhere within the compilation
-  chain)
-* a simulator with emulation capabilities
-* a resource counter (counts gates and keeps track of the maximal width of the
-  circuit)
-* an interface to the IBM Quantum Experience chip (and simulator).
-* an interface to the Rigetti Forest API (and QVM)
-"""
-from ._printer import CommandPrinter
-from ._circuits import CircuitDrawer
-from ._sim import Simulator, ClassicalSimulator
-from ._resource import ResourceCounter
-from ._ibm import IBMBackend
 from ._rigetti import RigettiBackend
