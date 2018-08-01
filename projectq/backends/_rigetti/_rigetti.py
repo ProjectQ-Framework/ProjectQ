@@ -74,8 +74,8 @@ class RigettiBackend(BasicEngine):
             self.device = 'simulator'
         self._num_runs = num_runs
         self._verbose = verbose
-        self._user_id = user
-        self._api_key = password
+        self._user_id = user_id
+        self._api_key = api_key
         self._probabilities = dict()
         self.quil = ""
         self._measured_ids = []
@@ -121,7 +121,7 @@ class RigettiBackend(BasicEngine):
         if self._clear:
             self._probabilities = dict()
             self._clear = False
-            self.qasm = ""
+            self.quil = ""
             self._allocated_qubits = set()
 
         gate = cmd.gate
@@ -146,13 +146,13 @@ class RigettiBackend(BasicEngine):
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self.quil += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+            self.quil += "\nCX {} {}".format(ctrl_pos, qb_pos)
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
             self.quil += "\nbarrier "
             qb_str = ""
             for pos in qb_pos:
-                qb_str += "q[{}], ".format(pos)
+                qb_str += "{}, ".format(pos)
             self.quil += qb_str[:-2] + ";"
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
@@ -160,7 +160,7 @@ class RigettiBackend(BasicEngine):
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
                       'Rz': 'u1({})'}
             gate = u_strs[str(gate)[0:2]].format(gate.angle)
-            self.quil += "\n{} q[{}];".format(gate, qb_pos)
+            self.quil += "\n{} {};".format(gate, qb_pos)
         else:
             assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:
@@ -169,7 +169,7 @@ class RigettiBackend(BasicEngine):
                 gate_str = str(gate).lower()
 
             qb_pos = cmd.qubits[0][0].id
-            self.quil += "\n{} q[{}];".format(gate_str, qb_pos)
+            self.quil += "\n{} {}".format(gate_str.upper(), qb_pos)
 
     def _logical_to_physical(self, qb_id):
         """
@@ -238,18 +238,16 @@ class RigettiBackend(BasicEngine):
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-            self.quil += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
-                                                            qb_loc)
+            self.quil += "\nMEASURE {} [{}]".format(qb_loc, qb_loc)
 
         max_qubit_id = max(self._allocated_qubits)
-        quil = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
-                self.quil).format(nq=max_qubit_id + 1)
+        # todo: establish max qubits
+        quil = self.quil
         info = {}
-        info['qasms'] = [{'quil': quil}]
+        info['quils'] = [{'quil': quil.strip()}]
         info['shots'] = self._num_runs
         info['maxCredits'] = 5
         info['backend'] = {'name': self.device}
-        info = json.dumps(info)
 
         try:
             if self._retrieve_execution is None:

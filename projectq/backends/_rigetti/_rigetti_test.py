@@ -139,12 +139,11 @@ def test_rigetti_retrieve(monkeypatch):
 
 
 def test_rigetti_backend_functional_test(monkeypatch):
-    correct_info = ('{"quils": [{"quil": "\\ninclude \\"qelib1.inc\\";'
-                    '\\nqreg q[3];\\ncreg c[3];\\nh q[2];\\ncx q[2], q[0];'
-                    '\\ncx q[2], q[1];\\ntdg q[2];\\nsdg q[2];'
-                    '\\nbarrier q[2], q[0], q[1];'
-                    '\\nu3(0.2, -pi/2, pi/2) q[2];\\nmeasure q[2] -> '
-                    'c[2];\\nmeasure q[0] -> c[0];\\nmeasure q[1] -> c[1];"}]'
+    correct_info = ('{"quils": [{"quil": "H 2\\nCX 2 0'
+                    '\\nCX 2, 1\\nTDG 2\\nSDG 2'
+                    '\\nBARRIER 2 0 1'
+                    '\\nU3(0.2, -pi/2, pi/2) 2\\nMEASURE 2 '
+                    '[2]\\nMEASURE 0 [0]\\nMEASURE 1 [1]"}]'
                     ', "shots": 1024, "maxCredits": 5, "backend": {"name": '
                     '"simulator"}}')
 

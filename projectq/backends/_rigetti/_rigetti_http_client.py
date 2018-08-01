@@ -16,9 +16,9 @@
 # official SDK is at https://github.com/rigetticomputing/pyquil
 import requests
 import getpass
-import json
 import sys
 import time
+import re
 from requests.compat import urljoin
 
 
@@ -86,7 +86,7 @@ def send(info, device=RIGETTI_DEVICES[0], user_id=None, api_key=None,
         _authenticate(user_id, api_key)
         if verbose:
             print("- Running code: {}".format(
-                json.loads(info)['quils'][0]['quil']))
+                info['quils'][0]['quil']))
         execution_id = _run(info, device, user_id, api_key, shots)
         if verbose:
             print("- Waiting for results...")
@@ -120,20 +120,54 @@ def _authenticate(user_id=None, api_key=None):
     if api_key is None:
         api_key = getpass.getpass(prompt='Rigetti API Key > ')
 
-def _run(quil, device, user_id, api_key, shots):
-    suffix = 'Jobs'
+def _run(runcodes, device, user_id, api_key, shots):
+    suffix = ''
+    internal_code = runcodes["quils"][0]["quil"]
 
+    # determine maximum register accessed in the code
+    findDigit = re.compile(r'\d+')
+    nums = findDigit.findall(internal_code)
+    max_register = 0
+    for num in nums:
+        max_register = max(max_register, int(num))
+
+    # r = requests.post(urljoin(_old_api_url, suffix),
+    #                 json={
+    #                     "type": "multishot",
+    #                     "addresses": range(0, max_register + 1),
+    #                     "trials": runcodes["shots"],
+    #                     "quil-instructions": internal_code
+    #                     # gate-noise
+    #                     # measurement-noise
+    #                 },
+    #                 headers={
+    #                     "Content-Type": "application/json",
+    #                     "X-Api-Key": api_key,
+    #                     "X-User-Id": user_id
+    #                 })
+    #   execution_id = -1
+
+    suffix = 'job'
     r = requests.post(urljoin(_api_url, suffix),
-                      data=quil,
-                      params={"access_token": access_token,
-                              "deviceRunType": device,
-                              "fromCache": "false",
-                              "shots": shots},
-                      headers={"Content-Type": "application/json"})
+                      json={
+                        "machine": "QVM",
+                        "program": {
+                            "type": "multishot-measure",
+                            # "qubits": list(range(0, max_register + 1)),
+                            "addresses": list(range(0, max_register + 1)),
+                            "trials": runcodes["shots"],
+                            "compiled-quil": internal_code + "\n"
+                        }
+                        # , "device": ""
+                      },
+                      headers={
+                        "Content-Type": "application/json",
+                        "X-Api-Key": api_key,
+                        "X-User-Id": user_id
+                      })
     r.raise_for_status()
-
     r_json = r.json()
-    execution_id = r_json["id"]
+    execution_id = r_json["jobId"]
     return execution_id
 
 
