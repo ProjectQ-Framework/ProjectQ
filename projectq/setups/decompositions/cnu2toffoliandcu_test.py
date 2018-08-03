@@ -105,17 +105,21 @@ def test_decomposition():
             Rx(0.4) | test_qb
         with Control(test_eng, test_ctrl_qureg):
             Ry(0.6) | test_qb
+        with Control(test_eng, test_ctrl_qureg):
+            X | test_qb
 
         with Control(correct_eng, correct_ctrl_qureg[:2]):
             Rx(0.4) | correct_qb
         with Control(correct_eng, correct_ctrl_qureg):
             Ry(0.6) | correct_qb
+        with Control(correct_eng, correct_ctrl_qureg):
+            X | correct_qb
 
         test_eng.flush()
         correct_eng.flush()
 
-        assert len(correct_dummy_eng.received_commands) == 8
-        assert len(test_dummy_eng.received_commands) == 20
+        assert len(correct_dummy_eng.received_commands) == 9
+        assert len(test_dummy_eng.received_commands) == 25
 
         for fstate in range(16):
             binary_state = format(fstate, '04b')
