@@ -259,7 +259,16 @@ class RigettiBackend(BasicEngine):
                                api_key=self._api_key,
                                jobid=self._retrieve_execution)
 
-            counts = res['data']['counts']
+            counts = {}
+            for result in res:
+                combined = ''
+                for val in result:
+                    combined += str(val)
+                if combined not in counts:
+                    counts[combined] = 1
+                else:
+                    counts[combined] += 1
+
             # Determine random outcome
             P = random.random()
             p_sum = 0.

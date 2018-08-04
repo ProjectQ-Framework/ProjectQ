@@ -154,7 +154,7 @@ def _run(runcodes, device, user_id, api_key, shots):
                         "program": {
                             "type": "multishot-measure",
                             # "qubits": list(range(0, max_register + 1)),
-                            "addresses": list(range(0, max_register + 1)),
+                            "qubits": list(range(0, max_register + 1)),
                             "trials": runcodes["shots"],
                             "compiled-quil": internal_code + "\n"
                         }
@@ -173,30 +173,37 @@ def _run(runcodes, device, user_id, api_key, shots):
 
 def _get_result(device, execution_id, user_id, api_key, num_retries=3000,
                 interval=1):
-    suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
-    status_url = urljoin(_api_url, 'Backends/{}/queue/status'.format(device))
+    suffix = 'job/{execution_id}'.format(execution_id=execution_id)
+    status_url = urljoin(_api_url, 'devices')
 
     print("Waiting for results. [Job ID: {}]".format(execution_id))
 
     for retries in range(num_retries):
-        r = requests.get(urljoin(_api_url, suffix))
+        r = requests.get(urljoin(_api_url, suffix),
+            headers={
+              "Content-Type": "application/json",
+              "X-Api-Key": api_key,
+              "X-User-Id": user_id
+            })
         r.raise_for_status()
 
         r_json = r.json()
-        if 'quils' in r_json:
-            quil = r_json['quils'][0]
-            if 'result' in quil:
-                return quil['result']
+        if 'result' in r_json and 'status' in r_json and r_json['status'] != 'RUNNING':
+            return r_json['result']
         time.sleep(interval)
         if device in RIGETTI_DEVICES and retries % 60 == 0:
-            r = requests.get(status_url)
+            r = requests.get(status_url, headers={
+                "X-Api-Key": api_key,
+                "X-User-Id": user_id,
+                "Accept": "application/octet-stream"
+            })
             r_json = r.json()
-            if 'state' in r_json and not r_json['state']:
+            if device not in r_json["devices"] or not r_json['devices'][device]:
                 raise DeviceOfflineError("Device went offline. The ID of your "
                                          "submitted job is {}."
                                          .format(execution_id))
-            if 'lengthQueue' in r_json:
-                print("Currently there are {} jobs queued for execution on {}."
-                      .format(r_json['lengthQueue'], device))
-    raise Exception("Timeout. The ID of your submitted job is {}."
-                    .format(execution_id))
+    #         if 'lengthQueue' in r_json:
+    #             print("Currently there are {} jobs queued for execution on {}."
+    #                   .format(r_json['lengthQueue'], device))
+    # raise Exception("Timeout. The ID of your submitted job is {}."
+    #                 .format(execution_id))
