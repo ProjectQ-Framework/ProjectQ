@@ -17,7 +17,8 @@ from ._basics import (BasicEngine,
                       ForwarderEngine)
 from ._cmdmodifier import CommandModifier
 from ._basicmapper import BasicMapperEngine
-from ._ibmcnotmapper import IBMCNOTMapper
+from ._ibm5qubitmapper import IBM5QubitMapper
+from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._linearmapper import LinearMapper, return_swap_depth
 from ._manualmapper import ManualMapper
 from ._main import (MainEngine,
@@ -30,4 +31,4 @@ from ._replacer import (AutoReplacer,
                         DecompositionRule)
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
-from ._twodmapper import SquareGridMapper
+from ._twodmapper import GridMapper

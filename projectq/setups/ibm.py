@@ -37,8 +37,12 @@ import projectq.setups.decompositions
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
-                               IBMCNOTMapper,
+                               IBM5QubitMapper,
+                               SwapAndCNOTFlipper,
                                DecompositionRuleSet)
+
+
+ibmqx4_connections = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
 
 
 def get_engine_list():
@@ -47,5 +51,6 @@ def get_engine_list():
             LocalOptimizer(10),
             AutoReplacer(rule_set),
             TagRemover(),
-            IBMCNOTMapper(),
+            IBM5QubitMapper(),
+            SwapAndCNOTFlipper(ibmqx4_connections),
             LocalOptimizer(10)]

@@ -24,7 +24,6 @@ and the compiler in writing/producing efficient code. It includes, e.g.,
 
 
 from ._dirtyqubit import DirtyQubitTag
-from ._qubitplacement import QubitPlacementTag
 from ._loop import (LoopTag,
                     Loop)
 from ._compute import (Compute,

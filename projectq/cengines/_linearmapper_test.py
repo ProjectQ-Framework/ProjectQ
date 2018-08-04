@@ -18,7 +18,7 @@ from copy import deepcopy
 import pytest
 
 from projectq.cengines import DummyEngine
-from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, CNOT, Command, Deallocate,
                           FlushGate, Measure, QFT, X)
 from projectq.types import WeakQubitRef
@@ -112,21 +112,6 @@ def test_return_new_mapping_allocate_only_once():
         currently_allocated_ids=mapper._currently_allocated_ids,
         stored_commands=mapper._stored_commands,
         current_mapping=mapper.current_mapping)
-
-
-def test_return_new_mapping_qubit_placement_tag():
-    mapper = lm.LinearMapper(num_qubits=1, cyclic=False)
-    qb0 = WeakQubitRef(engine=None, idx=0)
-    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],), controls=[],
-                   tags=[QubitPlacementTag(1)])
-    mapper._stored_commands = [cmd0]
-    with pytest.raises(Exception):
-        new_mapping = mapper.return_new_mapping(
-            num_qubits=mapper.num_qubits,
-            cyclic=mapper.cyclic,
-            currently_allocated_ids=mapper._currently_allocated_ids,
-            stored_commands=mapper._stored_commands,
-            current_mapping=mapper.current_mapping)
 
 
 def test_return_new_mapping_possible_map():
@@ -473,11 +458,13 @@ def test_send_possible_commands_allocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # in mapping:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._send_possible_commands()
     assert len(mapper._stored_commands) == 0
-    # Only self._run() sends Allocate gates
-    assert len(backend.received_commands) == 0
+    assert len(backend.received_commands) == 1
+    assert backend.received_commands[0].gate == Allocate
+    assert backend.received_commands[0].qubits[0][0].id == 3
+    assert backend.received_commands[0].tags == [LogicalQubitIDTag(0)]
     assert mapper._currently_allocated_ids == set([10, 0])
 
 
@@ -497,11 +484,13 @@ def test_send_possible_commands_deallocate():
     assert len(backend.received_commands) == 0
     assert mapper._stored_commands == [cmd0]
     # allocated:
-    mapper.current_mapping[0] = 3
+    mapper.current_mapping = {0: 3}
     mapper._currently_allocated_ids.add(0)
     mapper._send_possible_commands()
-    # Only self._run() send Deallocate gates
-    assert len(backend.received_commands) == 0
+    assert len(backend.received_commands) == 1
+    assert backend.received_commands[0].gate == Deallocate
+    assert backend.received_commands[0].qubits[0][0].id == 3
+    assert backend.received_commands[0].tags == [LogicalQubitIDTag(0)]
     assert len(mapper._stored_commands) == 0
     assert mapper.current_mapping == dict()
     assert mapper._currently_allocated_ids == set([10])
@@ -588,7 +577,7 @@ def test_send_possible_commands_cyclic():
 
 
 def test_run_and_receive():
-    mapper = lm.LinearMapper(num_qubits=3, cyclic=True)
+    mapper = lm.LinearMapper(num_qubits=3, cyclic=False)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -620,14 +609,14 @@ def test_run_and_receive():
     assert 0 in mapper.current_mapping
     assert 2 in mapper.current_mapping
     assert len(backend.received_commands) == 11
-    assert (backend.received_commands[9] == Command(None, X,
+    for cmd in backend.received_commands:
+        print(cmd)
+    assert (backend.received_commands[-1] == Command(None, X,
             qubits=([WeakQubitRef(engine=None,
                                   idx=mapper.current_mapping[qb0.id])],),
             controls=[WeakQubitRef(engine=None,
                                    idx=mapper.current_mapping[qb2.id])]))
-    assert mapper.num_mappings == 2
-    assert mapper.depth_of_swaps == {0: 1, 1: 1}
-    assert mapper.num_of_swaps_per_mapping == {0: 1, 1: 1}
+    assert mapper.num_mappings == 1
 
 
 def test_run_infinite_loop_detection():
@@ -644,3 +633,83 @@ def test_run_infinite_loop_detection():
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb2],))
     with pytest.raises(RuntimeError):
         mapper.receive([cmd0, cmd1, cmd2, cmd_flush])
+
+
+def test_logical_id_tags_allocate_and_deallocate():
+    mapper = lm.LinearMapper(num_qubits=4, cyclic=False)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1],))
+    cmd2 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd3 = Command(engine=None, gate=Deallocate, qubits=([qb0],))
+    cmd4 = Command(engine=None, gate=Deallocate, qubits=([qb1],))
+    mapper.current_mapping = {0: 0, 1: 3}
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
+    mapper.receive([cmd0, cmd1, cmd2, cmd_flush])
+    assert backend.received_commands[0].gate == Allocate
+    assert backend.received_commands[0].qubits[0][0].id == 0
+    assert backend.received_commands[0].tags == [LogicalQubitIDTag(0)]
+    assert backend.received_commands[1].gate == Allocate
+    assert backend.received_commands[1].qubits[0][0].id == 3
+    assert backend.received_commands[1].tags == [LogicalQubitIDTag(1)]
+    for cmd in backend.received_commands[2:]:
+        if cmd.gate == Allocate:
+            assert cmd.tags == []
+        elif cmd.gate == Deallocate:
+            assert cmd.tags == []
+    mapped_id_for_0 = mapper.current_mapping[0]
+    mapped_id_for_1 = mapper.current_mapping[1]
+    mapper.receive([cmd3, cmd4, cmd_flush])
+    assert backend.received_commands[-3].gate == Deallocate
+    assert backend.received_commands[-3].qubits[0][0].id == mapped_id_for_0
+    assert backend.received_commands[-3].tags == [LogicalQubitIDTag(0)]
+    assert backend.received_commands[-2].gate == Deallocate
+    assert backend.received_commands[-2].qubits[0][0].id == mapped_id_for_1
+    assert backend.received_commands[-2].tags == [LogicalQubitIDTag(1)]
+
+
+def test_send_possible_cmds_before_new_mapping():
+    mapper = lm.LinearMapper(num_qubits=3, cyclic=False)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+
+    def dont_call_mapping(): raise Exception
+
+    mapper._return_new_mapping = dont_call_mapping
+    mapper.current_mapping = {0: 1}
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    qb2 = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb2],))
+    mapper.receive([cmd0, cmd_flush])
+
+
+def test_correct_stats():
+    # Should test stats for twice same mapping but depends on heuristic
+    mapper = lm.LinearMapper(num_qubits=3, cyclic=False)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],))
+    cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1],))
+    cmd2 = Command(engine=None, gate=Allocate, qubits=([qb2],))
+    cmd3 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd4 = Command(None, X, qubits=([qb1],), controls=[qb2])
+    cmd5 = Command(None, X, qubits=([qb0],), controls=[qb2])
+    cmd6 = Command(None, X, qubits=([qb2],), controls=[qb1])
+    cmd7 = Command(None, X, qubits=([qb0],), controls=[qb1])
+    cmd8 = Command(None, X, qubits=([qb1],), controls=[qb2])
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush],))
+    mapper.receive([cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8,
+                    cmd_flush])
+    assert mapper.num_mappings == 2

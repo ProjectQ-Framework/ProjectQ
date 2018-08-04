@@ -31,16 +31,17 @@ import networkx as nx
 
 from projectq.cengines import (BasicMapperEngine, LinearMapper,
                                return_swap_depth)
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
 
 
-class SquareGridMapper(BasicMapperEngine):
+class GridMapper(BasicMapperEngine):
     """
-    Mapper to a 2-D square grid graph.
+    Mapper to a 2-D grid graph.
 
-    Physical qubits on the grid are numbered in row-major order. E.g. for
+    Mapped qubits on the grid are numbered in row-major order. E.g. for
     3 rows and 2 columns:
 
     0 - 1
@@ -49,14 +50,18 @@ class SquareGridMapper(BasicMapperEngine):
     |   |
     4 - 5
 
-    The numbers are the mapped qubit ids.
+    The numbers are the mapped qubit ids. The backend might number
+    the qubits on the grid differently (e.g. not row-major), we call these
+    backend qubit ids. If the backend qubit ids are not row-major, one can
+    pass a dictionary translating from our row-major mapped ids to these
+    backend ids.
 
     Note: The algorithm sorts twice inside each column and once inside each
           row.
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
-                          is mapped qubit id from 0,...,self.num_qubits
+                          is backend qubit id.
         storage(int): Number of gate it caches before mapping.
         num_rows(int): Number of rows in the grid
         num_columns(int): Number of columns in the grid
@@ -70,15 +75,25 @@ class SquareGridMapper(BasicMapperEngine):
                                          mappings which have been applied
 
     """
-    def __init__(self, num_rows, num_columns, storage=1000,
+    def __init__(self, num_rows, num_columns, mapped_ids_to_backend_ids=None,
+                 storage=1000,
                  optimization_function=lambda x: return_swap_depth(x),
                  num_optimization_steps=50):
         """
-        Initialize an linear chain mapper compiler engine.
+        Initialize a GridMapper compiler engine.
 
         Args:
             num_rows(int): Number of rows in the grid
             num_columns(int): Number of columns in the grid.
+            mapped_ids_to_backend_ids(dict): Stores a mapping from mapped ids
+                                             which are 0,...,self.num_qubits-1
+                                             in row-major order on the grid to
+                                             the corresponding qubit ids of the
+                                             backend. Key: mapped id. Value:
+                                             corresponding backend id.
+                                             Default is None which means
+                                             backend ids are identical to
+                                             mapped ids.
             storage: Number of gates to temporarily store
             optimization_function: Function which takes a list of swaps and
                                    returns a cost value. Mapper chooses a
@@ -87,11 +102,32 @@ class SquareGridMapper(BasicMapperEngine):
             num_optimization_steps(int): Number of different permutations to
                                          of the matching to try and minimize
                                          the cost.
+        Raises:
+            RuntimeError: if incorrect `mapped_ids_to_backend_ids` parameter
         """
         BasicMapperEngine.__init__(self)
         self.num_rows = num_rows
         self.num_columns = num_columns
         self.num_qubits = num_rows * num_columns
+        # Internally we use the mapped ids until sending a command.
+        # Before sending we use this map to translate to backend ids:
+        self._mapped_ids_to_backend_ids = mapped_ids_to_backend_ids
+        if self._mapped_ids_to_backend_ids is None:
+            self._mapped_ids_to_backend_ids = dict()
+            for i in range(self.num_qubits):
+                self._mapped_ids_to_backend_ids[i] = i
+        if (not (set(self._mapped_ids_to_backend_ids.keys()) ==
+                 set(list(range(self.num_qubits)))) or not (
+                 len(set(self._mapped_ids_to_backend_ids.values())) ==
+                 self.num_qubits)):
+            raise RuntimeError("Incorrect mapped_ids_to_backend_ids parameter")
+        self._backend_ids_to_mapped_ids = dict()
+        for mapped_id, backend_id in self._mapped_ids_to_backend_ids.items():
+            self._backend_ids_to_mapped_ids[backend_id] = mapped_id
+        # As we use internally the mapped ids which are in row-major order,
+        # we have an internal current mapping which maps from logical ids to
+        # these mapped ids:
+        self._current_row_major_mapping = deepcopy(self.current_mapping)
         self.storage = storage
         self.optimization_function = optimization_function
         self.num_optimization_steps = num_optimization_steps
@@ -107,6 +143,8 @@ class SquareGridMapper(BasicMapperEngine):
         # deallocated:
         self._currently_allocated_ids = set()
         # Change between 2D and 1D mappings (2D is a snake like 1D chain)
+        # Note it translates to our mapped ids in row major order and not
+        # backend ids which might be different.
         self._map_2d_to_1d = dict()
         self._map_1d_to_2d = dict()
         for row_index in range(self.num_rows):
@@ -125,6 +163,21 @@ class SquareGridMapper(BasicMapperEngine):
         self.num_mappings = 0
         self.depth_of_swaps = dict()
         self.num_of_swaps_per_mapping = dict()
+
+    @property
+    def current_mapping(self):
+        return deepcopy(self._current_mapping)
+
+    @current_mapping.setter
+    def current_mapping(self, current_mapping):
+        self._current_mapping = current_mapping
+        if current_mapping is None:
+            self._current_row_major_mapping = None
+        else:
+            self._current_row_major_mapping = dict()
+            for logical_id, backend_id in current_mapping.items():
+                self._current_row_major_mapping[logical_id] = (
+                    self._backend_ids_to_mapped_ids[backend_id])
 
     def is_available(self, cmd):
         """
@@ -151,15 +204,16 @@ class SquareGridMapper(BasicMapperEngine):
         square grid.
 
         Returns: A new mapping as a dict. key is logical qubit id,
-                 value is placement id
+                 value is mapped id
         """
         # Change old mapping to 1D in order to use LinearChain heuristic
-        if self.current_mapping:
+        if self._current_row_major_mapping:
             old_mapping_1d = dict()
-            for logical_id, mapped_id in self.current_mapping.items():
+            for logical_id, mapped_id in (
+                    self._current_row_major_mapping.items()):
                 old_mapping_1d[logical_id] = self._map_2d_to_1d[mapped_id]
         else:
-            old_mapping_1d = self.current_mapping
+            old_mapping_1d = self._current_row_major_mapping
 
         new_mapping_1d = LinearMapper.return_new_mapping(
             num_qubits=self.num_qubits,
@@ -379,10 +433,11 @@ class SquareGridMapper(BasicMapperEngine):
         """
         Sends the stored commands possible without changing the mapping.
 
-        Note: self.current_mapping must exist already
+        Note: self._current_row_major_mapping (hence also self.current_mapping)
+              must exist already
         """
         active_ids = deepcopy(self._currently_allocated_ids)
-        for logical_id in self.current_mapping:
+        for logical_id in self._current_row_major_mapping:
             # So that loop doesn't stop before AllocateGate applied
             active_ids.add(logical_id)
 
@@ -393,17 +448,39 @@ class SquareGridMapper(BasicMapperEngine):
                 new_stored_commands += self._stored_commands[i:]
                 break
             if isinstance(cmd.gate, AllocateQubitGate):
-                if cmd.qubits[0][0].id in self.current_mapping:
+                if cmd.qubits[0][0].id in self._current_row_major_mapping:
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
-                    # Note: Allocate gates get send everytime by self._run()
+
+                    mapped_id = self._current_row_major_mapping[
+                        cmd.qubits[0][0].id]
+                    qb = WeakQubitRef(
+                        engine=self,
+                        idx=self._mapped_ids_to_backend_ids[mapped_id])
+                    new_cmd = Command(
+                        engine=self,
+                        gate=AllocateQubitGate(),
+                        qubits=([qb],),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                    self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 if cmd.qubits[0][0].id in active_ids:
-                    # Note: Deallocate gates get send everytime by self._run()
+                    mapped_id = self._current_row_major_mapping[
+                        cmd.qubits[0][0].id]
+                    qb = WeakQubitRef(
+                        engine=self,
+                        idx=self._mapped_ids_to_backend_ids[mapped_id])
+                    new_cmd = Command(
+                        engine=self,
+                        gate=DeallocateQubitGate(),
+                        qubits=([qb],),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
-                    self.current_mapping.pop(cmd.qubits[0][0].id)
+                    self._current_row_major_mapping.pop(cmd.qubits[0][0].id)
+                    self._current_mapping.pop(cmd.qubits[0][0].id)
+                    self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             else:
@@ -414,7 +491,8 @@ class SquareGridMapper(BasicMapperEngine):
                         if qubit.id not in active_ids:
                             send_gate = False
                             break
-                        mapped_ids.add(self.current_mapping[qubit.id])
+                        mapped_ids.add(
+                            self._current_row_major_mapping[qubit.id])
                 # Check that mapped ids are nearest neighbour on 2D grid
                 if len(mapped_ids) == 2:
                     qb0, qb1 = sorted(list(mapped_ids))
@@ -424,6 +502,10 @@ class SquareGridMapper(BasicMapperEngine):
                     elif qb1 - qb0 == 1 and qb1 % self.num_columns != 0:
                         send_gate = True
                 if send_gate:
+                    # Note: This sends the cmd correctly with the backend ids
+                    #       as it looks up the mapping in self.current_mapping
+                    #       and not our internal mapping
+                    #       self._current_row_major_mapping
                     self._send_cmd_with_mapped_ids(cmd)
                 else:
                     for qureg in cmd.all_qubits:
@@ -445,19 +527,11 @@ class SquareGridMapper(BasicMapperEngine):
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
             self.current_mapping = dict()
-        new_mapping = self._return_new_mapping()
-        # Allocate all mapped qubit ids
-        mapped_ids_used = set()
-        for logical_id in self._currently_allocated_ids:
-            mapped_ids_used.add(self.current_mapping[logical_id])
-        not_allocated_ids = set(range(self.num_qubits)).difference(
-            mapped_ids_used)
-        for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=mapped_id)
-            cmd = Command(engine=self, gate=AllocateQubitGate(),
-                          qubits=([qb],))
-            self.send([cmd])
-
+        else:
+            self._send_possible_commands()
+            if len(self._stored_commands) == 0:
+                return
+        new_row_major_mapping = self._return_new_mapping()
         # Find permutation of matchings with lowest cost
         swaps = None
         lowest_cost = None
@@ -471,47 +545,76 @@ class SquareGridMapper(BasicMapperEngine):
                 permutations.append(self._rng.sample(matchings_numbers,
                                                      self.num_rows))
         for permutation in permutations:
-            trial_swaps = self.return_swaps(old_mapping=self.current_mapping,
-                                            new_mapping=new_mapping,
-                                            permutation=permutation)
+            trial_swaps = self.return_swaps(
+                old_mapping=self._current_row_major_mapping,
+                new_mapping=new_row_major_mapping,
+                permutation=permutation)
             if swaps is None:
                 swaps = trial_swaps
                 lowest_cost = self.optimization_function(trial_swaps)
             elif lowest_cost > self.optimization_function(trial_swaps):
                 swaps = trial_swaps
                 lowest_cost = self.optimization_function(trial_swaps)
-        # Send swap operations to arrive at new_mapping:
-        for qubit_id0, qubit_id1 in swaps:
-            q0 = WeakQubitRef(engine=self, idx=qubit_id0)
-            q1 = WeakQubitRef(engine=self, idx=qubit_id1)
-            cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
-            self.send([cmd])
-        # Register statistics:
-        self.num_mappings += 1
-        depth = return_swap_depth(swaps)
-        if depth not in self.depth_of_swaps:
-            self.depth_of_swaps[depth] = 1
-        else:
-            self.depth_of_swaps[depth] += 1
-        if len(swaps) not in self.num_of_swaps_per_mapping:
-            self.num_of_swaps_per_mapping[len(swaps)] = 1
-        else:
-            self.num_of_swaps_per_mapping[len(swaps)] += 1
+        if swaps:  # first mapping requires no swaps
+            # Allocate all mapped qubit ids (which are not already allocated,
+            # i.e., contained in self._currently_allocated_ids)
+            mapped_ids_used = set()
+            for logical_id in self._currently_allocated_ids:
+                mapped_ids_used.add(
+                    self._current_row_major_mapping[logical_id])
+            not_allocated_ids = set(range(self.num_qubits)).difference(
+                mapped_ids_used)
+            for mapped_id in not_allocated_ids:
+                qb = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[mapped_id])
+                cmd = Command(engine=self, gate=AllocateQubitGate(),
+                              qubits=([qb],))
+                self.send([cmd])
+            # Send swap operations to arrive at new_mapping:
+            for qubit_id0, qubit_id1 in swaps:
+                q0 = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[qubit_id0])
+                q1 = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[qubit_id1])
+                cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
+                self.send([cmd])
+            # Register statistics:
+            self.num_mappings += 1
+            depth = return_swap_depth(swaps)
+            if depth not in self.depth_of_swaps:
+                self.depth_of_swaps[depth] = 1
+            else:
+                self.depth_of_swaps[depth] += 1
+            if len(swaps) not in self.num_of_swaps_per_mapping:
+                self.num_of_swaps_per_mapping[len(swaps)] = 1
+            else:
+                self.num_of_swaps_per_mapping[len(swaps)] += 1
+            # Deallocate all previously mapped ids which we only needed for the
+            # swaps:
+            mapped_ids_used = set()
+            for logical_id in self._currently_allocated_ids:
+                mapped_ids_used.add(new_row_major_mapping[logical_id])
+            not_needed_anymore = set(range(self.num_qubits)).difference(
+                mapped_ids_used)
+            for mapped_id in not_needed_anymore:
+                qb = WeakQubitRef(
+                    engine=self,
+                    idx=self._mapped_ids_to_backend_ids[mapped_id])
+                cmd = Command(engine=self, gate=DeallocateQubitGate(),
+                              qubits=([qb],))
+                self.send([cmd])
         # Change to new map:
+        self._current_row_major_mapping = new_row_major_mapping
+        new_mapping = dict()
+        for logical_id, mapped_id in new_row_major_mapping.items():
+            new_mapping[logical_id] = (
+                self._mapped_ids_to_backend_ids[mapped_id])
         self.current_mapping = new_mapping
         # Send possible gates:
         self._send_possible_commands()
-        # Deallocate all mapped qubit ids not used for storing information:
-        mapped_ids_used = set()
-        for logical_id in self._currently_allocated_ids:
-            mapped_ids_used.add(self.current_mapping[logical_id])
-        not_allocated_ids = set(range(self.num_qubits)).difference(
-            mapped_ids_used)
-        for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=mapped_id)
-            cmd = Command(engine=self, gate=DeallocateQubitGate(),
-                          qubits=([qb],))
-            self.send([cmd])
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
             raise RuntimeError("Mapper is potentially in an infinite loop. " +

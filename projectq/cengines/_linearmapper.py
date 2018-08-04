@@ -27,7 +27,7 @@ from collections import deque
 from copy import deepcopy
 
 from projectq.cengines import BasicMapperEngine
-from projectq.meta import LogicalQubitIDTag, QubitPlacementTag
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, AllocateQubitGate, Deallocate,
                           DeallocateQubitGate, Command, FlushGate,
                           MeasureGate, Swap)
@@ -59,9 +59,9 @@ def return_swap_depth(swaps):
 
 class LinearMapper(BasicMapperEngine):
     """
-    Maps a quantum circuit to a 1-D chain of nearest neighbour interactions.
+    Maps a quantum circuit to a linear chain of nearest neighbour interactions.
 
-    Maps a quantum circuit to a 1-D chain of qubits with nearest neighbour
+    Maps a quantum circuit to a linear chain of qubits with nearest neighbour
     interactions using Swap gates. It supports open or cyclic boundary
     conditions.
 
@@ -82,16 +82,15 @@ class LinearMapper(BasicMapperEngine):
         1) Gates are cached and only mapped from time to time. A
            FastForwarding gate doesn't empty the cache, only a FlushGate does.
         2) Only 1 and two qubit gates allowed.
-        3) No previous QubitPlacementTag allowed.
-        4) Does not optimize for dirty qubits.
+        3) Does not optimize for dirty qubits.
     """
 
     def __init__(self, num_qubits, cyclic=False, storage=1000):
         """
-        Initialize an linear chain mapper compiler engine.
+        Initialize a LinearMapper compiler engine.
 
         Args:
-            num_qubits(int): Number of physical qubits in chain
+            num_qubits(int): Number of physical qubits in the linear chain
             cyclic(bool): If 1D chain is a cycle. Default is False.
             storage(int): Number of gates to temporarily store, default is 1000
         """
@@ -135,7 +134,7 @@ class LinearMapper(BasicMapperEngine):
 
         Args:
             num_qubits(int): Total number of qubits in the linear chain
-            cyclic(bool): If 1D chain is a cycle.
+            cyclic(bool): If linear chain is a cycle.
             currently_allocated_ids(set of int): Logical qubit ids for which
                                                  the Allocate gate has already
                                                  been processed and sent to
@@ -155,7 +154,7 @@ class LinearMapper(BasicMapperEngine):
                  value is placement id
         """
         # allocated_qubits is used as this mapper currently does not reassign
-        # a QubitPlacement to a new qubit if the previous qubit at that
+        # a qubit placement to a new qubit if the previous qubit at that
         # location has been deallocated. This is done after the next swaps.
         allocated_qubits = deepcopy(currently_allocated_ids)
         active_qubits = deepcopy(currently_allocated_ids)
@@ -188,10 +187,6 @@ class LinearMapper(BasicMapperEngine):
                     allocated_qubits.add(qubit_id)
                     active_qubits.add(qubit_id)
                     neighbour_ids[qubit_id] = set()
-                for tag in cmd.tags:
-                    if isinstance(tag, QubitPlacementTag):
-                        raise Exception("This mapper does not support "
-                                        "previous QubitPlacementTags")
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id
@@ -232,7 +227,7 @@ class LinearMapper(BasicMapperEngine):
 
         Args:
             num_qubits (int): Total number of qubits in the chain
-            cyclic (bool): If 1D chain is a cycle
+            cyclic (bool): If linear chain is a cycle
             qubit0 (int): qubit.id of one of the qubits
             qubit1 (int): qubit.id of the other qubit
             active_qubits (set): contains all qubit ids which for which gates
@@ -347,7 +342,7 @@ class LinearMapper(BasicMapperEngine):
         groups without interactions between the groups.
 
         Args:
-            num_qubits (int): Total number of qubits in the chain
+            num_qubits (int): Total number of qubits in the linear chain
             segments: List of segments. A segment is a list of qubit ids which
                       should be nearest neighbour in the new map.
                       Individual qubits are in allocated_qubits but not in
@@ -494,15 +489,31 @@ class LinearMapper(BasicMapperEngine):
             if isinstance(cmd.gate, AllocateQubitGate):
                 if cmd.qubits[0][0].id in self.current_mapping:
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
-                    # Note: Allocate gates get send everytime by self._run()
+                    qb = WeakQubitRef(
+                        engine=self,
+                        idx=self.current_mapping[cmd.qubits[0][0].id])
+                    new_cmd = Command(
+                        engine=self,
+                        gate=AllocateQubitGate(),
+                        qubits=([qb],),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                    self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 if cmd.qubits[0][0].id in active_ids:
-                    # Note: Deallocate gates get send everytime by self._run()
+                    qb = WeakQubitRef(
+                        engine=self,
+                        idx=self.current_mapping[cmd.qubits[0][0].id])
+                    new_cmd = Command(
+                        engine=self,
+                        gate=DeallocateQubitGate(),
+                        qubits=([qb],),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
-                    self.current_mapping.pop(cmd.qubits[0][0].id)
+                    self._current_mapping.pop(cmd.qubits[0][0].id)
+                    self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             else:
@@ -546,55 +557,62 @@ class LinearMapper(BasicMapperEngine):
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
             self.current_mapping = dict()
+        else:
+            self._send_possible_commands()
+            if len(self._stored_commands) == 0:
+                return
         new_mapping = self.return_new_mapping(self.num_qubits,
                                               self.cyclic,
                                               self._currently_allocated_ids,
                                               self._stored_commands,
                                               self.current_mapping)
-        # Allocate all mapped qubit ids
-        mapped_ids_used = set()
-        for logical_id in self._currently_allocated_ids:
-            mapped_ids_used.add(self.current_mapping[logical_id])
-        not_allocated_ids = set(range(self.num_qubits)).difference(
-            mapped_ids_used)
-        for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=mapped_id)
-            cmd = Command(engine=self, gate=Allocate, qubits=([qb],))
-            self.send([cmd])
-        # Send swap operations to arrive at new_mapping:
         swaps = self._odd_even_transposition_sort_swaps(
-            old_mapping=self.current_mapping, new_mapping=new_mapping)
-        for qubit_id0, qubit_id1 in swaps:
-            q0 = WeakQubitRef(engine=self, idx=qubit_id0)
-            q1 = WeakQubitRef(engine=self, idx=qubit_id1)
-            cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
-            self.send([cmd])
-        # Register statistics:
-        self.num_mappings += 1
-        depth = return_swap_depth(swaps)
-        if depth not in self.depth_of_swaps:
-            self.depth_of_swaps[depth] = 1
-        else:
-            self.depth_of_swaps[depth] += 1
-        if len(swaps) not in self.num_of_swaps_per_mapping:
-            self.num_of_swaps_per_mapping[len(swaps)] = 1
-        else:
-            self.num_of_swaps_per_mapping[len(swaps)] += 1
+                old_mapping=self.current_mapping, new_mapping=new_mapping)
+        if swaps:  # first mapping requires no swaps
+            # Allocate all mapped qubit ids (which are not already allocated,
+            # i.e., contained in self._currently_allocated_ids)
+            mapped_ids_used = set()
+            for logical_id in self._currently_allocated_ids:
+                mapped_ids_used.add(self.current_mapping[logical_id])
+            not_allocated_ids = set(range(self.num_qubits)).difference(
+                mapped_ids_used)
+            for mapped_id in not_allocated_ids:
+                qb = WeakQubitRef(engine=self, idx=mapped_id)
+                cmd = Command(engine=self, gate=Allocate, qubits=([qb],))
+                self.send([cmd])
+            # Send swap operations to arrive at new_mapping:
+            for qubit_id0, qubit_id1 in swaps:
+                q0 = WeakQubitRef(engine=self, idx=qubit_id0)
+                q1 = WeakQubitRef(engine=self, idx=qubit_id1)
+                cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
+                self.send([cmd])
+            # Register statistics:
+            self.num_mappings += 1
+            depth = return_swap_depth(swaps)
+            if depth not in self.depth_of_swaps:
+                self.depth_of_swaps[depth] = 1
+            else:
+                self.depth_of_swaps[depth] += 1
+            if len(swaps) not in self.num_of_swaps_per_mapping:
+                self.num_of_swaps_per_mapping[len(swaps)] = 1
+            else:
+                self.num_of_swaps_per_mapping[len(swaps)] += 1
+            # Deallocate all previously mapped ids which we only needed for the
+            # swaps:
+            mapped_ids_used = set()
+            for logical_id in self._currently_allocated_ids:
+                mapped_ids_used.add(new_mapping[logical_id])
+            not_needed_anymore = set(range(self.num_qubits)).difference(
+                mapped_ids_used)
+            for mapped_id in not_needed_anymore:
+                qb = WeakQubitRef(engine=self, idx=mapped_id)
+                cmd = Command(engine=self, gate=Deallocate,
+                              qubits=([qb],))
+                self.send([cmd])
         # Change to new map:
         self.current_mapping = new_mapping
         # Send possible gates:
         self._send_possible_commands()
-        # Deallocate all mapped qubit ids not used for storing information:
-        mapped_ids_used = set()
-        for logical_id in self._currently_allocated_ids:
-            mapped_ids_used.add(self.current_mapping[logical_id])
-        not_allocated_ids = set(range(self.num_qubits)).difference(
-            mapped_ids_used)
-        for mapped_id in not_allocated_ids:
-            qb = WeakQubitRef(engine=self, idx=mapped_id)
-            cmd = Command(engine=self, gate=Deallocate,
-                          qubits=([qb],))
-            self.send([cmd])
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
             raise RuntimeError("Mapper is potentially in an infinite loop. "
