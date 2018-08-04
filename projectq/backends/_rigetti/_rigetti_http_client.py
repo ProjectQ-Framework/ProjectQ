@@ -153,7 +153,6 @@ def _run(runcodes, device, user_id, api_key, shots):
                         "machine": "QVM",
                         "program": {
                             "type": "multishot-measure",
-                            # "qubits": list(range(0, max_register + 1)),
                             "qubits": list(range(0, max_register + 1)),
                             "trials": runcodes["shots"],
                             "compiled-quil": internal_code + "\n"

@@ -157,19 +157,20 @@ class RigettiBackend(BasicEngine):
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
-            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
-                      'Rz': 'u1({})'}
-            gate = u_strs[str(gate)[0:2]].format(gate.angle)
-            self.quil += "\n{} {};".format(gate, qb_pos)
+            sign = ''
+            if gate.angle < 0:
+                sign = '-'
+            gate = str("{}({}pi/{})").format(str(gate)[0:2].upper(), sign, 1 / abs(gate.angle))
+            self.quil += "\n{} {}".format(gate, qb_pos)
         else:
             assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:
                 gate_str = self._gate_names[str(gate)]
             else:
-                gate_str = str(gate).lower()
+                gate_str = str(gate).upper()
 
             qb_pos = cmd.qubits[0][0].id
-            self.quil += "\n{} {}".format(gate_str.upper(), qb_pos)
+            self.quil += "\n{} {}".format(gate_str, qb_pos)
 
     def _logical_to_physical(self, qb_id):
         """
