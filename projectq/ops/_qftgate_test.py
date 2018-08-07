@@ -23,4 +23,4 @@ def test_qft_gate_str():
 
 
 def test_qft_equality():
-	assert _qftgate.QFT == _qftgate.QFTGate()
+    assert _qftgate.QFT == _qftgate.QFTGate()
