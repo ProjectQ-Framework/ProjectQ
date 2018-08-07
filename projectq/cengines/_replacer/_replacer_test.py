@@ -178,8 +178,6 @@ def test_auto_replacer_use_inverse_decomposition():
     qb = eng.allocate_qubit()
     MagicGate() | qb
     eng.flush()
-    for cmd in backend.received_commands:
-        print(cmd)
     assert len(backend.received_commands) == 4
     assert backend.received_commands[1].gate == H
     assert backend.received_commands[2].gate == Rx(-0.6)

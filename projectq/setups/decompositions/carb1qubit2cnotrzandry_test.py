@@ -58,8 +58,8 @@ def test_recognize_incorrect_gates():
         BasicGate() | qubit
         # Two qubit gate:
         two_qubit_gate = BasicGate()
-        two_qubit_gate.matrix = [[1, 0, 0, 0], [0, 1, 0, 0],
-                                 [0, 0, 1, 0], [0, 0, 0, 1]]
+        two_qubit_gate.matrix = np.matrix([[1, 0, 0, 0], [0, 1, 0, 0],
+                                           [0, 0, 1, 0], [0, 0, 0, 1]])
         two_qubit_gate | qubit
     with Control(eng, ctrl_qureg):
         # Too many Control qubits:
