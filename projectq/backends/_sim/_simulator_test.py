@@ -147,15 +147,15 @@ def test_simulator_is_available(sim):
 
     new_cmd.gate = Mock1QubitGate()
     assert sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 1
+    assert new_cmd.gate.cnt == 4
 
     new_cmd.gate = Mock6QubitGate()
     assert not sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 1
+    assert new_cmd.gate.cnt == 4
 
     new_cmd.gate = MockNoMatrixGate()
     assert not sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 1
+    assert new_cmd.gate.cnt == 7
 
 
 def test_simulator_cheat(sim):
