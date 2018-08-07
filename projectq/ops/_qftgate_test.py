@@ -20,3 +20,7 @@ from projectq.ops import _qftgate
 def test_qft_gate_str():
     gate = _qftgate.QFT
     assert str(gate) == "QFT"
+
+
+def test_qft_equality():
+	assert _qftgate.QFT == _qftgate.QFTGate()
