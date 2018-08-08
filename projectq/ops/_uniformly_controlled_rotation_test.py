@@ -21,7 +21,7 @@ import pytest
 from projectq.ops import Rx
 from ._basics import NotMergeable
 
-import _uniformly_controlled_rotation as ucr
+from projectq.ops import _uniformly_controlled_rotation as ucr
 
 
 @pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy,
