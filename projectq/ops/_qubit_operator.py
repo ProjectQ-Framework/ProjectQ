@@ -396,7 +396,7 @@ class QubitOperator(object):
                     if abs(addend.terms[term] + self.terms[term]) > 0.:
                         self.terms[term] += addend.terms[term]
                     else:
-                        del self.terms[term]
+                        self.terms.pop(term)
                 else:
                     self.terms[term] = addend.terms[term]
         else:
@@ -425,7 +425,7 @@ class QubitOperator(object):
                     if abs(self.terms[term] - subtrahend.terms[term]) > 0.:
                         self.terms[term] -= subtrahend.terms[term]
                     else:
-                        del self.terms[term]
+                        self.terms.pop(term)
                 else:
                     self.terms[term] = -subtrahend.terms[term]
         else:
