@@ -21,7 +21,7 @@ class UniformlyControlledRy(BasicGate):
     """
     Uniformly controlled Ry gate as introduced in arXiv:quant-ph/0312218.
 
-    This is an n-gate. There are n-1 control qubits and one target qubit.
+    This is an n-qubit gate. There are n-1 control qubits and one target qubit.
     This gate applies Ry(angles(k)) to the target qubit if the n-1 control
     qubits are in the classical state k. As there are 2^(n-1) classical
     states for the control qubits, this gate requires 2^(n-1) (potentially
@@ -35,12 +35,12 @@ class UniformlyControlledRy(BasicGate):
         UniformlyControlledRy(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
 
     Note:
-        The first quantum register are the control qubits. When converting
+        The first quantum register contains the control qubits. When converting
         the classical state k of the control qubits to an integer, we define
         controls[0] to be the least significant (qu)bit.
 
     Args:
-        angles(list of float): Rotation angles. angles[k] is applied
+        angles(list[float]): Rotation angles. Ry(angles[k]) is applied
                                conditioned on the control qubits being in state
                                k.
     """
@@ -85,7 +85,7 @@ class UniformlyControlledRz(BasicGate):
     """
     Uniformly controlled Rz gate as introduced in arXiv:quant-ph/0312218.
 
-    This is an n-gate. There are n-1 control qubits and one target qubit.
+    This is an n-qubit gate. There are n-1 control qubits and one target qubit.
     This gate applies Rz(angles(k)) to the target qubit if the n-1 control
     qubits are in the classical state k. As there are 2^(n-1) classical
     states for the control qubits, this gate requires 2^(n-1) (potentially
@@ -99,14 +99,14 @@ class UniformlyControlledRz(BasicGate):
         UniformlyControlledRz(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
 
     Note:
-        The first quantum register are the control qubits. When converting
+        The first quantum register are the contains qubits. When converting
         the classical state k of the control qubits to an integer, we define
         controls[0] to be the least significant (qu)bit.
 
     Args:
-        angles(list of float): Rotation angles. angles[k] is applied
-                               conditioned on the control qubits being in state
-                               k.
+        angles(list[float]): Rotation angles. Rz(angles[k]) is applied
+                             conditioned on the control qubits being in state
+                             k.
     """
     def __init__(self, angles):
         BasicGate.__init__(self)
