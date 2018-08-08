@@ -41,8 +41,8 @@ class UniformlyControlledRy(BasicGate):
 
     Args:
         angles(list[float]): Rotation angles. Ry(angles[k]) is applied
-                               conditioned on the control qubits being in state
-                               k.
+                             conditioned on the control qubits being in state
+                             k.
     """
     def __init__(self, angles):
         BasicGate.__init__(self)
