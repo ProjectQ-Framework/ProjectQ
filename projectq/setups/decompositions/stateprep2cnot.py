@@ -35,7 +35,7 @@ def _decompose_state_preparation(cmd):
     qureg = cmd.qubits[0]
     final_state = cmd.gate.final_state
     if len(final_state) != 2**num_qubits:
-        raise ValueError("final_state has wrong length.")
+        raise ValueError("Length of final_state is invalid.")
     with Control(eng, cmd.control_qubits):
         # As in the paper reference, we implement the inverse:
         with Dagger(eng):

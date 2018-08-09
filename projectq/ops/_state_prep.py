@@ -32,7 +32,7 @@ class StatePreparation(BasicGate):
         Note:
             The amplitude of state k is final_state[k]. When the state k is
             written in binary notation, then qureg[0] denotes the qubit
-            whose state is corresponding to the lowest order bit of k.
+            whose state corresponds to the least significant bit of k.
 
         Args:
             final_state(list[complex]): wavefunction of the desired
