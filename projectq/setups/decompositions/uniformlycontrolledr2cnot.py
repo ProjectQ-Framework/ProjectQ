@@ -26,7 +26,9 @@ from projectq.ops import (CNOT, Ry, Rz,
 def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class,
                  rightmost_cnot):
     if len(ucontrol_qubits) == 0:
-        gate_class(angles[0]) | target_qubit
+        gate = gate_class(angles[0])
+        if gate != gate_class(0):
+            gate | target_qubit
     else:
         if rightmost_cnot[len(ucontrol_qubits)]:
             angles1 = []
