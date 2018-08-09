@@ -32,14 +32,15 @@ import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 def test_wrong_final_state():
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
-    cmd = Command(None, StatePreparation([0,1j]), qubits=([qb0, qb1],))
+    cmd = Command(None, StatePreparation([0, 1j]), qubits=([qb0, qb1],))
     with pytest.raises(ValueError):
         stateprep2cnot._decompose_state_preparation(cmd)
 
 
 @pytest.mark.parametrize("n_qubits", [1, 2, 3, 4])
 def test_state_preparation(n_qubits):
-    engine_list = restrictedgateset.get_engine_list(one_qubit_gates=(Ry,Rz,Ph))
+    engine_list = restrictedgateset.get_engine_list(
+        one_qubit_gates=(Ry, Rz, Ph))
     eng = projectq.MainEngine(engine_list=engine_list)
     qureg = eng.allocate_qureg(n_qubits)
     eng.flush()
