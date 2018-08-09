@@ -35,3 +35,4 @@ from ._shortcuts import *
 from ._time_evolution import TimeEvolution
 from ._uniformly_controlled_rotation import (UniformlyControlledRy,
                                              UniformlyControlledRz)
+from ._state_prep import StatePreparation
