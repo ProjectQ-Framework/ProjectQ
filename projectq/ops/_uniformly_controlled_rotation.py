@@ -37,7 +37,8 @@ class UniformlyControlledRy(BasicGate):
     Note:
         The first quantum register contains the control qubits. When converting
         the classical state k of the control qubits to an integer, we define
-        controls[0] to be the least significant (qu)bit.
+        controls[0] to be the least significant (qu)bit. controls can also
+        be an empty list in which case the gate corresponds to an Ry.
 
     Args:
         angles(list[float]): Rotation angles. Ry(angles[k]) is applied
@@ -101,7 +102,8 @@ class UniformlyControlledRz(BasicGate):
     Note:
         The first quantum register are the contains qubits. When converting
         the classical state k of the control qubits to an integer, we define
-        controls[0] to be the least significant (qu)bit.
+        controls[0] to be the least significant (qu)bit. controls can also
+        be an empty list in which case the gate corresponds to an Rz.
 
     Args:
         angles(list[float]): Rotation angles. Rz(angles[k]) is applied

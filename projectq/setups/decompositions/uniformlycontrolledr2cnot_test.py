@@ -62,9 +62,19 @@ def test_no_control_qubits():
         UniformlyControlledRy([0.1]) | qb
 
 
+def test_wrong_number_of_angles():
+    rule_set = DecompositionRuleSet(modules=[ucr2cnot])
+    eng = MainEngine(backend=DummyEngine(),
+                     engine_list=[AutoReplacer(rule_set),
+                                  InstructionFilter(_decomp_gates)])
+    qb = eng.allocate_qubit()
+    with pytest.raises(ValueError):
+        UniformlyControlledRy([0.1, 0.2]) | ([], qb)
+
+
 @pytest.mark.parametrize("gate_classes", [(Ry, UniformlyControlledRy),
                                           (Rz, UniformlyControlledRz)])
-@pytest.mark.parametrize("n", [1, 2, 3, 4])
+@pytest.mark.parametrize("n", [0, 1, 2, 3, 4])
 def test_uniformly_controlled_ry(n, gate_classes):
     random_angles = [0.5, 0.8, 1.2, 2.5, 4.4, 2.32, 6.6, 15.12, 1, 2, 9.54,
                      2.1, 3.1415, 1.1, 0.01, 0.99]

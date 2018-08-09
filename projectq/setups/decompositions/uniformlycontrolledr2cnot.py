@@ -86,11 +86,15 @@ def _decompose_ucr(cmd, gate_class):
     """
     eng = cmd.engine
     with Control(eng, cmd.control_qubits):
-        if not (len(cmd.qubits) == 2 and len(cmd.qubits[1]) == 1 and
-                len(cmd.qubits[0]) > 0):
+        if not (len(cmd.qubits) == 2 and len(cmd.qubits[1]) == 1):
             raise TypeError("Wrong number of qubits ")
         ucontrol_qubits = cmd.qubits[0]
         target_qubit = cmd.qubits[1]
+        if not len(cmd.gate.angles) == 2**len(ucontrol_qubits):
+            raise ValueError("Wrong len(angles).")
+        if len(ucontrol_qubits) == 0:
+            gate_class(cmd.gate.angles[0]) | target_qubit
+            return
         angles1 = []
         angles2 = []
         for lower_bits in range(2**(len(ucontrol_qubits)-1)):
