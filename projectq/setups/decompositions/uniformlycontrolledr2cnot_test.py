@@ -38,7 +38,7 @@ def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
     for index in range(2**len(control_qubits)):
         with Compute(eng):
             for bit_pos in range(len(control_qubits)):
-                if not (index >> bit_pos)&1:
+                if not (index >> bit_pos) & 1:
                     X | control_qubits[bit_pos]
         with Control(eng, control_qubits):
             gate_class(angles[index]) | target_qubit

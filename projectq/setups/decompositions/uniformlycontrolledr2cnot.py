@@ -23,11 +23,12 @@ from projectq.ops import (CNOT, Ry, Rz,
                           UniformlyControlledRz)
 
 
-def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class):
+def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class,
+                 rightmost_cnot):
     if len(ucontrol_qubits) == 0:
         gate_class(angles[0]) | target_qubit
     else:
-        if _apply_ucr_n.rightmost_cnot[len(ucontrol_qubits)]:
+        if rightmost_cnot[len(ucontrol_qubits)]:
             angles1 = []
             angles2 = []
             for lower_bits in range(2**(len(ucontrol_qubits)-1)):
@@ -47,9 +48,10 @@ def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class):
                      ucontrol_qubits=ucontrol_qubits[:-1],
                      target_qubit=target_qubit,
                      eng=eng,
-                     gate_class=gate_class)
+                     gate_class=gate_class,
+                     rightmost_cnot=rightmost_cnot)
         # Very custom usage of Compute/CustomUncompute in the following.
-        if _apply_ucr_n.rightmost_cnot[len(ucontrol_qubits)]:
+        if rightmost_cnot[len(ucontrol_qubits)]:
             with Compute(eng):
                 CNOT | (ucontrol_qubits[-1], target_qubit)
         else:
@@ -59,10 +61,11 @@ def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class):
                      ucontrol_qubits=ucontrol_qubits[:-1],
                      target_qubit=target_qubit,
                      eng=eng,
-                     gate_class=gate_class)
+                     gate_class=gate_class,
+                     rightmost_cnot=rightmost_cnot)
         # Next iteration on this level do the other cnot placement
-        _apply_ucr_n.rightmost_cnot[len(ucontrol_qubits)] = (
-            not _apply_ucr_n.rightmost_cnot[len(ucontrol_qubits)])
+        rightmost_cnot[len(ucontrol_qubits)] = (
+            not rightmost_cnot[len(ucontrol_qubits)])
 
 
 def _decompose_ucr(cmd, gate_class):
@@ -93,14 +96,15 @@ def _decompose_ucr(cmd, gate_class):
             leading_1 = cmd.gate.angles[lower_bits+2**(len(ucontrol_qubits)-1)]
             angles1.append((leading_0 + leading_1)/2.)
             angles2.append((leading_0 - leading_1)/2.)
-        _apply_ucr_n.rightmost_cnot = {}
+        rightmost_cnot = {}
         for i in range(len(ucontrol_qubits) + 1):
-            _apply_ucr_n.rightmost_cnot[i] = True
+            rightmost_cnot[i] = True
         _apply_ucr_n(angles=angles1,
                      ucontrol_qubits=ucontrol_qubits[:-1],
                      target_qubit=target_qubit,
                      eng=eng,
-                     gate_class=gate_class)
+                     gate_class=gate_class,
+                     rightmost_cnot=rightmost_cnot)
         # Very custom usage of Compute/CustomUncompute in the following.
         with Compute(cmd.engine):
             CNOT | (ucontrol_qubits[-1], target_qubit)
@@ -108,7 +112,8 @@ def _decompose_ucr(cmd, gate_class):
                      ucontrol_qubits=ucontrol_qubits[:-1],
                      target_qubit=target_qubit,
                      eng=eng,
-                     gate_class=gate_class)
+                     gate_class=gate_class,
+                     rightmost_cnot=rightmost_cnot)
         with CustomUncompute(eng):
             CNOT | (ucontrol_qubits[-1], target_qubit)
 
