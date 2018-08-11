@@ -25,9 +25,11 @@ from . import (arb1qubit2rzandry,
                r2rzandph,
                rx2rz,
                ry2rz,
+               stateprep2cnot,
                swap2cnot,
                toffoli2cnotandtgate,
-               time_evolution)
+               time_evolution,
+               uniformlycontrolledr2cnot)
 
 all_defined_decomposition_rules = [
     rule
@@ -44,8 +46,10 @@ all_defined_decomposition_rules = [
                    r2rzandph,
                    rx2rz,
                    ry2rz,
+                   stateprep2cnot,
                    swap2cnot,
                    toffoli2cnotandtgate,
-                   time_evolution]
+                   time_evolution,
+                   uniformlycontrolledr2cnot]
     for rule in module.all_defined_decomposition_rules
 ]

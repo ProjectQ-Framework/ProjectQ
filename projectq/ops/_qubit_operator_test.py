@@ -417,6 +417,9 @@ def test_isub_different_term():
     assert len(a.terms) == 2
     assert a.terms[term_a] == pytest.approx(1.0)
     assert a.terms[term_b] == pytest.approx(-1.0)
+    b = qo.QubitOperator(term_a, 1.0)
+    b -= qo.QubitOperator(term_a, 1.0)
+    assert b.terms == {}
 
 
 def test_isub_bad_addend():
