@@ -36,6 +36,11 @@ def _decompose_state_preparation(cmd):
     final_state = cmd.gate.final_state
     if len(final_state) != 2**num_qubits:
         raise ValueError("Length of final_state is invalid.")
+    norm = 0.
+    for amplitude in final_state:
+        norm += abs(amplitude)**2
+    if norm < 1 - 1e-10 or norm > 1 + 1e-10:
+        raise ValueError("final_state is not normalized.")
     with Control(eng, cmd.control_qubits):
         # As in the paper reference, we implement the inverse:
         with Dagger(eng):
