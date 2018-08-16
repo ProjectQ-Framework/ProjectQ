@@ -22,13 +22,14 @@ from projectq.cengines import (InstructionFilter,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
 from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
-                          Measure, X)
+                          Measure, X, H)
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
-                                MultiplyByConstantModN)
+                                MultiplyByConstantModN,
+                                AddQuantum)
 
 
 def init(engine, quint, value):
@@ -58,7 +59,7 @@ def test_adder():
                            InstructionFilter(no_math_emulation)])
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
-
+    
     AddConstant(3) | qureg
 
     assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
@@ -69,9 +70,15 @@ def test_adder():
     # check for overflow -> should be 15+2 = 1 (mod 16)
     AddConstant(15) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+    
+    init(eng, qureg, 1) #reset
+    H | qureg[0]
+    
+    assert 0.7071 == pytest.approx(abs(sim.cheat()[1][1]), abs = 1e-3)
 
     All(Measure) | qureg
-
+    
+    
 
 def test_modadder():
     sim = Simulator()
@@ -111,5 +118,17 @@ def test_modmultiplier():
 
     MultiplyByConstantModN(4, 13) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
-
+    
     All(Measure) | qureg
+
+#def test_quantumadder():
+#    sim = Simulator()
+#    eng = MainEngine(sim, [AutoReplacer(rule_set),
+#                           InstructionFilter(no_math_emulation)])
+#
+#    qureg_a = eng.allocate_qureg(4)
+#    qureg_b = eng.allocate_qureg(4)
+#    c = eng.allocate_qubit()
+#
+#    AddQuantum() | (qureg_a, qureg_b, c)
+#   assert 1. == pytest.

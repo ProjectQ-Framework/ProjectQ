@@ -20,7 +20,7 @@ except ImportError:
 
 from projectq.ops import R, X, Swap, Measure, CNOT, QFT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
+from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN, AddQuantum
 
 
 # Draper's addition by constant https://arxiv.org/abs/quant-ph/0008033
@@ -43,6 +43,9 @@ def add_constant(eng, c, quint):
 
     Uncompute(eng)
 
+def add_quantum(eng, quint_a, quint_b, c):
+    
+    SWAP | (quint_a[0], quint_b[0])
 
 # Modular adder by Beauregard https://arxiv.org/abs/quant-ph/0205095
 def add_constant_modN(eng, c, N, quint):
@@ -103,7 +106,6 @@ def mul_by_constant_modN(eng, c, N, quint_in):
         with Control(eng, quint_in[i]):
             SubConstantModN((cinv << i) % N, N) | quint_out
     del quint_out
-
 
 # calculates the inverse of a modulo N
 def inv_mod_N(a, N):
