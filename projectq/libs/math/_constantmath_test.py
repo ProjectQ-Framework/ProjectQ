@@ -28,10 +28,8 @@ import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
-                                MultiplyByConstantModN,
-                                AddQuantum)
 
-
+                                MultiplyByConstantModN)
 def init(engine, quint, value):
     for i in range(len(quint)):
         if ((value >> i) & 1) == 1:
@@ -121,14 +119,4 @@ def test_modmultiplier():
     
     All(Measure) | qureg
 
-#def test_quantumadder():
-#    sim = Simulator()
-#    eng = MainEngine(sim, [AutoReplacer(rule_set),
-#                           InstructionFilter(no_math_emulation)])
-#
-#    qureg_a = eng.allocate_qureg(4)
-#    qureg_b = eng.allocate_qureg(4)
-#    c = eng.allocate_qubit()
-#
-#    AddQuantum() | (qureg_a, qureg_b, c)
-#   assert 1. == pytest.
+

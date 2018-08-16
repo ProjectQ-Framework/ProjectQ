@@ -43,9 +43,6 @@ def add_constant(eng, c, quint):
 
     Uncompute(eng)
 
-def add_quantum(eng, quint_a, quint_b, c):
-    
-    SWAP | (quint_a[0], quint_b[0])
 
 # Modular adder by Beauregard https://arxiv.org/abs/quant-ph/0205095
 def add_constant_modN(eng, c, N, quint):

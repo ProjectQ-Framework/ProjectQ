@@ -28,8 +28,9 @@ from ._gates import (AddConstant,
                      AddQuantum)
 from ._constantmath import (add_constant,
                             add_constant_modN,
-                            mul_by_constant_modN,
-                            add_quantum)
+                            mul_by_constant_modN)
+
+from ._quantummath import (add_quantum)
 
 
 def _replace_addconstant(cmd):
@@ -63,10 +64,12 @@ def _replace_multiplybyconstantmodN(cmd):
 def _replace_addquantum(cmd):
     
     eng = cmd.engine
-    quint = cmd.qubits[0]
-    
+    quint_a = cmd.qubits[0]
+    quint_b = cmd.qubits[1]
+    c = cmd.qubits[2]
+
     with Control(eng, cmd.control_qubits):
-        add_quantum(eng, quint)
+        add_quantum(eng, quint_a, quint_b, c)
 
 all_defined_decomposition_rules = [
     DecompositionRule(AddConstant, _replace_addconstant),
