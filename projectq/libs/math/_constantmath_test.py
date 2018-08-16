@@ -106,7 +106,7 @@ def test_modmultiplier():
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
-
+    
     MultiplyByConstantModN(3, 7) | qureg
 
     assert 1. == pytest.approx(abs(sim.cheat()[1][5]))

@@ -32,7 +32,9 @@ def add_quantum(eng, quint_a, quint_b, carry):
     for i in range(1,n-1):
         CNOT | (quint_a[i], quint_b[i])
 
-    for j in range(n-1,1):
+    CNOT | (quint_a[n-2], carry)
+
+    for j in range(n-3,0,-1):
         CNOT | (quint_a[j], quint_a[j+1])
 
     for k in range(0,n-2):
@@ -42,7 +44,7 @@ def add_quantum(eng, quint_a, quint_b, carry):
     with Control(eng,[quint_a[n-2], quint_b[n-2]]):
             X | carry
 
-    for l in range(n-1,1):
+    for l in range(n-2,0,-1):
         CNOT | (quint_a[l], quint_b[l])
         with Control(eng,[quint_a[l-1], quint_b[l-1]]):
             X | quint_a[l]
@@ -52,4 +54,4 @@ def add_quantum(eng, quint_a, quint_b, carry):
 
     for n in range(0,n-1):
         CNOT | (quint_a[n],quint_b[n])
-
+    
