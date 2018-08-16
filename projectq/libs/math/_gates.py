@@ -216,3 +216,22 @@ class MultiplyByConstantModN(BasicMathGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+class AddQuantum(BasicMathGate): 
+    def __init__(self):
+        def add(a,b):
+            c = a + b
+            return (a,c)
+        BasicMathGate.__init__(self,add)
+
+    def __str__(self):
+        return "AddQuantum"
+    
+    def __eq__(self, other):
+        return (isinstance(other, AddQuantum))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
