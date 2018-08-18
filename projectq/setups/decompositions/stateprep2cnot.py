@@ -36,6 +36,11 @@ def _decompose_state_preparation(cmd):
     final_state = cmd.gate.final_state
     if len(final_state) != 2**num_qubits:
         raise ValueError("Length of final_state is invalid.")
+    norm = 0.
+    for amplitude in final_state:
+        norm += abs(amplitude)**2
+    if norm < 1 - 1e-10 or norm > 1 + 1e-10:
+        raise ValueError("final_state is not normalized.")
     with Control(eng, cmd.control_qubits):
         # As in the paper reference, we implement the inverse:
         with Dagger(eng):
@@ -66,7 +71,11 @@ def _decompose_state_preparation(cmd):
                 for block in range(2**(len(qureg)-target_qubit-1)):
                     a0 = abs_of_blocks[2*block]
                     a1 = abs_of_blocks[2*block+1]
-                    angles.append(-2. * math.acos(a0/math.sqrt(a0**2 + a1**2)))
+                    if a0 == 0 and a1 == 0:
+                        angles.append(0)
+                    else:
+                        angles.append(
+                            -2. * math.acos(a0 / math.sqrt(a0**2 + a1**2)))
                     abs_of_next_blocks.append(math.sqrt(a0**2 + a1**2))
                 UniformlyControlledRy(angles) | (qureg[(target_qubit+1):],
                                                  qureg[target_qubit])

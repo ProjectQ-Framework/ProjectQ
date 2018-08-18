@@ -49,6 +49,9 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.CZ
 	projectq.ops.Toffoli
 	projectq.ops.TimeEvolution
+	projectq.ops.UniformlyControlledRy
+	projectq.ops.UniformlyControlledRz
+	projectq.ops.StatePreparation
 
 
 Module contents

@@ -35,10 +35,14 @@ def test_wrong_final_state():
     cmd = Command(None, StatePreparation([0, 1j]), qubits=([qb0, qb1],))
     with pytest.raises(ValueError):
         stateprep2cnot._decompose_state_preparation(cmd)
+    cmd2 = Command(None, StatePreparation([0, 0.999j]), qubits=([qb0, qb1],))
+    with pytest.raises(ValueError):
+        stateprep2cnot._decompose_state_preparation(cmd2)
 
 
+@pytest.mark.parametrize("zeros", [True, False])
 @pytest.mark.parametrize("n_qubits", [1, 2, 3, 4])
-def test_state_preparation(n_qubits):
+def test_state_preparation(n_qubits, zeros):
     engine_list = restrictedgateset.get_engine_list(
         one_qubit_gates=(Ry, Rz, Ph))
     eng = projectq.MainEngine(engine_list=engine_list)
@@ -46,6 +50,9 @@ def test_state_preparation(n_qubits):
     eng.flush()
 
     f_state = [0.2+0.1*x*cmath.exp(0.1j+0.2j*x) for x in range(2**n_qubits)]
+    if zeros:
+        for i in range(2**(n_qubits-1)):
+            f_state[i] = 0
     norm = 0
     for amplitude in f_state:
         norm += abs(amplitude)**2
