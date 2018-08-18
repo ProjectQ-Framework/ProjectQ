@@ -108,7 +108,7 @@ def simple_test_X_eigenvectors():
       fasebinlist = [int(q) for q in ancillas]
       fasebin = ''.join(str(j) for j in fasebinlist)
       faseint = int(fasebin,2)
-      phase = faseint / (2 ** (len(ancillas)))
+      phase = faseint / (2. ** (len(ancillas)))
       results = np.append(results,phase)
       All(Measure) | autovector
       eng.flush()
@@ -132,7 +132,7 @@ def test_phaseX_eigenvectors_minus():
       fasebinlist = [int(q) for q in ancillas]
       fasebin = ''.join(str(j) for j in fasebinlist)
       faseint = int(fasebin,2)
-      phase = faseint / (2 ** (len(ancillas)))
+      phase = faseint / (2. ** (len(ancillas)))
       results = np.append(results,phase)
       All(Measure) | autovector
       eng.flush()
@@ -156,7 +156,7 @@ def test_phaseXxX_eigenvectors_minusplus():
       fasebinlist = [int(q) for q in ancillas]
       fasebin = ''.join(str(j) for j in fasebinlist)
       faseint = int(fasebin,2)
-      phase = faseint / (2 ** (len(ancillas)))
+      phase = faseint / (2. ** (len(ancillas)))
       results = np.append(results,phase)
       All(Measure) | autovector
       eng.flush()
@@ -171,8 +171,8 @@ def test_X_no_eigenvectors():
    results_minus = np.array([])
    for i in range(100):
       autovector = eng.allocate_qureg(1)
-      amplitude0 = (np.sqrt(2) + np.sqrt(6))/2.
-      amplitude1 = (np.sqrt(2) - np.sqrt(6))/2.
+      amplitude0 = (np.sqrt(2) + np.sqrt(6))/4.
+      amplitude1 = (np.sqrt(2) - np.sqrt(6))/4.
       StatePreparation([amplitude0, amplitude1]) | autovector
       unit = X
       ancillas = eng.allocate_qureg(1)
@@ -182,7 +182,7 @@ def test_X_no_eigenvectors():
       fasebinlist = [int(q) for q in ancillas]
       fasebin = ''.join(str(j) for j in fasebinlist)
       faseint = int(fasebin,2)
-      phase = faseint / (2 ** (len(ancillas)))
+      phase = faseint / (2. ** (len(ancillas)))
       results = np.append(results,phase)
       Tensor(H) | autovector
       if np.allclose(phase,.0,rtol=1e-1):
@@ -200,7 +200,7 @@ def test_X_no_eigenvectors():
       eng.flush()
 
    total = len(results_plus) + len(results_minus)
-   ratio = len(results_plus)/len(results_minus)
+   ratio = float(len(results_plus))/float(len(results_minus))
    assert total == pytest.approx(100,abs=5)
    assert ratio == pytest.approx(1./3., abs = 1e-1), "Statistical ratio is not correct (%f %d %d)" % (ratio,len(results_plus),len(results_minus))
 
@@ -214,5 +214,3 @@ def test_n_qureg():
       pe.PhaseEstimation(unit) | (ancillas,autovector,autovector)
    with pytest.raises(TypeError):
       pe.PhaseEstimation(unit) | ancillas
-
-
