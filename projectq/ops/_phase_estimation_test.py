@@ -138,7 +138,7 @@ def test_phaseX_eigenvectors_minus():
       eng.flush()
       
    perc_75 = np.percentile(results,75)
-   assert perc_75 == pytest.approx(.65625, abs=1e-2)
+   assert perc_75 == pytest.approx(.65625, abs=1e-2), "Percentile 75 not as expected (%f)" % (perc_75)
 
 def test_phaseXxX_eigenvectors_minusplus():
    eng = MainEngine()
@@ -162,7 +162,7 @@ def test_phaseXxX_eigenvectors_minusplus():
       eng.flush()
       
    perc_75 = np.percentile(results,75)
-   assert perc_75 == pytest.approx(.65625, abs=1e-2)
+   assert perc_75 == pytest.approx(.65625, abs=1e-2), "Percentile 75 not as expected (%f)" % (perc_75)
 
 def test_X_no_eigenvectors():
    eng = MainEngine()
@@ -197,7 +197,6 @@ def test_X_no_eigenvectors():
          assert autovector_result == 1
       else:
          All(Measure) | autovector
-
       eng.flush()
 
    total = len(results_plus) + len(results_minus)
