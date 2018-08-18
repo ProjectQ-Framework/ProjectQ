@@ -46,19 +46,6 @@ class PhaseX(BasicGate):
       return np.matrix([[0,cmath.exp(1j * 2.0 * cmath.pi * theta)],
                         [cmath.exp(1j * 2.0 * cmath.pi * theta),0]])
 
-   def __str__(self):
-      return "PhaseX(theta)"
-
-   def tex_str(self):
-      """
-      Return the Latex string representation of a PhaseX Gate.
-      Returns the class name and the angle as a subscript, i.e.
-      .. code-block:: latex
-         [CLASSNAME]$_[ANGLE]$
-      """
-
-      return str("PhX") + "$_{" + str(self.phase) + "}$"
-
 class PhaseXxX(BasicGate):
    """ 
    A phase gate on X (x) X : PhX(x)X gate with
@@ -78,19 +65,6 @@ class PhaseXxX(BasicGate):
                         [0,0,cmath.exp(1j * 2.0 * cmath.pi * theta),0],
                         [0,cmath.exp(1j * 2.0 * cmath.pi * theta),0,0],
                         [cmath.exp(1j * 2.0 * cmath.pi * theta),0,0,0]])
-
-   def __str__(self):
-      return "PhaseX(theta)(x)X"
-
-   def tex_str(self):
-      """
-      Return the Latex string representation of a PhaseX Gate.
-      Returns the class name and the angle as a subscript, i.e.
-      .. code-block:: latex
-         [CLASSNAME]$_[ANGLE]$
-      """
-
-      return str("PhX") + "$_{" + str(self.phase) + "}$" + str(" (x) X")
 
 
 def simple_test_X_eigenvectors():
@@ -214,3 +188,9 @@ def test_n_qureg():
       pe.PhaseEstimation(unit) | (ancillas,autovector,autovector)
    with pytest.raises(TypeError):
       pe.PhaseEstimation(unit) | ancillas
+
+def test_string():
+   unit = X
+   gate = pe.PhaseEstimation(unit)
+   assert (str(gate) == "PhaseEstimation")
+   
