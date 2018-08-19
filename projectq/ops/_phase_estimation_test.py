@@ -174,9 +174,9 @@ def test_X_no_eigenvectors():
       eng.flush()
 
    total = len(results_plus) + len(results_minus)
-   ratio = float(len(results_plus))/float(len(results_minus))
+   plus_probability = len(results_plus)/100.
    assert total == pytest.approx(100,abs=5)
-   assert ratio == pytest.approx(1./3., abs = 1e-1), "Statistical ratio is not correct (%f %d %d)" % (ratio,len(results_plus),len(results_minus))
+   assert plus_probability == pytest.approx(1./4., abs = 1e-1), "Statistics on |+> probability are not correct (%f vs. %f)" % (plus_probability,1./4.)
 
 
 def test_n_qureg():
