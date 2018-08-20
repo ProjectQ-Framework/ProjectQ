@@ -47,7 +47,7 @@ all_defined_decomposition_rules = [
                    r2rzandph,
                    rx2rz,
                    ry2rz,
-                   sqrtswap2cnot
+                   sqrtswap2cnot,
                    stateprep2cnot,
                    swap2cnot,
                    toffoli2cnotandtgate,
