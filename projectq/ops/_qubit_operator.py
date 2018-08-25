@@ -79,7 +79,7 @@ class QubitOperator(BasicGate):
     TimeEvolution gate.
 
     If the QubitOperator is unitary, i.e., it contains only one term with a
-    coefficient, whose absolute value is 1, then one can apply directly to
+    coefficient, whose absolute value is 1, then one can apply it directly to
     qubits:
 
     .. code-block:: python
