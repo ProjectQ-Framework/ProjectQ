@@ -13,10 +13,14 @@
 #   limitations under the License.
 
 """QubitOperator stores a sum of Pauli operators acting on qubits."""
+import cmath
 import copy
 import itertools
 
 import numpy
+
+from projectq.ops import (apply_command, BasicGate, NotInvertible,
+                          NotMergeable, Ph, X, Y, Z)
 
 
 EQ_TOLERANCE = 1e-12
@@ -45,7 +49,7 @@ class QubitOperatorError(Exception):
     pass
 
 
-class QubitOperator(object):
+class QubitOperator(BasicGate):
     """
     A sum of terms acting on qubits, e.g., 0.5 * 'X0 X5' + 0.3 * 'Z1 Z2'.
 
@@ -67,6 +71,25 @@ class QubitOperator(object):
     .. code-block:: python
 
         hamiltonian = 0.5 * QubitOperator('X0 X5') + 0.3 * QubitOperator('Z0')
+
+    Our Simulator takes a hermitian QubitOperator to directly calculate the
+    expectation value (see Simulator.get_expectation_value) of this observable.
+
+    A hermitian QubitOperator can also be used as input for the
+    TimeEvolution gate.
+
+    If the QubitOperator is unitary, i.e., it contains only one term with a
+    coefficient, whose absolute value is 1, then one can apply directly to
+    qubits:
+
+    .. code-block:: python
+
+        eng = projectq.MainEngine()
+        qureg = eng.allocate_qureg(6)
+        QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
+                                             # with an additional global phase
+                                             # of 1.j
+
 
     Attributes:
         terms (dict): **key**: A term represented by a tuple containing all
@@ -128,6 +151,7 @@ class QubitOperator(object):
         Raises:
             QubitOperatorError: Invalid operators provided to QubitOperator.
         """
+        BasicGate.__init__(self)
         if not isinstance(coefficient, (int, float, complex)):
             raise ValueError('Coefficient must be a numeric type.')
         self.terms = {}
@@ -225,6 +249,141 @@ class QubitOperator(object):
             elif not abs(other.terms[term]) <= abs_tol:
                 return False
         return True
+
+    def __or__(self, qubits):
+        """
+        Operator| overload which enables the following syntax:
+
+        .. code-block:: python
+
+            QubitOperator(...) | qureg
+            QubitOperator(...) | (qureg,)
+            QubitOperator(...) | qubit
+            QubitOperator(...) | (qubit,)
+
+        Unlike other gates, this gate is only allowed to be applied to one
+        quantum register or one qubit and only if the QubitOperator is
+        unitary, i.e., consists of one term with a coefficient whose absolute
+        values is 1.
+
+        Example:
+
+        .. code-block:: python
+
+        eng = projectq.MainEngine()
+        qureg = eng.allocate_qureg(6)
+        QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
+                                             # with an additional global phase
+                                             # of 1.j
+
+        While in the above example the QubitOperator gate is applied to 6
+        qubits, it only acts non-trivially on the two qubits qureg[0] and
+        qureg[5]. Therefore, the operator| will create a new rescaled
+        QubitOperator, i.e, it sends the equivalent of the following new gate
+        to the MainEngine:
+
+        .. code-block:: python
+
+            QubitOperator('X0 X1', 1.j) | [qureg[0], qureg[5]]
+
+        which is only a two qubit gate.
+
+        Args:
+            qubits: one Qubit object, one list of Qubit objects, one Qureg
+                    object, or a tuple of the former three cases.
+
+        Raises:
+            TypeError: If QubitOperator is not unitary or applied to more than
+                       one quantum register.
+            ValueError: If quantum register does not have enough qubits
+        """
+        # Check that input is only one qureg or one qubit
+        qubits = self.make_tuple_of_qureg(qubits)
+        if len(qubits) != 1:
+            raise TypeError("Only one qubit or qureg allowed.")
+        # Check that operator is unitary
+        if not len(self.terms) == 1:
+            raise TypeError("Only unitary QubitOperators can be applied to "
+                            "qubits.")
+        (term, coefficient), = self.terms.items()
+        phase = cmath.phase(coefficient)
+        if (abs(coefficient) < 1 - EQ_TOLERANCE or
+                abs(coefficient) > 1 + EQ_TOLERANCE):
+            raise TypeError("Only unitary QubitOperators can be applied to "
+                            "qubits.")
+        # Test if we need to apply only Ph
+        if term == ():
+            Ph(phase) | qubits[0][0]
+            return
+        # Check that Qureg has enough qubits:
+        num_qubits = len(qubits[0])
+        non_trivial_qubits = set()
+        for index, action in term:
+            non_trivial_qubits.add(index)
+        if max(non_trivial_qubits) >= num_qubits:
+            raise ValueError("QubitOperator acts on more qubits than the gate "
+                             "is applied to.")
+        # Apply X, Y, Z, if QubitOperator acts only on one qubit
+        if len(term) == 1:
+            if term[0][1] == "X":
+                X | qubits[0][term[0][0]]
+            elif term[0][1] == "Y":
+                Y | qubits[0][term[0][0]]
+            elif term[0][1] == "Z":
+                Z | qubits[0][term[0][0]]
+            Ph(phase) | qubits[0][term[0][0]]
+            return
+        # Create new QubitOperator gate with rescaled qubit indices in
+        # 0,..., len(non_trivial_qubits) - 1
+        new_index = dict()
+        non_trivial_qubits = sorted(list(non_trivial_qubits))
+        for i in range(len(non_trivial_qubits)):
+            new_index[non_trivial_qubits[i]] = i
+        new_qubitoperator = QubitOperator()
+        assert len(new_qubitoperator.terms) == 0
+        new_term = tuple([(new_index[index], action)
+                          for index, action in term])
+        new_qubitoperator.terms[new_term] = coefficient
+        new_qubits = [qubits[0][i] for i in non_trivial_qubits]
+        # Apply new gate
+        cmd = new_qubitoperator.generate_command(new_qubits)
+        apply_command(cmd)
+
+    def get_inverse(self):
+        """
+        Return the inverse gate if QubitOperator is unitary.
+
+        Raises:
+            NotInvertible: inverse is not implemented if not unitary
+        """
+        if len(self.terms) == 1:
+            (term, coefficient), = self.terms.items()
+            return QubitOperator(term, coefficient**(-1))
+        else:
+            raise NotInvertible("BasicGate: No get_inverse() implemented.")
+
+    def get_merged(self, other):
+        """
+        Return this gate merged with another gate.
+
+        Standard implementation of get_merged:
+
+        Raises:
+            NotMergeable: merging is not implemented
+        """
+        if (isinstance(other, self.__class__) and
+                len(other.terms) == 1 and
+                len(self.terms) == 1):
+            return self * other
+
+            # (term, coefficient), = self.terms.items()
+            # (other_term, other_coefficient), = other.terms.items()
+            # if term == other_term:
+            #     return self.__class__(term, coefficient * other_coefficient)
+            # else:
+            #     raise NotMergeable()
+        else:
+            raise NotMergeable()
 
     def __imul__(self, multiplier):
         """
@@ -463,3 +622,6 @@ class QubitOperator(object):
 
     def __repr__(self):
         return str(self)
+
+    def __hash__(self):
+        return hash(str(self))

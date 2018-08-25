@@ -41,6 +41,7 @@ def test_control_function_majority():
 
     assert len(saving_backend.received_commands) == 7
 
+
 def test_control_function_majority_from_python():
     dormouse = pytest.importorskip('dormouse')
 
