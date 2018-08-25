@@ -22,7 +22,9 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import NotInvertible, NotMergeable, Ph, T, X, Y, Z
+from ._basics import NotInvertible, NotMergeable
+from ._gates import Ph, T, X, Y, Z
+
 from projectq.ops import _qubit_operator as qo
 
 

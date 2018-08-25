@@ -19,8 +19,9 @@ import itertools
 
 import numpy
 
-from projectq.ops import (apply_command, BasicGate, NotInvertible,
-                          NotMergeable, Ph, X, Y, Z)
+from ._basics import BasicGate, NotInvertible, NotMergeable
+from ._command import apply_command
+from ._gates import Ph, X, Y, Z
 
 
 EQ_TOLERANCE = 1e-12
