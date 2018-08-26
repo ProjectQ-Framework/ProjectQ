@@ -232,13 +232,15 @@ class IBMBackend(BasicEngine):
         Send the circuit via the IBM API (JSON QASM) using the provided user
         data / ask for username & password.
         """
-        if self.qasm == "":
-            return
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
             self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
                                                             qb_loc)
+
+        # return if no operations / measurements have been performed.
+        if self.qasm == "":
+            return
 
         max_qubit_id = max(self._allocated_qubits)
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +

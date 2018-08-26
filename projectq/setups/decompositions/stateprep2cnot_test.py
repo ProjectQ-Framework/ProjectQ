@@ -35,7 +35,7 @@ def test_wrong_final_state():
     cmd = Command(None, StatePreparation([0, 1j]), qubits=([qb0, qb1],))
     with pytest.raises(ValueError):
         stateprep2cnot._decompose_state_preparation(cmd)
-    cmd2 = Command(None, StatePreparation([0, 0.999j]), qubits=([qb0, qb1],))
+    cmd2 = Command(None, StatePreparation([0, 0.999j]), qubits=([qb0],))
     with pytest.raises(ValueError):
         stateprep2cnot._decompose_state_preparation(cmd2)
 
