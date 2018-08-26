@@ -271,11 +271,11 @@ class QubitOperator(BasicGate):
 
         .. code-block:: python
 
-        eng = projectq.MainEngine()
-        qureg = eng.allocate_qureg(6)
-        QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
-                                             # with an additional global phase
-                                             # of 1.j
+            eng = projectq.MainEngine()
+            qureg = eng.allocate_qureg(6)
+            QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
+                                                 # with an additional global
+                                                 # phase of 1.j
 
         While in the above example the QubitOperator gate is applied to 6
         qubits, it only acts non-trivially on the two qubits qureg[0] and
@@ -304,14 +304,19 @@ class QubitOperator(BasicGate):
             raise TypeError("Only one qubit or qureg allowed.")
         # Check that operator is unitary
         if not len(self.terms) == 1:
-            raise TypeError("Only unitary QubitOperators can be applied to "
-                            "qubits.")
+            raise TypeError("Too many terms. Only QubitOperators consisting "
+                            "of a single term (single n-qubit Pauli operator) "
+                            "with a coefficient of unit length can be applied "
+                            "to qubits with this function.")
         (term, coefficient), = self.terms.items()
         phase = cmath.phase(coefficient)
         if (abs(coefficient) < 1 - EQ_TOLERANCE or
                 abs(coefficient) > 1 + EQ_TOLERANCE):
-            raise TypeError("Only unitary QubitOperators can be applied to "
-                            "qubits.")
+            raise TypeError("abs(coefficient) != 1. Only QubitOperators "
+                            "consisting of a single term (single n-qubit "
+                            "Pauli operator) with a coefficient of unit "
+                            "length can be applied to qubits with this "
+                            "function.")
         # Test if we need to apply only Ph
         if term == ():
             Ph(phase) | qubits[0][0]
@@ -352,14 +357,19 @@ class QubitOperator(BasicGate):
 
     def get_inverse(self):
         """
-        Return the inverse gate if QubitOperator is unitary.
+        Return the inverse gate of a QubitOperator if applied as a gate.
 
         Raises:
-            NotInvertible: inverse is not implemented if not unitary
+            NotInvertible: Not implemented for QubitOperators which have
+                           multiple terms or a coefficient with absolute value
+                           not equal to 1. 
         """
+        
         if len(self.terms) == 1:
             (term, coefficient), = self.terms.items()
-            return QubitOperator(term, coefficient**(-1))
+            if (not abs(coefficient) < 1 - EQ_TOLERANCE and not
+                    abs(coefficient) > 1 + EQ_TOLERANCE):
+                return QubitOperator(term, coefficient**(-1))
         else:
             raise NotInvertible("BasicGate: No get_inverse() implemented.")
 
@@ -370,19 +380,12 @@ class QubitOperator(BasicGate):
         Standard implementation of get_merged:
 
         Raises:
-            NotMergeable: merging is not implemented
+            NotMergeable: merging is not possible
         """
         if (isinstance(other, self.__class__) and
                 len(other.terms) == 1 and
                 len(self.terms) == 1):
             return self * other
-
-            # (term, coefficient), = self.terms.items()
-            # (other_term, other_coefficient), = other.terms.items()
-            # if term == other_term:
-            #     return self.__class__(term, coefficient * other_coefficient)
-            # else:
-            #     raise NotMergeable()
         else:
             raise NotMergeable()
 
