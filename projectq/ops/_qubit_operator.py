@@ -370,8 +370,7 @@ class QubitOperator(BasicGate):
             if (not abs(coefficient) < 1 - EQ_TOLERANCE and not
                     abs(coefficient) > 1 + EQ_TOLERANCE):
                 return QubitOperator(term, coefficient**(-1))
-        else:
-            raise NotInvertible("BasicGate: No get_inverse() implemented.")
+        raise NotInvertible("BasicGate: No get_inverse() implemented.")
 
     def get_merged(self, other):
         """
