@@ -303,8 +303,8 @@ class Simulator(BasicEngine):
 
         Args:
             qureg (Qureg|list[Qubit]): Qubits to collapse.
-            values (list[bool]): Measurement outcome for each of the qubits
-                in `qureg`.
+            values (list[bool|int]|string[0|1]): Measurement outcome for each
+                                                 of the qubits in `qureg`.
 
         Raises:
             RuntimeError: If an outcome has probability (approximately) 0 or
@@ -321,7 +321,7 @@ class Simulator(BasicEngine):
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         return self._simulator.collapse_wavefunction([qb.id for qb in qureg],
-                                                     [bool(v) for v in
+                                                     [bool(int(v)) for v in
                                                       values])
 
     def cheat(self):

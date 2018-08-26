@@ -34,12 +34,16 @@ needs to be made explicitely, while for one argument it is optional.
 import math
 from copy import deepcopy
 
+import numpy as np
+
 from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
+RTOL = 1e-10
+ATOL = 1e-12
 
 
 class NotMergeable(Exception):
@@ -200,8 +204,39 @@ class BasicGate(object):
         apply_command(cmd)
 
     def __eq__(self, other):
-        """ Return True if equal (i.e., instance of same class). """
-        return isinstance(other, self.__class__)
+        """ Return True if equal (i.e., instance of same class).
+
+            Unless both have a matrix attribute in which case we also check
+            that the matrices are identical as people might want to do the
+            following:
+
+            Example:
+                .. code-block:: python
+
+                gate = BasicGate()
+                gate.matrix = numpy.matrix([[1,0],[0, -1]])
+        """
+        if hasattr(self, 'matrix'):
+            if not hasattr(other, 'matrix'):
+                return False
+        if hasattr(other, 'matrix'):
+            if not hasattr(self, 'matrix'):
+                return False
+        if hasattr(self, 'matrix') and hasattr(other, 'matrix'):
+            if (not isinstance(self.matrix, np.matrix) or
+                    not isinstance(other.matrix, np.matrix)):
+                raise TypeError("One of the gates doesn't have the correct "
+                                "type (numpy.matrix) for the matrix "
+                                "attribute.")
+            if (self.matrix.shape == other.matrix.shape and
+                np.allclose(self.matrix, other.matrix,
+                            rtol=RTOL, atol=ATOL,
+                            equal_nan=False)):
+                return True
+            else:
+                return False
+        else:
+            return isinstance(other, self.__class__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
