@@ -192,10 +192,11 @@ def test_isclose_different_num_terms():
 
 
 def test_get_inverse():
-    qo0 = qo.QubitOperator("X1 Z2", 2)
-    qo1 = qo.QubitOperator("", 2j)
-    assert qo0.get_inverse().isclose(qo.QubitOperator("X1 Z2", 0.5))
-    assert qo1.get_inverse().isclose(qo.QubitOperator("", -0.5j))
+    qo0 = qo.QubitOperator("X1 Z2", cmath.exp(0.6j))
+    qo1 = qo.QubitOperator("", 1j)
+    assert qo0.get_inverse().isclose(
+        qo.QubitOperator("X1 Z2", cmath.exp(-0.6j)))
+    assert qo1.get_inverse().isclose(qo.QubitOperator("", -1j))
     qo0 += qo1
     with pytest.raises(NotInvertible):
         qo0.get_inverse()
