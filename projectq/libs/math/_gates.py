@@ -14,7 +14,6 @@
 
 from projectq.ops import BasicMathGate
 
-
 class AddConstant(BasicMathGate):
     """
     Add a constant to a quantum number represented by a quantum register,
@@ -218,12 +217,35 @@ class MultiplyByConstantModN(BasicMathGate):
         return not self.__eq__(other)
 
 class AddQuantum(BasicMathGate): 
-    def __init__(self):
-        def add(a,b):
-            c = a + b
-            return (a,c)
-        BasicMathGate.__init__(self,add)
+    """ 
+    Add up two quantum numbers represented by quantum registers.
+    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+    Example:
+        .. code-block:: python
+        
+        qunum = eng.allocate_qureg(5) # 5-qubit number                               
+            qunum_a = eng.allocate_qureg(5)
+            qunum_b = eng.allocate_qureg(5)
+            carry_bit = eng.allocate_qubit()
 
+            X | qunum_a[2] #qunum_a is now equal to 4 
+            X | qunum_b[3] #qunum_b is now equal to 8 
+            AddQuantum() | (qunum_a, qunum_b, carry)
+            # qunum_a remains 4, qunum_b is now 12 and carry_bit is 0
+    """
+
+    def __init__(self):
+        BasicMathGate.__init__(self,AddQuantum.get_math_function)
+    
+    def get_math_function(self,qubits):      
+        n = len(qubits[0])
+        def math_fun(a):
+            a[1] = a[0] + a[1]
+            if len("{0:b}".format(a[1])) > n:
+               a[2] = 1
+            return (a)
+        return math_fun
+    
     def __str__(self):
         return "AddQuantum"
     
@@ -235,3 +257,15 @@ class AddQuantum(BasicMathGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+#class ConfusingExample(BasicMathGate):
+    
+#    def __init_(self):
+        
+#        def get_math_function(self, qubits):
+#            n = len(qubits[0])
+#            scal = 2.**n
+#            def math_fun(a):
+#                return (int(scal * (math.sin(math.pi * a / scal))),
+#        return math_fun
+

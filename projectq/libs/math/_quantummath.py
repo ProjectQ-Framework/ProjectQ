@@ -22,8 +22,16 @@ from projectq.ops import R, X, Swap, Measure, CNOT, QFT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from ._gates import AddQuantum
 
+# Quantum addition from: https://arxiv.org/pdf/0910.2530.pdf
 def add_quantum(eng, quint_a, quint_b, carry):
-    
+    """
+    Adds two quantum integers, i.e.,
+
+    |a0...a(n-1)>|b(0)...b(n-1)>|c> -> |a0...a(n-1)>|b(0)...b(n)>
+
+    (only works if quint_a and quint_b are the same size and carry is a single qubit)
+    """
+
     assert(len(quint_a) == len(quint_b))
     assert(len(carry) == 1)
 

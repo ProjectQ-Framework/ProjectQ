@@ -60,7 +60,19 @@ def test_quantum_adder():
     
     assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
     assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0],qureg_b))
+
+    init(eng, qureg_a, 2) #reset
+    init(eng, qureg_b, 3) #reset
     
+    init(eng,qureg_a, 15)
+    init(eng,qureg_b, 15)
+
+    AddQuantum() | (qureg_a, qureg_b, c)
+    
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1],qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([1],c))
+
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     Measure | c
