@@ -21,7 +21,8 @@ from projectq.libs.math import (AddConstant,
                                 MultiplyByConstantModN,
                                 SubConstant,
                                 SubConstantModN,
-                                AddQuantum)
+                                AddQuantum,
+                                SubtractQuantum,)
 
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
@@ -53,6 +54,10 @@ def test_multiplybyconstmodn():
 def test_AddQuantum():
     assert AddQuantum() == AddQuantum()
     assert str(AddQuantum()) == "AddQuantum"
+
+def test_SubtractQuantum():
+    assert SubtractQuantum() == SubtractQuantum()
+    assert str(SubtractQuantum()) == "SubtractQuantum"
 
 def test_hash_function_implemented():
     assert hash(AddConstant(3)) == hash(str(AddConstant(3)))

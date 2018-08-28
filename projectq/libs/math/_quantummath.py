@@ -63,3 +63,33 @@ def add_quantum(eng, quint_a, quint_b, carry):
     for n in range(0,n-1):
         CNOT | (quint_a[n],quint_b[n])
     
+
+def subtract_quantum(eng, quint_a, quint_b):
+    assert(len(quint_a) == len(quint_b))
+    
+    n = len(quint_a) + 1
+
+    All(X) | quint_b
+
+    for i in range(1,n-1):
+        CNOT | (quint_a[i], quint_b[i])
+    
+    for j in range(n-3,0,-1):
+        CNOT | (quint_a[j], quint_a[j+1])
+
+    for k in range(0,n-2):
+        with Control(eng, [quint_a[k],quint_b[k]]):
+            X | (quint_a[k+1])
+
+    for l in range(n-2,0,-1):
+        CNOT | (quint_a[l], quint_b[l])
+        with Control(eng,[quint_a[l-1], quint_b[l-1]]):
+            X | quint_a[l]
+
+    for m in range(1,n-2):
+        CNOT | (quint_a[m],quint_a[m+1])
+
+    for n in range(0,n-1):
+        CNOT | (quint_a[n],quint_b[n])
+
+    All(X) | quint_b

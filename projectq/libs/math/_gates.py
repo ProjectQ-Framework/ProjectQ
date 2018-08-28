@@ -258,14 +258,25 @@ class AddQuantum(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-#class ConfusingExample(BasicMathGate):
-    
-#    def __init_(self):
+class SubtractQuantum(BasicMathGate):
+
+    def __init__(self):
+
+        def subtract(a,b):
+            return (a,b-a)
+        BasicMathGate.__init__(self, subtract)
         
-#        def get_math_function(self, qubits):
-#            n = len(qubits[0])
-#            scal = 2.**n
-#            def math_fun(a):
-#                return (int(scal * (math.sin(math.pi * a / scal))),
-#        return math_fun
+    def __str__(self):
+        return "SubtractQuantum"
+
+    def __eq__(self, other):
+        return (isinstance(other, SubtractQuantum))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
 

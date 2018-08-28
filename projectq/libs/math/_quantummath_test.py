@@ -24,7 +24,8 @@ from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
-from projectq.libs.math import (AddQuantum)
+from projectq.libs.math import (AddQuantum,
+                                SubtractQuantum,)
 
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -77,3 +78,19 @@ def test_quantum_adder():
     All(Measure) | qureg_b
     Measure | c
 
+def test_quantum_adder():
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    c = eng.allocate_qubit()
+    init(eng, qureg_a, 2)
+    init(eng, qureg_b, 1)
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0],qureg_b))
+
+    AddQuantum() | (qureg_a, qureg_b, c)
+
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0],qureg_b))
