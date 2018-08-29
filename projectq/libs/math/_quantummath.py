@@ -13,16 +13,17 @@
 #   limitations under the License.
 
 import math
-try:
-    from math import gcd
-except ImportError:
-    from fractions import gcd
 
-from projectq.ops import R, X, Swap, Measure, CNOT, QFT
+from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import AddQuantum
+from ._gates import AddQuantum, SubtractQuantum, Comparator
 
-# Quantum addition from: https://arxiv.org/pdf/0910.2530.pdf
+"""
+Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
+
+Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3
+"""
+
 def add_quantum(eng, quint_a, quint_b, carry):
     """
     Adds two quantum integers, i.e.,
@@ -37,7 +38,7 @@ def add_quantum(eng, quint_a, quint_b, carry):
 
     n = len(quint_a) + 1 
     
-    for i in range(1,n-1):
+    for i in range(1,n-1):   
         CNOT | (quint_a[i], quint_b[i])
 
     CNOT | (quint_a[n-2], carry)
@@ -63,8 +64,23 @@ def add_quantum(eng, quint_a, quint_b, carry):
     for n in range(0,n-1):
         CNOT | (quint_a[n],quint_b[n])
     
+"""
+Quantum subtraction using bitwise complementation of quantum adder:
+b-a = (a + b')'. Largely the same as the quantum addition circuit 
+except that the steps involving the carry qubit are left out and 
+complement b at the start and at the end of the circuit is added.
+
+Ancilla: 0, Size: 9n-8, Toffoli: 2n-2, Depth: 5n-5
+"""
 
 def subtract_quantum(eng, quint_a, quint_b):
+    """
+    Subtracts two quantum integers, i.e.,
+    
+    |a>|b>|c> -> |a>|b-a>
+    
+    (only works if quint_a and quint_b are the same size)
+    """
     assert(len(quint_a) == len(quint_b))
     
     n = len(quint_a) + 1
@@ -91,5 +107,59 @@ def subtract_quantum(eng, quint_a, quint_b):
 
     for n in range(0,n-1):
         CNOT | (quint_a[n],quint_b[n])
+
+    All(X) | quint_b
+
+"""
+Comparator flipping a compare qubit by computing the high bit of b-a, 
+which is 1 if and only if a > b. The high bit is computed using the first half of 
+circuit in AddQuantum (such that the high bit is written to  the carry qubit) and 
+then undoing the first half of the circuit. By complementing b at the start and 
+b+a at the end the high bit of b-a is calculated.
+
+"""
+def comparator(eng, quint_a, quint_b, comparator):
+
+    """                                                     
+    Compares the size of two quantum integers, i.e,
+    if a>b: |a>|b>|c> -> |a>|b>|c⊕1>
+    else:   |a>|b>|c> -> |a>|b>|c>
+    (only works if quint_a and quint_b are the same size and the comparator is 1 
+    qubit)
+
+    Ancilla: 0,Size: 8n-3,Toffoli: 2n+1, Depth: 4n+3
+    """
+
+    assert(len(quint_a) == len(quint_b))
+    assert(len(comparator) == 1)
+    
+    n = len(quint_a) + 1
+
+    All(X) | quint_b
+    
+    for i in range(1,n-1):
+        CNOT | (quint_a[i], quint_b[i])
+
+    CNOT | (quint_a[n-2], comparator)
+
+    for j in range(n-3,0,-1):
+        CNOT | (quint_a[j], quint_a[j+1])
+
+    for k in range(0,n-2):
+        with Control(eng, [quint_a[k],quint_b[k]]):
+            X | (quint_a[k+1])
+
+    with Control(eng,[quint_a[n-2], quint_b[n-2]]):
+        X | comparator
+
+    for k in range(0,n-2):
+        with Control(eng, [quint_a[k],quint_b[k]]):
+            X | (quint_a[k+1])
+
+    for j in range(n-3,0,-1):
+        CNOT | (quint_a[j], quint_a[j+1])
+
+    for i in range(1,n-1):
+        CNOT | (quint_a[i], quint_b[i])
 
     All(X) | quint_b

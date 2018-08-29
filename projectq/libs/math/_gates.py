@@ -222,8 +222,7 @@ class AddQuantum(BasicMathGate):
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
     Example:
         .. code-block:: python
-        
-        qunum = eng.allocate_qureg(5) # 5-qubit number                               
+
             qunum_a = eng.allocate_qureg(5)
             qunum_b = eng.allocate_qureg(5)
             carry_bit = eng.allocate_qubit()
@@ -235,6 +234,10 @@ class AddQuantum(BasicMathGate):
     """
 
     def __init__(self):
+        """
+        Initializes the gate to  its base class, BasicMathGate, with the 
+        corresponding function, so it can be emulated efficiently.
+        """
         BasicMathGate.__init__(self,AddQuantum.get_math_function)
     
     def get_math_function(self,qubits):      
@@ -259,9 +262,26 @@ class AddQuantum(BasicMathGate):
         return not self.__eq__(other)
 
 class SubtractQuantum(BasicMathGate):
+    """
+    Subtract one quantum number represented by a quantum register from 
+    another quantum number represented by a quantum register. 
 
+    Example:
+    .. code-block:: python
+        
+            qunum_a = eng.allocate_qureg(5)
+            qunum_b = eng.allocate_qureg(5)
+            X | qunum_a[2] #qunum_a is now equal to 4 
+            X | qunum_b[3] #qunum_b is now equal to 8 
+            SubtractQuantum() | (qunum_a, qunum_b)
+            # qunum_a remains 4, qunum_b is now 4
+
+    """
     def __init__(self):
-
+        """
+        Initializes the gate to  its base class, BasicMathGate, with the 
+        corresponding function, so it can be emulated efficiently.
+        """
         def subtract(a,b):
             return (a,b-a)
         BasicMathGate.__init__(self, subtract)
@@ -279,4 +299,45 @@ class SubtractQuantum(BasicMathGate):
         return not self.__eq__(other)
 
 
+class Comparator(BasicMathGate):
+    """ 
+    Add up two quantum numbers represented by quantum registers.
+    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+    Example:
+        .. code-block:: python
+        
+            qunum_a = eng.allocate_qureg(5)
+            qunum_b = eng.allocate_qureg(5)
+            compare_bit = eng.allocate_qubit()
+            X | qunum_a[4] #qunum_a is now equal to 16 
+            X | qunum_b[3] #qunum_b is now equal to 8 
+            Comparator() | (qunum_a, qunum_b, compare_bit)
+            # qunum_a and qunum_b remain 16 and 8, qunum_b is now 12 and 
+            compare bit is now 1
 
+    """    
+    def __init__(self):
+        """
+        Initializes the gate to  its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
+        def compare(a,b,c):
+            if b<a:
+                if c==0:
+                    c=1
+                else:
+                    c=0
+            return(a,b,c)
+        BasicMathGate.__init__(self, compare)
+
+    def __str__(self):
+        return "Comparator"
+
+    def __eq__(self, other):
+        return (isinstance(other, Comparator))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, ohter):
+        return not self.__eq__(other)

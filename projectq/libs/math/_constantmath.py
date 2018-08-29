@@ -20,7 +20,7 @@ except ImportError:
 
 from projectq.ops import R, X, Swap, Measure, CNOT, QFT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN, AddQuantum
+from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
 
 
 # Draper's addition by constant https://arxiv.org/abs/quant-ph/0008033

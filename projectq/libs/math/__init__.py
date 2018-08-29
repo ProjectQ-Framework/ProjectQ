@@ -19,4 +19,5 @@ from ._gates import (AddConstant,
                      SubConstantModN,
                      MultiplyByConstantModN,
                      AddQuantum,
-                     SubtractQuantum,)
+                     SubtractQuantum,
+                     Comparator,)
