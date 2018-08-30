@@ -27,7 +27,8 @@ from ._gates import (AddConstant,
                      MultiplyByConstantModN,
                      AddQuantum,
                      SubtractQuantum,
-                     Comparator,)
+                     Comparator,
+                     QuantumConditionalAdd,)
 
 from ._constantmath import (add_constant,
                             add_constant_modN,
@@ -35,7 +36,8 @@ from ._constantmath import (add_constant,
 
 from ._quantummath import (add_quantum,
                            subtract_quantum,
-                           comparator,)
+                           comparator,
+                           quantum_conditional_add,)
 
 
 def _replace_addconstant(cmd):
@@ -95,6 +97,15 @@ def _replace_comparator(cmd):
     with Control(eng, cmd.control_qubits):
         comparator(eng, quint_a, quint_b, c)
 
+def _replace_quantumconditionaladd(cmd):
+    eng = cmd.engine
+    quint_a = cmd.qubits[0]
+    quint_b = cmd.qubits[1]
+    c = cmd.qubits[2]
+
+    with Control(eng, cmd.control_qubits):
+        quantum_conditional_add(eng, quint_a, quint_b, c)
+
 all_defined_decomposition_rules = [
     DecompositionRule(AddConstant, _replace_addconstant),
     DecompositionRule(AddConstantModN, _replace_addconstmodN),
@@ -102,4 +113,5 @@ all_defined_decomposition_rules = [
     DecompositionRule(AddQuantum, _replace_addquantum),
     DecompositionRule(SubtractQuantum, _replace_subtractquantum),
     DecompositionRule(Comparator, _replace_comparator),
+    DecompositionRule(QuantumConditionalAdd, _replace_quantumconditionaladd),
 ]

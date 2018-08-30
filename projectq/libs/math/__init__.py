@@ -20,4 +20,5 @@ from ._gates import (AddConstant,
                      MultiplyByConstantModN,
                      AddQuantum,
                      SubtractQuantum,
-                     Comparator,)
+                     Comparator,
+                     QuantumConditionalAdd,)

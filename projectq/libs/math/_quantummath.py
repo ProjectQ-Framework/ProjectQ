@@ -163,3 +163,33 @@ def comparator(eng, quint_a, quint_b, comparator):
         CNOT | (quint_a[i], quint_b[i])
 
     All(X) | quint_b
+
+def quantum_conditional_add(eng, quint_a, quint_b, control):
+
+    assert(len(quint_a) == len(quint_b))
+    assert(len(control) == 1)
+
+    n = len(quint_a) + 1
+
+    for i in range(1,n-1):
+        CNOT | (quint_a[i], quint_b[i])
+
+    for i in range(n-2,1,-1):
+        CNOT | (quint_a[i-1], quint_b[i])
+
+    for k in range(0,n-2):
+        with Control(eng, [quint_a[k],quint_b[k]]):
+            X | (quint_a[k+1])
+
+    for l in range(n-2,-1,-1):
+        with Control(eng, [quint_a[l] ,control]):
+            X | (quint_b[l])
+        with Control(eng,[quint_a[l-1], quint_b[l-1]]):
+            X | quint_a[l]
+
+    for m in range(1, n-2):
+        CNOT | (quint_a[m], quint_a[m+1])
+
+    for o in range(1,n-1):
+        CNOT | (quint_a[n],quint_b[n]) 
+            

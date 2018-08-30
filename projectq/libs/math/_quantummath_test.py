@@ -26,7 +26,8 @@ import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddQuantum,
                                 SubtractQuantum,
-                                Comparator)
+                                Comparator,
+                                QuantumConditionalAdd,)
 
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -109,3 +110,19 @@ def test_comparator():
     Comparator() | (qureg_a, qureg_b, compare_qubit)
 
     assert 1. == pytest.approx(eng.backend.get_probability([1], compare_qubit))
+
+def test_comparator():
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
+    qureg_a = eng.allocate_qureg(3)
+    qureg_b = eng.allocate_qureg(3)
+    compare_qubit = eng.allocate_qubit()
+
+    init(eng, qureg_a, 5)
+    init(eng, qureg_b, 3)
+
+    QuantumConditionalAdd() | (qureg_a, qureg_b, compare_qubit)
+
+    assert 1. == pytest.approx(eng.backend.get_probability([1], compare_qubit)
+)

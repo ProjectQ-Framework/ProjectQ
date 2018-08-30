@@ -339,5 +339,27 @@ class Comparator(BasicMathGate):
     def __hash__(self):
         return hash(str(self))
 
-    def __ne__(self, ohter):
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class QuantumConditionalAdd(BasicMathGate):
+    
+    def __init__(self):
+        def conditionaladd(a,b,c):
+            if c == 1:
+                return (a,a+b,c)
+            else:
+                return (a,b,c)
+        BasicMathGate.__init__(self,conditionaladd)
+    
+    def __str__(self):
+        return "QuantumConditionalAdd"
+    
+    def __eq__(self, other):
+        return (isinstance(other, QuantumConditionalAdd))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
         return not self.__eq__(other)

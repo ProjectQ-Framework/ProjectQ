@@ -23,8 +23,8 @@ from projectq.libs.math import (AddConstant,
                                 SubConstantModN,
                                 AddQuantum,
                                 SubtractQuantum,
-                                Comparator,)
-
+                                Comparator,
+                                QuantumConditionalAdd,)
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
     assert not AddConstant(3) == AddConstant(4)
@@ -63,6 +63,10 @@ def test_SubtractQuantum():
 def test_Comparator():
     assert Comparator() == Comparator()
     assert str(Comparator()) == "Comparator"
+
+def test_QuantumConditionalAdd():
+    assert QuantumConditionalAdd() == QuantumConditionalAdd()
+    assert str(QuantumConditionalAdd()) == "QuantumConditionalAdd"
 
 def test_hash_function_implemented():
     assert hash(AddConstant(3)) == hash(str(AddConstant(3)))
