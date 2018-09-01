@@ -96,6 +96,8 @@ def test_quantumsubtraction():
     assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
     assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0,0], qureg_b))
 
+    All(Measure) | qureg_a
+    All(Measure) | qureg_b
 def test_comparator():
     sim = Simulator()
     eng = MainEngine(sim, [AutoReplacer(rule_set),
@@ -111,18 +113,32 @@ def test_comparator():
 
     assert 1. == pytest.approx(eng.backend.get_probability([1], compare_qubit))
 
+    All(Measure) | qureg_a
+    All(Measure) | qureg_b
+    Measure | c
 def test_comparator():
     sim = Simulator()
     eng = MainEngine(sim, [AutoReplacer(rule_set),
                            InstructionFilter(no_math_emulation)])
-    qureg_a = eng.allocate_qureg(3)
-    qureg_b = eng.allocate_qureg(3)
-    compare_qubit = eng.allocate_qubit()
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    c = eng.allocate_qubit()
 
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
 
-    QuantumConditionalAdd() | (qureg_a, qureg_b, compare_qubit)
+    QuantumConditionalAdd() | (qureg_a, qureg_b, c)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1], compare_qubit)
+    assert 1. == pytest.approx(eng.backend.get_probability([0], c)
 )
+
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_b))
+    X | c
+    QuantumConditionalAdd() | (qureg_a, qureg_b, c)
+
+    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,1], qureg_b)
+)
+
+    All(Measure) | qureg_a
+    All(Measure) | qureg_b
+    Measure | c
