@@ -16,7 +16,7 @@ import math
 
 from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import AddQuantum, SubtractQuantum, Comparator
+from ._gates import AddQuantum, SubtractQuantum, QuantumConditionalAdd
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
@@ -28,7 +28,7 @@ def add_quantum(eng, quint_a, quint_b, carry):
     """
     Adds two quantum integers, i.e.,
 
-    |a0...a(n-1)>|b(0)...b(n-1)>|c> -> |a0...a(n-1)>|b(0)...b(n)>
+    |a0...a(n-1)>|b(0)...b(n-1)>|c> -> |a0...a(n-1)>|b+a(0)...b+a(n)>
 
     (only works if quint_a and quint_b are the same size and carry is a single qubit)
     """
@@ -164,6 +164,10 @@ def comparator(eng, quint_a, quint_b, comparator):
 
     All(X) | quint_b
 
+"""
+Quantum Conditional Add from https://arxiv.org/pdf/1609.01241.pdf.
+
+"""
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
 
     assert(len(quint_a) == len(quint_b))
@@ -197,3 +201,24 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     for o in range(1, n-1):
         CNOT | (quint_a[o], quint_b[o]) 
             
+#Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf
+def quantum_division(eng, dividend, remainder, divisor):
+    
+    assert(len(dividend) == len(remainder) == len(divisor))
+    
+    n = len(dividend)
+    while n != 0:
+        print('ja')
+        combined_reg = []
+
+        combined_reg.append(dividend[n-1])
+
+        for i in range(0,n-1):
+            combined_reg.append(remainder[i])
+
+        SubtractQuantum() | (divisor[0:n],combined_reg)
+        CNOT | ( combined_reg[0],remainder[n-1])
+
+        QuantumConditionalAdd() | (combined_reg,divisor[0:n],remainder[n-1])
+        X | remainder[n-1]
+        n -= 1

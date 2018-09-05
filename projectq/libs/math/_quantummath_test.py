@@ -27,12 +27,25 @@ from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddQuantum,
                                 SubtractQuantum,
                                 Comparator,
-                                QuantumConditionalAdd,)
+                                QuantumConditionalAdd,
+                                QuantumDivision,)
 
 def init(engine, quint, value):
     for i in range(len(quint)):
         if ((value >> i) & 1) == 1:
             X | quint[i]
+
+
+def get_all_probabilities(eng,qureg):
+    i = 0
+    y = len(qureg)
+    while i < (2**y):
+       qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
+       qubit_list = qubit_list[::-1]
+       l = eng.backend.get_probability(qubit_list,qureg)
+       if l != 0.0:
+           print(l,qubit_list, i)
+       i += 1
 
 def no_math_emulation(eng, cmd):
     if isinstance(cmd.gate, BasicMathGate):
@@ -115,8 +128,9 @@ def test_comparator():
 
     All(Measure) | qureg_a
     All(Measure) | qureg_b
-    Measure | c
-def test_comparator():
+    Measure | compare_qubit
+
+def test_quantumconditionaladd():
     sim = Simulator()
     eng = MainEngine(sim, [AutoReplacer(rule_set),
                            InstructionFilter(no_math_emulation)])
@@ -142,3 +156,27 @@ def test_comparator():
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     Measure | c
+
+def test_quantumdivision():
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
+
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    qureg_c = eng.allocate_qureg(4)
+
+    init(eng, qureg_a, 5)
+    init(eng, qureg_c, 2)
+    
+
+    QuantumDivision() | (qureg_a, qureg_b, qureg_c)
+
+#    assert 1. == pytest.approx(
+    
+    print(get_all_probabilities(eng, qureg_a))
+    print(get_all_probabilities(eng, qureg_b))
+    print(get_all_probabilities(eng, qureg_c))
+    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,0], qureg_b)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0], qureg_c))

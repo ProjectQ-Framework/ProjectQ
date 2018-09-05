@@ -363,3 +363,26 @@ class QuantumConditionalAdd(BasicMathGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+class QuantumDivision(BasicMathGate):
+    def __init__(self):
+        def division(a,b,c):
+            if b != 0:
+                d = a//b
+                c = a&b
+                return(d,b,c)
+            else:
+                return(a,b,c)
+        BasicMathGate.__init__(self,division)
+    
+    def __str__(self):
+        return "QuantumDivision"
+    
+    def __eq__(self,other):
+        return (isinstance(other, QuantumDivision))
+    
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
