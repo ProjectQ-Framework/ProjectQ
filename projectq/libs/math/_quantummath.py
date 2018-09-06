@@ -117,6 +117,7 @@ circuit in AddQuantum (such that the high bit is written to  the carry qubit) an
 then undoing the first half of the circuit. By complementing b at the start and 
 b+a at the end the high bit of b-a is calculated.
 
+Ancilla: 0,Size: 8n-3,Toffoli: 2n+1, Depth: 4n+3     
 """
 def comparator(eng, quint_a, quint_b, comparator):
 
@@ -127,7 +128,6 @@ def comparator(eng, quint_a, quint_b, comparator):
     (only works if quint_a and quint_b are the same size and the comparator is 1 
     qubit)
 
-    Ancilla: 0,Size: 8n-3,Toffoli: 2n+1, Depth: 4n+3
     """
 
     assert(len(quint_a) == len(quint_b))
@@ -166,10 +166,18 @@ def comparator(eng, quint_a, quint_b, comparator):
 
 """
 Quantum Conditional Add from https://arxiv.org/pdf/1609.01241.pdf.
+If an input qubit labeled "conditional" is high, the two quantum integers
+are added, if "conditional" is low no operation is performed.
 
 """
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
-
+    """
+    Adds up two quantum integers if conditional is high, i.e.,
+    |a>|b>|c> -> |a>|b+a>|c>
+    (without a carry out qubit)
+    if conditional is low, no operation is performed, i.e.,
+    |a>|b>|c> -> |a>|b>|c>
+    """
     assert(len(quint_a) == len(quint_b))
     assert(len(conditional) == 1)
 
@@ -194,21 +202,22 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
         with Control(eng, [quint_a[l-1] ,conditional[0]]):
             X | (quint_b[l-1])
 
-
     for m in range(1, n-2):
         CNOT | (quint_a[m], quint_a[m+1])
 
     for o in range(1, n-1):
         CNOT | (quint_a[o], quint_b[o]) 
             
-#Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf
+"""
+Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf
+"""
 def quantum_division(eng, dividend, remainder, divisor):
     
     assert(len(dividend) == len(remainder) == len(divisor))
-    
+    j = len(remainder)
     n = len(dividend)
-    while n != 0:
-        print('ja')
+
+    while j != 0:
         combined_reg = []
 
         combined_reg.append(dividend[n-1])
@@ -217,8 +226,13 @@ def quantum_division(eng, dividend, remainder, divisor):
             combined_reg.append(remainder[i])
 
         SubtractQuantum() | (divisor[0:n],combined_reg)
-        CNOT | ( combined_reg[0],remainder[n-1])
+        CNOT | ( combined_reg[n-1],remainder[n-1])
 
-        QuantumConditionalAdd() | (combined_reg,divisor[0:n],remainder[n-1])
+        QuantumConditionalAdd() | (divisor[0:n],combined_reg,remainder[n-1])
         X | remainder[n-1]
-        n -= 1
+        
+        remainder.insert(0,dividend[n-1])
+        dividend.insert(0,remainder[n])
+        del remainder[n]
+        del dividend[n]
+        j -= 1
