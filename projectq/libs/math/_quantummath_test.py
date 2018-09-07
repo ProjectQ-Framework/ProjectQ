@@ -28,7 +28,9 @@ from projectq.libs.math import (AddQuantum,
                                 SubtractQuantum,
                                 Comparator,
                                 QuantumConditionalAdd,
-                                QuantumDivision,)
+                                QuantumDivision,
+                                QuantumConditionalAddCarry,
+                                QuantumMultiplication,)
 
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -142,20 +144,20 @@ def test_quantumconditionaladd():
     c = eng.allocate_qubit()
 
     init(eng, qureg_a, 29)
-    init(eng, qureg_b, 3)
+    init(eng, qureg_b, 2)
 
     QuantumConditionalAdd() | (qureg_a, qureg_b, c)
 
     assert 1. == pytest.approx(eng.backend.get_probability([0], c)
 )
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0,0], qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0,0], qureg_b))
 
     X | c
     QuantumConditionalAdd() | (qureg_a, qureg_b, c)
 
     assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1,1], qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0,0], qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,1,1], qureg_a))
 
     All(Measure) | qureg_a
     All(Measure) | qureg_b
@@ -173,15 +175,81 @@ def test_quantumdivision():
     init(eng, qureg_a, 7)
     init(eng, qureg_c, 2)
     
-
     QuantumDivision() | (qureg_a, qureg_b, qureg_c)
 
     print(get_all_probabilities(eng, qureg_a))
     print(get_all_probabilities(eng, qureg_b))
     print(get_all_probabilities(eng, qureg_c))
 
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0], qureg_a)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0], qureg_a)
 )
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0], qureg_b)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_b)
 )
     assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0], qureg_c))
+
+    All(Measure) | qureg_a
+    All(Measure) | qureg_b
+    All(Measure) | qureg_c
+
+def test_quantumconditionaladdcarry():
+
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    c = eng.allocate_qubit()
+    qureg_z = eng.allocate_qureg(2)
+
+    init(eng, qureg_a, 7)
+    init(eng, qureg_b, 2)
+
+    QuantumConditionalAddCarry() | (qureg_a, qureg_b, c, qureg_z)
+
+    print(get_all_probabilities(eng, qureg_a))
+    print(get_all_probabilities(eng, qureg_b))
+    print(get_all_probabilities(eng, qureg_z))
+
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,0], qureg_a)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0], qureg_b)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([0], c))
+
+    X | c
+
+    QuantumConditionalAddCarry() | (qureg_a, qureg_b, c, qureg_z)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,0], qureg_a)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,1], qureg_b)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([1], c))
+
+    All(Measure) | qureg_a
+    All(Measure) | qureg_b
+    All(Measure) | qureg_c
+
+def test_quantummultiplication():
+    
+    sim = Simulator()
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
+
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    qureg_c = eng.allocate_qureg(9)
+    
+    init(eng, qureg_a, 7)
+    init(eng, qureg_b, 3)
+
+    QuantumMultiplication() | (qureg_a, qureg_b, qureg_c)
+
+    print(get_all_probabilities(eng, qureg_a))
+    print(get_all_probabilities(eng, qureg_b))
+    print(get_all_probabilities(eng, qureg_c))
+
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,0], qureg_a)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_b)
+)
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1,0,0,0,0,0], qureg_c))

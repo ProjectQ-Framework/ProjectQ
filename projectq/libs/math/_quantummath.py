@@ -16,7 +16,7 @@ import math
 
 from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import AddQuantum, SubtractQuantum, QuantumConditionalAdd
+from ._gates import AddQuantum, SubtractQuantum, QuantumConditionalAdd, QuantumConditionalAddCarry
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
@@ -180,7 +180,7 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     """
     assert(len(quint_a) == len(quint_b))
     assert(len(conditional) == 1)
-
+    
     n = len(quint_a) + 1
 
     for i in range(1,n-1):
@@ -209,10 +209,16 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
         CNOT | (quint_a[o], quint_b[o]) 
             
 """
-Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf
+Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf. The circuit consits of three parts i) leftshift ii) subtraction 
+iii) conditional add operation.
+
+Ancilla: n, Size ,Toffoli, Depth
+
 """
 def quantum_division(eng, dividend, remainder, divisor):
+    """
     
+    """
     assert(len(dividend) == len(remainder) == len(divisor))
     j = len(remainder)
     n = len(dividend)
@@ -236,3 +242,70 @@ def quantum_division(eng, dividend, remainder, divisor):
         del remainder[n]
         del dividend[n]
         j -= 1
+
+"""
+Quantum conditional add with no input carry from: https://arxiv.org/pdf/1706.05113.pdf
+"""
+def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
+
+    assert(len(quint_a) == len(quint_b))
+    assert(len(ctrl) == 1)
+    assert(len(z) == 2)
+    
+    n = len(quint_a)
+
+    for i in range(1,n):
+        CNOT | (quint_a[i], quint_b[i])
+
+    with Control(eng, [quint_a[n-1], ctrl[0]]):
+        X | z[0]
+
+    for j in range(n-2,0,-1):
+        CNOT | (quint_a[j], quint_a[j+1])
+    
+    for k in range(0,n-1):
+        with Control(eng, [quint_b[k], quint_a[k]]):
+            X | quint_a[k+1]
+    
+    with Control(eng, [quint_b[n-1],quint_a[n-1]]):
+        X | z[1]
+
+    with Control(eng, [ctrl[0], z[1]]):
+        X | z[0]
+
+    with Control(eng, [quint_b[n-1], quint_a[n-1]]):
+        X | z[1]
+
+    for l in range(n-1,0,-1):
+        with Control(eng,[ctrl[0], quint_a[l]]):
+            X | quint_b[l]
+        with Control(eng, [quint_a[l-1], quint_b[l-1]]):
+            X | quint_a[l]
+
+    with Control(eng,[quint_a[0], ctrl[0]]):
+        X | quint_b[0]
+
+    for m in range(1,n-1):
+        CNOT | (quint_a[m],quint_a[m+1])
+
+    for n in range(1,n):
+        CNOT | (quint_a[n], quint_b[n])
+
+def quantum_multiplication(eng, quint_a, quint_b, product):
+
+    assert(len(quint_a) == len(quint_b))
+    n = len(quint_a)
+    assert(len(product) == ((2 * n)+1))
+
+    for i in range(0,n):
+        with Control(eng, [quint_a[i], quint_b[0]]):
+            X | product[i]
+
+    for i in range(1,n+1):
+        QuantumConditionalAddCarry() | (quint_a[i-1],product[i],quint_b[1],[product[n+1],product[n+2]])
+
+    for j in range(2,n):
+        for i in range(0,n):
+            QuantumConditionalAddCarry() | (quint_a[i], product[i+j], quint_b[j], [product[n+j], product[n+j+1]])
+
+

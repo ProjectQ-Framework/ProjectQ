@@ -25,7 +25,9 @@ from projectq.libs.math import (AddConstant,
                                 SubtractQuantum,
                                 Comparator,
                                 QuantumConditionalAdd,
-                                QuantumDivision,)
+                                QuantumDivision,
+                                QuantumConditionalAddCarry,
+                                QuantumMultiplication,)
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
     assert not AddConstant(3) == AddConstant(4)
@@ -72,6 +74,14 @@ def test_QuantumConditionalAdd():
 def test_QuantumDivision():
     assert QuantumDivision() == QuantumDivision()
     assert str(QuantumDivision()) == "QuantumDivision"
+
+def test_QuantumConditionalAddCarry():
+    assert QuantumConditionalAddCarry() == QuantumConditionalAddCarry()
+    assert str(QuantumConditionalAddCarry()) == "QuantumConditionalAddCarry"
+
+def test_QuantumMultiplication():
+    assert QuantumMultiplication() == QuantumMultiplication()
+    assert str(QuantumMultiplication()) == "QuantumMultiplication"
 
 def test_hash_function_implemented():
     assert hash(AddConstant(3)) == hash(str(AddConstant(3)))

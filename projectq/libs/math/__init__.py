@@ -22,4 +22,6 @@ from ._gates import (AddConstant,
                      SubtractQuantum,
                      Comparator,
                      QuantumConditionalAdd,
-                     QuantumDivision,)
+                     QuantumDivision,
+                     QuantumConditionalAddCarry,
+                     QuantumMultiplication,)

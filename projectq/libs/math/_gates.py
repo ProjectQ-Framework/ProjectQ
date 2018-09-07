@@ -318,7 +318,7 @@ class Comparator(BasicMathGate):
     """    
     def __init__(self):
         """
-        Initializes the gate to  its base class, BasicMathGate, with the
+        Initializes the gate and its base class, BasicMathGate, with the
         corresponding function, so it can be emulated efficiently.
         """
         def compare(a,b,c):
@@ -365,6 +365,20 @@ class QuantumConditionalAdd(BasicMathGate):
         return not self.__eq__(other)
 
 class QuantumDivision(BasicMathGate):
+    """
+    Divides one quantum register from another one quantum number represented by a quantum register from 
+    another quantum number represented by a quantum register. 
+    Example:
+    .. code-block:: python
+        
+            qunum_a = eng.allocate_qureg(5)
+            qunum_b = eng.allocate_qureg(5)
+            X | qunum_a[2] #qunum_a is now equal to 4 
+            X | qunum_b[3] #qunum_b is now equal to 8 
+            SubtractQuantum() | (qunum_a, qunum_b)
+            # qunum_a remains 4, qunum_b is now 4
+    """
+   
     def __init__(self):
         def division(a,b,c):
             if b != 0:
@@ -381,6 +395,101 @@ class QuantumDivision(BasicMathGate):
     def __eq__(self,other):
         return (isinstance(other, QuantumDivision))
     
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class QuantumConditionalAddCarry(BasicMathGate):
+    """
+    Takes four inputs in the following order, two quantum register of equal
+    size, a control qubit and a quantum register of two qubits. The gate
+    works as follows, if the control qubit is |1>, the two quantum qubits
+    are added. The first quantum register is not changed, the second 
+    quantum register contains the added values, the control qubit is 
+    unchanged and the first qubit of the fourth input contains the highest 
+    carry of thesum. If the control qubit is |0> the gate does not perform
+    an operation and all inputs remain unchanged.   
+
+    Example:
+        .. code-block:: python
+            qunum_a = eng.allocate_qureg(4) # 4-qubit number
+            qunum_b = eng.allocate_qureg(4) # 4-qubit number
+            ctrl = eng.allocate_qubit()
+            qunum_c = eng.allocate_qureg(2) 
+            
+            X | qunum_a[1] # qunum is now equal to 2
+            All(X) | qunum_b[0:n]  # qunum is now equal to 15
+            X | ctrl
+
+            QuantumConditionalAddCarry() | (qunum_a, qunum_b, ctrl, qunum_c)
+            #qunum_a and ctrl don't change, qunum_b and qunum_c are now both
+            1 so in binary together 10001 (which is 17)
+            
+    """
+    def __init__(self):
+        """
+        Initializes the gate to  its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
+        BasicMathGate.__init__(self,QuantumConditionalAddCarry.get_math_function)
+
+    def get_math_function(self,qubits):
+        n = len(qubits[0])
+        def math_fun(a):
+            if a[2] == 1:
+                a[1] = a[0] + a[1]
+                if len("{0:b}".format(a[1])) > n:
+                    a[3] += 1
+            return (a)
+        return math_fun
+
+    def __str__(self):
+        return "QuantumConditionalAddCarry"
+
+    def __eq__(self,other):
+        return (isinstance(other, QuantumConditionalAddCarry))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class QuantumMultiplication(BasicMathGate):
+    """ 
+    Multiplies two quantum numbers represented by a quantum registers. 
+    Requires three quantum registers as inputs, the first two are the 
+    numbers to be multiplied and should have the same size (n qubits). The 
+    third register will hold the product and should be of size 2n+1.    
+    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+
+    Example:
+        .. code-block:: python
+        qunum_a = eng.allocate_qureg(4)
+        qunum_b = eng.allocate_qureg(4)
+        qunum_c = eng.allocate_qureg(9)
+        X | qunum_a[2] # qunum_a is now 4
+        X | qunum_b[3] # qunum_b is now 8
+        QuantumMultiplication() | (qunum_a, qunum_b, qunum_c) 
+        # qunum_c is now equal to 32
+    """
+    def __init__(self):
+        """
+        Initializes the gate and its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
+        def multiply(a,b,c):
+                return (a,b,a*b)
+        BasicMathGate.__init__(self,multiply)
+
+    def __str__(self):
+        return "QuantumMultiplication"
+
+    def __eq__(self, other):
+        return (isinstance(other, QuantumMultiplication))
+
     def __hash__(self):
         return hash(str(self))
 
