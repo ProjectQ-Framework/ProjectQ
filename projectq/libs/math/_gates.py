@@ -301,7 +301,8 @@ class SubtractQuantum(BasicMathGate):
 
 class Comparator(BasicMathGate):
     """ 
-    Add up two quantum numbers represented by quantum registers.
+    Flips a compare qubit if the binary value of first imput is higher than
+    the second input.
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
     Example:
         .. code-block:: python
@@ -343,8 +344,31 @@ class Comparator(BasicMathGate):
         return not self.__eq__(other)
 
 class QuantumConditionalAdd(BasicMathGate):
-    
+    """
+    Adds up two quantum numbers if a control qubit is |1>. If the control 
+    qubit is not one the gate does not perform an operation.
+    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+
+    Example:
+        .. code-block:: python
+        
+            qunum_a = eng.allocate_qureg(5)
+            qunum_b = eng.allocate_qureg(5)
+            compare_bit = eng.allocate_qubit()
+
+            X | qunum_a[4] #qunum_a is now equal to 16 
+            X | qunum_b[3] #qunum_b is now equal to 8 
+            X | compare_bit
+
+            Comparator() | (qunum_a, qunum_b, compare_bit)
+            # qunum_a remain 16 and qunum_b is now 24, compare bit is 
+            remains 1.
+    """ 
     def __init__(self):
+         """
+        Initializes the gate and its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """    
         def conditionaladd(a,b,c):
             if c == 1:
                 return (a,a+b,c)
@@ -366,25 +390,38 @@ class QuantumConditionalAdd(BasicMathGate):
 
 class QuantumDivision(BasicMathGate):
     """
-    Divides one quantum register from another one quantum number represented by a quantum register from 
-    another quantum number represented by a quantum register. 
+    Divides one quantum number from another. Takes three inputs which should
+    be quantum registers of equal size; a dividend, a remainder and a 
+    divisor. The remainder should be in the state |0...0> and the dividend 
+    should be bigger than the divisor.The gate returns (in this order): the 
+    remainder, the quotient and the divisor.
+
+    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+
     Example:
     .. code-block:: python
         
             qunum_a = eng.allocate_qureg(5)
             qunum_b = eng.allocate_qureg(5)
-            X | qunum_a[2] #qunum_a is now equal to 4 
-            X | qunum_b[3] #qunum_b is now equal to 8 
-            SubtractQuantum() | (qunum_a, qunum_b)
-            # qunum_a remains 4, qunum_b is now 4
+            qunum_c = eng.allocate_qureg(5)
+            All(X) | [qunum_a[0],qunum_b[3]] #qunum_a is now equal to 9 
+            X | qunum_c[2] #qunum_b is now equal to 4 
+
+            QuantumDivision() | (qunum_a, qunum_b,qunum_c) # 9/4 = 2
+            # qunum_a is now 1 (remainder), qunum_b 2 (quotient), qunum_c 
+            # (divisor)
     """
    
     def __init__(self):
+        """
+        Initializes the gate and its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
         def division(a,b,c):
             if b != 0:
                 d = a//b
-                c = a&b
-                return(d,b,c)
+                e = a%b
+                return(e,d,c)
             else:
                 return(a,b,c)
         BasicMathGate.__init__(self,division)
@@ -403,14 +440,14 @@ class QuantumDivision(BasicMathGate):
 
 class QuantumConditionalAddCarry(BasicMathGate):
     """
-    Takes four inputs in the following order, two quantum register of equal
-    size, a control qubit and a quantum register of two qubits. The gate
-    works as follows, if the control qubit is |1>, the two quantum qubits
-    are added. The first quantum register is not changed, the second 
-    quantum register contains the added values, the control qubit is 
-    unchanged and the first qubit of the fourth input contains the highest 
-    carry of thesum. If the control qubit is |0> the gate does not perform
-    an operation and all inputs remain unchanged.   
+    Takes four inputs, two quantum register of equal size, a control qubit 
+    and a quantum register of two qubits. The gate works as follows, if the
+    control qubit is |1>, the two quantum qubits are added. The first 
+    quantum register is not changed, the second quantum register contains 
+    the added values, the control qubit is unchanged and the first qubit of
+    the fourth input contains the highest carry of the sum. If the control 
+    qubit is |0> the gate does not perform an operation and all inputs 
+    remain unchanged.   
 
     Example:
         .. code-block:: python

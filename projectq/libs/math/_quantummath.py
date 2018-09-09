@@ -123,11 +123,13 @@ def comparator(eng, quint_a, quint_b, comparator):
 
     """                                                     
     Compares the size of two quantum integers, i.e,
-    if a>b: |a>|b>|c> -> |a>|b>|c⊕1>
-    else:   |a>|b>|c> -> |a>|b>|c>
-    (only works if quint_a and quint_b are the same size and the comparator is 1 
-    qubit)
 
+    if a>b: |a>|b>|c> -> |a>|b>|c⊕1>
+
+    else:   |a>|b>|c> -> |a>|b>|c>
+
+    (only works if quint_a and quint_b are the same size and the comparator 
+    is 1 qubit)
     """
 
     assert(len(quint_a) == len(quint_b))
@@ -173,8 +175,10 @@ are added, if "conditional" is low no operation is performed.
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     """
     Adds up two quantum integers if conditional is high, i.e.,
+
     |a>|b>|c> -> |a>|b+a>|c>
     (without a carry out qubit)
+
     if conditional is low, no operation is performed, i.e.,
     |a>|b>|c> -> |a>|b>|c>
     """
@@ -217,7 +221,11 @@ Ancilla: n, Size ,Toffoli, Depth
 """
 def quantum_division(eng, dividend, remainder, divisor):
     """
-    
+    Performs restoring integer division, i.e.,
+
+    |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
+
+    (only works if all three qubits are of equal length)
     """
     assert(len(dividend) == len(remainder) == len(divisor))
     j = len(remainder)
@@ -245,8 +253,23 @@ def quantum_division(eng, dividend, remainder, divisor):
 
 """
 Quantum conditional add with no input carry from: https://arxiv.org/pdf/1706.05113.pdf
+
+Ancilla: ,Size, Toffoli, Depth
 """
 def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
+    """
+    Adds up two quantum integers if the control qubit is |1>, i.e.,
+
+    |a>|b>|ctrl>|z(0)z(1)> -> |a>|s(0)...s(n-1)>|ctrl>|s(n)z(1)>  
+    (where s denotes the sum of a and b)
+
+    If the control qubit is |0> no operation is performed:
+
+    |a>|b>|ctrl>|z(0)z(1)> -> |a>|b>|ctrl>|z(0)z(1)>
+
+    (only works if quint_a and quint_b are of the same size, ctrl is a 
+    single qubit and z is a quantum register with 2 qubits.
+    """
 
     assert(len(quint_a) == len(quint_b))
     assert(len(ctrl) == 1)
@@ -290,9 +313,19 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
 
     for n in range(1,n):
         CNOT | (quint_a[n], quint_b[n])
-
+"""
+Quantum multiplication from: https://arxiv.org/abs/1706.05113.
+Ancilla ,Size ,Toffoli ,Depth
+"""
 def quantum_multiplication(eng, quint_a, quint_b, product):
-
+    """
+    Multiplies two quintum integers, i.e, 
+    
+    |a>|b>|0> -> |a>|b>|a*b> 
+    
+    (only works if quint_a and quint_b are of the same size, n qubits and 
+    product has size 2n+1). 
+    """
     assert(len(quint_a) == len(quint_b))
     n = len(quint_a)
     assert(len(product) == ((2 * n)+1))
