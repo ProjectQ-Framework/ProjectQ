@@ -24,7 +24,7 @@ from ._gates import (AddQuantum,
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
 
-Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3
+Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3.
 """
 
 
@@ -76,7 +76,7 @@ b-a = (a + b')'. Same as the quantum addition circuit except that the steps
 involving the carry qubit are left out and complement b at the start and at 
 the end of the circuit is added.
 
-Ancilla: 0, Size: 9n-8, Toffoli: 2n-2, Depth: 5n-5
+Ancilla: 0, Size: 9n-8, Toffoli: 2n-2, Depth: 5n-5.
 """
 
 
@@ -125,7 +125,7 @@ circuit in AddQuantum (such that the high bit is written to  the carry qubit)
 and then undoing the first half of the circuit. By complementing b at the 
 start and b+a at the end the high bit of b-a is calculated.
 
-Ancilla: 0,Size: 8n-3,Toffoli: 2n+1, Depth: 4n+3
+Ancilla: 0, Size: 8n-3, Toffoli: 2n+1, Depth: 4n+3.
 """
 
 
@@ -180,6 +180,7 @@ Quantum Conditional Add from https://arxiv.org/pdf/1609.01241.pdf.
 If an input qubit labeled "conditional" is high, the two quantum integers
 are added, if "conditional" is low no operation is performed.
 
+Ancilla: 0, Size: 7n-7, Toffoli: 3n-3, Depth: 5n-3. 
 """
 
 
@@ -229,7 +230,7 @@ Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf.
 The circuit consits of three parts i) leftshift ii) subtraction 
 iii) conditional add operation.
 
-Ancilla: n, Size ,Toffoli, Depth
+Ancilla: n, Size 16n^2 - 13, Toffoli: 5n^2 -5 , Depth: 10n^2 - 6.
 
 """
 
@@ -269,9 +270,10 @@ def quantum_division(eng, dividend, remainder, divisor):
 
 
 """
-Quantum conditional add with no input carry from: https://arxiv.org/pdf/1706.05113.pdf
+Quantum conditional add with no input carry from: 
+https://arxiv.org/pdf/1706.05113.pdf
 
-Ancilla: ,Size, Toffoli, Depth
+Ancilla: 2, Size: 7n - 4, Toffoli: 3n + 2, Depth: 5n.
 """
 
 
@@ -336,7 +338,8 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
 
 """
 Quantum multiplication from: https://arxiv.org/abs/1706.05113.
-Ancilla ,Size ,Toffoli ,Depth
+
+Ancilla: 2n + 1, Size: 7n^2 - 9n + 4, Toffoli: 5n^2 - 4n, Depth: 3n^2 - 2.
 """
 
 
