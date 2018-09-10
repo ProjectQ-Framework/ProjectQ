@@ -22,7 +22,7 @@ from projectq.cengines import (InstructionFilter,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
 from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
-                          Measure, X, H)
+                          Measure, X)
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
@@ -57,7 +57,7 @@ def test_adder():
                            InstructionFilter(no_math_emulation)])
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
-    
+
     AddConstant(3) | qureg
 
     assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
