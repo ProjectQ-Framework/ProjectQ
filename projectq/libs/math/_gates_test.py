@@ -89,4 +89,11 @@ def test_hash_function_implemented():
     assert hash(AddConstantModN(7, 4)) == hash(str(AddConstantModN(7, 4)))
     assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
     assert hash(MultiplyByConstantModN(3, 5)) == hash(
-        MultiplyByConstantModN(3, 5))
+        str(MultiplyByConstantModN(3, 5)))
+    assert hash(AddQuantum()) == hash(str(AddQuantum()))
+    assert hash(SubtractQuantum()) == hash(str(SubtractQuantum()))
+    assert hash(Comparator()) == hash(str(Comparator()))
+    assert hash(QuantumConditionalAdd()) == hash(str(QuantumConditionalAdd()))
+    assert hash(QuantumDivision()) == hash(str(QuantumDivision()))
+    assert hash(QuantumConditionalAddCarry()) == hash(str(QuantumConditionalAddCarry()))
+    assert hash(QuantumMultiplication()) == hash(str(QuantumMultiplication()))
