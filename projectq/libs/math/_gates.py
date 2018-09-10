@@ -223,8 +223,8 @@ class AddQuantum(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum_a = eng.allocate_qureg(5)
-            qunum_b = eng.allocate_qureg(5)
+            qunum_a = eng.allocate_qureg(5) # 5-qubit number
+            qunum_b = eng.allocate_qureg(5) # 5-qubit number
             carry_bit = eng.allocate_qubit()
 
             X | qunum_a[2] #qunum_a is now equal to 4 
@@ -269,8 +269,8 @@ class SubtractQuantum(BasicMathGate):
     Example:
     .. code-block:: python
         
-            qunum_a = eng.allocate_qureg(5)
-            qunum_b = eng.allocate_qureg(5)
+            qunum_a = eng.allocate_qureg(5) # 5-qubit number
+            qunum_b = eng.allocate_qureg(5) # 5-qubit number
             X | qunum_a[2] #qunum_a is now equal to 4 
             X | qunum_b[3] #qunum_b is now equal to 8 
             SubtractQuantum() | (qunum_a, qunum_b)
@@ -307,8 +307,8 @@ class Comparator(BasicMathGate):
     Example:
         .. code-block:: python
         
-            qunum_a = eng.allocate_qureg(5)
-            qunum_b = eng.allocate_qureg(5)
+            qunum_a = eng.allocate_qureg(5) # 5-qubit number
+            qunum_b = eng.allocate_qureg(5) # 5-qubit number
             compare_bit = eng.allocate_qubit()
             X | qunum_a[4] #qunum_a is now equal to 16 
             X | qunum_b[3] #qunum_b is now equal to 8 
@@ -352,16 +352,17 @@ class QuantumConditionalAdd(BasicMathGate):
     Example:
         .. code-block:: python
         
-            qunum_a = eng.allocate_qureg(5)
-            qunum_b = eng.allocate_qureg(5)
-            control_bit = eng.allocate_qubit()
+            qunum_a = eng.allocate_qureg(5) # 5-qubit number
+            qunum_b = eng.allocate_qureg(5) # 5-qubit number 
+            compare_bit = eng.allocate_qubit()
 
             X | qunum_a[4] #qunum_a is now equal to 16 
             X | qunum_b[3] #qunum_b is now equal to 8 
             X | control_bit
 
-            QuantumConditionalAdd() | (qunum_a, qunum_b, control_bit)
-            # qunum_a remain 16 and qunum_b is now 24, control_bit remains 1.
+            Comparator() | (qunum_a, qunum_b, compare_bit)
+            # qunum_a remains 16 and qunum_b is now 24, compare bit 
+            # remains 1.
     """ 
     def __init__(self):
         """
@@ -400,15 +401,16 @@ class QuantumDivision(BasicMathGate):
     Example:
     .. code-block:: python
         
-            qunum_a = eng.allocate_qureg(5)
-            qunum_b = eng.allocate_qureg(5)
-            qunum_c = eng.allocate_qureg(5)
+            qunum_a = eng.allocate_qureg(5) # 5-qubit number
+            qunum_b = eng.allocate_qureg(5) # 5-qubit number
+            qunum_c = eng.allocate_qureg(5) # 5-qubit number
+            
             All(X) | [qunum_a[0],qunum_b[3]] #qunum_a is now equal to 9 
             X | qunum_c[2] #qunum_b is now equal to 4 
 
-            QuantumDivision() | (qunum_a, qunum_b,qunum_c) # 9/4 = 2
-            # qunum_a is now 1 (remainder), qunum_b 2 (quotient), qunum_c 
-            # (divisor)
+            QuantumDivision() | (qunum_a, qunum_b,qunum_c) 
+            # qunum_a is now equal to 1 (remainder), qunum_b is now 
+            # equal to 2 (quotient) and qunum_c remains 4 (divisor)
     """
    
     def __init__(self):
@@ -460,8 +462,8 @@ class QuantumConditionalAddCarry(BasicMathGate):
             X | ctrl
 
             QuantumConditionalAddCarry() | (qunum_a, qunum_b, ctrl, qunum_c)
-            #qunum_a and ctrl don't change, qunum_b and qunum_c are now both
-            1 so in binary together 10001 (which is 17)
+            # qunum_a and ctrl don't change, qunum_b and qunum_c are now both
+            # equal to 1 so in binary together 10001 (2 + 15 = 17)
             
     """
     def __init__(self):
@@ -514,7 +516,7 @@ class QuantumMultiplication(BasicMathGate):
         X | qunum_a[2] # qunum_a is now 4
         X | qunum_b[3] # qunum_b is now 8
         QuantumMultiplication() | (qunum_a, qunum_b, qunum_c) 
-        # qunum_c is now equal to 32
+        # qunum_a remains 4 and qunum_b remains 8, qunum_c is now equal to 32
     """
     def __init__(self):
         """
