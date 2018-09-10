@@ -365,7 +365,7 @@ class QuantumConditionalAdd(BasicMathGate):
             remains 1.
     """ 
     def __init__(self):
-         """
+        """
         Initializes the gate and its base class, BasicMathGate, with the
         corresponding function, so it can be emulated efficiently.
         """    
@@ -478,7 +478,12 @@ class QuantumConditionalAddCarry(BasicMathGate):
             if a[2] == 1:
                 a[1] = a[0] + a[1]
                 if len("{0:b}".format(a[1])) > n:
-                    a[3] += 1
+                    if a[3] == 1:
+                        a[3] = 0
+                    elif a[3] == 3:
+                        a[3] = 2
+                    else:
+                        a[3] += 1
             return (a)
         return math_fun
 

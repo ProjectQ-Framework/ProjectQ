@@ -1,3 +1,4 @@
+
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -334,11 +335,9 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
         with Control(eng, [quint_a[i], quint_b[0]]):
             X | product[i]
 
-    for i in range(1,n+1):
-        QuantumConditionalAddCarry() | (quint_a[i-1],product[i],quint_b[1],[product[n+1],product[n+2]])
+    QuantumConditionalAddCarry() | (quint_a[0:(n-1)],product[1:n],quint_b[1],[product[n+1],product[n+2]])
 
     for j in range(2,n):
-        for i in range(0,n):
-            QuantumConditionalAddCarry() | (quint_a[i], product[i+j], quint_b[j], [product[n+j], product[n+j+1]])
+        QuantumConditionalAddCarry() | (quint_a[0:(n-1)], product[(0+j):(n-1+j)], quint_b[j], [product[n+j], product[n+j+1]])
 
 
