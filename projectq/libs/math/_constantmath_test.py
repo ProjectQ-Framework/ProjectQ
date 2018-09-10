@@ -76,8 +76,7 @@ def test_adder():
     assert 0.7071 == pytest.approx(abs(sim.cheat()[1][1]), abs = 1e-3)
 
     All(Measure) | qureg
-    
-    
+
 
 def test_modadder():
     sim = Simulator()
@@ -117,5 +116,5 @@ def test_modmultiplier():
 
     MultiplyByConstantModN(4, 13) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
-    
+
     All(Measure) | qureg
