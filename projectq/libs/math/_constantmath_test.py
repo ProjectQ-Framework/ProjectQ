@@ -69,11 +69,6 @@ def test_adder():
     # check for overflow -> should be 15+2 = 1 (mod 16)
     AddConstant(15) | qureg
     assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
-    
-    init(eng, qureg, 1) #reset
-    H | qureg[0]
-    
-    assert 0.7071 == pytest.approx(abs(sim.cheat()[1][1]), abs = 1e-3)
 
     All(Measure) | qureg
 
@@ -106,7 +101,7 @@ def test_modmultiplier():
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
-    
+
     MultiplyByConstantModN(3, 7) | qureg
 
     assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
