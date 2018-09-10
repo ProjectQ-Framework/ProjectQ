@@ -29,6 +29,8 @@ from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
+
+
 def init(engine, quint, value):
     for i in range(len(quint)):
         if ((value >> i) & 1) == 1:
