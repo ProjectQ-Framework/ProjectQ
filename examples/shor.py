@@ -10,6 +10,7 @@ except ImportError:
     from fractions import gcd
 
 from builtins import input
+
 import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.backends import Simulator, ResourceCounter
