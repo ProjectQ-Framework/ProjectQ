@@ -103,4 +103,3 @@ def test_factoring(sim):
 
     Measure | ctrl_qubit
     All(Measure) | x
-
