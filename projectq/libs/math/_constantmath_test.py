@@ -28,7 +28,6 @@ import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
-
                                 MultiplyByConstantModN)
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -118,5 +117,3 @@ def test_modmultiplier():
     assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
     
     All(Measure) | qureg
-
-
