@@ -103,7 +103,7 @@ def mul_by_constant_modN(eng, c, N, quint_in):
         with Control(eng, quint_in[i]):
             SubConstantModN((cinv << i) % N, N) | quint_out
     del quint_out
-
+    
     
 # calculates the inverse of a modulo N
 def inv_mod_N(a, N):
