@@ -133,7 +133,7 @@ def comparator(eng, quint_a, quint_b, comparator):
     """
     Compares the size of two quantum integers, i.e,
 
-    if a>b: |a>|b>|c> -> |a>|b>|c⊕1>
+    if a>b: |a>|b>|c> -> |a>|b>|c+1>
 
     else:   |a>|b>|c> -> |a>|b>|c>
 
