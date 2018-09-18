@@ -128,7 +128,7 @@ def test_quantumconditionaladd():
     sim = Simulator()
     eng = MainEngine(sim, [AutoReplacer(rule_set),
                            InstructionFilter(no_math_emulation)])
-    qureg_a = eng.allocate_qureg(5)
+m    qureg_a = eng.allocate_qureg(5)
     qureg_b = eng.allocate_qureg(5)
     c = eng.allocate_qubit()
 

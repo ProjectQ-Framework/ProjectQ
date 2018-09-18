@@ -354,15 +354,14 @@ class QuantumConditionalAdd(BasicMathGate):
         
             qunum_a = eng.allocate_qureg(5)
             qunum_b = eng.allocate_qureg(5)
-            compare_bit = eng.allocate_qubit()
+            control_bit = eng.allocate_qubit()
 
             X | qunum_a[4] #qunum_a is now equal to 16 
             X | qunum_b[3] #qunum_b is now equal to 8 
-            X | compare_bit
+            X | control_bit
 
-            Comparator() | (qunum_a, qunum_b, compare_bit)
-            # qunum_a remain 16 and qunum_b is now 24, compare bit is 
-            remains 1.
+            QuantumConditionalAdd() | (qunum_a, qunum_b, control_bit)
+            # qunum_a remain 16 and qunum_b is now 24, control_bit remains 1.
     """ 
     def __init__(self):
         """
