@@ -109,7 +109,7 @@ class ControlFunctionOracle:
                                "provided qubits")
 
         # convert reversible circuit to ProjectQ code and execute it
-        _exec(revkit.write_projectq(log=True)["contents"], qs)
+        _exec(revkit.to_projectq(mct=True), qs)
 
     def _check_function(self):
         """

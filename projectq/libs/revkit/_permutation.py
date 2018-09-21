@@ -81,7 +81,7 @@ class PermutationOracle:
         self.kwargs.get("synth", revkit.tbs)()
 
         # convert reversible circuit to ProjectQ code and execute it
-        _exec(revkit.write_projectq(log=True)["contents"], qs)
+        _exec(revkit.to_projectq(mct=True), qs)
 
     def _check_permutation(self):
         """
