@@ -1,7 +1,7 @@
 """
 Implementation of a variational quantum eigensolver.
 
-The example shown here is from the paper "Scalable Quantum Simulation of 
+The example shown here is from the paper "Scalable Quantum Simulation of
 Molecular Energies" by P.J.J. O'Malley et al. arXiv:1512.06860v2
 (Note that only the latest arXiv version contains the correct coefficients of
  the hamiltonian)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     for i in range(len(raw_data_table_1)):
         # Use data of paper to construct the Hamiltonian
         bond_distances.append(raw_data_table_1[i][0])
-        hamiltonian =  raw_data_table_1[i][1] * QubitOperator(()) # == identity
+        hamiltonian = raw_data_table_1[i][1] * QubitOperator(())  # == identity
         hamiltonian += raw_data_table_1[i][2] * QubitOperator("Z0")
         hamiltonian += raw_data_table_1[i][3] * QubitOperator("Z1")
         hamiltonian += raw_data_table_1[i][4] * QubitOperator("Z0 Z1")
