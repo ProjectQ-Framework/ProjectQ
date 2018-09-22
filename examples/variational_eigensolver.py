@@ -79,38 +79,6 @@ raw_data_table_1 = [
     [2.85, -0.3135, 0.0984,  0.0679, 0.3329, 0.1475, 0.1475]]
 
 
-def get_hamiltonian(bond_,distance):
-    """ 
-    Returns the Hamiltonian of the system for a secific bond distance.
-
-    Uses the data in Table 1 of the paper. One could use FermiLib to
-    calculate and the Hamiltonian for an arbitrary molecule and bond distance.
-
-    Args:
-        bond_radius(float): Only bond distances of paper allowed, i.e.
-                            0.2 <= bond_radius <= 2.85 in steps of 0.05
-    Returns:
-        QubitOperator which represents the Hamiltonian
-    """
-    with open("hamiltonian.txt", 'r') as file:
-        found = False
-        for line in file:
-            r, g0, g1, g2, g3, g4, g5 = [float(x) for x in line.split()]
-            if r == bond_distance:
-                found = True
-                break
-        if not found:
-            raise Exception("Hamiltonian for bond_distance ", bond_distance,
-                            " not found in data file.")
-    hamiltonian = g0*QubitOperator(()) # == identity
-    hamiltonian += g1*QubitOperator("Z0")
-    hamiltonian += g2*QubitOperator("Z1")
-    hamiltonian += g3*QubitOperator("Z0 Z1")
-    hamiltonian += g4*QubitOperator("X0 X1")
-    hamiltonian += g5*QubitOperator("Y0 Y1")
-    return hamiltonian
-
-
 def energy(theta, hamiltonian):
     """
     Args:
