@@ -29,7 +29,7 @@ from projectq.ops import (All, ClassicalInstructionGate, CRz, Entangle, H,
 from projectq.meta import Control
 from projectq.setups.decompositions import (crz2cxandrz, entangle,
                                             globalphase, ph2r, r2rzandph,
-                                            toffoli2cnotandtgate)
+                                            toffoli2cnotandtgate, hadamard2xyrotations)
 
 
 def low_level_gates(eng, cmd):
@@ -108,6 +108,29 @@ def test_gate_decompositions():
     eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
                                      InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
+
+    for i in range(len(sim.cheat()[1])):
+        assert sim.cheat()[1][i] == pytest.approx(sim2.cheat()[1][i])
+
+    All(Measure) | qureg
+    All(Measure) | qureg2
+
+def run_circuit_hadamard(eng):
+    qureg = eng.allocate_qureg(1)
+    All(H) | qureg
+    return qureg
+
+def test_hadamard_decomposition():
+    sim = Simulator()
+    eng = MainEngine(sim, [])
+    qureg = run_circuit_hadamard(eng)
+
+    rule_set = DecompositionRuleSet(
+        modules=[hadamard2xyrotations])
+    sim2 = Simulator()
+    eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
+                                     InstructionFilter(low_level_gates)])
+    qureg2 = run_circuit_hadamard(eng_lowlevel)
 
     for i in range(len(sim.cheat()[1])):
         assert sim.cheat()[1][i] == pytest.approx(sim2.cheat()[1][i])
