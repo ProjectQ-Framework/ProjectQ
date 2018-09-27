@@ -19,11 +19,13 @@ Registers a decomposition for the Hadamard gate.
 import numpy as np
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, get_control_count
-from projectq.ops import X, Ry, Ph, H 
+from projectq.ops import X, Ry, Ph, H
+
 
 def _recognize_hadamard(cmd):
     """ For efficiency only use this if at most 1 control qubit."""
     return get_control_count(cmd) <= 1
+
 
 def _decompose_hadamard(cmd):
     """ Decompose the H gate. """
@@ -32,8 +34,8 @@ def _decompose_hadamard(cmd):
 
     with Control(eng, cmd.control_qubits):
         X | qr[0]
-        Ry(-np.pi/2) | qr[0]
-        Ph(np.pi/2) | qr[0]
+        Ry(-np.pi / 2) | qr[0]
+        Ph(np.pi / 2) | qr[0]
 
 
 #: Decomposition rules
