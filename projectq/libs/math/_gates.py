@@ -360,9 +360,8 @@ class QuantumConditionalAdd(BasicMathGate):
             X | qunum_b[3] #qunum_b is now equal to 8 
             X | control_bit
 
-            Comparator() | (qunum_a, qunum_b, compare_bit)
-            # qunum_a remains 16 and qunum_b is now 24, compare bit 
-            # remains 1.
+            QuantumConditionalAdd() | (qunum_a, qunum_b, control_bit)
+            # qunum_a remain 16 and qunum_b is now 24, control_bit remains 1.
     """ 
     def __init__(self):
         """
@@ -405,12 +404,14 @@ class QuantumDivision(BasicMathGate):
             qunum_b = eng.allocate_qureg(5) # 5-qubit number
             qunum_c = eng.allocate_qureg(5) # 5-qubit number
             
-            All(X) | [qunum_a[0],qunum_b[3]] #qunum_a is now equal to 9 
-            X | qunum_c[2] #qunum_b is now equal to 4 
+            All(X) | [qunum_a[0],qunum_a[3]] #qunum_a is now equal to 9 
+            X | qunum_c[2] #qunum_c is now equal to 4 
 
             QuantumDivision() | (qunum_a, qunum_b,qunum_c) 
             # qunum_a is now equal to 1 (remainder), qunum_b is now 
             # equal to 2 (quotient) and qunum_c remains 4 (divisor)
+
+            |divisor>|remainder>|dividend> -> |divisor>|quotient>|remainder>
     """
    
     def __init__(self):
@@ -418,13 +419,17 @@ class QuantumDivision(BasicMathGate):
         Initializes the gate and its base class, BasicMathGate, with the
         corresponding function, so it can be emulated efficiently.
         """
-        def division(a,b,c):
-            if b != 0:
-                d = a//b
-                e = a%b
-                return(e,d,c)
+
+        def division(divisor,remainder,dividend):
+
+            if divisor == 0 or divisor > dividend:
+                return(divisor,remainder,dividend)
+
             else:
-                return(a,b,c)
+                quotient = remainder + dividend//divisor
+                return(divisor, quotient, dividend - (quotient* divisor))
+#dividend - ((
+#dividend//divisor)*divisor))
         BasicMathGate.__init__(self,division)
     
     def __str__(self):
@@ -464,7 +469,6 @@ class QuantumConditionalAddCarry(BasicMathGate):
             QuantumConditionalAddCarry() | (qunum_a, qunum_b, ctrl, qunum_c)
             # qunum_a and ctrl don't change, qunum_b and qunum_c are now both
             # equal to 1 so in binary together 10001 (2 + 15 = 17)
-            
     """
     def __init__(self):
         """
