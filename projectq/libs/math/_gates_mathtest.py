@@ -61,6 +61,7 @@ def test_subtraction():
     assert 1. == pytest.approx(eng.backend.get_probability([0,0,1,0,0], qunum_a))
     assert 1. == pytest.approx(eng.backend.get_probability([0,0,1,0,0], qunum_b))
 
+
 def test_division():
 
     eng = MainEngine()
@@ -73,7 +74,6 @@ def test_division():
     X | qunum_c[2] # qunum_c is now 4
     
     QuantumDivision() | (qunum_c, qunum_b, qunum_a)
-#    SubtractQuantum() | (qunum_a, qunum_b)
     eng.flush()
 
     print(get_all_probabilities(eng, qunum_c))
