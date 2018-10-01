@@ -354,7 +354,7 @@ class QuantumConditionalAdd(BasicMathGate):
         
             qunum_a = eng.allocate_qureg(5) # 5-qubit number
             qunum_b = eng.allocate_qureg(5) # 5-qubit number 
-            compare_bit = eng.allocate_qubit()
+            control_bit = eng.allocate_qubit()
 
             X | qunum_a[4] #qunum_a is now equal to 16 
             X | qunum_b[3] #qunum_b is now equal to 8 
@@ -428,8 +428,6 @@ class QuantumDivision(BasicMathGate):
             else:
                 quotient = remainder + dividend//divisor
                 return(divisor, quotient, dividend - (quotient* divisor))
-#dividend - ((
-#dividend//divisor)*divisor))
         BasicMathGate.__init__(self,division)
     
     def __str__(self):
@@ -463,7 +461,7 @@ class QuantumConditionalAddCarry(BasicMathGate):
             qunum_c = eng.allocate_qureg(2) 
             
             X | qunum_a[1] # qunum is now equal to 2
-            All(X) | qunum_b[0:n]  # qunum is now equal to 15
+            All(X) | qunum_b[0:4]  # qunum is now equal to 15
             X | ctrl
 
             QuantumConditionalAddCarry() | (qunum_a, qunum_b, ctrl, qunum_c)
@@ -528,7 +526,7 @@ class QuantumMultiplication(BasicMathGate):
         corresponding function, so it can be emulated efficiently.
         """
         def multiply(a,b,c):
-                return (a,b,a*b)
+                return (a,b,c+a*b)
         BasicMathGate.__init__(self,multiply)
 
     def __str__(self):
