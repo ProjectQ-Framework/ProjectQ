@@ -49,6 +49,26 @@ cppsim = Feature(
     ],
 )
 
+qracksim = Feature(
+    'Qrack Simulator',
+    standard=True,
+    ext_modules=[
+        Extension(
+            'projectq.backends._qrack._qracksim',
+            ['projectq/backends/_qrack/_qracksim.cpp'],
+            include_dirs=[
+                # Path to pybind11 headers
+                get_pybind_include(),
+                get_pybind_include(user=True),
+                '/usr/local/include/qrack'
+            ],
+            libraries=['qrack', 'OpenCL'],
+            library_dirs=['/usr/local/lib'],
+            language='c++'
+        ),
+    ],
+)
+
 
 def has_flag(compiler, flagname=None):
     """
@@ -148,10 +168,10 @@ class BuildExt(build_ext):
             self.warning("")
 
     def warning(self, warning_text):
-        raise Exception(warning_text + "\nCould not install the C++-Simulator."
+        raise Exception(warning_text + "\nCould not install the C++ simulators."
                         "\nProjectQ will default to the (slow) Python "
                         "simulator.\nUse --without-cppsimulator to skip "
-                        "building the (faster) C++ version of the simulator.")
+                        "building the (faster) C++ simulators.")
 
 
 setup(
@@ -163,7 +183,7 @@ setup(
     description=('ProjectQ - '
                  'An open source software framework for quantum computing'),
     long_description=long_description,
-    features={'cppsimulator': cppsim},
+    features={'cppsimulator': cppsim, 'qracksimulator': qracksim},
     install_requires=requirements,
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,

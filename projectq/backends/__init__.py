@@ -28,5 +28,6 @@ This includes:
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer
 from ._sim import Simulator, ClassicalSimulator
+from ._qrack import QrackSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
