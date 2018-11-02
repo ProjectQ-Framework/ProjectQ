@@ -96,10 +96,9 @@ class QrackSimulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        if (cmd.gate == Measure or cmd.gate == Allocate or
-                cmd.gate == Deallocate or cmd.gate == Ph or
-                cmd.gate == Swap or cmd.gate == SqrtSwap or
-                cmd.gate == Ph):
+        if (cmd.gate == Measure or isinstance(cmd.gate, Ph) or
+                cmd.gate == Allocate or cmd.gate == Deallocate or
+                cmd.gate == Swap or cmd.gate == SqrtSwap):
             return True
         try:
             m = cmd.gate.matrix
@@ -301,7 +300,7 @@ class QrackSimulator(BasicEngine):
         elif cmd.gate == Deallocate:
             ID = cmd.qubits[0][0].id
             self._simulator.deallocate_qubit(ID)
-        elif cmd.gate == Ph:
+        elif isinstance(cmd.gate, Ph):
             # Global phase shifts have no physically measurable effect,
             # but it could be optimal to decompose with them.
             pass
