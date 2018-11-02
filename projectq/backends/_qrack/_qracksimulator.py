@@ -96,10 +96,14 @@ class QrackSimulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        if (cmd.gate == Measure or isinstance(cmd.gate, Ph) or
-                cmd.gate == Allocate or cmd.gate == Deallocate or
-                cmd.gate == Swap or cmd.gate == SqrtSwap):
-            return True
+        try:
+            if (cmd.gate == Measure or
+                    cmd.gate == Allocate or cmd.gate == Deallocate or
+                    cmd.gate == Swap or cmd.gate == SqrtSwap):
+                return True
+        except:
+            return False
+
         try:
             m = cmd.gate.matrix
             # Allow up to 1-qubit gates
