@@ -39,24 +39,23 @@ from projectq.backends import QrackSimulator
 
 
 def test_is_qrack_simulator_present():
-    import projectq.backends._sim._qracksim
-    assert projectq.backends._sim._qracksim
+    import projectq.backends._qrack._qracksim
+    assert projectq.backends._qrack._qracksim
 
 
 def get_available_simulators():
     result = ["py_simulator"]
     try:
-        import projectq.backends._sim._qracksim as _
+        import projectq.backends._qrack._qracksim as _
         result.append("qrack_simulator")
     except ImportError:
-        # The C++ simulator was either not installed or is misconfigured. Skip.
+        # The Qrack simulator was either not installed or is misconfigured. Skip.
         pass
-    return result
     try:
         import projectq.backends._sim._cppsim as _
         result.append("cpp_simulator")
     except ImportError:
-        # The Qrack simulator was either not installed or is misconfigured. Skip.
+        # The C++ simulator was either not installed or is misconfigured. Skip.
         pass
     return result
 
@@ -64,8 +63,8 @@ def get_available_simulators():
 @pytest.fixture(params=get_available_simulators())
 def sim(request):
     if request.param == "qrack_simulator":
-        from projectq.backends._sim._qracksim import Simulator as QrackSim
-        sim = Simulator(gate_fusion=True)
+        from projectq.backends._qrack._qracksim import Simulator as QrackSim
+        sim = Simulator()
         sim._simulator = QrackSim(1)
         return sim
     if request.param == "cpp_simulator":
