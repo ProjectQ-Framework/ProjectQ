@@ -23,20 +23,7 @@ import random
 import numpy as np
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (H,
-                          X,
-                          Y,
-                          Z,
-                          R,
-                          Rx,
-                          Ry,
-                          Rz,
-                          S,
-                          Sdag,
-                          T,
-                          Tdag,
-                          Ph,
-                          Toffoli,
+from projectq.ops import (Ph,
                           Swap,
                           SqrtSwap,
                           Measure,
@@ -112,12 +99,7 @@ class QrackSimulator(BasicEngine):
         if (cmd.gate == Measure or cmd.gate == Allocate or
                 cmd.gate == Deallocate or cmd.gate == Ph or
                 cmd.gate == Swap or cmd.gate == SqrtSwap or
-                cmd.gate == Rx or cmd.gate == Ry or
-                cmd.gate == Rz or cmd.gate == R or
-                cmd.gate == X or cmd.gate == Y or
-                cmd.gate == Z or cmd.gate == H or
-                cmd.gate == S or cmd.gate == Sdag or
-                cmd.gate == T or cmd.gate == Tdag):
+                cmd.gate == Ph):
             return True
         try:
             m = cmd.gate.matrix
@@ -333,23 +315,6 @@ class QrackSimulator(BasicEngine):
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
             self._simulator.apply_controlled_swap(ids1, ids2,
-                                                  [qb.id for qb in
-                                                   cmd.control_qubits])
-        elif (cmd.gate == H or
-                  cmd.gate == X or
-                  cmd.gate == Y or
-                  cmd.gate == Z or
-                  cmd.gate == S or
-                  cmd.gate == Sdag or
-                  cmd.gate == T or
-                  cmd.gate == Tdag or
-                  cmd.gate == R or
-                  cmd.gate == Rx or
-                  cmd.gate == Ry or
-                  cmd.gate == Rz):
-            ids = [qb.id for qr in cmd.qubits for qb in qr]
-            self._simulator.apply_controlled_gate(cmd.gate.matrix.tolist(),
-                                                  ids,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
         elif len(cmd.gate.matrix) <= 2 ** 1:
