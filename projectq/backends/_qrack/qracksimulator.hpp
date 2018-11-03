@@ -39,7 +39,7 @@ public:
     using StateVector = std::vector<complex_type, aligned_allocator<complex_type,64>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::default_random_engine;
-    enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_OPENCL;
+    enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
 
     QrackSimulator(unsigned seed = 1) {
@@ -63,21 +63,35 @@ public:
     }
 
     bool get_classical_value(unsigned id, calc_type tol = min_norm){
-        if (qReg->Prob((bitLenInt)map_[id]) < 0.5) {
+        if (qReg->Prob(map_[id]) < 0.5) {
             return false;
         } else {
             return true;
         }
     }
 
-    bool is_classical(unsigned id, calc_type tol = min_norm){
+    bool is_classical(unsigned id, calc_type tol = 1e-6){
         calc_type p = qReg->Prob(map_[id]);
         if ((p < tol) || ((ONE_R1 - p) < tol)) {
-            // Any difference in phase (for amplitudes not below the rounding tolerance)
-            // prevents separability in the permutation basis
-
-            // (This bool might be cached in the engine, but pass an argument of "true" to force a recalculation.)
-            //return qReg->IsPhaseSeparable();
+            // Difference in phase (for amplitudes not below the rounding tolerance)
+            // prevents separability in the permutation basis.
+            //
+            // For example, 3 bits could be in the simulator. One bit could have a 100% chance being "true,"
+            // split between 4 basis vectors including the other two bits, all at different phases.
+            // Such a state for the 100% bit is still not necessarily separable, or "classical."
+            //
+            // Qrack::QUnit tries to track phase separability of bits:
+            //
+            // return qReg->IsPhaseSeparable((bitLenInt)map_[id]);
+            //
+            // However, the above method was intended for optimization purposes. It might err on the side of
+            // guessing that a bit's phase relationships might not separable, when they actually can be.
+            // It takes a maximal Schmidt decomposition to determine whether or not a bit is really separable.
+            // This can be computationally expensive, so Qrack makes an inexpensive guess, erring on the side
+            // of assuming too much irreducibility of any register state.
+            //
+            // As such, the above method might throw a false exception, but just checking probability can
+            // fail to recognize real irreducibility:
             return true;
         } else {
             return false;
@@ -104,6 +118,8 @@ public:
     }
 
     void deallocate_qubit(unsigned id){
+        if (map_.count(id) == 0)
+            throw(std::runtime_error("Error: No qubit with given ID, to deallocate."));
         if (!is_classical(id))
             throw(std::runtime_error("Error: Qubit has not been measured / uncomputed! There is most likely a bug in your code."));
 
@@ -187,7 +203,7 @@ public:
         std::size_t mask = 0, bit_str = 0;
         for (unsigned i = 0; i < ids.size(); ++i){
             mask |= 1UL << map_[ids[i]];
-            bit_str |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+            bit_str |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
         }
         return qReg->ProbMask(mask, bit_str);
     }
