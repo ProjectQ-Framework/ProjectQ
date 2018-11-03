@@ -224,43 +224,6 @@ def test_simulator_measure_mapped_qubit(sim):
     assert int(qb2) == 1
 
 
-def test_simulator_kqubit_gate(sim):
-    m1 = Rx(0.3).matrix
-    m2 = Rx(0.8).matrix
-    m3 = Ry(0.1).matrix
-    m4 = Rz(0.9).matrix.dot(Ry(-0.1).matrix)
-    m = numpy.kron(m4, numpy.kron(m3, numpy.kron(m2, m1)))
-
-    class KQubitGate(BasicGate):
-        @property
-        def matrix(self):
-            return m
-
-    eng = MainEngine(sim, [])
-    qureg = eng.allocate_qureg(4)
-    qubit = eng.allocate_qubit()
-    Rx(-0.3) | qureg[0]
-    Rx(-0.8) | qureg[1]
-    Ry(-0.1) | qureg[2]
-    Rz(-0.9) | qureg[3]
-    Ry(0.1) | qureg[3]
-    X | qubit
-    with Control(eng, qubit):
-        KQubitGate() | qureg
-    X | qubit
-    with Control(eng, qubit):
-        with Dagger(eng):
-            KQubitGate() | qureg
-    assert sim.get_amplitude('0' * 5, qubit + qureg) == pytest.approx(1.)
-
-    class LargerGate(BasicGate):
-        @property
-        def matrix(self):
-            return numpy.eye(2 ** 6)
-
-    with pytest.raises(Exception):
-        LargerGate() | (qureg + qubit)
-
 
 def test_simulator_kqubit_exception(sim):
     m1 = Rx(0.3).matrix

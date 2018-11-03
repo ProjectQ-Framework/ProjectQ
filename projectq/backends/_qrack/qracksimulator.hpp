@@ -28,8 +28,6 @@
 #include <random>
 #include <functional>
 
-#include <iostream>
-
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -41,6 +39,8 @@ public:
     using StateVector = std::vector<complex_type, aligned_allocator<complex_type,64>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::default_random_engine;
+    enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_OPENCL;
+    enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
 
     QrackSimulator(unsigned seed = 1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
@@ -51,10 +51,10 @@ public:
         if (map_.count(id) == 0) {
             if (qReg == NULL) {
                 map_[id] = 0;
-                qReg = Qrack::CreateQuantumInterface(Qrack::QINTERFACE_OPENCL, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_); 
+                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, 1, 0, rnd_eng_); 
             } else {
-                map_[id] = (qReg->GetQubitCount() - 1);
-                qReg->Cohere(Qrack::CreateQuantumInterface(Qrack::QINTERFACE_OPENCL, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_));
+                map_[id] = qReg->GetQubitCount();
+                qReg->Cohere(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, 1, 0, rnd_eng_));
             }
         }
         else
@@ -72,8 +72,11 @@ public:
 
     bool is_classical(unsigned id, calc_type tol = min_norm){
         calc_type p = qReg->Prob(map_[id]);
-        std::cout<<"Prob: "<<p<<std::endl;
         if ((p < tol) || ((ONE_R1 - p) < tol)) {
+            // Any difference in phase (for amplitudes not below the rounding tolerance)
+            // prevents separability in the permutation basis
+
+            // (This bool might be cached in the engine, but pass an argument of "true" to force a recalculation.)
             return qReg->IsPhaseSeparable();
         } else {
             return false;
@@ -211,7 +214,10 @@ public:
         for (std::size_t i = 0; i < wavefunction.size(); ++i)
             wfArray[i] = complex(real(wavefunction[i]), imag(wavefunction[i]));
 
+        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, ordering.size(), 0, rnd_eng_);
         qReg->SetQuantumState(wfArray);
+
+        delete[] wfArray;
     }
 
     void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
