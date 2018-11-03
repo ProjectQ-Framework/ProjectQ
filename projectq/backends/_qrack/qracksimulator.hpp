@@ -54,7 +54,7 @@ public:
                 qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, 1, 0, rnd_eng_); 
             } else {
                 map_[id] = qReg->GetQubitCount();
-                qReg->Cohere(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, 1, 0, rnd_eng_));
+                qReg->Cohere(Qrack::CreateQuantumInterface(QrackSubengine, QrackSubengine, 1, 0, rnd_eng_));
             }
         }
         else
@@ -77,7 +77,8 @@ public:
             // prevents separability in the permutation basis
 
             // (This bool might be cached in the engine, but pass an argument of "true" to force a recalculation.)
-            return qReg->IsPhaseSeparable();
+            //return qReg->IsPhaseSeparable();
+            return true;
         } else {
             return false;
         }
@@ -112,7 +113,15 @@ public:
             qReg->Dispose(map_[id], 1U);
         }
 
+        bitLenInt mapped = map_[id];
         map_.erase(id);
+
+        Map::iterator it;
+        for (it = map_.begin(); it != map_.end(); it++) {
+            if (mapped < (it->second)) {
+                it->second--;
+            }
+        }
     }
 
     template <class M>
