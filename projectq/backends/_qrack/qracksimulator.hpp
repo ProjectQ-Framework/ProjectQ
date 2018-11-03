@@ -28,6 +28,8 @@
 #include <random>
 #include <functional>
 
+#include <iostream>
+
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -43,21 +45,24 @@ public:
     QrackSimulator(unsigned seed = 1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
     	rnd_eng_->seed(seed);
-    	qReg = Qrack::CreateQuantumInterface(Qrack::QINTERFACE_OPENCL, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_);
-        map_[0] = 0;
     }
 
     void allocate_qubit(unsigned id){
-        if (map_.count(id) == 0){
-            map_[id] = qReg->GetQubitCount();
-            qReg->Cohere(Qrack::CreateQuantumInterface(Qrack::QINTERFACE_QUNIT, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_));
+        if (map_.count(id) == 0) {
+            if (qReg == NULL) {
+                map_[id] = 0;
+                qReg = Qrack::CreateQuantumInterface(Qrack::QINTERFACE_OPENCL, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_); 
+            } else {
+                map_[id] = (qReg->GetQubitCount() - 1);
+                qReg->Cohere(Qrack::CreateQuantumInterface(Qrack::QINTERFACE_OPENCL, Qrack::QINTERFACE_OPENCL, 1, 0, rnd_eng_));
+            }
         }
         else
             throw(std::runtime_error(
                 "AllocateQubit: ID already exists. Qubit IDs should be unique."));
     }
 
-    bool get_classical_value(unsigned id, calc_type tol = 1.e-12){
+    bool get_classical_value(unsigned id, calc_type tol = min_norm){
         if (qReg->Prob((bitLenInt)map_[id]) < 0.5) {
             return false;
         } else {
@@ -65,10 +70,11 @@ public:
         }
     }
 
-    bool is_classical(unsigned id, calc_type tol = 1.e-12){
-        calc_type p = qReg->Prob(map_[id]) > tol;
-        if ((p > tol) || ((1.0 - p) > tol)) {
-            return qReg->IsPhaseSeparable(map_[id]);
+    bool is_classical(unsigned id, calc_type tol = min_norm){
+        calc_type p = qReg->Prob(map_[id]);
+        std::cout<<"Prob: "<<p<<std::endl;
+        if ((p < tol) || ((ONE_R1 - p) < tol)) {
+            return qReg->IsPhaseSeparable();
         } else {
             return false;
         }
@@ -76,13 +82,14 @@ public:
 
     void measure_qubits(std::vector<unsigned> const& ids, std::vector<bool> &res){
         bitLenInt i;
-        bitLenInt* bits = new bitLenInt[res.size()];
+        bitLenInt* bits = new bitLenInt[ids.size()];
         for (i = 0; i < ids.size(); i++) {
             bits[i] = map_[ids[i]];
         }
-        bitCapInt allRes = qReg->M(bits, res.size());
+        bitCapInt allRes = qReg->M(bits, ids.size());
+        res.resize(ids.size());
         for (i = 0; i < ids.size(); i++) {
-            res.push_back(!(!(allRes & (1U << bits[i]))));
+            res[i] = !(!(allRes & (1U << bits[i])));
         }
     }
 
@@ -95,7 +102,13 @@ public:
     void deallocate_qubit(unsigned id){
         if (!is_classical(id))
             throw(std::runtime_error("Error: Qubit has not been measured / uncomputed! There is most likely a bug in your code."));
-        qReg->Dispose(map_[id], 1U);
+
+        if (qReg->GetQubitCount() == 1) {
+            qReg = NULL;
+        } else {
+            qReg->Dispose(map_[id], 1U);
+        }
+
         map_.erase(id);
     }
 
@@ -218,7 +231,12 @@ public:
         }
     }
 
-    std::tuple<Map, StateVector&> cheat(){
+    std::tuple<Map, StateVector> cheat(){
+        if (qReg == NULL) {
+            StateVector vec(1, 0.);
+            return make_tuple(map_, std::move(vec));
+        }
+
         complex* wfArray = new complex[qReg->GetMaxQPower()];
         qReg->GetQuantumState(wfArray);
         StateVector vec(qReg->GetMaxQPower());
@@ -229,7 +247,7 @@ public:
 
         delete[] wfArray;
 
-        return make_tuple(map_, std::ref(vec));
+        return make_tuple(map_, std::move(vec));
     }
 
     ~QrackSimulator(){
