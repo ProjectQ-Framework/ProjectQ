@@ -48,7 +48,7 @@ class QrackSimulator(BasicEngine):
         export OMP_NUM_THREADS=4 # use 4 threads
         export OMP_PROC_BIND=spread # bind threads to processors by spreading
     """
-    def __init__(self, gate_fusion=False, rnd_seed=None):
+    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1):
         """
         Construct the C++/Python-simulator object and initialize it with a
         random seed.
@@ -80,7 +80,7 @@ class QrackSimulator(BasicEngine):
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
         BasicEngine.__init__(self)
-        self._simulator = SimulatorBackend(rnd_seed)
+        self._simulator = SimulatorBackend(rnd_seed, ocl_dev)
 
     def is_available(self, cmd):
         """

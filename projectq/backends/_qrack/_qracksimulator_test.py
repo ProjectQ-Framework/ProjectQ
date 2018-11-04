@@ -402,21 +402,6 @@ def test_simulator_flush():
     assert sim._simulator.run_cnt == 1
 
 
-def test_simulator_send():
-    sim = Simulator()
-    backend = DummyEngine(save_commands=True)
-
-    eng = MainEngine(backend, [sim])
-
-    qubit = eng.allocate_qubit()
-    H | qubit
-    Measure | qubit
-    del qubit
-    eng.flush()
-
-    assert len(backend.received_commands) == 5
-
-
 def test_simulator_functional_entangle(sim):
     eng = MainEngine(sim, [])
     qubits = eng.allocate_qureg(5)

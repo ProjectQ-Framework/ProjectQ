@@ -33,6 +33,7 @@ PYBIND11_PLUGIN(_qracksim) {
     py::module m("_qracksim", "_qracksim");
     py::class_<QrackSimulator>(m, "QrackSimulator")
         .def(py::init<unsigned>())
+        .def(py::init<unsigned, int>())
         .def("allocate_qubit", &QrackSimulator::allocate_qubit)
         .def("deallocate_qubit", &QrackSimulator::deallocate_qubit)
         .def("get_classical_value", &QrackSimulator::get_classical_value)

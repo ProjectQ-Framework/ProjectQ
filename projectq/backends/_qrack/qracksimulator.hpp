@@ -42,9 +42,17 @@ public:
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
 
-    QrackSimulator(unsigned seed = 1) {
+    QrackSimulator(unsigned seed = 1, const int& dev = -1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
     	rnd_eng_->seed(seed);
+
+        // Initialize OpenCL engine, and set the default device context.
+        Qrack::OCLEngine::Instance()->SetDefaultDeviceContext(Qrack::OCLEngine::Instance()->GetDeviceContextPtr(dev));
+        //if (dev == -1) {
+        //    std::cout<<"Using default OpenCL device."<<std::endl;
+        //} else {
+        //    std::cout<<"Using OpenCL device #"<<dev<<"."<<std::endl;
+        //}
     }
 
     void allocate_qubit(unsigned id){
@@ -208,7 +216,7 @@ public:
         return qReg->ProbMask(mask, bit_str);
     }
 
-    complex_type const& get_amplitude(std::vector<bool> const& bit_string,
+    complex_type get_amplitude(std::vector<bool> const& bit_string,
                                       std::vector<unsigned> const& ids){
         std::size_t chk = 0;
         std::size_t index = 0;
@@ -216,7 +224,7 @@ public:
             if (map_.count(ids[i]) == 0)
                 break;
             chk |= 1UL << map_[ids[i]];
-            index |= (bit_string[i]?1UL:0UL) << map_[ids[i]];
+            index |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
         }
         if (chk + 1 != (qReg->GetMaxQPower()))
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
