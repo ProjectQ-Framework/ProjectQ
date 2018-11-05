@@ -347,6 +347,7 @@ def test_simulator_amplitude(sim, mapper):
     assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
     All(H) | qubits
     All(X) | qubits
+    eng.flush()
     Ry(2 * math.acos(0.3)) | qubits[0]
     eng.flush()
     bits = [0] * 6

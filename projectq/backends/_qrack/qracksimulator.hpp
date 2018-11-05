@@ -209,7 +209,7 @@ public:
         if (!check_ids(ids))
             throw(std::runtime_error("get_probability(): Unknown qubit id."));
         std::size_t mask = 0, bit_str = 0;
-        for (unsigned i = 0; i < ids.size(); ++i){
+        for (unsigned i = 0; i < ids.size(); i++){
             mask |= 1UL << map_[ids[i]];
             bit_str |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
         }
@@ -220,7 +220,7 @@ public:
                                       std::vector<unsigned> const& ids){
         std::size_t chk = 0;
         std::size_t index = 0;
-        for (unsigned i = 0; i < ids.size(); ++i){
+        for (unsigned i = 0; i < ids.size(); i++){
             if (map_.count(ids[i]) == 0)
                 break;
             chk |= 1UL << map_[ids[i]];
@@ -239,12 +239,12 @@ public:
             throw(std::runtime_error("set_wavefunction(): Invalid mapping provided. Please make sure all qubits have been allocated previously."));
 
         // set mapping and wavefunction
-        for (unsigned i = 0; i < ordering.size(); ++i)
+        for (unsigned i = 0; i < ordering.size(); i++)
             map_[ordering[i]] = i;
         
         complex* wfArray = new complex[wavefunction.size()];
         #pragma omp parallel for schedule(static)
-        for (std::size_t i = 0; i < wavefunction.size(); ++i)
+        for (std::size_t i = 0; i < wavefunction.size(); i++)
             wfArray[i] = complex(real(wavefunction[i]), imag(wavefunction[i]));
 
         qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, ordering.size(), 0, rnd_eng_);
@@ -258,16 +258,22 @@ public:
         if (!check_ids(ids))
             throw(std::runtime_error("collapse_wavefunction(): Unknown qubit id(s) provided. Try calling eng.flush() before invoking this function."));
         bitCapInt mask = 0, val = 0;
-        for (bitLenInt i = 0; i < ids.size(); ++i){
+        bitLenInt* idsArray = new bitLenInt[ids.size()];
+        bool* valuesArray = new bool[values.size()];
+        for (bitLenInt i = 0; i < ids.size(); i++){
+            idsArray[i] = map_[ids[i]];
             mask |= (1UL << map_[ids[i]]);
             val |= ((values[i]?1UL:0UL) << map_[ids[i]]);
+            valuesArray[i] = values[i];
         }
         calc_type N = qReg->ProbMask(mask, val);
         if (N < 1.e-12)
             throw(std::runtime_error("collapse_wavefunction(): Invalid collapse! Probability is ~0."));
-        for (bitLenInt i = 0; i < ids.size(); ++i){
-            qReg->ForceM(map_[ids[i]], values[i]);
-        }
+
+        qReg->ForceM(idsArray, ids.size(), valuesArray);
+
+        delete[] idsArray;
+        delete[] valuesArray;
     }
 
     std::tuple<Map, StateVector> cheat(){
@@ -281,7 +287,7 @@ public:
         StateVector vec(qReg->GetMaxQPower());
 
         #pragma omp parallel for schedule(static)
-        for (std::size_t i = 0; i < vec.size(); ++i)
+        for (std::size_t i = 0; i < vec.size(); i++)
             vec[i] = complex_type(real(wfArray[i]), imag(wfArray[i]));
 
         delete[] wfArray;

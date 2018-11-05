@@ -19,6 +19,7 @@ and the C++ simulator as backends.
 
 import copy
 import math
+import cmath
 import numpy
 import pytest
 import random
@@ -278,6 +279,8 @@ def test_simulator_probability(sim, mapper):
 
 
 def test_simulator_amplitude(sim, mapper):
+    # Qrack adds a random global phase factor to all initial states,
+    # (because the global phase is physically unknowable and has no measurable effect)
     engine_list = [LocalOptimizer()]
     if mapper is not None:
         engine_list.append(mapper)
@@ -287,19 +290,26 @@ def test_simulator_amplitude(sim, mapper):
     All(H) | qubits
     eng.flush()
     bits = [0, 0, 1, 0, 1, 0]
-    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(1. / 8.)
+    polR, polPhi = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    assert polR == pytest.approx(1. / 8.)
     bits = [0, 0, 0, 0, 1, 0]
-    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    polR2, polPhi2 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    assert polR2 == pytest.approx(polR)
+    assert polPhi2 == pytest.approx(polPhi - math.pi)
     bits = [0, 1, 1, 0, 1, 0]
-    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
+    polR3, polPhi3 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    assert polR3 == pytest.approx(polR)
+    assert polPhi3 == pytest.approx(polPhi - math.pi)
     All(H) | qubits
     All(X) | qubits
     Ry(2 * math.acos(0.3)) | qubits[0]
     eng.flush()
     bits = [0] * 6
-    assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(0.3)
+    polR, polPhi = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    assert polR == pytest.approx(0.3)
     bits[0] = 1
-    assert (eng.backend.get_amplitude(bits, qubits) ==
+    polR, polPhi = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    assert (polR ==
             pytest.approx(math.sqrt(0.91)))
     All(Measure) | qubits
     # raises if not all qubits are in the list:
