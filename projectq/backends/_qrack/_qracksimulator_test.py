@@ -30,9 +30,11 @@ import scipy.sparse.linalg
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
-from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
+from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT, C,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
+from projectq.libs.math import (AddConstant,
+                                AddConstantModN)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
@@ -59,6 +61,10 @@ def get_available_simulators():
         # The C++ simulator was either not installed or is misconfigured. Skip.
         pass
     return result
+
+class Request:
+    def __init__(self, p = "qrack_simulator"):
+        self.param = p
 
 
 @pytest.fixture(params=get_available_simulators())
@@ -244,6 +250,44 @@ def test_simulator_kqubit_exception(sim):
         KQubitGate() | qureg
     with pytest.raises(Exception):
         H | qureg
+
+def test_simulator_math(sim):
+    eng = MainEngine(sim, [])
+    qubits = eng.allocate_qureg(8)
+
+    AddConstant(1) | qubits;
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 1
+
+    AddConstantModN(10, 256) | qubits;
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 11
+
+    controls = eng.allocate_qureg(1)
+
+    # Control is off
+    C(AddConstantModN(10, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 11
+
+    # Turn control on
+    X | controls
+
+    C(AddConstantModN(10, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 21
 
 
 def test_simulator_probability(sim, mapper):

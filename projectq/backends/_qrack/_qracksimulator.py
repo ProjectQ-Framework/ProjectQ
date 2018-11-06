@@ -30,6 +30,8 @@ from projectq.ops import (Ph,
                           FlushGate,
                           Allocate,
                           Deallocate)
+from projectq.libs.math import (AddConstant,
+                                AddConstantModN)
 from projectq.types import WeakQubitRef
 
 from ._qracksim import QrackSimulator as SimulatorBackend
@@ -99,7 +101,10 @@ class QrackSimulator(BasicEngine):
         try:
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
-                    cmd.gate == Swap or cmd.gate == SqrtSwap):
+                    cmd.gate == Swap or cmd.gate == SqrtSwap or
+                    isinstance(cmd.gate, AddConstant)):
+                return True
+            if (isinstance(cmd.gate, AddConstantModN) and ((1 << len(cmd.qubits)) == cmd.gate.N)):
                 return True
         except:
             return False
@@ -320,6 +325,20 @@ class QrackSimulator(BasicEngine):
             self._simulator.apply_controlled_swap(ids1, ids2,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
+        elif isinstance(cmd.gate, AddConstant):
+            #Unless there's a carry, the only unitary addition is mod (2^len(ids))
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            self._simulator.apply_controlled_inc(ids,
+                                                 [qb.id for qb in
+                                                  cmd.control_qubits],
+                                                 cmd.gate.a)
+        elif isinstance(cmd.gate, AddConstantModN):
+            #Unless there's a carry, the only unitary addition is mod (2^len(ids))
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            self._simulator.apply_controlled_inc(ids,
+                                                 [qb.id for qb in
+                                                  cmd.control_qubits],
+                                                 cmd.gate.a)
         elif len(cmd.gate.matrix) <= 2 ** 1:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]

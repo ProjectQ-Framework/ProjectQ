@@ -204,6 +204,32 @@ public:
         delete[] ctrlArray;
     }
 
+    void apply_controlled_inc(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toAdd){
+        bitLenInt i;
+        Map invMap;
+        for (Map::iterator it = map_.begin(); it != map_.end(); it++) {
+            invMap[it->second] = it->first;
+        }
+
+        bitLenInt tempMap;
+        for (i = 0; i < ids.size(); i++) {
+            qReg->Swap(i, map_[ids[i]]);
+
+            tempMap = map_[ids[i]];
+            std::swap(map_[ids[i]], map_[invMap[i]]);
+            std::swap(invMap[i], invMap[tempMap]);
+        }
+
+        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+        for (i = 0; i < ctrl.size(); i++) {
+            ctrlArray[i] = map_[ctrl[i]];
+        }
+
+        qReg->CINC(toAdd, 0, ids.size(), ctrlArray, ctrl.size());
+
+        delete[] ctrlArray;
+    }
+
     calc_type get_probability(std::vector<bool> const& bit_string,
                               std::vector<unsigned> const& ids){
         if (!check_ids(ids))
