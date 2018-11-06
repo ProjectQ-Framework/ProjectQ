@@ -34,7 +34,9 @@ from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT, C,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
 from projectq.libs.math import (AddConstant,
-                                AddConstantModN)
+                                AddConstantModN,
+                                SubConstant,
+                                SubConstantModN)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
@@ -61,10 +63,6 @@ def get_available_simulators():
         # The C++ simulator was either not installed or is misconfigured. Skip.
         pass
     return result
-
-class Request:
-    def __init__(self, p = "qrack_simulator"):
-        self.param = p
 
 
 @pytest.fixture(params=get_available_simulators())
@@ -288,6 +286,30 @@ def test_simulator_math(sim):
     for i in range(len(qubits)):
         value += int(qubits[i]) << i
     assert value == 21
+
+    SubConstant(5) | qubits;
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 16
+
+    C(SubConstantModN(10, 256)) | (controls, qubits);
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 6
+
+    # Turn control off
+    X | controls
+
+    C(SubConstantModN(10, 256)) | (controls, qubits);
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 6
 
 
 def test_simulator_probability(sim, mapper):

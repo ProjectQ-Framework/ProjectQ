@@ -41,6 +41,7 @@ public:
     using RndEngine = std::default_random_engine;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
+    typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
 
     QrackSimulator(unsigned seed = 1, const int& dev = -1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
@@ -205,29 +206,15 @@ public:
     }
 
     void apply_controlled_inc(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toAdd){
-        bitLenInt i;
-        Map invMap;
-        for (Map::iterator it = map_.begin(); it != map_.end(); it++) {
-            invMap[it->second] = it->first;
-        }
+        apply_controlled_int([&](bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize) {
+            qReg->CINC(toAdd, start, size, ctrlArray, ctrlSize);
+        }, ids, ctrl);
+    }
 
-        bitLenInt tempMap;
-        for (i = 0; i < ids.size(); i++) {
-            qReg->Swap(i, map_[ids[i]]);
-
-            tempMap = map_[ids[i]];
-            std::swap(map_[ids[i]], map_[invMap[i]]);
-            std::swap(invMap[i], invMap[tempMap]);
-        }
-
-        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
-        for (i = 0; i < ctrl.size(); i++) {
-            ctrlArray[i] = map_[ctrl[i]];
-        }
-
-        qReg->CINC(toAdd, 0, ids.size(), ctrlArray, ctrl.size());
-
-        delete[] ctrlArray;
+    void apply_controlled_dec(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toSub){
+        apply_controlled_int([&](bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize) {
+            qReg->CDEC(toSub, start, size, ctrlArray, ctrlSize);
+        }, ids, ctrl);
     }
 
     calc_type get_probability(std::vector<bool> const& bit_string,
@@ -337,6 +324,32 @@ private:
             if (!map_.count(id))
                 return false;
         return true;
+    }
+
+    void apply_controlled_int(CINTFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+        bitLenInt i;
+        Map invMap;
+        for (Map::iterator it = map_.begin(); it != map_.end(); it++) {
+            invMap[it->second] = it->first;
+        }
+
+        bitLenInt tempMap;
+        for (i = 0; i < ids.size(); i++) {
+            qReg->Swap(i, map_[ids[i]]);
+
+            tempMap = map_[ids[i]];
+            std::swap(map_[ids[i]], map_[invMap[i]]);
+            std::swap(invMap[i], invMap[tempMap]);
+        }
+
+        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+        for (i = 0; i < ctrl.size(); i++) {
+            ctrlArray[i] = map_[ctrl[i]];
+        }
+
+        fn(0, (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
+
+        delete[] ctrlArray;
     }
 
     Map map_;
