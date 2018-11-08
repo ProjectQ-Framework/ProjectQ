@@ -36,7 +36,9 @@ from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT, C,
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 SubConstant,
-                                SubConstantModN)
+                                SubConstantModN,
+                                MultiplyByConstantModN,
+                                DivideByConstantModN)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
@@ -294,7 +296,7 @@ def test_simulator_math(sim):
         value += int(qubits[i]) << i
     assert value == 16
 
-    C(SubConstantModN(10, 256)) | (controls, qubits);
+    C(SubConstantModN(10, 256)) | (controls, qubits)
     All(Measure) | qubits
     value = 0
     for i in range(len(qubits)):
@@ -304,12 +306,59 @@ def test_simulator_math(sim):
     # Turn control off
     X | controls
 
-    C(SubConstantModN(10, 256)) | (controls, qubits);
+    C(SubConstantModN(10, 256)) | (controls, qubits)
     All(Measure) | qubits
     value = 0
     for i in range(len(qubits)):
         value += int(qubits[i]) << i
     assert value == 6
+
+    MultiplyByConstantModN(2, 256) | qubits;
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 12
+
+    DivideByConstantModN(3, 256) | qubits;
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 4
+
+    # Control is off
+
+    C(MultiplyByConstantModN(2, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 4
+
+    C(DivideByConstantModN(3, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 4
+
+    # Turn control on
+    X | controls
+
+    C(MultiplyByConstantModN(10, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 40
+
+    C(DivideByConstantModN(5, 256)) | (controls, qubits)
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    assert value == 8
 
 
 def test_simulator_probability(sim, mapper):

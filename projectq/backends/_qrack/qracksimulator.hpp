@@ -42,6 +42,7 @@ public:
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
     typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
+    typedef std::function<void(bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CMULXFunc;
 
     QrackSimulator(unsigned seed = 1, const int& dev = -1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
@@ -217,6 +218,18 @@ public:
         }, ids, ctrl);
     }
 
+    void apply_controlled_mul(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toMul){
+        apply_controlled_mulx([&](bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize) {
+            qReg->CMUL(toMul, start, carryStart, size, ctrlArray, ctrlSize);
+        }, ids, ctrl);
+    }
+
+    void apply_controlled_div(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toDiv){
+        apply_controlled_mulx([&](bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize) {
+            qReg->CDIV(toDiv, start, carryStart, size, ctrlArray, ctrlSize);
+        }, ids, ctrl);
+    }
+
     calc_type get_probability(std::vector<bool> const& bit_string,
                               std::vector<unsigned> const& ids){
         if (!check_ids(ids))
@@ -348,6 +361,34 @@ private:
         }
 
         fn(0, (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
+
+        delete[] ctrlArray;
+    }
+
+    void apply_controlled_mulx(CMULXFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+        assert((ids.size() % 2) == 0);
+
+        bitLenInt i;
+        Map invMap;
+        for (Map::iterator it = map_.begin(); it != map_.end(); it++) {
+            invMap[it->second] = it->first;
+        }
+
+        bitLenInt tempMap;
+        for (i = 0; i < ids.size(); i++) {
+            qReg->Swap(i, map_[ids[i]]);
+
+            tempMap = map_[ids[i]];
+            std::swap(map_[ids[i]], map_[invMap[i]]);
+            std::swap(invMap[i], invMap[tempMap]);
+        }
+
+        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+        for (i = 0; i < ctrl.size(); i++) {
+            ctrlArray[i] = map_[ctrl[i]];
+        }
+
+        fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), ctrlArray, (bitLenInt)ctrl.size());
 
         delete[] ctrlArray;
     }

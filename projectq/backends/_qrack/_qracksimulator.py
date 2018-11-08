@@ -31,7 +31,9 @@ from projectq.ops import (Ph,
                           Allocate,
                           Deallocate)
 from projectq.libs.math import (AddConstant,
-                                AddConstantModN)
+                                AddConstantModN,
+                                MultiplyByConstantModN,
+                                DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
 from ._qracksim import QrackSimulator as SimulatorBackend
@@ -107,6 +109,14 @@ class QrackSimulator(BasicEngine):
             if (isinstance(cmd.gate, AddConstantModN) and ((1 << len(cmd.qubits)) == cmd.gate.N)):
                 return True
             if (isinstance(cmd.gate, SubConstantModN) and ((1 << len(cmd.qubits)) == cmd.gate.N)):
+                return True
+            if (isinstance(cmd.gate, MultiplyByConstantModN) and
+                    ((1 << (2 * len(cmd.qubits))) == cmd.gate.N) and
+                    (len(cmd.qubits) % 2) == 0):
+                return True
+            if (isinstance(cmd.gate, DivideByConstantModN) and
+                    ((1 << (2 * len(cmd.qubits))) == cmd.gate.N) and
+                    (len(cmd.qubits) % 2) == 0):
                 return True
         except:
             return False
@@ -340,6 +350,20 @@ class QrackSimulator(BasicEngine):
                                                      [qb.id for qb in
                                                       cmd.control_qubits],
                                                      abs(cmd.gate.a))
+        elif isinstance(cmd.gate, MultiplyByConstantModN):
+            #Unless there's a carry, the only unitary addition is mod (2^len(ids))
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            self._simulator.apply_controlled_mul(ids,
+                                                 [qb.id for qb in
+                                                  cmd.control_qubits],
+                                                 cmd.gate.a)
+        elif isinstance(cmd.gate, DivideByConstantModN):
+            #Unless there's a carry, the only unitary addition is mod (2^len(ids))
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            self._simulator.apply_controlled_div(ids,
+                                                 [qb.id for qb in
+                                                  cmd.control_qubits],
+                                                 cmd.gate.a)
         elif len(cmd.gate.matrix) <= 2 ** 1:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]
