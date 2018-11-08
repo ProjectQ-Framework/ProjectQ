@@ -66,10 +66,6 @@ def get_available_simulators():
         pass
     return result
 
-class Request:
-    def __init__(self, p="qrack_simulator"):
-        self.param = p
-
 
 @pytest.fixture(params=get_available_simulators())
 def sim(request):

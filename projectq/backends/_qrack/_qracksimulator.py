@@ -106,17 +106,13 @@ class QrackSimulator(BasicEngine):
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
                     isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, SubConstant)):
                 return True
-            if (isinstance(cmd.gate, AddConstantModN) and ((1 << len(cmd.qubits)) == cmd.gate.N)):
+            if (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            if (isinstance(cmd.gate, SubConstantModN) and ((1 << len(cmd.qubits)) == cmd.gate.N)):
+            if (isinstance(cmd.gate, SubConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            if (isinstance(cmd.gate, MultiplyByConstantModN) and
-                    ((1 << (len(cmd.qubits) / 2)) == cmd.gate.N) and
-                    (len(cmd.qubits) % 2) == 0):
+            if (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            if (isinstance(cmd.gate, DivideByConstantModN) and
-                    ((1 << (len(cmd.qubits) / 2)) == cmd.gate.N) and
-                    (len(cmd.qubits) % 2) == 0):
+            if (isinstance(cmd.gate, DivideByConstantModN) and (1 << (len(cmd.qubits) / 2)) == cmd.gate.N):
                 return True
         except:
             return False
