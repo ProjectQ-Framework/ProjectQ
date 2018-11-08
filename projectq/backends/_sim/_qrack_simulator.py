@@ -43,8 +43,13 @@ except ImportError:
 
 class QrackSimulator(BasicEngine):
     """
-    The Qrack Simulator is a compiler engine which simulates a quantum computer
+    The QrackSimulator is a compiler engine which simulates a quantum computer
     using C++ and OpenCL-based kernels.
+
+    To use the QrackSimulator, first install the Qrack framework, available at
+    https://github.com/vm6502q/qrack. (See the README there, and the Qrack
+    documentation at https://vm6502q.readthedocs.io/en/latest/.) Then, run the
+    ProjectQ setup.py script with the global option "--with-qracksimulator".
     """
     def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1):
         """

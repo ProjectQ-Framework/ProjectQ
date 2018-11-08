@@ -15,7 +15,7 @@
 #ifndef QRACK_SIMULATOR_HPP_
 #define QRACK_SIMULATOR_HPP_
 
-#include "qfactory.hpp"
+#include "qrack/qfactory.hpp"
 
 #include <vector>
 #include <complex>

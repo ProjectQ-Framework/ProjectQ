@@ -60,10 +60,8 @@ qracksim = Feature(
                 # Path to pybind11 headers
                 get_pybind_include(),
                 get_pybind_include(user=True),
-                '/usr/local/include/qrack'
             ],
             libraries=['qrack', 'OpenCL'],
-            library_dirs=['/usr/local/lib'],
             language='c++'
         ),
     ],
