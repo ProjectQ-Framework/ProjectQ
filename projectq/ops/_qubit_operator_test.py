@@ -13,10 +13,17 @@
 #   limitations under the License.
 
 """Tests for _qubit_operator.py."""
+import cmath
 import copy
+import math
 
 import numpy
 import pytest
+
+from projectq import MainEngine
+from projectq.cengines import DummyEngine
+from ._basics import NotInvertible, NotMergeable
+from ._gates import Ph, T, X, Y, Z
 
 from projectq.ops import _qubit_operator as qo
 
@@ -182,6 +189,98 @@ def test_isclose_different_num_terms():
     b = qo.QubitOperator(((1, 'X'),), -0.1j)
     assert not b.isclose(a, rel_tol=1e-12, abs_tol=0.05)
     assert not a.isclose(b, rel_tol=1e-12, abs_tol=0.05)
+
+
+def test_get_inverse():
+    qo0 = qo.QubitOperator("X1 Z2", cmath.exp(0.6j))
+    qo1 = qo.QubitOperator("", 1j)
+    assert qo0.get_inverse().isclose(
+        qo.QubitOperator("X1 Z2", cmath.exp(-0.6j)))
+    assert qo1.get_inverse().isclose(qo.QubitOperator("", -1j))
+    qo0 += qo1
+    with pytest.raises(NotInvertible):
+        qo0.get_inverse()
+
+
+def test_get_merged():
+    qo0 = qo.QubitOperator("X1 Z2", 1j)
+    qo1 = qo.QubitOperator("Y3", 1j)
+    merged = qo0.get_merged(qo1)
+    assert qo0.isclose(qo.QubitOperator("X1 Z2", 1j))
+    assert qo1.isclose(qo.QubitOperator("Y3", 1j))
+    assert qo0.get_merged(qo1).isclose(qo.QubitOperator("X1 Z2 Y3", -1))
+    with pytest.raises(NotMergeable):
+        qo1.get_merged(T)
+    qo2 = qo0 + qo1
+    with pytest.raises(NotMergeable):
+        qo2.get_merged(qo0)
+    with pytest.raises(NotMergeable):
+        qo0.get_merged(qo2)
+
+
+def test_or_one_qubit():
+    saving_backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=saving_backend, engine_list=[])
+    qureg = eng.allocate_qureg(3)
+    eng.flush()
+    identity = qo.QubitOperator("", 1j)
+    x = qo.QubitOperator("X1", cmath.exp(0.5j))
+    y = qo.QubitOperator("Y2", cmath.exp(0.6j))
+    z = qo.QubitOperator("Z0", cmath.exp(4.5j))
+    identity | qureg
+    eng.flush()
+    x | qureg
+    eng.flush()
+    y | qureg
+    eng.flush()
+    z | qureg
+    eng.flush()
+    assert saving_backend.received_commands[4].gate == Ph(math.pi/2.)
+
+    assert saving_backend.received_commands[6].gate == X
+    assert saving_backend.received_commands[6].qubits == ([qureg[1]],)
+    assert saving_backend.received_commands[7].gate == Ph(0.5)
+    assert saving_backend.received_commands[7].qubits == ([qureg[1]],)
+
+    assert saving_backend.received_commands[9].gate == Y
+    assert saving_backend.received_commands[9].qubits == ([qureg[2]],)
+    assert saving_backend.received_commands[10].gate == Ph(0.6)
+    assert saving_backend.received_commands[10].qubits == ([qureg[2]],)
+
+    assert saving_backend.received_commands[12].gate == Z
+    assert saving_backend.received_commands[12].qubits == ([qureg[0]],)
+    assert saving_backend.received_commands[13].gate == Ph(4.5)
+    assert saving_backend.received_commands[13].qubits == ([qureg[0]],)
+
+
+def test_wrong_input():
+    eng = MainEngine()
+    qureg = eng.allocate_qureg(3)
+    op0 = qo.QubitOperator("X1", 0.99)
+    with pytest.raises(TypeError):
+        op0 | qureg
+    op1 = qo.QubitOperator("X2", 1)
+    with pytest.raises(ValueError):
+        op1 | qureg[1]
+    with pytest.raises(TypeError):
+        op0 | (qureg[1], qureg[2])
+    op2 = op0 + op1
+    with pytest.raises(TypeError):
+        op2 | qureg
+
+
+def test_rescaling_of_indices():
+    saving_backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=saving_backend, engine_list=[])
+    qureg = eng.allocate_qureg(4)
+    eng.flush()
+    op = qo.QubitOperator("X0 Y1 Z3", 1j)
+    op | qureg
+    eng.flush()
+    assert saving_backend.received_commands[5].gate.isclose(
+        qo.QubitOperator("X0 Y1 Z2", 1j))
+    # test that gate creates a new QubitOperator
+    assert op.isclose(qo.QubitOperator("X0 Y1 Z3", 1j))
 
 
 def test_imul_inplace():
@@ -442,6 +541,11 @@ def test_str():
     assert str(op) == "0.5 X1 Y3 Z8"
     op2 = qo.QubitOperator((), 2)
     assert str(op2) == "2 I"
+
+
+def test_hash():
+    op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
+    assert hash(op) == hash("0.5 X1 Y3 Z8")
 
 
 def test_str_empty():

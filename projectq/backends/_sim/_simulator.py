@@ -303,8 +303,8 @@ class Simulator(BasicEngine):
 
         Args:
             qureg (Qureg|list[Qubit]): Qubits to collapse.
-            values (list[bool|int]|string[0|1]): Measurement outcome for each of the qubits
-                in `qureg`.
+            values (list[bool|int]|string[0|1]): Measurement outcome for each
+                                                 of the qubits in `qureg`.
 
         Raises:
             RuntimeError: If an outcome has probability (approximately) 0 or
