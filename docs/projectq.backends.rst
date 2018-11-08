@@ -9,6 +9,7 @@ backends
 	projectq.backends.ClassicalSimulator
 	projectq.backends.ResourceCounter
 	projectq.backends.IBMBackend
+        projectq.backends.QrackSimulator
 
 
 Module contents

@@ -13,9 +13,8 @@
 #   limitations under the License.
 
 """
-Contains the projectq interface to a C++-based simulator, which has to be
-built first. If the c++ simulator is not exported to python, a (slow) python
-implementation is used as an alternative.
+Contains the projectq interface to the Qrack framework, a stand-alone open
+source GPU-accelerated C++ simulator, which has to be built first.
 """
 
 import math
@@ -41,45 +40,28 @@ from ._qracksim import QrackSimulator as SimulatorBackend
 
 class QrackSimulator(BasicEngine):
     """
-    Simulator is a compiler engine which simulates a quantum computer using
-    C++-based kernels.
-
-    OpenMP is enabled and the number of threads can be controlled using the
-    OMP_NUM_THREADS environment variable, i.e.
-
-    .. code-block:: bash
-
-        export OMP_NUM_THREADS=4 # use 4 threads
-        export OMP_PROC_BIND=spread # bind threads to processors by spreading
+    QrackSimulator is a compiler engine which simulates a quantum computer using
+    C++ and OpenCL-based kernels.
     """
     def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1):
         """
-        Construct the C++/Python-simulator object and initialize it with a
+        Construct the Qrack simulator object and initialize it with a
         random seed.
 
         Args:
             gate_fusion (bool): If True, gates are cached and only executed
-                once a certain gate-size has been reached (only has an effect
-                for the c++ simulator).
+                once a certain gate-size has been reached (not yet implemented).
             rnd_seed (int): Random seed (uses random.randint(0, 4294967295) by
                 default).
-
-        Example of gate_fusion: Instead of applying a Hadamard gate to 5
-        qubits, the simulator calculates the kronecker product of the 1-qubit
-        gate matrices and then applies one 5-qubit gate. This increases
-        operational intensity and keeps the simulator from having to iterate
-        through the state vector multiple times. Depending on the system (and,
-        especially, number of threads), this may or may not be beneficial.
+            ocl_dev (int): Specify the OpenCL device to use. By default, Qrack
+                uses the last device in the system list, because this is
+                usually a GPU.
 
         Note:
-            If the C++ Simulator extension was not built or cannot be found,
+            If the Qrack Simulator extension was not built or cannot be found,
             the Simulator defaults to a Python implementation of the kernels.
             While this is much slower, it is still good enough to run basic
             quantum algorithms.
-
-            If you need to run large simulations, check out the tutorial in
-            the docs which gives futher hints on how to build the C++
-            extension.
         """
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
@@ -89,9 +71,9 @@ class QrackSimulator(BasicEngine):
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: The simulator can deal
-        with all arbitrarily-controlled gates which provide a
-        gate-matrix (via gate.matrix) and acts on 5 or less qubits (not
-        counting the control qubits).
+        with all arbitrarily-controlled single-bit gates, as well as 
+        addition, subtraction, and multiplication gates, when their modulo
+        is the number of permutations in the register.
 
         Args:
             cmd (Command): Command for which to check availability (single-
@@ -218,6 +200,12 @@ class QrackSimulator(BasicEngine):
                 ordering. Must contain all allocated qubits.
 
         Note:
+            This is a cheat function for debugging only. The underlying Qrack
+            engine is explicitly Schmidt-decomposed, and the full permutation
+            basis wavefunction is not actually the internal state of the engine,
+            but it is descriptively equivalent.
+
+        Note:
             Make sure all previous commands (especially allocations) have
             passed through the compilation chain (call main_engine.flush() to
             make sure).
@@ -260,15 +248,18 @@ class QrackSimulator(BasicEngine):
 
     def cheat(self):
         """
-        Access the ordering of the qubits and the state vector directly.
-
-        This is a cheat function which enables, e.g., more efficient
-        evaluation of expectation values and debugging.
+        Access the ordering of the qubits and a representation of the state vector.
 
         Returns:
             A tuple where the first entry is a dictionary mapping qubit
             indices to bit-locations and the second entry is the corresponding
             state vector.
+
+        Note:
+            This is a cheat function for debugging only. The underlying Qrack
+            engine is explicitly Schmidt-decomposed, and the full permutation
+            basis wavefunction is not actually the internal state of the engine,
+            but it is descriptively equivalent.
 
         Note:
             Make sure all previous commands have passed through the
@@ -283,7 +274,7 @@ class QrackSimulator(BasicEngine):
 
     def _handle(self, cmd):
         """
-        Handle all commands, i.e., call the member functions of the C++-
+        Handle all commands, i.e., call the member functions of the Qrack-
         simulator object corresponding to measurement, allocation/
         deallocation, and (controlled) single-qubit gate.
 
@@ -375,8 +366,9 @@ class QrackSimulator(BasicEngine):
                                                    cmd.control_qubits])
         else:
             raise Exception("This simulator only supports controlled 1-qubit"
-                            " gates with controls!\nPlease add an auto-replacer"
-                            " engine to your list of compiler engines.")
+                            " gates with controls and arithmetic!\nPlease add"
+                            " an auto-replacer engine to your list of compiler"
+                            " engines.")
 
     def receive(self, command_list):
         """

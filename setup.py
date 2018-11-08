@@ -51,7 +51,7 @@ cppsim = Feature(
 
 qracksim = Feature(
     'Qrack Simulator',
-    standard=True,
+    standard=False,
     ext_modules=[
         Extension(
             'projectq.backends._qrack._qracksim',
