@@ -20,7 +20,7 @@
 #include <vector>
 #include <complex>
 
-#include "alignedallocator.hpp"
+#include "intrin/alignedallocator.hpp"
 #include <map>
 #include <cassert>
 #include <algorithm>

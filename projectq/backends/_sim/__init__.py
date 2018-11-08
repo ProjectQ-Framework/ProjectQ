@@ -14,3 +14,4 @@
 
 from ._simulator import Simulator
 from ._classical_simulator import ClassicalSimulator
+from ._qrack_simulator import QrackSimulator

@@ -35,13 +35,16 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
-from ._qracksim import QrackSimulator as SimulatorBackend
+try:
+    from ._qracksim import QrackSimulator as SimulatorBackend
+except ImportError:
+    from ._pysim import Simulator as SimulatorBackend
 
 
 class QrackSimulator(BasicEngine):
     """
-    QrackSimulator is a compiler engine which simulates a quantum computer using
-    C++ and OpenCL-based kernels.
+    The Qrack Simulator is a compiler engine which simulates a quantum computer
+    using C++ and OpenCL-based kernels.
     """
     def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1):
         """
@@ -159,7 +162,7 @@ class QrackSimulator(BasicEngine):
 
     def get_amplitude(self, bit_string, qureg):
         """
-        Return the probability amplitude of the supplied `bit_string`.
+        Return the wave function amplitude of the supplied `bit_string`.
         The ordering is given by the quantum register `qureg`, which must
         contain all allocated qubits.
 
@@ -169,7 +172,13 @@ class QrackSimulator(BasicEngine):
                 ordering. Must contain all allocated qubits.
 
         Returns:
-            Probability amplitude of the provided bit string.
+            Wave function amplitude of the provided bit string.
+
+        Note:
+            This is a cheat function for debugging only. The underlying Qrack
+            engine is explicitly Schmidt-decomposed, and the full permutation
+            basis wavefunction is not actually the internal state of the engine,
+            but it is descriptively equivalent.
 
         Note:
             Make sure all previous commands (especially allocations) have
