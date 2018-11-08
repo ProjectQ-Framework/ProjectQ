@@ -58,13 +58,6 @@ def get_available_simulators():
     except ImportError:
         # The Qrack simulator was either not installed or is misconfigured. Skip.
         pass
-    try:
-        import projectq.backends._sim._cppsim as _
-        result.append("cpp_simulator")
-    except ImportError:
-        # The C++ simulator was either not installed or is misconfigured. Skip.
-        pass
-    return result
 
 
 @pytest.fixture(params=get_available_simulators())

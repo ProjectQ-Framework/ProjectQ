@@ -105,7 +105,7 @@ class QrackSimulator(BasicEngine):
             if (isinstance(cmd.gate, DivideByConstantModN) and (1 << (len(cmd.qubits) / 2)) == cmd.gate.N):
                 return True
         except:
-            return False
+            pass
 
         try:
             m = cmd.gate.matrix
