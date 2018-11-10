@@ -12,6 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""
+Registers a decomposition rule for a unitary QubitOperator to one qubit gates.
+"""
+
 import cmath
 
 from projectq.cengines import DecompositionRule
