@@ -31,6 +31,21 @@ class get_pybind_include(object):
         import pybind11
         return pybind11.get_include(self.user)
 
+class get_opencl_library(object):
+    """Helper class to determine if OpenCL is present"""
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        from ctypes import cdll
+        try:
+            cdll.LoadLibrary('libOpenCL.so.1')
+            return 'OpenCL'
+        except OSError:
+            # Return something inoffensive that always works
+            return 'm'
+
 
 cppsim = Feature(
     'C++ Simulator',
@@ -61,7 +76,7 @@ qracksim = Feature(
                 get_pybind_include(),
                 get_pybind_include(user=True),
             ],
-            libraries=['qrack', 'OpenCL'],
+            libraries=['qrack', str(get_opencl_library())],
             language='c++'
         ),
     ],
