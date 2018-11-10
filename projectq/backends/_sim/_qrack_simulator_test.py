@@ -43,6 +43,7 @@ from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 from projectq.backends import QrackSimulator
+from projectq.backends import Simulator
 
 
 def test_is_qrack_simulator_present():
@@ -58,6 +59,8 @@ def get_available_simulators():
     except ImportError:
         # The Qrack simulator was either not installed or is misconfigured. Skip.
         pass
+
+    return result
 
 
 @pytest.fixture(params=get_available_simulators())

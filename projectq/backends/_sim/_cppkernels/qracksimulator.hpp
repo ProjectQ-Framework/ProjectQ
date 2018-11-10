@@ -48,13 +48,10 @@ public:
         rnd_eng_ = std::make_shared<std::default_random_engine>();
     	rnd_eng_->seed(seed);
 
+#if ENABLE_OPENCL
         // Initialize OpenCL engine, and set the default device context.
         Qrack::OCLEngine::Instance()->SetDefaultDeviceContext(Qrack::OCLEngine::Instance()->GetDeviceContextPtr(dev));
-        //if (dev == -1) {
-        //    std::cout<<"Using default OpenCL device."<<std::endl;
-        //} else {
-        //    std::cout<<"Using OpenCL device #"<<dev<<"."<<std::endl;
-        //}
+#endif
     }
 
     void allocate_qubit(unsigned id){
