@@ -52,7 +52,7 @@ def test_is_qrack_simulator_present():
 
 
 def get_available_simulators():
-    result = ["py_simulator"]
+    result = []
     try:
         import projectq.backends._sim._qracksim as _
         result.append("qrack_simulator")
@@ -69,11 +69,6 @@ def sim(request):
         from projectq.backends._sim._qracksim import QrackSimulator as QrackSim
         sim = QrackSimulator()
         sim._simulator = QrackSim(1)
-        return sim
-    if request.param == "py_simulator":
-        from projectq.backends._sim._pysim import Simulator as PySim
-        sim = Simulator()
-        sim._simulator = PySim(1)
         return sim
 
 
@@ -397,15 +392,21 @@ def test_simulator_amplitude(sim, mapper):
     eng.flush()
     bits = [0, 0, 1, 0, 1, 0]
     polR, polPhi = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    while polPhi < 0:
+        polPhi += 2 * math.pi
     assert polR == pytest.approx(1. / 8.)
     bits = [0, 0, 0, 0, 1, 0]
     polR2, polPhi2 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    while polPhi2 < 0:
+        polPhi2 += 2 * math.pi
     assert polR2 == pytest.approx(polR)
-    assert polPhi2 == pytest.approx(polPhi - math.pi)
+    assert polPhi2 == pytest.approx(polPhi)
     bits = [0, 1, 1, 0, 1, 0]
     polR3, polPhi3 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    while polPhi3 < 0:
+        polPhi3 += 2 * math.pi
     assert polR3 == pytest.approx(polR)
-    assert polPhi3 == pytest.approx(polPhi - math.pi)
+    assert polPhi3 == pytest.approx(polPhi)
     All(H) | qubits
     All(X) | qubits
     Ry(2 * math.acos(0.3)) | qubits[0]
@@ -457,7 +458,8 @@ def test_simulator_set_wavefunction_always_complex(sim):
     eng.backend.set_wavefunction(wf, qubit)
     Y | qubit
     eng.flush()
-    assert eng.backend.get_amplitude('1', qubit) == pytest.approx(1j)
+    amplitude = eng.backend.get_amplitude('1', qubit)
+    assert amplitude == pytest.approx(1j) or amplitude == pytest.approx(-1j)
 
 
 def test_simulator_collapse_wavefunction(sim, mapper):
