@@ -40,7 +40,11 @@ public:
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::default_random_engine;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
+#if ENABLE_OPENCL
     enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
+#else
+    enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_CPU;
+#endif
     typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
     typedef std::function<void(bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CMULXFunc;
 
@@ -249,7 +253,7 @@ public:
             chk |= 1UL << map_[ids[i]];
             index |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
         }
-        if (chk + 1 != (qReg->GetMaxQPower()))
+        if ((chk + 1U) != (std::size_t)(qReg->GetMaxQPower()))
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
         return qReg->GetAmplitude(index);
     }
