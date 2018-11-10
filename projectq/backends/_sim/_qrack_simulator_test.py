@@ -47,8 +47,7 @@ from projectq.backends import Simulator
 
 
 def test_is_qrack_simulator_present():
-    import projectq.backends._sim._qracksim
-    assert projectq.backends._sim._qracksim
+    _qracksim = pytest.importorskip("projectq.backends._sim._qracksim")
 
 
 def get_available_simulators():
