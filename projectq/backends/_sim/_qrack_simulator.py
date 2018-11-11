@@ -35,7 +35,10 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
-from ._qracksim import QrackSimulator as SimulatorBackend
+try:
+    from ._qracksim import QrackSimulator as SimulatorBackend
+except:
+    from ._cppsim import Simulator as SimulatorBackend
 
 
 class QrackSimulator(BasicEngine):

@@ -46,19 +46,22 @@ from projectq.backends import QrackSimulator
 from projectq.backends import Simulator
 
 
+from projectq.backends import QrackSimulator
+from projectq.backends import Simulator
+
+
 def test_is_qrack_simulator_present():
     _qracksim = pytest.importorskip("projectq.backends._sim._qracksim")
+    import projectq.backends._sim._qracksim as _
 
 
 def get_available_simulators():
     result = []
     try:
-        import projectq.backends._sim._qracksim as _
+        test_is_qrack_simulator_present()
         result.append("qrack_simulator")
-    except ImportError:
-        # The Qrack simulator was either not installed or is misconfigured. Skip.
+    except:
         pass
-
     return result
 
 
