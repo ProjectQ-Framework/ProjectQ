@@ -35,11 +35,6 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
-try:
-    from ._qracksim import QrackSimulator as SimulatorBackend
-except:
-    from ._cppsim import Simulator as SimulatorBackend
-
 
 class QrackSimulator(BasicEngine):
     """
@@ -71,6 +66,11 @@ class QrackSimulator(BasicEngine):
             While this is much slower, it is still good enough to run basic
             quantum algorithms.
         """
+        try:
+            from ._qracksim import QrackSimulator as SimulatorBackend
+        except:
+            raise ModuleNotFoundError("QrackSimulator module could not be found. Build ProjectQ with global option '--with-qracksimulator'.")
+
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
         BasicEngine.__init__(self)
@@ -93,14 +93,11 @@ class QrackSimulator(BasicEngine):
         try:
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
-                    cmd.gate == Swap or cmd.gate == SqrtSwap or
-                    isinstance(cmd.gate, AddConstant)):
+                    cmd.gate == Swap or cmd.gate == SqrtSwap):
                 return True
-        except:
-            pass
-
-        try:
-            if (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
+            elif (isinstance(cmd.gate, AddConstant)):
+                return True
+            elif (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
             elif (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
@@ -399,7 +396,5 @@ class QrackSimulator(BasicEngine):
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)
-            else:
-                pass  # flush gate --> unnecessary for Qrack
             if not self.is_last_engine:
                 self.send([cmd])

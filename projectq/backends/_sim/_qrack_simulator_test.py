@@ -430,14 +430,10 @@ def test_simulator_amplitude(sim, mapper):
     assert polR == pytest.approx(1. / 8.)
     bits = [0, 0, 0, 0, 1, 0]
     polR2, polPhi2 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
-    while polPhi2 < 0:
-        polPhi2 += 2 * math.pi
     assert polR2 == pytest.approx(polR)
     assert polPhi2 == pytest.approx(polPhi)
     bits = [0, 1, 1, 0, 1, 0]
     polR3, polPhi3 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
-    while polPhi3 < 0:
-        polPhi3 += 2 * math.pi
     assert polR3 == pytest.approx(polR)
     assert polPhi3 == pytest.approx(polPhi)
     All(H) | qubits
@@ -533,14 +529,6 @@ def test_simulator_no_uncompute_exception(sim):
         qubit[0].__del__()
     # If you wanted to keep using the qubit, you shouldn't have deleted it.
     assert qubit[0].id == -1
-
-
-class MockSimulatorBackend(object):
-    def __init__(self):
-        self.run_cnt = 0
-
-    def run(self):
-        self.run_cnt += 1
 
 
 def test_simulator_functional_entangle(sim):

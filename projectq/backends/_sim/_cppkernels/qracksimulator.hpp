@@ -251,7 +251,7 @@ public:
             if (map_.count(ids[i]) == 0)
                 break;
             chk |= 1UL << map_[ids[i]];
-            index |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
+            index |= bit_string[i] ? (1UL << map_[ids[i]]) : 0UL;
         }
         if ((chk + 1U) != (std::size_t)(qReg->GetMaxQPower()))
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
