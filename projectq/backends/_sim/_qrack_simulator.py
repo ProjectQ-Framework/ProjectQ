@@ -93,9 +93,8 @@ class QrackSimulator(BasicEngine):
         try:
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
-                    cmd.gate == Swap or cmd.gate == SqrtSwap):
-                return True
-            elif (isinstance(cmd.gate, AddConstant)):
+                    cmd.gate == Swap or cmd.gate == SqrtSwap or
+                    isinstance(cmd.gate, AddConstant)):
                 return True
             elif (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True

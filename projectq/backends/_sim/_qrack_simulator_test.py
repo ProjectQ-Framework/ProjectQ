@@ -430,12 +430,16 @@ def test_simulator_amplitude(sim, mapper):
     assert polR == pytest.approx(1. / 8.)
     bits = [0, 0, 0, 0, 1, 0]
     polR2, polPhi2 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    while polPhi2 < math.pi:
+        polPhi2 += 2 * math.pi
     assert polR2 == pytest.approx(polR)
-    assert polPhi2 == pytest.approx(polPhi)
+    assert (polPhi2 - math.pi) == pytest.approx(polPhi)
     bits = [0, 1, 1, 0, 1, 0]
     polR3, polPhi3 = cmath.polar(eng.backend.get_amplitude(bits, qubits))
+    while polPhi3 < math.pi:
+        polPhi3 += 2 * math.pi
     assert polR3 == pytest.approx(polR)
-    assert polPhi3 == pytest.approx(polPhi)
+    assert (polPhi3 - math.pi) == pytest.approx(polPhi)
     All(H) | qubits
     All(X) | qubits
     Ry(2 * math.acos(0.3)) | qubits[0]

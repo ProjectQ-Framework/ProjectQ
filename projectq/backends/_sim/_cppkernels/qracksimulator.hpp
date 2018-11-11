@@ -16,6 +16,7 @@
 #define QRACK_SIMULATOR_HPP_
 
 #include "qrack/qfactory.hpp"
+#include "qrack/common/config.h"
 
 #include <vector>
 #include <complex>
