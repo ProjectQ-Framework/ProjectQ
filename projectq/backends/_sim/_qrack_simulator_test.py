@@ -32,7 +32,7 @@ from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
 from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT, C,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
-                          TimeEvolution, Toffoli, X, Y, Z)
+                          TimeEvolution, Toffoli, X, Y, Z, Swap, SqrtSwap)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 SubConstant,
@@ -148,14 +148,26 @@ def test_simulator_is_available(sim):
 
     new_cmd = backend.received_commands[-1]
 
-    new_cmd.gate = Mock1QubitGate()
-    assert sim.is_available(new_cmd)
-
     new_cmd.gate = Mock6QubitGate()
     assert not sim.is_available(new_cmd)
 
     new_cmd.gate = MockNoMatrixGate()
     assert not sim.is_available(new_cmd)
+
+    new_cmd.gate = Mock1QubitGate()
+    assert sim.is_available(new_cmd)
+
+    new_cmd = backend.received_commands[-2]
+    assert len(new_cmd.qubits) == 1
+
+    new_cmd.gate = AddConstantModN(1, 2)
+    assert sim.is_available(new_cmd)
+
+    new_cmd.gate = MultiplyByConstantModN(1, 2)
+    assert sim.is_available(new_cmd)
+
+    new_cmd.gate = DivideByConstantModN(1, 2)
+    assert sim.is_available(new_cmd)
 
 
 def test_simulator_cheat(sim):
@@ -235,6 +247,25 @@ def test_simulator_kqubit_exception(sim):
         KQubitGate() | qureg
     with pytest.raises(Exception):
         H | qureg
+
+def test_simulator_swap(sim):
+    eng = MainEngine(sim, [])
+    qubits1 = eng.allocate_qureg(1)
+    qubits2 = eng.allocate_qureg(1)
+
+    X | qubits1
+
+    Swap | (qubits1, qubits2)
+    All(Measure) | qubits1
+    All(Measure) | qubits2
+    assert (int(qubits1[0]) == 0) and (int(qubits2[0]) == 1)
+
+    SqrtSwap | (qubits1, qubits2)
+    SqrtSwap | (qubits1, qubits2)
+    All(Measure) | qubits1
+    All(Measure) | qubits2
+    assert (int(qubits1[0]) == 1) and (int(qubits2[0]) == 0)
+    
 
 def test_simulator_math(sim):
     eng = MainEngine(sim, [])

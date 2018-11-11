@@ -35,10 +35,7 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
-try:
-    from ._qracksim import QrackSimulator as SimulatorBackend
-except ImportError:
-    from ._pysim import Simulator as SimulatorBackend
+from ._qracksim import QrackSimulator as SimulatorBackend
 
 
 class QrackSimulator(BasicEngine):
@@ -94,15 +91,17 @@ class QrackSimulator(BasicEngine):
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
-                    isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, SubConstant)):
+                    isinstance(cmd.gate, AddConstant)):
                 return True
+        except:
+            pass
+
+        try:
             if (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            if (isinstance(cmd.gate, SubConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
+            elif (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            if (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
-                return True
-            if (isinstance(cmd.gate, DivideByConstantModN) and (1 << (len(cmd.qubits) / 2)) == cmd.gate.N):
+            elif (isinstance(cmd.gate, DivideByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
         except:
             pass
@@ -322,10 +321,10 @@ class QrackSimulator(BasicEngine):
         elif cmd.gate == Deallocate:
             ID = cmd.qubits[0][0].id
             self._simulator.deallocate_qubit(ID)
-        elif isinstance(cmd.gate, Ph):
+        # elif isinstance(cmd.gate, Ph):
             # Global phase shifts have no physically measurable effect,
             # but it could be optimal to decompose with them.
-            pass
+        #    pass
         elif cmd.gate == Swap:
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
@@ -335,7 +334,7 @@ class QrackSimulator(BasicEngine):
         elif cmd.gate == SqrtSwap:
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
-            self._simulator.apply_controlled_swap(ids1, ids2,
+            self._simulator.apply_controlled_sqrtswap(ids1, ids2,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
         elif isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, AddConstantModN):
