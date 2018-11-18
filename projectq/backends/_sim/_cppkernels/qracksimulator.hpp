@@ -41,10 +41,11 @@ public:
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::default_random_engine;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
+    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
-    enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_OPENCL;
+    enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
-    enum Qrack::QInterfaceEngine QrackSubengine = Qrack::QINTERFACE_CPU;
+    enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
     typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
     typedef std::function<void(bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CMULXFunc;
@@ -63,10 +64,10 @@ public:
         if (map_.count(id) == 0) {
             if (qReg == NULL) {
                 map_[id] = 0;
-                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, 1, 0, rnd_eng_); 
+                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_); 
             } else {
                 map_[id] = qReg->GetQubitCount();
-                qReg->Cohere(Qrack::CreateQuantumInterface(QrackSubengine, QrackSubengine, 1, 0, rnd_eng_));
+                qReg->Cohere(Qrack::CreateQuantumInterface(QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_));
             }
         }
         else
@@ -275,7 +276,7 @@ public:
         for (std::size_t i = 0; i < wavefunction.size(); i++)
             wfArray[i] = complex(real(wavefunction[i]), imag(wavefunction[i]));
 
-        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine, ordering.size(), 0, rnd_eng_);
+        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ordering.size(), 0, rnd_eng_);
         qReg->SetQuantumState(wfArray);
 
         delete[] wfArray;
