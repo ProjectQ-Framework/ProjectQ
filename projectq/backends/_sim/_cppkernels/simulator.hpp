@@ -55,11 +55,7 @@ public:
     void allocate_qubit(unsigned id){
         if (map_.count(id) == 0){
             map_[id] = N_++;
-            auto newvec = StateVector(1UL << N_);
-            #pragma omp parallel for schedule(static)
-            for (std::size_t i = 0; i < newvec.size(); ++i)
-                newvec[i] = (i < vec_.size())?vec_[i]:0.;
-            vec_ = std::move(newvec);
+            vec_.resize(1UL << N_, 0.);
         }
         else
             throw(std::runtime_error(
