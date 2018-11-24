@@ -118,13 +118,12 @@ def test_basic_gate_compare():
     gate2 = _basics.BasicGate()
     assert gate1 == gate2
     assert not (gate1 != gate2)
-    gate3 = _basics.BasicGate()
+    gate3 = _basics.MatrixGate()
     gate3.matrix = np.matrix([[1, 0], [0, -1]])
     assert gate1 != gate3
-    gate4 = _basics.BasicGate()
+    gate4 = _basics.MatrixGate()
     gate4.matrix = [[1, 0], [0, -1]]
-    with pytest.raises(TypeError):
-        gate4 == gate3
+    assert gate4 == gate3
 
 
 def test_comparing_different_gates():

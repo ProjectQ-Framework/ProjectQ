@@ -21,7 +21,7 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 from projectq.meta import Control
-from projectq.ops import (All, BasicGate, ClassicalInstructionGate, Measure,
+from projectq.ops import (All, BasicGate, MatrixGate, ClassicalInstructionGate, Measure,
                           Ph, R, Rx, Ry, Rz, X, XGate)
 from projectq.setups.decompositions import arb1qubit2rzandry_test as arb1q_t
 
@@ -57,7 +57,7 @@ def test_recognize_incorrect_gates():
         # Does not have matrix attribute:
         BasicGate() | qubit
         # Two qubit gate:
-        two_qubit_gate = BasicGate()
+        two_qubit_gate = MatrixGate()
         two_qubit_gate.matrix = np.matrix([[1, 0, 0, 0], [0, 1, 0, 0],
                                            [0, 0, 1, 0], [0, 0, 0, 1]])
         two_qubit_gate | qubit
@@ -94,7 +94,7 @@ def test_recognize_v(gate_matrix):
 @pytest.mark.parametrize("gate_matrix", arb1q_t.create_test_matrices())
 def test_decomposition(gate_matrix):
     # Create single qubit gate with gate_matrix
-    test_gate = BasicGate()
+    test_gate = MatrixGate()
     test_gate.matrix = np.matrix(gate_matrix)
 
     for basis_state in ([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
