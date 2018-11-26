@@ -205,7 +205,7 @@ class BasicGate(object):
 
     @property
     def matrix(self):
-        return None
+        raise AttributeError("BasicGate has no matrix property. Use MatrixGate instead.")
 
     @matrix.setter
     def matrix(self):
@@ -233,9 +233,9 @@ class MatrixGate(BasicGate):
 
     A matrix gate is defined via its matrix.
     """
-    def __init__(self):
+    def __init__(self, matrix=None):
         BasicGate.__init__(self)
-        self._matrix = None
+        self._matrix = np.matrix(matrix)
 
     @property
     def matrix(self):
@@ -266,7 +266,10 @@ class MatrixGate(BasicGate):
         raise NotImplementedError('This gate does not implement __str__.')
 
     def get_inverse(self):
-        raise NotInvertible("MatrixGate: No get_inverse() implemented.") #todo: implement!
+        if self.matrix is not None:
+            return MatrixGate(np.linalg.inv(self.matrix))
+        else:
+            return MatrixGate()
 
 class SelfInverseGate(BasicGate):
     """
