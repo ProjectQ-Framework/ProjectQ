@@ -29,7 +29,7 @@ import scipy.sparse.linalg
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
-from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
+from projectq.ops import (All, Allocate, BasicGate, MatrixGate, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
@@ -97,37 +97,32 @@ def mapper(request):
         return None
 
 
-class Mock1QubitGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
+class Mock1QubitGate(MatrixGate):
+    def __init__(self):
+        MatrixGate.__init__(self)
+        self.cnt = 0
 
-        @property
-        def matrix(self):
-            self.cnt += 1
-            return [[0, 1], [1, 0]]
+    @property
+    def matrix(self):
+        self.cnt += 1
+        return [[0, 1], [1, 0]]
 
 
-class Mock6QubitGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
+class Mock6QubitGate(MatrixGate):
+    def __init__(self):
+        MatrixGate.__init__(self)
+        self.cnt = 0
 
-        @property
-        def matrix(self):
-            self.cnt += 1
-            return numpy.eye(2 ** 6)
+    @property
+    def matrix(self):
+        self.cnt += 1
+        return numpy.eye(2 ** 6)
 
 
 class MockNoMatrixGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
-
-        @property
-        def matrix(self):
-            self.cnt += 1
-            raise AttributeError
+    def __init__(self):
+        BasicGate.__init__(self)
+        self.cnt = 0
 
 
 def test_simulator_is_available(sim):
@@ -147,15 +142,15 @@ def test_simulator_is_available(sim):
 
     new_cmd.gate = Mock1QubitGate()
     assert sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 4
+    assert new_cmd.gate.cnt == 1
 
     new_cmd.gate = Mock6QubitGate()
     assert not sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 4
+    assert new_cmd.gate.cnt == 1
 
     new_cmd.gate = MockNoMatrixGate()
     assert not sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 7
+    assert new_cmd.gate.cnt == 0
 
 
 def test_simulator_cheat(sim):
