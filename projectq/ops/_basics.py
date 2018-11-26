@@ -235,7 +235,7 @@ class MatrixGate(BasicGate):
     """
     def __init__(self, matrix=None):
         BasicGate.__init__(self)
-        self._matrix = np.matrix(matrix)
+        self._matrix = np.matrix(matrix) if matrix is not None else None
 
     @property
     def matrix(self):

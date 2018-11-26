@@ -294,3 +294,30 @@ def test_basic_math_gate():
     # Test a=2, b=3, and c=5 should give a=2, b=3, c=11
     math_fun = gate.get_math_function(("qreg1", "qreg2", "qreg3"))
     assert math_fun([2, 3, 5]) == [2, 3, 11]
+
+def test_matrix_gate():
+    gate1 = _basics.MatrixGate()
+    gate2 = _basics.MatrixGate()
+    with pytest.raises(TypeError):
+        assert gate1 == gate2
+    gate3 = _basics.MatrixGate([[0, 1], [1, 0]])
+    gate4 = _basics.MatrixGate([[0, 1], [1, 0]])
+    gate5 = _basics.MatrixGate([[1, 0], [0, -1]])
+    assert gate3 == gate4
+    assert gate4 != gate5
+    with pytest.raises(TypeError):
+        assert gate1 != gate3
+    with pytest.raises(TypeError):
+        assert gate3 != gate1
+    gate6 = _basics.BasicGate()
+    assert gate6 != gate1
+    assert gate6 != gate3
+    assert gate1 != gate6
+    assert gate3 != gate6
+    gate7 = gate5.get_inverse()
+    gate8 = _basics.MatrixGate([[1, 0], [0, (1+1j)/math.sqrt(2)]])
+    assert gate7 == gate5
+    assert gate7 != gate8
+    gate9 = _basics.MatrixGate([[1, 0], [0, (1-1j)/math.sqrt(2)]])
+    gate10 = gate9.get_inverse()
+    assert gate10 == gate8
