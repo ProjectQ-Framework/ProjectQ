@@ -266,10 +266,7 @@ class MatrixGate(BasicGate):
         raise NotImplementedError('This gate does not implement __str__.')
 
     def get_inverse(self):
-        if self.matrix is not None:
-            return MatrixGate(np.linalg.inv(self.matrix))
-        else:
-            return MatrixGate()
+        return MatrixGate(np.linalg.inv(self.matrix))
 
 class SelfInverseGate(BasicGate):
     """
