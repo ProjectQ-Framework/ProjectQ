@@ -208,8 +208,8 @@ class BasicGate(object):
         raise AttributeError("BasicGate has no matrix property. Use MatrixGate instead.")
 
     @matrix.setter
-    def matrix(self):
-        raise AttributeError("You cannot set the matrix property gates derived"
+    def matrix(self, matrix=None):
+        raise AttributeError("You cannot set the matrix property of gates derived"
                              "from BasicGate. Please use MatrixGate instead if"
                              "you need that functionality.")
 
