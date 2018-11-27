@@ -6,6 +6,7 @@ The operations collection consists of various default gates and is a work-in-pro
 .. autosummary::
 
 	projectq.ops.BasicGate
+	projectq.ops.MatrixGate
 	projectq.ops.SelfInverseGate
 	projectq.ops.BasicRotationGate
 	projectq.ops.BasicPhaseGate
