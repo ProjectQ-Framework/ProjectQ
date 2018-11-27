@@ -30,14 +30,20 @@ class StatePreparation(BasicGate):
                 StatePreparation([0.5, -0.5j, -0.5, 0.5]) | qureg
 
         Note:
-            The amplitude of state k is final_state[k]. When the state k is
-            written in binary notation, then qureg[0] denotes the qubit
-            whose state corresponds to the least significant bit of k.
+            On hardware backends this operation needs to automatically
+            construct a circuit that prepares the given state. This typically
+            can be expected to work only for relatively simple states or such
+            of few qubits.
 
         Args:
             final_state(list[complex]): wavefunction of the desired
                                         quantum state. len(final_state) must
                                         be 2**len(qureg). Must be normalized!
+
+        Note:
+            final_state[k] is taken to be the amplitude of the computational
+            basis state whose string is equal to the binary representation
+            of k.
         """
         BasicGate.__init__(self)
         self.final_state = list(final_state)
