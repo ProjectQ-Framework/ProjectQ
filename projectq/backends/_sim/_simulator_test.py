@@ -29,7 +29,7 @@ import scipy.sparse.linalg
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
-from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
+from projectq.ops import (All, Allocate, BasicGate, BasisState, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
@@ -688,3 +688,14 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
                               qubit1[0].id: qubit0[0].id}
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)
+
+def test_simulator_basis_state(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
+    qubits = eng.allocate_qureg(4)
+    BasisState([0, 1, 0, 1]) | qubits
+    eng.flush()
+    assert pytest.approx(eng.backend.get_probability('0101', qubits)) == 1.
+    All(Measure) | qubits

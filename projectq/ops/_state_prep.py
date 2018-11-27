@@ -12,8 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._basics import BasicGate
-
+from ._basics import BasicGate, SelfInverseGate
+from ._gates import XGate
 
 class StatePreparation(BasicGate):
     """
@@ -55,3 +55,48 @@ class StatePreparation(BasicGate):
 
     def __hash__(self):
         return hash("StatePreparation(" + str(self.final_state) + ")")
+
+class BasisState(SelfInverseGate):
+    """
+    Gate for transforming qubits in state |0> to any computational basis state
+    """
+    def __init__(self, basis_state):
+        """
+        Initialize BasisState gate.
+
+        Example:
+            .. code-block:: python
+
+                qureg = eng.allocate_qureg(2)
+                BaisState([0, 1]) | qureg
+
+        Note:
+            The amplitude of state k is final_state[k]. When the state k is
+            written in binary notation, then qureg[0] denotes the qubit
+            whose state corresponds to the least significant bit of k.
+
+        Args:
+            basis_state(list[int]): array of bits of binary string identifying
+                                    the desired computational basis state of
+                                    length len(qureg). Must conatin only 0s
+                                    and 1s!
+        """
+        self.basis_state = list(basis_state)
+
+    def __str__(self):
+        return "BasisState"
+
+    def __or__(self, qubits):
+        for qureg in self.make_tuple_of_qureg(qubits):
+            for i, qubit in enumerate(qureg):
+                if self.basis_state[i] == 1:
+                    XGate() | qubit
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.basis_state == other.basis_state
+        else:
+            return False
+
+    def __hash__(self):
+        return hash("BasisState(" + str(self.basis_state) + ")")
