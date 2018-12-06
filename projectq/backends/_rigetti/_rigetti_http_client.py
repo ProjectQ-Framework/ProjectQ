@@ -63,7 +63,7 @@ def send(info, device=RIGETTI_DEVICES[0], user_id=None, api_key=None,
 
     Args:
         info: Contains Quil representation of the circuit to run.
-        device (str): Either '8Q-Agave' or '19Q-Acorn'
+        device (str): 'QVM', '8Q-Agave', or '19Q-Acorn'
         user_id (str): Rigetti User ID
         api_key (str): Rigetti API Key
         shots (int): Number of runs of the same circuit to collect statistics.
@@ -78,7 +78,7 @@ def send(info, device=RIGETTI_DEVICES[0], user_id=None, api_key=None,
 
             if not online:
                 print("The device is offline (for maintenance?). Use the "
-                      "simulator instead or try again later.")
+                      "QVM instead or try again later.")
                 raise DeviceOfflineError("Device is offline.")
 
         if verbose:
@@ -150,14 +150,13 @@ def _run(runcodes, device, user_id, api_key, shots):
     suffix = 'job'
     r = requests.post(urljoin(_api_url, suffix),
                       json={
-                        "machine": "QVM",
+                        "machine": device,
                         "program": {
                             "type": "multishot-measure",
                             "qubits": list(range(0, max_register + 1)),
                             "trials": runcodes["shots"],
                             "compiled-quil": internal_code + "\n"
                         }
-                        # , "device": ""
                       },
                       headers={
                         "Content-Type": "application/json",

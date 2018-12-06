@@ -21,12 +21,14 @@ from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (NOT,
                           Y,
+                          X,
                           Z,
                           T,
                           Tdag,
                           S,
                           Sdag,
                           H,
+                          Ph,
                           Rx,
                           Ry,
                           Rz,
@@ -71,7 +73,7 @@ class RigettiBackend(BasicEngine):
         if use_hardware:
             self.device = device
         else:
-            self.device = 'simulator'
+            self.device = 'QVM'
         self._num_runs = num_runs
         self._verbose = verbose
         self._user_id = user_id
@@ -93,14 +95,15 @@ class RigettiBackend(BasicEngine):
             cmd (Command): Command for which to check availability
         """
         g = cmd.gate
-        if g == NOT and get_control_count(cmd) <= 1:
+        if g == Barrier:
+            return False
+        if g == NOT and get_control_count(cmd) <= 2:
             return True
-        if get_control_count(cmd) == 0:
-            if g in (T, Tdag, S, Sdag, H, Y, Z):
-                return True
-            if isinstance(g, (Rx, Ry, Rz)):
-                return True
-        if g in (Measure, Allocate, Deallocate, Barrier):
+        if g in (T, Tdag, S, Sdag, H, X, Y, Z):
+            return True
+        if isinstance(g, (Rx, Ry, Rz, Ph)):
+            return True
+        if g in (Measure, Allocate, Deallocate):
             return True
         return False
 
@@ -146,31 +149,37 @@ class RigettiBackend(BasicEngine):
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self.quil += "\nCX {} {}".format(ctrl_pos, qb_pos)
-        elif gate == Barrier:
-            qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
-            self.quil += "\nbarrier "
-            qb_str = ""
-            for pos in qb_pos:
-                qb_str += "{}, ".format(pos)
-            self.quil += qb_str[:-2] + ";"
-        elif isinstance(gate, (Rx, Ry, Rz)):
-            assert get_control_count(cmd) == 0
+            self.quil += "\nCNOT {} {}".format(ctrl_pos, qb_pos)
+        elif gate == NOT and get_control_count(cmd) == 2:
+            ctrl_pos = cmd.control_qubits[0].id
+            ctrl2_pos = cmd.control_qubits[1].id
             qb_pos = cmd.qubits[0][0].id
-            sign = ''
-            if gate.angle < 0:
-                sign = '-'
-            gate = str("{}({}pi/{})").format(str(gate)[0:2].upper(), sign, 1 / abs(gate.angle))
-            self.quil += "\n{} {}".format(gate, qb_pos)
+            self.quil += "\nCCNOT {} {} {}".format(ctrl_pos, ctrl2_pos, qb_pos)
+        elif isinstance(gate, (Rx, Ry, Rz, Ph)):
+            assert get_control_count(cmd) < 2
+            qb_pos = cmd.qubits[0][0].id
+
+            gate_str = str(gate).upper().replace('PH(', 'PHASE(')
+
+            if (get_control_count(cmd) == 1):
+                ctrl_pos = cmd.control_qubits[0].id
+                self.quil += "\nCONTROLLED {} {} {}".format(gate_str, ctrl_pos, qb_pos)
+            else:
+                self.quil += "\n{} {}".format(gate_str, qb_pos)
         else:
-            assert get_control_count(cmd) == 0
+            assert get_control_count(cmd) < 2
             if str(gate) in self._gate_names:
                 gate_str = self._gate_names[str(gate)]
             else:
                 gate_str = str(gate).upper()
 
             qb_pos = cmd.qubits[0][0].id
-            self.quil += "\n{} {}".format(gate_str, qb_pos)
+
+            if (get_control_count(cmd) == 1):
+                ctrl_pos = cmd.control_qubits[0].id
+                self.quil += "\nCONTROLLED {} {} {}".format(gate_str, ctrl_pos, qb_pos)
+            else:
+                self.quil += "\n{} {}".format(gate_str, qb_pos)
 
     def _logical_to_physical(self, qb_id):
         """
@@ -319,5 +328,6 @@ class RigettiBackend(BasicEngine):
     """
     Mapping of gate names from our gate objects to the Rigetti Quil representation.
     """
-    _gate_names = {str(Tdag): "tdg",
-                   str(Sdag): "sdg"}
+    _gate_names = {str(Tdag): "DAGGER T",
+                   str(Sdag): "DAGGER S",
+                   str(Ph): "PHASE"}
