@@ -29,15 +29,15 @@ class StatePreparation(BasicGate):
                 qureg = eng.allocate_qureg(2)
                 StatePreparation([0.5, -0.5j, -0.5, 0.5]) | qureg
 
-        Args:
-            final_state(list[complex]): wavefunction of the desired
-                                        quantum state. len(final_state) must
-                                        be 2**len(qureg). Must be normalized!
-
         Note:
             final_state[k] is taken to be the amplitude of the computational
             basis state whose string is equal to the binary representation
             of k.
+
+        Args:
+            final_state(list[complex]): wavefunction of the desired
+                                        quantum state. len(final_state) must
+                                        be 2**len(qureg). Must be normalized!
         """
         BasicGate.__init__(self)
         self.final_state = list(final_state)
