@@ -29,7 +29,7 @@ import scipy.sparse.linalg
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
-from projectq.ops import (All, Allocate, BasicGate, BasisState, BasicMathGate, CNOT,
+from projectq.ops import (All, Allocate, BasicGate, FlipBits, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
@@ -97,7 +97,7 @@ def mapper(request):
         return None
 
 
-class Mock1QubitGate(BasicGate):
+class Mock1QubitGate(FlipBits):
         def __init__(self):
             BasicGate.__init__(self)
             self.cnt = 0
@@ -695,7 +695,7 @@ def test_simulator_basis_state(sim, mapper):
         engine_list.append(mapper)
     eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(4)
-    BasisState([0, 1, 0, 1]) | qubits
+    FlipBits([0, 1, 0, 1]) | qubits
     eng.flush()
     assert pytest.approx(eng.backend.get_probability('0101', qubits)) == 1.
     All(Measure) | qubits

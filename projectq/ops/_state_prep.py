@@ -62,19 +62,19 @@ class StatePreparation(BasicGate):
     def __hash__(self):
         return hash("StatePreparation(" + str(self.final_state) + ")")
 
-class BasisState(SelfInverseGate):
+class FlipBits(SelfInverseGate):
     """
     Gate for transforming qubits in state |0> to any computational basis state
     """
     def __init__(self, basis_state):
         """
-        Initialize BasisState gate.
+        Initialize FlipBits gate.
 
         Example:
             .. code-block:: python
 
                 qureg = eng.allocate_qureg(2)
-                BaisState([0, 1]) | qureg
+                FlipBits([0, 1]) | qureg
 
         Note:
             The amplitude of state k is final_state[k]. When the state k is
@@ -90,7 +90,7 @@ class BasisState(SelfInverseGate):
         self.basis_state = list(basis_state)
 
     def __str__(self):
-        return "BasisState"
+        return "FlipBits"
 
     def __or__(self, qubits):
         for qureg in self.make_tuple_of_qureg(qubits):
@@ -105,4 +105,4 @@ class BasisState(SelfInverseGate):
             return False
 
     def __hash__(self):
-        return hash("BasisState(" + str(self.basis_state) + ")")
+        return hash("FlipBits(" + str(self.basis_state) + ")")
