@@ -689,13 +689,24 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)
 
-def test_simulator_basis_state(sim, mapper):
+flip_bits_testdata = [
+    ([0, 1, 0, 1], '0101'),
+    ([1, 0, 1, 0], '1010'),
+    ([False, True, False, True], '0101'),
+    ('0101', '0101'),
+    ('1111', '1111'),
+    ('0000', '0000'),
+]
+
+@pytest.mark.parametrize("bits_to_flip, result", flip_bits_testdata)
+def test_simulator_flip_bits(sim, mapper, bits_to_flip, result):
     engine_list = [LocalOptimizer()]
     if mapper is not None:
         engine_list.append(mapper)
+
     eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(4)
-    FlipBits([0, 1, 0, 1]) | qubits
+    FlipBits(bits_to_flip) | qubits
     eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0101', qubits)) == 1.
+    assert pytest.approx(eng.backend.get_probability(result, qubits)) == 1.
     All(Measure) | qubits

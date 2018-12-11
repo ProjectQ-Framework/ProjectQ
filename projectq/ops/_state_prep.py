@@ -60,7 +60,7 @@ class FlipBits(SelfInverseGate):
     """
     Gate for transforming qubits in state |0> to any computational basis state
     """
-    def __init__(self, basis_state):
+    def __init__(self, bits_to_flip):
         """
         Initialize FlipBits gate.
 
@@ -76,12 +76,14 @@ class FlipBits(SelfInverseGate):
             whose state corresponds to the least significant bit of k.
 
         Args:
-            basis_state(list[int]): array of bits of binary string identifying
-                                    the desired computational basis state of
-                                    length len(qureg). Must conatin only 0s
-                                    and 1s!
+            bits_to_flip(list[int]|list[bool]|str): array of 0/1, True/False or
+                                    string of 0/1 identifying the qubits to flip
+                                    of length len(qureg).
         """
-        self.basis_state = list(basis_state)
+        if isinstance(bits_to_flip, str):
+            self.bits_to_flip = list([ c != "0" for c in bits_to_flip])
+        else:
+            self.bits_to_flip = list(bits_to_flip)
 
     def __str__(self):
         return "FlipBits"
@@ -89,14 +91,14 @@ class FlipBits(SelfInverseGate):
     def __or__(self, qubits):
         for qureg in self.make_tuple_of_qureg(qubits):
             for i, qubit in enumerate(qureg):
-                if self.basis_state[i] == 1:
+                if self.bits_to_flip[i]:
                     XGate() | qubit
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.basis_state == other.basis_state
+            return self.bits_to_flip == other.bits_to_flip
         else:
             return False
 
     def __hash__(self):
-        return hash("FlipBits(" + str(self.basis_state) + ")")
+        return hash("FlipBits(" + str(self.bits_to_flip) + ")")
