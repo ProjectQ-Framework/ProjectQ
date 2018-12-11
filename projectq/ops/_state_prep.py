@@ -29,12 +29,6 @@ class StatePreparation(BasicGate):
                 qureg = eng.allocate_qureg(2)
                 StatePreparation([0.5, -0.5j, -0.5, 0.5]) | qureg
 
-        Note:
-            On hardware backends this operation needs to automatically
-            construct a circuit that prepares the given state. This typically
-            can be expected to work only for relatively simple states or such
-            of few qubits.
-
         Args:
             final_state(list[complex]): wavefunction of the desired
                                         quantum state. len(final_state) must
