@@ -97,7 +97,7 @@ def mapper(request):
         return None
 
 
-class Mock1QubitGate(FlipBits):
+class Mock1QubitGate(BasicGate):
         def __init__(self):
             BasicGate.__init__(self)
             self.cnt = 0
