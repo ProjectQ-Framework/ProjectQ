@@ -28,9 +28,7 @@ from ._gates import (AddConstant,
                      AddQuantum,
                      SubtractQuantum,
                      Comparator,
-                     QuantumConditionalAdd,
                      QuantumDivision,
-                     QuantumConditionalAddCarry,
                      QuantumMultiplication,)
 
 from ._constantmath import (add_constant,
@@ -75,17 +73,28 @@ def _replace_multiplybyconstantmodN(cmd):
         mul_by_constant_modN(eng, c, N, quint)
 
 
-def _replace_addquantum(cmd):
-    
+def _replace_addquantum(cmd):    
     eng = cmd.engine
-    quint_a = cmd.qubits[0]
-    quint_b = cmd.qubits[1]
-    c = cmd.qubits[2]
-
-    with Control(eng, cmd.control_qubits):
-        add_quantum(eng, quint_a, quint_b, c)
-
-
+    if cmd.control_qubits == []:
+        quint_a = cmd.qubits[0]
+        quint_b = cmd.qubits[1]
+        if len(cmd.qubits) == 3:
+            c = cmd.qubits[2]
+            add_quantum(eng, quint_a, quint_b, c)
+        else:
+            add_quantum(eng, quint_a, quint_b)
+    else:
+        quint_a = cmd.qubits[0]
+        quint_b = cmd.qubits[1]
+        if len(cmd.qubits) == 3:
+            c = cmd.qubits[2]
+            with Control(eng, cmd.control_qubits):
+                quantum_conditional_add_carry(eng, quint_a, quint_b, cmd.control_qubits,c)
+        else:
+            with Control(eng, cmd.control_qubits):
+                quantum_conditional_add(eng, quint_a, quint_b, cmd.control_qubits)
+        
+    
 def _replace_subtractquantum(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
@@ -93,6 +102,7 @@ def _replace_subtractquantum(cmd):
 
     with Control(eng, cmd.control_qubits):
         subtract_quantum(eng, quint_a, quint_b)
+
 
 def _replace_comparator(cmd):
     eng = cmd.engine
@@ -103,15 +113,6 @@ def _replace_comparator(cmd):
     with Control(eng, cmd.control_qubits):
         comparator(eng, quint_a, quint_b, c)
 
-def _replace_quantumconditionaladd(cmd):
-    eng = cmd.engine
-    quint_a = cmd.qubits[0]
-    quint_b = cmd.qubits[1]
-    c = cmd.qubits[2]
-
-    with Control(eng, cmd.control_qubits):
-        quantum_conditional_add(eng, quint_a, quint_b, c)
-
 def _replace_quantumdivision(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
@@ -121,15 +122,6 @@ def _replace_quantumdivision(cmd):
     with Control(eng, cmd.control_qubits):
         quantum_division(eng, quint_a, quint_b, quint_c)
 
-def _replace_quantumconditionaladdcarry(cmd):
-    eng = cmd.engine
-    quint_a = cmd.qubits[0]
-    quint_b = cmd.qubits[1]
-    c = cmd.qubits[2]
-    z = cmd.qubits[3]
-
-    with Control(eng, cmd.control_qubits):
-        quantum_conditional_add_carry(eng, quint_a, quint_b, c, z)
 
 def _replace_quantummultiplication(cmd):
     eng = cmd.engine
@@ -140,6 +132,7 @@ def _replace_quantummultiplication(cmd):
     with Control(eng, cmd.control_qubits):
         quantum_multiplication(eng, quint_a, quint_b, quint_c)
 
+
 all_defined_decomposition_rules = [
     DecompositionRule(AddConstant, _replace_addconstant),
     DecompositionRule(AddConstantModN, _replace_addconstmodN),
@@ -147,8 +140,6 @@ all_defined_decomposition_rules = [
     DecompositionRule(AddQuantum, _replace_addquantum),
     DecompositionRule(SubtractQuantum, _replace_subtractquantum),
     DecompositionRule(Comparator, _replace_comparator),
-    DecompositionRule(QuantumConditionalAdd, _replace_quantumconditionaladd),
     DecompositionRule(QuantumDivision, _replace_quantumdivision),
-    DecompositionRule(QuantumConditionalAddCarry,_replace_quantumconditionaladdcarry),
     DecompositionRule(QuantumMultiplication, _replace_quantummultiplication),
 ]

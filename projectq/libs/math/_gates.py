@@ -25,6 +25,8 @@ class AddConstant(BasicMathGate):
             qunum = eng.allocate_qureg(5) # 5-qubit number
             X | qunum[1] # qunum is now equal to 2
             AddConstant(3) | qunum # qunum is now equal to 5
+
+    Important: if you run with conditional and carry, carry needs to be a quantum register for the compiler/decomposition to work.
     """
     def __init__(self, a):
         """
@@ -218,8 +220,9 @@ class MultiplyByConstantModN(BasicMathGate):
 
 class AddQuantum(BasicMathGate): 
     """ 
-    Add up two quantum numbers represented by quantum registers.
+    Adds up two quantum numbers represented by quantum registers.
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+
     Example:
         .. code-block:: python
 
@@ -245,7 +248,14 @@ class AddQuantum(BasicMathGate):
         def math_fun(a):
             a[1] = a[0] + a[1]
             if len("{0:b}".format(a[1])) > n:
-               a[2] = 1
+                a[1] = a[1] % (n**2)
+                if len(a) == 3:
+                    if a[2] == 1:
+                        a[2] = 0
+                    elif a[2] == 3:
+                        a[2] = 2
+                    else:
+                        a[2] += 1
             return (a)
         return math_fun
     
@@ -343,49 +353,6 @@ class Comparator(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-class QuantumConditionalAdd(BasicMathGate):
-    """
-    Adds up two quantum numbers if a control qubit is |1>. If the control 
-    qubit is not one the gate does not perform an operation.
-    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
-
-    Example:
-        .. code-block:: python
-        
-            qunum_a = eng.allocate_qureg(5) # 5-qubit number
-            qunum_b = eng.allocate_qureg(5) # 5-qubit number 
-            control_bit = eng.allocate_qubit()
-
-            X | qunum_a[4] #qunum_a is now equal to 16 
-            X | qunum_b[3] #qunum_b is now equal to 8 
-            X | control_bit
-
-            QuantumConditionalAdd() | (qunum_a, qunum_b, control_bit)
-            # qunum_a remain 16 and qunum_b is now 24, control_bit remains 1.
-    """ 
-    def __init__(self):
-        """
-        Initializes the gate and its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
-        """    
-        def conditionaladd(a,b,c):
-            if c == 1:
-                return (a,a+b,c)
-            else:
-                return (a,b,c)
-        BasicMathGate.__init__(self,conditionaladd)
-    
-    def __str__(self):
-        return "QuantumConditionalAdd"
-    
-    def __eq__(self, other):
-        return (isinstance(other, QuantumConditionalAdd))
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 class QuantumDivision(BasicMathGate):
     """
@@ -442,65 +409,6 @@ class QuantumDivision(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-class QuantumConditionalAddCarry(BasicMathGate):
-    """
-    Takes four inputs, two quantum register of equal size, a control qubit 
-    and a quantum register of two qubits. The gate works as follows, if the
-    control qubit is |1>, the two quantum qubits are added. The first 
-    quantum register is not changed, the second quantum register contains 
-    the added values, the control qubit is unchanged and the first qubit of
-    the fourth input contains the highest carry of the sum. If the control 
-    qubit is |0> the gate does not perform an operation and all inputs 
-    remain unchanged.   
-
-    Example:
-        .. code-block:: python
-            qunum_a = eng.allocate_qureg(4) # 4-qubit number
-            qunum_b = eng.allocate_qureg(4) # 4-qubit number
-            ctrl = eng.allocate_qubit()
-            qunum_c = eng.allocate_qureg(2) 
-            
-            X | qunum_a[1] # qunum is now equal to 2
-            All(X) | qunum_b[0:4]  # qunum is now equal to 15
-            X | ctrl
-
-            QuantumConditionalAddCarry() | (qunum_a, qunum_b, ctrl, qunum_c)
-            # qunum_a and ctrl don't change, qunum_b and qunum_c are now both
-            # equal to 1 so in binary together 10001 (2 + 15 = 17)
-    """
-    def __init__(self):
-        """
-        Initializes the gate to  its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
-        """
-        BasicMathGate.__init__(self,QuantumConditionalAddCarry.get_math_function)
-
-    def get_math_function(self,qubits):
-        n = len(qubits[0])
-        def math_fun(a):
-            if a[2] == 1:
-                a[1] = a[0] + a[1]
-                if len("{0:b}".format(a[1])) > n:
-                    if a[3] == 1:
-                        a[3] = 0
-                    elif a[3] == 3:
-                        a[3] = 2
-                    else:
-                        a[3] += 1
-            return (a)
-        return math_fun
-
-    def __str__(self):
-        return "QuantumConditionalAddCarry"
-
-    def __eq__(self,other):
-        return (isinstance(other, QuantumConditionalAddCarry))
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 class QuantumMultiplication(BasicMathGate):
     """ 

@@ -1,3 +1,5 @@
+
+
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +19,17 @@ import math
 from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from ._gates import (AddQuantum, 
-                     SubtractQuantum, 
-                     QuantumConditionalAdd, 
-                     QuantumConditionalAddCarry,)
+                     SubtractQuantum) 
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
-
+With carry bit,
 Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3.
+Without carry?
 """
 
 
-def add_quantum(eng, quint_a, quint_b, carry):
+def add_quantum(eng, quint_a, quint_b, carry=[]):
     """
     Adds two quantum integers, i.e.,
 
@@ -39,14 +40,15 @@ def add_quantum(eng, quint_a, quint_b, carry):
     """
 
     assert(len(quint_a) == len(quint_b))
-    assert(len(carry) == 1)
+    assert(len(carry) == 1 or carry == [])
 
     n = len(quint_a) + 1
 
     for i in range(1, n - 1):
         CNOT | (quint_a[i], quint_b[i])
 
-    CNOT | (quint_a[n - 2], carry)
+    if carry != []:
+        CNOT | (quint_a[n - 2], carry)
 
     for j in range(n - 3, 0, -1):
         CNOT | (quint_a[j], quint_a[j + 1])
@@ -55,8 +57,9 @@ def add_quantum(eng, quint_a, quint_b, carry):
         with Control(eng, [quint_a[k], quint_b[k]]):
             X | (quint_a[k + 1])
 
-    with Control(eng, [quint_a[n - 2], quint_b[n - 2]]):
-        X | carry
+    if carry != []:
+        with Control(eng, [quint_a[n - 2], quint_b[n - 2]]):
+            X | carry
 
     for l in range(n - 2, 0, -1):
         CNOT | (quint_a[l], quint_b[l])
@@ -68,6 +71,7 @@ def add_quantum(eng, quint_a, quint_b, carry):
 
     for n in range(0, n - 1):
         CNOT | (quint_a[n], quint_b[n])
+
 
 
 """
@@ -257,9 +261,8 @@ def quantum_division(eng, dividend, remainder, divisor):
 
         SubtractQuantum() | (divisor[0:n], combined_reg)
         CNOT | (combined_reg[n - 1], remainder[n - 1])
-
-        QuantumConditionalAdd() | (
-            divisor[0:n], combined_reg, remainder[n - 1])
+        with Control(eng, remainder[n-1]):
+            AddQuantum() | (divisor[0:n], combined_reg)
         X | remainder[n - 1]
 
         remainder.insert(0, dividend[n - 1])
@@ -360,13 +363,12 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
         with Control(eng, [quint_a[i], quint_b[0]]):
             X | product[i]
 
-    QuantumConditionalAddCarry() | (quint_a[0:(n - 1)], 
+    with Control(eng, quint_b[1]):
+        AddQuantum() | (quint_a[0:(n - 1)], 
                                     product[1:n], 
-                                    quint_b[1], 
                                     [product[n + 1], product[n + 2]])
 
     for j in range(2, n):
-        QuantumConditionalAddCarry() | (quint_a[0:(n - 1)], 
-                                        product[(0 + j):(n - 1 + j)], 
-                                        quint_b[j], 
+        with Control(eng, quint_b[j]):  
+            AddQuantum() | (quint_a[0:(n - 1)], product[(0 + j):(n - 1 + j)], 
                                         [product[n + j], product[n + j + 1]])

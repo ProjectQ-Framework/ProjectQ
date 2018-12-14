@@ -24,10 +24,9 @@ from projectq.libs.math import (AddConstant,
                                 AddQuantum,
                                 SubtractQuantum,
                                 Comparator,
-                                QuantumConditionalAdd,
                                 QuantumDivision,
-                                QuantumConditionalAddCarry,
                                 QuantumMultiplication,)
+
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
     assert not AddConstant(3) == AddConstant(4)
