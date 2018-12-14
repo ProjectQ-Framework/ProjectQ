@@ -382,8 +382,7 @@ class FlipBits(SelfInverseGate):
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.bits_to_flip == other.bits_to_flip
-        else:
-            return False
+        return False
 
     def __hash__(self):
         return hash(self.__str__())
