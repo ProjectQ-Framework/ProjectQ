@@ -358,12 +358,15 @@ class FlipBits(SelfInverseGate):
             whose state corresponds to the least significant bit of k.
 
         Args:
-            bits_to_flip(list[int]|list[bool]|str): array of 0/1, True/False or
-                                    string of 0/1 identifying the qubits to flip
-                                    of length len(qureg).
+            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or
+                                    string of 0/1 of length len(qureg) identifying
+                                    the qubits to flip. In case of int, the least significant
+                                    bit indicates whether qureg[0] is flipped.
         """
         if isinstance(bits_to_flip, str):
             self.bits_to_flip = list([ c != "0" for c in bits_to_flip])
+        elif isinstance(bits_to_flip, int):
+            self.bits_to_flip = list([ c != "0" for c in reversed(list('{0:0b}'.format(bits_to_flip)))])
         else:
             self.bits_to_flip = list(bits_to_flip)
 

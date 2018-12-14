@@ -696,6 +696,9 @@ flip_bits_testdata = [
     ('0101', '0101'),
     ('1111', '1111'),
     ('0000', '0000'),
+    (8, '0001'),
+    (11, '1101'),
+    (1, '1000'),
 ]
 
 @pytest.mark.parametrize("bits_to_flip, result", flip_bits_testdata)
