@@ -368,7 +368,7 @@ class FlipBits(SelfInverseGate):
             self.bits_to_flip = list(bits_to_flip)
 
     def __str__(self):
-        return "FlipBits"
+        return "FlipBits("+str(self.bits_to_flip)+")"
 
     def __or__(self, qubits):
         for qureg in self.make_tuple_of_qureg(qubits):
@@ -383,4 +383,4 @@ class FlipBits(SelfInverseGate):
             return False
 
     def __hash__(self):
-        return hash("FlipBits(" + str(self.bits_to_flip) + ")")
+        return hash(self.__str__())
