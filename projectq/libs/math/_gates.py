@@ -378,7 +378,7 @@ class QuantumDivision(BasicMathGate):
             # qunum_a is now equal to 1 (remainder), qunum_b is now 
             # equal to 2 (quotient) and qunum_c remains 4 (divisor)
 
-            |divisor>|remainder>|dividend> -> |divisor>|quotient>|remainder>
+            |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
     """
    
     def __init__(self):
@@ -387,14 +387,14 @@ class QuantumDivision(BasicMathGate):
         corresponding function, so it can be emulated efficiently.
         """
 
-        def division(divisor,remainder,dividend):
+        def division(dividend,remainder,divisor):
 
             if divisor == 0 or divisor > dividend:
                 return(divisor,remainder,dividend)
 
             else:
                 quotient = remainder + dividend//divisor
-                return(divisor, quotient, dividend - (quotient* divisor))
+                return((dividend - (quotient* divisor)), quotient, divisor)
         BasicMathGate.__init__(self,division)
     
     def __str__(self):

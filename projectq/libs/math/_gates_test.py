@@ -65,17 +65,9 @@ def test_Comparator():
     assert Comparator() == Comparator()
     assert str(Comparator()) == "Comparator"
 
-def test_QuantumConditionalAdd():
-    assert QuantumConditionalAdd() == QuantumConditionalAdd()
-    assert str(QuantumConditionalAdd()) == "QuantumConditionalAdd"
-
 def test_QuantumDivision():
     assert QuantumDivision() == QuantumDivision()
     assert str(QuantumDivision()) == "QuantumDivision"
-
-def test_QuantumConditionalAddCarry():
-    assert QuantumConditionalAddCarry() == QuantumConditionalAddCarry()
-    assert str(QuantumConditionalAddCarry()) == "QuantumConditionalAddCarry"
 
 def test_QuantumMultiplication():
     assert QuantumMultiplication() == QuantumMultiplication()
@@ -91,7 +83,5 @@ def test_hash_function_implemented():
     assert hash(AddQuantum()) == hash(str(AddQuantum()))
     assert hash(SubtractQuantum()) == hash(str(SubtractQuantum()))
     assert hash(Comparator()) == hash(str(Comparator()))
-    assert hash(QuantumConditionalAdd()) == hash(str(QuantumConditionalAdd()))
     assert hash(QuantumDivision()) == hash(str(QuantumDivision()))
-    assert hash(QuantumConditionalAddCarry()) == hash(str(QuantumConditionalAddCarry()))
     assert hash(QuantumMultiplication()) == hash(str(QuantumMultiplication()))

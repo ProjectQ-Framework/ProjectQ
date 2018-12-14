@@ -154,7 +154,7 @@ def test_division():
     All(X) | [qunum_a[0], qunum_a[3]]  # qunum_a is now equal to 9
     X | qunum_c[2]  # qunum_c is now 4
 
-    QuantumDivision() | (qunum_c, qunum_b, qunum_a)
+    QuantumDivision() | (qunum_a, qunum_b, qunum_c)
     eng.flush()
 
     print(get_all_probabilities(eng, qunum_c))

@@ -243,7 +243,7 @@ def quantum_division(eng, dividend, remainder, divisor):
     """
     Performs restoring integer division, i.e.,
 
-    |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
+    |divisor>|remainder>|dividend> -> |divisor>|quotient>|remainder>
 
     (only works if all three qubits are of equal length)
     """
