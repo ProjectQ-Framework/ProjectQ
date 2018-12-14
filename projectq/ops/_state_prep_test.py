@@ -32,18 +32,3 @@ def test_equality_and_hash():
 def test_str():
     gate1 = _state_prep.StatePreparation([0, 1])
     assert str(gate1) == "StatePreparation"
-
-
-def test_flip_bits_equality_and_hash():
-    gate1 = _state_prep.FlipBits([1, 0, 0, 1])
-    gate2 = _state_prep.FlipBits([1, 0, 0, 1])
-    gate3 = _state_prep.FlipBits([0, 1, 0, 1])
-    assert gate1 == gate2
-    assert hash(gate1) == hash(gate2)
-    assert gate1 != gate3
-    assert gate1 != X
-
-
-def test_flip_bits_str():
-    gate1 = _state_prep.FlipBits([0, 1, 0])
-    assert str(gate1) == "FlipBits"
