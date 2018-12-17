@@ -360,13 +360,16 @@ class FlipBits(SelfInverseGate):
         Args:
             bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or
                                     string of 0/1 of length up to len(qureg) identifying
-                                    the qubits to flip. In case of int, the least significant
-                                    bit indicates whether qureg[0] is flipped.
+                                    the qubits to flip. In case of int, the bits to flip are
+                                    determined from the binary digits, with the least significant
+                                    bit corresponding to qureg[0]. If bits_to_flip is negative,
+                                    exactly all bits which would not be flipped for the input
+                                    -bits_to_flip are flipped.
         """
-        if isinstance(bits_to_flip, str):
+        if isinstance(bits_to_flip, int):
+            self.bits_to_flip = bits_to_flip
+        elif isinstance(bits_to_flip, str):
             self.bits_to_flip = list([ c != "0" for c in bits_to_flip])
-        elif isinstance(bits_to_flip, int):
-            self.bits_to_flip = list([ c != "0" for c in reversed(list('{0:0b}'.format(bits_to_flip)))])
         else:
             self.bits_to_flip = list(bits_to_flip)
 
@@ -375,7 +378,12 @@ class FlipBits(SelfInverseGate):
 
     def __or__(self, qubits):
         for qureg in self.make_tuple_of_qureg(qubits):
-            for i, flip in enumerate(self.bits_to_flip):
+            if isinstance(self.bits_to_flip, int):
+                bits_to_flip = [((self.bits_to_flip if self.bits_to_flip >= 0 else self.bits_to_flip-1) >> i) & 1 for i in range(len(qureg))]
+            else:
+                bits_to_flip = self.bits_to_flip
+
+            for i, flip in enumerate(bits_to_flip):
                 if flip:
                     XGate() | qureg[i]
 
