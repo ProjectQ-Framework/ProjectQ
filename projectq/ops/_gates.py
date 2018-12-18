@@ -359,7 +359,7 @@ class FlipBits(SelfInverseGate):
 
         Args:
             bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or
-                                    string of 0/1 of length up to len(qureg) identifying
+                                    string of 0/1 identifying
                                     the qubits to flip. In case of int, the bits to flip are
                                     determined from the binary digits, with the least significant
                                     bit corresponding to qureg[0]. If bits_to_flip is negative,
@@ -378,6 +378,8 @@ class FlipBits(SelfInverseGate):
         return "FlipBits("+str(self.bits_to_flip)+")"
 
     def __or__(self, qubits):
+        if isinstance(qubits, tuple) and len(qubits) > 1:
+            raise ValueError(self.__str__()+' can only be applied to qubits, quregs, arrays of qubits, and tuples with one individual qubit')
         for qureg in self.make_tuple_of_qureg(qubits):
             for i, qubit in enumerate(qureg):
                 if ((self.bits_to_flip if self.bits_to_flip >= 0 else self.bits_to_flip-1) >> i) & 1:
