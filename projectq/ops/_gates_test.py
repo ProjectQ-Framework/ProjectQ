@@ -230,5 +230,5 @@ def test_flip_bits_equality_and_hash():
 
 
 def test_flip_bits_str():
-    gate1 = _gates.FlipBits([0, 1, 0])
-    assert str(gate1) == "FlipBits([0, 1, 0])"
+    gate1 = _gates.FlipBits([0, 0, 1])
+    assert str(gate1) == "FlipBits(4)"
