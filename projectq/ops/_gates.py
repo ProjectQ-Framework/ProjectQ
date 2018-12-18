@@ -379,9 +379,8 @@ class FlipBits(SelfInverseGate):
 
     def __or__(self, qubits):
         for qureg in self.make_tuple_of_qureg(qubits):
-            bits_to_flip = [((self.bits_to_flip if self.bits_to_flip >= 0 else self.bits_to_flip-1) >> i) & 1 for i in range(len(qureg))]
-            for i, flip in enumerate(bits_to_flip):
-                if flip:
+            for i in range(len(qureg)):
+                if ((self.bits_to_flip if self.bits_to_flip >= 0 else self.bits_to_flip-1) >> i) & 1:
                     XGate() | qureg[i]
 
     def __eq__(self, other):
