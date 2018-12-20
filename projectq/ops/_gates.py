@@ -363,8 +363,9 @@ class FlipBits(SelfInverseGate):
                                     the qubits to flip. In case of int, the bits to flip are
                                     determined from the binary digits, with the least significant
                                     bit corresponding to qureg[0]. If bits_to_flip is negative,
-                                    exactly all bits which would not be flipped for the input
-                                    -bits_to_flip are flipped.
+                                    exactly all qubits which would not be flipped for the input
+                                    -bits_to_flip-1 are flipped, i.e., bits_to_flip=-1 flips all
+                                    qubits.
         """
         if isinstance(bits_to_flip, int):
             self.bits_to_flip = bits_to_flip
@@ -382,7 +383,7 @@ class FlipBits(SelfInverseGate):
             raise ValueError(self.__str__()+' can only be applied to qubits, quregs, arrays of qubits, and tuples with one individual qubit')
         for qureg in self.make_tuple_of_qureg(qubits):
             for i, qubit in enumerate(qureg):
-                if ((self.bits_to_flip if self.bits_to_flip >= 0 else self.bits_to_flip-1) >> i) & 1:
+                if (self.bits_to_flip >> i) & 1:
                     XGate() | qubit
 
     def __eq__(self, other):

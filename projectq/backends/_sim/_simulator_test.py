@@ -699,9 +699,9 @@ flip_bits_testdata = [
     (8, '0001'),
     (11, '1101'),
     (1, '1000'),
-    (-1, '0111'),
-    (-2, '1011'),
-    (-3, '0011'),
+    (-1, '1111'),
+    (-2, '0111'),
+    (-3, '1011'),
 ]
 
 @pytest.mark.parametrize("bits_to_flip, result", flip_bits_testdata)
@@ -740,11 +740,11 @@ def test_flip_bits_can_be_applied_to_various_qubit_qureg_formats(sim, mapper):
     assert pytest.approx(eng.backend.get_probability('1010', qubits)) == 1.
     FlipBits(-1) | qubits
     eng.flush()
-    assert pytest.approx(eng.backend.get_probability('1101', qubits)) == 1.
+    assert pytest.approx(eng.backend.get_probability('0101', qubits)) == 1.
     FlipBits(-4) | [qubits[0], qubits[1], qubits[2], qubits[3]]
     eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0000', qubits)) == 1.
+    assert pytest.approx(eng.backend.get_probability('0110', qubits)) == 1.
     FlipBits(2) | [qubits[0]] + [qubits[1], qubits[2]]
     eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0100', qubits)) == 1.
+    assert pytest.approx(eng.backend.get_probability('0010', qubits)) == 1.
     All(Measure) | qubits
