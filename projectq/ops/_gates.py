@@ -44,7 +44,7 @@ from ._basics import (BasicGate,
                       FastForwardingGate,
                       BasicMathGate)
 from ._command import apply_command
-from projectq.types import BasicQubit
+
 
 
 class HGate(SelfInverseGate):
@@ -362,12 +362,13 @@ class FlipBits(SelfInverseGate):
                                     -bits_to_flip-1 are flipped, i.e., bits_to_flip=-1 flips all
                                     qubits.
         """
+        SelfInverseGate.__init__(self)
         if isinstance(bits_to_flip, int):
             self.bits_to_flip = bits_to_flip
         else:
             self.bits_to_flip = 0
-            for c in reversed(list(bits_to_flip)):
-                bit = 0b1 if c == '1' or c == 1 or c == True else 0b0
+            for i in reversed(list(bits_to_flip)):
+                bit = 0b1 if i == '1' or i == 1 or i is True else 0b0
                 self.bits_to_flip = (self.bits_to_flip << 1) | bit
 
     def __str__(self):
@@ -376,7 +377,8 @@ class FlipBits(SelfInverseGate):
     def __or__(self, qubits):
         quregs_tuple = self.make_tuple_of_qureg(qubits)
         if len(quregs_tuple) > 1:
-            raise ValueError(self.__str__()+' can only be applied to qubits, quregs, arrays of qubits, and tuples with one individual qubit')
+            raise ValueError(self.__str__()+' can only be applied to qubits,' \
+                             'quregs, arrays of qubits, and tuples with one individual qubit')
         for qureg in quregs_tuple:
             for i, qubit in enumerate(qureg):
                 if (self.bits_to_flip >> i) & 1:
