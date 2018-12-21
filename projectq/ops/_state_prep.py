@@ -14,6 +14,7 @@
 
 from ._basics import BasicGate, SelfInverseGate
 
+
 class StatePreparation(BasicGate):
     """
     Gate for transforming qubits in state |0> to any desired quantum state.

@@ -255,6 +255,7 @@ flip_bits_testdata = [
     (-3, '1011'),
 ]
 
+
 @pytest.mark.parametrize("bits_to_flip, result", flip_bits_testdata)
 def test_simulator_flip_bits(bits_to_flip, result):
     eng = MainEngine()
@@ -263,6 +264,7 @@ def test_simulator_flip_bits(bits_to_flip, result):
     eng.flush()
     assert pytest.approx(eng.backend.get_probability(result, qubits)) == 1.
     All(Measure) | qubits
+
 
 def test_flip_bits_can_be_applied_to_various_qubit_qureg_formats():
     eng = MainEngine()

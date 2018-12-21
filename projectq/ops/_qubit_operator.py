@@ -362,9 +362,9 @@ class QubitOperator(BasicGate):
         Raises:
             NotInvertible: Not implemented for QubitOperators which have
                            multiple terms or a coefficient with absolute value
-                           not equal to 1. 
+                           not equal to 1.
         """
-        
+
         if len(self.terms) == 1:
             (term, coefficient), = self.terms.items()
             if (not abs(coefficient) < 1 - EQ_TOLERANCE and not
