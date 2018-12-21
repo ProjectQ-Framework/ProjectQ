@@ -46,7 +46,6 @@ from ._basics import (BasicGate,
 from ._command import apply_command
 
 
-
 class HGate(SelfInverseGate):
     """ Hadamard gate class """
     def __str__(self):
@@ -353,14 +352,13 @@ class FlipBits(SelfInverseGate):
                 FlipBits([0, 1]) | qureg
 
         Args:
-            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or
-                                    string of 0/1 identifying
-                                    the qubits to flip. In case of int, the bits to flip are
-                                    determined from the binary digits, with the least significant
-                                    bit corresponding to qureg[0]. If bits_to_flip is negative,
-                                    exactly all qubits which would not be flipped for the input
-                                    -bits_to_flip-1 are flipped, i.e., bits_to_flip=-1 flips all
-                                    qubits.
+            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1,
+               True/False, or string of 0/1 identifying the qubits to flip.
+               In case of int, the bits to flip are determined from the
+               binary digits, with the least significant bit corresponding
+               to qureg[0]. If bits_to_flip is negative, exactly all qubits
+               which would not be flipped for the input -bits_to_flip-1 are
+               flipped, i.e., bits_to_flip=-1 flips all qubits.
         """
         SelfInverseGate.__init__(self)
         if isinstance(bits_to_flip, int):
@@ -377,8 +375,9 @@ class FlipBits(SelfInverseGate):
     def __or__(self, qubits):
         quregs_tuple = self.make_tuple_of_qureg(qubits)
         if len(quregs_tuple) > 1:
-            raise ValueError(self.__str__()+' can only be applied to qubits,' \
-                             'quregs, arrays of qubits, and tuples with one individual qubit')
+            raise ValueError(self.__str__()+' can only be applied to qubits,'
+                             'quregs, arrays of qubits, and tuples with one'
+                             'individual qubit')
         for qureg in quregs_tuple:
             for i, qubit in enumerate(qureg):
                 if (self.bits_to_flip >> i) & 1:

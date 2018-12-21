@@ -233,6 +233,7 @@ def test_flip_bits_str():
     gate1 = _gates.FlipBits([0, 0, 1])
     assert str(gate1) == "FlipBits(4)"
 
+
 def test_error_on_tuple_input():
     with pytest.raises(ValueError):
         _gates.FlipBits(2) | (None, None)
