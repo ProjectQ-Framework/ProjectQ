@@ -341,7 +341,7 @@ Barrier = BarrierGate()
 
 
 class FlipBits(SelfInverseGate):
-    """ Gate for transforming qubits in state |0> to any computational basis state """
+    """ Gate for flipping qubits by means of XGates """
     def __init__(self, bits_to_flip):
         """
         Initialize FlipBits gate.
@@ -351,11 +351,6 @@ class FlipBits(SelfInverseGate):
 
                 qureg = eng.allocate_qureg(2)
                 FlipBits([0, 1]) | qureg
-
-        Note:
-            The amplitude of state k is final_state[k]. When the state k is
-            written in binary notation, then qureg[0] denotes the qubit
-            whose state corresponds to the least significant bit of k.
 
         Args:
             bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or
@@ -379,9 +374,10 @@ class FlipBits(SelfInverseGate):
         return "FlipBits("+str(self.bits_to_flip)+")"
 
     def __or__(self, qubits):
-        if isinstance(qubits, tuple) and len(qubits) > 1:
+        quregs_tuple = self.make_tuple_of_qureg(qubits)
+        if len(quregs_tuple) > 1:
             raise ValueError(self.__str__()+' can only be applied to qubits, quregs, arrays of qubits, and tuples with one individual qubit')
-        for qureg in self.make_tuple_of_qureg(qubits):
+        for qureg in quregs_tuple:
             for i, qubit in enumerate(qureg):
                 if (self.bits_to_flip >> i) & 1:
                     XGate() | qubit
