@@ -29,7 +29,7 @@ import scipy.sparse.linalg
 from projectq import MainEngine
 from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
-from projectq.ops import (All, Allocate, BasicGate, FlipBits, BasicMathGate, CNOT,
+from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
                           TimeEvolution, Toffoli, X, Y, Z)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
@@ -688,63 +688,3 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
                               qubit1[0].id: qubit0[0].id}
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)
-
-flip_bits_testdata = [
-    ([0, 1, 0, 1], '0101'),
-    ([1, 0, 1, 0], '1010'),
-    ([False, True, False, True], '0101'),
-    ('0101', '0101'),
-    ('1111', '1111'),
-    ('0000', '0000'),
-    (8, '0001'),
-    (11, '1101'),
-    (1, '1000'),
-    (-1, '1111'),
-    (-2, '0111'),
-    (-3, '1011'),
-]
-
-@pytest.mark.parametrize("bits_to_flip, result", flip_bits_testdata)
-def test_simulator_flip_bits(sim, mapper, bits_to_flip, result):
-    engine_list = [LocalOptimizer()]
-    if mapper is not None:
-        engine_list.append(mapper)
-
-    eng = MainEngine(sim, engine_list=engine_list)
-    qubits = eng.allocate_qureg(4)
-    FlipBits(bits_to_flip) | qubits
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability(result, qubits)) == 1.
-    All(Measure) | qubits
-
-def test_flip_bits_can_be_applied_to_various_qubit_qureg_formats(sim, mapper):
-    engine_list = [LocalOptimizer()]
-    if mapper is not None:
-        engine_list.append(mapper)
-
-    eng = MainEngine(sim, engine_list=engine_list)
-    qubits = eng.allocate_qureg(4)
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0000', qubits)) == 1.
-    FlipBits([0, 1, 1, 0]) | qubits
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0110', qubits)) == 1.
-    FlipBits([1]) | qubits[0]
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('1110', qubits)) == 1.
-    FlipBits([1]) | (qubits[0], )
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0110', qubits)) == 1.
-    FlipBits([1, 1]) | [qubits[0], qubits[1]]
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('1010', qubits)) == 1.
-    FlipBits(-1) | qubits
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0101', qubits)) == 1.
-    FlipBits(-4) | [qubits[0], qubits[1], qubits[2], qubits[3]]
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0110', qubits)) == 1.
-    FlipBits(2) | [qubits[0]] + [qubits[1], qubits[2]]
-    eng.flush()
-    assert pytest.approx(eng.backend.get_probability('0010', qubits)) == 1.
-    All(Measure) | qubits
