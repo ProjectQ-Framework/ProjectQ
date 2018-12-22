@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._basics import BasicGate, SelfInverseGate
+from ._basics import BasicGate
 
 
 class StatePreparation(BasicGate):
