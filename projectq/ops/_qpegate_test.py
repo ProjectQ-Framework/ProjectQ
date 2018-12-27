@@ -21,5 +21,3 @@ def test_qpe_str():
     unitary = X
     gate = _qpegate.QPE(unitary)
     assert str(gate) == "QPE_X"
-
-test_qpe_str()

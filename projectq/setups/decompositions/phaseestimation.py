@@ -14,14 +14,18 @@
 
 """
 Registers a decomposition for phase estimation.
-    
+
 (reference https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
 
-The decomposition uses as ancillas the control qubits (qpe_ancillas) in the Command
-and as system qubits (qubits) the qubits.
+The Quantum Phase Estimation (QPE) executes the algorithm up to the inverse
+QFT included. The following steps measuring the ancillas and computing the
+phase shoudl be executed outside of the QPE.
 
-The unitary operator for which the phase estimation is estimated (unitary) is teh gate
-in Command
+The decomposition uses as ancillas (qpe_ancillas) the first qubit/qureg in
+the Command and as system qubits teh second qubit/qureg in the Command.
+
+The unitary operator for which the phase estimation is estimated (unitary)
+is the gate in Command
 
 Example:
     .. code-block:: python
@@ -32,94 +36,62 @@ Example:
        U = unitary_specfic_to_the_problem()
 
        # Apply Quantum Phase Estimation
-       PhaseEstimation(unitary = U) | (qpe_ancillas, system_qubits)
+       QPE(U) | (qpe_ancillas, system_qubits)
 
-       # Apply an inverse QFT and measure to the ancillas
-       get_inverse(QFT) | qpe_ancillas
        All(Measure) | qpe_ancillas
-       # Compute the phase from the ancilla measurement (https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
+       # Compute the phase from the ancilla measurement
+       #(https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
        phasebinlist = [int(q) for q in qpe_ancillas]
        phase_in_bin = ''.join(str(j) for j in phasebinlist)
        phase_int = int(phase_in_bin,2)
        phase = phase_int / (2 ** n_qpe_ancillas)
 
 Attributes:
-    unitary (BasicGate): Unitary Operation U
+    unitary (BasicGate): Unitary Operation or function to apply
+    on the system_qubits (e.g.: function(system_qubits, time))
 
 """
 
 import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, get_control_count
-from projectq.ops import H, Tensor, All
+from projectq.meta import Control, Loop, get_control_count
+from projectq.ops import H, Tensor, get_inverse, QFT
 
 from projectq.ops import QPE
+
 
 def _decompose_QPE(cmd):
     """ Decompose the Quantum Phase Estimation gate. """
     eng = cmd.engine
-    qpe_ancillas = cmd.qubits[0]
-    system_qubits = cmd.qubits[1]
-    unitary = cmd.gate
-    matrix = cmd.gate.unitary.matrix
-    
-    print (type(qpe_ancillas), len(qpe_ancillas))
-    print (type(system_qubits), len(system_qubits))
-    print (type(unitary))
-    print (matrix)
-
-
-    """
-    Initialize Phase Estimation gate.
-
-    Apply Tensor(H) to the qpe_ancillas
-
-    Apply the controlled-unitary gate to system_qubits in powers depending on the
-    numeral of the ancilla qubit (see the reference)
-
-    Note:
-        The unitary must by an unitary operation
-
-    Args:
-        unitary (BasicGate): unitary operation for which we want to obtain
-            the eigenvalues and eigenvectors
-
-    Raises:
-        TypeError: If unitary is not a BasicGate
-    """
-
-    """
-    BasicGate.__init__(self)
-    self.unitary = unitary
-
-    qubits = self.make_tuple_of_qureg(qubits)
-    if len(qubits) != 2:
-        raise TypeError("Only two qubit or qureg are allowed.")
 
     # Ancillas is the first qubit/qureg. System-qubit is the second qubit/qureg
-
-    qpe_ancillas = qubits[0]
-    system_qubits = qubits[1]
+    qpe_ancillas = cmd.qubits[0]
+    system_qubits = cmd.qubits[1]
 
     # Hadamard on the ancillas
     Tensor(H) | qpe_ancillas
 
-    # Control U on the eigenvector
-    operator = self.unitary
+    # The Unitary Operator
+    U = cmd.gate.unitary
 
-    for i in range(len(qpe_ancillas)):
-        ipower = int(2**i)
-    
-    #for i in range(len(qpe_ancillas)):
-    #	 ipower = int(2**i)
-    #	 for j in range(ipower):
-    #	     C(operator) | (qpe_ancillas[i], system_qubits)
-    """
+    # Control U on the system_qubits
+    if (callable(U)):
+        # If U is a function
+        for i in range(len(qpe_ancillas)):
+            with Control(eng, qpe_ancillas[i]):
+                U(system_qubits, time=2**i)
+    else:
+        for i in range(len(qpe_ancillas)):
+            ipower = int(2**i)
+            with Loop(eng, ipower):
+                with Control(eng, qpe_ancillas[i]):
+                    U | system_qubits
+
+    # Inverse QFT on the ancillas
+    get_inverse(QFT) | qpe_ancillas
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(QPE, _decompose_QPE)
 ]
-
-
