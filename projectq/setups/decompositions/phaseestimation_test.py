@@ -230,5 +230,3 @@ def simple_test_simplefunction_eigenvectors():
     print(results)
     perc_95 = np.percentile(results, 95)
     assert perc_95 == 0.75
-
-simple_test_simplefunction_eigenvectors()
