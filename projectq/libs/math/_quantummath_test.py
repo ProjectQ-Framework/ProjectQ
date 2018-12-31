@@ -29,7 +29,7 @@ from projectq.libs.math import (AddQuantum,
                                 Comparator,
                                 QuantumDivision,
                                 QuantumMultiplication,)
-from projectq.meta import Control
+from projectq.meta import Control, Compute, Uncompute
 
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -88,6 +88,14 @@ def test_quantum_adder():
     assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1],qureg_b))
     assert 1. == pytest.approx(eng.backend.get_probability([1],c))
 
+    with Compute(eng):
+        AddQuantum() | (qureg_a, qureg_b, c)
+    Uncompute(eng)
+    
+    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1],qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([1],c))
+    
     AddQuantum() | (qureg_a, qureg_b)
    
     assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
@@ -104,9 +112,9 @@ def test_quantumsubtraction():
     eng = MainEngine(sim, [AutoReplacer(rule_set),
                            InstructionFilter(no_math_emulation)])
 
-    qureg_a = eng.allocate_qureg(5)
-    qureg_b = eng.allocate_qureg(5)
-    control_qubit = eng.allocate_qubit(1)
+    qureg_a = eng.allocate_qureg(4)
+    qureg_b = eng.allocate_qureg(4)
+    control_qubit = eng.allocate_qubit()
 
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 7)
@@ -117,10 +125,18 @@ def test_quantumsubtraction():
 
     assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
     assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0,0], qureg_b))
-
+    
+    init(eng, qureg_a, 5) #reset
+    init(eng, qureg_b, 2) #reset
+    
+    init(eng, qureg_a, 5)
+    init(eng, qureg_b, 8)
+    c = eng.allocate_qubit()
+    
+#    SubtractQuantum() | (qureg_a, qureg_b, c)
     All(Measure) | qureg_a
     All(Measure) | qureg_b
-
+    
 
 def test_comparator():
 

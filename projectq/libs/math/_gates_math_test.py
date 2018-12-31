@@ -16,8 +16,8 @@ import pytest
 from projectq.backends import Simulator
 from projectq.ops import All, Measure, X
 from projectq import MainEngine
-from projectq.libs.math import AddQuantum, SubtractQuantum, Comparator, QuantumDivision, QuantumMultiplication
-from projectq.meta import Control
+from projectq.libs.math import AddConstant, AddQuantum, SubtractQuantum, Comparator, QuantumDivision, QuantumMultiplication
+from projectq.meta import Control, Compute, Uncompute
 
 def get_all_probabilities(eng, qureg):
     i = 0
@@ -29,6 +29,21 @@ def get_all_probabilities(eng, qureg):
         if l != 0.0:
             print(l, qubit_list, i)
         i += 1
+
+def test_constant_addition():
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(5)  
+    X | qunum_a[2]
+    with Compute(eng):
+        AddConstant(5) | (qunum_a)
+
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
 
 
 def test_addition():
@@ -49,6 +64,25 @@ def test_addition():
         eng.backend.get_probability([0, 0, 1, 1, 0], qunum_b))
     assert 1. == pytest.approx(
         eng.backend.get_probability([0], carry_bit))
+
+
+def test_inverse_addition():
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(5)
+    qunum_b = eng.allocate_qureg(5)
+    X | qunum_a[2]
+    X | qunum_b[3]
+    with Compute(eng):
+        AddQuantum() | (qunum_a, qunum_b)
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
 
 
 def test_addition_with_control():
@@ -100,6 +134,37 @@ def test_addition_with_control_carry():
 
     All(Measure) | qunum_a
     All(Measure) | qunum_b
+
+def test_inverse_addition_with_control_carry():
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(4) 
+    qunum_b = eng.allocate_qureg(4) 
+
+    control_bit = eng.allocate_qubit()
+    qunum_c = eng.allocate_qureg(2)
+
+    X | qunum_a[1]
+    All(X) | qunum_b[0:4] 
+    X | control_bit
+    with Compute(eng):
+        with Control(eng, control_bit):
+            AddQuantum() | (qunum_a, qunum_b, qunum_c)
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 0, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qunum_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([1], control_bit))
+    assert 1. == pytest.approx(eng.backend.get_probability([0, 0], qunum_c))
+
+    All(Measure) | qunum_a
+    All(Measure) | qunum_b
+    Measure | control_bit
+    All(Measure) | qunum_c
 
 def test_subtraction():
 

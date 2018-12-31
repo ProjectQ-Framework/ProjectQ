@@ -218,6 +218,7 @@ class MultiplyByConstantModN(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class AddQuantum(BasicMathGate): 
     """ 
     Adds up two quantum numbers represented by quantum registers.
@@ -270,6 +271,35 @@ class AddQuantum(BasicMathGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def get_inverse(self):
+        """                                                                   
+        Return the inverse gate (subtraction of the same number a modulo the 
+        same number N).
+        """
+        return InverseAddQuantum()
+
+
+class InverseAddQuantum(BasicMathGate):
+    def __init__(self):
+        """
+        Initializes the gate to  its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
+        BasicMathGate.__init__(self,InverseAddQuantum.get_math_function)
+
+        def get_math_function(self,qubits):
+            n = len(qubits[1])
+            def math_fun(a):
+                if len(a) == 3:
+                    if a[2] == 1:
+                        a[2] = n**2
+                    a[1] += a[2]
+
+                a[1] -= a[0]
+                return (a)
+            return math_fun
+
 
 class SubtractQuantum(BasicMathGate):
     """

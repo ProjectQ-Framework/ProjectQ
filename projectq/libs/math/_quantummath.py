@@ -88,12 +88,11 @@ def subtract_quantum(eng, quint_a, quint_b):
     """
     Subtracts two quantum integers, i.e.,
 
-    |a>|b>|c> -> |a>|b-a>
+    |a>|b> -> |a>|b-a>
 
-    (only works if quint_a and quint_b are the same size)
+    (only works if quint_a and quint_b are the same size or quint_b is one qubit longer than quint_a)
     """
     assert(len(quint_a) == len(quint_b))
-
     n = len(quint_a) + 1
 
     All(X) | quint_b
@@ -121,6 +120,18 @@ def subtract_quantum(eng, quint_a, quint_b):
 
     All(X) | quint_b
 
+
+def inverse_add_quantum_carry(eng, quint_a, quint_b):
+
+    assert(len(quint_a) == len(quint_b[0]))
+
+    All(X) | quint_b[0]
+    X | quint_b[1]
+
+    AddQuantum() | (quint_a, quint_b[0], quint_b[1])
+
+    All(X) | quint_b[0]
+    X | quint_b[1]
 
 """
 Comparator flipping a compare qubit by computing the high bit of b-a, which is
@@ -243,7 +254,7 @@ def quantum_division(eng, dividend, remainder, divisor):
     """
     Performs restoring integer division, i.e.,
 
-    |divisor>|remainder>|dividend> -> |divisor>|quotient>|remainder>
+    |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>4
 
     (only works if all three qubits are of equal length)
     """
