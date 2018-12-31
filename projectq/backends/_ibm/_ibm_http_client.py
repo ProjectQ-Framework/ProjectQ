@@ -87,7 +87,8 @@ def send(info, device='sim_trivial_2', user=None, password=None,
         execution_id = _run(info, device, user_id, access_token, shots)
         if verbose:
             print("- Waiting for results...")
-        res = _get_result(device, execution_id, access_token, num_retries=num_retries,
+        res = _get_result(device, execution_id, access_token,
+                          num_retries=num_retries,
                           interval=interval, verbose=verbose)
         if verbose:
             print("- Done.")
@@ -178,11 +179,12 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
                 r = requests.get(status_url)
                 r_json = r.json()
                 if 'state' in r_json and not r_json['state']:
-                    raise DeviceOfflineError("Device went offline. The ID of your "
-                                             "submitted job is {}."
+                    raise DeviceOfflineError("Device went offline. The ID of "
+                                             "your submitted job is {}."
                                              .format(execution_id))
                 if 'lengthQueue' in r_json:
-                    print("Currently there are {} jobs queued for execution on {}."
+                    print("Currently there are {} jobs queued for execution "
+                          "on {}."
                           .format(r_json['lengthQueue'], device))
 
     finally:
