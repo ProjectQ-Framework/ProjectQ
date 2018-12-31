@@ -185,6 +185,26 @@ def test_subtraction():
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 1, 0, 0], qunum_b))
 
+def test_inverse_subtraction():
+
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(5)
+    qunum_b = eng.allocate_qureg(5)
+
+    X | qunum_a[2]
+    X | qunum_b[3]
+    
+    with Compute(eng):
+        SubtractQuantum() | (qunum_a, qunum_b)
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
 
 def test_comparator():
 

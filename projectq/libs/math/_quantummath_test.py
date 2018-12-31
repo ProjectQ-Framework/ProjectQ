@@ -131,9 +131,13 @@ def test_quantumsubtraction():
     
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 8)
-    c = eng.allocate_qubit()
-    
-#    SubtractQuantum() | (qureg_a, qureg_b, c)
+
+    with Compute(eng):
+        SubtractQuantum() | (qureg_a, qureg_b)
+    Uncompute(eng)
+
+    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,1,0], qureg_b))
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     

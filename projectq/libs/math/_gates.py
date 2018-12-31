@@ -338,6 +338,12 @@ class SubtractQuantum(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def get_inverse(self):
+        """
+        Return the inverse gate (subtraction of the same number a modulo the
+        same number N).
+        """
+        return AddQuantum()
 
 class Comparator(BasicMathGate):
     """ 
