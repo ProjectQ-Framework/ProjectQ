@@ -46,6 +46,7 @@ class IBMBackend(BasicEngine):
     """
     def __init__(self, use_hardware=False, num_runs=1024, verbose=False,
                  user=None, password=None, device='ibmqx4',
+                 num_retries=3000, interval=1,
                  retrieve_execution=None):
         """
         Initialize the Backend object.
@@ -62,6 +63,11 @@ class IBMBackend(BasicEngine):
             password (string): IBM Quantum Experience password
             device (string): Device to use ('ibmqx4', or 'ibmqx5')
                 if use_hardware is set to True. Default is ibmqx4.
+            num_retries (int): Number of times to retry to obtain
+                results from the IBM API. (default is 3000)
+            interval (int): Number of seconds between successive
+                attempts to obtain results from the IBM API.
+                (default is 1)
             retrieve_execution (int): Job ID to retrieve instead of re-
                 running the circuit (e.g., if previous run timed out).
         """
@@ -75,6 +81,8 @@ class IBMBackend(BasicEngine):
         self._verbose = verbose
         self._user = user
         self._password = password
+        self._num_retries = num_retries
+        self._interval = interval
         self._probabilities = dict()
         self.qasm = ""
         self._measured_ids = []
@@ -256,11 +264,16 @@ class IBMBackend(BasicEngine):
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,
                            user=self._user, password=self._password,
-                           shots=self._num_runs, verbose=self._verbose)
+                           shots=self._num_runs,
+                           num_retries=self._num_retries,
+                           interval=self._interval,
+                           verbose=self._verbose)
             else:
                 res = retrieve(device=self.device, user=self._user,
                                password=self._password,
                                jobid=self._retrieve_execution,
+                               num_retries=self._num_retries,
+                               interval=self._interval,
                                verbose=self._verbose)
 
             counts = res['data']['counts']
