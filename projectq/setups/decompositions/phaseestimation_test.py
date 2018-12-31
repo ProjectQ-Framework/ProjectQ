@@ -75,7 +75,7 @@ class PhaseXxX(BasicGate):
                          [cmath.exp(1j * 2.0 * cmath.pi * theta), 0, 0, 0]])
 
 
-def simple_test_X_eigenvectors():
+def test_simple_test_X_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(backend=Simulator(),
                      engine_list=[AutoReplacer(rule_set),
@@ -208,7 +208,7 @@ def simplefunction(system_q, time):
     Ph(2.0*cmath.pi*(time + .75)) | system_q
 
 
-def simple_test_simplefunction_eigenvectors():
+def test_simplefunction_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(backend=Simulator(),
                      engine_list=[AutoReplacer(rule_set),
