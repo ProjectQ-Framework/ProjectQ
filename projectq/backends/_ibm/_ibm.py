@@ -260,7 +260,8 @@ class IBMBackend(BasicEngine):
             else:
                 res = retrieve(device=self.device, user=self._user,
                                password=self._password,
-                               jobid=self._retrieve_execution)
+                               jobid=self._retrieve_execution,
+                               verbose=self._verbose)
 
             counts = res['data']['counts']
             # Determine random outcome
