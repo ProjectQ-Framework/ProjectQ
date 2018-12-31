@@ -24,7 +24,7 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 
-from projectq.ops import X, H, All, Measure, Tensor, Ph
+from projectq.ops import X, H, All, Measure, Tensor, Ph, StatePreparation
 
 from projectq.ops import (BasicGate)
 
@@ -227,6 +227,5 @@ def simple_test_simplefunction_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    print(results)
     perc_95 = np.percentile(results, 95)
     assert perc_95 == 0.75
