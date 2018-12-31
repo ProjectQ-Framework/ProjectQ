@@ -146,10 +146,6 @@ def _run(qasm, device, user_id, access_token, shots):
     return execution_id
 
 
-def _handle_sigint_during_get_result():
-    raise Exception("Interrupted. The ID of your submitted job is {}."
-                    .format(execution_id))
-
 def _get_result(device, execution_id, access_token, num_retries=3000,
                 interval=1, verbose=False):
     suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
@@ -159,32 +155,39 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
         print("Waiting for results. [Job ID: {}]".format(execution_id))
 
     original_sigint_handler = signal.getsignal(signal.SIGINT)
-    signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
-    for retries in range(num_retries):
-        r = requests.get(urljoin(_api_url, suffix),
-                         params={"access_token": access_token})
-        r.raise_for_status()
+    def _handle_sigint_during_get_result(*_):
+        raise Exception("Interrupted. The ID of your submitted job is {}."
+                        .format(execution_id))
 
-        r_json = r.json()
-        if 'qasms' in r_json:
-            qasm = r_json['qasms'][0]
-            if 'result' in qasm and qasm['result'] is not None:
-                return qasm['result']
-        time.sleep(interval)
-        if device in ['ibmqx4', 'ibmqx5'] and retries % 60 == 0:
-            r = requests.get(status_url)
+    try:
+        signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
+
+        for retries in range(num_retries):
+            r = requests.get(urljoin(_api_url, suffix),
+                             params={"access_token": access_token})
+            r.raise_for_status()
+
             r_json = r.json()
-            if 'state' in r_json and not r_json['state']:
-                raise DeviceOfflineError("Device went offline. The ID of your "
-                                         "submitted job is {}."
-                                         .format(execution_id))
-            if 'lengthQueue' in r_json:
-                print("Currently there are {} jobs queued for execution on {}."
-                      .format(r_json['lengthQueue'], device))
+            if 'qasms' in r_json:
+                qasm = r_json['qasms'][0]
+                if 'result' in qasm and qasm['result'] is not None:
+                    return qasm['result']
+            time.sleep(interval)
+            if device in ['ibmqx4', 'ibmqx5'] and retries % 60 == 0:
+                r = requests.get(status_url)
+                r_json = r.json()
+                if 'state' in r_json and not r_json['state']:
+                    raise DeviceOfflineError("Device went offline. The ID of your "
+                                             "submitted job is {}."
+                                             .format(execution_id))
+                if 'lengthQueue' in r_json:
+                    print("Currently there are {} jobs queued for execution on {}."
+                          .format(r_json['lengthQueue'], device))
 
-    if original_sigint_handler is not None:
-        signal.signal(signal.SIGINT, original_sigint_handler)
+    finally:
+        if original_sigint_handler is not None:
+            signal.signal(signal.SIGINT, original_sigint_handler)
 
     raise Exception("Timeout. The ID of your submitted job is {}."
                     .format(execution_id))
