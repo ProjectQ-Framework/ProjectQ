@@ -19,7 +19,7 @@ Registers a decomposition for phase estimation.
 
 The Quantum Phase Estimation (QPE) executes the algorithm up to the inverse
 QFT included. The following steps measuring the ancillas and computing the
-phase shoudl be executed outside of the QPE.
+phase should be executed outside of the QPE.
 
 The decomposition uses as ancillas (qpe_ancillas) the first qubit/qureg in
 the Command and as system qubits teh second qubit/qureg in the Command.
