@@ -17,6 +17,7 @@
 import requests
 import getpass
 import json
+import signal
 import sys
 import time
 from requests.compat import urljoin
@@ -145,6 +146,10 @@ def _run(qasm, device, user_id, access_token, shots):
     return execution_id
 
 
+def _handle_sigint_during_get_result():
+    raise Exception("Interrupted. The ID of your submitted job is {}."
+                    .format(execution_id))
+
 def _get_result(device, execution_id, access_token, num_retries=3000,
                 interval=1, verbose=False):
     suffix = 'Jobs/{execution_id}'.format(execution_id=execution_id)
@@ -152,6 +157,9 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
 
     if verbose:
         print("Waiting for results. [Job ID: {}]".format(execution_id))
+
+    original_sigint_handler = signal.getsignal(signal.SIGINT)
+    signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
     for retries in range(num_retries):
         r = requests.get(urljoin(_api_url, suffix),
@@ -174,5 +182,9 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
             if 'lengthQueue' in r_json:
                 print("Currently there are {} jobs queued for execution on {}."
                       .format(r_json['lengthQueue'], device))
+
+    if original_sigint_handler is not None:
+        signal.signal(signal.SIGINT, original_sigint_handler)
+
     raise Exception("Timeout. The ID of your submitted job is {}."
                     .format(execution_id))
