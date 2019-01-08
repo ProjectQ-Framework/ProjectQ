@@ -118,6 +118,48 @@ def simple_mapper(simple_graph):
     return mapper, backend
 
 
+# ==============================================================================
+
+
+def test_path_cache_exhaustive():
+    path_length_threshold = 3
+    cache = graphm.PathCacheExhaustive(path_length_threshold)
+
+    assert not cache._cache
+    cache.add_path(['a', 'b', 'c'])
+    assert cache._cache == {cache.key_type(('a', 'c')): ['a', 'b', 'c']}
+
+    assert cache.has_path('a', 'c')
+    assert not cache.has_path('a', 'b')
+    assert not cache.has_path('b', 'c')
+
+    cache.empty_cache()
+    assert not cache._cache
+
+    cache.add_path(['a', 'b', 'c', 'd'])
+    assert cache._cache == {
+        cache.key_type(('a', 'c')): ['a', 'b', 'c'],
+        cache.key_type(('a', 'd')): ['a', 'b', 'c', 'd'],
+        cache.key_type(('b', 'd')): ['b', 'c', 'd']
+    }
+    assert cache.has_path('a', 'd')
+    assert cache.has_path('d', 'a')
+    assert cache.has_path('a', 'c')
+    assert cache.has_path('b', 'd')
+    assert not cache.has_path('a', 'b')
+    assert not cache.has_path('b', 'a')
+    assert not cache.has_path('b', 'c')
+    assert not cache.has_path('c', 'd')
+
+    str_repr = str(cache)
+    assert str_repr.count("['a', 'd']: ['a', 'b', 'c', 'd']") == 1
+    assert str_repr.count("['a', 'c']: ['a', 'b', 'c']") == 1
+    assert str_repr.count("['b', 'd']: ['b', 'c', 'd']") == 1
+
+
+# ==============================================================================
+
+
 def test_is_available(simple_graph):
     mapper = graphm.GraphMapper(graph=simple_graph)
     qb0 = WeakQubitRef(engine=None, idx=0)
@@ -659,8 +701,11 @@ def test_check_that_local_optimizer_doesnt_merge(simple_graph):
     assert len(backend.received_commands) == 7
 
 
-def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper):
+@pytest.mark.parametrize("enable_caching", [False, True])
+def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper,
+                                              enable_caching):
     mapper, backend = grid33_graph_mapper
+    mapper.enable_caching = enable_caching
 
     qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
 
@@ -706,3 +751,18 @@ def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper):
         7: 5,
         8: 4
     }
+
+    if enable_caching:
+        assert mapper._path_cache._cache
+        assert mapper._path_cache.has_path(0, 6)
+        assert mapper._path_cache.has_path(1, 7)
+        assert mapper._path_cache.has_path(2, 8)
+        assert mapper._path_cache.has_path(0, 2)
+        assert mapper._path_cache.has_path(3, 5)
+        assert mapper._path_cache.has_path(6, 8)
+        assert not mapper._path_cache.has_path(0, 1)
+        assert not mapper._path_cache.has_path(1, 2)
+        assert not mapper._path_cache.has_path(3, 4)
+        assert not mapper._path_cache.has_path(4, 5)
+        assert not mapper._path_cache.has_path(6, 7)
+        assert not mapper._path_cache.has_path(7, 8)

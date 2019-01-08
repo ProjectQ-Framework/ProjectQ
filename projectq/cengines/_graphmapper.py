@@ -35,6 +35,66 @@ from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
 from projectq.types import WeakQubitRef
 
 
+class PathCacheExhaustive():
+    """
+    Class acting as cache for optimal paths through the graph.
+    """
+
+    def __init__(self, path_length_threshold):
+        self._path_length_threshold = path_length_threshold
+        self._cache = {}
+        self.key_type = frozenset
+
+    def empty_cache(self):
+        """Empty the cache."""
+        self._cache = {}
+
+    def get_path(self, start, end):
+        """
+        Return a path from the cache.
+
+        Args:
+            start (object): Start node for the path
+            end (object): End node for the path
+
+        Returns: Optimal path stored in cache
+
+        Raises: KeyError if path is not present in the cache
+        """
+        return self._cache[self.key_type((start, end))]
+
+    def has_path(self, start, end):
+        """
+        Test whether a path connecting start to end is present in the cache.
+
+        Args:
+            start (object): Start node for the path
+            end (object): End node for the path
+
+        Returns: True/False
+        """
+        return self.key_type((start, end)) in self._cache
+
+    def add_path(self, path):
+        """
+        Add a path to the cache.
+
+        This method also recursively adds all the subpaths that are at least
+        self._path_length_threshold long to the cache.
+
+        Args:
+            path (list): Path to store inside the cache
+        """
+        length = len(path)
+        for start in range(length - self._path_length_threshold + 1):
+            node0 = path[start]
+            for incr in range(length - start - 1,
+                              self._path_length_threshold - 2, -1):
+                end = start + incr
+                self._cache[self.key_type((node0,
+                                           path[end]))] = path[start:end + 1]
+
+
 class GraphMapperError(Exception):
     """Base class for all exceptions related to the GraphMapper."""
 
@@ -123,12 +183,26 @@ class GraphMapper(BasicMapperEngine):
     Maps a quantum circuit to an arbitrary connected graph of connected qubits
     using Swap gates.
 
+    Args:
+        graph (networkx.Graph) : Arbitrary connected graph
+        storage (int) Number of gates to temporarily store
+        add_qubits_to_mapping (function) Function called when new qubits are to
+                                         be added to the current mapping
+                                         Signature of the function call:
+                                              current_mapping
+                                              graph
+                                              new_logical_qubit_ids
+                                              stored_commands
+        enable_caching(Bool): Controls whether optimal path caching is
+                              enabled
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
                           is mapped qubit id from 0,...,self.num_qubits
         graph (networkx.Graph): Arbitrary connected graph
         storage (int): Number of gate it caches before mapping.
+        enable_caching(Bool): Controls whether optimal path caching is
+                              enabled
         num_qubits(int): number of qubits
         num_mappings (int): Number of times the mapper changed the mapping
         depth_of_swaps (dict): Key are circuit depth of swaps, value is the
@@ -149,7 +223,8 @@ class GraphMapper(BasicMapperEngine):
     def __init__(self,
                  graph,
                  storage=1000,
-                 add_qubits_to_mapping=_add_qubits_to_mapping):
+                 add_qubits_to_mapping=_add_qubits_to_mapping,
+                 enable_caching=True):
         """
         Initialize a GraphMapper compiler engine.
 
@@ -157,6 +232,8 @@ class GraphMapper(BasicMapperEngine):
             graph (networkx.Graph): Arbitrary connected graph representing
                                     Qubit connectivity
             storage (int): Number of gates to temporarily store
+            enable_caching (Bool): Controls whether optimal path caching is 
+                                   enabled
         Raises:
             RuntimeError: if the graph is not a connected graph
         """
@@ -172,6 +249,10 @@ class GraphMapper(BasicMapperEngine):
             self.graph = graph
         self.num_qubits = self.graph.number_of_nodes()
         self.storage = storage
+        self.enable_caching = enable_caching
+        # Path cache support
+        path_length_threshold = 3
+        self._path_cache = PathCacheExhaustive(path_length_threshold)
         # Randomness to pick permutations if there are too many.
         # This creates an own instance of Random in order to not influence
         # the bound methods of the random module which might be used in other
@@ -332,6 +413,12 @@ class GraphMapper(BasicMapperEngine):
         node1 = self._current_mapping[qubit1]
 
         # Qubits are both active but not connected via an edge
+        if self.enable_caching:
+            if self._path_cache.has_path(node0, node1):
+                return self._path_cache.get_path(node0, node1)
+            path = nx.shortest_path(self.graph, source=node0, target=node1)
+            self._path_cache.add_path(path)
+            return path
         return nx.shortest_path(self.graph, source=node0, target=node1)
 
     def _send_possible_commands(self):
