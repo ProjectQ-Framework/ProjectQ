@@ -38,7 +38,7 @@ def run_entangle(eng, num_qubits=5):
 
 if __name__ == "__main__":
     # create main compiler engine for the IBM back-end
-    eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
+    eng = MainEngine(IBMBackend(use_hardware=False, num_runs=1024,
                                 verbose=False, device='ibmqx4'),
                      engine_list=projectq.setups.ibm.get_engine_list())
     # run the circuit and print the result
