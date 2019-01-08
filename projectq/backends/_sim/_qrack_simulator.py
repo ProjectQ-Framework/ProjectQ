@@ -20,6 +20,7 @@ source GPU-accelerated C++ simulator, which has to be built first.
 import math
 import random
 import numpy as np
+from enum import IntEnum
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (Ph,
@@ -35,6 +36,9 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
+class SimulatorType(IntEnum):
+    QINTERFACE_QUNIT = 1
+    QINTERFACE_QENGINE = 2
 
 class QrackSimulator(BasicEngine):
     """
@@ -46,7 +50,7 @@ class QrackSimulator(BasicEngine):
     documentation at https://vm6502q.readthedocs.io/en/latest/.) Then, run the
     ProjectQ setup.py script with the global option "--with-qracksimulator".
     """
-    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1):
+    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1, simulator_type = 1):
         """
         Construct the Qrack simulator object and initialize it with a
         random seed.
@@ -74,7 +78,7 @@ class QrackSimulator(BasicEngine):
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
         BasicEngine.__init__(self)
-        self._simulator = SimulatorBackend(rnd_seed, ocl_dev)
+        self._simulator = SimulatorBackend(rnd_seed, ocl_dev, simulator_type)
 
     def is_available(self, cmd):
         """

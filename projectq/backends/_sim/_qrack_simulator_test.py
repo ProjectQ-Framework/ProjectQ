@@ -59,7 +59,8 @@ def get_available_simulators():
     result = []
     try:
         test_is_qrack_simulator_present()
-        result.append("qrack_simulator")
+        result.append("qrack_simulator_qengine")
+        result.append("qrack_simulator_qunit")
     except:
         pass
     return result
@@ -67,11 +68,15 @@ def get_available_simulators():
 
 @pytest.fixture(params=get_available_simulators())
 def sim(request):
-    if request.param == "qrack_simulator":
+    if request.param == "qrack_simulator_qengine":
         from projectq.backends._sim._qracksim import QrackSimulator as QrackSim
         sim = QrackSimulator()
-        sim._simulator = QrackSim(1)
-        return sim
+        sim._simulator = QrackSim(1, -1, 1)
+    elif request.param == "qrack_simulator_qunit":
+        from projectq.backends._sim._qracksim import QrackSimulator as QrackSim
+        sim = QrackSimulator()
+        sim._simulator = QrackSim(1, -1, 2)
+    return sim
 
 
 @pytest.fixture(params=["mapper", "no_mapper"])

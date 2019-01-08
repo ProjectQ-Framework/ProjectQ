@@ -50,7 +50,7 @@ public:
     typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
     typedef std::function<void(bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CMULXFunc;
 
-    QrackSimulator(unsigned seed = 1, const int& dev = -1) {
+    QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
     	rnd_eng_->seed(seed);
 
@@ -58,6 +58,25 @@ public:
         // Initialize OpenCL engine, and set the default device context.
         Qrack::OCLEngine::Instance()->SetDefaultDeviceContext(Qrack::OCLEngine::Instance()->GetDeviceContextPtr(dev));
 #endif
+
+        if (simulator_type == 1) {
+            QrackEngine = Qrack::QINTERFACE_QUNIT;
+            QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+#if ENABLE_OPENCL
+            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
+#else
+            QrackSubengine2 = Qrack::QINTERFACE_CPU;
+#endif
+        } else {
+            QrackEngine = Qrack::QINTERFACE_QFUSION;
+#if ENABLE_OPENCL
+            QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
+            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
+#else
+            QrackSubengine1 = Qrack::QINTERFACE_CPU;
+            QrackSubengine2 = Qrack::QINTERFACE_CPU;
+#endif
+        }
     }
 
     void allocate_qubit(unsigned id){
@@ -67,7 +86,7 @@ public:
                 qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_); 
             } else {
                 map_[id] = qReg->GetQubitCount();
-                qReg->Cohere(Qrack::CreateQuantumInterface(QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_));
+                qReg->Cohere(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_));
             }
         }
         else
