@@ -65,7 +65,7 @@ class IBMBackend(BasicEngine):
                 if use_hardware is set to True. Default is ibmqx4.
             num_retries (int): Number of times to retry to obtain
                 results from the IBM API. (default is 3000)
-            interval (int): Number of seconds between successive
+            interval (float, int): Number of seconds between successive
                 attempts to obtain results from the IBM API.
                 (default is 1)
             retrieve_execution (int): Job ID to retrieve instead of re-
