@@ -80,8 +80,8 @@ class DaggeredGate(BasicGate):
             pass
 
     def __str__(self):
-        """
-        Return string representation (str(gate) + \"^\\dagger\").
+        r"""
+        Return string representation (str(gate) + \"^\dagger\").
         """
         return str(self._gate) + r"^\dagger"
 
