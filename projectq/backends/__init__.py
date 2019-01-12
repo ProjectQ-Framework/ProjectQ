@@ -27,7 +27,13 @@ This includes:
 """
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer
-from ._sim import Simulator, ClassicalSimulator
-from ._qracksim import Simulator as QrackSimulator
+from ._sim import ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
+
+try:
+    # Try to import the Qrack Simulator, if it exists.
+    from ._qracksim import Simulator
+except ImportError:
+    # If the Qrack Simulator isn't built, import the default ProjectQ simulator.
+    from ._sim import Simulator

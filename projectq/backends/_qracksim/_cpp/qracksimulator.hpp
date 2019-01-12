@@ -83,10 +83,10 @@ public:
         if (map_.count(id) == 0) {
             if (qReg == NULL) {
                 map_[id] = 0;
-                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_); 
+                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex(ONE_R1, ZERO_R1), true, false, true); 
             } else {
                 map_[id] = qReg->GetQubitCount();
-                qReg->Compose(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_));
+                qReg->Compose(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex(ONE_R1, ZERO_R1), true, false, true));
             }
         }
         else
@@ -295,7 +295,7 @@ public:
         for (std::size_t i = 0; i < wavefunction.size(); i++)
             wfArray[i] = complex(real(wavefunction[i]), imag(wavefunction[i]));
 
-        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ordering.size(), 0, rnd_eng_);
+        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ordering.size(), 0, rnd_eng_, complex(ONE_R1, ZERO_R1), true, false, true);
         qReg->SetQuantumState(wfArray);
 
         delete[] wfArray;

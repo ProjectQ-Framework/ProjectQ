@@ -42,7 +42,7 @@ from projectq.libs.math import (AddConstant,
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
-from projectq.backends import QrackSimulator
+from projectq.backends import Simulator
 
 
 def test_is_qrack_simulator_present():
@@ -65,11 +65,11 @@ def get_available_simulators():
 def sim(request):
     if request.param == "qrack_simulator_qengine":
         from projectq.backends._qracksim._qracksim import QrackSimulator as QrackSim
-        sim = QrackSimulator()
+        sim = Simulator()
         sim._simulator = QrackSim(1, -1, 1)
     elif request.param == "qrack_simulator_qunit":
         from projectq.backends._qracksim._qracksim import QrackSimulator as QrackSim
-        sim = QrackSimulator()
+        sim = Simulator()
         sim._simulator = QrackSim(1, -1, 2)
     return sim
 

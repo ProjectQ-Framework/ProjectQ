@@ -52,7 +52,7 @@ class Simulator(BasicEngine):
     documentation at https://vm6502q.readthedocs.io/en/latest/.) Then, run the
     ProjectQ setup.py script with the global option "--with-qracksimulator".
     """
-    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1, simulator_type = 1):
+    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1, simulator_type = SimulatorType.QINTERFACE_QUNIT):
         """
         Construct the Qrack simulator object and initialize it with a
         random seed.
