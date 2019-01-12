@@ -79,8 +79,7 @@ def test_adder():
 
 def test_modadder():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(sim, [])
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
