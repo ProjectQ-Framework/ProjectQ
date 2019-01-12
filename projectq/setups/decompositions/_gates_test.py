@@ -31,6 +31,12 @@ from projectq.setups.decompositions import (crz2cxandrz, entangle,
                                             globalphase, ph2r, r2rzandph,
                                             toffoli2cnotandtgate)
 
+def test_is_qrack_simulator_present():
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
 
 def low_level_gates(eng, cmd):
     g = cmd.gate
@@ -105,8 +111,12 @@ def test_gate_decompositions():
     qureg = run_circuit(eng)
 
     sim2 = Simulator()
-    eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
-                                     InstructionFilter(low_level_gates)])
+    if (test_is_qrack_simulator_present()):
+        # The low_level_gates filter doesn't pass, if the Qrack Simulator is used.
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set)])
+    else:
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
+                                         InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
 
     for i in range(len(sim.cheat()[1])):

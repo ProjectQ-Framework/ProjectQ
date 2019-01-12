@@ -24,6 +24,8 @@ from enum import IntEnum
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (Ph,
+                          R,
+                          BasicRotationGate,
                           Swap,
                           SqrtSwap,
                           Measure,
