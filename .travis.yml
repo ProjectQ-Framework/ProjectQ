@@ -41,7 +41,7 @@ install:
   - CC=g++-7 pip$PY install revkit
   - if [ "${PYTHON:0:1}" = "3" ]; then pip$PY install dormouse; fi
   - cd ../.. && git clone https://github.com/vm6502q/qrack.git
-  - cd qrack && mkdir _build && cd _build && cmake .. && sudo make install && cd ../.. && sudo rm -r qrack && cd ProjectQ-Framework/ProjectQ
+  - cd qrack && mkdir _build && cd _build && cmake .. && sudo make install && cd ../.. && sudo rm -r qrack && cd $TRAVIS_BUILD_DIRECTORY
   - pip$PY install -e . --global-option="--with-qracksimulator"
 
 # command to run tests
