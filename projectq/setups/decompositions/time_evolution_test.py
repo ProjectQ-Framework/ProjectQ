@@ -40,7 +40,7 @@ def test_is_qrack_simulator_present():
         return False
 
 if (test_is_qrack_simulator_present()):
-    pytest.skip("Qrack simulator skips time evolution tests", allow_module_level=True)
+    pytest.skip("Qrack simulator does not support time evolution", allow_module_level=True)
 
 def test_recognize_commuting_terms():
     saving_backend = DummyEngine(save_commands=True)

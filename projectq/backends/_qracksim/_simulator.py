@@ -100,6 +100,7 @@ class Simulator(BasicEngine):
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
+                    isinstance(cmd.gate, Ph) or
                     isinstance(cmd.gate, AddConstant)):
                 return True
             elif (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
@@ -326,10 +327,6 @@ class Simulator(BasicEngine):
         elif cmd.gate == Deallocate:
             ID = cmd.qubits[0][0].id
             self._simulator.deallocate_qubit(ID)
-        # elif isinstance(cmd.gate, Ph):
-            # Global phase shifts have no physically measurable effect,
-            # but it could be optimal to decompose with them.
-        #    pass
         elif cmd.gate == Swap:
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
@@ -342,6 +339,10 @@ class Simulator(BasicEngine):
             self._simulator.apply_controlled_sqrtswap(ids1, ids2,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
+        elif isinstance(cmd.gate, Ph):
+            self._simulator.apply_controlled_phase_gate(cmd.gate.angle,
+                                                        [qb.id for qb in
+                                                         cmd.control_qubits])
         elif isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, AddConstantModN):
             #Unless there's a carry, the only unitary addition is mod (2^len(ids))
             ids = [qb.id for qr in cmd.qubits for qb in qr]

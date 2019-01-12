@@ -26,8 +26,15 @@ from projectq.ops import All, Measure, Ph, QubitOperator, X, Y, Z
 
 import projectq.setups.decompositions.qubitop2onequbit as qubitop2onequbit
 
-tolerance = 1e-6
+def test_is_qrack_simulator_present():
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
 
+if (test_is_qrack_simulator_present()):
+    pytest.skip("Qrack simulator does not support QubitOperator", allow_module_level=True)
 
 def test_recognize():
     saving_backend = DummyEngine(save_commands=True)

@@ -44,6 +44,7 @@ PYBIND11_PLUGIN(_qracksim) {
         .def("apply_controlled_gate", &QrackSimulator::apply_controlled_gate<MatrixType>)
         .def("apply_controlled_swap", &QrackSimulator::apply_controlled_swap)
         .def("apply_controlled_sqrtswap", &QrackSimulator::apply_controlled_sqrtswap)
+        .def("apply_controlled_phase_gate", &QrackSimulator::apply_controlled_phase_gate)
         .def("apply_controlled_inc", &QrackSimulator::apply_controlled_inc)
         .def("apply_controlled_dec", &QrackSimulator::apply_controlled_dec)
         .def("apply_controlled_mul", &QrackSimulator::apply_controlled_mul)

@@ -228,6 +228,30 @@ public:
         delete[] ctrlArray;
     }
 
+    void apply_controlled_phase_gate(real1 angle, std::vector<unsigned> ctrl){
+        real1 cosine = cos(angle);
+        real1 sine = sin(angle);
+
+        complex mArray[4] = {
+            complex(cosine, sine), complex(ZERO_R1, ZERO_R1),
+            complex(ZERO_R1, ZERO_R1), complex(cosine, sine)
+        };
+
+        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+        for (bitLenInt i = 0; i < ctrl.size(); i++) {
+            ctrlArray[i] = map_[ctrl[i]];
+        }
+
+        bitLenInt target = 0;
+        while(std::find(ctrlArray, ctrlArray + ctrl.size(), target) != (ctrlArray + ctrl.size())) {
+            target++;
+        }
+
+        qReg->ApplyControlledSingleBit(ctrlArray, ctrl.size(), target, mArray);
+
+        delete[] ctrlArray;
+    }
+
     void apply_controlled_inc(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toAdd){
         apply_controlled_int([&](bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize) {
             qReg->CINC(toAdd, start, size, ctrlArray, ctrlSize);
