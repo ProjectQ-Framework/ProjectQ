@@ -69,8 +69,8 @@ qracksim = Feature(
     standard=False,
     ext_modules=[
         Extension(
-            'projectq.backends._sim._qracksim',
-            ['projectq/backends/_sim/_qracksim.cpp'],
+            'projectq.backends._qracksim._qracksim',
+            ['projectq/backends/_qracksim/_qracksim.cpp'],
             include_dirs=[
                 # Path to pybind11 headers
                 get_pybind_include(),

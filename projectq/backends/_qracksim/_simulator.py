@@ -36,16 +36,18 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
+from ._qracksim import QrackSimulator as SimulatorBackend
+
 class SimulatorType(IntEnum):
     QINTERFACE_QUNIT = 1
     QINTERFACE_QENGINE = 2
 
-class QrackSimulator(BasicEngine):
+class Simulator(BasicEngine):
     """
-    The QrackSimulator is a compiler engine which simulates a quantum computer
+    The Qrack Simulator is a compiler engine which simulates a quantum computer
     using C++ and OpenCL-based kernels.
 
-    To use the QrackSimulator, first install the Qrack framework, available at
+    To use the Qrack Simulator, first install the Qrack framework, available at
     https://github.com/vm6502q/qrack. (See the README there, and the Qrack
     documentation at https://vm6502q.readthedocs.io/en/latest/.) Then, run the
     ProjectQ setup.py script with the global option "--with-qracksimulator".

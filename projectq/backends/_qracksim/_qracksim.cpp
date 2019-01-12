@@ -21,7 +21,7 @@
 #include <omp.h>
 #endif
 
-#include "_cppkernels/qracksimulator.hpp"
+#include "_cpp/qracksimulator.hpp"
 
 namespace py = pybind11;
 
