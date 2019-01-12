@@ -26,6 +26,8 @@ from projectq.ops import All, CNOT, CZ, Measure, X, Z
 
 from projectq.setups.decompositions import cnot2cz
 
+tolerance = 1e-6
+
 
 def test_recognize_gates():
     saving_backend = DummyEngine(save_commands=True)
@@ -96,7 +98,7 @@ def test_cnot_decomposition():
                                           test_qb + test_ctrl_qb)
             correct = correct_sim.get_amplitude(binary_state, correct_qb +
                                                 correct_ctrl_qb)
-            assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qb + test_ctrl_qb
         All(Measure) | correct_qb + correct_ctrl_qb

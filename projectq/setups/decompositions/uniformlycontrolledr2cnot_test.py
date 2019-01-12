@@ -28,6 +28,7 @@ from projectq.ops import (All, Measure, Ry, Rz, UniformlyControlledRy,
 
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
+tolerance = 1e-6
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
     """
@@ -119,7 +120,7 @@ def test_uniformly_controlled_ry(n, gate_classes):
                                           test_qb + test_ctrl_qureg)
             correct = correct_sim.get_amplitude(binary_state, correct_qb +
                                                 correct_ctrl_qureg)
-            assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qb + test_ctrl_qureg
         All(Measure) | correct_qb + correct_ctrl_qureg

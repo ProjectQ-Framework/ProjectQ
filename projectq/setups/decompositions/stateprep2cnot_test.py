@@ -28,6 +28,7 @@ from projectq.types import WeakQubitRef
 
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 
+tolerance = 1e-6
 
 def test_wrong_final_state():
     qb0 = WeakQubitRef(engine=None, idx=0)
@@ -68,4 +69,4 @@ def test_state_preparation(n_qubits, zeros):
         assert mapping[key] == key
     All(Measure) | qureg
     eng.flush()
-    assert np.allclose(wavefunction, f_state, rtol=1e-10, atol=1e-10)
+    assert np.allclose(wavefunction, f_state, rtol=tolerance, atol=tolerance)
