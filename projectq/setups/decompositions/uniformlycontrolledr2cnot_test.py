@@ -28,6 +28,17 @@ from projectq.ops import (All, Measure, Ry, Rz, UniformlyControlledRy,
 
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
+# WARNING: Qrack simulator is not consistent with decompositions
+def test_is_qrack_simulator_present():
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
+
+if (test_is_qrack_simulator_present()):
+    pytest.skip("Qrack simulator is not consistent with decompositions", allow_module_level=True)
+
 tolerance = 1e-6
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
