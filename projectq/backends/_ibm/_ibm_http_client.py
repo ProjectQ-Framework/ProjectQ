@@ -181,7 +181,7 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
                     raise DeviceOfflineError("Device went offline. The ID of "
                                              "your submitted job is {}."
                                              .format(execution_id))
-                if 'lengthQueue' in r_json:
+                if verbose and 'lengthQueue' in r_json:
                     print("Currently there are {} jobs queued for execution "
                           "on {}."
                           .format(r_json['lengthQueue'], device))
