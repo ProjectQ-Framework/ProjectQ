@@ -119,26 +119,31 @@ def get_engine_list(one_qubit_gates="any",
 
     rule_set = DecompositionRuleSet(modules=[projectq.libs.math,
                                              projectq.setups.decompositions])
-    allowed_gate_classes = []
+    allowed_gate_classes = []  # n-qubit gates
     allowed_gate_instances = []
+    allowed_gate_classes1 = []  # 1-qubit gates
+    allowed_gate_instances1 = []
+    allowed_gate_classes2 = []  # 2-qubit gates
+    allowed_gate_instances2 = []
+
     if one_qubit_gates != "any":
         for gate in one_qubit_gates:
             if inspect.isclass(gate):
-                allowed_gate_classes.append(gate)
+                allowed_gate_classes1.append(gate)
             else:
-                allowed_gate_instances.append((gate, 0))
+                allowed_gate_instances1.append(gate)
     if two_qubit_gates != "any":
         for gate in two_qubit_gates:
             if inspect.isclass(gate):
                 #  Controlled gate classes don't yet exists and would require
                 #  separate treatment
                 assert not isinstance(gate, ControlledGate)
-                allowed_gate_classes.append(gate)
+                allowed_gate_classes2.append(gate)
             else:
                 if isinstance(gate, ControlledGate):
-                    allowed_gate_instances.append((gate._gate, gate._n))
+                    allowed_gate_instances2.append((gate._gate, gate._n))
                 else:
-                    allowed_gate_instances.append((gate, 0))
+                    allowed_gate_instances2.append((gate, 0))
     for gate in other_gates:
         if inspect.isclass(gate):
             #  Controlled gate classes don't yet exists and would require
@@ -152,6 +157,10 @@ def get_engine_list(one_qubit_gates="any",
                 allowed_gate_instances.append((gate, 0))
     allowed_gate_classes = tuple(allowed_gate_classes)
     allowed_gate_instances = tuple(allowed_gate_instances)
+    allowed_gate_classes1 = tuple(allowed_gate_classes1)
+    allowed_gate_instances1 = tuple(allowed_gate_instances1)
+    allowed_gate_classes2 = tuple(allowed_gate_classes2)
+    allowed_gate_instances2 = tuple(allowed_gate_instances2)
 
     def low_level_gates(eng, cmd):
         all_qubits = [q for qr in cmd.all_qubits for q in qr]
@@ -166,8 +175,18 @@ def get_engine_list(one_qubit_gates="any",
             return True
         elif (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances:
             return True
-        else:
-            return False
+        elif (isinstance(cmd.gate, allowed_gate_classes1)
+              and len(all_qubits) == 1):
+            return True
+        elif (isinstance(cmd.gate, allowed_gate_classes2)
+              and len(all_qubits) == 2):
+            return True
+        elif cmd.gate in allowed_gate_instances1 and len(all_qubits) == 1:
+            return True
+        elif ((cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2
+               and len(all_qubits) == 2):
+            return True
+        return False
 
     return [AutoReplacer(rule_set),
             TagRemover(),
