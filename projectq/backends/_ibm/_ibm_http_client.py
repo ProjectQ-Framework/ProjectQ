@@ -168,11 +168,10 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
             r = requests.get(urljoin(_api_url, suffix),
                              params={"access_token": access_token})
             r.raise_for_status()
-
             r_json = r.json()
             if 'qasms' in r_json:
                 qasm = r_json['qasms'][0]
-                if 'result' in qasm:
+                if 'result' in qasm and qasm['result'] is not None:
                     return qasm['result']
             time.sleep(interval)
             if device in ['ibmqx4', 'ibmqx5'] and retries % 60 == 0:

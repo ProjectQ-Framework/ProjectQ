@@ -30,9 +30,9 @@ class StatePreparation(BasicGate):
                 StatePreparation([0.5, -0.5j, -0.5, 0.5]) | qureg
 
         Note:
-            The amplitude of state k is final_state[k]. When the state k is
-            written in binary notation, then qureg[0] denotes the qubit
-            whose state corresponds to the least significant bit of k.
+            final_state[k] is taken to be the amplitude of the computational
+            basis state whose string is equal to the binary representation
+            of k.
 
         Args:
             final_state(list[complex]): wavefunction of the desired

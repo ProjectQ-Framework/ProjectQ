@@ -174,7 +174,7 @@ def test_body():
     # CZ is two phases plus 2 from CNOTs + 2 from cswap + 2 from csqrtswap
     assert code.count("phase") == 8
     assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
-    assert code.count("{$\Ket{0}") == 3  # 3 qubits allocated
+    assert code.count("{$\\Ket{0}") == 3  # 3 qubits allocated
     # 1 cnot, 1 not gate, 3 SqrtSwap, 1 inv(SqrtSwap)
     assert code.count("xstyle") == 7
     assert code.count("measure") == 1  # 1 measurement
