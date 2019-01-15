@@ -27,6 +27,7 @@ from projectq.ops import All, Measure, SqrtSwap
 
 import projectq.setups.decompositions.sqrtswap2cnot as sqrtswap2cnot
 
+tolerance = 1e-6
 
 def _decomp_gates(eng, cmd):
     if isinstance(cmd.gate, SqrtSwap.__class__):
@@ -67,7 +68,7 @@ def test_sqrtswap():
             binary_state = format(fstate, '02b')
             test = test_sim.get_amplitude(binary_state, test_qureg)
             correct = correct_sim.get_amplitude(binary_state, correct_qureg)
-            assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qureg
         All(Measure) | correct_qureg

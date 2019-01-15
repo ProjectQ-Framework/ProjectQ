@@ -20,13 +20,20 @@ This includes:
 * a debugging tool to print all received commands (CommandPrinter)
 * a circuit drawing engine (which can be used anywhere within the compilation
   chain)
-* a simulator with emulation capabilities
+* internal and external simulators with emulation capabilities
 * a resource counter (counts gates and keeps track of the maximal width of the
   circuit)
 * an interface to the IBM Quantum Experience chip (and simulator).
 """
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer
-from ._sim import Simulator, ClassicalSimulator
+from ._sim import ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
+
+try:
+    # Try to import the Qrack Simulator, if it exists.
+    from ._qracksim import Simulator
+except ImportError:
+    # If the Qrack Simulator isn't built, import the default ProjectQ simulator.
+    from ._sim import Simulator

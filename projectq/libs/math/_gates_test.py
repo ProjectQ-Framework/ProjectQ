@@ -19,6 +19,7 @@ import pytest
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN,
+                                DivideByConstantModN,
                                 SubConstant,
                                 SubConstantModN)
 
@@ -47,8 +48,19 @@ def test_multiplybyconstmodn():
     assert not MultiplyByConstantModN(3, 5) == MultiplyByConstantModN(3, 4)
     assert MultiplyByConstantModN(7, 4) != MultiplyByConstantModN(3, 4)
     assert MultiplyByConstantModN(3, 5) != MultiplyByConstantModN(3, 4)
+    assert DivideByConstantModN(3, 5) == (MultiplyByConstantModN(3, 5).get_inverse())
 
     assert str(MultiplyByConstantModN(3, 4)) == "MultiplyByConstantModN(3, 4)"
+
+def test_dividebyconstmodn():
+    assert DivideByConstantModN(3, 4) == DivideByConstantModN(3, 4)
+    assert not DivideByConstantModN(3, 4) == DivideByConstantModN(4, 4)
+    assert not DivideByConstantModN(3, 5) == DivideByConstantModN(3, 4)
+    assert DivideByConstantModN(7, 4) != DivideByConstantModN(3, 4)
+    assert DivideByConstantModN(3, 5) != DivideByConstantModN(3, 4)
+    assert MultiplyByConstantModN(3, 5) == (DivideByConstantModN(3, 5).get_inverse())
+
+    assert str(DivideByConstantModN(3, 4)) == "DivideByConstantModN(3, 4)"
 
 
 def test_hash_function_implemented():
@@ -58,3 +70,5 @@ def test_hash_function_implemented():
     assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
     assert hash(MultiplyByConstantModN(3, 5)) == hash(
         MultiplyByConstantModN(3, 5))
+    assert hash(DivideByConstantModN(3, 5)) == hash(
+        DivideByConstantModN(3, 5))

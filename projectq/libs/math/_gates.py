@@ -182,8 +182,68 @@ class MultiplyByConstantModN(BasicMathGate):
     def __str__(self):
         return "MultiplyByConstantModN({}, {})".format(self.a, self.N)
 
+    def get_inverse(self):
+        """
+        Return the inverse gate (division by the same number a, modulo the
+        same number N).
+        """
+        return DivideByConstantModN(self.a, self.N)
+
     def __eq__(self, other):
         return (isinstance(other, MultiplyByConstantModN) and
+                self.a == other.a and self.N == other.N)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class DivideByConstantModN(BasicMathGate):
+    """
+    Divide a quantum number represented by a quantum register by a constant
+    modulo N.
+
+    This is the unitary inverse of MultiplyByConstantModN. Therefore,
+    only exact multiples are divided.
+
+    The number is stored from low- to high-bit, i.e., qunum[0] is the LSB.
+
+    Example:
+        .. code-block:: python
+
+            qunum = eng.allocate_qureg(5) # 5-qubit number
+            X | qunum[2] # qunum is now equal to 4
+            MultiplyByConstantModN(3,5) | qunum # qunum is now 2.
+    """
+    def __init__(self, a, N):
+        """
+        Initializes the gate to the number to multiply with modulo N.
+
+        Args:
+            a (int): Number by which to multiply a quantum register
+                (0 <= a < N).
+            N (int): Number modulo which the multiplication is carried out.
+
+        It also initializes its base class, BasicMathGate, with the
+        corresponding function, so it can be emulated efficiently.
+        """
+        BasicMathGate.__init__(self, lambda x: (((x / a) % N) if ((x % a) == 0) else x,))
+        self.a = a
+        self.N = N
+
+    def __str__(self):
+        return "DivideByConstantModN({}, {})".format(self.a, self.N)
+
+    def get_inverse(self):
+        """
+        Return the inverse gate (multiplication by the same number a, modulo the
+        same number N).
+        """
+        return MultiplyByConstantModN(self.a, self.N)
+
+    def __eq__(self, other):
+        return (isinstance(other, DivideByConstantModN) and
                 self.a == other.a and self.N == other.N)
 
     def __hash__(self):

@@ -209,7 +209,7 @@ def _footer(settings):
     Returns:
         tex_footer_str (string): Latex document footer.
     """
-    return "\n\n\end{tikzpicture}\n\end{document}"
+    return "\n\n\\end{tikzpicture}\n\\end{document}"
 
 
 class _Circ2Tikz(object):
@@ -329,7 +329,7 @@ class _Circ2Tikz(object):
                     self.is_quantum[l] = False
             elif gate == Allocate:
                 # draw 'begin line'
-                add_str = "\n\\node[none] ({}) at ({},-{}) {{$\Ket{{0}}{}$}};"
+                add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
                 id_str = ""
                 if self.settings['gates']['AllocateQubitGate']['draw_id']:
                     id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
@@ -433,7 +433,7 @@ class _Circ2Tikz(object):
         gate_str += ("\n\\node[xstyle] ({op}) at ({pos},-{line})\
                 {{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"
                      ).format(op=op_mid, line=midpoint, pos=pos,
-                              dagger='^{{\dagger}}' if daggered else '')
+                              dagger='^{{\\dagger}}' if daggered else '')
 
         # add two vertical lines to connect circled 1/2
         gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(

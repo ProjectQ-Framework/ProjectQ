@@ -18,7 +18,7 @@ Registers a few default replacement rules for Shor's algorithm to work
 """
 
 from projectq.meta import Control, Dagger
-from projectq.cengines import DecompositionRule
+from projectq.cengines._replacer import DecompositionRule
 
 from ._gates import (AddConstant,
                      SubConstant,
