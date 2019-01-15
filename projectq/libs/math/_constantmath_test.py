@@ -32,10 +32,17 @@ from projectq.libs.math import (AddConstant,
 
 
 def init(engine, quint, value):
+    All(Measure) | quint
     for i in range(len(quint)):
-        if ((value >> i) & 1) == 1:
+        if (((value >> i) & 1) != int(quint[i])):
             X | quint[i]
 
+def get_int(qubits):
+    All(Measure) | qubits
+    value = 0
+    for i in range(len(qubits)):
+        value += int(qubits[i]) << i
+    return value
 
 def no_math_emulation(eng, cmd):
     if isinstance(cmd.gate, BasicMathGate):
@@ -61,38 +68,27 @@ def test_adder():
 
     AddConstant(3) | qureg
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
+    assert 7 == get_int(qureg)
 
-    init(eng, qureg, 7)  # reset
     init(eng, qureg, 2)
 
     # check for overflow -> should be 15+2 = 1 (mod 16)
     AddConstant(15) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
-
-    All(Measure) | qureg
+    assert 1 == get_int(qureg)
 
 
 def test_modadder():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(sim, [])
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
-    AddConstantModN(3, 6) | qureg
+    AddConstantModN(3, 16) | qureg
+    assert 7 == get_int(qureg)
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
-
-    init(eng, qureg, 1)  # reset
-    init(eng, qureg, 7)
-
-    AddConstantModN(10, 13) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
-
-    All(Measure) | qureg
-
+    AddConstantModN(10, 16) | qureg
+    assert 1 == get_int(qureg)
 
 def test_modmultiplier():
     sim = Simulator()
@@ -102,14 +98,8 @@ def test_modmultiplier():
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
-    MultiplyByConstantModN(3, 7) | qureg
+    MultiplyByConstantModN(3, 16) | qureg
+    assert 12 == get_int(qureg)
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
-
-    init(eng, qureg, 5)  # reset
-    init(eng, qureg, 7)
-
-    MultiplyByConstantModN(4, 13) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
-
-    All(Measure) | qureg
+    MultiplyByConstantModN(3, 16) | qureg
+    assert 4 == get_int(qureg)

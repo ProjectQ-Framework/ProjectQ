@@ -13,4 +13,3 @@
 #   limitations under the License.
 
 from ._simulator import Simulator
-from ._classical_simulator import ClassicalSimulator

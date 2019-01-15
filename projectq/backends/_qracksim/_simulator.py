@@ -24,6 +24,8 @@ from enum import IntEnum
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (Ph,
+                          R,
+                          BasicRotationGate,
                           Swap,
                           SqrtSwap,
                           Measure,
@@ -36,21 +38,23 @@ from projectq.libs.math import (AddConstant,
                                 DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
+from ._qracksim import QrackSimulator as SimulatorBackend
+
 class SimulatorType(IntEnum):
     QINTERFACE_QUNIT = 1
     QINTERFACE_QENGINE = 2
 
-class QrackSimulator(BasicEngine):
+class Simulator(BasicEngine):
     """
-    The QrackSimulator is a compiler engine which simulates a quantum computer
+    The Qrack Simulator is a compiler engine which simulates a quantum computer
     using C++ and OpenCL-based kernels.
 
-    To use the QrackSimulator, first install the Qrack framework, available at
+    To use the Qrack Simulator, first install the Qrack framework, available at
     https://github.com/vm6502q/qrack. (See the README there, and the Qrack
     documentation at https://vm6502q.readthedocs.io/en/latest/.) Then, run the
     ProjectQ setup.py script with the global option "--with-qracksimulator".
     """
-    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1, simulator_type = 1):
+    def __init__(self, gate_fusion=False, rnd_seed=None, ocl_dev=-1, simulator_type = SimulatorType.QINTERFACE_QUNIT):
         """
         Construct the Qrack simulator object and initialize it with a
         random seed.
@@ -98,6 +102,7 @@ class QrackSimulator(BasicEngine):
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
+                    isinstance(cmd.gate, Ph) or
                     isinstance(cmd.gate, AddConstant)):
                 return True
             elif (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
@@ -324,10 +329,6 @@ class QrackSimulator(BasicEngine):
         elif cmd.gate == Deallocate:
             ID = cmd.qubits[0][0].id
             self._simulator.deallocate_qubit(ID)
-        # elif isinstance(cmd.gate, Ph):
-            # Global phase shifts have no physically measurable effect,
-            # but it could be optimal to decompose with them.
-        #    pass
         elif cmd.gate == Swap:
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
@@ -340,6 +341,10 @@ class QrackSimulator(BasicEngine):
             self._simulator.apply_controlled_sqrtswap(ids1, ids2,
                                                   [qb.id for qb in
                                                    cmd.control_qubits])
+        elif isinstance(cmd.gate, Ph):
+            self._simulator.apply_controlled_phase_gate(cmd.gate.angle,
+                                                        [qb.id for qb in
+                                                         cmd.control_qubits])
         elif isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, AddConstantModN):
             #Unless there's a carry, the only unitary addition is mod (2^len(ids))
             ids = [qb.id for qr in cmd.qubits for qb in qr]
