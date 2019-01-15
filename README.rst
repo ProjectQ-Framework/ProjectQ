@@ -34,7 +34,7 @@ This allows users to
 
 This Fork
 ---------
-This fork maintains support for the `Qrack simulator framework <https://github.com/vm6502q/qrack>`__as an optional back end. To use Qrack with ProjectQ, checkout the Qrack repo. Build and install Qrack. Then, build ProjectQ with the optional global flag "--with-qracksimulator" passed to setup.py.
+This fork maintains support for the `Qrack <https://github.com/vm6502q/qrack>`__ simulator framework as an optional back end. To use Qrack with ProjectQ, checkout the Qrack repo. Build and install Qrack. Then, build ProjectQ with the optional global flag "--with-qracksimulator" passed to setup.py.
 
 This has been successfully tested in the context of a `SimulaQron <https://github.com/SoftwareQuTech/SimulaQron>`__-> ProjectQ -> Qrack stack with at least two physical nodes, with many logical nodes distributed between them. Qrack is the base quantum node simulator, ProjectQ is the compiler, and SimulaQron provides simulation or emulation of a quantum network. To reproduce this stack, as stated above, just install Qrack and use a copy of ProjectQ built and installed with the global flag "--with-qracksimulator", for SimulaQron.
 
