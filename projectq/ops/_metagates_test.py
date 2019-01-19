@@ -72,7 +72,7 @@ def test_daggered_gate_init():
 
 def test_daggered_gate_str():
     daggered_gate = _metagates.DaggeredGate(Y)
-    assert str(daggered_gate) == str(Y) + "^\dagger"
+    assert str(daggered_gate) == str(Y) + r"^\dagger"
 
 
 def test_daggered_gate_hashable():
@@ -87,13 +87,13 @@ def test_daggered_gate_hashable():
 def test_daggered_gate_tex_str():
     daggered_gate = _metagates.DaggeredGate(Y)
     str_Y = Y.tex_str() if hasattr(Y, 'tex_str') else str(Y)
-    assert daggered_gate.tex_str() == str_Y + "${}^\dagger$"
+    assert daggered_gate.tex_str() == str_Y + r"${}^\dagger$"
 
     # test for a gate with tex_str method
     rx = Rx(0.5)
     daggered_rx = _metagates.DaggeredGate(rx)
     str_rx = rx.tex_str() if hasattr(rx, 'tex_str') else str(rx)
-    assert daggered_rx.tex_str() == str_rx + "${}^\dagger$"
+    assert daggered_rx.tex_str() == str_rx + r"${}^\dagger$"
 
 
 def test_daggered_gate_get_inverse():
