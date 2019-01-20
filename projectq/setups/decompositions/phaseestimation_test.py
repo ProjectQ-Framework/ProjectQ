@@ -40,7 +40,7 @@ def test_simple_test_X_eigenvectors():
                      engine_list=[AutoReplacer(rule_set),
                                   ])
     results = np.array([])
-    for i in range(10):
+    for i in range(100):
         autovector = eng.allocate_qureg(1)
         X | autovector
         H | autovector
@@ -57,7 +57,7 @@ def test_simple_test_X_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.5).sum()
-    assert num_phase/10 >= 0.4
+    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
 
 
 def test_Ph_eigenvectors():
@@ -66,7 +66,7 @@ def test_Ph_eigenvectors():
                      engine_list=[AutoReplacer(rule_set),
                                   ])
     results = np.array([])
-    for i in range(10):
+    for i in range(100):
         autovector = eng.allocate_qureg(1)
         theta = cmath.pi*2.*0.125
         unit = Ph(theta)
@@ -82,7 +82,7 @@ def test_Ph_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase/10 >= 0.4
+    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
 
 
 def two_qubit_gate(system_q, time):
@@ -97,7 +97,7 @@ def test_2qubitsPh_eigenvectors():
                      engine_list=[AutoReplacer(rule_set),
                                   ])
     results = np.array([])
-    for i in range(10):
+    for i in range(100):
         autovector = eng.allocate_qureg(2)
         X | autovector[0]
         ancillas = eng.allocate_qureg(3)
@@ -112,7 +112,7 @@ def test_2qubitsPh_eigenvectors():
         eng.flush()
 
     num_phase = (results == .125).sum()
-    assert num_phase/10 >= 0.4
+    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
 
 
 def test_X_no_eigenvectors():
@@ -174,7 +174,7 @@ def test_simplefunction_eigenvectors():
                      engine_list=[AutoReplacer(rule_set),
                                   ])
     results = np.array([])
-    for i in range(10):
+    for i in range(100):
         autovector = eng.allocate_qureg(1)
         ancillas = eng.allocate_qureg(2)
         QPE(simplefunction) | (ancillas, autovector)
@@ -188,4 +188,4 @@ def test_simplefunction_eigenvectors():
         eng.flush()
 
     num_phase = (results == .75).sum()
-    assert num_phase/10 >= 0.4
+    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
