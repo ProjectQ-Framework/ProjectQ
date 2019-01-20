@@ -75,8 +75,7 @@ def test_wrong_number_of_angles():
 
 @pytest.mark.parametrize("gate_classes", [(Ry, UniformlyControlledRy),
                                           (Rz, UniformlyControlledRz)])
-@pytest.mark.parametrize("n", [0, 1])
-#@pytest.mark.parametrize("n", [0, 1, 2, 3, 4])
+@pytest.mark.parametrize("n", [0, 1, 2, 3, 4])
 def test_uniformly_controlled_ry(n, gate_classes):
     random_angles = [0.5, 0.8, 1.2, 2.5, 4.4, 2.32, 6.6, 15.12, 1, 2, 9.54,
                      2.1, 3.1415, 1.1, 0.01, 0.99]

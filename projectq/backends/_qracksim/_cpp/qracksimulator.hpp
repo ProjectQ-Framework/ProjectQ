@@ -229,7 +229,7 @@ public:
         delete[] ctrlArray;
     }
 
-    void apply_controlled_phase_gate(real1 angle, std::vector<unsigned> ctrl){
+    void apply_controlled_phase_gate(calc_type angle, std::vector<unsigned> ctrl){
         real1 cosine = cos(angle);
         real1 sine = sin(angle);
 
@@ -253,10 +253,10 @@ public:
         delete[] ctrlArray;
     }
 
-    void apply_uniformly_controlled_ry(std::vector<real1> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+    void apply_uniformly_controlled_ry(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
         if (ctrl.size() == 0) {
             for (bitLenInt i = 0; i < ids.size(); i++) {
-                qReg->RY(angles[0], ids[i]);
+                qReg->RY(angles[0], map_[ids[i]]);
             }
             return;
         }
@@ -269,7 +269,7 @@ public:
     void apply_uniformly_controlled_rz(std::vector<real1> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
         if (ctrl.size() == 0) {
             for (bitLenInt i = 0; i < ids.size(); i++) {
-                qReg->RZ(angles[0], ids[i]);
+                qReg->RZ(angles[0], map_[ids[i]]);
             }
             return;
         }
