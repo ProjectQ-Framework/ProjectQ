@@ -20,4 +20,4 @@ from projectq.ops import _qpegate, X
 def test_qpe_str():
     unitary = X
     gate = _qpegate.QPE(unitary)
-    assert str(gate) == "QPE_X"
+    assert str(gate) == "QPE(X)"

@@ -30,10 +30,11 @@ is the gate in Command
 Example:
     .. code-block:: python
 
-       n_qpe_ancillas = 5
+       n_qpe_ancillas = 3
        qpe_ancillas = eng.allocate_qureg(n_qpe_ancillas)
-       system_qubits = eng.allocate_qureg(2)
-       U = unitary_specfic_to_the_problem()
+       system_qubits = eng.allocate_qureg(1)
+       angle = cmath.pi*2.*0.125
+       U = Ph(angle) # unitary_specfic_to_the_problem()
 
        # Apply Quantum Phase Estimation
        QPE(U) | (qpe_ancillas, system_qubits)
@@ -45,6 +46,7 @@ Example:
        phase_in_bin = ''.join(str(j) for j in phasebinlist)
        phase_int = int(phase_in_bin,2)
        phase = phase_int / (2 ** n_qpe_ancillas)
+       print (phase)
 
 Attributes:
     unitary (BasicGate): Unitary Operation or function to apply

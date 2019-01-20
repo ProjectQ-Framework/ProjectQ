@@ -26,4 +26,4 @@ class QPE(BasicGate):
         self.unitary = unitary
 
     def __str__(self):
-        return "QPE_"+str(self.unitary)
+        return 'QPE({})'.format(str(self.unitary))

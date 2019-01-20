@@ -14,7 +14,6 @@
 
 "Tests for projectq.setups.decompositions.phaseestimation.py."
 
-import copy
 import cmath
 import numpy as np
 import pytest
@@ -24,7 +23,7 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 
-from projectq.ops import X, H, All, Measure, Tensor, Ph, StatePreparation
+from projectq.ops import X, H, All, Measure, Tensor, Ph, CNOT, StatePreparation
 
 from projectq.ops import (BasicGate)
 
@@ -33,46 +32,6 @@ from projectq.setups.decompositions import phaseestimation as pe
 from projectq.setups.decompositions import qft2crandhadamard as dqft
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
-
-
-class PhaseX(BasicGate):
-    """
-    A phase gate on X gate with
-    eigenvectors H|0> and HX|0> and
-    eivenvalues exp(i2pi theta) and -exp(i2pi theta)
-    """
-
-    def __init__(self, phase):
-        BasicGate.__init__(self)
-        self.phase = phase
-
-    @property
-    def matrix(self):
-        theta = self.phase
-
-        return np.matrix([[0, cmath.exp(1j * 2.0 * cmath.pi * theta)],
-                         [cmath.exp(1j * 2.0 * cmath.pi * theta), 0]])
-
-
-class PhaseXxX(BasicGate):
-    """
-    A phase gate on X (x) X : PhX(x)X gate with
-    eigenvectors: |+>|+>, |+>|->,|->|+>,|->|->,  and
-    eivenvalues exp(i2pi theta) and -exp(i2pi theta)
-    """
-
-    def __init__(self, phase):
-        BasicGate.__init__(self)
-        self.phase = phase
-
-    @property
-    def matrix(self):
-        theta = self.phase
-
-        return np.matrix([[0, 0, 0, cmath.exp(1j * 2.0 * cmath.pi * theta)],
-                         [0, 0, cmath.exp(1j * 2.0 * cmath.pi * theta), 0],
-                         [0, cmath.exp(1j * 2.0 * cmath.pi * theta), 0, 0],
-                         [cmath.exp(1j * 2.0 * cmath.pi * theta), 0, 0, 0]])
 
 
 def test_simple_test_X_eigenvectors():
@@ -97,11 +56,11 @@ def test_simple_test_X_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    perc_95 = np.percentile(results, 95)
-    assert perc_95 == 0.5
+    num_phase = (results == 0.5).sum()
+    assert num_phase/10 >= 0.4
 
 
-def test_phaseX_eigenvectors_minus():
+def test_Ph_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(backend=Simulator(),
                      engine_list=[AutoReplacer(rule_set),
@@ -109,11 +68,9 @@ def test_phaseX_eigenvectors_minus():
     results = np.array([])
     for i in range(10):
         autovector = eng.allocate_qureg(1)
-        X | autovector
-        H | autovector
-        theta = .15625
-        unit = PhaseX(theta)
-        ancillas = eng.allocate_qureg(5)
+        theta = cmath.pi*2.*0.125
+        unit = Ph(theta)
+        ancillas = eng.allocate_qureg(3)
         QPE(unit) | (ancillas, autovector)
         All(Measure) | ancillas
         fasebinlist = [int(q) for q in ancillas]
@@ -124,11 +81,17 @@ def test_phaseX_eigenvectors_minus():
         All(Measure) | autovector
         eng.flush()
 
-    perc_75 = np.percentile(results, 75)
-    assert perc_75 == pytest.approx(.65625, abs=1e-2), "Percentile 75 not as expected (%f)" % (perc_75)
+    num_phase = (results == 0.125).sum()
+    assert num_phase/10 >= 0.4
 
 
-def test_phaseXxX_eigenvectors_minusplus():
+def two_qubit_gate(system_q, time):
+    CNOT | (system_q[0], system_q[1])
+    Ph(2.0*cmath.pi*(time * .125)) | system_q[1]
+    CNOT | (system_q[0], system_q[1])
+
+
+def test_2qubitsPh_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(backend=Simulator(),
                      engine_list=[AutoReplacer(rule_set),
@@ -137,11 +100,8 @@ def test_phaseXxX_eigenvectors_minusplus():
     for i in range(10):
         autovector = eng.allocate_qureg(2)
         X | autovector[0]
-        Tensor(H) | autovector
-        theta = .15625
-        unit = PhaseXxX(theta)
-        ancillas = eng.allocate_qureg(5)
-        QPE(unit) | (ancillas, autovector)
+        ancillas = eng.allocate_qureg(3)
+        QPE(two_qubit_gate) | (ancillas, autovector)
         All(Measure) | ancillas
         fasebinlist = [int(q) for q in ancillas]
         fasebin = ''.join(str(j) for j in fasebinlist)
@@ -151,8 +111,8 @@ def test_phaseXxX_eigenvectors_minusplus():
         All(Measure) | autovector
         eng.flush()
 
-    perc_75 = np.percentile(results, 75)
-    assert perc_75 == pytest.approx(.65625, abs=1e-2), "Percentile 75 not as expected (%f)" % (perc_75)
+    num_phase = (results == .125).sum()
+    assert num_phase/10 >= 0.4
 
 
 def test_X_no_eigenvectors():
@@ -201,11 +161,11 @@ def test_X_no_eigenvectors():
 def test_string():
     unit = X
     gate = QPE(unit)
-    assert (str(gate) == "QPE_X")
+    assert (str(gate) == "QPE(X)")
 
 
 def simplefunction(system_q, time):
-    Ph(2.0*cmath.pi*(time + .75)) | system_q
+    Ph(2.0*cmath.pi*(time * .75)) | system_q
 
 
 def test_simplefunction_eigenvectors():
@@ -227,5 +187,5 @@ def test_simplefunction_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    perc_95 = np.percentile(results, 95)
-    assert perc_95 == 0.75
+    num_phase = (results == .75).sum()
+    assert num_phase/10 >= 0.4
