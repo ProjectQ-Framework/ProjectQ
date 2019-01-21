@@ -28,18 +28,14 @@ from projectq.ops import (All, Measure, Ry, Rz, UniformlyControlledRy,
 
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
-# WARNING: Qrack simulator is not consistent with decompositions
+tolerance = 1e-6
+
 def test_is_qrack_simulator_present():
     try:
         import projectq.backends._qracksim._qracksim as _
         return True
     except:
         return False
-
-if (test_is_qrack_simulator_present()):
-    pytest.skip("Qrack simulator is not consistent with decompositions", allow_module_level=True)
-
-tolerance = 1e-6
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
     """
@@ -99,17 +95,25 @@ def test_uniformly_controlled_ry(n, gate_classes):
                                  engine_list=[correct_dummy_eng])
         rule_set = DecompositionRuleSet(modules=[ucr2cnot])
         test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(_decomp_gates),
-                                           test_dummy_eng])
+        if (test_is_qrack_simulator_present()):
+            test_eng = MainEngine(backend=Simulator(),
+                              engine_list=[test_dummy_eng])
+        else:
+            test_eng = MainEngine(backend=Simulator(),
+                                  engine_list=[AutoReplacer(rule_set),
+                                               InstructionFilter(_decomp_gates),
+                                               test_dummy_eng])
         test_sim = test_eng.backend
         correct_sim = correct_eng.backend
         correct_qb = correct_eng.allocate_qubit()
         correct_ctrl_qureg = correct_eng.allocate_qureg(n)
+        # WARNING: ControlledGate (and C) sort their control qubits,
+        #  which could be a problem for these gates being tested.
+        correct_ctrl_qureg = sorted(correct_ctrl_qureg, key=lambda x: x.id)
         correct_eng.flush()
         test_qb = test_eng.allocate_qubit()
         test_ctrl_qureg = test_eng.allocate_qureg(n)
+        test_ctrl_qureg = sorted(test_ctrl_qureg, key=lambda x: x.id)
         test_eng.flush()
 
         correct_sim.set_wavefunction(basis_state, correct_qb +
@@ -117,11 +121,14 @@ def test_uniformly_controlled_ry(n, gate_classes):
         test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qureg)
 
         gate_classes[1](angles) | (test_ctrl_qureg, test_qb)
-        slow_implementation(angles=angles,
-                            control_qubits=correct_ctrl_qureg,
-                            target_qubit=correct_qb,
-                            eng=correct_eng,
-                            gate_class=gate_classes[0])
+        if (test_is_qrack_simulator_present()):
+            gate_classes[1](angles) | (correct_ctrl_qureg, correct_qb)
+        else:
+            slow_implementation(angles=angles,
+                                control_qubits=correct_ctrl_qureg,
+                                target_qubit=correct_qb,
+                                eng=correct_eng,
+                                gate_class=gate_classes[0])
         test_eng.flush()
         correct_eng.flush()
 

@@ -31,7 +31,9 @@ from projectq.ops import (Ph,
                           Measure,
                           FlushGate,
                           Allocate,
-                          Deallocate)
+                          Deallocate,
+                          UniformlyControlledRy,
+                          UniformlyControlledRz)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN,
@@ -103,7 +105,9 @@ class Simulator(BasicEngine):
                     cmd.gate == Allocate or cmd.gate == Deallocate or
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
                     isinstance(cmd.gate, Ph) or
-                    isinstance(cmd.gate, AddConstant)):
+                    isinstance(cmd.gate, AddConstant) or
+                    isinstance(cmd.gate, UniformlyControlledRy) or
+                    isinstance(cmd.gate, UniformlyControlledRz)):
                 return True
             elif (isinstance(cmd.gate, AddConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
@@ -339,8 +343,8 @@ class Simulator(BasicEngine):
             ids1 = [qb.id for qb in cmd.qubits[0]]
             ids2 = [qb.id for qb in cmd.qubits[1]]
             self._simulator.apply_controlled_sqrtswap(ids1, ids2,
-                                                  [qb.id for qb in
-                                                   cmd.control_qubits])
+                                                      [qb.id for qb in
+                                                       cmd.control_qubits])
         elif isinstance(cmd.gate, Ph):
             self._simulator.apply_controlled_phase_gate(cmd.gate.angle,
                                                         [qb.id for qb in
@@ -372,6 +376,20 @@ class Simulator(BasicEngine):
                                                  [qb.id for qb in
                                                   cmd.control_qubits],
                                                  cmd.gate.a)
+        elif isinstance(cmd.gate, UniformlyControlledRy):
+            ids = [qb.id for qb in cmd.qubits[0]]
+            self._simulator.apply_uniformly_controlled_ry([angle for angle in
+                                                           cmd.gate.angles],
+                                                          ids,
+                                                          [qb.id for qb in
+                                                           cmd.control_qubits])
+        elif isinstance(cmd.gate, UniformlyControlledRz):
+            ids = [qb.id for qb in cmd.qubits[0]]
+            self._simulator.apply_uniformly_controlled_rz([angle for angle in
+                                                           cmd.gate.angles],
+                                                          ids,
+                                                          [qb.id for qb in
+                                                           cmd.control_qubits])
         elif len(cmd.gate.matrix) <= 2 ** 1:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]

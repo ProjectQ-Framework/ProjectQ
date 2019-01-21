@@ -47,8 +47,9 @@ public:
 #else
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
-    typedef std::function<void(bitLenInt start, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CINTFunc;
-    typedef std::function<void(bitLenInt start, bitLenInt carryStart, bitLenInt size, bitLenInt* ctrlArray, bitLenInt ctrlSize)> CMULXFunc;
+    typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, real1*)> UCRFunc;
+    typedef std::function<void(bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CINTFunc;
+    typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
 
     QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1) {
         rnd_eng_ = std::make_shared<std::default_random_engine>();
@@ -228,7 +229,7 @@ public:
         delete[] ctrlArray;
     }
 
-    void apply_controlled_phase_gate(real1 angle, std::vector<unsigned> ctrl){
+    void apply_controlled_phase_gate(calc_type angle, std::vector<unsigned> ctrl){
         real1 cosine = cos(angle);
         real1 sine = sin(angle);
 
@@ -250,6 +251,32 @@ public:
         qReg->ApplyControlledSingleBit(ctrlArray, ctrl.size(), target, mArray);
 
         delete[] ctrlArray;
+    }
+
+    void apply_uniformly_controlled_ry(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+        if (ctrl.size() == 0) {
+            for (bitLenInt i = 0; i < ids.size(); i++) {
+                qReg->RY(angles[0], map_[ids[i]]);
+            }
+            return;
+        }
+
+        apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, real1* anglesArray) {
+            qReg->UniformlyControlledRY(ctrlArray, controlLen, trgt, anglesArray);
+        });
+    }
+
+    void apply_uniformly_controlled_rz(std::vector<real1> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+        if (ctrl.size() == 0) {
+            for (bitLenInt i = 0; i < ids.size(); i++) {
+                qReg->RZ(angles[0], map_[ids[i]]);
+            }
+            return;
+        }
+
+        apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, real1* anglesArray) {
+            qReg->UniformlyControlledRZ(ctrlArray, controlLen, trgt, anglesArray);
+        });
     }
 
     void apply_controlled_inc(std::vector<unsigned> ids, std::vector<unsigned> ctrl, bitCapInt toAdd){
@@ -383,6 +410,28 @@ private:
             if (!map_.count(id))
                 return false;
         return true;
+    }
+
+    void apply_uniformly_controlled(std::vector<real1> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl, UCRFunc fn){
+        bitLenInt i;
+
+        // Adjust for the convention difference between ProjectQ and Qrack:
+        real1* anglesArray = new real1[angles.size()];
+        for (i = 0; i < angles.size(); i++) {
+            anglesArray[i] = angles[i];
+        }
+
+        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+        for (i = 0; i < ctrl.size(); i++) {
+            ctrlArray[i] = map_[ctrl[i]];
+        }
+
+        for (i = 0; i < ids.size(); i++) {
+            fn(ctrlArray, ctrl.size(), map_[ids[i]], anglesArray);
+        }
+
+        delete[] anglesArray;
+        delete[] ctrlArray;
     }
 
     void apply_controlled_int(CINTFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
