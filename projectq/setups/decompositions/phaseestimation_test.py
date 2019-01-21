@@ -57,7 +57,7 @@ def test_simple_test_X_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.5).sum()
-    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
+    assert num_phase/100. >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.4)
 
 
 def test_Ph_eigenvectors():
@@ -82,16 +82,16 @@ def test_Ph_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
+    assert num_phase/100. >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.4)
 
 
 def two_qubit_gate(system_q, time):
     CNOT | (system_q[0], system_q[1])
-    Ph(2.0*cmath.pi*(time * .125)) | system_q[1]
+    Ph(2.0*cmath.pi*(time * 0.125)) | system_q[1]
     CNOT | (system_q[0], system_q[1])
 
 
-def test_2qubitsPh_eigenvectors():
+def test_2qubitsPh_andfunction_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(backend=Simulator(),
                      engine_list=[AutoReplacer(rule_set),
@@ -111,8 +111,8 @@ def test_2qubitsPh_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    num_phase = (results == .125).sum()
-    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
+    num_phase = (results == 0.125).sum()
+    assert num_phase/100. >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.4)
 
 
 def test_X_no_eigenvectors():
@@ -162,30 +162,3 @@ def test_string():
     unit = X
     gate = QPE(unit)
     assert (str(gate) == "QPE(X)")
-
-
-def simplefunction(system_q, time):
-    Ph(2.0*cmath.pi*(time * .75)) | system_q
-
-
-def test_simplefunction_eigenvectors():
-    rule_set = DecompositionRuleSet(modules=[pe, dqft])
-    eng = MainEngine(backend=Simulator(),
-                     engine_list=[AutoReplacer(rule_set),
-                                  ])
-    results = np.array([])
-    for i in range(100):
-        autovector = eng.allocate_qureg(1)
-        ancillas = eng.allocate_qureg(2)
-        QPE(simplefunction) | (ancillas, autovector)
-        All(Measure) | ancillas
-        fasebinlist = [int(q) for q in ancillas]
-        fasebin = ''.join(str(j) for j in fasebinlist)
-        faseint = int(fasebin, 2)
-        phase = faseint / (2. ** (len(ancillas)))
-        results = np.append(results, phase)
-        All(Measure) | autovector
-        eng.flush()
-
-    num_phase = (results == .75).sum()
-    assert num_phase/10 >= 0.4, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/10, 0.4)
