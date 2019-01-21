@@ -38,6 +38,18 @@ def test_is_qrack_simulator_present():
     except:
         return False
 
+def get_available_simulators():
+    result = []
+    if test_is_qrack_simulator_present():
+        result.append("qrack_simulator")
+    try:
+        import projectq.backends._sim._cppsim as _
+        result.append("cpp_simulator")
+    except ImportError:
+        # The C++ simulator was either not installed or is misconfigured. Skip.
+        pass
+    return result
+
 def low_level_gates(eng, cmd):
     g = cmd.gate
     if isinstance(g, ClassicalInstructionGate):
@@ -102,16 +114,26 @@ def run_circuit(eng):
     return qureg
 
 
-def test_gate_decompositions():
-    sim = Simulator()
+@pytest.fixture(params=get_available_simulators())
+def test_gate_decompositions(request):
+    if (request == "cpp_simulator" and test_is_qrack_simulator_present()):
+        sim = CppSim()
+    else:
+        sim = Simulator()
+
     eng = MainEngine(sim, [])
+
     rule_set = DecompositionRuleSet(
         modules=[r2rzandph, crz2cxandrz, toffoli2cnotandtgate, ph2r])
 
     qureg = run_circuit(eng)
 
-    sim2 = Simulator()
-    if (test_is_qrack_simulator_present()):
+    if (request == "cpp_simulator" and test_is_qrack_simulator_present()):
+        sim2 = CppSim()
+    else:
+        sim2 = Simulator()
+
+    if (request == "qrack_simulator"):
         # The low_level_gates filter doesn't pass, if the Qrack Simulator is used.
         eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set)])
     else:

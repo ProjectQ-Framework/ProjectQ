@@ -23,8 +23,7 @@ import numpy as np
 from enum import IntEnum
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (Ph,
-                          R,
+from projectq.ops import (R,
                           BasicRotationGate,
                           Swap,
                           SqrtSwap,
@@ -104,7 +103,6 @@ class Simulator(BasicEngine):
             if (cmd.gate == Measure or
                     cmd.gate == Allocate or cmd.gate == Deallocate or
                     cmd.gate == Swap or cmd.gate == SqrtSwap or
-                    isinstance(cmd.gate, Ph) or
                     isinstance(cmd.gate, AddConstant) or
                     isinstance(cmd.gate, UniformlyControlledRy) or
                     isinstance(cmd.gate, UniformlyControlledRz)):
@@ -353,10 +351,6 @@ class Simulator(BasicEngine):
             self._simulator.apply_controlled_sqrtswap(ids1, ids2,
                                                       [qb.id for qb in
                                                        cmd.control_qubits])
-        elif isinstance(cmd.gate, Ph):
-            self._simulator.apply_controlled_phase_gate(cmd.gate.angle,
-                                                        [qb.id for qb in
-                                                         cmd.control_qubits])
         elif isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, AddConstantModN):
             #Unless there's a carry, the only unitary addition is mod (2^len(ids))
             ids = [qb.id for qr in cmd.qubits for qb in qr]
