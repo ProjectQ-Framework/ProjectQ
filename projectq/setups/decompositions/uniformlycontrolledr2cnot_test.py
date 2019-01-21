@@ -19,6 +19,7 @@ import pytest
 import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
+from projectq.backends._sim import Simulator as DefaultSimulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
                                InstructionFilter)
 
@@ -36,6 +37,18 @@ def test_is_qrack_simulator_present():
         return True
     except:
         return False
+
+def get_available_simulators():
+    result = []
+    if test_is_qrack_simulator_present():
+        result.append("qrack_simulator")
+    try:
+        import projectq.backends._sim._cppsim as _
+        result.append("cpp_simulator")
+    except ImportError:
+        # The C++ simulator was either not installed or is misconfigured. Skip.
+        pass
+    return result
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
     """
@@ -79,11 +92,11 @@ def test_wrong_number_of_angles():
     with pytest.raises(ValueError):
         UniformlyControlledRy([0.1, 0.2]) | ([], qb)
 
-
+@pytest.mark.parametrize("sim_type", get_available_simulators())
 @pytest.mark.parametrize("gate_classes", [(Ry, UniformlyControlledRy),
                                           (Rz, UniformlyControlledRz)])
 @pytest.mark.parametrize("n", [0, 1, 2, 3, 4])
-def test_uniformly_controlled_ry(n, gate_classes):
+def test_uniformly_controlled_ry(n, gate_classes, sim_type):
     random_angles = [0.5, 0.8, 1.2, 2.5, 4.4, 2.32, 6.6, 15.12, 1, 2, 9.54,
                      2.1, 3.1415, 1.1, 0.01, 0.99]
     angles = random_angles[:2**n]
@@ -91,20 +104,29 @@ def test_uniformly_controlled_ry(n, gate_classes):
         basis_state = [0] * 2**(n+1)
         basis_state[basis_state_index] = 1.
         correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(),
+        if (sim_type == "cpp_simulator" and test_is_qrack_simulator_present()):
+            correct_sim = DefaultSimulator()
+        else:
+            correct_sim = Simulator()
+        correct_eng = MainEngine(backend=correct_sim,
                                  engine_list=[correct_dummy_eng])
+
         rule_set = DecompositionRuleSet(modules=[ucr2cnot])
         test_dummy_eng = DummyEngine(save_commands=True)
-        if (test_is_qrack_simulator_present()):
-            test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[test_dummy_eng])
+        if (sim_type == "qrack_simulator"):
+            eng_list = [test_dummy_eng]
+            
+        elif (test_is_qrack_simulator_present()):
+            eng_list =[AutoReplacer(rule_set),
+                       InstructionFilter(_decomp_gates),
+                       test_dummy_eng]
+        if (sim_type == "cpp_simulator" and test_is_qrack_simulator_present()):
+            test_sim = DefaultSimulator()
         else:
-            test_eng = MainEngine(backend=Simulator(),
-                                  engine_list=[AutoReplacer(rule_set),
-                                               InstructionFilter(_decomp_gates),
-                                               test_dummy_eng])
-        test_sim = test_eng.backend
-        correct_sim = correct_eng.backend
+            test_sim = Simulator()
+        test_eng = MainEngine(backend=test_sim,
+                              engine_list=eng_list)
+
         correct_qb = correct_eng.allocate_qubit()
         correct_ctrl_qureg = correct_eng.allocate_qureg(n)
         # WARNING: ControlledGate (and C) sort their control qubits,
@@ -121,7 +143,7 @@ def test_uniformly_controlled_ry(n, gate_classes):
         test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qureg)
 
         gate_classes[1](angles) | (test_ctrl_qureg, test_qb)
-        if (test_is_qrack_simulator_present()):
+        if (sim_type == "qrack_simulator"):
             gate_classes[1](angles) | (correct_ctrl_qureg, correct_qb)
         else:
             slow_implementation(angles=angles,
