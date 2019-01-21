@@ -35,7 +35,7 @@ from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
-from projectq.backends import Simulator
+from projectq.backends._sim import Simulator
 
 
 def test_is_cpp_simulator_present():
@@ -43,19 +43,13 @@ def test_is_cpp_simulator_present():
     assert projectq.backends._sim._cppsim
 
 def test_is_qrack_simulator_present():
-    _qracksim = pytest.importorskip("projectq.backends._qracksim._qracksim")
-    import projectq.backends._qracksim._qracksim as _
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
 
 def get_available_simulators():
-    try:
-        # Try to import the Qrack Simulator, if it exists.
-        test_is_qrack_simulator_present()
-        # If the Qrack Simulator exists, it supersedes these tests.
-        return []
-    except ImportError:
-        # If the Qrack Simulator isn't built, import the default ProjectQ simulators.
-        pass
-
     result = ["py_simulator"]
     try:
         import projectq.backends._sim._cppsim as _
@@ -617,6 +611,9 @@ class MockSimulatorBackend(object):
 
 
 def test_simulator_flush(sim):
+    if test_is_qrack_simulator_present():
+        pytest.skip("Qrack simulator interferes with default simulator flush test.")
+
     sim = MainEngine(sim, [])
     sim._simulator = MockSimulatorBackend()
 
