@@ -22,7 +22,8 @@ from scipy import sparse as sps
 import scipy.sparse.linalg
 
 from projectq import MainEngine
-from projectq.backends import Simulator
+# Qrack simulator does not yet support time evolution, so always use the default simulator:
+from projectq.backends._sim import Simulator
 from projectq.cengines import (DummyEngine, AutoReplacer, InstructionFilter,
                                InstructionFilter, DecompositionRuleSet)
 from projectq.meta import Control
@@ -31,16 +32,6 @@ from projectq.ops import (QubitOperator, TimeEvolution,
                           Measure)
 
 from . import time_evolution as te
-
-def test_is_qrack_simulator_present():
-    try:
-        import projectq.backends._qracksim._qracksim as _
-        return True
-    except:
-        return False
-
-if (test_is_qrack_simulator_present()):
-    pytest.skip("Qrack simulator does not support time evolution", allow_module_level=True)
 
 def test_recognize_commuting_terms():
     saving_backend = DummyEngine(save_commands=True)
