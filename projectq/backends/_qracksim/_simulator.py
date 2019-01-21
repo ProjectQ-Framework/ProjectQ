@@ -149,6 +149,14 @@ class Simulator(BasicEngine):
         else:
             return qureg
 
+    def get_expectation_value(self, qubit_operator, qureg):
+        # To maintain compatibility with default Simulator, for the moment.
+        pass
+
+    def apply_qubit_operator(self, qubit_operator, qureg):
+        # To maintain compatibility with default Simulator, for the moment.
+        pass
+
     def get_probability(self, bit_string, qureg):
         """
         Return the probability of the outcome `bit_string` when measuring
