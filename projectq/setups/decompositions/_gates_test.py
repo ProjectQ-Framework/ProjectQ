@@ -24,6 +24,7 @@ from projectq.cengines import (MainEngine,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
+from projectq.backends._sim import Simulator as DefaultSimulator
 from projectq.ops import (All, ClassicalInstructionGate, CRz, Entangle, H,
                           Measure, Ph, R, Rz, T, Tdag, Toffoli, X)
 from projectq.meta import Control
@@ -114,10 +115,10 @@ def run_circuit(eng):
     return qureg
 
 
-@pytest.fixture(params=get_available_simulators())
+@pytest.mark.parametrize("request", get_available_simulators())
 def test_gate_decompositions(request):
     if (request == "cpp_simulator" and test_is_qrack_simulator_present()):
-        sim = CppSim()
+        sim = DefaultSimulator()
     else:
         sim = Simulator()
 
@@ -129,7 +130,7 @@ def test_gate_decompositions(request):
     qureg = run_circuit(eng)
 
     if (request == "cpp_simulator" and test_is_qrack_simulator_present()):
-        sim2 = CppSim()
+        sim2 = DefaultSimulator()
     else:
         sim2 = Simulator()
 
