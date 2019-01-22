@@ -331,30 +331,33 @@ def test_send_possible_commands_allocation_no_active_qubits(
     qb1 = WeakQubitRef(engine=None, idx=1)
     qb2 = WeakQubitRef(engine=None, idx=2)
     qb3 = WeakQubitRef(engine=None, idx=3)
+    qb4 = WeakQubitRef(engine=None, idx=4)
 
-    cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0], ))
-    cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1], ))
-    cmd2 = Command(engine=None, gate=Allocate, qubits=([qb2], ))
-    cmd3 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb2])
-    cmd4 = Command(engine=None, gate=Allocate, qubits=([qb3], ))
-    cmd5 = Command(engine=None, gate=X, qubits=([qb3], ))
-    cmd6 = Command(engine=None, gate=Deallocate, qubits=([qb3], ))
+    cmd_list = [
+        Command(engine=None, gate=Allocate, qubits=([qb0], )),
+        Command(engine=None, gate=Allocate, qubits=([qb1], )),
+        Command(engine=None, gate=Allocate, qubits=([qb2], )),
+        Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb2]),
+        Command(engine=None, gate=X, qubits=([qb1], ), controls=[qb2]),
+        Command(engine=None, gate=Allocate, qubits=([qb3], )),
+        Command(engine=None, gate=X, qubits=([qb3], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb3], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb2], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb1], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb0], )),
+        Command(engine=None, gate=Allocate, qubits=([qb4], )),
+    ]
 
     qb_flush = WeakQubitRef(engine=None, idx=-1)
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
 
-    mapper._stored_commands = [
-        cmd0, cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd_flush
-    ]
+    mapper._stored_commands = cmd_list + [cmd_flush]
 
     mapper._run()
-    assert len(mapper._stored_commands) == 4
-    assert mapper._stored_commands[0] == cmd4
-    assert mapper._stored_commands[1] == cmd5
-    assert mapper._stored_commands[2] == cmd6
-    mapper._run()
-    assert len(mapper._stored_commands) == 1
-    assert mapper._stored_commands[0] == cmd_flush
+    assert len(mapper._stored_commands) == 8
+    # NB: after swap, can actually send Deallocate to qb0
+    assert mapper._stored_commands[0:6] == cmd_list[4:10]
+    assert mapper._stored_commands[6] == cmd_list[11]
 
 
 def test_send_possible_commands_deallocate(simple_mapper):
@@ -445,7 +448,7 @@ def test_run_and_receive(simple_graph, simple_mapper):
         Command(None, X, qubits=([qb[5]], ), controls=[qb[3]]),
         Command(None, X, qubits=([qb[3]], ), controls=[qb[4]]),
         Command(None, X, qubits=([qb[3]], ), controls=[qb[6]]),
-        Command(None, X, qubits=([qb[4]], ), controls=[qb[6]])
+        Command(None, X, qubits=([qb[4]], ), controls=[qb[6]]),
     ]
     deallocate_cmds = [
         Command(engine=None, gate=Deallocate, qubits=([qb[1]], ))
@@ -560,7 +563,7 @@ def test_allocate_too_many_qubits(simple_mapper):
     qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
 
     qb.append(WeakQubitRef(engine=None, idx=len(qb)))
-        allocate_cmds.append(
+    allocate_cmds.append(
         Command(engine=None, gate=Allocate, qubits=([qb[-1]], )))
 
     qb_flush = WeakQubitRef(engine=None, idx=-1)
@@ -702,21 +705,28 @@ def test_check_that_local_optimizer_doesnt_merge(simple_graph):
 
 
 @pytest.mark.parametrize("enable_caching", [False, True])
-def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper,
-                                              enable_caching):
+def test_3x3_grid_multiple_simultaneous_non_intersecting_paths(
+        grid33_graph_mapper, enable_caching):
     mapper, backend = grid33_graph_mapper
     mapper.enable_caching = enable_caching
 
     qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
 
+    # 0 - 1 - 2
+    # |   |   |
+    # 3 - 4 - 5
+    # |   |   |
+    # 6 - 7 - 8
+
     cmd0 = Command(None, X, qubits=([qb[0]], ), controls=[qb[6]])
     cmd1 = Command(None, X, qubits=([qb[1]], ), controls=[qb[7]])
     cmd2 = Command(None, X, qubits=([qb[2]], ), controls=[qb[8]])
+    cmd3 = Command(None, X, qubits=([qb[2]], ), controls=[qb[8]])
 
     qb_flush = WeakQubitRef(engine=None, idx=-1)
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
 
-    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd2, cmd_flush])
+    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd2, cmd3, cmd_flush])
     assert not mapper._stored_commands
     assert mapper.num_mappings == 1
     assert mapper.depth_of_swaps == {1: 1}
@@ -730,6 +740,16 @@ def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper,
         6: 3,
         7: 4,
         8: 5
+    } or mapper.current_mapping == {
+        0: 3,
+        1: 4,
+        2: 5,
+        3: 0,
+        4: 1,
+        5: 2,
+        6: 6,
+        7: 7,
+        8: 8
     }
 
     cmd3 = Command(None, X, qubits=([qb[0]], ), controls=[qb[2]])
@@ -750,6 +770,16 @@ def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper,
         6: 3,
         7: 5,
         8: 4
+    } or mapper.current_mapping == {
+        0: 4,
+        1: 3,
+        2: 5,
+        3: 1,
+        4: 0,
+        5: 2,
+        6: 7,
+        7: 6,
+        8: 8
     }
 
     if enable_caching:
@@ -766,3 +796,123 @@ def test_3x3_grid_multiple_simultaneous_paths(grid33_graph_mapper,
         assert not mapper._path_cache.has_path(4, 5)
         assert not mapper._path_cache.has_path(6, 7)
         assert not mapper._path_cache.has_path(7, 8)
+
+
+@pytest.mark.parametrize("enable_caching", [False, True])
+def test_3x3_grid_multiple_simultaneous_intersecting_paths_impossible(
+        grid33_graph_mapper, enable_caching):
+    mapper, backend = grid33_graph_mapper
+    mapper.enable_caching = enable_caching
+
+    # 0 - 1 - 2
+    # |   |   |
+    # 3 - 4 - 5
+    # |   |   |
+    # 6 - 7 - 8
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    cmd0 = Command(None, X, qubits=([qb[1]], ), controls=[qb[7]])
+    cmd1 = Command(None, X, qubits=([qb[3]], ), controls=[qb[5]])
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd_flush])
+    assert not mapper._stored_commands
+    assert mapper.num_mappings == 2
+    assert mapper.depth_of_swaps == {1: 2}
+    assert mapper.current_mapping == {
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 7,
+        5: 4,
+        6: 6,
+        7: 5,
+        8: 8
+    } or mapper.current_mapping == {
+        0: 0,
+        1: 3,
+        2: 2,
+        3: 4,
+        4: 1,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8
+    }
+
+    if enable_caching:
+        assert mapper._path_cache._cache
+        assert mapper._path_cache.has_path(1, 7)
+        assert mapper._path_cache.has_path(3, 5)
+
+    mapper.current_mapping = dict(enumerate(range(len(qb))))
+
+    cmd2 = Command(None, X, qubits=([qb[7]], ), controls=[qb[1]])
+    cmd3 = Command(None, X, qubits=([qb[1]], ), controls=[qb[8]])
+    mapper.receive(allocate_cmds + [cmd2, cmd3, cmd_flush])
+    assert not mapper._stored_commands
+    assert mapper.num_mappings == 4
+    assert mapper.depth_of_swaps == {1: 4}
+
+    if enable_caching:
+        assert mapper._path_cache._cache
+        assert mapper._path_cache.has_path(1, 7)
+        assert mapper._path_cache.has_path(3, 5)
+        assert mapper._path_cache.has_path(1, 8)
+
+
+@pytest.mark.parametrize("enable_caching", [False, True])
+def test_3x3_grid_multiple_simultaneous_intersecting_paths_possible(
+        grid33_graph_mapper, enable_caching):
+    mapper, backend = grid33_graph_mapper
+    mapper.enable_caching = enable_caching
+
+    # 0 - 1 - 2
+    # |   |   |
+    # 3 - 4 - 5
+    # |   |   |
+    # 6 - 7 - 8
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    # NB. when generating the swaps for the paths through the graph, the path
+    #     0 -> 7 needs to be performed *before* the one 3 -> 5
+    cmd0 = Command(None, X, qubits=([qb[3]], ), controls=[qb[5]])
+    cmd1 = Command(None, X, qubits=([qb[0]], ), controls=[qb[7]])
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd_flush])
+
+    assert not mapper._stored_commands
+    assert mapper.num_mappings == 1
+    assert mapper.depth_of_swaps == {3: 1}
+    assert mapper.current_mapping == {
+        0: 0,
+        1: 3,
+        2: 2,
+        3: 4,
+        4: 7,
+        5: 5,
+        6: 6,
+        7: 1,
+        8: 8
+    } or mapper.current_mapping == {
+        0: 0,
+        1: 4,
+        2: 2,
+        3: 3,
+        4: 5,
+        5: 7,
+        6: 6,
+        7: 1,
+        8: 8
+    }
+
+    if enable_caching:
+        assert mapper._path_cache._cache
+        assert mapper._path_cache.has_path(0, 7)
+        assert mapper._path_cache.has_path(3, 5)

@@ -22,10 +22,8 @@ Output: Quantum circuit in which qubits are placed in 2-D square grid in which
         uses Swap gates in order to move qubits next to each other.
 """
 from copy import deepcopy
-import itertools
 
 import random
-import numpy as np
 import networkx as nx
 
 from projectq.cengines import (BasicMapperEngine, return_swap_depth)
@@ -33,6 +31,9 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
+from projectq.cengines._graph_path_container import PathContainer
+
+# ==============================================================================
 
 
 class PathCacheExhaustive():
@@ -95,6 +96,9 @@ class PathCacheExhaustive():
                                            path[end]))] = path[start:end + 1]
 
 
+# ==============================================================================
+
+
 class GraphMapperError(Exception):
     """Base class for all exceptions related to the GraphMapper."""
 
@@ -131,7 +135,7 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
     Pre-conditions:
         len(active_qubits) <= num_qubits == len(graph)
     """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     mapping = deepcopy(current_mapping)
     currently_used_nodes = sorted([v for _, v in mapping.items()])
     available_ids = [n for n in graph if n not in currently_used_nodes]
@@ -139,41 +143,6 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
     for i, logical_id in enumerate(new_logical_qubit_ids):
         mapping[logical_id] = available_ids[i]
     return mapping
-
-
-def _iterate_with_previous(some_iterable):
-    prevs, items = itertools.tee(some_iterable, 2)
-    items = itertools.islice(items, 1, None)
-    prevs = itertools.islice(prevs, len(some_iterable) - 1)
-    return zip(prevs, items)
-
-
-def _return_swaps(paths):
-    """
-    Generate a list of swap ops based on a list of paths through the graph.
-
-    Args:
-        paths (list): List of paths through the graph between pairs
-                      of qubits that need to interact
-
-    Returns: A list of swap operations (tuples of logical qubit ids)
-             required to move the qubits to the correct locations
-    """
-    swap_operations = []
-
-    for path in paths:
-        swap_operations.append([])
-        path_for_qb0, path_for_qb1 = np.array_split(path, 2)
-
-        # Add swaps operations for first half of the path
-        for prev, cur in _iterate_with_previous(path_for_qb0):
-            swap_operations[-1].append((prev, cur))
-
-        # Add swaps operations for the second half of the path
-        for prev, cur in _iterate_with_previous(path_for_qb1[::-1]):
-            swap_operations[-1].append((prev, cur))
-
-    return swap_operations
 
 
 class GraphMapper(BasicMapperEngine):
@@ -319,10 +288,7 @@ class GraphMapper(BasicMapperEngine):
         Returns: A list of paths through the graph to move some qubits and have
                  them interact
         """
-        # TODO: need to think about merging paths and applying gates in the
-        #       middle of the swaps if possible
-
-        paths = []
+        paths = PathContainer()
         allocated_qubits = deepcopy(self._currently_allocated_ids)
         active_qubits = deepcopy(self._currently_allocated_ids)
 
@@ -361,29 +327,18 @@ class GraphMapper(BasicMapperEngine):
 
             # Process a two qubit gate:
             elif len(qubit_ids) == 2:
-                path = self._process_two_qubit_gate_dumb(
-                    qubit0=qubit_ids[0],
-                    qubit1=qubit_ids[1],
-                    active_qubits=active_qubits)
-
-                paths_start = [p[0] for p in paths]
-                paths_end = [p[-1] for p in paths]
-
-                if path \
-                   and not any([p in paths_start for p in path]) \
-                   and not any([p in paths_end for p in path]):
-                    paths += [path]
-                    # Maybe a bit too conservative: remove all qubits
-                    # of the path from the active qubits list
-                    # This effectively only allows non-intersecting paths
-                    for backend_id in path:
-                        if backend_id in self._reverse_current_mapping:
-                            active_qubits.discard(
-                                self._reverse_current_mapping[backend_id])
+                # At least one qubit is not an active qubit:
+                if qubit_ids[0] not in active_qubits \
+                   or qubit_ids[1] not in active_qubits:
+                    active_qubits.discard(qubit_ids[0])
+                    active_qubits.discard(qubit_ids[1])
+                elif not self._process_two_qubit_gate_dumb(
+                        qubit0=qubit_ids[0], qubit1=qubit_ids[1], paths=paths):
+                    break
 
         return paths
 
-    def _process_two_qubit_gate_dumb(self, qubit0, qubit1, active_qubits):
+    def _process_two_qubit_gate_dumb(self, qubit0, qubit1, paths):
         """
         Process a two qubit gate.
 
@@ -394,32 +349,41 @@ class GraphMapper(BasicMapperEngine):
         Args:
             qubit0 (int): qubit.id of one of the qubits
             qubit1 (int): qubit.id of the other qubit
-            active_qubits (set): contains all qubit ids which for which
-                                 gates can be applied in this cycle before
-                                 the swaps
 
         Returns: A path through the graph (can be empty)
         """
-        # At least one qubit is not an active qubit:
-        if qubit0 not in active_qubits or qubit1 not in active_qubits:
-            active_qubits.discard(qubit0)
-            active_qubits.discard(qubit1)
-            return []
-
         # Path is given using graph nodes (ie. mapped ids)
         # If we come here, the two nodes can't be connected on the graph or the
         # command would have been applied already
         node0 = self._current_mapping[qubit0]
         node1 = self._current_mapping[qubit1]
 
+        if paths.has_interaction(node0, node1) \
+           or self.graph.has_edge(node0, node1):
+            return True
+
         # Qubits are both active but not connected via an edge
         if self.enable_caching:
             if self._path_cache.has_path(node0, node1):
-                return self._path_cache.get_path(node0, node1)
-            path = nx.shortest_path(self.graph, source=node0, target=node1)
-            self._path_cache.add_path(path)
-            return path
-        return nx.shortest_path(self.graph, source=node0, target=node1)
+                path = self._path_cache.get_path(node0, node1)
+            else:
+                path = nx.shortest_path(self.graph, source=node0, target=node1)
+                self._path_cache.add_path(path)
+        else:
+            if self.graph.has_edge(node0, node1):
+                path = [node0, node1]
+            else:
+                path = nx.shortest_path(self.graph, source=node0, target=node1)
+
+        if path:
+            # Makes sure that one qubit will interact with at most one other
+            # qubit before forcing the generation of a swap
+            # Also makes sure that path intersection (if any) are possible
+            return paths.try_add_path(path)
+
+        # Technically, since the graph is connected, we should always be able
+        # to find a path between any two nodes. But just in case...
+        return False  # pragma: no cover
 
     def _send_possible_commands(self):
         """
@@ -469,14 +433,12 @@ class GraphMapper(BasicMapperEngine):
                     new_stored_commands.append(cmd)
             else:
                 send_gate = True
-                logical_ids = set()
                 backend_ids = set()
                 for qureg in cmd.all_qubits:
                     for qubit in qureg:
                         if qubit.id not in active_ids:
                             send_gate = False
                             break
-                        logical_ids.add(qubit.id)
                         backend_ids.add(self._current_mapping[qubit.id])
 
                 # Check that mapped ids are connected by an edge on the graph
@@ -514,7 +476,7 @@ class GraphMapper(BasicMapperEngine):
         if not self._stored_commands:
             return
 
-        swaps = _return_swaps(paths)
+        swaps = paths.generate_swaps()
 
         if swaps:  # first mapping requires no swaps
             backend_ids_used = {
@@ -522,15 +484,10 @@ class GraphMapper(BasicMapperEngine):
                 for logical_id in self._currently_allocated_ids
             }
 
-            # Get a list of all backend ids we require to perform the swaps
-            required_ids = {
-                n
-                for n in list(itertools.chain.from_iterable(paths))
-            }
-
             # Get a list of the qubits we need to allocate just to perform the
             # swaps
-            not_allocated_ids = set(required_ids).difference(backend_ids_used)
+            not_allocated_ids = set(
+                paths.get_all_nodes()).difference(backend_ids_used)
 
             # Allocate all mapped qubit ids (which are not already allocated,
             # i.e., contained in self._currently_allocated_ids)
@@ -541,13 +498,26 @@ class GraphMapper(BasicMapperEngine):
                     engine=self, gate=AllocateQubitGate(), qubits=([qb], ))
                 self.send([cmd])
 
+            # Calculate reverse internal mapping
+            new_internal_mapping = deepcopy(self._reverse_current_mapping)
+
+            # Add missing entries with invalid id to be able to process the
+            # swaps operations
+            for backend_id in not_allocated_ids:
+                new_internal_mapping[backend_id] = -1
+
             # Send swap operations to arrive at the new mapping
-            swaps = list(itertools.chain.from_iterable(swaps))
             for bqb0, bqb1 in swaps:
                 q0 = WeakQubitRef(engine=self, idx=bqb0)
                 q1 = WeakQubitRef(engine=self, idx=bqb1)
                 cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
                 self.send([cmd])
+
+                # Update internal mapping based on swap operations
+                new_internal_mapping[bqb0], \
+                    new_internal_mapping[bqb1] = \
+                    new_internal_mapping[bqb1], \
+                    new_internal_mapping[bqb0]
 
             # Register statistics:
             self.num_mappings += 1
@@ -560,21 +530,6 @@ class GraphMapper(BasicMapperEngine):
                 self.num_of_swaps_per_mapping[len(swaps)] = 1
             else:
                 self.num_of_swaps_per_mapping[len(swaps)] += 1
-
-            # Calculate reverse internal mapping
-            new_internal_mapping = deepcopy(self._reverse_current_mapping)
-
-            # Add missing entries with invalid id to be able to process the
-            # swaps operations
-            for backend_id in not_allocated_ids:
-                new_internal_mapping[backend_id] = -1
-
-            # Update internal mapping based on swap operations
-            for bqb0, bqb1 in swaps:
-                new_internal_mapping[bqb0], \
-                    new_internal_mapping[bqb1] = \
-                    new_internal_mapping[bqb1], \
-                    new_internal_mapping[bqb0]
 
             # Calculate the list of "helper" qubits that need to be deallocated
             # and remove invalid entries
