@@ -20,10 +20,10 @@ import random
 import pytest
 import networkx as nx
 import projectq
-from projectq.cengines import DummyEngine, LocalOptimizer
+from projectq.cengines import DummyEngine, LocalOptimizer, MainEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
-                          X)
+                          X, H, All, Measure, CNOT)
 from projectq.types import WeakQubitRef
 
 from projectq.cengines import _graphmapper as graphm
@@ -916,3 +916,39 @@ def test_3x3_grid_multiple_simultaneous_intersecting_paths_possible(
         assert mapper._path_cache._cache
         assert mapper._path_cache.has_path(0, 7)
         assert mapper._path_cache.has_path(3, 5)
+
+
+@pytest.mark.parametrize("enable_caching", [False, True])
+def test_mapper_to_str(simple_graph, enable_caching):
+    mapper = graphm.GraphMapper(
+        graph=simple_graph, enable_caching=enable_caching)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend, [mapper])
+    qureg = eng.allocate_qureg(len(simple_graph))
+
+    eng.flush()
+    assert mapper.current_mapping == dict(enumerate(range(len(simple_graph))))
+
+    H | qureg[0]
+    X | qureg[2]
+
+    CNOT | (qureg[6], qureg[4])
+    CNOT | (qureg[6], qureg[0])
+    CNOT | (qureg[6], qureg[1])
+
+    All(Measure) | qureg
+    eng.flush()
+
+    str_repr = str(mapper)
+    assert str_repr.count("Number of mappings: 2") == 1
+    assert str_repr.count("1:   1") == 1
+    assert str_repr.count("2:   1") == 2
+    assert str_repr.count("3:   1") == 1
+    assert str_repr.count("  0 -   6: 1") == 1
+    assert str_repr.count("  0 -   3: 1") == 1
+    assert str_repr.count("  4 -   6: 1") == 1
+
+    sent_gates = [cmd.gate for cmd in backend.received_commands]
+    assert sent_gates.count(H) == 1
+    assert sent_gates.count(X) == 4
+    assert sent_gates.count(Measure) == 7

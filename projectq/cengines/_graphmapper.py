@@ -23,6 +23,7 @@ Output: Quantum circuit in which qubits are placed in 2-D square grid in which
 """
 from copy import deepcopy
 
+import math
 import random
 import networkx as nx
 
@@ -45,6 +46,12 @@ class PathCacheExhaustive():
         self._path_length_threshold = path_length_threshold
         self._cache = {}
         self.key_type = frozenset
+
+    def __str__(self):
+        s = ""
+        for (node0, node1), path in self._cache.items():
+            s += "{}: {}\n".format(sorted([node0, node1]), path)
+        return s
 
     def empty_cache(self):
         """Empty the cache."""
@@ -101,15 +108,6 @@ class PathCacheExhaustive():
 
 class GraphMapperError(Exception):
     """Base class for all exceptions related to the GraphMapper."""
-
-
-class QubitAllocationError(GraphMapperError):
-    """
-    Exception raised if a qubit allocation is impossible.
-
-    This would typically be the case if the number of allocated qubit is
-    greater than the number of nodes inside the graph.
-    """
 
 
 def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
@@ -180,6 +178,8 @@ class GraphMapper(BasicMapperEngine):
         num_of_swaps_per_mapping (dict): Key are the number of swaps per
                                          mapping, value is the number of such
                                          mappings which have been applied
+        path_stats (dict) : Key is the endpoints of a path, value is the number
+                            of such paths which have been applied
 
     Note:
         1) Gates are cached and only mapped from time to time. A
@@ -243,6 +243,7 @@ class GraphMapper(BasicMapperEngine):
         self.num_mappings = 0
         self.depth_of_swaps = dict()
         self.num_of_swaps_per_mapping = dict()
+        self.paths_stats = dict()
 
     @property
     def current_mapping(self):
@@ -289,6 +290,7 @@ class GraphMapper(BasicMapperEngine):
                  them interact
         """
         paths = PathContainer()
+        not_in_mapping_qubits = set()
         allocated_qubits = deepcopy(self._currently_allocated_ids)
         active_qubits = deepcopy(self._currently_allocated_ids)
 
@@ -310,11 +312,8 @@ class GraphMapper(BasicMapperEngine):
                 if len(allocated_qubits) < self.num_qubits:
                     allocated_qubits.add(qubit_id)
                     active_qubits.add(qubit_id)
-                else:
-                    raise QubitAllocationError(
-                        "Unable to allocate new qubit: all possible qubits"
-                        " ({}) have already been allocated".format(
-                            self.num_qubits))
+                    if qubit_id not in self._current_mapping:
+                        not_in_mapping_qubits.add(qubit_id)
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id
@@ -332,9 +331,22 @@ class GraphMapper(BasicMapperEngine):
                    or qubit_ids[1] not in active_qubits:
                     active_qubits.discard(qubit_ids[0])
                     active_qubits.discard(qubit_ids[1])
-                elif not self._process_two_qubit_gate_dumb(
-                        qubit0=qubit_ids[0], qubit1=qubit_ids[1], paths=paths):
-                    break
+                else:
+                    if not_in_mapping_qubits:
+                        self.current_mapping = self._add_qubits_to_mapping(
+                            self._current_mapping, self.graph,
+                            not_in_mapping_qubits, self._stored_commands)
+                        not_in_mapping_qubits = set()
+
+                    if not self._process_two_qubit_gate_dumb(
+                            qubit0=qubit_ids[0], qubit1=qubit_ids[1],
+                            paths=paths):
+                        break
+
+        if not_in_mapping_qubits:
+            self.current_mapping = self._add_qubits_to_mapping(
+                self._current_mapping, self.graph, not_in_mapping_qubits,
+                self._stored_commands)
 
         return paths
 
@@ -358,14 +370,15 @@ class GraphMapper(BasicMapperEngine):
         node0 = self._current_mapping[qubit0]
         node1 = self._current_mapping[qubit1]
 
-        if paths.has_interaction(node0, node1) \
-           or self.graph.has_edge(node0, node1):
+        if paths.has_interaction(node0, node1):
             return True
 
         # Qubits are both active but not connected via an edge
         if self.enable_caching:
             if self._path_cache.has_path(node0, node1):
                 path = self._path_cache.get_path(node0, node1)
+            elif self.graph.has_edge(node0, node1):
+                path = [node0, node1]
             else:
                 path = nx.shortest_path(self.graph, source=node0, target=node1)
                 self._path_cache.add_path(path)
@@ -379,7 +392,15 @@ class GraphMapper(BasicMapperEngine):
             # Makes sure that one qubit will interact with at most one other
             # qubit before forcing the generation of a swap
             # Also makes sure that path intersection (if any) are possible
-            return paths.try_add_path(path)
+            if not paths.try_add_path(path):
+                return False
+
+            interaction = frozenset((node0, node1))
+            if interaction not in self.paths_stats:
+                self.paths_stats[interaction] = 1
+            else:
+                self.paths_stats[interaction] += 1
+            return True
 
         # Technically, since the graph is connected, we should always be able
         # to find a path between any two nodes. But just in case...
@@ -586,3 +607,50 @@ class GraphMapper(BasicMapperEngine):
             # Storage is full: Create new map and send some gates away:
             if len(self._stored_commands) >= self.storage:
                 self._run()
+
+    def __str__(self):
+        """
+        Return the string representation of this GraphMapper.
+
+        Returns:
+            A summary (string) of resources used, including depth of swaps and
+            statistics about the paths generated
+        """
+
+        depth_of_swaps_str = ""
+        for depth_of_swaps, num_mapping in self.depth_of_swaps.items():
+            depth_of_swaps_str += "\n    {:3d}: {:3d}".format(
+                depth_of_swaps, num_mapping)
+
+        num_swaps_per_mapping_str = ""
+        for num_swaps_per_mapping, num_mapping in self.num_of_swaps_per_mapping.items(
+        ):
+            num_swaps_per_mapping_str += "\n    {:3d}: {:3d}".format(
+                num_swaps_per_mapping, num_mapping)
+
+        interactions = [
+            k for _, k in sorted(
+                zip(self.paths_stats.values(), self.paths_stats.keys()),
+                reverse=True)
+        ]
+
+        max_width = math.ceil(math.log10(max(self.paths_stats.values()))) + 1
+        paths_stats_str = ""
+        if self.enable_caching:
+            for k in interactions:
+                if self.graph.has_edge(*list(k)):
+                    path = list(k)
+                else:
+                    path = self._path_cache.get_path(*list(k))
+                paths_stats_str += "\n    {3:3} - {4:3}: {0:{1}} | {2}".format(
+                    self.paths_stats[k], max_width, path, *k)
+        else:
+            for k in interactions:
+                paths_stats_str += "\n    {2:3} - {3:3}: {0:{1}}".format(
+                    self.paths_stats[k], max_width, *k)
+
+        return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n" +
+                "Number of swaps per mapping:{}\n\n" +
+                "Path statistics:{}\n\n").format(
+                    self.num_mappings, depth_of_swaps_str,
+                    num_swaps_per_mapping_str, paths_stats_str)
