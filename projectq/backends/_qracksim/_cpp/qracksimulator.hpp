@@ -389,7 +389,7 @@ public:
             valuesArray[i] = values[i];
         }
         calc_type N = qReg->ProbMask(mask, val);
-        if (N < 1.e-12)
+        if (N < min_norm)
             throw(std::runtime_error("collapse_wavefunction(): Invalid collapse! Probability is ~0."));
 
         qReg->ForceM(idsArray, ids.size(), valuesArray);
