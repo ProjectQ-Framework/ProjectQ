@@ -398,6 +398,53 @@ public:
         delete[] valuesArray;
     }
 
+    void prepare_state(std::vector<unsigned> const& ids, std::vector<std::complex<float>> const& amps){
+        // We can prepare arbitrary substates with measurement, "Compose," and "Decompose.
+        assert((1U << ids.size()) == amps.size());
+
+        // We need the amplitudes as an array of Qrack::complex elements.
+        Qrack::complex* substateVec = new Qrack::complex[amps.size()];
+        for (bitCapInt j = 0; j < amps.size(); j++) {
+            substateVec[j] = Qrack::complex(real(amps[j]), imag(amps[j]));
+        }
+
+        // If the substate being prepared is the full set, then set the amplitudes, and we're done.
+        if (ids.size() == qReg->GetQubitCount()) {
+            qReg->SetQuantumState(substateVec);
+            delete[] substateVec;
+            return;
+        }
+
+        // Otherwise, this is a subset less than the full set of qubits.
+
+        // First, collapse the old substate and throw it away.
+        bitLenInt mapped;
+        for (bitLenInt i = 0; i < ids.size(); i++) {
+            qReg->M(map_[ids[i]]);
+            mapped = map_[ids[i]];
+            qReg->Dispose(mapped, 1);
+            map_.erase(ids[i]);
+            for (Map::iterator it = map_.begin(); it != map_.end(); it++) {
+                if (it->second > mapped) {
+                    it->second--;
+                }
+            }
+        }
+
+        // Then, prepare the new substate.
+        Qrack::QInterfacePtr substate = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ids.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true);
+        substate->SetQuantumState(substateVec);
+
+        // Finally, combine the representation of the new substate with the remainder of the old engine.
+        bitLenInt oldLength = qReg->Compose(substate);
+
+        for (bitLenInt i = 0; i < ids.size(); i++) {
+            map_[ids[i]] = oldLength + i;
+        }
+
+        delete[] substateVec;
+    }
+
     std::tuple<Map, StateVector> cheat(){
         if (qReg == NULL) {
             StateVector vec(1, 0.0);

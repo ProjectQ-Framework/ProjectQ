@@ -30,7 +30,8 @@ from projectq.ops import (Swap,
                           Allocate,
                           Deallocate,
                           UniformlyControlledRy,
-                          UniformlyControlledRz)
+                          UniformlyControlledRz,
+                          StatePreparation)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN,
@@ -110,6 +111,13 @@ class Simulator(BasicEngine):
             elif (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
             elif (isinstance(cmd.gate, DivideByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
+                return True
+        except:
+            pass
+
+        try:
+            if (isinstance(cmd.gate, StatePreparation) and len(cmd.control_qubits) == 0):
+                # Qrack has inexpensive ways of preparing a partial state, without controls.
                 return True
         except:
             pass
@@ -390,6 +398,11 @@ class Simulator(BasicEngine):
                                                           ids,
                                                           [qb.id for qb in
                                                            cmd.control_qubits])
+        elif isinstance(cmd.gate, StatePreparation):
+            ids = [qb.id for qb in cmd.qubits[0]]
+            self._simulator.prepare_state(ids,
+                                          [amp for amp in
+                                           cmd.gate.final_state])
         elif len(cmd.gate.matrix) <= 2 ** 1:
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]

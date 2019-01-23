@@ -55,6 +55,7 @@ PYBIND11_PLUGIN(_qracksim) {
         .def("get_amplitude", &QrackSimulator::get_amplitude)
         .def("set_wavefunction", &QrackSimulator::set_wavefunction)
         .def("collapse_wavefunction", &QrackSimulator::collapse_wavefunction)
+        .def("prepare_state", &QrackSimulator::prepare_state)
         .def("run", &QrackSimulator::run)
         .def("cheat", &QrackSimulator::cheat)
         ;
