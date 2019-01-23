@@ -116,7 +116,7 @@ class Simulator(BasicEngine):
             pass
 
         try:
-            if (isinstance(cmd.gate, StatePreparation) and ((cmd.control_qubits is None) or len(cmd.control_qubits) == 0)):
+            if (isinstance(cmd.gate, StatePreparation) and not cmd.control_qubits):
                 # Qrack has inexpensive ways of preparing a partial state, without controls.
                 return True
         except:
