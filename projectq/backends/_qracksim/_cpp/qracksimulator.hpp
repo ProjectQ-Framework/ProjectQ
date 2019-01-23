@@ -142,6 +142,7 @@ public:
         for (i = 0; i < ids.size(); i++) {
             res[i] = !(!(allRes & (1U << bits[i])));
         }
+        delete[] bits;
     }
 
     std::vector<bool> measure_qubits_return(std::vector<unsigned> const& ids){
@@ -181,6 +182,13 @@ public:
             complex_type(real(m[1][0]), imag(m[1][0])), complex_type(real(m[1][1]), imag(m[1][1]))
         };
 
+        if (ctrl.size() == 0) {
+            for (bitLenInt i = 0; i < ids.size(); i++) {
+                qReg->ApplySingleBit(mArray, true, map_[ids[i]]);
+            }
+            return;
+        }
+
         bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
         for (bitLenInt i = 0; i < ctrl.size(); i++) {
             ctrlArray[i] = map_[ctrl[i]];
@@ -199,6 +207,13 @@ public:
 
         assert(ids1.size() == ids2.size());
 
+        if (ctrl.size() == 0) {
+            for (bitLenInt i = 0; i < ids1.size(); i++) {
+                qReg->Swap(map_[ids1[i]], map_[ids2[i]]);
+            }
+            return;
+        }
+
         bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
         for (bitLenInt i = 0; i < ctrl.size(); i++) {
             ctrlArray[i] = map_[ctrl[i]];
@@ -216,6 +231,13 @@ public:
                                std::vector<unsigned> ctrl){
 
         assert(ids1.size() == ids2.size());
+
+        if (ctrl.size() == 0) {
+            for (bitLenInt i = 0; i < ids1.size(); i++) {
+                qReg->SqrtSwap(map_[ids1[i]], map_[ids2[i]]);
+            }
+            return;
+        }
 
         bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
         for (bitLenInt i = 0; i < ctrl.size(); i++) {
@@ -428,17 +450,24 @@ private:
             anglesArray[i] = angles[i];
         }
 
-        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
-        for (i = 0; i < ctrl.size(); i++) {
-            ctrlArray[i] = map_[ctrl[i]];
-        }
+        if (ctrl.size() > 0) {
+            bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+            for (i = 0; i < ctrl.size(); i++) {
+                ctrlArray[i] = map_[ctrl[i]];
+            }
 
-        for (i = 0; i < ids.size(); i++) {
-            fn(ctrlArray, ctrl.size(), map_[ids[i]], anglesArray);
+            for (i = 0; i < ids.size(); i++) {
+                fn(ctrlArray, ctrl.size(), map_[ids[i]], anglesArray);
+            }
+
+            delete[] ctrlArray;
+        } else {
+            for (i = 0; i < ids.size(); i++) {
+                fn(NULL, 0, map_[ids[i]], anglesArray);
+            }
         }
 
         delete[] anglesArray;
-        delete[] ctrlArray;
     }
 
     void apply_controlled_int(CINTFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
@@ -457,14 +486,18 @@ private:
             std::swap(invMap[i], invMap[tempMap]);
         }
 
-        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
-        for (i = 0; i < ctrl.size(); i++) {
-            ctrlArray[i] = map_[ctrl[i]];
+        if (ctrl.size() > 0) {
+            bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+            for (i = 0; i < ctrl.size(); i++) {
+                ctrlArray[i] = map_[ctrl[i]];
+            }
+
+            fn(0, (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
+
+            delete[] ctrlArray;
+        } else {
+            fn(0, (bitLenInt)ids.size(), NULL, 0);
         }
-
-        fn(0, (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
-
-        delete[] ctrlArray;
     }
 
     void apply_controlled_mulx(CMULXFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
@@ -485,14 +518,18 @@ private:
             std::swap(invMap[i], invMap[tempMap]);
         }
 
-        bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
-        for (i = 0; i < ctrl.size(); i++) {
-            ctrlArray[i] = map_[ctrl[i]];
+        if (ctrl.size() > 0) {
+            bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
+            for (i = 0; i < ctrl.size(); i++) {
+                ctrlArray[i] = map_[ctrl[i]];
+            }
+
+            fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), ctrlArray, (bitLenInt)ctrl.size());
+
+            delete[] ctrlArray;
+        } else {
+            fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), NULL, 0);
         }
-
-        fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), ctrlArray, (bitLenInt)ctrl.size());
-
-        delete[] ctrlArray;
     }
 
     Map map_;
