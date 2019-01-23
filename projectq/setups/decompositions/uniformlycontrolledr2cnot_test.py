@@ -116,7 +116,7 @@ def test_uniformly_controlled_ry(n, gate_classes, sim_type):
         if (sim_type == "qrack_simulator"):
             eng_list = [test_dummy_eng]
             
-        elif (test_is_qrack_simulator_present()):
+        else:
             eng_list =[AutoReplacer(rule_set),
                        InstructionFilter(_decomp_gates),
                        test_dummy_eng]
@@ -129,13 +129,9 @@ def test_uniformly_controlled_ry(n, gate_classes, sim_type):
 
         correct_qb = correct_eng.allocate_qubit()
         correct_ctrl_qureg = correct_eng.allocate_qureg(n)
-        # WARNING: ControlledGate (and C) sort their control qubits,
-        #  which could be a problem for these gates being tested.
-        correct_ctrl_qureg = sorted(correct_ctrl_qureg, key=lambda x: x.id)
         correct_eng.flush()
         test_qb = test_eng.allocate_qubit()
         test_ctrl_qureg = test_eng.allocate_qureg(n)
-        test_ctrl_qureg = sorted(test_ctrl_qureg, key=lambda x: x.id)
         test_eng.flush()
 
         correct_sim.set_wavefunction(basis_state, correct_qb +

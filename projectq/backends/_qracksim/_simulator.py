@@ -23,9 +23,7 @@ import numpy as np
 from enum import IntEnum
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (R,
-                          BasicRotationGate,
-                          Swap,
+from projectq.ops import (Swap,
                           SqrtSwap,
                           Measure,
                           FlushGate,
@@ -424,5 +422,8 @@ class Simulator(BasicEngine):
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)
+            else:
+                # flush gate - Qrack automatically flushes, but this guarantees that we've finihsed.
+                self._simulator.run()
             if not self.is_last_engine:
                 self.send([cmd])

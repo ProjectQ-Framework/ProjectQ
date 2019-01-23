@@ -25,7 +25,7 @@
 
 namespace py = pybind11;
 
-using c_type = complex;
+using c_type = std::complex<float>;
 using ArrayType = std::vector<c_type, aligned_allocator<c_type,64>>;
 using MatrixType = std::vector<ArrayType>;
 
@@ -55,6 +55,7 @@ PYBIND11_PLUGIN(_qracksim) {
         .def("get_amplitude", &QrackSimulator::get_amplitude)
         .def("set_wavefunction", &QrackSimulator::set_wavefunction)
         .def("collapse_wavefunction", &QrackSimulator::collapse_wavefunction)
+        .def("run", &QrackSimulator::run)
         .def("cheat", &QrackSimulator::cheat)
         ;
     return m.ptr();
