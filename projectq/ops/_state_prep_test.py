@@ -16,7 +16,7 @@
 
 import projectq
 
-from projectq.ops import _state_prep, X, StatePreparation
+from projectq.ops import _state_prep, X, StatePreparation, Command
 from projectq import MainEngine
 from projectq.backends import Simulator
 
@@ -38,10 +38,11 @@ def test_str():
 def test_engine():
     backend = Simulator()
     eng = MainEngine(backend=backend, engine_list=[])
-    gate = StatePreparation([0.0, 1.0])
+    gate = StatePreparation([0, 1j])
+    qubit = eng.allocate_qubit()
+    cmd = Command(engine=eng, gate=gate, qubits=[qubit])
 
-    if (eng.backend.is_available(gate)):
-        qubit = eng.allocate_qubit()
+    if (eng.backend.is_available(cmd)):
         gate | qubit
-        assert 0 == test_sim.get_amplitude([0], qubit)
-        assert 1 == test_sim.get_amplitude([1], qubit)
+        assert 0 == backend.get_amplitude([0], qubit)
+        assert 1j == backend.get_amplitude([1], qubit)
