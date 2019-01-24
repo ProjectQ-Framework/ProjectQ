@@ -39,7 +39,7 @@ public:
     using complex_type = Qrack::complex;
     using StateVector = std::vector<std::complex<float>, aligned_allocator<std::complex<float>,64>>;
     using Map = std::map<unsigned, unsigned>;
-    using RndEngine = std::default_random_engine;
+    using RndEngine = qrack_rand_gen;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
@@ -52,7 +52,7 @@ public:
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
 
     QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1) {
-        rnd_eng_ = std::make_shared<std::default_random_engine>();
+        rnd_eng_ = std::make_shared<RndEngine>();
     	rnd_eng_->seed(seed);
 
 #if ENABLE_OPENCL
