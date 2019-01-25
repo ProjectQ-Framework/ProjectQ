@@ -41,12 +41,10 @@ public:
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = qrack_rand_gen;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
-    //enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
-    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
-    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_CPU;
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
     typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, calc_type*)> UCRFunc;
@@ -64,22 +62,18 @@ public:
 
         if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
-            //QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+            QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
-            QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
             QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
-            QrackSubengine1 = Qrack::QINTERFACE_CPU;
             QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
         } else {
-            //QrackEngine = Qrack::QINTERFACE_QFUSION;
+            QrackEngine = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
-            QrackEngine = Qrack::QINTERFACE_OPENCL;
             QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
             QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
-            QrackEngine = Qrack::QINTERFACE_CPU;
             QrackSubengine1 = Qrack::QINTERFACE_CPU;
             QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
@@ -253,6 +247,11 @@ public:
             complex_type(ZERO_R1, ZERO_R1), complex_type(cosine, sine)
         };
 
+        if (ctrl.size() == 0) {
+            qReg->ApplySingleBit(mArray, true, 0);
+            return;
+        }
+
         bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
         for (bitLenInt i = 0; i < ctrl.size(); i++) {
             ctrlArray[i] = map_[ctrl[i]];
@@ -342,7 +341,7 @@ public:
         }
         if ((chk + 1U) != (std::size_t)(qReg->GetMaxQPower()))
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
-        Qrack::complex result = qReg->GetAmplitude(index);
+        complex_type result = qReg->GetAmplitude(index);
         return std::complex<float>(real(result), imag(result));
     }
 
@@ -359,10 +358,9 @@ public:
         
         complex_type* wfArray = new complex_type[wavefunction.size()];
         #pragma omp parallel for schedule(static)
-        for (std::size_t i = 0; i < wavefunction.size(); i++)
-            wfArray[i] = complex_type(real(wavefunction[i]), imag(wavefunction[i]));
+        for (std::size_t j = 0; j < wavefunction.size(); j++)
+            wfArray[j] = complex_type(real(wavefunction[j]), imag(wavefunction[j]));
 
-        qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ordering.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true);
         qReg->SetQuantumState(wfArray);
 
         delete[] wfArray;
@@ -396,9 +394,9 @@ public:
         assert((1U << ids.size()) == amps.size());
 
         // We need the amplitudes as an array of Qrack::complex elements.
-        Qrack::complex* substateVec = new Qrack::complex[amps.size()];
+        complex_type* substateVec = new complex_type[amps.size()];
         for (bitCapInt j = 0; j < amps.size(); j++) {
-            substateVec[j] = Qrack::complex(real(amps[j]), imag(amps[j]));
+            substateVec[j] = complex_type(real(amps[j]), imag(amps[j]));
         }
 
         // If the substate being prepared is the full set, then set the amplitudes, and we're done.
