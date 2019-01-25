@@ -41,10 +41,12 @@ public:
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = qrack_rand_gen;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
-    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+    //enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
+    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
+    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_CPU;
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
     typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, calc_type*)> UCRFunc;
@@ -62,18 +64,22 @@ public:
 
         if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
-            QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
-#if ENABLE_OPENCL
-            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
-#else
-            QrackSubengine2 = Qrack::QINTERFACE_CPU;
-#endif
-        } else {
-            QrackEngine = Qrack::QINTERFACE_QFUSION;
+            //QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
             QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
             QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
 #else
+            QrackSubengine1 = Qrack::QINTERFACE_CPU;
+            QrackSubengine2 = Qrack::QINTERFACE_CPU;
+#endif
+        } else {
+            //QrackEngine = Qrack::QINTERFACE_QFUSION;
+#if ENABLE_OPENCL
+            QrackEngine = Qrack::QINTERFACE_OPENCL;
+            QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
+            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
+#else
+            QrackEngine = Qrack::QINTERFACE_CPU;
             QrackSubengine1 = Qrack::QINTERFACE_CPU;
             QrackSubengine2 = Qrack::QINTERFACE_CPU;
 #endif
@@ -112,19 +118,6 @@ public:
             // For example, 3 bits could be in the simulator. One bit could have a 100% chance being "true,"
             // split between 4 basis vectors including the other two bits, all at different phases.
             // Such a state for the 100% bit is still not necessarily separable, or "classical."
-            //
-            // Qrack::QUnit tries to track phase separability of bits:
-            //
-            // return qReg->IsPhaseSeparable((bitLenInt)map_[id]);
-            //
-            // However, the above method was intended for optimization purposes. It might err on the side of
-            // guessing that a bit's phase relationships might not separable, when they actually can be.
-            // It takes a maximal Schmidt decomposition to determine whether or not a bit is really separable.
-            // This can be computationally expensive, so Qrack makes an inexpensive guess, erring on the side
-            // of assuming too much irreducibility of any register state.
-            //
-            // As such, the above method might throw a false exception, but just checking probability can
-            // fail to recognize real irreducibility:
             return true;
         } else {
             return false;
