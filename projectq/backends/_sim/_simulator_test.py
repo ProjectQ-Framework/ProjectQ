@@ -602,7 +602,7 @@ class MockSimulatorBackend(object):
         self.run_cnt += 1
 
 
-def test_simulator_flush(sim):
+def test_simulator_flush():
     sim = Simulator()
     sim._simulator = MockSimulatorBackend()
 

@@ -33,6 +33,7 @@ from projectq.ops import (QubitOperator, TimeEvolution,
 
 from . import time_evolution as te
 
+
 def test_recognize_commuting_terms():
     saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend, engine_list=[])
