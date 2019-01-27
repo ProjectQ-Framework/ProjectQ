@@ -17,5 +17,4 @@ from ._gates import (AddConstant,
                      SubConstant,
                      AddConstantModN,
                      SubConstantModN,
-                     MultiplyByConstantModN,
-                     DivideByConstantModN)
+                     MultiplyByConstantModN)

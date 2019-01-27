@@ -216,7 +216,7 @@ class Rx(BasicRotationGate):
 
 
 class Ry(BasicRotationGate):
-    """ RotationY gate class """
+    """ RotationX gate class """
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),

@@ -37,8 +37,7 @@ from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 SubConstant,
                                 SubConstantModN,
-                                MultiplyByConstantModN,
-                                DivideByConstantModN)
+                                MultiplyByConstantModN)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
@@ -169,8 +168,8 @@ def test_simulator_is_available(sim):
     new_cmd.gate = MultiplyByConstantModN(1, 2)
     assert sim.is_available(new_cmd)
 
-    new_cmd.gate = DivideByConstantModN(1, 2)
-    assert sim.is_available(new_cmd)
+    #new_cmd.gate = DivideByConstantModN(1, 2)
+    #assert sim.is_available(new_cmd)
 
 
 def test_simulator_cheat(sim):
@@ -268,7 +267,6 @@ def test_simulator_swap(sim):
     All(Measure) | qubits1
     All(Measure) | qubits2
     assert (int(qubits1[0]) == 1) and (int(qubits2[0]) == 0)
-    
 
 def test_simulator_math(sim):
     eng = MainEngine(sim, [])
@@ -339,13 +337,6 @@ def test_simulator_math(sim):
         value += int(qubits[i]) << i
     assert value == 12
 
-    DivideByConstantModN(3, 256) | qubits;
-    All(Measure) | qubits
-    value = 0
-    for i in range(len(qubits)):
-        value += int(qubits[i]) << i
-    assert value == 4
-
     # Control is off
 
     C(MultiplyByConstantModN(2, 256)) | (controls, qubits)
@@ -353,14 +344,7 @@ def test_simulator_math(sim):
     value = 0
     for i in range(len(qubits)):
         value += int(qubits[i]) << i
-    assert value == 4
-
-    C(DivideByConstantModN(3, 256)) | (controls, qubits)
-    All(Measure) | qubits
-    value = 0
-    for i in range(len(qubits)):
-        value += int(qubits[i]) << i
-    assert value == 4
+    assert value == 12
 
     # Turn control on
     X | controls
@@ -370,14 +354,7 @@ def test_simulator_math(sim):
     value = 0
     for i in range(len(qubits)):
         value += int(qubits[i]) << i
-    assert value == 40
-
-    C(DivideByConstantModN(5, 256)) | (controls, qubits)
-    All(Measure) | qubits
-    value = 0
-    for i in range(len(qubits)):
-        value += int(qubits[i]) << i
-    assert value == 8
+    assert value == 120
 
 
 def test_simulator_probability(sim, mapper):
@@ -413,8 +390,6 @@ def test_simulator_probability(sim, mapper):
 
 
 def test_simulator_amplitude(sim, mapper):
-    # Qrack adds a random global phase factor to all initial states,
-    # (because the global phase is physically unknowable and has no measurable effect)
     engine_list = [LocalOptimizer()]
     if mapper is not None:
         engine_list.append(mapper)

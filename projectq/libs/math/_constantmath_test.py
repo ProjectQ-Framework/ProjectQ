@@ -30,19 +30,18 @@ from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
 
+def test_is_qrack_simulator_present():
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
 
 def init(engine, quint, value):
-    All(Measure) | quint
     for i in range(len(quint)):
-        if (((value >> i) & 1) != int(quint[i])):
+        if ((value >> i) & 1) == 1:
             X | quint[i]
 
-def get_int(qubits):
-    All(Measure) | qubits
-    value = 0
-    for i in range(len(qubits)):
-        value += int(qubits[i]) << i
-    return value
 
 def no_math_emulation(eng, cmd):
     if isinstance(cmd.gate, BasicMathGate):
@@ -68,46 +67,59 @@ def test_adder():
 
     AddConstant(3) | qureg
 
-    assert 7 == get_int(qureg)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
 
+    init(eng, qureg, 7)  # reset
     init(eng, qureg, 2)
 
     # check for overflow -> should be 15+2 = 1 (mod 16)
     AddConstant(15) | qureg
-    assert 1 == get_int(qureg)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+
+    All(Measure) | qureg
 
 
 def test_modadder():
     sim = Simulator()
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
-    AddConstantModN(3, 16) | qureg
-    assert 7 == get_int(qureg)
+    AddConstantModN(3, 6) | qureg
 
-    AddConstantModN(10, 16) | qureg
-    assert 1 == get_int(qureg)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+
+    init(eng, qureg, 1)  # reset
+    init(eng, qureg, 7)
+
+    AddConstantModN(10, 13) | qureg
+    assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
+
+    All(Measure) | qureg
+
+
 
 def test_modmultiplier():
+    if test_is_qrack_simulator_present():
+        pytest.skip("The Qrack simulator has stricter rules for integer math")
+
     sim = Simulator()
-
-    # WARNING: Qrack back end will always set the most significant half of a multiplication operation register to zero, to use as an overflow register.
-    # Without an overflow register, this cannot be a unitary operation on the quantum state.
-    # (Assume that nonunitary measurement is used in clearing the overflow, first, effectively only if it is nonzero.)
-    # The ProjectQ math rules currently do not assume an overflow register, for multiplication.
-
-    #eng = MainEngine(sim, [AutoReplacer(rule_set),
-    #                       InstructionFilter(no_math_emulation)])
-
-    eng = MainEngine(sim, [])
+    eng = MainEngine(sim, [AutoReplacer(rule_set),
+                           InstructionFilter(no_math_emulation)])
 
     qureg = eng.allocate_qureg(4)
-    init(eng, qureg, 1)
+    init(eng, qureg, 4)
 
-    MultiplyByConstantModN(3, 16) | qureg
-    assert 3 == get_int(qureg)
+    MultiplyByConstantModN(3, 7) | qureg
 
-    MultiplyByConstantModN(2, 16) | qureg
-    assert 6 == get_int(qureg)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
+
+    init(eng, qureg, 5)  # reset
+    init(eng, qureg, 7)
+
+    MultiplyByConstantModN(4, 13) | qureg
+    assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
+
+    All(Measure) | qureg

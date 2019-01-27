@@ -34,8 +34,8 @@ from projectq.ops import (Swap,
                           StatePreparation)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
-                                MultiplyByConstantModN,
-                                DivideByConstantModN)
+                                MultiplyByConstantModN)
+                                #DivideByConstantModN)
 from projectq.types import WeakQubitRef
 
 from ._qracksim import QrackSimulator as SimulatorBackend
@@ -110,8 +110,8 @@ class Simulator(BasicEngine):
                 return True
             elif (isinstance(cmd.gate, MultiplyByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
                 return True
-            elif (isinstance(cmd.gate, DivideByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
-                return True
+            #elif (isinstance(cmd.gate, DivideByConstantModN) and (1 << len(cmd.qubits)) == cmd.gate.N):
+            #    return True
         except:
             pass
 
@@ -377,13 +377,13 @@ class Simulator(BasicEngine):
                                                  [qb.id for qb in
                                                   cmd.control_qubits],
                                                  cmd.gate.a)
-        elif isinstance(cmd.gate, DivideByConstantModN):
-            #Unless there's a carry, the only unitary addition is mod (2^len(ids))
-            ids = [qb.id for qr in cmd.qubits for qb in qr]
-            self._simulator.apply_controlled_div(ids,
-                                                 [qb.id for qb in
-                                                  cmd.control_qubits],
-                                                 cmd.gate.a)
+        #elif isinstance(cmd.gate, DivideByConstantModN):
+        #    #Unless there's a carry, the only unitary addition is mod (2^len(ids))
+        #    ids = [qb.id for qr in cmd.qubits for qb in qr]
+        #    self._simulator.apply_controlled_div(ids,
+        #                                         [qb.id for qb in
+        #                                          cmd.control_qubits],
+        #                                         cmd.gate.a)
         elif isinstance(cmd.gate, UniformlyControlledRy):
             ids = [qb.id for qb in cmd.qubits[0]]
             self._simulator.apply_uniformly_controlled_ry([angle for angle in
