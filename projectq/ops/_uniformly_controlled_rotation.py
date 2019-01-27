@@ -50,7 +50,7 @@ class UniformlyControlledRy(BasicGate):
         rounded_angles = []
         for angle in angles:
             new_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
-            if new_angle > (4 * math.pi - ANGLE_TOLERANCE):
+            if new_angle > 4 * math.pi - ANGLE_TOLERANCE:
                 new_angle = 0.
             rounded_angles.append(new_angle)
         self.angles = rounded_angles
@@ -115,7 +115,7 @@ class UniformlyControlledRz(BasicGate):
         rounded_angles = []
         for angle in angles:
             new_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
-            if new_angle > (4 * math.pi - ANGLE_TOLERANCE):
+            if new_angle > 4 * math.pi - ANGLE_TOLERANCE:
                 new_angle = 0.
             rounded_angles.append(new_angle)
         self.angles = rounded_angles

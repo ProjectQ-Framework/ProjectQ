@@ -42,13 +42,6 @@ def test_is_cpp_simulator_present():
     import projectq.backends._sim._cppsim
     assert projectq.backends._sim._cppsim
 
-def test_is_qrack_simulator_present():
-    try:
-        import projectq.backends._qracksim._qracksim as _
-        return True
-    except:
-        return False
-
 def get_available_simulators():
     result = ["py_simulator"]
     try:
@@ -353,7 +346,6 @@ def test_simulator_amplitude(sim, mapper):
     assert eng.backend.get_amplitude(bits, qubits) == pytest.approx(-1. / 8.)
     All(H) | qubits
     All(X) | qubits
-    eng.flush()
     Ry(2 * math.acos(0.3)) | qubits[0]
     eng.flush()
     bits = [0] * 6
@@ -611,10 +603,7 @@ class MockSimulatorBackend(object):
 
 
 def test_simulator_flush(sim):
-    if test_is_qrack_simulator_present():
-        pytest.skip("Qrack simulator interferes with default simulator flush test.")
-
-    sim = MainEngine(sim, [])
+    sim = Simulator()
     sim._simulator = MockSimulatorBackend()
 
     eng = MainEngine(sim)
