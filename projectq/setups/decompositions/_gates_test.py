@@ -104,10 +104,6 @@ def run_circuit(eng):
 
 
 def test_gate_decompositions():
-    if test_is_qrack_simulator_present():
-        pytest.xfail("Failing with Qrack simulator (for no obvious reason)")
-        # Qrack will pass this test if the AutoReplacer is maintained, but the InstructionFilter is removed
-
     sim = Simulator()
     eng = MainEngine(sim, [])
     rule_set = DecompositionRuleSet(
@@ -116,8 +112,12 @@ def test_gate_decompositions():
     qureg = run_circuit(eng)
 
     sim2 = Simulator()
-    eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
-                                     InstructionFilter(low_level_gates)])
+    if test_is_qrack_simulator_present():
+        # Qrack will pass this test if the AutoReplacer is maintained, but the InstructionFilter is removed
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set)])
+    else:
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
+                                         InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
 
     for i in range(len(sim.cheat()[1])):
