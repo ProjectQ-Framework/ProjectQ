@@ -27,6 +27,7 @@ from projectq.ops import Measure, Ph, Rx
 
 from . import rx2rz
 
+tolerance = 1e-6
 
 def test_recognize_correct_gates():
     saving_backend = DummyEngine(save_commands=True)
@@ -78,7 +79,7 @@ def test_decomposition(angle):
         for fstate in ['0', '1']:
             test = test_eng.backend.get_amplitude(fstate, test_qb)
             correct = correct_eng.backend.get_amplitude(fstate, correct_qb)
-            assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         Measure | test_qb
         Measure | correct_qb

@@ -16,7 +16,9 @@
 
 import projectq
 
-from projectq.ops import _state_prep, X
+from projectq.ops import _state_prep, X, StatePreparation, Command
+from projectq import MainEngine
+from projectq.backends import Simulator
 
 
 def test_equality_and_hash():
@@ -32,3 +34,15 @@ def test_equality_and_hash():
 def test_str():
     gate1 = _state_prep.StatePreparation([0, 1])
     assert str(gate1) == "StatePreparation"
+
+def test_engine():
+    backend = Simulator()
+    eng = MainEngine(backend=backend, engine_list=[])
+    gate = StatePreparation([0, 1j])
+    qubit = eng.allocate_qubit()
+    cmd = Command(engine=eng, gate=gate, qubits=[qubit])
+
+    if (eng.backend.is_available(cmd)):
+        gate | qubit
+        assert 0 == backend.get_amplitude([0], qubit)
+        assert 1j == backend.get_amplitude([1], qubit)

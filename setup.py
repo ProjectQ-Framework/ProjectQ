@@ -31,6 +31,21 @@ class get_pybind_include(object):
         import pybind11
         return pybind11.get_include(self.user)
 
+class get_opencl_library(object):
+    """Helper class to determine if OpenCL is present"""
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        from ctypes import cdll
+        try:
+            cdll.LoadLibrary('libOpenCL.so.1')
+            return 'OpenCL'
+        except OSError:
+            # Return something inoffensive that always works
+            return 'm'
+
 
 cppsim = Feature(
     'C++ Simulator',
@@ -44,6 +59,24 @@ cppsim = Feature(
                 get_pybind_include(),
                 get_pybind_include(user=True)
             ],
+            language='c++'
+        ),
+    ],
+)
+
+qracksim = Feature(
+    'Qrack Simulator',
+    standard=False,
+    ext_modules=[
+        Extension(
+            'projectq.backends._qracksim._qracksim',
+            ['projectq/backends/_qracksim/_qracksim.cpp'],
+            include_dirs=[
+                # Path to pybind11 headers
+                get_pybind_include(),
+                get_pybind_include(user=True),
+            ],
+            libraries=['qrack', str(get_opencl_library())],
             language='c++'
         ),
     ],
@@ -148,10 +181,10 @@ class BuildExt(build_ext):
             self.warning("")
 
     def warning(self, warning_text):
-        raise Exception(warning_text + "\nCould not install the C++-Simulator."
+        raise Exception(warning_text + "\nCould not install the C++ simulators."
                         "\nProjectQ will default to the (slow) Python "
                         "simulator.\nUse --without-cppsimulator to skip "
-                        "building the (faster) C++ version of the simulator.")
+                        "building the (faster) C++ simulators.")
 
 
 setup(
@@ -163,7 +196,7 @@ setup(
     description=('ProjectQ - '
                  'An open source software framework for quantum computing'),
     long_description=long_description,
-    features={'cppsimulator': cppsim},
+    features={'cppsimulator': cppsim, 'qracksimulator': qracksim},
     install_requires=requirements,
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
