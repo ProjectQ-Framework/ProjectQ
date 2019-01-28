@@ -20,8 +20,8 @@ import projectq
 from projectq.cengines import DummyEngine
 from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
-from projectq.ops import (BasicGate, CNOT, H, Measure, QFT, QubitOperator, Rx,
-                          Rz, Swap, TimeEvolution, Toffoli, X)
+from projectq.ops import (BasicGate, CNOT, CRz, H, Measure, QFT, QubitOperator,
+                          Rx, Rz, Swap, TimeEvolution, Toffoli, X)
 from projectq.meta import Control
 
 import projectq.setups.restrictedgateset as restrictedgateset
@@ -94,3 +94,9 @@ def test_wrong_init():
         engine_list = restrictedgateset.get_engine_list(one_qubit_gates="Any")
     with pytest.raises(TypeError):
         engine_list = restrictedgateset.get_engine_list(other_gates="any")
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(one_qubit_gates=(CRz,))
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(two_qubit_gates=(CRz,))
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(other_gates=(CRz,))

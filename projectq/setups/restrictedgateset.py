@@ -29,8 +29,8 @@ import projectq.setups.decompositions
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                InstructionFilter, LocalOptimizer,
                                TagRemover)
-from projectq.ops import (BasicMathGate, ClassicalInstructionGate, CNOT,
-                          ControlledGate, get_inverse, QFT, Swap)
+from projectq.ops import (BasicGate, BasicMathGate, ClassicalInstructionGate,
+                          CNOT, ControlledGate, get_inverse, QFT, Swap)
 
 
 def high_level_gates(eng, cmd):
@@ -102,7 +102,9 @@ def get_engine_list(one_qubit_gates="any",
                          all gates which are equal to it. If the gate is a
                          class, it allows all instances of this class.
     Raises:
-        TypeError: If input is for the gates is not "any" or a tuple.
+        TypeError: If input is for the gates is not "any" or a tuple. Also if
+                   element within tuple is not a class or instance of BasicGate
+                   (e.g. CRz which is a shortcut function)
 
     Returns:
         A list of suitable compiler engines.
@@ -130,8 +132,10 @@ def get_engine_list(one_qubit_gates="any",
         for gate in one_qubit_gates:
             if inspect.isclass(gate):
                 allowed_gate_classes1.append(gate)
-            else:
+            elif isinstance(gate, BasicGate):
                 allowed_gate_instances1.append(gate)
+            else:
+                raise TypeError("unsupported one_qubit_gates argument")
     if two_qubit_gates != "any":
         for gate in two_qubit_gates:
             if inspect.isclass(gate):
@@ -139,22 +143,26 @@ def get_engine_list(one_qubit_gates="any",
                 #  separate treatment
                 assert not isinstance(gate, ControlledGate)
                 allowed_gate_classes2.append(gate)
-            else:
+            elif isinstance(gate, BasicGate):
                 if isinstance(gate, ControlledGate):
                     allowed_gate_instances2.append((gate._gate, gate._n))
                 else:
                     allowed_gate_instances2.append((gate, 0))
+            else:
+                raise TypeError("unsupported two_qubit_gates argument")
     for gate in other_gates:
         if inspect.isclass(gate):
             #  Controlled gate classes don't yet exists and would require
             #  separate treatment
             assert not isinstance(gate, ControlledGate)
             allowed_gate_classes.append(gate)
-        else:
+        elif isinstance(gate, BasicGate):
             if isinstance(gate, ControlledGate):
                 allowed_gate_instances.append((gate._gate, gate._n))
             else:
                 allowed_gate_instances.append((gate, 0))
+        else:
+            raise TypeError("unsupported other_gates argument")
     allowed_gate_classes = tuple(allowed_gate_classes)
     allowed_gate_instances = tuple(allowed_gate_instances)
     allowed_gate_classes1 = tuple(allowed_gate_classes1)
