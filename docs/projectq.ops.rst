@@ -53,6 +53,7 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.UniformlyControlledRy
 	projectq.ops.UniformlyControlledRz
 	projectq.ops.StatePreparation
+	projectq.ops.FlipBits
 
 
 Module contents

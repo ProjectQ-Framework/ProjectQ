@@ -80,10 +80,10 @@ class DaggeredGate(MatrixGate): #todo: do we want this?
             pass
 
     def __str__(self):
-        """
+        r"""
         Return string representation (str(gate) + \"^\dagger\").
         """
-        return str(self._gate) + "^\dagger"
+        return str(self._gate) + r"^\dagger"
 
     def tex_str(self):
         """
