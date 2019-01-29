@@ -268,26 +268,12 @@ public:
     }
 
     void apply_uniformly_controlled_ry(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
-        if (ctrl.size() == 0) {
-            for (bitLenInt i = 0; i < ids.size(); i++) {
-                qReg->RY(angles[0], map_[ids[i]]);
-            }
-            return;
-        }
-
         apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, calc_type* anglesArray) {
             qReg->UniformlyControlledRY(ctrlArray, controlLen, trgt, anglesArray);
         });
     }
 
     void apply_uniformly_controlled_rz(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
-        if (ctrl.size() == 0) {
-            for (bitLenInt i = 0; i < ids.size(); i++) {
-                qReg->RZ(angles[0], map_[ids[i]]);
-            }
-            return;
-        }
-
         apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, calc_type* anglesArray) {
             qReg->UniformlyControlledRZ(ctrlArray, controlLen, trgt, anglesArray);
         });
@@ -480,7 +466,7 @@ private:
     }
 
     void apply_uniformly_controlled(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl, UCRFunc fn){
-        bitLenInt i;
+        bitCapInt i;
 
         // Adjust for the convention difference between ProjectQ and Qrack:
         calc_type* anglesArray = new calc_type[angles.size()];

@@ -385,19 +385,21 @@ class Simulator(BasicEngine):
         #                                          cmd.control_qubits],
         #                                         cmd.gate.a)
         elif isinstance(cmd.gate, UniformlyControlledRy):
-            ids = [qb.id for qb in cmd.qubits[0]]
+            qubits = [qb.id for qr in cmd.qubits for qb in qr]
+            target = qubits[-1]
+            controls = qubits[:-1]
             self._simulator.apply_uniformly_controlled_ry([angle for angle in
                                                            cmd.gate.angles],
-                                                          ids,
-                                                          [qb.id for qb in
-                                                           cmd.control_qubits])
+                                                           [target],
+                                                           controls)
         elif isinstance(cmd.gate, UniformlyControlledRz):
-            ids = [qb.id for qb in cmd.qubits[0]]
+            qubits = [qb.id for qr in cmd.qubits for qb in qr]
+            target = qubits[-1]
+            controls = qubits[:-1]
             self._simulator.apply_uniformly_controlled_rz([angle for angle in
                                                            cmd.gate.angles],
-                                                          ids,
-                                                          [qb.id for qb in
-                                                           cmd.control_qubits])
+                                                           [target],
+                                                           controls)
         elif isinstance(cmd.gate, StatePreparation):
             ids = [qb.id for qb in cmd.qubits[0]]
             self._simulator.prepare_state(ids,

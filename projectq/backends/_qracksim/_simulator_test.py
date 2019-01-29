@@ -32,13 +32,14 @@ from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
 from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT, C,
                           Command, H, Measure, QubitOperator, Rx, Ry, Rz, S,
-                          TimeEvolution, Toffoli, X, Y, Z, Swap, SqrtSwap)
+                          TimeEvolution, Toffoli, X, Y, Z, Swap, SqrtSwap,
+                          UniformlyControlledRy, UniformlyControlledRz)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 SubConstant,
                                 SubConstantModN,
                                 MultiplyByConstantModN)
-from projectq.meta import Control, Dagger, LogicalQubitIDTag
+from projectq.meta import Compute, Uncompute, Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 from projectq.backends import Simulator
@@ -570,3 +571,71 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
                               qubit1[0].id: qubit0[0].id}
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)
+
+
+def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
+    """
+    Assumption is that control_qubits[0] is lowest order bit
+    We apply angles[0] to state |0>
+    """
+    assert len(angles) == 2**len(control_qubits)
+    for index in range(2**len(control_qubits)):
+        with Compute(eng):
+            for bit_pos in range(len(control_qubits)):
+                if not (index >> bit_pos) & 1:
+                    X | control_qubits[bit_pos]
+        with Control(eng, control_qubits):
+            gate_class(angles[index]) | target_qubit
+        Uncompute(eng)
+
+
+@pytest.mark.parametrize("gate_classes", [(Ry, UniformlyControlledRy),
+                                          (Rz, UniformlyControlledRz)])
+def test_uniformly_controlled_r(sim, gate_classes):
+    n = 2
+    random_angles = [3.0, 0.8, 1.2, 0.7]
+
+    basis_state_index = 2
+    basis_state = [0] * 2**(n+1)
+    basis_state[basis_state_index] = 1.
+
+    correct_eng = MainEngine(backend=Simulator())
+    test_eng = MainEngine(backend=sim)
+
+    correct_sim = correct_eng.backend
+    correct_qb = correct_eng.allocate_qubit()
+    correct_ctrl_qureg = correct_eng.allocate_qureg(n)
+    correct_eng.flush()
+
+    test_sim = test_eng.backend
+    test_qb = test_eng.allocate_qubit()
+    test_ctrl_qureg = test_eng.allocate_qureg(n)
+    test_eng.flush()
+
+    correct_sim.set_wavefunction(basis_state, correct_qb + correct_ctrl_qureg)
+    test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qureg)
+    test_eng.flush()
+    correct_eng.flush()
+
+    gate_classes[1](random_angles) | (test_ctrl_qureg, test_qb)
+    slow_implementation(angles=random_angles,
+                        control_qubits=correct_ctrl_qureg,
+                        target_qubit=correct_qb,
+                        eng=correct_eng,
+                        gate_class=gate_classes[0])
+    test_eng.flush()
+    correct_eng.flush()
+
+    for fstate in range(2**(n+1)):
+        binary_state = format(fstate, '0' + str(n+1) + 'b')
+        test = test_sim.get_amplitude(binary_state,
+                                      test_qb + test_ctrl_qureg)
+        correct = correct_sim.get_amplitude(binary_state, correct_qb +
+                                            correct_ctrl_qureg)
+        print(test, "==", correct)
+        assert correct == pytest.approx(test, rel=1e-6, abs=1e-6)
+
+    All(Measure) | test_qb + test_ctrl_qureg
+    All(Measure) | correct_qb + correct_ctrl_qureg
+    test_eng.flush(deallocate_qubits=True)
+    correct_eng.flush(deallocate_qubits=True)
