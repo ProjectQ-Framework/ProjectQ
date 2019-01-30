@@ -425,31 +425,33 @@ class GraphMapper(BasicMapperEngine):
             if isinstance(cmd.gate, AllocateQubitGate):
                 if cmd.qubits[0][0].id in self._current_mapping:
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
-                    qb = WeakQubitRef(
+                    qb0 = WeakQubitRef(
                         engine=self,
                         idx=self._current_mapping[cmd.qubits[0][0].id])
-                    new_cmd = Command(
-                        engine=self,
-                        gate=AllocateQubitGate(),
-                        qubits=([qb], ),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
-                    self.send([new_cmd])
+                    self.send([
+                        Command(
+                            engine=self,
+                            gate=AllocateQubitGate(),
+                            qubits=([qb0], ),
+                            tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                    ])
                 else:
                     new_stored_commands.append(cmd)
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 if cmd.qubits[0][0].id in active_ids:
-                    qb = WeakQubitRef(
+                    qb0 = WeakQubitRef(
                         engine=self,
                         idx=self._current_mapping[cmd.qubits[0][0].id])
-                    new_cmd = Command(
-                        engine=self,
-                        gate=DeallocateQubitGate(),
-                        qubits=([qb], ),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
                     self._current_mapping.pop(cmd.qubits[0][0].id)
-                    self.send([new_cmd])
+                    self.send([
+                        Command(
+                            engine=self,
+                            gate=DeallocateQubitGate(),
+                            qubits=([qb0], ),
+                            tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                    ])
                 else:
                     new_stored_commands.append(cmd)
             else:
@@ -510,29 +512,31 @@ class GraphMapper(BasicMapperEngine):
             not_allocated_ids = set(
                 paths.get_all_nodes()).difference(backend_ids_used)
 
-            # Allocate all mapped qubit ids (which are not already allocated,
-            # i.e., contained in self._currently_allocated_ids)
-            # and add them temporarily to the
-            for backend_id in not_allocated_ids:
-                qb = WeakQubitRef(engine=self, idx=backend_id)
-                cmd = Command(
-                    engine=self, gate=AllocateQubitGate(), qubits=([qb], ))
-                self.send([cmd])
-
-            # Calculate reverse internal mapping
+            # Calculate temporary internal reverse mapping
             new_internal_mapping = deepcopy(self._reverse_current_mapping)
 
-            # Add missing entries with invalid id to be able to process the
-            # swaps operations
+            # Allocate all mapped qubit ids that are not currently allocated
+            # but part of some path so that we may perform the swapping
+            # operations.
             for backend_id in not_allocated_ids:
+                qb0 = WeakQubitRef(engine=self, idx=backend_id)
+                self.send([
+                    Command(
+                        engine=self,
+                        gate=AllocateQubitGate(),
+                        qubits=([qb0], ))
+                ])
+
+                # Those qubits are not part of the current mapping, so add them
+                # to the temporary internal reverse mapping with invalid ids
                 new_internal_mapping[backend_id] = -1
 
             # Send swap operations to arrive at the new mapping
             for bqb0, bqb1 in swaps:
-                q0 = WeakQubitRef(engine=self, idx=bqb0)
-                q1 = WeakQubitRef(engine=self, idx=bqb1)
-                cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
-                self.send([cmd])
+                qb0 = WeakQubitRef(engine=self, idx=bqb0)
+                qb1 = WeakQubitRef(engine=self, idx=bqb1)
+                self.send(
+                    [Command(engine=self, gate=Swap, qubits=([qb0], [qb1]))])
 
                 # Update internal mapping based on swap operations
                 new_internal_mapping[bqb0], \
@@ -565,17 +569,19 @@ class GraphMapper(BasicMapperEngine):
             # Deallocate all previously mapped ids which we only needed for the
             # swaps:
             for backend_id in not_needed_anymore:
-                qb = WeakQubitRef(engine=self, idx=backend_id)
-                cmd = Command(
-                    engine=self, gate=DeallocateQubitGate(), qubits=([qb], ))
-                self.send([cmd])
+                qb0 = WeakQubitRef(engine=self, idx=backend_id)
+                self.send([
+                    Command(
+                        engine=self,
+                        gate=DeallocateQubitGate(),
+                        qubits=([qb0], ))
+                ])
 
             # Calculate new mapping
-            new_mapping = {
+            self.current_mapping = {
                 v: k
                 for k, v in new_reverse_current_mapping.items()
             }
-            self.current_mapping = new_mapping
 
         # Send possible gates:
         self._send_possible_commands()
@@ -623,8 +629,8 @@ class GraphMapper(BasicMapperEngine):
                 depth_of_swaps, num_mapping)
 
         num_swaps_per_mapping_str = ""
-        for num_swaps_per_mapping, num_mapping in self.num_of_swaps_per_mapping.items(
-        ):
+        for num_swaps_per_mapping, num_mapping \
+            in self.num_of_swaps_per_mapping.items():
             num_swaps_per_mapping_str += "\n    {:3d}: {:3d}".format(
                 num_swaps_per_mapping, num_mapping)
 
