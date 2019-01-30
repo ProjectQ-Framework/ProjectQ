@@ -204,7 +204,12 @@ class BasicGate(object):
         apply_command(cmd)
 
     def __eq__(self, other):
-        """ Return True if equal (i.e., instance of same class).
+        """
+        Equality comparision
+
+        Return True if instance of the same class, unless other is an instance
+        of :class:MatrixGate, in which case equality is to be checked by testing
+        for existence and (approximate) equality of matrix representations.
         """
         if isinstance(other, self.__class__):
             return True
@@ -258,6 +263,12 @@ class MatrixGate(BasicGate):
         self._matrix = np.matrix(matrix)
 
     def __eq__(self, other):
+        """
+        Equality comparision
+
+        Return True only if both gates have a matrix respresentation and the
+        matrices are (approximately) equal. Otherwise return False.
+        """
         if not hasattr(other, 'matrix'):
             return False
         if (not isinstance(self.matrix, np.matrix) or
@@ -272,14 +283,8 @@ class MatrixGate(BasicGate):
             return True
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __str__(self):
         return("MatrixGate(" + str(self.matrix.tolist()) + ")")
-
-    def __hash__(self):
-        return hash(str(self))
 
     def get_inverse(self):
         return MatrixGate(np.linalg.inv(self.matrix))
