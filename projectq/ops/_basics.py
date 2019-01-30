@@ -64,7 +64,7 @@ class NotInvertible(Exception):
 
 class BasicGate(object):
     """
-    Base class of all gates.
+    Base class of all gates. (Don't use it directly but derive from it)
     """
     def __init__(self):
         """
@@ -204,39 +204,19 @@ class BasicGate(object):
         apply_command(cmd)
 
     def __eq__(self, other):
-        """ Return True if equal (i.e., instance of same class).
-
-            Unless both have a matrix attribute in which case we also check
-            that the matrices are identical as people might want to do the
-            following:
-
-            Example:
-                .. code-block:: python
-
-                gate = BasicGate()
-                gate.matrix = numpy.matrix([[1,0],[0, -1]])
         """
-        if hasattr(self, 'matrix'):
-            if not hasattr(other, 'matrix'):
-                return False
-        if hasattr(other, 'matrix'):
-            if not hasattr(self, 'matrix'):
-                return False
-        if hasattr(self, 'matrix') and hasattr(other, 'matrix'):
-            if (not isinstance(self.matrix, np.matrix) or
-                    not isinstance(other.matrix, np.matrix)):
-                raise TypeError("One of the gates doesn't have the correct "
-                                "type (numpy.matrix) for the matrix "
-                                "attribute.")
-            if (self.matrix.shape == other.matrix.shape and
-                np.allclose(self.matrix, other.matrix,
-                            rtol=RTOL, atol=ATOL,
-                            equal_nan=False)):
-                return True
-            else:
-                return False
+        Equality comparision
+
+        Return True if instance of the same class, unless other is an instance
+        of :class:MatrixGate, in which case equality is to be checked by testing
+        for existence and (approximate) equality of matrix representations.
+        """
+        if isinstance(other, self.__class__):
+            return True
+        elif isinstance(other, MatrixGate):
+            return NotImplemented
         else:
-            return isinstance(other, self.__class__)
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -246,6 +226,71 @@ class BasicGate(object):
 
     def __hash__(self):
         return hash(str(self))
+
+
+class MatrixGate(BasicGate):
+    """
+    Defines a gate class whose instances are defined by a matrix.
+
+    Note:
+        Use this gate class only for gates acting on a small numbers of qubits.
+        In general, consider instead using one of the provided ProjectQ gates
+        or define a new class as this allows the compiler to work symbolically.
+
+    Example:
+
+        .. code-block:: python
+
+            gate = MatrixGate([[0, 1], [1, 0]])
+            gate | qubit
+    """
+    def __init__(self, matrix=None):
+        """
+        Initialize MatrixGate
+
+        Args:
+            matrix(numpy.matrix): matrix which defines the gate. Default: None
+        """
+        BasicGate.__init__(self)
+        self._matrix = np.matrix(matrix) if matrix is not None else None
+
+    @property
+    def matrix(self):
+        return self._matrix
+
+    @matrix.setter
+    def matrix(self, matrix):
+        self._matrix = np.matrix(matrix)
+
+    def __eq__(self, other):
+        """
+        Equality comparision
+
+        Return True only if both gates have a matrix respresentation and the
+        matrices are (approximately) equal. Otherwise return False.
+        """
+        if not hasattr(other, 'matrix'):
+            return False
+        if (not isinstance(self.matrix, np.matrix) or
+                not isinstance(other.matrix, np.matrix)):
+            raise TypeError("One of the gates doesn't have the correct "
+                            "type (numpy.matrix) for the matrix "
+                            "attribute.")
+        if (self.matrix.shape == other.matrix.shape and
+            np.allclose(self.matrix, other.matrix,
+                        rtol=RTOL, atol=ATOL,
+                        equal_nan=False)):
+            return True
+        return False
+
+    def __str__(self):
+        return("MatrixGate(" + str(self.matrix.tolist()) + ")")
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def get_inverse(self):
+        return MatrixGate(np.linalg.inv(self.matrix))
 
 
 class SelfInverseGate(BasicGate):
