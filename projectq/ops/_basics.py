@@ -286,6 +286,9 @@ class MatrixGate(BasicGate):
     def __str__(self):
         return("MatrixGate(" + str(self.matrix.tolist()) + ")")
 
+    def __hash__(self):
+        return hash(str(self))
+
     def get_inverse(self):
         return MatrixGate(np.linalg.inv(self.matrix))
 
