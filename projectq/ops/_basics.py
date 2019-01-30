@@ -64,7 +64,7 @@ class NotInvertible(Exception):
 
 class BasicGate(object):
     """
-    Base class of all gates.
+    Base class of all gates. (Don't use it directly but derive from it)
     """
     def __init__(self):
         """
@@ -203,20 +203,15 @@ class BasicGate(object):
         cmd = self.generate_command(qubits)
         apply_command(cmd)
 
-    @property
-    def matrix(self):
-        raise AttributeError("BasicGate has no matrix property. Use MatrixGate instead.")
-
-    @matrix.setter
-    def matrix(self, matrix=None):
-        raise AttributeError("You cannot set the matrix property of gates derived"
-                             "from BasicGate. Please use MatrixGate instead if"
-                             "you need that functionality.")
-
     def __eq__(self, other):
         """ Return True if equal (i.e., instance of same class).
         """
-        return isinstance(other, self.__class__)
+        if isinstance(other, self.__class__):
+            return True
+        elif isinstance(other, MatrixGate):
+            return NotImplemented
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -227,13 +222,30 @@ class BasicGate(object):
     def __hash__(self):
         return hash(str(self))
 
+
 class MatrixGate(BasicGate):
     """
-    Defines a base class of a matrix gate.
+    Defines a gate class whose instances are defined by a matrix.
 
-    A matrix gate is defined via its matrix.
+    Note:
+        Use this gate class only for gates acting on a small numbers of qubits.
+        In general, consider instead using one of the provided ProjectQ gates
+        or define a new class as this allows the compiler to work symbolically.
+
+    Example:
+
+        .. code-block:: python
+
+            gate = MatrixGate([[0, 1], [1, 0]])
+            gate | qubit
     """
     def __init__(self, matrix=None):
+        """
+        Initialize MatrixGate
+
+        Args:
+            matrix(numpy.matrix): matrix which defines the gate. Default: None
+        """
         BasicGate.__init__(self)
         self._matrix = np.matrix(matrix) if matrix is not None else None
 
@@ -246,9 +258,7 @@ class MatrixGate(BasicGate):
         self._matrix = np.matrix(matrix)
 
     def __eq__(self, other):
-        """ Return True if equal (i.e., instance of same class).
-        """
-        if not isinstance(other, self.__class__):
+        if not hasattr(other, 'matrix'):
             return False
         if (not isinstance(self.matrix, np.matrix) or
                 not isinstance(other.matrix, np.matrix)):
@@ -262,11 +272,18 @@ class MatrixGate(BasicGate):
             return True
         return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __str__(self):
-        raise NotImplementedError('This gate does not implement __str__.')
+        return("MatrixGate(" + str(self.matrix.tolist()) + ")")
+
+    def __hash__(self):
+        return hash(str(self))
 
     def get_inverse(self):
         return MatrixGate(np.linalg.inv(self.matrix))
+
 
 class SelfInverseGate(BasicGate):
     """

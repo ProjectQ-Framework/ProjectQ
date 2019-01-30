@@ -28,7 +28,7 @@ As well as the meta functions
 * C (Creates an n-ary controlled version of an arbitrary gate)
 """
 
-from ._basics import BasicGate, MatrixGate, NotInvertible
+from ._basics import BasicGate, NotInvertible
 from ._command import Command, apply_command
 
 
@@ -39,7 +39,7 @@ class ControlQubitError(Exception):
     pass
 
 
-class DaggeredGate(MatrixGate): #todo: do we want this?
+class DaggeredGate(BasicGate):
     """
     Wrapper class allowing to execute the inverse of a gate, even when it does
     not define one.

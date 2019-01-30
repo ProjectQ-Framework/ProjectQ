@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 from projectq.types import Qubit, Qureg
-from projectq.ops import Command
+from projectq.ops import Command, X
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
@@ -295,6 +295,7 @@ def test_basic_math_gate():
     math_fun = gate.get_math_function(("qreg1", "qreg2", "qreg3"))
     assert math_fun([2, 3, 5]) == [2, 3, 11]
 
+
 def test_matrix_gate():
     gate1 = _basics.MatrixGate()
     gate2 = _basics.MatrixGate()
@@ -321,3 +322,7 @@ def test_matrix_gate():
     gate9 = _basics.MatrixGate([[1, 0], [0, (1-1j)/math.sqrt(2)]])
     gate10 = gate9.get_inverse()
     assert gate10 == gate8
+    assert gate3 == X
+    assert X == gate3
+    assert str(gate3) == "MatrixGate([[0, 1], [1, 0]])"
+    assert hash(gate3) == hash("MatrixGate([[0, 1], [1, 0]])")

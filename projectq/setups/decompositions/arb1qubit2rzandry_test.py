@@ -23,8 +23,8 @@ import pytest
 from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
-from projectq.ops import (BasicGate, MatrixGate, ClassicalInstructionGate, Measure, Ph, R,
-                          Rx, Ry, Rz, X)
+from projectq.ops import (BasicGate, ClassicalInstructionGate, MatrixGate,
+                          Measure, Ph, R, Rx, Ry, Rz, X)
 from projectq.meta import Control
 
 from . import arb1qubit2rzandry as arb1q
