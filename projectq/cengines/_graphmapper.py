@@ -25,83 +25,13 @@ from copy import deepcopy
 
 import math
 import random
-import networkx as nx
 
 from projectq.cengines import (BasicMapperEngine, return_swap_depth)
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
-from projectq.cengines._graph_path_container import PathContainer
-
-# ==============================================================================
-
-
-class PathCacheExhaustive():
-    """
-    Class acting as cache for optimal paths through the graph.
-    """
-
-    def __init__(self, path_length_threshold):
-        self._path_length_threshold = path_length_threshold
-        self._cache = {}
-        self.key_type = frozenset
-
-    def __str__(self):
-        s = ""
-        for (node0, node1), path in self._cache.items():
-            s += "{}: {}\n".format(sorted([node0, node1]), path)
-        return s
-
-    def empty_cache(self):
-        """Empty the cache."""
-        self._cache = {}
-
-    def get_path(self, start, end):
-        """
-        Return a path from the cache.
-
-        Args:
-            start (object): Start node for the path
-            end (object): End node for the path
-
-        Returns: Optimal path stored in cache
-
-        Raises: KeyError if path is not present in the cache
-        """
-        return self._cache[self.key_type((start, end))]
-
-    def has_path(self, start, end):
-        """
-        Test whether a path connecting start to end is present in the cache.
-
-        Args:
-            start (object): Start node for the path
-            end (object): End node for the path
-
-        Returns: True/False
-        """
-        return self.key_type((start, end)) in self._cache
-
-    def add_path(self, path):
-        """
-        Add a path to the cache.
-
-        This method also recursively adds all the subpaths that are at least
-        self._path_length_threshold long to the cache.
-
-        Args:
-            path (list): Path to store inside the cache
-        """
-        length = len(path)
-        for start in range(length - self._path_length_threshold + 1):
-            node0 = path[start]
-            for incr in range(length - start - 1,
-                              self._path_length_threshold - 2, -1):
-                end = start + incr
-                self._cache[self.key_type((node0,
-                                           path[end]))] = path[start:end + 1]
-
+from projectq.cengines._graph_path_manager import PathManager
 
 # ==============================================================================
 
@@ -166,10 +96,7 @@ class GraphMapper(BasicMapperEngine):
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
                           is mapped qubit id from 0,...,self.num_qubits
-        graph (networkx.Graph): Arbitrary connected graph
         storage (int): Number of gate it caches before mapping.
-        enable_caching(Bool): Controls whether optimal path caching is
-                              enabled
         num_qubits(int): number of qubits
         num_mappings (int): Number of times the mapper changed the mapping
         depth_of_swaps (dict): Key are circuit depth of swaps, value is the
@@ -201,27 +128,15 @@ class GraphMapper(BasicMapperEngine):
             graph (networkx.Graph): Arbitrary connected graph representing
                                     Qubit connectivity
             storage (int): Number of gates to temporarily store
-            enable_caching (Bool): Controls whether optimal path caching is 
-                                   enabled
+            enable_caching (Bool): Controls whether path caching is enabled
         Raises:
             RuntimeError: if the graph is not a connected graph
         """
         BasicMapperEngine.__init__(self)
 
-        # Make sure that we start with a valid graph
-        if not nx.is_connected(graph):
-            raise RuntimeError("Input graph must be a connected graph")
-        elif not all([isinstance(n, int) for n in graph]):
-            raise RuntimeError(
-                "All nodes inside the graph needs to be integers")
-        else:
-            self.graph = graph
-        self.num_qubits = self.graph.number_of_nodes()
+        self.paths = PathManager(graph, enable_caching)
+        self.num_qubits = graph.number_of_nodes()
         self.storage = storage
-        self.enable_caching = enable_caching
-        # Path cache support
-        path_length_threshold = 3
-        self._path_cache = PathCacheExhaustive(path_length_threshold)
         # Randomness to pick permutations if there are too many.
         # This creates an own instance of Random in order to not influence
         # the bound methods of the random module which might be used in other
@@ -243,7 +158,6 @@ class GraphMapper(BasicMapperEngine):
         self.num_mappings = 0
         self.depth_of_swaps = dict()
         self.num_of_swaps_per_mapping = dict()
-        self.paths_stats = dict()
 
     @property
     def current_mapping(self):
@@ -289,10 +203,13 @@ class GraphMapper(BasicMapperEngine):
         Returns: A list of paths through the graph to move some qubits and have
                  them interact
         """
-        paths = PathContainer()
         not_in_mapping_qubits = set()
         allocated_qubits = deepcopy(self._currently_allocated_ids)
         active_qubits = deepcopy(self._currently_allocated_ids)
+
+        # Always start from scratch again
+        # (does not reset cache or path statistics)
+        self.paths.clear_paths()
 
         for cmd in self._stored_commands:
             if (len(allocated_qubits) == self.num_qubits
@@ -334,77 +251,19 @@ class GraphMapper(BasicMapperEngine):
                 else:
                     if not_in_mapping_qubits:
                         self.current_mapping = self._add_qubits_to_mapping(
-                            self._current_mapping, self.graph,
+                            self._current_mapping, self.paths.graph,
                             not_in_mapping_qubits, self._stored_commands)
                         not_in_mapping_qubits = set()
 
-                    if not self._process_two_qubit_gate_dumb(
-                            qubit0=qubit_ids[0], qubit1=qubit_ids[1],
-                            paths=paths):
+                    if not self.paths.push_interaction(
+                            self._current_mapping[qubit_ids[0]],
+                            self._current_mapping[qubit_ids[1]]):
                         break
 
         if not_in_mapping_qubits:
             self.current_mapping = self._add_qubits_to_mapping(
-                self._current_mapping, self.graph, not_in_mapping_qubits,
+                self._current_mapping, self.paths.graph, not_in_mapping_qubits,
                 self._stored_commands)
-
-        return paths
-
-    def _process_two_qubit_gate_dumb(self, qubit0, qubit1, paths):
-        """
-        Process a two qubit gate.
-
-        It either removes the two qubits from active_qubits if the gate is
-        not possible or generate an optimal path through the graph connecting
-        the two qubits.
-
-        Args:
-            qubit0 (int): qubit.id of one of the qubits
-            qubit1 (int): qubit.id of the other qubit
-
-        Returns: A path through the graph (can be empty)
-        """
-        # Path is given using graph nodes (ie. mapped ids)
-        # If we come here, the two nodes can't be connected on the graph or the
-        # command would have been applied already
-        node0 = self._current_mapping[qubit0]
-        node1 = self._current_mapping[qubit1]
-
-        if paths.has_interaction(node0, node1):
-            return True
-
-        # Qubits are both active but not connected via an edge
-        if self.enable_caching:
-            if self._path_cache.has_path(node0, node1):
-                path = self._path_cache.get_path(node0, node1)
-            elif self.graph.has_edge(node0, node1):
-                path = [node0, node1]
-            else:
-                path = nx.shortest_path(self.graph, source=node0, target=node1)
-                self._path_cache.add_path(path)
-        else:
-            if self.graph.has_edge(node0, node1):
-                path = [node0, node1]
-            else:
-                path = nx.shortest_path(self.graph, source=node0, target=node1)
-
-        if path:
-            # Makes sure that one qubit will interact with at most one other
-            # qubit before forcing the generation of a swap
-            # Also makes sure that path intersection (if any) are possible
-            if not paths.try_add_path(path):
-                return False
-
-            interaction = frozenset((node0, node1))
-            if interaction not in self.paths_stats:
-                self.paths_stats[interaction] = 1
-            else:
-                self.paths_stats[interaction] += 1
-            return True
-
-        # Technically, since the graph is connected, we should always be able
-        # to find a path between any two nodes. But just in case...
-        return False  # pragma: no cover
 
     def _send_possible_commands(self):
         """
@@ -424,10 +283,10 @@ class GraphMapper(BasicMapperEngine):
                 break
             if isinstance(cmd.gate, AllocateQubitGate):
                 if cmd.qubits[0][0].id in self._current_mapping:
-                    self._currently_allocated_ids.add(cmd.qubits[0][0].id)
                     qb0 = WeakQubitRef(
                         engine=self,
                         idx=self._current_mapping[cmd.qubits[0][0].id])
+                    self._currently_allocated_ids.add(cmd.qubits[0][0].id)
                     self.send([
                         Command(
                             engine=self,
@@ -466,7 +325,7 @@ class GraphMapper(BasicMapperEngine):
 
                 # Check that mapped ids are connected by an edge on the graph
                 if len(backend_ids) == 2:
-                    send_gate = self.graph.has_edge(*list(backend_ids))
+                    send_gate = self.paths.graph.has_edge(*list(backend_ids))
 
                 if send_gate:
                     self._send_cmd_with_mapped_ids(cmd)
@@ -493,13 +352,13 @@ class GraphMapper(BasicMapperEngine):
 
         # Go through the command list and generate a list of paths.
         # At the same time, add soon-to-be-allocated qubits to the mapping
-        paths = self._process_commands()
+        self._process_commands()
 
         self._send_possible_commands()
         if not self._stored_commands:
             return
 
-        swaps = paths.generate_swaps()
+        swaps = self.paths.generate_swaps()
 
         if swaps:  # first mapping requires no swaps
             backend_ids_used = {
@@ -510,7 +369,7 @@ class GraphMapper(BasicMapperEngine):
             # Get a list of the qubits we need to allocate just to perform the
             # swaps
             not_allocated_ids = set(
-                paths.get_all_nodes()).difference(backend_ids_used)
+                self.paths.get_all_nodes()).difference(backend_ids_used)
 
             # Calculate temporary internal reverse mapping
             new_internal_mapping = deepcopy(self._reverse_current_mapping)
@@ -529,6 +388,14 @@ class GraphMapper(BasicMapperEngine):
 
                 # Those qubits are not part of the current mapping, so add them
                 # to the temporary internal reverse mapping with invalid ids
+                new_internal_mapping[backend_id] = -1
+
+            # Calculate reverse internal mapping
+            new_internal_mapping = deepcopy(self._reverse_current_mapping)
+
+            # Add missing entries with invalid id to be able to process the
+            # swaps operations
+            for backend_id in not_allocated_ids:
                 new_internal_mapping[backend_id] = -1
 
             # Send swap operations to arrive at the new mapping
@@ -624,36 +491,39 @@ class GraphMapper(BasicMapperEngine):
         """
 
         depth_of_swaps_str = ""
-        for depth_of_swaps, num_mapping in self.depth_of_swaps.items():
+        for depth_of_swaps, num_mapping in sorted(self.depth_of_swaps.items()):
             depth_of_swaps_str += "\n    {:3d}: {:3d}".format(
                 depth_of_swaps, num_mapping)
 
         num_swaps_per_mapping_str = ""
         for num_swaps_per_mapping, num_mapping \
-            in self.num_of_swaps_per_mapping.items():
+            in sorted(self.num_of_swaps_per_mapping.items(),
+                      key=lambda x: x[1], reverse=True):
             num_swaps_per_mapping_str += "\n    {:3d}: {:3d}".format(
                 num_swaps_per_mapping, num_mapping)
 
         interactions = [
             k for _, k in sorted(
-                zip(self.paths_stats.values(), self.paths_stats.keys()),
+                zip(self.paths.paths_stats.values(),
+                    self.paths.paths_stats.keys()),
                 reverse=True)
         ]
 
-        max_width = math.ceil(math.log10(max(self.paths_stats.values()))) + 1
+        max_width = int(math.ceil(
+            math.log10(max(self.paths.paths_stats.values()))) + 1)
         paths_stats_str = ""
-        if self.enable_caching:
+        if self.paths.enable_caching:
             for k in interactions:
-                if self.graph.has_edge(*list(k)):
+                if self.paths.graph.has_edge(*list(k)):
                     path = list(k)
                 else:
-                    path = self._path_cache.get_path(*list(k))
+                    path = self.paths.cache.get_path(*list(k))
                 paths_stats_str += "\n    {3:3} - {4:3}: {0:{1}} | {2}".format(
-                    self.paths_stats[k], max_width, path, *k)
+                    self.paths.paths_stats[k], max_width, path, *k)
         else:
             for k in interactions:
                 paths_stats_str += "\n    {2:3} - {3:3}: {0:{1}}".format(
-                    self.paths_stats[k], max_width, *k)
+                    self.paths.paths_stats[k], max_width, *k)
 
         return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n" +
                 "Number of swaps per mapping:{}\n\n" +

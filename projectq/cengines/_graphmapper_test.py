@@ -15,11 +15,9 @@
 
 from copy import deepcopy
 import itertools
-import random
 
 import pytest
 import networkx as nx
-import projectq
 from projectq.cengines import DummyEngine, LocalOptimizer, MainEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
@@ -121,45 +119,6 @@ def simple_mapper(simple_graph):
 # ==============================================================================
 
 
-def test_path_cache_exhaustive():
-    path_length_threshold = 3
-    cache = graphm.PathCacheExhaustive(path_length_threshold)
-
-    assert not cache._cache
-    cache.add_path(['a', 'b', 'c'])
-    assert cache._cache == {cache.key_type(('a', 'c')): ['a', 'b', 'c']}
-
-    assert cache.has_path('a', 'c')
-    assert not cache.has_path('a', 'b')
-    assert not cache.has_path('b', 'c')
-
-    cache.empty_cache()
-    assert not cache._cache
-
-    cache.add_path(['a', 'b', 'c', 'd'])
-    assert cache._cache == {
-        cache.key_type(('a', 'c')): ['a', 'b', 'c'],
-        cache.key_type(('a', 'd')): ['a', 'b', 'c', 'd'],
-        cache.key_type(('b', 'd')): ['b', 'c', 'd']
-    }
-    assert cache.has_path('a', 'd')
-    assert cache.has_path('d', 'a')
-    assert cache.has_path('a', 'c')
-    assert cache.has_path('b', 'd')
-    assert not cache.has_path('a', 'b')
-    assert not cache.has_path('b', 'a')
-    assert not cache.has_path('b', 'c')
-    assert not cache.has_path('c', 'd')
-
-    str_repr = str(cache)
-    assert str_repr.count("['a', 'd']: ['a', 'b', 'c', 'd']") == 1
-    assert str_repr.count("['a', 'c']: ['a', 'b', 'c']") == 1
-    assert str_repr.count("['b', 'd']: ['b', 'c', 'd']") == 1
-
-
-# ==============================================================================
-
-
 def test_is_available(simple_graph):
     mapper = graphm.GraphMapper(graph=simple_graph)
     qb0 = WeakQubitRef(engine=None, idx=0)
@@ -211,42 +170,6 @@ def test_run_infinite_loop_detection(simple_mapper):
     cmd0 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb1])
     with pytest.raises(RuntimeError):
         mapper.receive([cmd0, cmd_flush])
-
-
-def test_valid_and_invalid_graphs(simple_graph, grid33_graph):
-    graph = nx.Graph()
-    graph.add_nodes_from('abcd')
-    with pytest.raises(RuntimeError):
-        graphm.GraphMapper(graph=graph)
-
-    graph.add_edges_from([('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'a')])
-    with pytest.raises(RuntimeError):
-        graphm.GraphMapper(graph=graph)
-
-    graph = deepcopy(simple_graph)
-    graph.remove_edge(0, 1)
-    with pytest.raises(RuntimeError):
-        graphm.GraphMapper(graph=graph)
-
-    mapper = graphm.GraphMapper(graph=simple_graph)
-    backend = DummyEngine(save_commands=True)
-    backend.is_last_engine = True
-    mapper.next_engine = backend
-    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
-    mapper._stored_commands = allocate_cmds
-    mapper._run()
-    assert not mapper._send_possible_commands()
-    assert mapper.current_mapping == dict(enumerate(range(len(simple_graph))))
-
-    mapper = graphm.GraphMapper(graph=grid33_graph)
-    backend = DummyEngine(save_commands=True)
-    backend.is_last_engine = True
-    mapper.next_engine = backend
-    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
-    mapper._stored_commands = allocate_cmds
-    mapper._run()
-    assert not mapper._send_possible_commands()
-    assert mapper.current_mapping == dict(enumerate(range(len(grid33_graph))))
 
 
 def test_resetting_mapping_to_none(simple_graph):
@@ -356,7 +279,7 @@ def test_send_possible_commands_allocation_no_active_qubits(
     mapper._run()
     assert len(mapper._stored_commands) == 8
     # NB: after swap, can actually send Deallocate to qb0
-    assert mapper._stored_commands[0:6] == cmd_list[4:10]
+    assert mapper._stored_commands[:6] == cmd_list[4:10]
     assert mapper._stored_commands[6] == cmd_list[11]
 
 
@@ -500,17 +423,26 @@ def test_send_two_qubit_gate_before_swap(simple_mapper):
         all_cmds[3] = cmd
 
         mapper._stored_commands = all_cmds
-        print([str(cmd) for cmd in all_cmds])
         mapper._run()
         assert mapper.num_mappings == 1
         if mapper.current_mapping[2] == 2:
             # qb[2] has not moved, all_cmds[5] is possible
-            assert mapper._stored_commands == all_cmds[6:]
-            assert mapper.current_mapping == {0: 1, 1: 0, 2: 2, 3: 3}
+            assert mapper._stored_commands == all_cmds[-4:]
+            assert mapper.current_mapping == {
+                0: 1,
+                1: 0,
+                2: 2,
+                3: 3,
+            }
         else:
             # qb[2] moved, all_cmds[5] not possible
-            assert mapper._stored_commands == all_cmds[5:]
-            assert mapper.current_mapping == {0: 0, 1: 2, 2: 1, 3: 3}
+            assert mapper._stored_commands == [all_cmds[5]] + all_cmds[-4:]
+            assert mapper.current_mapping == {
+                0: 0,
+                1: 2,
+                2: 1,
+                3: 3,
+            }
 
 
 def test_send_two_qubit_gate_before_swap_nonallocated_qubits(simple_mapper):
@@ -783,19 +715,19 @@ def test_3x3_grid_multiple_simultaneous_non_intersecting_paths(
     }
 
     if enable_caching:
-        assert mapper._path_cache._cache
-        assert mapper._path_cache.has_path(0, 6)
-        assert mapper._path_cache.has_path(1, 7)
-        assert mapper._path_cache.has_path(2, 8)
-        assert mapper._path_cache.has_path(0, 2)
-        assert mapper._path_cache.has_path(3, 5)
-        assert mapper._path_cache.has_path(6, 8)
-        assert not mapper._path_cache.has_path(0, 1)
-        assert not mapper._path_cache.has_path(1, 2)
-        assert not mapper._path_cache.has_path(3, 4)
-        assert not mapper._path_cache.has_path(4, 5)
-        assert not mapper._path_cache.has_path(6, 7)
-        assert not mapper._path_cache.has_path(7, 8)
+        assert mapper.paths.cache._cache
+        assert mapper.paths.cache.has_path(0, 6)
+        assert mapper.paths.cache.has_path(1, 7)
+        assert mapper.paths.cache.has_path(2, 8)
+        assert mapper.paths.cache.has_path(0, 2)
+        assert mapper.paths.cache.has_path(3, 5)
+        assert mapper.paths.cache.has_path(6, 8)
+        assert not mapper.paths.cache.has_path(0, 1)
+        assert not mapper.paths.cache.has_path(1, 2)
+        assert not mapper.paths.cache.has_path(3, 4)
+        assert not mapper.paths.cache.has_path(4, 5)
+        assert not mapper.paths.cache.has_path(6, 7)
+        assert not mapper.paths.cache.has_path(7, 8)
 
 
 @pytest.mark.parametrize("enable_caching", [False, True])
@@ -844,9 +776,9 @@ def test_3x3_grid_multiple_simultaneous_intersecting_paths_impossible(
     }
 
     if enable_caching:
-        assert mapper._path_cache._cache
-        assert mapper._path_cache.has_path(1, 7)
-        assert mapper._path_cache.has_path(3, 5)
+        assert mapper.paths.cache._cache
+        assert mapper.paths.cache.has_path(1, 7)
+        assert mapper.paths.cache.has_path(3, 5)
 
     mapper.current_mapping = dict(enumerate(range(len(qb))))
 
@@ -858,10 +790,10 @@ def test_3x3_grid_multiple_simultaneous_intersecting_paths_impossible(
     assert mapper.depth_of_swaps == {1: 4}
 
     if enable_caching:
-        assert mapper._path_cache._cache
-        assert mapper._path_cache.has_path(1, 7)
-        assert mapper._path_cache.has_path(3, 5)
-        assert mapper._path_cache.has_path(1, 8)
+        assert mapper.paths.cache._cache
+        assert mapper.paths.cache.has_path(1, 7)
+        assert mapper.paths.cache.has_path(3, 5)
+        assert mapper.paths.cache.has_path(1, 8)
 
 
 @pytest.mark.parametrize("enable_caching", [False, True])
@@ -913,9 +845,9 @@ def test_3x3_grid_multiple_simultaneous_intersecting_paths_possible(
     }
 
     if enable_caching:
-        assert mapper._path_cache._cache
-        assert mapper._path_cache.has_path(0, 7)
-        assert mapper._path_cache.has_path(3, 5)
+        assert mapper.paths.cache._cache
+        assert mapper.paths.cache.has_path(0, 7)
+        assert mapper.paths.cache.has_path(3, 5)
 
 
 @pytest.mark.parametrize("enable_caching", [False, True])
@@ -946,7 +878,6 @@ def test_mapper_to_str(simple_graph, enable_caching):
     assert str_repr.count("3:   1") == 1
     assert str_repr.count("  0 -   6: 1") == 1
     assert str_repr.count("  0 -   3: 1") == 1
-    assert str_repr.count("  4 -   6: 1") == 1
 
     sent_gates = [cmd.gate for cmd in backend.received_commands]
     assert sent_gates.count(H) == 1

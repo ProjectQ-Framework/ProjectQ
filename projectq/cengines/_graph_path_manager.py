@@ -14,10 +14,11 @@
 """
 This is a helper module for the _graphmapper.GraphMapper class.
 
-Its main goal is to store possible paths through the graph and then generate a
-list of swap operations to perform as many paths as possible, by either solving
-conflicts (ie. crossing points and intersections; see definitions below) or
-discarding paths.
+Its main goal is to provide classes and functions to manage paths through an
+arbitrary graph and eventually generate a list of swap operations to perform as
+many paths as possible, by either solving conflicts (ie. crossing points and
+intersections; see definitions below) or discarding paths.
+
 Note that when generating a list of swap operations for a particular path, the
 path is usually splitted into two halves in order to maximize the number of
 swap operations that can be performed simultaneously.
@@ -45,6 +46,7 @@ This is best exemplified by some examples:
 """
 
 import itertools
+import networkx as nx
 
 # ==============================================================================
 
@@ -161,7 +163,9 @@ def _return_swaps(split_paths):
     Returns: A list of swap operations (2-tuples)
     """
     swap_operations = []
-    for path in split_paths.values():
+
+    for path_id in sorted(split_paths):
+        path = split_paths[path_id]
         swap_operations.append([])
         # Add swaps operations for first half of the path
         for prev, cur in zip(path[0], path[0][1:]):
@@ -177,45 +181,143 @@ def _return_swaps(split_paths):
 # ==============================================================================
 
 
-class PathContainer:
+class PathCacheExhaustive():
     """
-    Container for paths through a graph.
+    Class acting as cache for optimal paths through the graph.
+    """
 
-    Allows the resolution of conflict points such as crossings and
-    intersections.
+    def __init__(self, path_length_threshold):
+        self._path_length_threshold = path_length_threshold
+        self._cache = {}
+        self.key_type = frozenset
+
+    def __str__(self):
+        ret = ""
+        for (node0, node1), path in self._cache.items():
+            ret += "{}: {}\n".format(sorted([node0, node1]), path)
+        return ret
+
+    def empty_cache(self):
+        """Empty the cache."""
+        self._cache = {}
+
+    def get_path(self, start, end):
+        """
+        Return a path from the cache.
+
+        Args:
+            start (object): Start node for the path
+            end (object): End node for the path
+
+        Returns: Optimal path stored in cache
+
+        Raises: KeyError if path is not present in the cache
+        """
+        return self._cache[self.key_type((start, end))]
+
+    def has_path(self, start, end):
+        """
+        Test whether a path connecting start to end is present in the cache.
+
+        Args:
+            start (object): Start node for the path
+            end (object): End node for the path
+
+        Returns: True/False
+        """
+        return self.key_type((start, end)) in self._cache
+
+    def add_path(self, path):
+        """
+        Add a path to the cache.
+
+        This method also recursively adds all the subpaths that are at least
+        self._path_length_threshold long to the cache.
+
+        Args:
+            path (list): Path to store inside the cache
+        """
+        length = len(path)
+        for start in range(length - self._path_length_threshold + 1):
+            node0 = path[start]
+            for incr in range(length - start - 1,
+                              self._path_length_threshold - 2, -1):
+                end = start + incr
+                self._cache[self.key_type((node0,
+                                           path[end]))] = path[start:end + 1]
+
+
+# ==============================================================================
+
+
+class _Crossing:
+    __slots__ = ['path_id', 'overlap']
+
+    def __init__(self, path_id, overlap):
+        self.path_id, self.overlap = path_id, overlap
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (self.path_id, self.overlap) == (other.path_id,
+                                                    other.overlap)
+        if isinstance(other, list):
+            return self.overlap == other
+        if isinstance(other, int):
+            return self.overlap[0] == other
+        raise NotImplementedError("Invalid comparison")
+
+    def __str__(self):
+        return '{} {}'.format(self.path_id, self.overlap)
+
+    def __repr__(self):
+        return 'Crossing({}, {})'.format(self.path_id, self.overlap)
+
+
+class PathManager:
+    """
+    Class managing interactions between distant qubits on an arbitrary graph.
+
+    This class essentially manages paths through an arbitrary graph, handling
+    possible intersections between multiple paths through an arbitrary graph by
+    resolving conflict points such as crossings and intersections.
 
     Attributes:
+        crossings (dict) : dictionary of crossing points indexed by path ID
+        cache (PathCacheExhaustive) : cache manager
+        enable_caching (bool): indicates whether caching is enabled or not
+        graph (networkx.Graph): Arbitrary connected graph
         paths (dict) : list of paths currently held by a path container indexed
                        by a unique ID
-        crossings (dict) : dictionary of crossing points indexed by path ID
+        paths_stats (dict) : dictionary for storing statistics indexed by
+                             interactions (frozenset of pairs of qubits)
     """
 
-    class _Crossing:
-        __slots__ = ['path_id', 'overlap']
+    def __init__(self, graph, enable_caching=True):
+        """
+        Args:
+            graph (networkx.Graph): an arbitrary connected graph
+            enable_caching (bool): Controls whether path caching is enabled
+        """
+        # Make sure that we start with a valid graph
+        if not nx.is_connected(graph):
+            raise RuntimeError("Input graph must be a connected graph")
+        elif not all([isinstance(n, int) for n in graph]):
+            raise RuntimeError(
+                "All nodes inside the graph needs to be integers")
+        else:
+            self.graph = graph
 
-        def __init__(self, path_id, overlap):
-            self.path_id, self.overlap = path_id, overlap
-
-        def __eq__(self, other):
-            if isinstance(other, self.__class__):
-                return (self.path_id, self.overlap) == (other.path_id,
-                                                        other.overlap)
-            if isinstance(other, list):
-                return self.overlap == other
-            if isinstance(other, int):
-                return self.overlap[0] == other
-            raise NotImplementedError("Invalid comparison")
-
-        def __str__(self):
-            return '{} {}'.format(self.path_id, self.overlap)
-
-        def __repr__(self):
-            return 'Crossing({}, {})'.format(self.path_id, self.overlap)
-
-    def __init__(self):
         self.paths = {}
         self.crossings = {}
         self._path_id = 0
+
+        self.enable_caching = enable_caching
+        # Path cache support
+        path_length_threshold = 3
+        self.cache = PathCacheExhaustive(path_length_threshold)
+
+        # Statistics
+        self.paths_stats = dict()
 
     #################################################################
     # Methods querying information about the state of the container #
@@ -228,7 +330,11 @@ class PathContainer:
         Returns:
             A set of nodes that are part of at least one path.
         """
-        return set(itertools.chain.from_iterable(self.paths.values()))
+        all_nodes = []
+        for row in self.paths.values():
+            all_nodes.extend(row[0])
+            all_nodes.extend(row[1])
+        return set(all_nodes)
 
     def get_all_paths(self):
         """
@@ -237,7 +343,9 @@ class PathContainer:
         Returns:
             A list of paths (list of list of ints)
         """
-        return [v for _, v in self.paths.items()]
+        return [
+            self.paths[k][0] + self.paths[k][1] for k in sorted(self.paths)
+        ]
 
     def has_interaction(self, node0, node1):
         """
@@ -252,16 +360,17 @@ class PathContainer:
             node0 to node1
         """
         for path in self.paths.values():
-            if frozenset((node0, node1)) == frozenset((path[0], path[-1])):
+            if frozenset((node0, node1)) == frozenset((path[0][0],
+                                                       path[1][-1])):
                 return True
         return False
 
     def max_crossing_order(self):
         """
-        Return the order of the highest order intersection.
+        Return the order of the largest crossing.
 
-        The intersection order is given by the number of paths that consider a
-        particular crossing point as an intersection
+        The order of a crossing is defined as the number of paths that
+        intersect
 
         Returns:
             An int
@@ -274,17 +383,95 @@ class PathContainer:
             return max(crossing_orders)
         return 0
 
-    ##################################################
-    # Methods modifying the content of the container #
-    ##################################################
+    ######################################################
+    # Methods for resetting the content of the container #
+    ######################################################
+
+    def clear_paths(self):
+        """
+        Reset the list of paths managed by this instance.
+
+        Note:
+            Does not reset path statistics or the state of the cache.
+        """
+        self.paths.clear()
+        self.crossings.clear()
 
     def clear(self):
         """
-        Reset the state of the container.
+        Completely reset the state of this instance.
+
+        Note:
+            Both path statistics and cache are also reset
         """
-        self.paths = {}
-        self.crossings = {}
-        self._path_id = 0
+        self.clear_paths()
+        self.paths_stats.clear()
+        self.cache.empty_cache()
+
+    #############################################################
+    # Entry point for the mapper to extract the final path list #
+    #############################################################
+
+    def generate_swaps(self):
+        """
+        Generate a list of swaps to execute as many paths as possible.
+
+        Returns:
+            A list of swap operations (tuples)
+        """
+
+        self._solve_first_order_intersections(
+            _find_first_order_intersections(self.crossings, self.paths))
+
+        # By this point, we should have solved all intersections
+        return list(itertools.chain.from_iterable(_return_swaps(self.paths)))
+
+    #############################################
+    # Methods for adding paths to the container #
+    #############################################
+
+    def push_interaction(self, node0, node1):
+        """
+        Plan an interaction between two qubit.
+
+        Args:
+            node0 (int) : backend id of the first qubit
+            node1 (int) : backend id of the second qubit
+
+        Returns:
+            True if the path could be added to the container, False otherwise
+        """
+
+        # TODO: think about merging paths
+        # TODO: maybe apply gates in the middle of the swaps
+
+        interaction = frozenset((node0, node1))
+        if self.has_interaction(node0, node1):
+            self.paths_stats[interaction] += 1
+            return True
+
+        if not self.graph.has_edge(node0, node1):
+            new_path = self._calculate_path(node0, node1)
+        else:
+            new_path = None
+
+        if new_path:
+            if not self.try_add_path(new_path) \
+               and not self._try_alternative_paths(node0, node1):
+                return False
+        else:
+            # Prevent adding a new path if it contains some already interacting
+            # qubits
+            for path in self.paths.values():
+                if path[0][0] in (node0, node1) or path[1][-1] in (node0,
+                                                                   node1):
+                    return False
+
+        if interaction not in self.paths_stats:
+            self.paths_stats[interaction] = 1
+        else:
+            self.paths_stats[interaction] += 1
+        return True
 
     def try_add_path(self, new_path):
         """
@@ -296,29 +483,77 @@ class PathContainer:
         Returns:
             True if the path could be added to the container, False otherwise
         """
-        # Prevent adding a path to the container if the start or the end
-        # qubit is already interacting with another one
-        # Also make sure the new path does not contain interacting qubits
+        # Prevent adding a new path if it contains some already interacting
+        # qubits
         for path in self.paths.values():
-            if path[0] in new_path or path[-1] in new_path:
+            if path[0][0] in new_path or path[1][-1] in new_path:
                 return False
 
+        # Make sure each node appears only once
+        if len(new_path) != len(set(new_path)):
+            return False
+
+        idx = len(new_path) >> 1
+        new_subpath0, new_subpath1 = new_path[:idx], new_path[idx:]
+        new_intersections = {}
         new_crossings = []
-        for idx, path in self.paths.items():
-            path_overlap = [node for node in new_path if node in path]
+        for idx, (subpath0, subpath1) in self.paths.items():
+            path_overlap = [
+                node for node in new_path
+                if node in subpath0 or node in subpath1
+            ]
             if len(path_overlap) > 1:
                 return False
             if len(path_overlap) == 1:
-                new_crossings.append(
-                    PathContainer._Crossing(idx, path_overlap))
+                new_crossings.append(_Crossing(idx, path_overlap))
 
-        self.paths[self._path_id] = new_path
+                # Is this crossing point an intersection for the new path?
+                if new_subpath0[-1] in path_overlap \
+                   or new_subpath1[0] in path_overlap:
+                    if path_overlap[0] not in new_intersections:
+                        new_intersections[path_overlap[0]] = set(
+                            (self._path_id, ))
+                    else:
+                        new_intersections[path_overlap[0]].add(self._path_id)
+
+                # Is this crossing point an intersection for the other path?
+                subpath0, subpath1 = self.paths[idx]
+                if subpath0[-1] in path_overlap \
+                   or subpath1[0] in path_overlap:
+                    if path_overlap[0] not in new_intersections:
+                        new_intersections[path_overlap[0]] = set((idx, ))
+                    else:
+                        new_intersections[path_overlap[0]].add(idx)
+
+        self.paths[self._path_id] = (new_subpath0, new_subpath1)
         self.crossings[self._path_id] = new_crossings
         for crossing in new_crossings:
-            self.crossings[crossing.path_id].append(
-                PathContainer._Crossing(self._path_id, crossing.overlap))
+            path_id = crossing.path_id
+            self.crossings[path_id].append(
+                _Crossing(self._path_id, crossing.overlap))
+
+        # Remove the entries where only the new path is present, as the
+        # solution in those cases is to execute the new path after the other
+        # paths, which is going to happen anyway as the new path is appended to
+        # the list of paths
+        new_intersections = {
+            node: path_ids
+            for node, path_ids in new_intersections.items()
+            if len(path_ids) > 1 or self._path_id not in path_ids
+        }
+
+        if new_intersections:
+            self._solve_first_order_intersections(new_intersections)
+
+        if self._path_id not in self.paths:
+            return False
+
         self._path_id += 1
         return True
+
+    #############################################
+    # Methods for adding paths to the container #
+    #############################################
 
     def remove_path_by_id(self, path_id):
         """
@@ -386,45 +621,11 @@ class PathContainer:
         self.paths[path_id2], self.paths[path_id1] = self.paths[
             path_id1], self.paths[path_id2]
 
-    def generate_swaps(self):
-        """
-        Generate a list of swaps to execute as many paths as possible.
+    ##########################
+    # Private helper methods #
+    ##########################
 
-        Returns:
-            A list of swap operations (tuples)
-        """
-        # TODO: think about merging paths
-        # TODO: maybe apply gates in the middle of the swaps
-
-        max_crossing_order = self.max_crossing_order()
-
-        split_paths = self._split_paths()
-
-        if max_crossing_order > 0:
-            # Some paths have first order crossing points (ie. at most one
-            # point is common). Try to re-arrange the path splitting to remove
-            # the intersection points
-            self._solve_first_order_intersections(split_paths)
-
-        # By this point, we should have solved all intersections
-
-        return list(itertools.chain.from_iterable(_return_swaps(split_paths)))
-
-    def _split_paths(self):
-        """
-        Split all paths into pairs of equal or almost equal length sub-paths.
-
-        Returns:
-            Dictionary indexed by path ID containing 2-tuples with each path
-            halves
-        """
-        split_paths = {}
-        for path_id, path in self.paths.items():
-            idx = len(path) >> 1
-            split_paths[path_id] = (path[:idx], path[idx:])
-        return split_paths
-
-    def _solve_first_order_intersections(self, split_paths):
+    def _solve_first_order_intersections(self, intersections):
         """
         Solve all first order intersections.
 
@@ -437,20 +638,17 @@ class PathContainer:
             self.max_crossing_order() == 1
 
         Args:
-            split_paths (dict): Dictionary indexed by path ID containing
-                                2-tuples of path halvesx
+            intersections (dict): TODO
         """
-        # Get all the intersections
-        intersections = _find_first_order_intersections(
-            self.crossings, split_paths)
 
         # Get a list of the intersection nodes sorted by intersection order and
         # total number of points of all paths for that particular intersection
         def intersection_sort(crossing):
             order = len(crossing[0])
-            number_of_points = sum(
-                [len(self.paths[path_id])
-                 for path_id in crossing[0]]) - order + 1
+            number_of_points = sum([
+                len(self.paths[path_id][0]) + len(self.paths[path_id][1])
+                for path_id in crossing[0]
+            ]) - order + 1
             return (order, number_of_points)
 
         intersection_node_list = [
@@ -465,10 +663,10 @@ class PathContainer:
             node_is_not_crossing = {
                 path_id: ([
                     node not in self.crossings[path_id]
-                    for node in split_paths[path_id][0]
+                    for node in self.paths[path_id][0]
                 ], [
                     node not in self.crossings[path_id]
-                    for node in split_paths[path_id][1]
+                    for node in self.paths[path_id][1]
                 ])
                 for path_id in intersections[intersection_node]
             }
@@ -484,8 +682,6 @@ class PathContainer:
                         other_path_id = crossing.path_id
                         if path_id < other_path_id:
                             self.swap_paths(path_id, other_path_id)
-                            split_paths[0], split_paths[1] = split_paths[
-                                1], split_paths[0]
                 del intersections[intersection_node]
                 del intersection_node_list[-1]
             else:
@@ -494,7 +690,7 @@ class PathContainer:
                 path_id_list = [
                     x for _, x in sorted(
                         zip([
-                            len(self.paths[i])
+                            len(self.paths[i][0]) + len(self.paths[i][1])
                             for i in intersections[intersection_node]
                         ], intersections[intersection_node]))
                 ]
@@ -505,32 +701,74 @@ class PathContainer:
 
                 solved = _try_solve_intersection(
                     intersection_node,
-                    *(split_paths[path_id1] + node_is_not_crossing[path_id1]))
+                    *(self.paths[path_id1] + node_is_not_crossing[path_id1]))
 
                 if not solved:
                     solved = _try_solve_intersection(
                         intersection_node,
-                        *(split_paths[path_id2] +
+                        *(self.paths[path_id2] +
                           node_is_not_crossing[path_id2]))
 
                 if not solved:
                     # Last resort: delete one path
                     path_id_min, path_id_max = sorted([path_id1, path_id2])
-                    del split_paths[path_id_max]
                     del node_is_not_crossing[path_id_max]
                     self.remove_path_by_id(path_id_max)
                     node_is_not_crossing[path_id_min] = ([
                         node not in self.crossings[path_id_min]
-                        for node in split_paths[path_id_min][0]
+                        for node in self.paths[path_id_min][0]
                     ], [
                         node not in self.crossings[path_id_min]
-                        for node in split_paths[path_id_min][1]
+                        for node in self.paths[path_id_min][1]
                     ])
 
                 intersections = _find_first_order_intersections(
-                    self.crossings, split_paths)
+                    self.crossings, self.paths)
                 intersection_node_list = [
                     x for _, x in sorted(
                         zip(intersections.values(), intersections.keys()),
                         key=intersection_sort)
                 ]
+
+    def _calculate_path(self, node0, node1):
+        """
+        Calculate a path between two nodes on the graph.
+
+        Args:
+            node0 (int) : backend id of the first qubit
+            node1 (int) : backend id of the second qubit
+        """
+
+        if self.enable_caching:
+            try:
+                path = self.cache.get_path(node0, node1)
+            except KeyError:
+                path = nx.shortest_path(self.graph, source=node0, target=node1)
+                self.cache.add_path(path)
+        else:
+            path = nx.shortest_path(self.graph, source=node0, target=node1)
+
+        return path
+
+    def _try_alternative_paths(self, node0, node1):
+        """
+        Attempt to find some alternative paths
+        """
+        for neighbour in self.graph[node0]:
+            new_path = self._calculate_path(neighbour, node1)
+            if new_path[-1] == neighbour:
+                new_path = new_path + [node0]
+            else:
+                new_path = [node0] + new_path
+            if self.try_add_path(new_path):
+                return True
+        for neighbour in self.graph[node1]:
+            new_path = self._calculate_path(node0, neighbour)
+            if new_path[-1] == neighbour:
+                new_path = new_path + [node1]
+            else:
+                new_path = [node1] + new_path
+            if self.try_add_path(new_path):
+                return True
+
+        return False
