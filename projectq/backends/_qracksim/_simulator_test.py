@@ -231,7 +231,6 @@ def test_simulator_measure_mapped_qubit(sim):
     assert int(qb2) == 1
 
 
-
 def test_simulator_kqubit_exception(sim):
     m1 = Rx(0.3).matrix
     m2 = Rx(0.8).matrix
@@ -251,6 +250,7 @@ def test_simulator_kqubit_exception(sim):
     with pytest.raises(Exception):
         H | qureg
 
+
 def test_simulator_swap(sim):
     eng = MainEngine(sim, [])
     qubits1 = eng.allocate_qureg(1)
@@ -268,6 +268,7 @@ def test_simulator_swap(sim):
     All(Measure) | qubits1
     All(Measure) | qubits2
     assert (int(qubits1[0]) == 1) and (int(qubits2[0]) == 0)
+
 
 def test_simulator_math(sim):
     eng = MainEngine(sim, [])
