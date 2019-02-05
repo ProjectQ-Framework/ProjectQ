@@ -20,8 +20,9 @@ import projectq
 from projectq.cengines import DummyEngine
 from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
-from projectq.ops import (BasicGate, CNOT, H, Measure, QFT, QubitOperator, Rx,
-                          Rz, Swap, TimeEvolution, Toffoli, X)
+from projectq.ops import (BasicGate, CNOT, CRz, H, Measure, QFT, QubitOperator,
+                          Rx, Rz, Swap, TimeEvolution, Toffoli, X)
+from projectq.meta import Control
 
 import projectq.setups.restrictedgateset as restrictedgateset
 
@@ -48,17 +49,18 @@ def test_restriction():
         two_qubit_gates=(CNOT, AddConstant, Swap),
         other_gates=(Toffoli, AddConstantModN, MultiplyByConstantModN(2, 8)))
     backend = DummyEngine(save_commands=True)
-    eng = projectq.MainEngine(backend, engine_list)
+    eng = projectq.MainEngine(backend, engine_list, verbose=True)
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
     qubit3 = eng.allocate_qubit()
     eng.flush()
     CNOT | (qubit1, qubit2)
     H | qubit1
-    Rz(0.2) | qubit1
+    with Control(eng, qubit2):
+        Rz(0.2) | qubit1
     Measure | qubit1
-    AddConstant(1) | qubit1 + qubit2
-    AddConstantModN(1, 9) | qubit1 + qubit2 + qubit3
+    AddConstant(1) | (qubit1 + qubit2)
+    AddConstantModN(1, 9) | (qubit1 + qubit2 + qubit3)
     Toffoli | (qubit1 + qubit2, qubit3)
     Swap | (qubit1, qubit2)
     MultiplyByConstantModN(2, 8) | qubit1 + qubit2 + qubit3
@@ -70,15 +72,15 @@ def test_restriction():
     assert backend.received_commands[4].gate == X
     assert len(backend.received_commands[4].control_qubits) == 1
     assert backend.received_commands[5].gate == H
-    assert backend.received_commands[6].gate == Rz(0.2)
-    assert backend.received_commands[7].gate == Measure
-    assert backend.received_commands[8].gate == AddConstant(1)
-    assert backend.received_commands[9].gate == AddConstantModN(1, 9)
-    assert backend.received_commands[10].gate == X
-    assert len(backend.received_commands[10].control_qubits) == 2
-    assert backend.received_commands[11].gate == Swap
-    assert backend.received_commands[12].gate == MultiplyByConstantModN(2, 8)
-    for cmd in backend.received_commands[13:]:
+    assert backend.received_commands[6].gate == Rz(0.1)
+    assert backend.received_commands[10].gate == Measure
+    assert backend.received_commands[11].gate == AddConstant(1)
+    assert backend.received_commands[12].gate == AddConstantModN(1, 9)
+    assert backend.received_commands[13].gate == X
+    assert len(backend.received_commands[13].control_qubits) == 2
+    assert backend.received_commands[14].gate == Swap
+    assert backend.received_commands[15].gate == MultiplyByConstantModN(2, 8)
+    for cmd in backend.received_commands[16:]:
         assert cmd.gate != QFT
         assert not isinstance(cmd.gate, Rx)
         assert not isinstance(cmd.gate, MultiplyByConstantModN)
@@ -92,3 +94,9 @@ def test_wrong_init():
         engine_list = restrictedgateset.get_engine_list(one_qubit_gates="Any")
     with pytest.raises(TypeError):
         engine_list = restrictedgateset.get_engine_list(other_gates="any")
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(one_qubit_gates=(CRz,))
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(two_qubit_gates=(CRz,))
+    with pytest.raises(TypeError):
+        engine_list = restrictedgateset.get_engine_list(other_gates=(CRz,))
