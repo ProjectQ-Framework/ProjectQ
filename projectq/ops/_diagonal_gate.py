@@ -7,7 +7,7 @@ import copy
 
 
 def _is_power_of_2(k):
-    if(k <= 1):
+    if(k < 1):
         return False
     else:
         return ((k-1) & k) == 0
@@ -39,12 +39,12 @@ class DiagonalGate(BasicGate):
 
         if len(angles) > 0:
             if not _is_power_of_2(len(angles)):
-                raise ValueError("Number of angles must be 2^k for k=1,2,3...")
+                raise ValueError("Number of angles must be 2^k for k=0,1,2...")
             self._angles = copy.copy(angles)
             self._phases = []
         elif len(phases) > 0:
             if not _is_power_of_2(len(phases)):
-                raise ValueError("Number of angles must be 2^k for k=1,2,3...")
+                raise ValueError("Number of angles must be 2^k for k=0,1,2...")
             self._phases = copy.copy(phases)
             self._angles = []
         else:

@@ -34,7 +34,8 @@ class _DecomposeIsometry(object):
             reductions.append(_reduce_column(k, local_quregs, self._threshold))
 
         phases = [1./c(local_quregs[k], k) for k in range(len(self._cols))]
-        phases = phases + [1.0]*((1 << n) - len(phases))
+        nqubits = int(math.ceil(np.log2(len(self._cols))))
+        phases = phases + [1.0]*((1 << nqubits) - len(phases))
         diagonal = DiagonalGate(phases=phases)
 
         return reductions, diagonal.decomposition

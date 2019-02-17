@@ -1,4 +1,5 @@
 import numpy as np
+from math import ceil
 
 from projectq.ops import Rz, X, CNOT, Ph
 from projectq.meta import Dagger, Control, Compute, Uncompute
@@ -113,14 +114,20 @@ def _apply_isometry(decomposition, threshold, qureg):
     eng = qureg[0].engine
 
     with Dagger(eng):
-        for k in range(len(reductions)):
+        ncols = range(len(reductions))
+        for k in ncols:
             for s in range(n):
                 mcg, ucg = reductions[k][s]
                 _apply_multi_controlled_gate(mcg, k, s, threshold, qureg)
                 if len(ucg) > 0:
                     _apply_uniformly_controlled_gate(ucg, qureg[s],
                                                      qureg[s+1:], True)
-        _apply_diagonal_gate(decomposed_diagonal, qureg)
+        nqubits = int(ceil(np.log2(len(ncols))))
+        if nqubits == 0:
+            p = decomposed_diagonal[-1][0]
+            Ph(p) | qureg[0]
+        else:
+            _apply_diagonal_gate(decomposed_diagonal, qureg[:nqubits])
 
 
 def a(k, s):

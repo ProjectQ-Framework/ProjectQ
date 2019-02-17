@@ -389,16 +389,17 @@ public:
     }
 
     Decomposition get_decomposition() {
-        double time = get_time();
+        unsigned nqubits = int(ceil(log2(V.size())));
+
         CompleteReductionDecomposition complete_reduction_decomposition;
         for(unsigned k = 0; k < V.size(); ++k) {
             auto reduction_decomposition = reduce_column(k);
             complete_reduction_decomposition.push_back(reduction_decomposition);
         }
 
-        std::vector<complex_type> phases(1<<n, 1);
+        std::vector<complex_type> phases(1 << nqubits, 1);
         for(int k = 0; k < V.size(); ++k)
-            phases[k] = 1.0 / V[k][0]; // normalize?
+            phases[k] = 1.0 / V[k][0];
         auto diagonal = Diagonal(phases);
         auto diagonal_decomposition = diagonal.get_decomposition();
 
@@ -475,7 +476,7 @@ private:
 
         gate_type U(to_zero_gate(k, a(k,s+1)));
 
-        unsigned mask = k; //& ~(1<<s)
+        unsigned mask = k;
         unsigned ctrl = _count_one_bits(mask);
 
         if(ctrl > 0 and ctrl < threshold) {
