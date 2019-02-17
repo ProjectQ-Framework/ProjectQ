@@ -21,8 +21,8 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 from projectq.meta import Control
-from projectq.ops import (BasicGate, ClassicalInstructionGate, Measure,
-                          Ph, R, Rx, Ry, Rz, X, XGate)
+from projectq.ops import (All, BasicGate, ClassicalInstructionGate,
+                          MatrixGate, Measure, Ph, R, Rx, Ry, Rz, X, XGate)
 from projectq.setups.decompositions import arb1qubit2rzandry_test as arb1q_t
 
 from . import carb1qubit2cnotrzandry as carb1q
@@ -57,9 +57,9 @@ def test_recognize_incorrect_gates():
         # Does not have matrix attribute:
         BasicGate() | qubit
         # Two qubit gate:
-        two_qubit_gate = BasicGate()
-        two_qubit_gate.matrix = [[1, 0, 0, 0], [0, 1, 0, 0],
-                                 [0, 0, 1, 0], [0, 0, 0, 1]]
+        two_qubit_gate = MatrixGate()
+        two_qubit_gate.matrix = np.matrix([[1, 0, 0, 0], [0, 1, 0, 0],
+                                           [0, 0, 1, 0], [0, 0, 0, 1]])
         two_qubit_gate | qubit
     with Control(eng, ctrl_qureg):
         # Too many Control qubits:
@@ -94,7 +94,7 @@ def test_recognize_v(gate_matrix):
 @pytest.mark.parametrize("gate_matrix", arb1q_t.create_test_matrices())
 def test_decomposition(gate_matrix):
     # Create single qubit gate with gate_matrix
-    test_gate = BasicGate()
+    test_gate = MatrixGate()
     test_gate.matrix = np.matrix(gate_matrix)
 
     for basis_state in ([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
@@ -140,7 +140,7 @@ def test_decomposition(gate_matrix):
                                                 correct_ctrl_qb)
             assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
 
-        Measure | test_qb + test_ctrl_qb
-        Measure | correct_qb + correct_ctrl_qb
+        All(Measure) | test_qb + test_ctrl_qb
+        All(Measure) | correct_qb + correct_ctrl_qb
         test_eng.flush(deallocate_qubits=True)
         correct_eng.flush(deallocate_qubits=True)

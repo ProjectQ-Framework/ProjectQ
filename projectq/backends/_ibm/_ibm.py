@@ -18,7 +18,7 @@ import random
 import json
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, QubitPlacementTag
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (NOT,
                           Y,
                           Z,
@@ -36,7 +36,7 @@ from projectq.ops import (NOT,
                           Barrier,
                           FlushGate)
 
-from ._ibm_http_client import send
+from ._ibm_http_client import send, retrieve
 
 
 class IBMBackend(BasicEngine):
@@ -45,7 +45,9 @@ class IBMBackend(BasicEngine):
     QASM, and sends the circuit through the IBM API.
     """
     def __init__(self, use_hardware=False, num_runs=1024, verbose=False,
-                 user=None, password=None, device='ibmqx2'):
+                 user=None, password=None, device='ibmqx4',
+                 num_retries=3000, interval=1,
+                 retrieve_execution=None):
         """
         Initialize the Backend object.
 
@@ -59,8 +61,15 @@ class IBMBackend(BasicEngine):
                 circuit).
             user (string): IBM Quantum Experience user name
             password (string): IBM Quantum Experience password
-            device (string): Device to use ('ibmqx2', 'ibmqx4', or 'ibmqx5')
-                if use_hardware is set to True. Default is ibmqx2.
+            device (string): Device to use ('ibmqx4', or 'ibmqx5')
+                if use_hardware is set to True. Default is ibmqx4.
+            num_retries (int): Number of times to retry to obtain
+                results from the IBM API. (default is 3000)
+            interval (float, int): Number of seconds between successive
+                attempts to obtain results from the IBM API.
+                (default is 1)
+            retrieve_execution (int): Job ID to retrieve instead of re-
+                running the circuit (e.g., if previous run timed out).
         """
         BasicEngine.__init__(self)
         self._reset()
@@ -72,10 +81,13 @@ class IBMBackend(BasicEngine):
         self._verbose = verbose
         self._user = user
         self._password = password
-        self._mapping = dict()
-        self._inverse_mapping = dict()
+        self._num_retries = num_retries
+        self._interval = interval
         self._probabilities = dict()
         self.qasm = ""
+        self._measured_ids = []
+        self._allocated_qubits = set()
+        self._retrieve_execution = retrieve_execution
 
     def is_available(self, cmd):
         """
@@ -102,6 +114,7 @@ class IBMBackend(BasicEngine):
     def _reset(self):
         """ Reset all temporary variables (after flush gate). """
         self._clear = True
+        self._measured_ids = []
 
     def _store(self, cmd):
         """
@@ -113,42 +126,36 @@ class IBMBackend(BasicEngine):
             cmd: Command to store
         """
         if self._clear:
-            self._mapping = dict()
-            self._inverse_mapping = dict()
             self._probabilities = dict()
             self._clear = False
             self.qasm = ""
+            self._allocated_qubits = set()
 
         gate = cmd.gate
+
         if gate == Allocate:
-            qb_id = cmd.qubits[0][0].id
-            for tag in cmd.tags:
-                if isinstance(tag, QubitPlacementTag):
-                    self._mapping[qb_id] = tag.position
-                    self._inverse_mapping[tag.position] = qb_id
-                    break
-            if qb_id not in self._mapping:
-                raise Exception("No qubit placement info found in Allocate.\n"
-                                "Please make sure you are using the IBM CNOT "
-                                "Mapper.")
+            self._allocated_qubits.add(cmd.qubits[0][0].id)
             return
 
         if gate == Deallocate:
             return
 
         if gate == Measure:
-            for qr in cmd.qubits:
-                for qb in qr:
-                    qb_pos = self._mapping[qb.id]
-                    self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_pos,
-                                                                    qb_pos)
-
+            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
+            qb_id = cmd.qubits[0][0].id
+            logical_id = None
+            for t in cmd.tags:
+                if isinstance(t, LogicalQubitIDTag):
+                    logical_id = t.logical_qubit_id
+                    break
+            assert logical_id is not None
+            self._measured_ids += [logical_id]
         elif gate == NOT and get_control_count(cmd) == 1:
-            ctrl_pos = self._mapping[cmd.control_qubits[0].id]
-            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            ctrl_pos = cmd.control_qubits[0].id
+            qb_pos = cmd.qubits[0][0].id
             self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
         elif gate == Barrier:
-            qb_pos = [self._mapping[qb.id] for qr in cmd.qubits for qb in qr]
+            qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
             self.qasm += "\nbarrier "
             qb_str = ""
             for pos in qb_pos:
@@ -156,7 +163,7 @@ class IBMBackend(BasicEngine):
             self.qasm += qb_str[:-2] + ";"
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
-            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            qb_pos = cmd.qubits[0][0].id
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
                       'Rz': 'u1({})'}
             gate = u_strs[str(gate)[0:2]].format(gate.angle)
@@ -168,8 +175,25 @@ class IBMBackend(BasicEngine):
             else:
                 gate_str = str(gate).lower()
 
-            qb_pos = self._mapping[cmd.qubits[0][0].id]
+            qb_pos = cmd.qubits[0][0].id
             self.qasm += "\n{} q[{}];".format(gate_str, qb_pos)
+
+    def _logical_to_physical(self, qb_id):
+        """
+        Return the physical location of the qubit with the given logical id.
+
+        Args:
+            qb_id (int): ID of the logical qubit whose position should be
+                returned.
+        """
+        assert self.main_engine.mapper is not None
+        mapping = self.main_engine.mapper.current_mapping
+        if qb_id not in mapping:
+            raise RuntimeError("Unknown qubit id {}. Please make sure "
+                               "eng.flush() was called and that the qubit "
+                               "was eliminated during optimization."
+                               .format(qb_id))
+        return mapping[qb_id]
 
     def get_probabilities(self, qureg):
         """
@@ -197,16 +221,13 @@ class IBMBackend(BasicEngine):
         """
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
-        if any(qb.id not in self._mapping for qb in qureg):
-            raise RuntimeError("Unknown qubit. Please, make sure that all "
-                               "provided qubits are present in the circuit.")
 
         probability_dict = dict()
 
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i in range(len(qureg)):
-                mapped_state[i] = state[self._mapping[qureg[i].id]]
+                mapped_state[i] = state[self._logical_to_physical(qureg[i].id)]
             probability = self._probabilities[state]
             probability_dict["".join(mapped_state)] = probability
 
@@ -219,11 +240,19 @@ class IBMBackend(BasicEngine):
         Send the circuit via the IBM API (JSON QASM) using the provided user
         data / ask for username & password.
         """
+        # finally: add measurements (no intermediate measurements are allowed)
+        for measured_id in self._measured_ids:
+            qb_loc = self.main_engine.mapper.current_mapping[measured_id]
+            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
+                                                            qb_loc)
+
+        # return if no operations / measurements have been performed.
         if self.qasm == "":
             return
-        num_qubits = max(self._mapping.values()) + 1
+
+        max_qubit_id = max(self._allocated_qubits)
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
-                self.qasm).format(nq=num_qubits)
+                self.qasm).format(nq=max_qubit_id + 1)
         info = {}
         info['qasms'] = [{'qasm': qasm}]
         info['shots'] = self._num_runs
@@ -232,9 +261,20 @@ class IBMBackend(BasicEngine):
         info = json.dumps(info)
 
         try:
-            res = send(info, device=self.device,
-                       user=self._user, password=self._password,
-                       shots=self._num_runs, verbose=self._verbose)
+            if self._retrieve_execution is None:
+                res = send(info, device=self.device,
+                           user=self._user, password=self._password,
+                           shots=self._num_runs,
+                           num_retries=self._num_retries,
+                           interval=self._interval,
+                           verbose=self._verbose)
+            else:
+                res = retrieve(device=self.device, user=self._user,
+                               password=self._password,
+                               jobid=self._retrieve_execution,
+                               num_retries=self._num_retries,
+                               interval=self._interval,
+                               verbose=self._verbose)
 
             counts = res['data']['counts']
             # Determine random outcome
@@ -260,8 +300,8 @@ class IBMBackend(BasicEngine):
                     self.id = ID
 
             # register measurement result
-            for ID in self._mapping:
-                location = self._mapping[ID]
+            for ID in self._measured_ids:
+                location = self._logical_to_physical(ID)
                 result = int(measured[location])
                 self.main_engine.set_measurement_result(QB(ID), result)
             self._reset()

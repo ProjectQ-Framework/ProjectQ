@@ -20,8 +20,8 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 from projectq.meta import Control
-from projectq.ops import (ClassicalInstructionGate, Measure, Ph, QFT, Rx, Ry,
-                          X, XGate)
+from projectq.ops import (All, ClassicalInstructionGate, Measure, Ph, QFT, Rx,
+                          Ry, X, XGate)
 
 from . import cnu2toffoliandcu
 
@@ -105,17 +105,21 @@ def test_decomposition():
             Rx(0.4) | test_qb
         with Control(test_eng, test_ctrl_qureg):
             Ry(0.6) | test_qb
+        with Control(test_eng, test_ctrl_qureg):
+            X | test_qb
 
         with Control(correct_eng, correct_ctrl_qureg[:2]):
             Rx(0.4) | correct_qb
         with Control(correct_eng, correct_ctrl_qureg):
             Ry(0.6) | correct_qb
+        with Control(correct_eng, correct_ctrl_qureg):
+            X | correct_qb
 
         test_eng.flush()
         correct_eng.flush()
 
-        assert len(correct_dummy_eng.received_commands) == 8
-        assert len(test_dummy_eng.received_commands) == 20
+        assert len(correct_dummy_eng.received_commands) == 9
+        assert len(test_dummy_eng.received_commands) == 25
 
         for fstate in range(16):
             binary_state = format(fstate, '04b')
@@ -125,7 +129,7 @@ def test_decomposition():
                                                 correct_ctrl_qureg)
             assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
 
-        Measure | test_qb + test_ctrl_qureg
-        Measure | correct_qb + correct_ctrl_qureg
+        All(Measure) | test_qb + test_ctrl_qureg
+        All(Measure) | correct_qb + correct_ctrl_qureg
         test_eng.flush(deallocate_qubits=True)
         correct_eng.flush(deallocate_qubits=True)

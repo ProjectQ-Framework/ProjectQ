@@ -40,15 +40,21 @@ def _recognize_CnU(cmd):
 
 def _decompose_CnU(cmd):
     """
-    Decompose a multi-controlled gate U into a single-controlled U.
+    Decompose a multi-controlled gate U with n control qubits into a single-
+    controlled U.
 
-    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates.
+    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates for general U
+    and (n-2) work qubits and 2n - 3 Toffoli gates if U is an X-gate.
     """
     eng = cmd.engine
     qubits = cmd.qubits
     ctrl_qureg = cmd.control_qubits
     gate = cmd.gate
     n = get_control_count(cmd)
+
+    # specialized for X-gate
+    if gate == XGate() and n > 2:
+        n -= 1
     ancilla_qureg = eng.allocate_qureg(n-1)
 
     with Compute(eng):
@@ -56,8 +62,12 @@ def _decompose_CnU(cmd):
         for ctrl_index in range(2, n):
             Toffoli | (ctrl_qureg[ctrl_index], ancilla_qureg[ctrl_index-2],
                        ancilla_qureg[ctrl_index-1])
+    ctrls = [ancilla_qureg[-1]]
 
-    with Control(eng, ancilla_qureg[-1]):
+    # specialized for X-gate
+    if gate == XGate() and get_control_count(cmd) > 2:
+        ctrls += [ctrl_qureg[-1]]
+    with Control(eng, ctrls):
         gate | qubits
 
     Uncompute(eng)

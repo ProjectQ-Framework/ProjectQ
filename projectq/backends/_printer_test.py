@@ -19,8 +19,12 @@ Tests for projectq.backends._printer.py.
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine, InstructionFilter
-from projectq.ops import T, H, Command, NOT, Measure
+from projectq.cengines import (DummyEngine,
+                               InstructionFilter,
+                               NotYetMeasuredError)
+from projectq.meta import LogicalQubitIDTag
+from projectq.ops import Allocate, Command, H, Measure, NOT, T
+from projectq.types import WeakQubitRef
 
 from projectq.backends import _printer
 
@@ -64,3 +68,21 @@ def test_command_printer_no_input_default_measure():
     NOT | qubit
     Measure | qubit
     assert int(qubit) == 0
+
+
+def test_command_printer_measure_mapped_qubit():
+    eng = MainEngine(_printer.CommandPrinter(accept_input=False), [])
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
+                   tags=[LogicalQubitIDTag(2)])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+    eng.send([cmd0, cmd1])
+    eng.flush()
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 0

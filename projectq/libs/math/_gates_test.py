@@ -18,7 +18,9 @@ import pytest
 
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
-                                MultiplyByConstantModN)
+                                MultiplyByConstantModN,
+                                SubConstant,
+                                SubConstantModN)
 
 
 def test_addconstant():
@@ -47,3 +49,12 @@ def test_multiplybyconstmodn():
     assert MultiplyByConstantModN(3, 5) != MultiplyByConstantModN(3, 4)
 
     assert str(MultiplyByConstantModN(3, 4)) == "MultiplyByConstantModN(3, 4)"
+
+
+def test_hash_function_implemented():
+    assert hash(AddConstant(3)) == hash(str(AddConstant(3)))
+    assert hash(SubConstant(-3)) == hash(str(AddConstant(3)))
+    assert hash(AddConstantModN(7, 4)) == hash(str(AddConstantModN(7, 4)))
+    assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
+    assert hash(MultiplyByConstantModN(3, 5)) == hash(
+        MultiplyByConstantModN(3, 5))

@@ -28,27 +28,14 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import (H,
-                          X,
-                          Y,
-                          Z,
-                          S,
-                          T,
-                          Rx,
-                          Ry,
-                          Rz,
-                          CNOT,
-                          Toffoli,
-                          Measure,
-                          BasicGate,
-                          BasicMathGate,
-                          QubitOperator,
-                          TimeEvolution,
-                          DiagonalGate,
-                          UniformlyControlledGate,
-                          All)
-from projectq.meta import Control, Dagger
+from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
+                               LocalOptimizer, NotYetMeasuredError)
+from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
+                          Command, H, MatrixGate, Measure, QubitOperator,
+                          Rx, Ry, Rz, S, T, TimeEvolution, Toffoli, X, Y, Z,
+                          DiagonalGate, UniformlyControlledGate)
+from projectq.meta import Control, Dagger, LogicalQubitIDTag
+from projectq.types import WeakQubitRef
 
 from projectq.backends import Simulator
 
@@ -83,37 +70,61 @@ def sim(request):
         return sim
 
 
-class Mock1QubitGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
+@pytest.fixture(params=["mapper", "no_mapper"])
+def mapper(request):
+    """
+    Adds a mapper which changes qubit ids by adding 1
+    """
+    if request.param == "mapper":
 
-        @property
-        def matrix(self):
-            self.cnt += 1
-            return [[0, 1], [1, 0]]
+        class TrivialMapper(BasicMapperEngine):
+            def __init__(self):
+                BasicEngine.__init__(self)
+                self.current_mapping = dict()
+
+            def receive(self, command_list):
+                for cmd in command_list:
+                    for qureg in cmd.all_qubits:
+                        for qubit in qureg:
+                            if qubit.id == -1:
+                                continue
+                            elif qubit.id not in self.current_mapping:
+                                previous_map = self.current_mapping
+                                previous_map[qubit.id] = qubit.id + 1
+                                self.current_mapping = previous_map
+                    self._send_cmd_with_mapped_ids(cmd)
+
+        return TrivialMapper()
+    if request.param == "no_mapper":
+        return None
 
 
-class Mock6QubitGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
+class Mock1QubitGate(MatrixGate):
+    def __init__(self):
+        MatrixGate.__init__(self)
+        self.cnt = 0
 
-        @property
-        def matrix(self):
-            self.cnt += 1
-            return numpy.eye(2 ** 6)
+    @property
+    def matrix(self):
+        self.cnt += 1
+        return [[0, 1], [1, 0]]
+
+
+class Mock6QubitGate(MatrixGate):
+    def __init__(self):
+        MatrixGate.__init__(self)
+        self.cnt = 0
+
+    @property
+    def matrix(self):
+        self.cnt += 1
+        return numpy.eye(2 ** 6)
 
 
 class MockNoMatrixGate(BasicGate):
-        def __init__(self):
-            BasicGate.__init__(self)
-            self.cnt = 0
-
-        @property
-        def matrix(self):
-            self.cnt += 1
-            raise AttributeError
+    def __init__(self):
+        BasicGate.__init__(self)
+        self.cnt = 0
 
 
 def test_simulator_is_available(sim):
@@ -122,7 +133,7 @@ def test_simulator_is_available(sim):
     qubit = eng.allocate_qubit()
     Measure | qubit
     BasicMathGate(lambda x: x) | qubit
-    del qubit
+    qubit[0].__del__()
     assert len(backend.received_commands) == 4
 
     # Test that allocate, measure, basic math, and deallocate are available.
@@ -141,7 +152,7 @@ def test_simulator_is_available(sim):
 
     new_cmd.gate = MockNoMatrixGate()
     assert not sim.is_available(new_cmd)
-    assert new_cmd.gate.cnt == 1
+    assert new_cmd.gate.cnt == 0
 
 
 def test_simulator_cheat(sim):
@@ -162,7 +173,7 @@ def test_simulator_cheat(sim):
     assert len(sim.cheat()[1]) == 2
     assert 1. == pytest.approx(abs(sim.cheat()[1][0]))
 
-    del qubit
+    qubit[0].__del__()
     # should be empty:
     assert len(sim.cheat()[0]) == 0
     # state vector should only have 1 entry:
@@ -177,10 +188,29 @@ def test_simulator_functional_measurement(sim):
     for qb in qubits[1:]:
         CNOT | (qubits[0], qb)
 
-    Measure | qubits
+    All(Measure) | qubits
 
     bit_value_sum = sum([int(qubit) for qubit in qubits])
     assert bit_value_sum == 0 or bit_value_sum == 5
+
+
+def test_simulator_measure_mapped_qubit(sim):
+    eng = MainEngine(sim, [])
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=X, qubits=([qb1],))
+    cmd2 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
+                   tags=[LogicalQubitIDTag(2)])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+    eng.send([cmd0, cmd1, cmd2])
+    eng.flush()
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 1
 
 
 class Plus2Gate(BasicMathGate):
@@ -204,7 +234,7 @@ def test_simulator_emulation(sim):
         Plus2Gate() | (qubit1 + qubit2)
     assert 1. == pytest.approx(sim.cheat()[1][6])
 
-    Measure | (qubit1 + qubit2 + qubit3)
+    All(Measure) | (qubit1 + qubit2 + qubit3)
 
 
 def test_simulator_kqubit_gate(sim):
@@ -265,8 +295,11 @@ def test_simulator_kqubit_exception(sim):
         H | qureg
 
 
-def test_simulator_probability(sim):
-    eng = MainEngine(sim)
+def test_simulator_probability(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(6)
     All(H) | qubits
     eng.flush()
@@ -291,11 +324,14 @@ def test_simulator_probability(sim):
             pytest.approx(0.18))
     assert (eng.backend.get_probability([1, 0], qubits[:3:2]) ==
             pytest.approx(0.28))
-    Measure | qubits
+    All(Measure) | qubits
 
 
-def test_simulator_amplitude(sim):
-    eng = MainEngine(sim)
+def test_simulator_amplitude(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(6)
     All(X) | qubits
     All(H) | qubits
@@ -315,7 +351,7 @@ def test_simulator_amplitude(sim):
     bits[0] = 1
     assert (eng.backend.get_amplitude(bits, qubits) ==
             pytest.approx(math.sqrt(0.91)))
-    Measure | qubits
+    All(Measure) | qubits
     # raises if not all qubits are in the list:
     with pytest.raises(RuntimeError):
         eng.backend.get_amplitude(bits, qubits[:-1])
@@ -329,8 +365,11 @@ def test_simulator_amplitude(sim):
         eng.backend.get_amplitude(bits, qubits)
 
 
-def test_simulator_expectation(sim):
-    eng = MainEngine(sim, [])
+def test_simulator_expectation(sim, mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qureg = eng.allocate_qureg(3)
     op0 = QubitOperator('Z0')
     expectation = sim.get_expectation_value(op0, qureg)
@@ -398,8 +437,11 @@ def test_simulator_applyqubitoperator_exception(sim):
         sim.apply_qubit_operator(op3, qureg)
 
 
-def test_simulator_applyqubitoperator(sim):
-    eng = MainEngine(sim, [])
+def test_simulator_applyqubitoperator(sim, mapper):
+    engine_list = []
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qureg = eng.allocate_qureg(3)
     op = QubitOperator('X0 Y1 Z2')
     sim.apply_qubit_operator(op, qureg)
@@ -445,7 +487,7 @@ def test_simulator_time_evolution(sim):
         TimeEvolution(time_to_evolve, op) | qureg
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    Measure | (qureg, ctrl_qubit)
+    All(Measure) | qureg + ctrl_qubit
     # Check manually:
 
     def build_matrix(list_single_matrices):
@@ -567,8 +609,11 @@ def test_simulator_apply_uniformly_controlled_gate_with_control(sim):
     assert numpy.allclose(final_wavefunction, desired_state)
 
 
-def test_simulator_set_wavefunction(sim):
-    eng = MainEngine(sim)
+def test_simulator_set_wavefunction(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(2)
     wf = [0., 0., math.sqrt(0.2), math.sqrt(0.8)]
     with pytest.raises(RuntimeError):
@@ -578,7 +623,7 @@ def test_simulator_set_wavefunction(sim):
     assert pytest.approx(eng.backend.get_probability('1', [qubits[0]])) == .8
     assert pytest.approx(eng.backend.get_probability('01', qubits)) == .2
     assert pytest.approx(eng.backend.get_probability('1', [qubits[1]])) == 1.
-    Measure | qubits
+    All(Measure) | qubits
 
 
 def test_simulator_set_wavefunction_always_complex(sim):
@@ -593,8 +638,11 @@ def test_simulator_set_wavefunction_always_complex(sim):
     assert eng.backend.get_amplitude('1', qubit) == pytest.approx(1j)
 
 
-def test_simulator_collapse_wavefunction(sim):
-    eng = MainEngine(sim)
+def test_simulator_collapse_wavefunction(sim, mapper):
+    engine_list = [LocalOptimizer()]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(sim, engine_list=engine_list)
     qubits = eng.allocate_qureg(4)
     # unknown qubits: raises
     with pytest.raises(RuntimeError):
@@ -706,4 +754,20 @@ def test_simulator_functional_entangle(sim):
     for i in range(1, 32):
         assert 0. == pytest.approx(abs(sim.cheat()[1][i]))
 
-    Measure | qubits
+    All(Measure) | qubits
+
+
+def test_simulator_convert_logical_to_mapped_qubits(sim):
+    mapper = BasicMapperEngine()
+
+    def receive(command_list):
+        pass
+
+    mapper.receive = receive
+    eng = MainEngine(sim, [mapper])
+    qubit0 = eng.allocate_qubit()
+    qubit1 = eng.allocate_qubit()
+    mapper.current_mapping = {qubit0[0].id: qubit1[0].id,
+                              qubit1[0].id: qubit0[0].id}
+    assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
+            qubit1 + qubit0)

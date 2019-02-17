@@ -6,6 +6,7 @@ The operations collection consists of various default gates and is a work-in-pro
 .. autosummary::
 
 	projectq.ops.BasicGate
+	projectq.ops.MatrixGate
 	projectq.ops.SelfInverseGate
 	projectq.ops.BasicRotationGate
 	projectq.ops.BasicPhaseGate
@@ -46,8 +47,13 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.QubitOperator
 	projectq.ops.CRz
 	projectq.ops.CNOT
+	projectq.ops.CZ
 	projectq.ops.Toffoli
 	projectq.ops.TimeEvolution
+	projectq.ops.UniformlyControlledRy
+	projectq.ops.UniformlyControlledRz
+	projectq.ops.StatePreparation
+	projectq.ops.FlipBits
 
 
 Module contents

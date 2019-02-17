@@ -1,6 +1,6 @@
 import projectq.setups.ibm
 from projectq.backends import IBMBackend
-from projectq.ops import Measure, Entangle
+from projectq.ops import Measure, Entangle, All
 from projectq import MainEngine
 
 
@@ -22,7 +22,7 @@ def run_entangle(eng, num_qubits=5):
     Entangle | qureg
 
     # measure; should be all-0 or all-1
-    Measure | qureg
+    All(Measure) | qureg
 
     # run the circuit
     eng.flush()
@@ -40,6 +40,6 @@ if __name__ == "__main__":
     # create main compiler engine for the IBM back-end
     eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
                                 verbose=False, device='ibmqx4'),
-                     setup=projectq.setups.ibm)
+                     engine_list=projectq.setups.ibm.get_engine_list())
     # run the circuit and print the result
     print(run_entangle(eng))

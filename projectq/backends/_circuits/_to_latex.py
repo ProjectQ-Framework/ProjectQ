@@ -111,7 +111,8 @@ def get_default_settings():
                           'AllocateQubitGate': {'height': .15, 'width': .2,
                                                 'offset': .1,
                                                 'pre_offset': .1,
-                                                'draw_id': False},
+                                                'draw_id': False,
+                                                'allocate_at_zero': False},
                           'MeasureGate': {'width': 0.75, 'offset': .2,
                                           'height': .5, 'pre_offset': .2}
                           })
@@ -208,7 +209,7 @@ def _footer(settings):
     Returns:
         tex_footer_str (string): Latex document footer.
     """
-    return "\n\n\end{tikzpicture}\n\end{document}"
+    return "\n\n\\end{tikzpicture}\n\\end{document}"
 
 
 class _Circ2Tikz(object):
@@ -328,15 +329,23 @@ class _Circ2Tikz(object):
                     self.is_quantum[l] = False
             elif gate == Allocate:
                 # draw 'begin line'
-                add_str = "\n\\node[none] ({}) at ({},-{}) {{$\Ket{{0}}{}$}};"
+                add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
                 id_str = ""
                 if self.settings['gates']['AllocateQubitGate']['draw_id']:
                     id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
-                add_str = add_str.format(self._op(line), self.pos[line], line,
+                xpos = self.pos[line]
+                try:
+                    if (self.settings['gates']['AllocateQubitGate']
+                                     ['allocate_at_zero']):
+                        self.pos[line] -= self._gate_pre_offset(gate)
+                        xpos = self._gate_pre_offset(gate)
+                except KeyError:
+                    pass
+                self.pos[line] = max(xpos + self._gate_offset(gate) +
+                                     self._gate_width(gate), self.pos[line])
+                add_str = add_str.format(self._op(line), xpos, line,
                                          id_str)
                 self.op_count[line] += 1
-                self.pos[line] += (self._gate_offset(gate) +
-                                   self._gate_width(gate))
                 self.is_quantum[line] = self.settings['lines']['init_quantum']
             elif gate == Deallocate:
                 # draw 'end of line'
@@ -424,7 +433,7 @@ class _Circ2Tikz(object):
         gate_str += ("\n\\node[xstyle] ({op}) at ({pos},-{line})\
                 {{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"
                      ).format(op=op_mid, line=midpoint, pos=pos,
-                              dagger='^{{\dagger}}' if daggered else '')
+                              dagger='^{{\\dagger}}' if daggered else '')
 
         # add two vertical lines to connect circled 1/2
         gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(

@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,23 +12,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Tests for projectq.meta._qubitplacement.py"""
+"""Tests for projectq.meta._logicalqubit.py."""
 
-from projectq.meta import ComputeTag
+from copy import deepcopy
 
-from projectq.meta._qubitplacement import QubitPlacementTag
+from projectq.meta import ComputeTag, _logicalqubit
 
 
-def test_qubit_placement_tag():
-    tag0 = QubitPlacementTag(0)
-    tag1 = QubitPlacementTag(0)
-    tag2 = QubitPlacementTag(2)
-    tag3 = ComputeTag()
-    assert tag0 == tag1
-    assert not tag0 == tag2
+def test_logical_qubit_id_tag():
+    tag0 = _logicalqubit.LogicalQubitIDTag(10)
+    tag1 = _logicalqubit.LogicalQubitIDTag(1)
+    tag2 = tag0
+    tag3 = deepcopy(tag0)
+    tag3.logical_qubit_id = 9
+    other_tag = ComputeTag()
+    assert tag0 == tag2
+    assert tag0 != tag1
     assert not tag0 == tag3
-    assert not tag3 == tag2
-    assert not tag0 != tag1
-    assert tag0 != tag2
-    assert tag0 != tag3
-    assert tag3 != tag2
+    assert not tag0 == other_tag

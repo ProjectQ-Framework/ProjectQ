@@ -27,7 +27,7 @@ class LocalOptimizer(BasicEngine):
     rotations, cancelling gates with their inverse) in a local window of user-
     defined size.
 
-    It stores all commands in a list of lists, where each qubit has its own
+    It stores all commands in a dict of lists, where each qubit has its own
     gate pipeline. After adding a gate, it tries to merge / cancel successive
     gates using the get_merged and get_inverse functions of the gate (if
     available). For examples, see BasicRotationGate. Once a list corresponding
@@ -42,7 +42,7 @@ class LocalOptimizer(BasicEngine):
                 first gate.
         """
         BasicEngine.__init__(self)
-        self._l = [[]]  # list of lists containing operations for each qubit
+        self._l = dict()  # dict of lists containing operations for each qubit
         self._m = m  # wait for m gates before sending on
 
     # sends n gate operations of the qubit with index idx
@@ -190,7 +190,7 @@ class LocalOptimizer(BasicEngine):
         Check whether a qubit pipeline must be sent on and, if so,
         optimize the pipeline and then send it on.
         """
-        for i in range(len(self._l)):
+        for i in self._l:
             if (len(self._l[i]) >= self._m or len(self._l[i]) > 0 and
                     isinstance(self._l[i][-1].gate, FastForwardingGate)):
                 self._optimize(i)
@@ -201,6 +201,11 @@ class LocalOptimizer(BasicEngine):
                 elif (len(self._l[i]) > 0 and
                       isinstance(self._l[i][-1].gate, FastForwardingGate)):
                     self._send_qubit_pipeline(i, len(self._l[i]))
+        new_dict = dict()
+        for idx in self._l:
+            if len(self._l[idx]) > 0:
+                new_dict[idx] = self._l[idx]
+        self._l = new_dict
 
     def _cache_cmd(self, cmd):
         """
@@ -209,17 +214,11 @@ class LocalOptimizer(BasicEngine):
         """
         # are there qubit ids that haven't been added to the list?
         idlist = [qubit.id for sublist in cmd.all_qubits for qubit in sublist]
-        maxidx = int(0)
-        for ID in idlist:
-            maxidx = max(maxidx, ID)
-
-        # if so, increase size of list to account for these qubits
-        add = maxidx + 1 - len(self._l)
-        if add > 0:
-            self._l += [[] for _ in range(add)]
 
         # add gate command to each of the qubits involved
         for ID in idlist:
+            if ID not in self._l:
+                self._l[ID] = []
             self._l[ID] += [cmd]
 
         self._check_and_send()
@@ -231,9 +230,15 @@ class LocalOptimizer(BasicEngine):
         """
         for cmd in command_list:
             if cmd.gate == FlushGate():  # flush gate --> optimize and flush
-                for i in range(len(self._l)):
-                    self._optimize(i)
-                    self._send_qubit_pipeline(i, len(self._l[i]))
+                for idx in self._l:
+                    self._optimize(idx)
+                    self._send_qubit_pipeline(idx, len(self._l[idx]))
+                new_dict = dict()
+                for idx in self._l:
+                    if len(self._l[idx]) > 0:
+                        new_dict[idx] = self._l[idx]
+                self._l = new_dict
+                assert self._l == dict()
                 self.send([cmd])
             else:
                 self._cache_cmd(cmd)

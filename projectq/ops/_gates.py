@@ -31,16 +31,20 @@ and meta gates, i.e.,
 
 import math
 import cmath
+import warnings
+
 import numpy as np
 
 from projectq.ops import get_inverse
 from ._basics import (BasicGate,
+                      MatrixGate,
                       SelfInverseGate,
                       BasicRotationGate,
                       BasicPhaseGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
+from ._command import apply_command
 
 
 class HGate(SelfInverseGate):
@@ -261,9 +265,28 @@ class FlushGate(FastForwardingGate):
 
 
 class MeasureGate(FastForwardingGate):
-    """ Measurement gate class """
+    """ Measurement gate class (for single qubits)."""
     def __str__(self):
         return "Measure"
+
+    def __or__(self, qubits):
+        """
+        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
+        applied to any number of quantum registers. Now the MeasureGate/Measure
+        is strictly a single qubit gate. In the coming releases the backward
+        compatibility will be removed!
+        """
+        num_qubits = 0
+        for qureg in self.make_tuple_of_qureg(qubits):
+            for qubit in qureg:
+                num_qubits += 1
+                cmd = self.generate_command(([qubit],))
+                apply_command(cmd)
+        if num_qubits > 1:
+            warnings.warn("Pending syntax change in future versions of "
+                          "ProjectQ: \n Measure will be a single qubit gate "
+                          "only. Use `All(Measure) | qureg` instead to "
+                          "measure multiple qubits.")
 
 #: Shortcut (instance of) :class:`projectq.ops.MeasureGate`
 Measure = MeasureGate()
@@ -315,3 +338,56 @@ class BarrierGate(BasicGate):
 
 #: Shortcut (instance of) :class:`projectq.ops.BarrierGate`
 Barrier = BarrierGate()
+
+
+class FlipBits(SelfInverseGate):
+    """ Gate for flipping qubits by means of XGates """
+    def __init__(self, bits_to_flip):
+        """
+        Initialize FlipBits gate.
+
+        Example:
+            .. code-block:: python
+
+                qureg = eng.allocate_qureg(2)
+                FlipBits([0, 1]) | qureg
+
+        Args:
+            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1,
+               True/False, or string of 0/1 identifying the qubits to flip.
+               In case of int, the bits to flip are determined from the
+               binary digits, with the least significant bit corresponding
+               to qureg[0]. If bits_to_flip is negative, exactly all qubits
+               which would not be flipped for the input -bits_to_flip-1 are
+               flipped, i.e., bits_to_flip=-1 flips all qubits.
+        """
+        SelfInverseGate.__init__(self)
+        if isinstance(bits_to_flip, int):
+            self.bits_to_flip = bits_to_flip
+        else:
+            self.bits_to_flip = 0
+            for i in reversed(list(bits_to_flip)):
+                bit = 0b1 if i == '1' or i == 1 or i is True else 0b0
+                self.bits_to_flip = (self.bits_to_flip << 1) | bit
+
+    def __str__(self):
+        return "FlipBits("+str(self.bits_to_flip)+")"
+
+    def __or__(self, qubits):
+        quregs_tuple = self.make_tuple_of_qureg(qubits)
+        if len(quregs_tuple) > 1:
+            raise ValueError(self.__str__()+' can only be applied to qubits,'
+                             'quregs, arrays of qubits, and tuples with one'
+                             'individual qubit')
+        for qureg in quregs_tuple:
+            for i, qubit in enumerate(qureg):
+                if (self.bits_to_flip >> i) & 1:
+                    XGate() | qubit
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.bits_to_flip == other.bits_to_flip
+        return False
+
+    def __hash__(self):
+        return hash(self.__str__())
