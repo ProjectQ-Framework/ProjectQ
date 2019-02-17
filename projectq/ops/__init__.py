@@ -15,6 +15,7 @@
 from ._basics import (NotMergeable,
                       NotInvertible,
                       BasicGate,
+                      MatrixGate,
                       SelfInverseGate,
                       BasicRotationGate,
                       ClassicalInstructionGate,
