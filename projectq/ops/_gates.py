@@ -37,6 +37,7 @@ import numpy as np
 
 from projectq.ops import get_inverse
 from ._basics import (BasicGate,
+                      MatrixGate,
                       SelfInverseGate,
                       BasicRotationGate,
                       BasicPhaseGate,
