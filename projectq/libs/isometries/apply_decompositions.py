@@ -4,17 +4,20 @@ from projectq.ops import Rz, X, CNOT, Ph
 from projectq.meta import Dagger, Control, Compute, Uncompute
 from . import _decompose_diagonal_gate
 
+
 def _is_unitary(G):
     return np.linalg.norm(G.getH()*G - np.eye(2))
 
+
 def _count_trailing_zero_bits(v):
     assert v > 0
-    v = (v ^ (v - 1)) >> 1;
+    v = (v ^ (v - 1)) >> 1
     c = 0
     while(v):
-        v >>= 1;
+        v >>= 1
         c += 1
     return c
+
 
 def _apply_diagonal_gate(decomposition, qureg):
     n = len(qureg)
@@ -25,6 +28,7 @@ def _apply_diagonal_gate(decomposition, qureg):
 
     p = decomposition[-1][0]
     Ph(p) | qureg[0]
+
 
 def _apply_uniformly_controlled_rotation(angles, qureg):
     N = len(angles)
@@ -47,11 +51,12 @@ def _apply_uniformly_controlled_rotation(angles, qureg):
     CNOT | (controls[-1], target)
 
 
-def _apply_uniformly_controlled_gate(decomposition, target, choice_reg, up_to_diagonal):
+def _apply_uniformly_controlled_gate(decomposition, target, choice_reg,
+                                     up_to_diagonal):
     gates, phases = decomposition
 
-    assert len(gates) == 1<<len(choice_reg)
-    assert len(phases) == 2<<len(choice_reg)
+    assert len(gates) == 1 << len(choice_reg)
+    assert len(phases) == 2 << len(choice_reg)
 
     for i in range(len(gates) - 1):
         gates[i] | target
@@ -66,23 +71,26 @@ def _apply_uniformly_controlled_gate(decomposition, target, choice_reg, up_to_di
     decomposed_diagonal = _decompose_diagonal_gate(phases)
     _apply_diagonal_gate(decomposed_diagonal, [target]+choice_reg)
 
+
 def _apply_mask(mask, qureg):
     n = len(qureg)
     for pos in range(n):
         if ((mask >> pos) & 1) == 0:
             X | qureg[pos]
 
+
 def _get_one_bits(qureg, bks):
     res = []
     for i in range(len(qureg)):
-        if bks & (1<<i):
+        if bks & (1 << i):
             res.append(qureg[i])
     return res
 
+
 def _apply_multi_controlled_gate(decomposition, k, s, threshold, qureg):
     gates, phases = decomposition
-    mask = k & ~(1<<s)
-    ctrl = _get_one_bits(qureg,mask)
+    mask = k & ~(1 << s)
+    ctrl = _get_one_bits(qureg, mask)
     eng = qureg[0].engine
 
     if len(gates) == 1:
@@ -97,6 +105,7 @@ def _apply_multi_controlled_gate(decomposition, k, s, threshold, qureg):
         with Control(eng, ctrl):
             gates[0] | qureg[s]
 
+
 def _apply_isometry(decomposition, threshold, qureg):
     reductions, decomposed_diagonal = decomposition
 
@@ -109,11 +118,14 @@ def _apply_isometry(decomposition, threshold, qureg):
                 mcg, ucg = reductions[k][s]
                 _apply_multi_controlled_gate(mcg, k, s, threshold, qureg)
                 if len(ucg) > 0:
-                    _apply_uniformly_controlled_gate(ucg, qureg[s], qureg[s+1:], True)
+                    _apply_uniformly_controlled_gate(ucg, qureg[s],
+                                                     qureg[s+1:], True)
         _apply_diagonal_gate(decomposed_diagonal, qureg)
 
-def a(k,s):
+
+def a(k, s):
     return k >> s
 
-def b(k,s):
-    return k - (a(k,s) << s)
+
+def b(k, s):
+    return k - (a(k, s) << s)

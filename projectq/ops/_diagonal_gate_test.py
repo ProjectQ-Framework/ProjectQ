@@ -7,6 +7,7 @@ from projectq.meta import Dagger
 
 from . import _diagonal_gate as diag
 
+
 def test_merge():
     angles1 = list(range(8))
     angles2 = list(range(8))
@@ -16,12 +17,14 @@ def test_merge():
     for i in range(8):
         assert np.isclose(D3.phases[i], cmath.exp(1j*2*i))
 
+
 def test_inverse():
     angles = list(range(8))
     D = diag.DiagonalGate(angles=angles)
     D_inv = D.get_inverse()
     for i in range(8):
         assert np.isclose(D_inv.phases[i], cmath.exp(-1j*i))
+
 
 def test_dagger():
     eng = MainEngine()

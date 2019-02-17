@@ -2,8 +2,10 @@ from projectq.ops import BasicGate
 
 import numpy as np
 
+
 def _is_unitary(m):
     return np.allclose(m*m.H, np.eye(2))
+
 
 # Helper class
 class _SingleQubitGate(BasicGate):
@@ -21,8 +23,8 @@ class _SingleQubitGate(BasicGate):
 
     def __str__(self):
         return "U[{:.2f} {:.2f}; {:.2f} {:.2f}]".format(
-            abs(self.matrix.item((0,0))), abs(self.matrix.item((0,1))),
-            abs(self.matrix.item((1,0))), abs(self.matrix.item((1,1))))
+            abs(self.matrix.item((0, 0))), abs(self.matrix.item((0, 1))),
+            abs(self.matrix.item((1, 0))), abs(self.matrix.item((1, 1))))
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

@@ -1,14 +1,17 @@
-from ._basics import BasicGate
+from ._basics import BasicGate, NotInvertible, NotMergeable
+
 
 import numpy as np
 import cmath
 import copy
+
 
 def _is_power_of_2(k):
     if(k <= 1):
         return False
     else:
         return ((k-1) & k) == 0
+
 
 class DiagonalGate(BasicGate):
     """
@@ -32,7 +35,7 @@ class DiagonalGate(BasicGate):
     """
     def __init__(self, phases=[], angles=[]):
         if len(angles) > 0 and len(phases) > 0:
-            raise ValueError("Only provide either a list of angles or of phases")
+            raise ValueError("Provide either a list of angles or of phases")
 
         if len(angles) > 0:
             if not _is_power_of_2(len(angles)):
@@ -45,7 +48,7 @@ class DiagonalGate(BasicGate):
             self._phases = copy.copy(phases)
             self._angles = []
         else:
-            raise ValueError("Please provide either a list of angles or of phases")
+            raise ValueError("Provide either a list of angles or of phases")
         self.interchangeable_qubit_indices = []
         self._decomposition = None
 
@@ -63,24 +66,25 @@ class DiagonalGate(BasicGate):
 
     @property
     def decomposition(self):
-        if self._decomposition == None:
+        if self._decomposition is None:
             from projectq.libs.isometries import _decompose_diagonal_gate
             self._decomposition = _decompose_diagonal_gate(self.phases)
         return self._decomposition
 
     def get_inverse(self):
         if len(self._angles) > 0:
-            return DiagonalGate(angles = [-a for a in self._angles])
+            return DiagonalGate(angles=[-a for a in self._angles])
         else:
-            return DiagonalGate(phases = [p.conjugate() for p in self._phases])
+            return DiagonalGate(phases=[p.conjugate() for p in self._phases])
 
-    #TODO: can also be merged with uniformly controlled gates
+    # TODO: can also be merged with uniformly controlled gates
     def get_merged(self, other):
         if isinstance(other, DiagonalGate):
             other_phases = other.phases
             if len(self.phases) != len(other_phases):
                 raise NotMergeable("Cannot merge these two gates.")
-            new_phases = [self.phases[i]*other_phases[i] for i in range(len(other_phases))]
+            new_phases = [self.phases[i]*other_phases[i] for i
+                          in range(len(other_phases))]
             return DiagonalGate(phases=new_phases)
         else:
             raise NotMergeable("Cannot merge these two gates.")

@@ -45,11 +45,6 @@ gate_type dagger(const gate_type& g) {
     return { std::conj(g[0][0]), std::conj(g[1][0]),
              std::conj(g[0][1]), std::conj(g[1][1]) };
 }
-//
-// void print(const gate_type& g) {
-//     std::cout << g[0][0] << " " << g[0][1] << std::endl;
-//     std::cout << g[1][0] << " " << g[1][1] << std::endl;
-// }
 
 // matrix containing normalized eigen vectors assuming eigenvalues
 // are (i, -i)
@@ -258,16 +253,6 @@ private:
         };
         v = v*b;
 
-        // static gate_type d = {z, 0.0, 0.0, z_c};
-        // std::cout << "::a::" << std::endl;
-        // print(a);
-        // std::cout << "::b::" << std::endl;
-        // print(b);
-        // std::cout << "::dagger(r)*u*d*v::" << std::endl;
-        // print(dagger(r)*u*d*v);
-        // std::cout << "::r*u*dagger(d)*v::" << std::endl;
-        // print(r*u*dagger(d)*v);
-
         return std::make_tuple(v,u,r);
     }
 
@@ -293,9 +278,6 @@ private:
     }
 
     void ucg_decomposition() {
-
-        //double time = get_time();
-
         phases_ = std::vector<complex_type>(1<<n, 1);
 
         unsigned controls = n-1;
@@ -378,9 +360,6 @@ private:
             phase *= -1;
         for(auto& d : phases_)
             d *= phase;
-
-        //time = get_time() - time;
-        //std::cout << time << std::endl;
     }
 
     std::vector<complex_type> phases_;
@@ -423,8 +402,6 @@ public:
         auto diagonal = Diagonal(phases);
         auto diagonal_decomposition = diagonal.get_decomposition();
 
-        //std::cout << "Time: " << get_time() - time << std::endl;
-
         return std::make_tuple(complete_reduction_decomposition, diagonal_decomposition);
     }
 
@@ -450,12 +427,9 @@ private:
 
     ReductionStepDecomposition disentangle(unsigned k, unsigned s) {
         auto mcg_decomposition = prepare_disentangle(k, s);
-        /*if(b(k,s+1) != 0 && ((k>>s)&1) == 0)
-            if(std::abs(c(k, 2*a(k,s+1)+1)) > tol)
-                mcg = prepare_disentangle(k, s);*/
 
         for(unsigned l = 0; l < a(k,s); ++l)
-            assert(std::abs(c(k, l)) < tol); // ???
+            assert(std::abs(c(k, l)) < tol);
 
         unsigned l_max = 1 << (n-1-s);
         unsigned l_min = a(k,s+1);

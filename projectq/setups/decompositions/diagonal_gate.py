@@ -3,6 +3,7 @@ from projectq.meta import Control
 from projectq.ops import DiagonalGate
 from projectq.libs.isometries import _apply_diagonal_gate
 
+
 def _decompose_diagonal_gate(cmd):
     diag = cmd.gate
     decomposition = diag.decomposition

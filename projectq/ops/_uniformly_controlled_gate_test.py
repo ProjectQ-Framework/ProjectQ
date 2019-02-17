@@ -8,17 +8,20 @@ from projectq.meta import Dagger
 
 from . import _uniformly_controlled_gate as ucg
 
+
 def test_merge():
-    gates1 = [X,Y,Z,H]
-    gates2 = [H,Z,Y,X]
+    gates1 = [X, Y, Z, H]
+    gates2 = [H, Z, Y, X]
     U1 = ucg.UniformlyControlledGate(gates1)
     U2 = ucg.UniformlyControlledGate(gates2)
     U = U1.get_merged(U2)
     for i in range(len(gates1)):
-        assert np.allclose(gates1[i].matrix*gates2[i].matrix, U.gates[i].matrix)
+        assert np.allclose(gates1[i].matrix*gates2[i].matrix,
+                           U.gates[i].matrix)
+
 
 def test_dagger():
-    gates = [X,Y,Z,H]
+    gates = [X, Y, Z, H]
     eng = MainEngine()
     qureg = eng.allocate_qureg(3)
     choice = qureg[1:]

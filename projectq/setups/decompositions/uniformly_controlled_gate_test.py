@@ -13,8 +13,8 @@ from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (DummyEngine, AutoReplacer, InstructionFilter,
                                InstructionFilter, DecompositionRuleSet)
-from projectq.meta import Control,Dagger,Compute,Uncompute
-from projectq.ops import H,Rx,Ry,Rz,X,UniformlyControlledGate,CNOT
+from projectq.meta import Control, Dagger, Compute, Uncompute
+from projectq.ops import H, Rx, Ry, Rz, X, UniformlyControlledGate, CNOT
 
 from . import uniformly_controlled_gate as ucg
 
@@ -29,16 +29,17 @@ def test_full_decomposition_1_choice():
     eng.flush()
     A = Rx(np.pi/5)
     B = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B])
+    UCG = UniformlyControlledGate([A, B])
     cmd = UCG.generate_command(([qureg[1]], qureg[0]))
     with Dagger(eng):
         ucg._decompose_uniformly_controlled_gate(cmd)
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
     vec = np.array([final_wavefunction]).T
-    reference = np.matrix(block_diag(A.matrix,B.matrix))
+    reference = np.matrix(block_diag(A.matrix, B.matrix))
     print(reference*vec)
     assert np.isclose((reference*vec).item(0), 1)
+
 
 def test_full_decomposition_2_choice():
     eng = MainEngine()
@@ -48,38 +49,40 @@ def test_full_decomposition_2_choice():
     B = H
     C = Rz(np.pi/5)
     D = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B,C,D])
+    UCG = UniformlyControlledGate([A, B, C, D])
     cmd = UCG.generate_command((qureg[1:], qureg[0]))
     with Dagger(eng):
         ucg._decompose_uniformly_controlled_gate(cmd)
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
     vec = np.array([final_wavefunction]).T
-    reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
+    reference = np.matrix(block_diag(A.matrix, B.matrix, C.matrix, D.matrix))
     print(reference*vec)
     assert np.isclose((reference*vec).item(0), 1)
+
 
 def test_full_decomposition_2_choice_target_in_middle():
     eng = MainEngine()
     qureg = eng.allocate_qureg(3)
-    eng.flush() # makes sure the qubits are allocated in order
+    eng.flush()
     A = Rx(np.pi/5)
     B = H
     C = Rz(np.pi/5)
     D = Ry(np.pi/3)
-    UCG = UniformlyControlledGate([A,B,C,D])
-    cmd = UCG.generate_command(([qureg[0],qureg[2]], qureg[1]))
+    UCG = UniformlyControlledGate([A, B, C, D])
+    cmd = UCG.generate_command(([qureg[0], qureg[2]], qureg[1]))
     with Dagger(eng):
         ucg._decompose_uniformly_controlled_gate(cmd)
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
     print(qbit_to_bit_map)
     vec = np.array([final_wavefunction]).T
-    vec[[1,2]] = vec[[2,1]] #reorder basis
-    vec[[5,6]] = vec[[6,5]]
-    reference = np.matrix(block_diag(A.matrix,B.matrix,C.matrix,D.matrix))
+    vec[[1, 2]] = vec[[2, 1]]  # reorder basis
+    vec[[5, 6]] = vec[[6, 5]]
+    reference = np.matrix(block_diag(A.matrix, B.matrix, C.matrix, D.matrix))
     print(reference*vec)
     assert np.isclose((reference*vec).item(0), 1)
+
 
 def apply_mask(mask, qureg):
     n = len(qureg)
@@ -87,26 +90,28 @@ def apply_mask(mask, qureg):
         if ((mask >> pos) & 1) == 0:
             X | qureg[pos]
 
+
 def create_initial_state(mask, qureg):
     n = len(qureg)
     for pos in range(n):
         if ((mask >> pos) & 1) == 1:
             X | qureg[pos]
 
+
 @pytest.mark.parametrize("init", range(10))
 def test_full_decomposition_4_choice_target_in_middle(init):
     n = 4
     eng = MainEngine()
     qureg = eng.allocate_qureg(n)
-    eng.flush() # makes sure the qubits are allocated in order
-    create_initial_state(init,qureg)
+    eng.flush()  # makes sure the qubits are allocated in order
+    create_initial_state(init, qureg)
 
     random.seed(42)
     gates = []
-    for i in range(1<<(n-1)):
-        a = Rx(random.uniform(0,2*np.pi)).matrix
-        b = Ry(random.uniform(0,2*np.pi)).matrix
-        c = Rx(random.uniform(0,2*np.pi)).matrix
+    for i in range(1 << (n-1)):
+        a = Rx(random.uniform(0, 2*np.pi)).matrix
+        b = Ry(random.uniform(0, 2*np.pi)).matrix
+        c = Rx(random.uniform(0, 2*np.pi)).matrix
         gates.append(_SingleQubitGate(a*b*c))
 
     choice = qureg[1:]
@@ -119,7 +124,7 @@ def test_full_decomposition_4_choice_target_in_middle(init):
     cmd = UCG.generate_command((choice, target))
     with Dagger(eng):
         ucg._decompose_uniformly_controlled_gate(cmd)
-    for k in range(1<<(n-1)):
+    for k in range(1 << (n-1)):
         with Compute(eng):
             apply_mask(k, choice)
         with Control(eng, choice):

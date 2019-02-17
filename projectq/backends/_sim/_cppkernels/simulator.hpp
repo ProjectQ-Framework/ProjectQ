@@ -208,17 +208,6 @@ public:
             fused_gates_ = fused_gates;
     }
 
-    template <class V, class M>
-    inline void kernel_core_unif(V &psi, std::size_t I, std::size_t d0, M const& m)
-    {
-        std::complex<double> v[2];
-        v[0] = psi[I];
-        v[1] = psi[I + d0];
-
-        psi[I]      = v[0]*m[0][0] + v[1]*m[0][1];
-        psi[I + d0] = v[0]*m[1][0] + v[1]*m[1][1];
-    }
-
     template <class M>
     void apply_uniformly_controlled_gate(std::vector<M> &unitaries,
                                          unsigned target_id,
@@ -238,7 +227,13 @@ public:
                     unsigned u = 0;
                     for(std::size_t i = 0; i < choice_ids.size(); ++i)
                         u |= ((entry >> map_[choice_ids[i]]) & 1) << i;
-                    kernel_core_unif(vec_, entry, dist, unitaries[u]);
+
+                    auto &m = unitaries[u];
+                    std::complex<double> v[2];
+                    v[0] = vec_[entry];
+                    v[1] = vec_[entry + dist];
+                    vec_[entry]        = v[0]*m[0][0] + v[1]*m[0][1];
+                    vec_[entry + dist] = v[0]*m[1][0] + v[1]*m[1][1];
                 }
             }
         }

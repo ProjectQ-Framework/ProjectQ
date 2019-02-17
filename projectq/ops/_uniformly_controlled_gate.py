@@ -1,9 +1,11 @@
 from projectq.ops import get_inverse, BasicGate
+from ._basics import BasicGate, NotInvertible, NotMergeable
 
 import numpy as np
 import copy
 import math
 import cmath
+
 
 class UniformlyControlledGate(BasicGate):
     """
@@ -23,7 +25,7 @@ class UniformlyControlledGate(BasicGate):
         self._gates = copy.deepcopy(gates)
         self.interchangeable_qubit_indices = []
         self._decomposition = None
-        self.up_to_diagonal = up_to_diagonal;
+        self.up_to_diagonal = up_to_diagonal
 
     def get_inverse(self):
         if self.up_to_diagonal:
@@ -39,7 +41,8 @@ class UniformlyControlledGate(BasicGate):
             from projectq.libs.isometries import _SingleQubitGate
             if len(self.gates) != len(other.gates):
                 raise NotMergeable("Cannot merge these two gates.")
-            new_gates = [_SingleQubitGate(self.gates[i].matrix*other.gates[i].matrix)
+            new_gates = [_SingleQubitGate(self.gates[i].matrix *
+                                          other.gates[i].matrix)
                          for i in range(len(other.gates))]
             return UniformlyControlledGate(new_gates)
         else:
@@ -47,9 +50,11 @@ class UniformlyControlledGate(BasicGate):
 
     @property
     def decomposition(self):
-        if self._decomposition == None:
-            from projectq.libs.isometries import _decompose_uniformly_controlled_gate
-            self._decomposition = _decompose_uniformly_controlled_gate(self._gates)
+        if self._decomposition is None:
+            from projectq.libs.isometries import \
+                _decompose_uniformly_controlled_gate
+            self._decomposition = \
+                _decompose_uniformly_controlled_gate(self._gates)
         return self._decomposition
 
     @property

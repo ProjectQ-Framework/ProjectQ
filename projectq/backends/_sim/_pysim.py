@@ -398,7 +398,8 @@ class Simulator(object):
             pos = [self._map[ID] for ID in ids]
             self._multi_qubit_gate(m, pos, mask)
 
-    def apply_uniformly_controlled_gate(self, unitaries, target_id, choice_ids, ctrl_ids):
+    def apply_uniformly_controlled_gate(self, unitaries, target_id,
+                                        choice_ids, ctrl_ids):
         choice_pos = [self._map[ID] for ID in choice_ids]
         pos = self._map[target_id]
         mask = self._get_control_mask(ctrl_ids)
@@ -409,7 +410,7 @@ class Simulator(object):
         dist = 1 << pos
         n = len(self._state)
         for high in range(0, n, 2*dist):
-            for low in range(0,dist):
+            for low in range(0, dist):
                 entry = high+low
                 if (entry & mask) == mask:
                     u = 0

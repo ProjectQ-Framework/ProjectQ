@@ -11,13 +11,15 @@ def _print_qureg(qureg):
     eng.flush()
     bla, vec = eng.backend.cheat()
     for i in range(len(vec)):
-        print("{}: {:.3f}, {}".format(i,abs(vec[i]), cmath.phase(vec[i])))
+        print("{}: {:.3f}, {}".format(i, abs(vec[i]), cmath.phase(vec[i])))
     print("-")
+
 
 def _print_vec(vec):
     for i in range(len(vec)):
-        print("{}: {:.3f}, {}".format(i,abs(vec[i]), cmath.phase(vec[i])))
+        print("{}: {:.3f}, {}".format(i, abs(vec[i]), cmath.phase(vec[i])))
     print("-")
+
 
 def _decompose_isometry(cmd):
     iso = cmd.gate

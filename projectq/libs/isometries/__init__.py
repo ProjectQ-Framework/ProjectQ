@@ -1,4 +1,3 @@
-#from .decompose_diagonal import _DecomposeDiagonal
 from .decompositions import _decompose_diagonal_gate
 from .decompositions import _decompose_uniformly_controlled_gate
 from .decompositions import _decompose_isometry
