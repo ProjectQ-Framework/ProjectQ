@@ -38,4 +38,4 @@ def test_dagger():
     qbit_to_bit_map, vec = eng.backend.cheat()
     assert np.isclose(vec[0], 1)
 
-    Measure | qureg
+    All(Measure) | qureg

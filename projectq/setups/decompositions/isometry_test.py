@@ -7,7 +7,7 @@ from projectq.meta import Control, Compute, Uncompute, get_control_count
 import projectq.setups.decompositions
 from projectq.cengines import (InstructionFilter, AutoReplacer,
                                DecompositionRuleSet, DummyEngine)
-from projectq.ops import (Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
+from projectq.ops import (All, Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
                           Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
                           Entangle)
 from projectq.setups.decompositions import all_defined_decomposition_rules
@@ -44,7 +44,7 @@ def test_state_prep():
     order, result = eng.backend.cheat()
 
     assert np.allclose(result, V[:, 0])
-    Measure | qureg
+    All(Measure) | qureg
 
 
 def test_2_columns():
@@ -64,7 +64,7 @@ def test_2_columns():
     order, result = eng.backend.cheat()
     assert np.allclose(result, col_0)
     eng.flush()
-    Measure | qureg
+    All(Measure) | qureg
 
     eng = MainEngine()
     qureg = eng.allocate_qureg(3)
@@ -76,7 +76,7 @@ def test_2_columns():
     order, result = eng.backend.cheat()
     assert np.allclose(result, col_1)
     eng.flush()
-    Measure | qureg
+    All(Measure) | qureg
 
 
 def create_initial_state(mask, qureg):
@@ -111,7 +111,7 @@ def test_full_unitary_3_qubits(index):
     eng.flush()
     order, result = eng.backend.cheat()
     assert np.allclose(result, V[:, index])
-    Measure | qureg
+    All(Measure) | qureg
     eng.flush()
 
 
@@ -137,7 +137,7 @@ def test_full_permutation_matrix_3_qubits(index):
     _print_vec(V[:, index])
     _print_qureg(qureg)
     assert np.allclose(result, V[:, index])
-    Measure | qureg
+    All(Measure) | qureg
     eng.flush()
 
 

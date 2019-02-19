@@ -542,7 +542,7 @@ def test_simulator_apply_diagonal_gate(sim):
 
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    Measure | qureg
+    All(Measure) | qureg
 
     desired_state = [1./4.*cmath.exp(1j*i) for i in
                      [0, 0, 0, 2, 0, 0, 1, 3, 0, 0, 0, 2, 0, 0, 1, 3]]
@@ -602,7 +602,7 @@ def test_simulator_apply_uniformly_controlled_gate_with_control(sim):
 
     eng.flush()
     qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
-    Measure | qureg
+    All(Measure) | qureg
 
     print(final_wavefunction)
     desired_state = [1.0] + [0.0]*31

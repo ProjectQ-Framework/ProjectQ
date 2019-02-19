@@ -4,7 +4,7 @@ from . import _SingleQubitGate
 
 from projectq import MainEngine
 from projectq.meta import Dagger
-from projectq.ops import Rx, Ry, Rz, H, CNOT, Measure
+from projectq.ops import All, Rx, Ry, Rz, H, CNOT, Measure
 from scipy.linalg import block_diag
 
 import numpy as np
@@ -82,5 +82,5 @@ def test_basic_decomposition_1_choice():
     print(reference*vec)
     assert np.isclose(abs((reference*vec).item(0)), 1)
 
-    Measure | qureg
+    All(Measure) | qureg
     eng.flush()

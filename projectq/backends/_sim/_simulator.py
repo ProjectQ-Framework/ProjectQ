@@ -21,9 +21,11 @@ implementation is used as an alternative.
 import math
 import cmath
 import random
+from projectq.types import WeakQubitRef
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (NOT,
+from projectq.ops import (All,
+                          NOT,
                           H,
                           R,
                           Measure,
