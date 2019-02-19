@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from projectq import MainEngine
 from projectq.ops import Measure, X, Rz, UniformlyControlledGate, DiagonalGate
 from projectq.ops._basics import BasicGate
