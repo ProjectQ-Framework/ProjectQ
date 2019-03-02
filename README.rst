@@ -35,7 +35,7 @@ This allows users to
 Building with the Qrack Simulator
 ---------------------------------
 
-The `Qrack <https://github.com/vm6502q/qrack>`__ simulator library provides optional GPU support for ProjectQ and may improve performance, portability, and/or accuracy. To use it with ProjectQ, first install Qrack, according to the instructions in that project's README and `documentation <https://qrack.readthedocs.io/en/latest/start.html>`_. (When you have built Qrack with the desired settings, `make install`.)
+The `Qrack <https://github.com/vm6502q/qrack>`__ simulator library provides optional GPU support for ProjectQ and may improve performance, portability, and/or memory efficiency. Depending partially on build options and hardware, Qrack generally trades off a small amount of floating point precision for speed, memory usage, and/or the ability to backport to 32-bit hardware and simpler instruction sets. To use it with ProjectQ, first install Qrack, according to the instructions in that project's README and `documentation <https://qrack.readthedocs.io/en/latest/start.html>`_. When you have built Qrack with the desired settings, "make install" in the build directory.
 
 With Qrack installed, you can use it as the default ProjectQ simulator by simply building and installing ProjectQ with the `--with-qracksimulator` global option. This exchanges the Qrack simulator for the default ProjectQ C++ simulator, throughout. Any application which would rely on the default C++ simulator should then automatically use the Qrack simulator instead.
 
