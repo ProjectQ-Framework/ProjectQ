@@ -18,7 +18,7 @@ import pytest
 
 from projectq import MainEngine
 # Qrack simulator does not yet support QubitOperator, so always use the default simulator:
-from projectq.backends._sim import Simulator
+from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
                                InstructionFilter)
 from projectq.meta import Control

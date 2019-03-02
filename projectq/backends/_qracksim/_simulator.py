@@ -1,4 +1,3 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,7 +30,8 @@ from projectq.ops import (Swap,
                           Deallocate,
                           UniformlyControlledRy,
                           UniformlyControlledRz,
-                          StatePreparation)
+                          StatePreparation,
+                          QubitOperator)
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
@@ -119,6 +119,8 @@ class Simulator(BasicEngine):
             if (isinstance(cmd.gate, StatePreparation) and not cmd.control_qubits):
                 # Qrack has inexpensive ways of preparing a partial state, without controls.
                 return True
+            elif (isinstance(cmd.gate, QubitOperator) and not np.isclose(1, np.absolute(cmd.gate.coefficient))):
+                return True
         except:
             pass
 
@@ -154,12 +156,81 @@ class Simulator(BasicEngine):
             return qureg
 
     def get_expectation_value(self, qubit_operator, qureg):
-        # To maintain compatibility with default Simulator, for the moment.
-        pass
+        """
+        Get the expectation value of qubit_operator w.r.t. the current wave
+        function represented by the supplied quantum register.
+
+        Args:
+            qubit_operator (projectq.ops.QubitOperator): Operator to measure.
+            qureg (list[Qubit],Qureg): Quantum bits to measure.
+
+        Returns:
+            Expectation value
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
+        """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff)
+                    in qubit_operator.terms.items()]
+        return self._simulator.get_expectation_value(operator,
+                                                     [qb.id for qb in qureg])
 
     def apply_qubit_operator(self, qubit_operator, qureg):
-        # To maintain compatibility with default Simulator, for the moment.
-        pass
+        """
+        Apply a (possibly non-unitary) qubit_operator to the current wave
+        function represented by the supplied quantum register.
+
+        Args:
+            qubit_operator (projectq.ops.QubitOperator): Operator to apply.
+            qureg (list[Qubit],Qureg): Quantum bits to which to apply the
+                operator.
+
+        Raises:
+            Exception: If `qubit_operator` acts on more qubits than present in
+                the `qureg` argument.
+
+        Warning:
+            This function allows applying non-unitary gates and it will not
+            re-normalize the wave function! It is for numerical experiments
+            only and should not be used for other purposes.
+
+        Note:
+            Make sure all previous commands (especially allocations) have
+            passed through the compilation chain (call main_engine.flush() to
+            make sure).
+
+        Note:
+            If there is a mapper present in the compiler, this function
+            automatically converts from logical qubits to mapped qubits for
+            the qureg argument.
+        """
+        qureg = self._convert_logical_to_mapped_qureg(qureg)
+        num_qubits = len(qureg)
+        for term, _ in qubit_operator.terms.items():
+            if not term == () and term[-1][0] >= num_qubits:
+                raise Exception("qubit_operator acts on more qubits than "
+                                "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff)
+                    in qubit_operator.terms.items()]
+        return self._simulator.apply_qubit_operator(operator,
+                                                    [qb.id for qb in qureg])
 
     def get_probability(self, bit_string, qureg):
         """
@@ -357,6 +428,9 @@ class Simulator(BasicEngine):
             self._simulator.apply_controlled_sqrtswap(ids1, ids2,
                                                       [qb.id for qb in
                                                        cmd.control_qubits])
+        elif isinstance(cmd.gate, QubitOperator):
+            ids = [qb.id for qb in cmd.qubits[0]]
+            self.apply_qubit_operator(cmd.gate, ids)
         elif isinstance(cmd.gate, AddConstant) or isinstance(cmd.gate, AddConstantModN):
             #Unless there's a carry, the only unitary addition is mod (2^len(ids))
             ids = [qb.id for qr in cmd.qubits for qb in qr]

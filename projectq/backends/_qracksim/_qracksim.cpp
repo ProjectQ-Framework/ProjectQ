@@ -51,6 +51,8 @@ PYBIND11_PLUGIN(_qracksim) {
         .def("apply_controlled_dec", &QrackSimulator::apply_controlled_dec)
         .def("apply_controlled_mul", &QrackSimulator::apply_controlled_mul)
         .def("apply_controlled_div", &QrackSimulator::apply_controlled_div)
+        .def("get_expectation_value", &QrackSimulator::get_expectation_value)
+        .def("apply_qubit_operator", &QrackSimulator::apply_qubit_operator)
         .def("get_probability", &QrackSimulator::get_probability)
         .def("get_amplitude", &QrackSimulator::get_amplitude)
         .def("set_wavefunction", &QrackSimulator::set_wavefunction)

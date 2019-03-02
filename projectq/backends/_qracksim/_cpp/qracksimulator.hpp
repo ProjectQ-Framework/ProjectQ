@@ -40,6 +40,10 @@ public:
     using StateVector = std::vector<std::complex<float>, aligned_allocator<std::complex<float>,64>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = qrack_rand_gen;
+    using Term = std::vector<std::pair<unsigned, char>>;
+    using TermsDict = std::vector<std::pair<Term, calc_type>>;
+    using ComplexTermsDict = std::vector<std::pair<Term, std::complex<calc_type>>>;
+    using Matrix = std::vector<std::vector<std::complex<double>, aligned_allocator<std::complex<double>, 64>>>;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
 #if ENABLE_OPENCL
@@ -422,6 +426,31 @@ public:
         delete[] substateVec;
     }
 
+    void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
+        for (auto const& term : td){
+            apply_term(term.first, term.second, ids, {});
+        }
+    }
+
+    calc_type get_expectation_value(TermsDict const& td, std::vector<unsigned> const& ids){
+        calc_type expectation = 0;
+
+        std::size_t mask = 0;
+        for (unsigned i = 0; i < ids.size(); i++){
+            mask |= 1UL << map_[ids[i]];
+        }
+
+        run();
+
+        Qrack::QInterfacePtr qRegOrig = qReg->Clone();
+        for (auto const& term : td){
+            expectation += diagonalize(term.first, term.second, ids);
+            qReg = qRegOrig->Clone();
+        }
+
+        return expectation;
+    }
+
     std::tuple<Map, StateVector> cheat(){
         if (qReg == NULL) {
             StateVector vec(1, 0.0);
@@ -554,6 +583,51 @@ private:
         } else {
             fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), NULL, 0);
         }
+    }
+
+    void apply_term(Term const& term, std::complex<calc_type> coeff, std::vector<unsigned> const& ids,
+                    std::vector<unsigned> const& ctrl){
+
+        std::complex<double> I(0., 1.);
+        Matrix X = {{0., 1.}, {1., 0.}};
+        Matrix Y = {{0., -I}, {I, 0.}};
+        Matrix Z = {{1., 0.}, {0., -1.}};
+        std::vector<Matrix> gates = {X, Y, Z};
+
+        for (auto const& local_op : term){
+            unsigned id = ids[local_op.first];
+            auto temp = gates[local_op.second - 'X'];
+            for (unsigned i = 0; i < 4; i++) {
+                temp[i / 2][i % 2] *= -coeff;
+            }
+            apply_controlled_gate(temp, {id}, ctrl);
+        }
+    }
+
+    calc_type diagonalize(Term const& term, std::complex<calc_type> coeff, std::vector<unsigned> const& ids){
+        calc_type expectation = 1;
+        calc_type angle = arg(coeff);
+        calc_type len = abs(coeff);
+        std::complex<double> phaseFac(cos(angle), sin(angle));
+        bitCapInt idPower;
+
+        std::complex<double> I(0., 1.);
+        Matrix X = {{M_SQRT1_2, M_SQRT1_2}, {M_SQRT1_2, -M_SQRT1_2}};
+        Matrix Y = {{M_SQRT1_2, -M_SQRT1_2 * I}, {M_SQRT1_2, M_SQRT1_2 * I}};
+        Matrix Z = {{1., 0.}, {0., 1.}};
+        std::vector<Matrix> gates = {X, Y, Z};
+
+        for (auto const& local_op : term){
+            unsigned id = ids[local_op.first];
+            auto temp = gates[local_op.second - 'X'];
+            for (unsigned i = 0; i < 4; i++) {
+                temp[i / 2][i % 2] *= phaseFac;
+            }
+            apply_controlled_gate(temp, {id}, {});
+            idPower = 1U << map_[id];
+            expectation *= (qReg->ProbMask(idPower, 0) - qReg->ProbMask(idPower, idPower));
+        }
+        return len * expectation;
     }
 
     Map map_;
