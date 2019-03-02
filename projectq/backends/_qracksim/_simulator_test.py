@@ -644,11 +644,36 @@ def test_uniformly_controlled_r(sim, gate_classes):
     test_eng.flush(deallocate_qubits=True)
     correct_eng.flush(deallocate_qubits=True)
 
+def test_qubit_operator(sim):
+    test_eng = MainEngine(sim)
+    test_qureg = test_eng.allocate_qureg(1)
+    test_eng.flush()
+
+    qubit_op = QubitOperator("X0 X1", 1)
+    with pytest.raises(Exception):
+        sim.get_expectation_value(qubit_op, test_qureg)
+
+    test_eng.backend.set_wavefunction([1, 0],
+                                      test_qureg)
+    test_eng.flush()
+    qubit_op = QubitOperator("X0", 1)
+    qubit_op | test_qureg[0]
+    test_eng.flush()
+
+    amplitude = test_eng.backend.get_amplitude('0', test_qureg)
+    assert amplitude == pytest.approx(0.)
+    amplitude = test_eng.backend.get_amplitude('1', test_qureg)
+    assert amplitude == pytest.approx(1.)
+
 def test_get_expectation_value(sim):
     num_qubits = 2
     test_eng = MainEngine(sim)
     test_qureg = test_eng.allocate_qureg(num_qubits)
     test_eng.flush()
+
+    qubit_op = QubitOperator("X0 X1 X2", 1)
+    with pytest.raises(Exception):
+        sim.get_expectation_value(qubit_op, test_qureg)
 
     qubit_op = QubitOperator("X0", 1)
     test_eng.backend.set_wavefunction([1 / math.sqrt(2), 1 / math.sqrt(2), 0, 0],
@@ -680,15 +705,15 @@ def test_get_expectation_value(sim):
     test_eng.flush()
     assert(sim.get_expectation_value(qubit_op, test_qureg) == pytest.approx(-1, rel=tolerance, abs=tolerance))
 
-    qubit_op = QubitOperator("Z0", 1 / 4)
+    qubit_op = QubitOperator("Z0", 0.25)
     test_eng.backend.set_wavefunction([1, 0, 0, 0],
                                       test_qureg)
     test_eng.flush()
-    assert(sim.get_expectation_value(qubit_op, test_qureg) == pytest.approx(1 / 4, rel=tolerance, abs=tolerance))
+    assert(sim.get_expectation_value(qubit_op, test_qureg) == pytest.approx(0.25, rel=tolerance, abs=tolerance))
     test_eng.backend.set_wavefunction([0, 1, 0, 0],
                                       test_qureg)
     test_eng.flush()
-    assert(sim.get_expectation_value(qubit_op, test_qureg) == pytest.approx(-1 / 4, rel=tolerance, abs=tolerance))
+    assert(sim.get_expectation_value(qubit_op, test_qureg) == pytest.approx(-0.25, rel=tolerance, abs=tolerance))
 
     qubit_op = QubitOperator("Z0 Z1", 1)
     test_eng.backend.set_wavefunction([1, 0, 0, 0],
