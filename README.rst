@@ -32,6 +32,15 @@ This allows users to
 -  export quantum programs as circuits (using TikZ)
 -  get resource estimates
 
+Building with the Qrack Simulator
+---------------------------------
+
+The [Qrack](https://github.com/vm6502q/qrack) simulator library provides optional GPU support for ProjectQ and may improve performance, portability, and/or accuracy. To use it with ProjectQ, first install Qrack, according to the instructions in that project's README and [documentation](https://qrack.readthedocs.io/en/latest/start.html). (When you have built Qrack with the desired settings, `make install`.)
+
+With Qrack installed, you can use it as the default ProjectQ simulator by simply building and installing ProjectQ with the `--with-qracksimulator` global option. This exchanges the Qrack simulator for the default ProjectQ C++ simulator, throughout. Any application which would rely on the default C++ simulator should then automatically use the Qrack simulator instead.
+
+Note that Qrack does not (yet) support time evolution, or nonunitary operations available in the default C++ simulator. Unsupported operations are `QubitOperator` and expectation value and time evolution calculation by the direct simulator methods. To keep integer math unitary, the integer multiplication operation uses the more significant half of the multiplication operation register as a "carry" sub-register, which is measured and then zeroed at the beginning of a multiplication operation. 
+
 Examples
 --------
 
