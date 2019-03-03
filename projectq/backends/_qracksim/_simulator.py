@@ -460,13 +460,13 @@ class Simulator(BasicEngine):
         #                                         [qb.id for qb in
         #                                          cmd.control_qubits],
         #                                         cmd.gate.a)
-        elif isinstance(cmd.gate, TimeEvolution):
-            op = [(list(term), coeff) for (term, coeff)
-                  in cmd.gate.hamiltonian.terms.items()]
-            t = cmd.gate.time
-            qubitids = [qb.id for qb in cmd.qubits[0]]
-            ctrlids = [qb.id for qb in cmd.control_qubits]
-            self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
+        #elif isinstance(cmd.gate, TimeEvolution):
+        #    op = [(list(term), coeff) for (term, coeff)
+        #          in cmd.gate.hamiltonian.terms.items()]
+        #    t = cmd.gate.time
+        #    qubitids = [qb.id for qb in cmd.qubits[0]]
+        #    ctrlids = [qb.id for qb in cmd.control_qubits]
+        #    self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
         elif isinstance(cmd.gate, UniformlyControlledRy):
             qubits = [qb.id for qr in cmd.qubits for qb in qr]
             target = qubits[-1]
