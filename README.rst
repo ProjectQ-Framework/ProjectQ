@@ -39,7 +39,7 @@ The `Qrack <https://github.com/vm6502q/qrack>`__ simulator library provides opti
 
 With Qrack installed, you can use it as the default ProjectQ simulator by simply building and installing ProjectQ with the `--with-qracksimulator` global option. This exchanges the Qrack simulator for the default ProjectQ C++ simulator, throughout. Any application which would rely on the default C++ simulator should then automatically use the Qrack simulator instead.
 
-Note that Qrack does not (yet) support time evolution, or nonunitary operations available in the default C++ simulator. Unsupported operations are `QubitOperator` and expectation value and time evolution calculation by the direct simulator methods. To keep integer math unitary, the integer multiplication operation uses the more significant half of the multiplication operation register as a "carry" sub-register, which is measured and then zeroed at the beginning of a multiplication operation. 
+Note that Qrack does not support any nonunitary operations available in the default C++ simulator. To keep integer math unitary, the integer multiplication operation uses the more significant half of the multiplication operation register as a "carry" sub-register, which is measured and then zeroed at the beginning of a multiplication operation. 
 
 Examples
 --------

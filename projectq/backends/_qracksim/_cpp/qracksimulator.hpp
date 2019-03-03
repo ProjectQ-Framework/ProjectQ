@@ -37,7 +37,7 @@ class QrackSimulator{
 public:
     using calc_type = Qrack::real1;
     using complex_type = Qrack::complex;
-    using StateVector = std::vector<std::complex<float>, aligned_allocator<std::complex<float>,64>>;
+    using StateVector = std::vector<std::complex<calc_type>, aligned_allocator<std::complex<calc_type>,64>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = qrack_rand_gen;
     using Term = std::vector<std::pair<unsigned, char>>;
@@ -46,11 +46,7 @@ public:
     using Matrix = std::vector<std::vector<std::complex<double>, aligned_allocator<std::complex<double>, 64>>>;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
     enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
-#if ENABLE_OPENCL
-    enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
-#else
-    enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_CPU;
-#endif
+    enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
     typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, calc_type*)> UCRFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CINTFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
@@ -67,20 +63,11 @@ public:
         if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
             QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
-#if ENABLE_OPENCL
-            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
-#else
-            QrackSubengine2 = Qrack::QINTERFACE_CPU;
-#endif
+            QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         } else {
             QrackEngine = Qrack::QINTERFACE_QFUSION;
-#if ENABLE_OPENCL
-            QrackSubengine1 = Qrack::QINTERFACE_OPENCL;
-            QrackSubengine2 = Qrack::QINTERFACE_OPENCL;
-#else
-            QrackSubengine1 = Qrack::QINTERFACE_CPU;
-            QrackSubengine2 = Qrack::QINTERFACE_CPU;
-#endif
+            QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
+            QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         }
     }
 
@@ -242,7 +229,7 @@ public:
         delete[] ctrlArray;
     }
 
-    void apply_controlled_phase_gate(float angle, std::vector<unsigned> ctrl){
+    void apply_controlled_phase_gate(calc_type angle, std::vector<unsigned> ctrl){
         calc_type cosine = cos(angle);
         calc_type sine = sin(angle);
 
@@ -271,13 +258,13 @@ public:
         delete[] ctrlArray;
     }
 
-    void apply_uniformly_controlled_ry(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+    void apply_uniformly_controlled_ry(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
         apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, calc_type* anglesArray) {
             qReg->UniformlyControlledRY(ctrlArray, controlLen, trgt, anglesArray);
         });
     }
 
-    void apply_uniformly_controlled_rz(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
+    void apply_uniformly_controlled_rz(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
         apply_uniformly_controlled(angles, ids, ctrl, [&](bitLenInt* ctrlArray, bitLenInt controlLen, bitLenInt trgt, calc_type* anglesArray) {
             qReg->UniformlyControlledRZ(ctrlArray, controlLen, trgt, anglesArray);
         });
@@ -319,7 +306,7 @@ public:
         return qReg->ProbMask(mask, bit_str);
     }
 
-    std::complex<float> get_amplitude(std::vector<bool> const& bit_string,
+    std::complex<calc_type> get_amplitude(std::vector<bool> const& bit_string,
                                       std::vector<unsigned> const& ids){
         std::size_t chk = 0;
         std::size_t index = 0;
@@ -332,7 +319,65 @@ public:
         if ((chk + 1U) != (std::size_t)(qReg->GetMaxQPower()))
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
         complex_type result = qReg->GetAmplitude(index);
-        return std::complex<float>(real(result), imag(result));
+        return std::complex<calc_type>(real(result), imag(result));
+    }
+
+    void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
+                                std::vector<unsigned> const& ids,
+                                std::vector<unsigned> const& ctrl){
+        bitLenInt* ctrlArray;
+        if (ctrl.size() > 0) {
+            ctrlArray = new bitLenInt[ctrl.size()];
+            for (bitLenInt i = 0; i < ctrl.size(); i++) {
+                ctrlArray[i] = map_[ctrl[i]];
+            }
+        }
+
+        std::complex<double> I(0., 1.);
+        Matrix X = {{0., 1.}, {1., 0.}};
+        Matrix Y = {{0., -I}, {I, 0.}};
+        Matrix Z = {{1., 0.}, {0., -1.}};
+        std::vector<Matrix> gates = {X, Y, Z};
+        std::map<unsigned, Qrack::BitOp> collectedTerms;
+
+        for (auto const& term : tdict){
+            for (auto const& local_op : term.first){
+                unsigned id = map_[ids[local_op.first]];
+                auto temp = gates[local_op.second - 'X'];
+                for (unsigned i = 0; i < 4; i++) {
+                    temp[i / 2][i % 2] *= term.second;
+                }
+                if (collectedTerms.find(id) == collectedTerms.end()) {
+                    Qrack::BitOp op(new Qrack::complex[4], std::default_delete<Qrack::complex[]>());
+                    for (unsigned i = 0; i < 4; i++) {
+                        op.get()[i] = Qrack::complex(real(temp[i / 2][i % 2]), imag(temp[i / 2][i % 2]));
+                    }
+                    collectedTerms[id] = op;
+                } else {
+                    for (unsigned i = 0; i < 4; i++) {
+                        collectedTerms[id].get()[i] += Qrack::complex(real(temp[i / 2][i % 2]), imag(temp[i / 2][i % 2]));
+                    }
+                }
+            }
+        }
+
+        Qrack::Hamiltonian hamiltonian(collectedTerms.size());
+        std::map<unsigned, Qrack::BitOp>::iterator cTI;
+        unsigned index = 0;
+        for (cTI = collectedTerms.begin(); cTI != collectedTerms.end(); cTI++) {
+            if (ctrl.size() > 0) {
+                hamiltonian[index] = std::make_shared<Qrack::HamiltonianOp>(ctrlArray, ctrl.size(), cTI->first, cTI->second);
+            } else {
+                hamiltonian[index] = std::make_shared<Qrack::HamiltonianOp>(cTI->first, cTI->second);
+            }
+            index++;
+        }
+
+        qReg->TimeEvolve(hamiltonian, time);
+
+        if (ctrl.size() > 0) {
+            delete[] ctrlArray;
+        }
     }
 
     void set_wavefunction(StateVector const& wavefunction, std::vector<unsigned> const& ordering){
@@ -379,7 +424,7 @@ public:
         delete[] valuesArray;
     }
 
-    void prepare_state(std::vector<unsigned> const& ids, std::vector<std::complex<float>> const& amps){
+    void prepare_state(std::vector<unsigned> const& ids, std::vector<std::complex<calc_type>> const& amps){
         // We can prepare arbitrary substates with measurement, "Compose," and "Decompose.
         assert((1U << ids.size()) == amps.size());
 
@@ -463,7 +508,7 @@ public:
 
         #pragma omp parallel for schedule(static)
         for (std::size_t i = 0; i < vec.size(); i++)
-            vec[i] = std::complex<float>(real(wfArray[i]), imag(wfArray[i]));
+            vec[i] = std::complex<calc_type>(real(wfArray[i]), imag(wfArray[i]));
 
         delete[] wfArray;
 
@@ -494,7 +539,7 @@ private:
         return true;
     }
 
-    void apply_uniformly_controlled(std::vector<float> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl, UCRFunc fn){
+    void apply_uniformly_controlled(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl, UCRFunc fn){
         bitCapInt i;
 
         // Adjust for the convention difference between ProjectQ and Qrack:
@@ -626,6 +671,12 @@ private:
             apply_controlled_gate(temp, {id}, {});
             idPower = 1U << map_[id];
             expectation *= (qReg->ProbMask(idPower, 0) - qReg->ProbMask(idPower, idPower));
+        }
+        if (expectation > 1) {
+            expectation = 1;
+        }
+        if (expectation < -1) {
+            expectation = -1;
         }
         return len * expectation;
     }
