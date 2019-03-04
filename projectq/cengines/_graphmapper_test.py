@@ -50,13 +50,18 @@ def generate_grid_graph(nrows, ncols):
                                            (0 < col < ncols - 1))
             add_vertical = is_middle or (col in (0, ncols - 1) and
                                          (0 < row < nrows - 1))
-
             if add_horizontal:
                 graph.add_edge(node0, node0 - 1)
                 graph.add_edge(node0, node0 + 1)
             if add_vertical:
                 graph.add_edge(node0, node0 - ncols)
                 graph.add_edge(node0, node0 + ncols)
+            if nrows == 2:
+                node0 = col
+                graph.add_edge(node0, node0 + ncols)
+        if ncols == 2:
+            node0 = ncols * row
+            graph.add_edge(node0, node0 + 1)
 
     return graph
 
@@ -91,7 +96,8 @@ def grid33_graph():
 
 @pytest.fixture
 def grid22_graph_mapper(grid22_graph):
-    mapper = graphm.GraphMapper(graph=grid22_graph)
+    mapper = graphm.GraphMapper(
+        graph=grid22_graph, add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -100,7 +106,8 @@ def grid22_graph_mapper(grid22_graph):
 
 @pytest.fixture
 def grid33_graph_mapper(grid33_graph):
-    mapper = graphm.GraphMapper(graph=grid33_graph)
+    mapper = graphm.GraphMapper(
+        graph=grid33_graph, add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -109,7 +116,8 @@ def grid33_graph_mapper(grid33_graph):
 
 @pytest.fixture
 def simple_mapper(simple_graph):
-    mapper = graphm.GraphMapper(graph=simple_graph)
+    mapper = graphm.GraphMapper(
+        graph=simple_graph, add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -140,13 +148,14 @@ def test_invalid_gates(simple_mapper):
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
     qb2 = WeakQubitRef(engine=None, idx=2)
-    qb3 = WeakQubitRef(engine=None, idx=-1)
 
     cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0], ), controls=[])
     cmd1 = Command(engine=None, gate=Allocate, qubits=([qb1], ), controls=[])
     cmd2 = Command(engine=None, gate=Allocate, qubits=([qb2], ), controls=[])
     cmd3 = Command(engine=None, gate=X, qubits=([qb0], [qb1]), controls=[qb2])
-    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb3], ))
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
 
     with pytest.raises(Exception):
         mapper.receive([cmd0, cmd1, cmd2, cmd3, cmd_flush])
@@ -157,16 +166,15 @@ def test_run_infinite_loop_detection(simple_mapper):
 
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
-    qb2 = WeakQubitRef(engine=None, idx=2)
-    qb3 = WeakQubitRef(engine=None, idx=-1)
 
-    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb3], ))
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
 
     cmd0 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[])
     with pytest.raises(RuntimeError):
         mapper.receive([cmd0, cmd_flush])
 
-    mapper._stored_commands = []
+    mapper._stored_commands.clear()
     cmd0 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb1])
     with pytest.raises(RuntimeError):
         mapper.receive([cmd0, cmd_flush])
@@ -185,6 +193,186 @@ def test_resetting_mapping_to_none(simple_graph):
     assert mapper._reverse_current_mapping == {}
 
 
+def test_add_qubits_to_mapping_methods_failure(simple_graph):
+    with pytest.raises(ValueError):
+        graphm.GraphMapper(
+            graph=simple_graph, add_qubits_to_mapping="as")
+
+
+@pytest.mark.parametrize("add_qubits", ["fcfs", "fcfs_init", "FCFS"])
+def test_add_qubits_to_mapping_methods(simple_graph, add_qubits):
+    mapper = graphm.GraphMapper(
+        graph=simple_graph, add_qubits_to_mapping=add_qubits)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+    gates = [
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[0]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[2]]),
+    ]
+
+    mapper.receive(list(itertools.chain(allocate_cmds, gates, [cmd_flush])))
+    assert mapper.num_mappings == 0
+
+
+def test_qubit_placement_initial_mapping_single_qubit_gates(
+        grid33_graph_mapper):
+    grid33_graph_mapper[0].set_add_qubits_to_mapping(
+        graphm._add_qubits_to_mapping)
+    mapper, backend = deepcopy(grid33_graph_mapper)
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper.receive(allocate_cmds + [cmd_flush])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[0] == 4
+    assert sorted([mapping[1], mapping[2], mapping[3],
+                   mapping[4]]) == [1, 3, 5, 7]
+    assert sorted([mapping[5], mapping[6], mapping[7],
+                   mapping[8]]) == [0, 2, 6, 8]
+
+
+def test_qubit_placement_single_two_qubit_gate(grid33_graph_mapper):
+    grid33_graph_mapper[0].set_add_qubits_to_mapping(
+        graphm._add_qubits_to_mapping)
+    mapper_ref, backend = deepcopy(grid33_graph_mapper)
+
+    mapper_ref.current_mapping = {3: 3, 4: 4, 5: 5}
+    mapper_ref._currently_allocated_ids = set(
+        mapper_ref.current_mapping.keys())
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper_ref)
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper = deepcopy(mapper_ref)
+    mapper.receive([
+        allocate_cmds[0],
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[3]]), cmd_flush
+    ])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[0] in {0, 6}
+
+    mapper = deepcopy(mapper_ref)
+    mapper.receive([
+        allocate_cmds[6],
+        Command(None, X, qubits=([qb[3]], ), controls=[qb[6]]), cmd_flush
+    ])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[6] in {0, 6}
+
+
+def test_qubit_placement_double_two_qubit_gate(grid33_graph_mapper):
+    grid33_graph_mapper[0].set_add_qubits_to_mapping(
+        graphm._add_qubits_to_mapping)
+    mapper_ref, backend_ref = deepcopy(grid33_graph_mapper)
+
+    mapper_ref.current_mapping = {1: 1, 3: 3, 4: 4, 5: 5}
+    mapper_ref._currently_allocated_ids = set(
+        mapper_ref.current_mapping.keys())
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper_ref)
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper = deepcopy(mapper_ref)
+    backend = deepcopy(backend_ref)
+    mapper.next_engine = backend
+    mapper.receive([
+        allocate_cmds[0],
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[1]]), cmd_flush
+    ])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[0] == 0
+
+    mapper = deepcopy(mapper_ref)
+    backend = deepcopy(backend_ref)
+    mapper.next_engine = backend
+    mapper.receive([
+        allocate_cmds[2],
+        Command(None, X, qubits=([qb[2]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[2]], ), controls=[qb[1]]),
+        Command(None, X, qubits=([qb[2]], ), controls=[qb[5]]),
+        cmd_flush,
+    ])
+    mapping = mapper.current_mapping
+
+    # Make sure that the qb[2] was allocated at backend_id 0
+    assert backend.received_commands[0].gate == Allocate
+    assert backend.received_commands[0].qubits[0][0].id == 0
+    assert backend.received_commands[0].tags == [LogicalQubitIDTag(2)]
+
+
+def test_qubit_placement_multiple_two_qubit_gates(grid33_graph_mapper):
+    grid33_graph_mapper[0].set_add_qubits_to_mapping(
+        graphm._add_qubits_to_mapping)
+    mapper, backend = deepcopy(grid33_graph_mapper)
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+    gates = [
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[0]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[2]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[4]]),
+    ]
+
+    all_cmds = list(itertools.chain(allocate_cmds, gates))
+    mapper, backend = deepcopy(grid33_graph_mapper)
+    mapper.receive(all_cmds + [cmd_flush])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[1] == 4
+    assert sorted([mapping[0], mapping[2], mapping[3],
+                   mapping[4]]) == [1, 3, 5, 7]
+    assert sorted([mapping[5], mapping[6], mapping[7],
+                   mapping[8]]) == [0, 2, 6, 8]
+
+    gates = [
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[1]]),
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[2]]),
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[4]]),
+        Command(None, X, qubits=([qb[5]], ), controls=[qb[4]]),
+        Command(None, X, qubits=([qb[5]], ), controls=[qb[1]]),
+        Command(None, X, qubits=([qb[6]], ), controls=[qb[1]]),
+        Command(None, X, qubits=([qb[6]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[7]], ), controls=[qb[4]]),
+        Command(None, X, qubits=([qb[7]], ), controls=[qb[2]]),
+        Command(None, X, qubits=([qb[8]], ), controls=[qb[2]]),
+        Command(None, X, qubits=([qb[8]], ), controls=[qb[3]]),
+    ]
+
+    mapper, backend = deepcopy(grid33_graph_mapper)
+    mapper.receive(list(itertools.chain(allocate_cmds, gates)) + [cmd_flush])
+    mapping = mapper.current_mapping
+
+    assert mapper.num_mappings == 0
+    assert mapping[0] == 4
+    assert sorted([mapping[1], mapping[2], mapping[3],
+                   mapping[4]]) == [1, 3, 5, 7]
+    assert sorted([mapping[5], mapping[6], mapping[7],
+                   mapping[8]]) == [0, 2, 6, 8]
+
+
 def test_send_possible_commands(simple_graph, simple_mapper):
     mapper, backend = simple_mapper
     mapper.current_mapping = dict(enumerate(range(len(simple_graph))))
@@ -201,7 +389,7 @@ def test_send_possible_commands(simple_graph, simple_mapper):
         qb1 = WeakQubitRef(engine=None, idx=qb1_id)
         cmd1 = Command(None, X, qubits=([qb0], ), controls=[qb1])
         cmd2 = Command(None, X, qubits=([qb1], ), controls=[qb0])
-        mapper._stored_commands = [cmd1, cmd2]
+        mapper._stored_commands += [cmd1, cmd2]
         mapper._send_possible_commands()
         assert len(mapper._stored_commands) == 0
 
@@ -211,7 +399,8 @@ def test_send_possible_commands(simple_graph, simple_mapper):
             qb0 = WeakQubitRef(engine=None, idx=qb0_id)
             qb1 = WeakQubitRef(engine=None, idx=qb1_id)
             cmd = Command(None, X, qubits=([qb0], ), controls=[qb1])
-            mapper._stored_commands = [cmd]
+            mapper._stored_commands.clear()
+            mapper._stored_commands += [cmd]
             mapper._send_possible_commands()
             assert len(mapper._stored_commands) == 1
 
@@ -222,7 +411,7 @@ def test_send_possible_commands_allocate(simple_mapper):
     qb0 = WeakQubitRef(engine=None, idx=0)
     cmd0 = Command(
         engine=None, gate=Allocate, qubits=([qb0], ), controls=[], tags=[])
-    mapper._stored_commands = [cmd0]
+    mapper._stored_commands += [cmd0]
     mapper._currently_allocated_ids = set([10])
     # not in mapping:
     mapper.current_mapping = dict()
@@ -274,7 +463,7 @@ def test_send_possible_commands_allocation_no_active_qubits(
     qb_flush = WeakQubitRef(engine=None, idx=-1)
     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
 
-    mapper._stored_commands = cmd_list + [cmd_flush]
+    mapper._stored_commands += cmd_list + [cmd_flush]
 
     mapper._run()
     assert len(mapper._stored_commands) == 8
@@ -422,7 +611,8 @@ def test_send_two_qubit_gate_before_swap(simple_mapper):
 
         all_cmds[3] = cmd
 
-        mapper._stored_commands = all_cmds
+        mapper._stored_commands.clear()
+        mapper._stored_commands += all_cmds
         mapper._run()
         assert mapper.num_mappings == 1
         if mapper.current_mapping[2] == 2:
@@ -853,7 +1043,9 @@ def test_3x3_grid_multiple_simultaneous_intersecting_paths_possible(
 @pytest.mark.parametrize("enable_caching", [False, True])
 def test_mapper_to_str(simple_graph, enable_caching):
     mapper = graphm.GraphMapper(
-        graph=simple_graph, enable_caching=enable_caching)
+        graph=simple_graph,
+        enable_caching=enable_caching,
+        add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend, [mapper])
     qureg = eng.allocate_qureg(len(simple_graph))

@@ -25,6 +25,7 @@ from copy import deepcopy
 
 import math
 import random
+import itertools
 
 from projectq.cengines import (BasicMapperEngine, return_swap_depth)
 from projectq.meta import LogicalQubitIDTag
@@ -32,6 +33,23 @@ from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
 from projectq.cengines._graph_path_manager import PathManager
+from projectq.cengines._command_list import CommandList
+
+# ------------------------------------------------------------------------------
+
+# https://www.peterbe.com/plog/fastest-way-to-uniquify-a-list-in-python-3.6
+import sys
+if sys.version_info[0] >= 3 and sys.version_info[1] > 6:  # pragma: no cover
+
+    def uniquify_list(seq):
+        return list(dict.fromkeys(seq))
+else:  # pragma: no cover
+
+    def uniquify_list(seq):
+        seen = set()
+        seen_add = seen.add
+        return [x for x in seq if x not in seen and not seen_add(x)]
+
 
 # ==============================================================================
 
@@ -40,11 +58,12 @@ class GraphMapperError(Exception):
     """Base class for all exceptions related to the GraphMapper."""
 
 
-def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
-                           stored_commands):
+def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
+                                stored_commands):
     """
-    Add active qubits to a mapping
+    Add active qubits to a mapping.
 
+    This function implements the simple first-come first serve approach;
     Qubits that are active but not yet registered in the mapping are added by
     mapping them to the next available backend id
 
@@ -55,21 +74,193 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
         new_logical_qubit_ids (list): list of logical ids not yet part of the
                                       mapping and that need to be assigned a
                                       backend id
-        stored_commands (list): list of commands yet to be processed by the
-                                mapper
+        stored_commands (CommandList): list of commands yet to be processed by
+                                       the mapper
 
     Returns: A new mapping
-
-    Pre-conditions:
-        len(active_qubits) <= num_qubits == len(graph)
     """
-    # pylint: disable=unused-argument
     mapping = deepcopy(current_mapping)
     currently_used_nodes = sorted([v for _, v in mapping.items()])
-    available_ids = [n for n in graph if n not in currently_used_nodes]
+    available_nodes = [n for n in graph if n not in currently_used_nodes]
+
+    if len(new_logical_qubit_ids) > len(available_nodes):
+        raise RuntimeError("Mapper ran out of qubit to allocate. "
+                           "Increase the number of qubits for this "
+                           "mapper.")
+    
 
     for i, logical_id in enumerate(new_logical_qubit_ids):
-        mapping[logical_id] = available_ids[i]
+        mapping[logical_id] = available_nodes[i]
+    return mapping
+
+
+def _generate_mapping_minimize_swaps(graph, qubit_interaction_subgraphs):
+    """
+    Generate an initial mapping while maximizing the number of 2-qubit gates
+    that can be applied without applying any SWAP operations.
+
+    Args:
+        graph (networkx.Graph): underlying graph used by the mapper
+        qubit_interaction_subgraph (list): see documentation for CommandList
+
+    Returns: A new mapping
+    """
+    mapping = {}
+    available_nodes = sorted(list(graph), key=lambda n: len(graph[n]))
+
+    # Initialize the seed node
+    logical_id = qubit_interaction_subgraphs[0].pop(0)
+    backend_id = available_nodes.pop()
+    mapping[logical_id] = backend_id
+
+    for subgraph in qubit_interaction_subgraphs:
+        if available_nodes:
+            anchor_node = backend_id
+            for logical_id in subgraph:
+                neighbours = sorted(
+                    [n for n in graph[anchor_node] if n in available_nodes],
+                    key=lambda n: len(graph[n]))
+
+                # If possible, take the neighbour with the highest
+                # degree. Otherwise, take the next highest order available node
+                if neighbours:
+                    backend_id = neighbours[-1]
+                    available_nodes.remove(backend_id)
+                elif available_nodes:
+                    backend_id = available_nodes.pop()
+                else:
+                    break
+                mapping[logical_id] = backend_id
+        else:
+            break
+
+    return mapping
+
+
+
+def _add_qubits_to_mapping_smart_init(current_mapping, graph,
+                                      new_logical_qubit_ids, stored_commands):
+    """
+    Add active qubits to a mapping.
+
+    Similar to the first-come first-serve approach, except the initial mapping
+    tries to maximize the initial number of gates to be applied without
+    swaps. Otherwise identical to the first-come first-serve approach.
+
+    Args:
+        current_mapping (dict): specify which method should be used to
+                                 add the new qubits to the current mapping
+        graph (networkx.Graph): underlying graph used by the mapper
+        new_logical_qubit_ids (list): list of logical ids not yet part of the
+                                      mapping and that need to be assigned a
+                                      backend id
+        stored_commands (CommandList): list of commands yet to be processed by
+                                       the mapper
+
+    Returns: A new mapping
+    """
+    qubit_interaction_subgraphs = \
+        stored_commands.calculate_qubit_interaction_subgraphs(order=2)
+
+    # Interaction subgraph list can be empty if only single qubit gates are
+    # present
+    if not qubit_interaction_subgraphs:
+        qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
+
+    if not current_mapping:
+        return _generate_mapping_minimize_swaps(graph,
+                                                qubit_interaction_subgraphs)
+    return _add_qubits_to_mapping_fcfs(current_mapping, graph,
+                                       new_logical_qubit_ids, stored_commands)
+
+
+def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
+                           stored_commands):
+    """
+    Add active qubits to a mapping
+
+    Qubits that are active but not yet registered in the mapping are added by
+    mapping them to an available backend id, as close as possible to other
+    qubits which they might interact with.
+
+    Args:
+        current_mapping (dict): specify which method should be used to
+                                 add the new qubits to the current mapping
+        graph (networkx.Graph): underlying graph used by the mapper
+        new_logical_qubit_ids (list): list of logical ids not yet part of the
+                                      mapping and that need to be assigned a
+                                      backend id
+        stored_commands (CommandList): list of commands yet to be processed by
+                                       the mapper
+
+    Returns: A new mapping
+    """
+    qubit_interaction_subgraphs = \
+        stored_commands.calculate_qubit_interaction_subgraphs(order=2)
+
+    # Interaction subgraph list can be empty if only single qubit gates are
+    # present
+    if not qubit_interaction_subgraphs:
+        qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
+
+    if not current_mapping:
+        return _generate_mapping_minimize_swaps(graph,
+                                                qubit_interaction_subgraphs)
+
+    mapping = deepcopy(current_mapping)
+    currently_used_nodes = sorted([v for _, v in mapping.items()])
+    available_nodes = sorted(
+        [n for n in graph if n not in currently_used_nodes],
+        key=lambda n: len(graph[n]))
+    interactions = list(
+        itertools.chain.from_iterable(stored_commands.interactions))
+
+    for logical_id in uniquify_list(new_logical_qubit_ids):
+        qubit_interactions = uniquify_list([
+            i[0] if i[0] != logical_id else i[1] for i in interactions
+            if logical_id in i
+        ])
+
+        backend_id = None
+
+        if len(qubit_interactions) == 1:
+            qubit = qubit_interactions[0]
+            candidates = sorted([
+                n
+                for n in graph[mapping[qubit]] if n not in currently_used_nodes
+            ],
+                                key=lambda n: len(graph[n]))
+            backend_id = candidates[-1]
+        elif qubit_interactions:
+            neighbours = []
+            for qubit in qubit_interactions:
+                if qubit in mapping:
+                    neighbours.append(
+                        set(n for n in graph[mapping[qubit]]
+                            if n in available_nodes))
+                else:
+                    break
+
+            intersection = set()
+            while neighbours:
+                intersection = neighbours[0].intersection(*neighbours[1:])
+                if intersection:
+                    backend_id = intersection.pop()
+                    break
+                neighbours.pop()
+
+        if backend_id is None:
+            try:
+                backend_id = available_nodes.pop()
+            except:
+                raise RuntimeError("Mapper ran out of qubit to allocate. "
+                                   "Increase the number of qubits for this "
+                                   "mapper.")
+        else:
+            available_nodes.remove(backend_id)
+
+        mapping[logical_id] = backend_id
+
     return mapping
 
 
@@ -83,13 +274,20 @@ class GraphMapper(BasicMapperEngine):
     Args:
         graph (networkx.Graph) : Arbitrary connected graph
         storage (int) Number of gates to temporarily store
-        add_qubits_to_mapping (function) Function called when new qubits are to
-                                         be added to the current mapping
-                                         Signature of the function call:
-                                              current_mapping
-                                              graph
-                                              new_logical_qubit_ids
-                                              stored_commands
+        add_qubits_to_mapping (function or str) Function called when new qubits
+                                                are to be added to the current
+                                                mapping.
+                                                Special possible string values:
+                                                "fcfs": first-come first serve
+                                                "fcfs_init": first-come first
+                                                             serve with smarter
+                                                             mapping
+                                                             initialisation
+                                                Signature of the function call:
+                                                     current_mapping
+                                                     graph
+                                                     new_logical_qubit_ids
+                                                     stored_commands
         enable_caching(Bool): Controls whether optimal path caching is
                               enabled
 
@@ -143,7 +341,7 @@ class GraphMapper(BasicMapperEngine):
         # places.
         self._rng = random.Random(11)
         # Storing commands
-        self._stored_commands = list()
+        self._stored_commands = CommandList()
         # Logical qubit ids for which the Allocate gate has already been
         # processed and sent to the next engine but which are not yet
         # deallocated:
@@ -152,7 +350,7 @@ class GraphMapper(BasicMapperEngine):
         self._current_mapping = dict()  # differs from other mappers
         self._reverse_current_mapping = dict()
         # Function to add new logical qubits ids to the mapping
-        self._add_qubits_to_mapping = add_qubits_to_mapping
+        self.set_add_qubits_to_mapping(add_qubits_to_mapping)
 
         # Statistics:
         self.num_mappings = 0
@@ -176,6 +374,19 @@ class GraphMapper(BasicMapperEngine):
                 v: k
                 for k, v in self._current_mapping.items()
             }
+
+    def set_add_qubits_to_mapping(self, add_qubits_to_mapping):
+        if isinstance(add_qubits_to_mapping, str):
+            if add_qubits_to_mapping.lower() == "fcfs":
+                self._add_qubits_to_mapping = _add_qubits_to_mapping_fcfs
+            elif add_qubits_to_mapping.lower() == "fcfs_init":
+                self._add_qubits_to_mapping = _add_qubits_to_mapping_smart_init
+            else:
+                raise ValueError(
+                    "Invalid invalid value for add_qubits_to_mapping: {}".
+                    format(add_qubits_to_mapping))
+        else:
+            self._add_qubits_to_mapping = add_qubits_to_mapping
 
     def is_available(self, cmd):
         """Only allows 1 or two qubit gates."""
@@ -203,7 +414,7 @@ class GraphMapper(BasicMapperEngine):
         Returns: A list of paths through the graph to move some qubits and have
                  them interact
         """
-        not_in_mapping_qubits = set()
+        not_in_mapping_qubits = []
         allocated_qubits = deepcopy(self._currently_allocated_ids)
         active_qubits = deepcopy(self._currently_allocated_ids)
 
@@ -230,7 +441,8 @@ class GraphMapper(BasicMapperEngine):
                     allocated_qubits.add(qubit_id)
                     active_qubits.add(qubit_id)
                     if qubit_id not in self._current_mapping:
-                        not_in_mapping_qubits.add(qubit_id)
+                        not_in_mapping_qubits.append(qubit_id)
+                        # not_in_mapping_qubits.add(qubit_id)
 
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id
@@ -253,7 +465,7 @@ class GraphMapper(BasicMapperEngine):
                         self.current_mapping = self._add_qubits_to_mapping(
                             self._current_mapping, self.paths.graph,
                             not_in_mapping_qubits, self._stored_commands)
-                        not_in_mapping_qubits = set()
+                        not_in_mapping_qubits = []
 
                     if not self.paths.push_interaction(
                             self._current_mapping[qubit_ids[0]],
@@ -275,7 +487,7 @@ class GraphMapper(BasicMapperEngine):
             # So that loop doesn't stop before AllocateGate applied
             active_ids.add(logical_id)
 
-        new_stored_commands = []
+        new_stored_commands = CommandList()
         for i in range(len(self._stored_commands)):
             cmd = self._stored_commands[i]
             if not active_ids:
@@ -509,8 +721,8 @@ class GraphMapper(BasicMapperEngine):
                 reverse=True)
         ]
 
-        max_width = int(math.ceil(
-            math.log10(max(self.paths.paths_stats.values()))) + 1)
+        max_width = int(
+            math.ceil(math.log10(max(self.paths.paths_stats.values()))) + 1)
         paths_stats_str = ""
         if self.paths.enable_caching:
             for k in interactions:
