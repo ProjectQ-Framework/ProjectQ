@@ -46,6 +46,8 @@ This is best exemplified by some examples:
 """
 
 import itertools
+import math
+import numpy as np
 import networkx as nx
 
 # ==============================================================================
@@ -318,6 +320,39 @@ class PathManager:
 
         # Statistics
         self.paths_stats = dict()
+
+    def __str__(self):
+        interactions = [
+            k for _, k in sorted(
+                zip(self.paths_stats.values(), self.paths_stats.keys()),
+                reverse=True)
+        ]
+
+        max_width = int(
+            math.ceil(math.log10(max(self.paths_stats.values()))) + 1)
+        paths_stats_str = ""
+        if self.enable_caching:
+            average_path_length = np.average(
+                [
+                    len(self.cache.get_path(*list(k)))
+                    if not self.graph.has_edge(*list(k)) else 2
+                    for k in interactions
+                ],
+                weights=[self.paths_stats[k] for k in interactions])
+            for k in interactions:
+                if self.graph.has_edge(*list(k)):
+                    path = list(k)
+                else:
+                    path = self.cache.get_path(*list(k))
+                paths_stats_str += "\n    {3:3} - {4:3}: {0:{1}} | {2}".format(
+                    self.paths_stats[k], max_width, path, *k)
+        else:
+            average_path_length = None
+            for k in interactions:
+                paths_stats_str += "\n    {2:3} - {3:3}: {0:{1}}".format(
+                    self.paths_stats[k], max_width, *k)
+        return "Path statistics:{}\n\nAverage path length: {}".format(
+            paths_stats_str, average_path_length)
 
     #################################################################
     # Methods querying information about the state of the container #

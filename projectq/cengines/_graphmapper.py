@@ -23,7 +23,6 @@ Output: Quantum circuit in which qubits are placed in 2-D square grid in which
 """
 from copy import deepcopy
 
-import math
 import random
 import itertools
 
@@ -87,7 +86,6 @@ def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
         raise RuntimeError("Mapper ran out of qubit to allocate. "
                            "Increase the number of qubits for this "
                            "mapper.")
-    
 
     for i, logical_id in enumerate(new_logical_qubit_ids):
         mapping[logical_id] = available_nodes[i]
@@ -135,7 +133,6 @@ def _generate_mapping_minimize_swaps(graph, qubit_interaction_subgraphs):
             break
 
     return mapping
-
 
 
 def _add_qubits_to_mapping_smart_init(current_mapping, graph,
@@ -714,31 +711,7 @@ class GraphMapper(BasicMapperEngine):
             num_swaps_per_mapping_str += "\n    {:3d}: {:3d}".format(
                 num_swaps_per_mapping, num_mapping)
 
-        interactions = [
-            k for _, k in sorted(
-                zip(self.paths.paths_stats.values(),
-                    self.paths.paths_stats.keys()),
-                reverse=True)
-        ]
-
-        max_width = int(
-            math.ceil(math.log10(max(self.paths.paths_stats.values()))) + 1)
-        paths_stats_str = ""
-        if self.paths.enable_caching:
-            for k in interactions:
-                if self.paths.graph.has_edge(*list(k)):
-                    path = list(k)
-                else:
-                    path = self.paths.cache.get_path(*list(k))
-                paths_stats_str += "\n    {3:3} - {4:3}: {0:{1}} | {2}".format(
-                    self.paths.paths_stats[k], max_width, path, *k)
-        else:
-            for k in interactions:
-                paths_stats_str += "\n    {2:3} - {3:3}: {0:{1}}".format(
-                    self.paths.paths_stats[k], max_width, *k)
-
         return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n" +
-                "Number of swaps per mapping:{}\n\n" +
-                "Path statistics:{}\n\n").format(
+                "Number of swaps per mapping:{}\n\n{}\n\n").format(
                     self.num_mappings, depth_of_swaps_str,
-                    num_swaps_per_mapping_str, paths_stats_str)
+                    num_swaps_per_mapping_str, str(self.paths))
