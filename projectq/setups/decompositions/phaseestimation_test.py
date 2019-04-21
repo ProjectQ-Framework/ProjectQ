@@ -148,8 +148,6 @@ def test_X_no_eigenvectors():
             All(Measure) | autovector
             autovector_result = int(autovector)
             assert autovector_result == 1
-        else:
-            All(Measure) | autovector
         eng.flush()
 
     total = len(results_plus) + len(results_minus)

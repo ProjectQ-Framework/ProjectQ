@@ -30,6 +30,8 @@ is the gate in Command
 Example:
     .. code-block:: python
 
+       # Example using a ProjectQ gate
+       
        n_qpe_ancillas = 3
        qpe_ancillas = eng.allocate_qureg(n_qpe_ancillas)
        system_qubits = eng.allocate_qureg(1)
@@ -48,9 +50,37 @@ Example:
        phase = phase_int / (2 ** n_qpe_ancillas)
        print (phase)
 
+       # Example using a function (two_qubit_gate).
+       # Instead of applying QPE on a gate U one could provide a function
+
+       def two_qubit_gate(system_q, time):
+           CNOT | (system_q[0], system_q[1])
+           Ph(2.0*cmath.pi*(time * 0.125)) | system_q[1]
+           CNOT | (system_q[0], system_q[1])
+
+       n_qpe_ancillas = 3
+       qpe_ancillas = eng.allocate_qureg(n_qpe_ancillas)
+       system_qubits = eng.allocate_qureg(2)
+       X | system_qubits[0]
+
+       # Apply Quantum Phase Estimation
+       QPE(two_qubit_gate) | (qpe_ancillas, system_qubits)
+
+       All(Measure) | qpe_ancillas
+       # Compute the phase from the ancilla measurement
+       #(https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
+       phasebinlist = [int(q) for q in qpe_ancillas]
+       phase_in_bin = ''.join(str(j) for j in phasebinlist)
+       phase_int = int(phase_in_bin,2)
+       phase = phase_int / (2 ** n_qpe_ancillas)
+       print (phase)
+
 Attributes:
-    unitary (BasicGate): Unitary Operation or function to apply
-    on the system_qubits (e.g.: function(system_qubits, time))
+    unitary (BasicGate): Unitary Operation either a ProjectQ gate or a function f.
+    Calling the function with the parameters system_qubits(Qureg) and time (integer),
+    i.e. f(system_qubits, time), applies to the system qubits a unitary defined in f
+    with parameter time.
+    
 
 """
 
