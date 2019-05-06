@@ -60,7 +60,7 @@ class CommandList():
         """
         Remove all commands from the container.
         """
-        self._cmds.clear()
+        self._cmds = []
         self.partitions = [set()]
         self.interactions = [[]]
 

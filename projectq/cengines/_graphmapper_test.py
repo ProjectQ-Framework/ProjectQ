@@ -195,8 +195,7 @@ def test_resetting_mapping_to_none(simple_graph):
 
 def test_add_qubits_to_mapping_methods_failure(simple_graph):
     with pytest.raises(ValueError):
-        graphm.GraphMapper(
-            graph=simple_graph, add_qubits_to_mapping="as")
+        graphm.GraphMapper(graph=simple_graph, add_qubits_to_mapping="as")
 
 
 @pytest.mark.parametrize("add_qubits", ["fcfs", "fcfs_init", "FCFS"])
@@ -346,31 +345,17 @@ def test_qubit_placement_multiple_two_qubit_gates(grid33_graph_mapper):
     assert sorted([mapping[5], mapping[6], mapping[7],
                    mapping[8]]) == [0, 2, 6, 8]
 
-    gates = [
-        Command(None, X, qubits=([qb[0]], ), controls=[qb[1]]),
-        Command(None, X, qubits=([qb[0]], ), controls=[qb[2]]),
-        Command(None, X, qubits=([qb[0]], ), controls=[qb[3]]),
-        Command(None, X, qubits=([qb[0]], ), controls=[qb[4]]),
-        Command(None, X, qubits=([qb[5]], ), controls=[qb[4]]),
-        Command(None, X, qubits=([qb[5]], ), controls=[qb[1]]),
-        Command(None, X, qubits=([qb[6]], ), controls=[qb[1]]),
-        Command(None, X, qubits=([qb[6]], ), controls=[qb[3]]),
-        Command(None, X, qubits=([qb[7]], ), controls=[qb[4]]),
-        Command(None, X, qubits=([qb[7]], ), controls=[qb[2]]),
-        Command(None, X, qubits=([qb[8]], ), controls=[qb[2]]),
-        Command(None, X, qubits=([qb[8]], ), controls=[qb[3]]),
-    ]
-
+    all_cmds = list(itertools.chain(allocate_cmds[:5], gates))
     mapper, backend = deepcopy(grid33_graph_mapper)
-    mapper.receive(list(itertools.chain(allocate_cmds, gates)) + [cmd_flush])
-    mapping = mapper.current_mapping
+    mapper.receive(all_cmds + [cmd_flush])
 
-    assert mapper.num_mappings == 0
-    assert mapping[0] == 4
-    assert sorted([mapping[1], mapping[2], mapping[3],
-                   mapping[4]]) == [1, 3, 5, 7]
-    assert sorted([mapping[5], mapping[6], mapping[7],
-                   mapping[8]]) == [0, 2, 6, 8]
+    gates = [
+        Command(None, X, qubits=([qb[5]], ), controls=[qb[6]]),
+        Command(None, X, qubits=([qb[5]], ), controls=[qb[7]]),
+    ]
+    all_cmds = list(itertools.chain(allocate_cmds[5:], gates))
+    mapper.receive(all_cmds + [cmd_flush])
+    assert mapper.num_mappings == 2
 
 
 def test_send_possible_commands(simple_graph, simple_mapper):
@@ -470,6 +455,49 @@ def test_send_possible_commands_allocation_no_active_qubits(
     # NB: after swap, can actually send Deallocate to qb0
     assert mapper._stored_commands[:6] == cmd_list[4:10]
     assert mapper._stored_commands[6] == cmd_list[11]
+
+
+def test_send_possible_commands_allocation_no_active_qubits(
+        grid22_graph_mapper):
+    mapper, backend = grid22_graph_mapper
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+    qb3 = WeakQubitRef(engine=None, idx=3)
+    qb4 = WeakQubitRef(engine=None, idx=4)
+
+    cmd_list = [
+        Command(engine=None, gate=Allocate, qubits=([qb0], )),
+        Command(engine=None, gate=Allocate, qubits=([qb1], )),
+        Command(engine=None, gate=Allocate, qubits=([qb2], )),
+        Command(engine=None, gate=Allocate, qubits=([qb3], )),
+        Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb2]),
+    ]
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+
+    mapper._stored_commands += cmd_list + [cmd_flush]
+
+    mapper._run()
+    assert mapper.num_mappings == 1
+    assert len(mapper._stored_commands) == 1
+    assert mapper._stored_commands[0] == cmd_flush
+
+    cmd_list = [
+        Command(engine=None, gate=X, qubits=([qb2], ), controls=[qb3]),
+        Command(engine=None, gate=Deallocate, qubits=([qb3], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb2], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb1], )),
+        Command(engine=None, gate=Deallocate, qubits=([qb0], )),
+        Command(engine=None, gate=Allocate, qubits=([qb4], )),
+    ]
+    mapper._stored_commands = cmd_list + [cmd_flush]
+    mapper._run()
+    assert mapper.num_mappings == 1
+    assert len(mapper._stored_commands) == 2
+    assert mapper._stored_commands[0] == cmd_list[-1]
 
 
 def test_send_possible_commands_deallocate(simple_mapper):

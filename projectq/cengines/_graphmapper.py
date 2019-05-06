@@ -82,11 +82,6 @@ def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
     currently_used_nodes = sorted([v for _, v in mapping.items()])
     available_nodes = [n for n in graph if n not in currently_used_nodes]
 
-    if len(new_logical_qubit_ids) > len(available_nodes):
-        raise RuntimeError("Mapper ran out of qubit to allocate. "
-                           "Increase the number of qubits for this "
-                           "mapper.")
-
     for i, logical_id in enumerate(new_logical_qubit_ids):
         mapping[logical_id] = available_nodes[i]
     return mapping
@@ -112,25 +107,20 @@ def _generate_mapping_minimize_swaps(graph, qubit_interaction_subgraphs):
     mapping[logical_id] = backend_id
 
     for subgraph in qubit_interaction_subgraphs:
-        if available_nodes:
-            anchor_node = backend_id
-            for logical_id in subgraph:
-                neighbours = sorted(
-                    [n for n in graph[anchor_node] if n in available_nodes],
-                    key=lambda n: len(graph[n]))
+        anchor_node = backend_id
+        for logical_id in subgraph:
+            neighbours = sorted(
+                [n for n in graph[anchor_node] if n in available_nodes],
+                key=lambda n: len(graph[n]))
 
-                # If possible, take the neighbour with the highest
-                # degree. Otherwise, take the next highest order available node
-                if neighbours:
-                    backend_id = neighbours[-1]
-                    available_nodes.remove(backend_id)
-                elif available_nodes:
-                    backend_id = available_nodes.pop()
-                else:
-                    break
-                mapping[logical_id] = backend_id
-        else:
-            break
+            # If possible, take the neighbour with the highest
+            # degree. Otherwise, take the next highest order available node
+            if neighbours:
+                backend_id = neighbours[-1]
+                available_nodes.remove(backend_id)
+            else:
+                backend_id = available_nodes.pop()
+            mapping[logical_id] = backend_id
 
     return mapping
 
@@ -222,12 +212,15 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
 
         if len(qubit_interactions) == 1:
             qubit = qubit_interactions[0]
-            candidates = sorted([
-                n
-                for n in graph[mapping[qubit]] if n not in currently_used_nodes
-            ],
-                                key=lambda n: len(graph[n]))
-            backend_id = candidates[-1]
+
+            if qubit in mapping:
+                candidates = sorted([
+                    n for n in graph[mapping[qubit]]
+                    if n not in currently_used_nodes
+                ],
+                                    key=lambda n: len(graph[n]))
+                if candidates:
+                    backend_id = candidates[-1]
         elif qubit_interactions:
             neighbours = []
             for qubit in qubit_interactions:
@@ -247,12 +240,7 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
                 neighbours.pop()
 
         if backend_id is None:
-            try:
-                backend_id = available_nodes.pop()
-            except:
-                raise RuntimeError("Mapper ran out of qubit to allocate. "
-                                   "Increase the number of qubits for this "
-                                   "mapper.")
+            backend_id = available_nodes.pop()
         else:
             available_nodes.remove(backend_id)
 
