@@ -28,6 +28,7 @@
 #include <tuple>
 #include <random>
 #include <functional>
+#include <string>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -51,13 +52,13 @@ public:
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CINTFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
 
-    QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1) {
+    QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1, const bool& build_from_source = false, const bool& save_binaries = false, std::string cache_path = "*") {
         rnd_eng_ = std::make_shared<RndEngine>();
     	rnd_eng_->seed(seed);
 
 #if ENABLE_OPENCL
         // Initialize OpenCL engine, and set the default device context.
-        Qrack::OCLEngine::Instance()->SetDefaultDeviceContext(Qrack::OCLEngine::Instance()->GetDeviceContextPtr(dev));
+        Qrack::OCLEngine::InitOCL(build_from_source, save_binaries, cache_path);
 #endif
 
         if (simulator_type == 1) {
