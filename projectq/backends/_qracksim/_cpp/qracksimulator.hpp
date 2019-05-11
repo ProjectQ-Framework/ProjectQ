@@ -391,15 +391,8 @@ public:
         // set mapping and wavefunction
         for (unsigned i = 0; i < ordering.size(); i++)
             map_[ordering[i]] = i;
-        
-        complex_type* wfArray = new complex_type[wavefunction.size()];
-        #pragma omp parallel for schedule(static)
-        for (std::size_t j = 0; j < wavefunction.size(); j++)
-            wfArray[j] = complex_type(real(wavefunction[j]), imag(wavefunction[j]));
 
-        qReg->SetQuantumState(wfArray);
-
-        delete[] wfArray;
+        qReg->SetQuantumState(&(wavefunction[0]));
     }
 
     void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
@@ -422,23 +415,15 @@ public:
         qReg->ForceM(idsArray, ids.size(), valuesArray);
 
         delete[] idsArray;
-        delete[] valuesArray;
     }
 
     void prepare_state(std::vector<unsigned> const& ids, std::vector<std::complex<calc_type>> const& amps){
         // We can prepare arbitrary substates with measurement, "Compose," and "Decompose.
         assert((1U << ids.size()) == amps.size());
 
-        // We need the amplitudes as an array of Qrack::complex elements.
-        complex_type* substateVec = new complex_type[amps.size()];
-        for (bitCapInt j = 0; j < amps.size(); j++) {
-            substateVec[j] = complex_type(real(amps[j]), imag(amps[j]));
-        }
-
         // If the substate being prepared is the full set, then set the amplitudes, and we're done.
         if (ids.size() == qReg->GetQubitCount()) {
-            qReg->SetQuantumState(substateVec);
-            delete[] substateVec;
+            qReg->SetQuantumState(&(amps[0]));
             return;
         }
 
@@ -460,7 +445,7 @@ public:
 
         // Then, prepare the new substate.
         Qrack::QInterfacePtr substate = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ids.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true);
-        substate->SetQuantumState(substateVec);
+        substate->SetQuantumState(&(amps[0]));
 
         // Finally, combine the representation of the new substate with the remainder of the old engine.
         bitLenInt oldLength = qReg->Compose(substate);
@@ -468,8 +453,6 @@ public:
         for (bitLenInt i = 0; i < ids.size(); i++) {
             map_[ids[i]] = oldLength + i;
         }
-
-        delete[] substateVec;
     }
 
     void apply_qubit_operator(ComplexTermsDict const& td, std::vector<unsigned> const& ids){
@@ -503,15 +486,8 @@ public:
             return make_tuple(map_, std::move(vec));
         }
 
-        complex_type* wfArray = new complex_type[qReg->GetMaxQPower()];
-        qReg->GetQuantumState(wfArray);
         StateVector vec(qReg->GetMaxQPower());
-
-        #pragma omp parallel for schedule(static)
-        for (std::size_t i = 0; i < vec.size(); i++)
-            vec[i] = std::complex<calc_type>(real(wfArray[i]), imag(wfArray[i]));
-
-        delete[] wfArray;
+        qReg->GetQuantumState(&(vec[0]));
 
         return make_tuple(map_, std::move(vec));
     }
@@ -543,12 +519,6 @@ private:
     void apply_uniformly_controlled(std::vector<calc_type> angles, std::vector<unsigned> ids, std::vector<unsigned> ctrl, UCRFunc fn){
         bitCapInt i;
 
-        // Adjust for the convention difference between ProjectQ and Qrack:
-        calc_type* anglesArray = new calc_type[angles.size()];
-        for (i = 0; i < angles.size(); i++) {
-            anglesArray[i] = angles[i];
-        }
-
         if (ctrl.size() > 0) {
             bitLenInt* ctrlArray = new bitLenInt[ctrl.size()];
             for (i = 0; i < ctrl.size(); i++) {
@@ -556,17 +526,15 @@ private:
             }
 
             for (i = 0; i < ids.size(); i++) {
-                fn(ctrlArray, ctrl.size(), map_[ids[i]], anglesArray);
+                fn(ctrlArray, ctrl.size(), map_[ids[i]], &(angles[0]));
             }
 
             delete[] ctrlArray;
         } else {
             for (i = 0; i < ids.size(); i++) {
-                fn(NULL, 0, map_[ids[i]], anglesArray);
+                fn(NULL, 0, map_[ids[i]], &(angles[0]));
             }
         }
-
-        delete[] anglesArray;
     }
 
     void apply_controlled_int(CINTFunc fn, std::vector<unsigned> ids, std::vector<unsigned> ctrl){
