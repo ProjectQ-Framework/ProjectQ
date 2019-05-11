@@ -414,6 +414,7 @@ public:
 
         qReg->ForceM(idsArray, ids.size(), valuesArray);
 
+        delete[] valuesArray;
         delete[] idsArray;
     }
 
