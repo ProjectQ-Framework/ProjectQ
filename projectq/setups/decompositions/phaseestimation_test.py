@@ -34,7 +34,7 @@ import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
 
-tolerance = 1e-6
+tolerance = 1e-5
 
 def test_simple_test_X_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
