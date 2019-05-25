@@ -51,10 +51,12 @@ public:
     typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, calc_type*)> UCRFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CINTFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
+    int devID;
 
     QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1, const bool& build_from_source = false, const bool& save_binaries = false, std::string cache_path = "*") {
         rnd_eng_ = std::make_shared<RndEngine>();
     	rnd_eng_->seed(seed);
+        devID = dev;
 
 #if ENABLE_OPENCL
         // Initialize OpenCL engine, and set the default device context.
@@ -76,10 +78,10 @@ public:
         if (map_.count(id) == 0) {
             if (qReg == NULL) {
                 map_[id] = 0;
-                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true); 
+                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID); 
             } else {
                 map_[id] = qReg->GetQubitCount();
-                qReg->Compose(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true));
+                qReg->Compose(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID));
             }
         }
         else
@@ -445,7 +447,7 @@ public:
         }
 
         // Then, prepare the new substate.
-        Qrack::QInterfacePtr substate = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ids.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true);
+        Qrack::QInterfacePtr substate = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ids.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID);
         substate->SetQuantumState(&(amps[0]));
 
         // Finally, combine the representation of the new substate with the remainder of the old engine.
