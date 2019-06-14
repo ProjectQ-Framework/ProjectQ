@@ -191,6 +191,7 @@ def test_complex_aa():
 
 def test_string_functions():
     algorithm = hache_algorithm
+    algorithm_inv = hache_algorithm_inverse
     oracle = simple_oracle
-    gate = QAA(algorithm, oracle)
+    gate = QAA(algorithm, algorithm_inv, oracle)
     assert (str(gate) == "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
