@@ -27,6 +27,7 @@ The decomposition package is a collection of gate decomposition / replacement ru
     projectq.setups.decompositions.toffoli2cnotandtgate
     projectq.setups.decompositions.uniformlycontrolledr2cnot
     projectq.setups.decompositions.phaseestimation
+    projectq.setups.decompositions.amplitudeamplification
 
 
 Submodules
@@ -177,6 +178,13 @@ projectq.setups.decompositions.phaseestimation module
 ---------------------------------------------------------------
 
 .. automodule:: projectq.setups.decompositions.phaseestimation
+    :members:
+    :undoc-members:
+
+projectq.setups.decompositions.amplitudeamplification module
+---------------------------------------------------------------
+
+.. automodule:: projectq.setups.decompositions.amplitudeamplification
     :members:
     :undoc-members:
 
