@@ -19,14 +19,11 @@ from projectq.ops import _qaagate, All, H, X
 
 def test_qaa_str():
 
-    def func_algorithm():
-        All(H)
+    def func_algorithm(): All(H)
 
-    def func_algorithm_inverse():
-        All(H)
+    def func_algorithm_inverse(): All(H)
 
-    def func_oracle():
-        All(X)
+    def func_oracle(): All(X)
 
     gate = _qaagate.QAA(func_algorithm, func_algorithm_inverse, func_oracle)
     assert str(gate) == "QAA(Algorithm = func_algorithm, Oracle = func_oracle)"
