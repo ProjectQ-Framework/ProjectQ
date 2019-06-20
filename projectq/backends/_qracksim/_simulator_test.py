@@ -524,10 +524,10 @@ def test_simulator_functional_entangle(sim):
         CNOT | (qubits[0], qb)
 
     # check the state vector:
-    assert .5 == pytest.approx(abs(sim.cheat()[1][0])**2)
-    assert .5 == pytest.approx(abs(sim.cheat()[1][31])**2)
+    assert .5 == pytest.approx(abs(sim.cheat()[1][0])**2, rel=tolerance, abs=tolerance)
+    assert .5 == pytest.approx(abs(sim.cheat()[1][31])**2, rel=tolerance, abs=tolerance)
     for i in range(1, 31):
-        assert 0. == pytest.approx(abs(sim.cheat()[1][i]))
+        assert 0. == pytest.approx(abs(sim.cheat()[1][i]), rel=tolerance, abs=tolerance)
 
     # unentangle all except the first 2
     for qb in qubits[2:]:
@@ -538,10 +538,10 @@ def test_simulator_functional_entangle(sim):
         Toffoli | (qubits[0], qubits[1], qb)
 
     # check the state vector:
-    assert .5 == pytest.approx(abs(sim.cheat()[1][0])**2)
-    assert .5 == pytest.approx(abs(sim.cheat()[1][31])**2)
+    assert .5 == pytest.approx(abs(sim.cheat()[1][0])**2, rel=tolerance, abs=tolerance)
+    assert .5 == pytest.approx(abs(sim.cheat()[1][31])**2, rel=tolerance, abs=tolerance)
     for i in range(1, 31):
-        assert 0. == pytest.approx(abs(sim.cheat()[1][i]))
+        assert 0. == pytest.approx(abs(sim.cheat()[1][i]), rel=tolerance, abs=tolerance)
 
     # uncompute using multi-controlled NOTs
     with Control(eng, qubits[0:-1]):
@@ -554,9 +554,9 @@ def test_simulator_functional_entangle(sim):
     H | qubits[0]
 
     # check the state vector:
-    assert 1. == pytest.approx(abs(sim.cheat()[1][0])**2)
+    assert 1. == pytest.approx(abs(sim.cheat()[1][0])**2, rel=tolerance, abs=tolerance)
     for i in range(1, 32):
-        assert 0. == pytest.approx(abs(sim.cheat()[1][i]))
+        assert 0. == pytest.approx(abs(sim.cheat()[1][i]), rel=tolerance, abs=tolerance)
 
     All(Measure) | qubits
 
@@ -637,7 +637,7 @@ def test_uniformly_controlled_r(sim, gate_classes):
         correct = correct_sim.get_amplitude(binary_state, correct_qb +
                                             correct_ctrl_qureg)
         print(test, "==", correct)
-        assert correct == pytest.approx(test, rel=1e-6, abs=1e-6)
+        assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
     All(Measure) | test_qb + test_ctrl_qureg
     All(Measure) | correct_qb + correct_ctrl_qureg

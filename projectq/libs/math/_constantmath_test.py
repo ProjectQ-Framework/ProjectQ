@@ -20,7 +20,10 @@ from projectq import MainEngine
 from projectq.cengines import (InstructionFilter,
                                AutoReplacer,
                                DecompositionRuleSet)
-from projectq.backends import Simulator
+# The Qrack simulator has stricter rules for integer math.
+# It not possible to perform general modulo math in-place, in a unitary way.
+# (Qrack does offer certain out-of-place modulo math.)
+from projectq.backends._sim import Simulator
 from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
                           Measure, X)
 
@@ -29,13 +32,6 @@ from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 from projectq.libs.math import (AddConstant,
                                 AddConstantModN,
                                 MultiplyByConstantModN)
-
-def test_is_qrack_simulator_present():
-    try:
-        import projectq.backends._qracksim._qracksim as _
-        return True
-    except:
-        return False
 
 def init(engine, quint, value):
     for i in range(len(quint)):
@@ -102,9 +98,6 @@ def test_modadder():
 
 
 def test_modmultiplier():
-    if test_is_qrack_simulator_present():
-        pytest.skip("The Qrack simulator has stricter rules for integer math")
-
     sim = Simulator()
     eng = MainEngine(sim, [AutoReplacer(rule_set),
                            InstructionFilter(no_math_emulation)])

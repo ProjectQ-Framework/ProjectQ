@@ -34,6 +34,8 @@
 #include <omp.h>
 #endif
 
+#define CREATE_QUBITS(count) Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, count, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), false, false, false, devID, true)
+
 class QrackSimulator{
 public:
     using calc_type = Qrack::real1;
@@ -53,7 +55,8 @@ public:
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CMULXFunc;
     int devID;
 
-    QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1, const bool& build_from_source = false, const bool& save_binaries = false, std::string cache_path = "*") {
+    QrackSimulator(unsigned seed = 1, const int& dev = -1, const int& simulator_type = 1, const bool& build_from_source = false, const bool& save_binaries = false, std::string cache_path = "*")
+        :qReg(NULL) {
         rnd_eng_ = std::make_shared<RndEngine>();
     	rnd_eng_->seed(seed);
         devID = dev;
@@ -78,10 +81,9 @@ public:
         if (map_.count(id) == 0) {
             if (qReg == NULL) {
                 map_[id] = 0;
-                qReg = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID); 
+                qReg = CREATE_QUBITS(1); 
             } else {
-                map_[id] = qReg->GetQubitCount();
-                qReg->Compose(Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, 1, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID));
+                map_[id] = qReg->Compose(CREATE_QUBITS(1));
             }
         }
         else
@@ -97,15 +99,9 @@ public:
         }
     }
 
-    bool is_classical(unsigned id, calc_type tol = 1e-6){
+    bool is_classical(unsigned id, calc_type tol = min_norm){
         calc_type p = qReg->Prob(map_[id]);
         if ((p < tol) || ((ONE_R1 - p) < tol)) {
-            // Difference in phase (for amplitudes not below the rounding tolerance)
-            // prevents separability in the permutation basis.
-            //
-            // For example, 3 bits could be in the simulator. One bit could have a 100% chance being "true,"
-            // split between 4 basis vectors including the other two bits, all at different phases.
-            // Such a state for the 100% bit is still not necessarily separable, or "classical."
             return true;
         } else {
             return false;
@@ -328,7 +324,7 @@ public:
     void emulate_time_evolution(TermsDict const& tdict, calc_type const& time,
                                 std::vector<unsigned> const& ids,
                                 std::vector<unsigned> const& ctrl){
-        bitLenInt* ctrlArray;
+        bitLenInt* ctrlArray = NULL;
         if (ctrl.size() > 0) {
             ctrlArray = new bitLenInt[ctrl.size()];
             for (bitLenInt i = 0; i < ctrl.size(); i++) {
@@ -447,7 +443,7 @@ public:
         }
 
         // Then, prepare the new substate.
-        Qrack::QInterfacePtr substate = Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, ids.size(), 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), true, false, true, devID);
+        Qrack::QInterfacePtr substate = CREATE_QUBITS(ids.size());
         substate->SetQuantumState(&(amps[0]));
 
         // Finally, combine the representation of the new substate with the remainder of the old engine.
@@ -562,11 +558,11 @@ private:
                 ctrlArray[i] = map_[ctrl[i]];
             }
 
-            fn(0, (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
+            fn(map_[ids[0]], (bitLenInt)ids.size(), ctrlArray, (bitLenInt)ctrl.size());
 
             delete[] ctrlArray;
         } else {
-            fn(0, (bitLenInt)ids.size(), NULL, 0);
+            fn(map_[ids[0]], (bitLenInt)ids.size(), NULL, 0);
         }
     }
 
@@ -594,11 +590,11 @@ private:
                 ctrlArray[i] = map_[ctrl[i]];
             }
 
-            fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), ctrlArray, (bitLenInt)ctrl.size());
+            fn(map_[ids[0]], (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), ctrlArray, (bitLenInt)ctrl.size());
 
             delete[] ctrlArray;
         } else {
-            fn(0, (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), NULL, 0);
+            fn(map_[ids[0]], (bitLenInt)(ids.size() / 2), (bitLenInt)(ids.size() / 2), NULL, 0);
         }
     }
 
