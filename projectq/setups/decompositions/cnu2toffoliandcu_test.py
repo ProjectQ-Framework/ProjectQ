@@ -29,8 +29,6 @@ import pytest
 # is physically arbitrary, for quantum mechanical purposes. There's no way easy way to
 # guarantee that the global phase offset introduced here is zero. The Qrack simulator
 # reproduces _probability_ within a reasonable tolerance, but not absolute global phase.
-# QINTERFACE_QUNIT requires a normalization of the state vector after this process, and this
-# might be a numerical limitation of the underlying QUnit algorithm.
 #
 # Absolute global phase of a separable set of qubits is not physically measurable. Users
 # are advised to avoid relying on direct checks of complex amplitudes, for deep but fairly
@@ -41,8 +39,6 @@ import pytest
 # "potentials" in the absence of "fields," but my point is "there are more things in heaven
 # and earth." Qrack is based on the physical non-observability of complex potential observables,
 # though, for better or worse--but mostly for speed.)
-
-import numpy as np
 
 from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
@@ -152,11 +148,11 @@ def test_decomposition():
 
         for fstate in range(16):
             binary_state = format(fstate, '04b')
-            test = test_sim.get_amplitude(binary_state,
+            test = test_sim.get_probability(binary_state,
                                           test_qb + test_ctrl_qureg)
-            correct = correct_sim.get_amplitude(binary_state, correct_qb +
+            correct = correct_sim.get_probability(binary_state, correct_qb +
                                                 correct_ctrl_qureg)
-            assert np.absolute(correct) == pytest.approx(np.absolute(test), rel=tolerance, abs=tolerance)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qb + test_ctrl_qureg
         All(Measure) | correct_qb + correct_ctrl_qureg
