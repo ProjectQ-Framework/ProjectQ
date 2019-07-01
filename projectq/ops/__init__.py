@@ -40,3 +40,4 @@ from ._isometry import Isometry
 from ._uniformly_controlled_rotation import (UniformlyControlledRy,
                                              UniformlyControlledRz)
 from ._state_prep import StatePreparation
+from ._qpegate import QPE

@@ -34,7 +34,8 @@ from . import (arb1qubit2rzandry,
                uniformly_controlled_gate,
                diagonal_gate,
                isometry,
-               uniformlycontrolledr2cnot)
+               uniformlycontrolledr2cnot,
+               phaseestimation)
 
 all_defined_decomposition_rules = [
     rule
@@ -60,6 +61,7 @@ all_defined_decomposition_rules = [
                    uniformly_controlled_gate,
                    diagonal_gate,
                    isometry,
-                   uniformlycontrolledr2cnot]
-  for rule in module.all_defined_decomposition_rules
+                   uniformlycontrolledr2cnot,
+                   phaseestimation]
+    for rule in module.all_defined_decomposition_rules
 ]
