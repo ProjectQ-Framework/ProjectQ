@@ -36,7 +36,6 @@ Example:
 
        def func_oracle(eng,system_qubits,qaa_ancilla):
            # This oracle selects the state |010> as the one marked
-           # Method taken form the Grover example
            with Compute(eng):
               All(X) | system_qubits[0::2]
            with Control(eng, system_qubits):
