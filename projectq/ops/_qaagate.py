@@ -28,4 +28,6 @@ class QAA(BasicGate):
         self.oracle = oracle
 
     def __str__(self):
-        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(str(self.algorithm.__name__), str(self.oracle.__name__))
+        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(
+                str(self.algorithm.__name__), str(self.oracle.__name__)
+                                                           )

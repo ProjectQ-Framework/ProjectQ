@@ -24,7 +24,8 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                DummyEngine, InstructionFilter, MainEngine)
 
-from projectq.ops import X, H, All, Measure, Tensor, Ph, CNOT, StatePreparation, Rx, Ry
+from projectq.ops import (X, H, All, Measure, Tensor, Ph, CNOT,
+                          StatePreparation, Rx, Ry)
 from projectq.meta import Loop, Compute, Uncompute, CustomUncompute, Control
 
 from projectq.ops import (BasicGate, get_inverse)
@@ -47,7 +48,6 @@ def hache_algorithm_inverse(eng, qreg):
 
 def simple_oracle(eng, system_q, control):
     # This oracle selects the state |1010101> as the one marked
-    # Method taken form the Grover example
     with Compute(eng):
         All(X) | system_q[1::2]
     with Control(eng, system_q):
@@ -82,7 +82,8 @@ def test_simple_grover():
 
     # Apply Quantum Amplitude Amplification the correct number of times
     # Theta is calculated previously using get_probability
-    # We calculate also the theoretical final probability of getting the good state
+    # We calculate also the theoretical final probability
+    # of getting the good state
     num_it = int(math.pi/(4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
@@ -165,14 +166,15 @@ def test_complex_aa():
 
     # Apply Quantum Amplitude Amplification the correct number of times
     # Theta is calculated previously using get_probability
-    # We calculate also the theoretical final probability of getting the good state
+    # We calculate also the theoretical final probability
+    # of getting the good state
     num_it = int(math.pi/(4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
         QAA(complex_algorithm, complex_algorithm_inverse, complex_oracle) | (system_qubits, control)
 
     # Get the probabilty of getting the marked state after the AA
-    # to compare with the theoretical probability after teh AA
+    # to compare with the theoretical probability after the AA
     eng.flush()
     prob000000 = eng.backend.get_probability('000000', system_qubits)
     prob111111 = eng.backend.get_probability('111111', system_qubits)

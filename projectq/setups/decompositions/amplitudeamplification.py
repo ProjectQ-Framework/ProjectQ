@@ -34,36 +34,38 @@ Example:
        def func_algorithm_inverse(system_qubits):
            All(H) | system_qubits
 
-       def func_oracle(eng,system_qubits,control):
+       def func_oracle(eng,system_qubits,qaa_ancilla):
            # This oracle selects the state |010> as the one marked
            # Method taken form the Grover example
            with Compute(eng):
               All(X) | system_qubits[0::2]
            with Control(eng, system_qubits):
-              X | control
+              X | qaa_ancilla
            Uncompute(eng)
 
        system_qubits = eng.allocate_qureg(3)
-       # Prepare the control qubit in the |-> state
-       control = eng.allocate_qubit()
-       X | control
-       H | control
+       # Prepare the qaa_ancilla qubit in the |-> state
+       qaa_ancilla = eng.allocate_qubit()
+       X | qaa_ancilla
+       H | qaa_ancilla
 
        # Creates the initial state form the Algorithm
        func_algorithm(system_qubits)
        # Apply Quantum Amplitude Amplification the correct number of times
        num_it = int(math.pi/4.*math.sqrt(1 << 3))
        with Loop(eng, num_it):
-           QAA(func_algorithm, func_algorithm_inverse, func_oracle) | (system_qubits, control)
+         QAA(func_algorithm, func_algorithm_inverse, func_oracle) | (system_qubits, qaa_ancilla)
 
        All(Measure) | system_qubits
 
 Attributes:
-    func_algorithm: Algorithm that initialite the state and to be used in the QAA algorithm
+    func_algorithm: Algorithm that initialite the state and to be used
+                    in the QAA algorithm
     func_algorithm_inverse: inverse of the func_algorithm
     func_oracle: The Oracle that marks the state(s) as "good"
     system_qubits: the system we are interested on
-    control: auxiliary qubit that helps to invert the amplitude of the "good" states
+    qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the
+                 "good" states
 
 """
 
@@ -81,19 +83,20 @@ def _decompose_QAA(cmd):
     """ Decompose the Quantum Amplitude Apmplification algorithm as a gate. """
     eng = cmd.engine
 
-    # System-qubit is the first qubit/qureg. Control qubit is the second qubit
+    # System-qubit is the first qubit/qureg. Ancilla qubit is the second qubit
     system_qubits = cmd.qubits[0]
-    control = cmd.qubits[1]
+    qaa_ancilla = cmd.qubits[1]
 
     # The Oracle and the Algorithm
-    Orcl = cmd.gate.oracle
+    Oracle = cmd.gate.oracle
     A = cmd.gate.algorithm
     A_inv = cmd.gate.algorithm_inverse
 
     # Apply the oracle to invert the amplitude of the good states, S_Chi
-    Orcl(eng, system_qubits, control)
+    Oracle(eng, system_qubits, qaa_ancilla)
 
-    # Apply the inversion of the Algorithm, the inversion of the aplitude of |0> and the Algorithm
+    # Apply the inversion of the Algorithm,
+    # the inversion of the aplitude of |0> and the Algorithm
 
     with Compute(eng):
         A_inv(eng, system_qubits)
