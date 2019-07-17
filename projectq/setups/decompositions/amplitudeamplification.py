@@ -28,10 +28,7 @@ is the one resulting of aplying the Algorithm on the |0> state.
 Example:
     .. code-block:: python
 
-       def func_algorithm(system_qubits):
-           All(H) | system_qubits
-
-       def func_algorithm_inverse(system_qubits):
+       def func_algorithm(eng,system_qubits):
            All(H) | system_qubits
 
        def func_oracle(eng,system_qubits,qaa_ancilla):
@@ -49,18 +46,21 @@ Example:
        H | qaa_ancilla
 
        # Creates the initial state form the Algorithm
-       func_algorithm(system_qubits)
+       func_algorithm(eng, system_qubits)
        # Apply Quantum Amplitude Amplification the correct number of times
        num_it = int(math.pi/4.*math.sqrt(1 << 3))
        with Loop(eng, num_it):
-         QAA(func_algorithm, func_algorithm_inverse, func_oracle) | (system_qubits, qaa_ancilla)
+         QAA(func_algorithm, func_oracle) | (system_qubits, qaa_ancilla)
 
        All(Measure) | system_qubits
+
+Warning:
+    No qubit allocation/deallocation may take place during the call
+    to the defined Algorithm :code:`func_algorithm`
 
 Attributes:
     func_algorithm: Algorithm that initialite the state and to be used
                     in the QAA algorithm
-    func_algorithm_inverse: inverse of the func_algorithm
     func_oracle: The Oracle that marks the state(s) as "good"
     system_qubits: the system we are interested on
     qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the
@@ -72,7 +72,7 @@ import math
 import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute
+from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from projectq.ops import X, Z, Ph, All
 
 from projectq.ops import QAA
@@ -89,7 +89,6 @@ def _decompose_QAA(cmd):
     # The Oracle and the Algorithm
     Oracle = cmd.gate.oracle
     A = cmd.gate.algorithm
-    A_inv = cmd.gate.algorithm_inverse
 
     # Apply the oracle to invert the amplitude of the good states, S_Chi
     Oracle(eng, system_qubits, qaa_ancilla)
@@ -98,7 +97,8 @@ def _decompose_QAA(cmd):
     # the inversion of the aplitude of |0> and the Algorithm
 
     with Compute(eng):
-        A_inv(eng, system_qubits)
+        with Dagger(eng):
+            A(eng, system_qubits)
         All(X) | system_qubits
     with Control(eng, system_qubits[0:-1]):
         Z | system_qubits[-1]

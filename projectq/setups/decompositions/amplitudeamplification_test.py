@@ -42,10 +42,6 @@ def hache_algorithm(eng, qreg):
     All(H) | qreg
 
 
-def hache_algorithm_inverse(eng, qreg):
-    All(H) | qreg
-
-
 def simple_oracle(eng, system_q, control):
     # This oracle selects the state |1010101> as the one marked
     with Compute(eng):
@@ -87,7 +83,7 @@ def test_simple_grover():
     num_it = int(math.pi/(4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
-        QAA(hache_algorithm, hache_algorithm_inverse, simple_oracle) | (system_qubits, control)
+        QAA(hache_algorithm, simple_oracle) | (system_qubits, control)
 
     # Get the probabilty of getting the marked state after the AA
     # to compare with the theoretical probability after teh AA
@@ -113,15 +109,6 @@ def complex_algorithm(eng, qreg):
     All(Ry(math.pi/4)) | qreg[1:]
     with Control(eng, qreg[-1]):
         All(X) | qreg[1:-1]
-
-
-def complex_algorithm_inverse(eng, qreg):
-    with Control(eng, qreg[-1]):
-        All(X) | qreg[1:-1]
-    All(Ry(-math.pi/4)) | qreg[1:]
-    with Control(eng, qreg[0]):
-        All(X) | qreg[1:]
-    All(H) | qreg
 
 
 def complex_oracle(eng, system_q, control):
@@ -171,7 +158,7 @@ def test_complex_aa():
     num_it = int(math.pi/(4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
-        QAA(complex_algorithm, complex_algorithm_inverse, complex_oracle) | (system_qubits, control)
+        QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
 
     # Get the probabilty of getting the marked state after the AA
     # to compare with the theoretical probability after the AA
@@ -193,7 +180,6 @@ def test_complex_aa():
 
 def test_string_functions():
     algorithm = hache_algorithm
-    algorithm_inv = hache_algorithm_inverse
     oracle = simple_oracle
-    gate = QAA(algorithm, algorithm_inv, oracle)
+    gate = QAA(algorithm, oracle)
     assert (str(gate) == "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
