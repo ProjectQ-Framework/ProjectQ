@@ -112,7 +112,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase/100. >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.34)
+    assert num_phase/100. >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.35)
 
 
 def test_X_no_eigenvectors():
