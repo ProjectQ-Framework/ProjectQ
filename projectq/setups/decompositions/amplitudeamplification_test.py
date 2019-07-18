@@ -15,27 +15,17 @@
 "Tests for projectq.setups.decompositions.amplitudeamplification.py."
 
 import math
-import numpy as np
 import pytest
-from copy import deepcopy
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               DummyEngine, InstructionFilter, MainEngine)
+from projectq.cengines import (AutoReplacer, DecompositionRuleSet, MainEngine)
 
-from projectq.ops import (X, H, All, Measure, Tensor, Ph, CNOT,
-                          StatePreparation, Rx, Ry)
-from projectq.meta import Loop, Compute, Uncompute, CustomUncompute, Control
-
-from projectq.ops import (BasicGate, get_inverse)
+from projectq.ops import (X, H, Ry, All, Measure)
+from projectq.meta import Loop, Control, Compute, Uncompute
 
 from projectq.ops import QAA
 from projectq.setups.decompositions import amplitudeamplification as aa
-
-from projectq.setups.decompositions import qft2crandhadamard as dqft
-import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
-import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
 
 def hache_algorithm(eng, qreg):
@@ -49,6 +39,7 @@ def simple_oracle(eng, system_q, control):
     with Control(eng, system_q):
         X | control
     Uncompute(eng)
+
 
 def test_simple_grover():
     rule_set = DecompositionRuleSet(modules=[aa])
@@ -108,7 +99,7 @@ def complex_algorithm(eng, qreg):
     All(H) | qreg
     with Control(eng, qreg[0]):
         All(X) | qreg[1:]
-    All(Ry(math.pi/4)) | qreg[1:]
+    All(Ry(math.pi / 4)) | qreg[1:]
     with Control(eng, qreg[-1]):
         All(X) | qreg[1:-1]
 
@@ -189,4 +180,3 @@ def test_string_functions():
     gate = QAA(algorithm, oracle)
     assert (str(gate) ==
             "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
-
