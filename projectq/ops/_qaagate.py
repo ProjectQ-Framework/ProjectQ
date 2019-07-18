@@ -78,5 +78,4 @@ class QAA(BasicGate):
 
     def __str__(self):
         return 'QAA(Algorithm = {0}, Oracle = {1})'.format(
-                str(self.algorithm.__name__), str(self.oracle.__name__)
-                                                           )
+                str(self.algorithm.__name__), str(self.oracle.__name__))
