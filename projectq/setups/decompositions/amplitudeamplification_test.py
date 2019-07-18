@@ -50,13 +50,13 @@ def simple_oracle(eng, system_q, control):
         X | control
     Uncompute(eng)
 
-
 def test_simple_grover():
     rule_set = DecompositionRuleSet(modules=[aa])
 
     eng = MainEngine(backend=Simulator(),
-                     engine_list=[AutoReplacer(rule_set),
-                                  ])
+                     engine_list=[
+                         AutoReplacer(rule_set),
+                     ])
 
     system_qubits = eng.allocate_qureg(7)
 
@@ -80,7 +80,7 @@ def test_simple_grover():
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi/(4. * theta_before) + 1)
+    num_it = int(math.pi / (4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
         QAA(hache_algorithm, simple_oracle) | (system_qubits, control)
@@ -99,7 +99,9 @@ def test_simple_grover():
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-6), "The obtained probability is less than expected %f vs. %f" % (total_prob_after, theoretical_prob)
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-6), (
+        "The obtained probability is less than expected %f vs. %f" %
+        (total_prob_after, theoretical_prob))
 
 
 def complex_algorithm(eng, qreg):
@@ -129,8 +131,9 @@ def test_complex_aa():
     rule_set = DecompositionRuleSet(modules=[aa])
 
     eng = MainEngine(backend=Simulator(),
-                     engine_list=[AutoReplacer(rule_set),
-                                  ])
+                     engine_list=[
+                         AutoReplacer(rule_set),
+                     ])
 
     system_qubits = eng.allocate_qureg(6)
 
@@ -148,14 +151,14 @@ def test_complex_aa():
     prob000000 = eng.backend.get_probability('000000', system_qubits)
     prob111111 = eng.backend.get_probability('111111', system_qubits)
 
-    total_amp_before = math.sqrt(prob000000+prob111111)
+    total_amp_before = math.sqrt(prob000000 + prob111111)
     theta_before = math.asin(total_amp_before)
 
     # Apply Quantum Amplitude Amplification the correct number of times
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi/(4. * theta_before) + 1)
+    num_it = int(math.pi / (4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
         QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
@@ -175,11 +178,15 @@ def test_complex_aa():
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-2), "The obtained probability is less than expected %f vs. %f" % (total_prob_after, theoretical_prob)
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-2), (
+        "The obtained probability is less than expected %f vs. %f" %
+        (total_prob_after, theoretical_prob))
 
 
 def test_string_functions():
     algorithm = hache_algorithm
     oracle = simple_oracle
     gate = QAA(algorithm, oracle)
-    assert (str(gate) == "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
+    assert (str(gate) ==
+            "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
+
