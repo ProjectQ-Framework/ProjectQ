@@ -38,3 +38,4 @@ from ._uniformly_controlled_rotation import (UniformlyControlledRy,
                                              UniformlyControlledRz)
 from ._state_prep import StatePreparation
 from ._qpegate import QPE
+from ._qaagate import QAA
