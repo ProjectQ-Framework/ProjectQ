@@ -38,7 +38,7 @@ class Simulator{
 public:
     using calc_type = double;
     using complex_type = std::complex<calc_type>;
-    using StateVector = std::vector<complex_type, aligned_allocator<complex_type,64>>;
+    using StateVector = std::vector<complex_type, aligned_allocator<complex_type,512>>;
     using Map = std::map<unsigned, unsigned>;
     using RndEngine = std::mt19937;
     using Term = std::vector<std::pair<unsigned, char>>;
