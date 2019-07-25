@@ -124,6 +124,7 @@ class BuildExt(build_ext):
                 opts.append('/arch:AVX')
             else:
                 opts.append('-march=native')
+                opts.append('-ffast-math')
 
         opts.append(openmp)
         if ct == 'unix':
