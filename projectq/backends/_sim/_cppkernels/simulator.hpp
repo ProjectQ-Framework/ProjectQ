@@ -209,8 +209,8 @@ public:
     }
 
     template <class F, class QuReg>
-    void emulate_math(F const& f, QuReg quregs, std::vector<unsigned> ctrl,
-                      unsigned num_threads=1){
+    void emulate_math(F const& f, QuReg quregs, const std::vector<unsigned>& ctrl,
+                      bool parallelize = false){
         run();
         auto ctrlmask = get_control_mask(ctrl);
 
@@ -219,30 +219,54 @@ public:
                 quregs[i][j] = map_[quregs[i][j]];
 
         StateVector newvec(vec_.size(), 0.);
-        std::vector<int> res(quregs.size());
 
-        #pragma omp parallel for schedule(static) firstprivate(res) num_threads(num_threads)
-        for (std::size_t i = 0; i < vec_.size(); ++i){
-            if ((ctrlmask&i) == ctrlmask){
-                for (unsigned qr_i = 0; qr_i < quregs.size(); ++qr_i){
-                    res[qr_i] = 0;
-                    for (unsigned qb_i = 0; qb_i < quregs[qr_i].size(); ++qb_i)
-                        res[qr_i] |= ((i >> quregs[qr_i][qb_i])&1) << qb_i;
-                }
-                f(res);
-                auto new_i = i;
-                for (unsigned qr_i = 0; qr_i < quregs.size(); ++qr_i){
-                    for (unsigned qb_i = 0; qb_i < quregs[qr_i].size(); ++qb_i){
-                        if (!(((new_i >> quregs[qr_i][qb_i])&1) == ((res[qr_i] >> qb_i)&1)))
-                            new_i ^= (1UL << quregs[qr_i][qb_i]);
-                    }
-                }
-                newvec[new_i] += vec_[i];
-            }
-            else
-                newvec[i] += vec_[i];
+//#pragma omp parallel reduction(+:newvec[:newvec.size()]) if(parallelize) // requires OpenMP 4.5
+        {
+          std::vector<int> res(quregs.size());
+          //#pragma omp for schedule(static)
+          for (std::size_t i = 0; i < vec_.size(); ++i){
+              if ((ctrlmask&i) == ctrlmask){
+                  for (unsigned qr_i = 0; qr_i < quregs.size(); ++qr_i){
+                      res[qr_i] = 0;
+                      for (unsigned qb_i = 0; qb_i < quregs[qr_i].size(); ++qb_i)
+                          res[qr_i] |= ((i >> quregs[qr_i][qb_i])&1) << qb_i;
+                  }
+                  f(res);
+                  auto new_i = i;
+                  for (unsigned qr_i = 0; qr_i < quregs.size(); ++qr_i){
+                      for (unsigned qb_i = 0; qb_i < quregs[qr_i].size(); ++qb_i){
+                          if (!(((new_i >> quregs[qr_i][qb_i])&1) == ((res[qr_i] >> qb_i)&1)))
+                              new_i ^= (1UL << quregs[qr_i][qb_i]);
+                      }
+                  }
+                  newvec[new_i] += vec_[i];
+              }
+              else
+                  newvec[i] += vec_[i];
+          }
         }
         vec_ = std::move(newvec);
+    }
+
+    // faster version without calling python 
+    template<class QuReg>
+    inline void emulate_math_addConstant(int a, const QuReg& quregs, const std::vector<unsigned>& ctrl)
+    {
+      emulate_math([a](std::vector<int> &res){for(auto& x: res) x = x + a;}, quregs, ctrl, true);
+    }
+
+    // faster version without calling python 
+    template<class QuReg>
+    inline void emulate_math_addConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
+    {
+      emulate_math([a,N](std::vector<int> &res){for(auto& x: res) x = (x + a) % N;}, quregs, ctrl, true);
+    }
+
+    // faster version without calling python 
+    template<class QuReg>
+    inline void emulate_math_multiplyByConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
+    {
+      emulate_math([a,N](std::vector<int> &res){for(auto& x: res) x = (x * a) % N;}, quregs, ctrl, true);
     }
 
     calc_type get_expectation_value(TermsDict const& td, std::vector<unsigned> const& ids){
