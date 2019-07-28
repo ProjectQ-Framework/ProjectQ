@@ -16,7 +16,9 @@ import pytest
 from projectq.backends import Simulator
 from projectq.ops import All, Measure, X
 from projectq import MainEngine
-from projectq.libs.math import AddConstant, AddQuantum, SubtractQuantum, Comparator, QuantumDivision, QuantumMultiplication
+
+from projectq.libs.math import (AddConstant, AddQuantum, SubtractQuantum, Comparator, QuantumDivision, InverseQuantumDivision, QuantumMultiplication)
+
 from projectq.meta import Control, Compute, Uncompute
 
 def get_all_probabilities(eng, qureg):
@@ -84,6 +86,27 @@ def test_inverse_addition():
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
 
+def test_inverse_addition_with_contro():
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(5)
+    qunum_b = eng.allocate_qureg(5)
+    qunum_c = eng.allocate_qubit()
+    All(X) | qunum_a
+    All(X) | qunum_b
+    X | qunum_c
+    with Compute(eng):
+        with Control(eng,qunum_c):
+            AddQuantum() | (qunum_a, qunum_b)
+        
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
 
 def test_addition_with_control():
 
@@ -242,15 +265,36 @@ def test_division():
     QuantumDivision() | (qunum_a, qunum_b, qunum_c)
     eng.flush()
 
-    print(get_all_probabilities(eng, qunum_c))
-    print(get_all_probabilities(eng, qunum_b))
-    print(get_all_probabilities(eng, qunum_a))
     assert 1. == pytest.approx(eng.backend.get_probability(
         [1, 0, 0, 0, 0], qunum_a))  # remainder
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 1, 0, 0, 0], qunum_b))
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 1, 0, 0], qunum_c))
+
+def test_inverse_division():
+
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(5)
+    qunum_b = eng.allocate_qureg(5)
+    qunum_c = eng.allocate_qureg(5)
+
+    All(X) | [qunum_a[0], qunum_a[3]] 
+    X | qunum_c[2]
+
+    with Compute(eng):
+        QuantumDivision() | (qunum_a, qunum_b, qunum_c)
+    Uncompute(eng)
+    eng.flush()
+
+    assert 1. == pytest.approx(eng.backend.get_probability(
+        [1, 0, 0, 1, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 0], qunum_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_c))
+
 
 def test_multiplication():
     eng = MainEngine()
@@ -265,9 +309,6 @@ def test_multiplication():
 
     eng.flush()
 
-    print(get_all_probabilities(eng, qunum_a))
-    print(get_all_probabilities(eng, qunum_b))
-    print(get_all_probabilities(eng, qunum_c))
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
     assert 1. == pytest.approx(

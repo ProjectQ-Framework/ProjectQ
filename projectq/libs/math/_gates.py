@@ -389,6 +389,11 @@ class Comparator(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def get_inverse(self):
+        """
+        Return the inverse gate 
+        """
+        return AddQuantum()
 
 class QuantumDivision(BasicMathGate):
     """
@@ -433,6 +438,9 @@ class QuantumDivision(BasicMathGate):
                 return((dividend - (quotient* divisor)), quotient, divisor)
         BasicMathGate.__init__(self,division)
     
+    def get_inverse(self):
+        return InverseQuantumDivision()
+
     def __str__(self):
         return "QuantumDivision"
     
@@ -445,6 +453,16 @@ class QuantumDivision(BasicMathGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+class InverseQuantumDivision(BasicMathGate):
+    """
+    |remainder>|quotient>|divisor> ->  |dividend>|remainder>|divisor>
+    """
+    def __init__(self):
+        def inverse_division(remainder,quotient,divisor):
+            dividend = remainder + quotient*divisor
+            remainder = 0
+            return(dividend,remainder,divisor)
+        BasicMathGate.__init__(self,inverse_division)
 
 class QuantumMultiplication(BasicMathGate):
     """ 

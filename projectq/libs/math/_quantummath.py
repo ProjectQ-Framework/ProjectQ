@@ -20,6 +20,7 @@ from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from ._gates import (AddQuantum, 
                      SubtractQuantum) 
+#from projectq.libs.math._gates_math_test import get_all_probabilities
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
@@ -27,6 +28,16 @@ With carry bit,
 Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3.
 Without carry?
 """
+def get_all_probabilities(eng, qureg):
+    i = 0
+    y = len(qureg)
+    while i < (2**y):
+        qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
+        qubit_list = qubit_list[::-1]
+        l = eng.backend.get_probability(qubit_list, qureg)
+        if l != 0.0:
+            print(l, qubit_list, i)
+        i += 1
 
 
 def add_quantum(eng, quint_a, quint_b, carry=[]):
@@ -254,7 +265,7 @@ def quantum_division(eng, dividend, remainder, divisor):
     """
     Performs restoring integer division, i.e.,
 
-    |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>4
+    |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
 
     (only works if all three qubits are of equal length)
     """
@@ -280,8 +291,32 @@ def quantum_division(eng, dividend, remainder, divisor):
         dividend.insert(0, remainder[n])
         del remainder[n]
         del dividend[n]
-        j -= 1
 
+        j -= 1
+    
+def inverse_quantum_division(eng, remainder, quotient, divisor):
+    """
+    |remainder>|quotient>|divisor> ->  |dividend>|remainder(0)>|divisor>
+    
+    """
+
+    assert(len(remainder) == len(quotient) == len(divisor))
+    j = 0
+    n = len(quotient)
+    while j != n:
+        X | quotient[0]
+        with Control(eng,quotient[0]):
+            SubtractQuantum() | (divisor, remainder)
+        CNOT | (remainder[-1], quotient[0])
+        
+        AddQuantum() | (divisor,remainder)
+       
+        remainder.insert(n, quotient[0])
+        quotient.insert(n,remainder[0])
+        del remainder[0]
+        del quotient[0]
+        j += 1
+    
 
 """
 Quantum conditional add with no input carry from: 
