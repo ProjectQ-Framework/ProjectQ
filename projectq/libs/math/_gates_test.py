@@ -25,7 +25,9 @@ from projectq.libs.math import (AddConstant,
                                 SubtractQuantum,
                                 Comparator,
                                 QuantumDivision,
-                                QuantumMultiplication,)
+                                InverseQuantumDivision,
+                                QuantumMultiplication,
+                                InverseQuantumMultiplication)
 
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
@@ -51,27 +53,33 @@ def test_multiplybyconstmodn():
     assert MultiplyByConstantModN(3, 5) != MultiplyByConstantModN(3, 4)
     assert str(MultiplyByConstantModN(3, 4)) == "MultiplyByConstantModN(3, 4)"
 
+
 def test_AddQuantum():
     assert AddQuantum() == AddQuantum()
     assert not AddQuantum() == SubtractQuantum()
     assert str(AddQuantum()) == "AddQuantum"
+
 
 def test_SubtractQuantum():
     assert SubtractQuantum() == SubtractQuantum()
     assert not SubtractQuantum() == Comparator()
     assert str(SubtractQuantum()) == "SubtractQuantum"
 
+
 def test_Comparator():
     assert Comparator() == Comparator()
     assert str(Comparator()) == "Comparator"
+
 
 def test_QuantumDivision():
     assert QuantumDivision() == QuantumDivision()
     assert str(QuantumDivision()) == "QuantumDivision"
 
+
 def test_QuantumMultiplication():
     assert QuantumMultiplication() == QuantumMultiplication()
     assert str(QuantumMultiplication()) == "QuantumMultiplication"
+
 
 def test_hash_function_implemented():
     assert hash(AddConstant(3)) == hash(str(AddConstant(3)))
