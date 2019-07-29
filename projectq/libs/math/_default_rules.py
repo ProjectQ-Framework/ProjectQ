@@ -16,7 +16,6 @@
 Registers a few default replacement rules for Shor's algorithm to work
 (see Examples).
 """
-
 from projectq.meta import Control, Dagger
 from projectq.cengines import DecompositionRule
 
@@ -31,7 +30,8 @@ from ._gates import (AddConstant,
                      Comparator,
                      QuantumDivision,
                      InverseQuantumDivision,
-                     QuantumMultiplication,)
+                     QuantumMultiplication,
+                     InverseQuantumMultiplication)
 
 from ._constantmath import (add_constant,
                             add_constant_modN,
@@ -45,7 +45,8 @@ from ._quantummath import (add_quantum,
                            quantum_division,
                            inverse_quantum_division,
                            quantum_conditional_add_carry,
-                           quantum_multiplication,)
+                           quantum_multiplication,
+                           inverse_quantum_multiplication)
 
 
 def _replace_addconstant(cmd):
@@ -163,6 +164,14 @@ def _replace_quantummultiplication(cmd):
     with Control(eng, cmd.control_qubits):
         quantum_multiplication(eng, quint_a, quint_b, quint_c)
 
+def _replace_inversequantummultiplication(cmd):
+    eng = cmd.engine
+    quint_a = cmd.qubits[0]
+    quint_b = cmd.qubits[1]
+    quint_c = cmd.qubits[2]
+
+    with Control(eng, cmd.control_qubits):
+        inverse_quantum_multiplication(eng, quint_a, quint_b, quint_c)
 
 all_defined_decomposition_rules = [
     DecompositionRule(AddConstant, _replace_addconstant),
@@ -175,4 +184,6 @@ all_defined_decomposition_rules = [
     DecompositionRule(QuantumDivision, _replace_quantumdivision),
     DecompositionRule(InverseQuantumDivision, _replace_inversequantumdivision),
     DecompositionRule(QuantumMultiplication, _replace_quantummultiplication),
+    DecompositionRule(InverseQuantumMultiplication, 
+                      _replace_inversequantummultiplication),
 ]

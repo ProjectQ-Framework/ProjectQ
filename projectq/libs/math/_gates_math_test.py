@@ -13,13 +13,24 @@
 #   limitations under the License.
 
 import pytest
+
 from projectq.backends import Simulator
 from projectq.ops import All, Measure, X
 from projectq import MainEngine
 
-from projectq.libs.math import (AddConstant, AddQuantum, SubtractQuantum, Comparator, QuantumDivision, InverseQuantumDivision, QuantumMultiplication)
-
 from projectq.meta import Control, Compute, Uncompute
+
+import projectq.libs.math
+from projectq.libs.math import (AddConstant, 
+                                AddQuantum, 
+                                SubtractQuantum, 
+                                Comparator, 
+                                QuantumDivision, 
+                                InverseQuantumDivision, 
+                                QuantumMultiplication,
+                                InverseQuantumMultiplication)
+
+
 
 def get_all_probabilities(eng, qureg):
     i = 0
@@ -86,7 +97,7 @@ def test_inverse_addition():
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
 
-def test_inverse_addition_with_contro():
+def test_inverse_addition_with_control():
     eng = MainEngine()
 
     qunum_a = eng.allocate_qureg(5)
@@ -104,9 +115,9 @@ def test_inverse_addition_with_contro():
     eng.flush()
 
     assert 1. == pytest.approx(
-        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
+        eng.backend.get_probability([1, 1, 1, 1, 1], qunum_a))
     assert 1. == pytest.approx(
-        eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
+        eng.backend.get_probability([1, 1, 1, 1, 1], qunum_b))
 
 def test_addition_with_control():
 
@@ -291,7 +302,7 @@ def test_inverse_division():
     assert 1. == pytest.approx(eng.backend.get_probability(
         [1, 0, 0, 1, 0], qunum_a))
     assert 1. == pytest.approx(
-        eng.backend.get_probability([0, 0, 0, 0], qunum_b))
+        eng.backend.get_probability([0, 0, 0, 0, 0], qunum_b))
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 0, 1, 0, 0], qunum_c))
 
@@ -315,3 +326,25 @@ def test_multiplication():
         eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
     assert 1. == pytest.approx(eng.backend.get_probability(
         [0, 0, 0, 0, 0, 1, 0, 0, 0], qunum_c))
+
+def test_inverse_division():
+
+    eng = MainEngine()
+
+    qunum_a = eng.allocate_qureg(4)
+    qunum_b = eng.allocate_qureg(4)
+    qunum_c = eng.allocate_qureg(9)
+    X | qunum_a[2]  # qunum_a is now 4
+    X | qunum_b[3]  # qunum_b is now 8
+    with Compute(eng):
+        QuantumMultiplication() | (qunum_a, qunum_b, qunum_c)
+    Uncompute(eng)
+
+    eng.flush()
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 1, 0, 0], qunum_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 1, 0], qunum_b))
+    assert 1. == pytest.approx(eng.backend.get_probability(
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], qunum_c))

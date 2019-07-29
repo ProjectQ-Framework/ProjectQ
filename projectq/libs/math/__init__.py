@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._default_rules import all_defined_decomposition_rules
 from ._gates import (AddConstant,
                      SubConstant,
                      AddConstantModN,
@@ -24,4 +23,7 @@ from ._gates import (AddConstant,
                      Comparator,
                      QuantumDivision,
                      InverseQuantumDivision,
-                     QuantumMultiplication,)
+                     QuantumMultiplication,
+                     InverseQuantumMultiplication)
+
+from ._default_rules import all_defined_decomposition_rules

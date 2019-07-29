@@ -1,5 +1,3 @@
-
-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +18,12 @@ from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from ._gates import (AddQuantum, 
                      SubtractQuantum) 
-#from projectq.libs.math._gates_math_test import get_all_probabilities
+from projectq.libs.math._gates_math_test import get_all_probabilities
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
 With carry bit,
 Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3.
-Without carry?
 """
 def get_all_probabilities(eng, qureg):
     i = 0
@@ -101,7 +98,7 @@ def subtract_quantum(eng, quint_a, quint_b):
 
     |a>|b> -> |a>|b-a>
 
-    (only works if quint_a and quint_b are the same size or quint_b is one qubit longer than quint_a)
+    (only works if quint_a and quint_b are the same size)
     """
     assert(len(quint_a) == len(quint_b))
     n = len(quint_a) + 1
@@ -137,12 +134,12 @@ def inverse_add_quantum_carry(eng, quint_a, quint_b):
     assert(len(quint_a) == len(quint_b[0]))
 
     All(X) | quint_b[0]
-    X | quint_b[1]
+    X | quint_b[1][0]
 
     AddQuantum() | (quint_a, quint_b[0], quint_b[1])
-
+        
     All(X) | quint_b[0]
-    X | quint_b[1]
+    X | quint_b[1][0]
 
 """
 Comparator flipping a compare qubit by computing the high bit of b-a, which is
@@ -153,7 +150,6 @@ start and b+a at the end the high bit of b-a is calculated.
 
 Ancilla: 0, Size: 8n-3, Toffoli: 2n+1, Depth: 4n+3.
 """
-
 
 def comparator(eng, quint_a, quint_b, comparator):
     """
@@ -208,7 +204,6 @@ are added, if "conditional" is low no operation is performed.
 
 Ancilla: 0, Size: 7n-7, Toffoli: 3n-3, Depth: 5n-3. 
 """
-
 
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     """
@@ -325,7 +320,6 @@ https://arxiv.org/pdf/1706.05113.pdf
 Ancilla: 2, Size: 7n - 4, Toffoli: 3n + 2, Depth: 5n.
 """
 
-
 def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
     """
     Adds up two quantum integers if the control qubit is |1>, i.e.,
@@ -418,3 +412,31 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
         with Control(eng, quint_b[j]):  
             AddQuantum() | (quint_a[0:(n - 1)], product[(0 + j):(n - 1 + j)], 
                                         [product[n + j], product[n + j + 1]])
+
+def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
+    """
+    |a>|b>|a*b> -> |a>|b>|0>
+    (only works if quint_a and quint_b are of the same size, n qubits and
+    product has size 2n+1)
+    """
+
+    print('testing')
+
+    assert(len(quint_a) == len(quint_b))
+    n = len(quint_a)
+    assert(len(product) == ((2 * n) + 1))
+
+    for j in range(2, n):
+        with Control(eng, quint_b[j]):
+                SubtractQuantum() | (quint_a[0:(n - 1)], 
+                                     product[(0 + j):(n - 1 + j)],
+                                     [product[n + j], product[n + j + 1]])
+    for i in range(0, n):
+        with Control(eng, [quint_a[i], quint_b[0]]):
+                X | product[i]
+
+    with Control(eng, quint_b[1]):
+         SubtractQuantum() | (quint_a[0:(n - 1)],
+                              product[1:n],
+                              [product[n + 1], product[n + 2]])
+

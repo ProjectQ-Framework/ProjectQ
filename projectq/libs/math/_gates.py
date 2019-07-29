@@ -502,3 +502,14 @@ class QuantumMultiplication(BasicMathGate):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+class InverseQuantumMultiplication(BasicMathGate):
+    """ 
+    |a>|b>|a*b> -> |a>|b>|0> 
+    """
+    def __init__(self):
+        def inverse_multiplication(a,b,c):
+            return(a,b,c-a*b)
+        BasicMathGate.__init__(self,inverse_multiplication)
+
+
