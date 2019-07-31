@@ -16,17 +16,28 @@
 Contains definitions of standard gates such as
 * Hadamard (H)
 * Pauli-X (X / NOT)
+* Pauli-Y (Y)
 * Pauli-Z (Z)
+* S and its inverse (S / Sdagger)
 * T and its inverse (T / Tdagger)
 * Swap gate (Swap)
+* SqrtSwap gate (SqrtSwap)
+* Entangle (Entangle)
 * Phase gate (Ph)
+* Rotation-X (Rx)
+* Rotation-Y (Ry)
 * Rotation-Z (Rz)
 * Phase-shift (R)
+* Rotation-XX (Rxx)
+* Rotation-YY (Ryy)
+* Rotation-ZZ (Rzz)
 * Measurement (Measure)
 
 and meta gates, i.e.,
 * Allocate / Deallocate qubits
 * Flush gate (end of circuit)
+* Barrier
+* FlipBits
 """
 
 import math
@@ -215,15 +226,21 @@ class Rx(BasicRotationGate):
                           [-1j * math.sin(0.5 * self.angle),
                            math.cos(0.5 * self.angle)]])
 
+    def __str__(self):
+        return "Rx"
+
 
 class Ry(BasicRotationGate):
-    """ RotationX gate class """
+    """ RotationY gate class """
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),
                            -math.sin(0.5 * self.angle)],
                           [math.sin(0.5 * self.angle),
                            math.cos(0.5 * self.angle)]])
+
+    def __str__(self):
+        return "Ry"
 
 
 class Rz(BasicRotationGate):
@@ -233,12 +250,54 @@ class Rz(BasicRotationGate):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0],
                           [0, cmath.exp(.5 * 1j * self.angle)]])
 
+    def __str__(self):
+        return "Rz"
+
 
 class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     @property
     def matrix(self):
         return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])
+
+
+class Rxx(BasicRotationGate):
+    """ RotationXX gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, -1j*cmath.sin(.5 * self.angle)],
+                          [0, cmath.cos( .5 * self.angle), -1j*cmath.sin(.5 * self.angle), 0],
+                          [0, -1j*cmath.sin(.5 * self.angle), cmath.cos( .5 * self.angle), 0],
+                          [-1j*cmath.sin(.5 * self.angle), 0, 0, cmath.cos( .5 * self.angle)]])
+
+    def __str__(self):
+        return "Rxx"
+
+
+class Ryy(BasicRotationGate):
+    """ RotationYY gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, 1j*cmath.sin(.5 * self.angle)],
+                          [0, cmath.cos( .5 * self.angle), -1j*cmath.sin(.5 * self.angle), 0],
+                          [0, -1j*cmath.sin(.5 * self.angle), cmath.cos( .5 * self.angle), 0],
+                          [1j*cmath.sin(.5 * self.angle), 0, 0, cmath.cos( .5 * self.angle)]])
+
+    def __str__(self):
+        return "Ryy"
+
+
+class Rzz(BasicRotationGate):
+    """ RotationZZ gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0, 0, 0],
+                          [0, cmath.exp( .5 * 1j * self.angle), 0, 0],
+                          [0, 0, cmath.exp( .5 * 1j * self.angle), 0],
+                          [0, 0, 0, cmath.exp(-.5 * 1j * self.angle)]])
+
+    def __str__(self):
+        return "Rzz"
 
 
 class FlushGate(FastForwardingGate):
