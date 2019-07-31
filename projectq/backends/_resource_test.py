@@ -74,7 +74,7 @@ def test_resource_counter():
     CNOT | (qubit1, qubit3)
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
-    Rzz(0.5) | qubit1 + qubit3
+    Rzz(0.5) | qubit1
 
     All(Measure) | qubit1 + qubit3
 
@@ -82,7 +82,7 @@ def test_resource_counter():
         int(qubit1)
 
     assert resource_counter.max_width == 2
-    assert resource_counter.depth_of_dag == 5
+    assert resource_counter.depth_of_dag == 6
 
     str_repr = str(resource_counter)
     assert str_repr.count(" HGate : 1") == 1
@@ -95,7 +95,6 @@ def test_resource_counter():
     assert str_repr.count(" H : 1") == 1
     assert str_repr.count(" X : 1") == 1
     assert str_repr.count(" CX : 1") == 1
-    print(str_repr.count(" Rz(0.1) : 1"))
     assert str_repr.count(" Rz(0.1) : 1") == 1
     assert str_repr.count(" Rz(0.3) : 1") == 1
     assert str_repr.count(" Allocate : 3") == 1
