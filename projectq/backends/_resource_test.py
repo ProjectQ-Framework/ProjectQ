@@ -94,6 +94,7 @@ def test_resource_counter():
     assert str_repr.count(" H : 1") == 1
     assert str_repr.count(" X : 1") == 1
     assert str_repr.count(" CX : 1") == 1
+    print(str_repr.count(" Rz(0.1) : 1"))
     assert str_repr.count(" Rz(0.1) : 1") == 1
     assert str_repr.count(" Rz(0.3) : 1") == 1
     assert str_repr.count(" Allocate : 3") == 1
