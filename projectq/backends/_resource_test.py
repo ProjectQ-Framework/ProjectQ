@@ -74,6 +74,7 @@ def test_resource_counter():
     CNOT | (qubit1, qubit3)
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
+    Rzz(0.5) | qubit1 + qubit3
 
     All(Measure) | qubit1 + qubit3
 
