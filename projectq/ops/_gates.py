@@ -46,7 +46,6 @@ import cmath
 import warnings
 
 import numpy as np
-import scipy.linalg as la
 
 from projectq.ops import get_inverse
 from ._basics import (BasicGate,
