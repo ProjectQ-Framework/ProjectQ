@@ -217,9 +217,6 @@ class Ph(BasicPhaseGate):
         return np.matrix([[cmath.exp(1j * self.angle), 0],
                           [0, cmath.exp(1j * self.angle)]])
 
-    def __str__(self):
-        return "Phase"
-
 
 class Rx(BasicRotationGate):
     """ RotationX gate class """
