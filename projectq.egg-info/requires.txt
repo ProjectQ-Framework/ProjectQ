@@ -1,0 +1,7 @@
+numpy
+future
+pytest>=3.1
+pybind11>=2.2.3
+requests
+scipy
+networkx
