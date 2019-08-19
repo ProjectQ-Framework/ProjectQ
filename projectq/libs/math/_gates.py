@@ -90,6 +90,14 @@ class AddConstantModN(BasicMathGate):
             qunum = eng.allocate_qureg(5) # 5-qubit number
             X | qunum[1] # qunum is now equal to 2
             AddConstantModN(3, 4) | qunum # qunum is now equal to 1
+
+    .. note::
+
+      Pre-conditions:
+
+      * c < N
+      * c >= 0
+      * The value stored in the quantum register must be lower than N
     """
     def __init__(self, a, N):
         """
@@ -145,6 +153,14 @@ def SubConstantModN(a, N):
             qunum = eng.allocate_qureg(3) # 3-qubit number
             X | qunum[1] # qunum is now equal to 2
             SubConstantModN(4,5) | qunum # qunum is now -2 = 6 = 1 (mod 5)
+
+    .. note::
+
+      Pre-conditions:
+
+      * c < N
+      * c >= 0
+      * The value stored in the quantum register must be lower than N
     """
     return AddConstantModN(N - a, N)
 
@@ -162,6 +178,15 @@ class MultiplyByConstantModN(BasicMathGate):
             qunum = eng.allocate_qureg(5) # 5-qubit number
             X | qunum[2] # qunum is now equal to 4
             MultiplyByConstantModN(3,5) | qunum # qunum is now 2.
+
+    .. note::
+
+      Pre-conditions:
+
+      * c < N
+      * c >= 0
+      * gcd(c, N) == 1
+      * The value stored in the quantum register must be lower than N
     """
     def __init__(self, a, N):
         """
