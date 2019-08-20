@@ -157,10 +157,9 @@ class SqrtXGate(BasicGate):
 SqrtX = SqrtXGate()
 
 
-class SwapGate(SelfInverseGate, BasicMathGate):
+class SwapGate(SelfInverseGate):
     """ Swap gate class (swaps 2 qubits) """
     def __init__(self):
-        BasicMathGate.__init__(self, lambda x, y: (y, x))
         SelfInverseGate.__init__(self)
         self.interchangeable_qubit_indices = [[0, 1]]
 
