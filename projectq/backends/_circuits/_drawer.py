@@ -153,6 +153,8 @@ class CircuitDrawer(BasicEngine):
         self._free_lines = []
         self._map = dict()
 
+        self._paler_command_order = []
+
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: Returns True if the
@@ -244,7 +246,14 @@ class CircuitDrawer(BasicEngine):
         for l in all_lines:
             self._qubit_lines[l].append(item)
 
-    def get_latex(self):
+        """
+        The commands are stored on a per qubit basis in a very strange manner
+        In order to draw according to the order how they were added here
+        I am storing the first qubit/line which the commands affect
+        """
+        self._paler_command_order.append(all_lines[0])
+
+    def get_latex(self, ordered = False, sequential_gates = False):
         """
         Return the latex document string representing the circuit.
 
@@ -274,7 +283,12 @@ class CircuitDrawer(BasicEngine):
         circuit = []
         for lines in qubit_lines:
             circuit.append(qubit_lines[lines])
-        return to_latex(qubit_lines)
+
+        if ordered == True:
+            return to_latex(qubit_lines, paler_order=self._paler_command_order, paler_one_gate_at_a_time=sequential_gates)
+
+        return to_latex(qubit_lines, paler_order=None, paler_one_gate_at_a_time=sequential_gates)
+
 
     def receive(self, command_list):
         """

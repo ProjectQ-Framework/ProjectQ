@@ -17,7 +17,7 @@ from projectq.ops import (Allocate, Deallocate, DaggeredGate, get_inverse,
                           Measure, SqrtSwap, Swap, X, Z)
 
 
-def to_latex(circuit):
+def to_latex(circuit, paler_order = None, paler_one_gate_at_a_time = False):
     """
     Translates a given circuit to a TikZ picture in a Latex document.
 
@@ -57,7 +57,7 @@ def to_latex(circuit):
         settings = write_settings(get_default_settings())
 
     text = _header(settings)
-    text += _body(circuit, settings)
+    text += _body(circuit, settings, paler_order, one_gate_at_a_time=paler_one_gate_at_a_time)
     text += _footer(settings)
     return text
 
@@ -182,7 +182,7 @@ def _header(settings):
     return packages + init + gate_style + edge_style
 
 
-def _body(circuit, settings):
+def _body(circuit, settings, paler_order = None, one_gate_at_a_time = False):
     """
     Return the body of the Latex document, including the entire circuit in
     TikZ format.
@@ -196,8 +196,19 @@ def _body(circuit, settings):
     code = []
 
     conv = _Circ2Tikz(settings, len(circuit))
-    for line in range(len(circuit)):
-        code.append(conv.to_tikz(line, circuit))
+
+    drawing_order = []
+    to_where = None
+    if paler_order is None:
+        drawing_order = list(range(len(circuit)))
+    else:
+        drawing_order = paler_order
+        to_where = 1
+
+    for line in drawing_order:
+        # if to_where is None the entire line is drawn
+        # if to_where is 1, only the first element from the line is drawn
+        code.append(conv.to_tikz(line, circuit, end = to_where, one_gate_at_a_time=one_gate_at_a_time))
 
     return "".join(code)
 
@@ -234,7 +245,7 @@ class _Circ2Tikz(object):
         self.op_count = [0] * num_lines
         self.is_quantum = [settings['lines']['init_quantum']] * num_lines
 
-    def to_tikz(self, line, circuit, end=None):
+    def to_tikz(self, line, circuit, end=None, one_gate_at_a_time = False):
         """
         Generate the TikZ code for one line of the circuit up to a certain
         gate.
@@ -272,6 +283,7 @@ class _Circ2Tikz(object):
                     gate_idx += 1
 
                 tikz_code.append(self.to_tikz(l, circuit, gate_idx))
+
                 # we are taking care of gate 0 (the current one)
                 circuit[l] = circuit[l][1:]
 
@@ -369,6 +381,11 @@ class _Circ2Tikz(object):
             tikz_code.append(add_str)
             if not gate == Allocate:
                 tikz_code.append(connections)
+
+        if one_gate_at_a_time == True:
+            for l in range(len(self.pos)):
+                if l != line:
+                    self.pos[l] = self.pos[line]
 
         circuit[line] = circuit[line][end:]
         return "".join(tikz_code)
