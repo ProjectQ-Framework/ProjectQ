@@ -153,7 +153,13 @@ class CircuitDrawer(BasicEngine):
         self._free_lines = []
         self._map = dict()
 
-        self._paler_command_order = []
+        # The order in which the quantum gates were added to the circuit
+        # The indices in the list refer to the first qubit index where the gate is applied to
+        # For example,
+        # CNOT 3 0
+        # Toffoli 5 7 8
+        # will generate the _command_order = [3, 5]
+        self._command_order = []
 
     def is_available(self, cmd):
         """
@@ -250,8 +256,9 @@ class CircuitDrawer(BasicEngine):
         The commands are stored on a per qubit basis in a very strange manner
         In order to draw according to the order how they were added here
         I am storing the first qubit/line which the commands affect
+        See also description in the __init__
         """
-        self._paler_command_order.append(all_lines[0])
+        self._command_order.append(all_lines[0])
 
     def get_latex(self, ordered = False, sequential_gates = False):
         """
@@ -265,6 +272,10 @@ class CircuitDrawer(BasicEngine):
             python3 my_circuit.py | pdflatex
 
         where my_circuit.py calls this function and prints it to the terminal.
+
+        Args:
+            ordered(Boolean): flag if the gates should be drawn in the order they were added to the circuit
+            sequential_gates(Boolean): flag if parallel gates should be drawn sequentially (True), or not (False)
         """
         qubit_lines = dict()
 
@@ -280,14 +291,14 @@ class CircuitDrawer(BasicEngine):
                     new_cmd.id = cmd.lines[0]
                 qubit_lines[new_line].append(new_cmd)
 
-        circuit = []
-        for lines in qubit_lines:
-            circuit.append(qubit_lines[lines])
+        # circuit = []
+        # for lines in qubit_lines:
+        #     circuit.append(qubit_lines[lines])
 
         if ordered == True:
-            return to_latex(qubit_lines, paler_order=self._paler_command_order, paler_one_gate_at_a_time=sequential_gates)
+            return to_latex(qubit_lines, command_order=self._command_order, one_gate_at_a_time=sequential_gates)
 
-        return to_latex(qubit_lines, paler_order=None, paler_one_gate_at_a_time=sequential_gates)
+        return to_latex(qubit_lines, command_order=None, one_gate_at_a_time=sequential_gates)
 
 
     def receive(self, command_list):

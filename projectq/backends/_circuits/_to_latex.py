@@ -17,7 +17,7 @@ from projectq.ops import (Allocate, Deallocate, DaggeredGate, get_inverse,
                           Measure, SqrtSwap, Swap, X, Z)
 
 
-def to_latex(circuit, paler_order = None, paler_one_gate_at_a_time = False):
+def to_latex(circuit, command_order = None, one_gate_at_a_time = False):
     """
     Translates a given circuit to a TikZ picture in a Latex document.
 
@@ -40,6 +40,8 @@ def to_latex(circuit, paler_order = None, paler_one_gate_at_a_time = False):
     Args:
         circuit (list<list<CircuitItem>>): Each qubit line is a list of
             CircuitItem objects, i.e., in circuit[line].
+        command_order (list<int>): A list of qubit lines from which the gates to be read from
+        one_gate_at_a_time (Boolean): If gates should (False) or not (True) be parallel in the circuit
 
     Returns:
         tex_doc_str (string): Latex document string which can be compiled
@@ -57,7 +59,7 @@ def to_latex(circuit, paler_order = None, paler_one_gate_at_a_time = False):
         settings = write_settings(get_default_settings())
 
     text = _header(settings)
-    text += _body(circuit, settings, paler_order, one_gate_at_a_time=paler_one_gate_at_a_time)
+    text += _body(circuit, settings, command_order, one_gate_at_a_time=one_gate_at_a_time)
     text += _footer(settings)
     return text
 
@@ -182,13 +184,17 @@ def _header(settings):
     return packages + init + gate_style + edge_style
 
 
-def _body(circuit, settings, paler_order = None, one_gate_at_a_time = False):
+def _body(circuit, settings, command_order = None, one_gate_at_a_time = False):
     """
     Return the body of the Latex document, including the entire circuit in
     TikZ format.
 
     Args:
         circuit (list<list<CircuitItem>>): Circuit to draw.
+        settings:
+        command_order: A list of circuit wires from where to read one gate command.
+        one_gate_at_a_time: Are the gate/commands occupying a single time step in the circuit diagram? For example,
+        False means that gates can be parallel in the circuit.
 
     Returns:
         tex_str (string): Latex string to draw the entire circuit.
@@ -199,10 +205,10 @@ def _body(circuit, settings, paler_order = None, one_gate_at_a_time = False):
 
     drawing_order = []
     to_where = None
-    if paler_order is None:
+    if command_order is None:
         drawing_order = list(range(len(circuit)))
     else:
-        drawing_order = paler_order
+        drawing_order = command_order
         to_where = 1
 
     for line in drawing_order:

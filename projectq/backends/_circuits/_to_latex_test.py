@@ -47,7 +47,7 @@ def test_tolatex():
     old_footer = _to_latex._footer
 
     _to_latex._header = lambda x: "H"
-    _to_latex._body = lambda x, y: x
+    _to_latex._body = lambda x, settings, command_order, one_gate_at_a_time: x
     _to_latex._footer = lambda x: "F"
 
     latex = _to_latex.to_latex("B")
@@ -104,7 +104,7 @@ def test_large_gates():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, command_order, one_gate_at_a_time: x
 
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
@@ -136,7 +136,7 @@ def test_body():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, command_order, one_gate_at_a_time: x
 
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
@@ -186,7 +186,7 @@ def test_qubit_allocations_at_zero():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, command_order, one_gate_at_a_time: x
 
     a = eng.allocate_qureg(4)
 
@@ -219,7 +219,7 @@ def test_qubit_lines_classicalvsquantum1():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, command_order, one_gate_at_a_time: x
 
     qubit1 = eng.allocate_qubit()
 

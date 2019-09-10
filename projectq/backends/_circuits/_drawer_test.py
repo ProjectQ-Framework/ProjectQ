@@ -32,7 +32,7 @@ from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
 
 def test_drawer_getlatex():
     old_latex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, command_order, one_gate_at_a_time: x
 
     drawer = CircuitDrawer()
     drawer.set_qubit_locations({0: 1, 1: 0})
