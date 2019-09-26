@@ -187,7 +187,8 @@ def _header(settings):
     return packages + init + gate_style + edge_style
 
 
-def _body(circuit, settings, drawing_order = None, draw_gates_in_parallel = False):
+def _body(circuit, settings, drawing_order = None,
+          draw_gates_in_parallel = False):
     """
     Return the body of the Latex document, including the entire circuit in
     TikZ format.

@@ -153,8 +153,7 @@ class CircuitDrawer(BasicEngine):
         self._free_lines = []
         self._map = dict()
 
-        # Order in which qubit lines are drawn based on the first qubit ID found inside
-        # any ProjectQ command
+        # Order in which qubit lines are drawn
         self._drawing_order = []
 
     def is_available(self, cmd):
