@@ -47,7 +47,7 @@ def test_tolatex():
     old_footer = _to_latex._footer
 
     _to_latex._header = lambda x: "H"
-    _to_latex._body = lambda x, settings,command_order,draw_gates_in_parallel: x
+    _to_latex._body = lambda x, settings,drawing_order,draw_gates_in_parallel: x
     _to_latex._footer = lambda x: "F"
 
     latex = _to_latex.to_latex("B")
