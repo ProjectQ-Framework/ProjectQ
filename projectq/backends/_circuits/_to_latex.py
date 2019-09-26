@@ -17,7 +17,7 @@ from projectq.ops import (Allocate, Deallocate, DaggeredGate, get_inverse,
                           Measure, SqrtSwap, Swap, X, Z)
 
 
-def to_latex(circuit, command_order = None, one_gate_at_a_time = False):
+def to_latex(circuit, drawing_order = None, draw_gates_in_parallel = False):
     """
     Translates a given circuit to a TikZ picture in a Latex document.
 
@@ -38,10 +38,12 @@ def to_latex(circuit, command_order = None, one_gate_at_a_time = False):
     function, and written using write_settings().
 
     Args:
-        circuit (list<list<CircuitItem>>): Each qubit line is a list of
+        circuit (list): Each qubit line is a list of
             CircuitItem objects, i.e., in circuit[line].
-        command_order (list<int>): A list of qubit lines from which the gates to be read from
-        one_gate_at_a_time (Boolean): If gates should (False) or not (True) be parallel in the circuit
+        drawing_order (list): A list of qubit lines from which
+            the gates to be read from
+        draw_gates_in_parallel (bool): If gates should (False)
+            or not (True) be parallel in the circuit
 
     Returns:
         tex_doc_str (string): Latex document string which can be compiled
@@ -59,7 +61,8 @@ def to_latex(circuit, command_order = None, one_gate_at_a_time = False):
         settings = write_settings(get_default_settings())
 
     text = _header(settings)
-    text += _body(circuit, settings, command_order, one_gate_at_a_time=one_gate_at_a_time)
+    text += _body(circuit, settings, drawing_order,
+                  draw_gates_in_parallel=draw_gates_in_parallel)
     text += _footer(settings)
     return text
 
@@ -184,17 +187,19 @@ def _header(settings):
     return packages + init + gate_style + edge_style
 
 
-def _body(circuit, settings, command_order = None, one_gate_at_a_time = False):
+def _body(circuit, settings, drawing_order = None, draw_gates_in_parallel = False):
     """
     Return the body of the Latex document, including the entire circuit in
     TikZ format.
 
     Args:
         circuit (list<list<CircuitItem>>): Circuit to draw.
-        settings:
-        command_order: A list of circuit wires from where to read one gate command.
-        one_gate_at_a_time: Are the gate/commands occupying a single time step in the circuit diagram? For example,
-        False means that gates can be parallel in the circuit.
+        settings: Dictionary of settings to use for the TikZ image.
+        drawing_order: A list of circuit wires from where to read
+            one gate command.
+        draw_gates_in_parallel: Are the gate/commands occupying a
+            single time step in the circuit diagram? For example, False means
+            that gates can be parallel in the circuit.
 
     Returns:
         tex_str (string): Latex string to draw the entire circuit.
@@ -203,18 +208,15 @@ def _body(circuit, settings, command_order = None, one_gate_at_a_time = False):
 
     conv = _Circ2Tikz(settings, len(circuit))
 
-    drawing_order = []
     to_where = None
-    if command_order is None:
+    if drawing_order is None:
         drawing_order = list(range(len(circuit)))
     else:
-        drawing_order = command_order
         to_where = 1
 
     for line in drawing_order:
-        # if to_where is None the entire line is drawn
-        # if to_where is 1, only the first element from the line is drawn
-        code.append(conv.to_tikz(line, circuit, end = to_where, one_gate_at_a_time=one_gate_at_a_time))
+        code.append(conv.to_tikz(line, circuit, end = to_where,
+                                 draw_gates_in_parallel=draw_gates_in_parallel))
 
     return "".join(code)
 
@@ -251,7 +253,7 @@ class _Circ2Tikz(object):
         self.op_count = [0] * num_lines
         self.is_quantum = [settings['lines']['init_quantum']] * num_lines
 
-    def to_tikz(self, line, circuit, end=None, one_gate_at_a_time = False):
+    def to_tikz(self, line, circuit, end=None, draw_gates_in_parallel = False):
         """
         Generate the TikZ code for one line of the circuit up to a certain
         gate.
@@ -264,6 +266,7 @@ class _Circ2Tikz(object):
             line (int): Line to generate the TikZ code for.
             circuit (list<list<CircuitItem>>): The circuit to draw.
             end (int): Gate index to stop at (for recursion).
+            draw_gates_in_parallel (bool): True or False for how to place gates
 
         Returns:
             tikz_code (string): TikZ code representing the current qubit line
@@ -388,7 +391,7 @@ class _Circ2Tikz(object):
             if not gate == Allocate:
                 tikz_code.append(connections)
 
-        if one_gate_at_a_time == True:
+        if draw_gates_in_parallel:
             for l in range(len(self.pos)):
                 if l != line:
                     self.pos[l] = self.pos[line]

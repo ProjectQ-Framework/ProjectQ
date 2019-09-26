@@ -153,13 +153,9 @@ class CircuitDrawer(BasicEngine):
         self._free_lines = []
         self._map = dict()
 
-        # The order in which the quantum gates were added to the circuit
-        # The indices in the list refer to the first qubit index where the gate is applied to
-        # For example,
-        # CNOT 3 0
-        # Toffoli 5 7 8
-        # will generate the _command_order = [3, 5]
-        self._command_order = []
+        # Order in which qubit lines are drawn based on the first qubit ID found inside
+        # any ProjectQ command
+        self._drawing_order = []
 
     def is_available(self, cmd):
         """
@@ -252,15 +248,9 @@ class CircuitDrawer(BasicEngine):
         for l in all_lines:
             self._qubit_lines[l].append(item)
 
-        """
-        The commands are stored on a per qubit basis in a very strange manner
-        In order to draw according to the order how they were added here
-        I am storing the first qubit/line which the commands affect
-        See also description in the __init__
-        """
-        self._command_order.append(all_lines[0])
+        self._drawing_order.append(all_lines[0])
 
-    def get_latex(self, ordered = False, sequential_gates = False):
+    def get_latex(self, ordered = False, draw_gates_in_parallel = False):
         """
         Return the latex document string representing the circuit.
 
@@ -274,8 +264,10 @@ class CircuitDrawer(BasicEngine):
         where my_circuit.py calls this function and prints it to the terminal.
 
         Args:
-            ordered(Boolean): flag if the gates should be drawn in the order they were added to the circuit
-            sequential_gates(Boolean): flag if parallel gates should be drawn sequentially (True), or not (False)
+            ordered(bool): flag if the gates should be drawn in the order they
+                were added to the circuit
+            draw_gates_in_parallel(bool): flag if parallel gates should be drawn
+                sequentially (True), or not (False)
         """
         qubit_lines = dict()
 
@@ -291,14 +283,12 @@ class CircuitDrawer(BasicEngine):
                     new_cmd.id = cmd.lines[0]
                 qubit_lines[new_line].append(new_cmd)
 
-        # circuit = []
-        # for lines in qubit_lines:
-        #     circuit.append(qubit_lines[lines])
+        if ordered:
+            return to_latex(qubit_lines, drawing_order=self._drawing_order,
+                            draw_gates_in_parallel=draw_gates_in_parallel)
 
-        if ordered == True:
-            return to_latex(qubit_lines, command_order=self._command_order, one_gate_at_a_time=sequential_gates)
-
-        return to_latex(qubit_lines, command_order=None, one_gate_at_a_time=sequential_gates)
+        return to_latex(qubit_lines, drawing_order=None,
+                        draw_gates_in_parallel=draw_gates_in_parallel)
 
 
     def receive(self, command_list):
