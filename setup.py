@@ -147,7 +147,7 @@ class BuildExt(build_ext):
         self.link_opts = []
 
         if not compiler_test(self.compiler):
-            status_msgs('Something is wrong with your C++ compiler.\n'
+            status_msgs('ERROR: something is wrong with your C++ compiler.\n'
                         'Failed to compile a simple test program!')
             raise BuildFailed()
 
@@ -215,8 +215,8 @@ class BuildExt(build_ext):
             elif compiler_test(self.compiler, '-std=c++11'):
                 self.opts.append('-std=c++11')
             else:
-                self.warning('Compiler needs to have C++11 support!')
-                return
+                status_msgs('ERROR: compiler needs to have at least C++11 support!')
+                raise BuildFailed()
 
             self.opts.append("-DVERSION_INFO='{}'".format(
                              self.distribution.get_version()))
