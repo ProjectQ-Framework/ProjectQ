@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends.circuits._drawer.py.
 """
@@ -20,10 +19,7 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
-from projectq.ops import (H,
-                          X,
-                          CNOT,
-                          Measure)
+from projectq.ops import (H, X, CNOT, Measure)
 from projectq.meta import Control
 
 import projectq.backends._circuits._drawer as _drawer

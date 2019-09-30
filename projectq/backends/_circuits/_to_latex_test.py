@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._circuits._to_latex.py.
 """
@@ -22,18 +21,19 @@ import copy
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
-from projectq.ops import (BasicGate,
-                          H,
-                          X,
-                          CNOT,
-                          Measure,
-                          Z,
-                          Swap,
-                          SqrtX,
-                          SqrtSwap,
-                          C,
-                          get_inverse,
-                          )
+from projectq.ops import (
+    BasicGate,
+    H,
+    X,
+    CNOT,
+    Measure,
+    Z,
+    Swap,
+    SqrtX,
+    SqrtSwap,
+    C,
+    get_inverse,
+)
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
 
@@ -47,7 +47,7 @@ def test_tolatex():
     old_footer = _to_latex._footer
 
     _to_latex._header = lambda x: "H"
-    _to_latex._body = lambda x, settings,drawing_order,draw_gates_in_parallel: x
+    _to_latex._body = lambda x, settings, drawing_order, draw_gates_in_parallel: x
     _to_latex._footer = lambda x: "F"
 
     latex = _to_latex.to_latex("B")
@@ -68,11 +68,26 @@ def test_default_settings():
 
 
 def test_header():
-    settings = {'gate_shadow': False, 'control': {'shadow': False, 'size': 0},
-                'gates': {'MeasureGate': {'height': 0, 'width': 0},
-                          'XGate': {'height': 1, 'width': .5}
-                          },
-                'lines': {'style': 'my_style'}}
+    settings = {
+        'gate_shadow': False,
+        'control': {
+            'shadow': False,
+            'size': 0
+        },
+        'gates': {
+            'MeasureGate': {
+                'height': 0,
+                'width': 0
+            },
+            'XGate': {
+                'height': 1,
+                'width': .5
+            }
+        },
+        'lines': {
+            'style': 'my_style'
+        }
+    }
     header = _to_latex._header(settings)
 
     assert 'minimum' in header

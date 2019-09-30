@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine which generates TikZ Latex code describing the
 circuit.
@@ -42,9 +41,9 @@ class CircuitItem(object):
         self.id = -1
 
     def __eq__(self, other):
-        return (self.gate == other.gate and self.lines == other.lines and
-                self.ctrl_lines == other.ctrl_lines and
-                self.id == other.id)
+        return (self.gate == other.gate and self.lines == other.lines
+                and self.ctrl_lines == other.ctrl_lines
+                and self.id == other.id)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -193,7 +192,7 @@ class CircuitDrawer(BasicEngine):
             raise RuntimeError("set_qubit_locations() has to be called before"
                                " applying gates!")
 
-        for k in range(min(id_to_loc), max(id_to_loc)+1):
+        for k in range(min(id_to_loc), max(id_to_loc) + 1):
             if k not in id_to_loc:
                 raise RuntimeError("set_qubit_locations(): Invalid id_to_loc "
                                    "mapping provided. All ids in the provided"
@@ -224,7 +223,7 @@ class CircuitDrawer(BasicEngine):
             self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert(get_control_count(cmd) == 0)
+            assert (get_control_count(cmd) == 0)
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
@@ -249,7 +248,7 @@ class CircuitDrawer(BasicEngine):
 
         self._drawing_order.append(all_lines[0])
 
-    def get_latex(self, ordered = False, draw_gates_in_parallel = False):
+    def get_latex(self, ordered=False, draw_gates_in_parallel=False):
         """
         Return the latex document string representing the circuit.
 
@@ -283,12 +282,13 @@ class CircuitDrawer(BasicEngine):
                 qubit_lines[new_line].append(new_cmd)
 
         if ordered:
-            return to_latex(qubit_lines, drawing_order=self._drawing_order,
+            return to_latex(qubit_lines,
+                            drawing_order=self._drawing_order,
                             draw_gates_in_parallel=draw_gates_in_parallel)
 
-        return to_latex(qubit_lines, drawing_order=None,
+        return to_latex(qubit_lines,
+                        drawing_order=None,
                         draw_gates_in_parallel=draw_gates_in_parallel)
-
 
     def receive(self, command_list):
         """
