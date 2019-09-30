@@ -25,13 +25,9 @@ or, alternatively, `clone/download <https://github.com/projectq-framework>`_ thi
 ProjectQ comes with a high-performance quantum simulator written in C++. Please see the detailed OS specific installation instructions below to make sure that you are installing the fastest version.
 
 .. note::
-	The setup will try to build a C++-Simulator, which is much faster than the Python implementation. If it fails, you may use the `--without-cppsimulator` parameter, i.e., 
-	
-	.. code-block:: bash
-	
-		python -m pip install --user --global-option=--without-cppsimulator .
-	
-	and the framework will use the **slow Python simulator instead**. Note that this only works if the installation has been tried once without the `--without-cppsimulator` parameter and hence all requirements are now installed. See the instructions below if you want to run larger simulations. The Python simulator works perfectly fine for the small examples (e.g., running Shor's algorithm for factoring 15 or 21).
+	The setup will try to build a C++-Simulator, which is much faster than the Python implementation. If compilation fails, the setup will install a pure Python instead. The Python simulator works perfectly fine for small examples (e.g., running Shor's algorithm for factoring 15 or 21).
+
+	If you want to skip the installation of the C++-Simulator altogether, you can define the ``DISABLE_PROJECTQ_CEXT`` environment variable to avoid any compilation steps.
 
 .. note::
 	If building the C++-Simulator does not work out of the box, consider specifying a different compiler. For example:
@@ -148,19 +144,11 @@ Detailed instructions and OS-specific hints
 
 3. Installation with only the slow Python simulator:
 
-	While this simulator works fine for small examples, it is suggested to install the high performance simulator written in C++.
-
-	If you just want to install ProjectQ with the (slow) Python simulator and no compiler, then first try to install ProjectQ with the default compiler 
+	While this simulator works fine for small examples, it is suggested to install the high performance simulator written in C++. However, if you want to ensure that the C++ simulator is **not** installed, you can set the ``DISABLE_PROJECTQ_CEXT`` environment variable
 
 	.. code-block:: bash
 
-		python -m pip install --user projectq
-
-	which most likely will fail. Then, try again with the flag ``--without-cppsimulator``:
-
-	.. code-block:: bash
-
-		python -m pip install --user --global-option=--without-cppsimulator projectq
+		env DISABLE_PROJECTQ_CEXT=1 python -m pip install --user projectq
 
 
 The ProjectQ syntax
