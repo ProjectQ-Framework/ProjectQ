@@ -1,8 +1,64 @@
-from setuptools import setup, Extension, find_packages, Feature
+from setuptools import setup, Extension, find_packages
+from distutils.errors import (CCompilerError, DistutilsExecError,
+                              DistutilsPlatformError)
+from setuptools import Distribution as _Distribution
 from setuptools.command.build_ext import build_ext
 import sys
 import os
 import setuptools
+import subprocess
+import platform
+
+# ==============================================================================
+
+
+class get_pybind_include(object):
+    '''Helper class to determine the pybind11 include path
+
+    The purpose of this class is to postpone importing pybind11
+    until it is actually installed, so that the ``get_include()``
+    method can be invoked. '''
+    def __init__(self, user=False):
+        self.user = user
+
+    def __str__(self):
+        import pybind11
+        return pybind11.get_include(self.user)
+
+
+def status_msgs(*msgs):
+    print('*' * 75)
+    for msg in msgs:
+        print(msg)
+    print('*' * 75)
+
+
+# ==============================================================================
+
+cpython = platform.python_implementation() == 'CPython'
+
+ext_modules = [
+    Extension(
+        'projectq.backends._sim._cppsim',
+        ['projectq/backends/_sim/_cppsim.cpp'],
+        include_dirs=[
+            # Path to pybind11 headers
+            get_pybind_include(),
+            get_pybind_include(user=True)
+        ],
+        language='c++'),
+]
+
+ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+if sys.platform == 'win32':
+    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+    # find the compiler
+    ext_errors += (IOError, )
+
+
+class BuildFailed(Exception):
+    def __init__(self):
+        self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
 
 
 # This reads the __version__ variable from projectq/_version.py
@@ -17,47 +73,16 @@ with open('requirements.txt', 'r') as f_requirements:
 requirements = [r.strip() for r in requirements]
 
 
-class get_pybind_include(object):
-    """Helper class to determine the pybind11 include path
-
-    The purpose of this class is to postpone importing pybind11
-    until it is actually installed, so that the ``get_include()``
-    method can be invoked. """
-    def __init__(self, user=False):
-        self.user = user
-
-    def __str__(self):
-        import pybind11
-        return pybind11.get_include(self.user)
-
-
-cppsim = Feature(
-    'C++ Simulator',
-    standard=True,
-    ext_modules=[
-        Extension(
-            'projectq.backends._sim._cppsim',
-            ['projectq/backends/_sim/_cppsim.cpp'],
-            include_dirs=[
-                # Path to pybind11 headers
-                get_pybind_include(),
-                get_pybind_include(user=True)
-            ],
-            language='c++'),
-    ],
-)
-
-
 def compiler_test(compiler,
                   flagname=None,
                   link=False,
-                  include="",
-                  body="",
+                  include='',
+                  body='',
                   postargs=None):
-    """
+    '''
     Return a boolean indicating whether a flag name is supported on the
     specified compiler.
-    """
+    '''
     import tempfile
     f = tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False)
     f.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(
@@ -84,26 +109,47 @@ def compiler_test(compiler,
 
 
 class BuildExt(build_ext):
-    """A custom build extension for adding compiler-specific options."""
+    '''A custom build extension for adding compiler-specific options.'''
     c_opts = {
         'msvc': ['/EHsc'],
         'unix': [],
     }
 
+    def run(self):
+        try:
+            build_ext.run(self)
+        except DistutilsPlatformError:
+            raise BuildFailed()
+
     def build_extensions(self):
+        self._configure_compiler()
+        for ext in self.extensions:
+            ext.extra_compile_args = self.opts
+            ext.extra_link_args = self.link_opts
+        try:
+            build_ext.build_extensions(self)
+        except ext_errors:
+            raise BuildFailed()
+        except ValueError:
+            # this can happen on Windows 64 bit, see Python issue 7511
+            if "'path'" in str(sys.exc_info()[1]):  # works with both py 2/3
+                raise BuildFailed()
+            raise
+
+    def _configure_compiler(self):
         if sys.platform == 'darwin':
             self.c_opts['unix'] += ['-mmacosx-version-min=10.7']
             if compiler_test(self.compiler, '-stdlib=libc++'):
                 self.c_opts['unix'] += ['-stdlib=libc++']
 
         ct = self.compiler.compiler_type
-        opts = self.c_opts.get(ct, [])
-        link_opts = []
+        self.opts = self.c_opts.get(ct, [])
+        self.link_opts = []
 
         if not compiler_test(self.compiler):
-            self.warning("Something is wrong with your C++ compiler.\n"
-                         "Failed to compile a simple test program!\n")
-            return
+            status_msgs('Something is wrong with your C++ compiler.\n'
+                        'Failed to compile a simple test program!')
+            raise BuildFailed()
 
         # ------------------------------
         # Test for OpenMP
@@ -130,19 +176,19 @@ class BuildExt(build_ext):
                 # from HomeBrew
                 if llvm_root in compiler_root:
                     l_arg = '-L{}/lib'.format(llvm_root)
-                if compiler_test(self.compiler,
-                                 '-fopenmp',
-                                 postargs=[l_arg],
-                                 **kwargs):
-                    link_opts.append(l_arg)
-                    openmp = '-fopenmp'
+                    if compiler_test(self.compiler,
+                                     '-fopenmp',
+                                     postargs=[l_arg],
+                                     **kwargs):
+                        self.link_opts.append(l_arg)
+                        openmp = '-fopenmp'
             except subprocess.CalledProcessError:
                 pass
 
         if ct == 'msvc':
             openmp = ''  # supports only OpenMP 2.0
 
-        opts.append(openmp)
+        self.opts.append(openmp)
 
         # ------------------------------
         # Test for compiler intrinsics
@@ -152,12 +198,12 @@ class BuildExt(build_ext):
                          link=True,
                          include='#include <immintrin.h>',
                          body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
-            opts.append('-DINTRIN')
+            self.opts.append('-DINTRIN')
             if ct == 'msvc':
-                opts.append('/arch:AVX')
+                self.opts.append('/arch:AVX')
             else:
-                opts.append('-march=native')
-                opts.append('-ffast-math')
+                self.opts.append('-march=native')
+                self.opts.append('-ffast-math')
 
         # ------------------------------
         # Other compiler tests
@@ -165,48 +211,98 @@ class BuildExt(build_ext):
         if ct == 'unix':
             # Avoiding C++17 for now because of compilation issues on MacOSX
             if compiler_test(self.compiler, '-std=c++14'):
-                opts.append('-std=c++14')
+                self.opts.append('-std=c++14')
             elif compiler_test(self.compiler, '-std=c++11'):
-            opts.append('-std=c++11')
+                self.opts.append('-std=c++11')
             else:
-                self.warning("Compiler needs to have C++11 support!")
+                self.warning('Compiler needs to have C++11 support!')
                 return
 
-            opts.append('-DVERSION_INFO="%s"' %
-                        self.distribution.get_version())
+            self.opts.append("-DVERSION_INFO='{}'".format(
+                             self.distribution.get_version()))
             if compiler_test(self.compiler, '-fvisibility=hidden'):
-                opts.append('-fvisibility=hidden')
+                self.opts.append('-fvisibility=hidden')
         elif ct == 'msvc':
-            opts.append('/DVERSION_INFO=\\"%s\\"' %
-                        self.distribution.get_version())
+            self.opts.append("/DVERSION_INFO=\\'%s\\'".format(
+                             self.distribution.get_version()))
 
-        link_opts.append(openmp)
-        for ext in self.extensions:
-            ext.extra_compile_args = opts
-            ext.extra_link_args = link_opts
-        try:
-            build_ext.build_extensions(self)
-        except setuptools.distutils.errors.CompileError:
-            self.warning("")
-
-    def warning(self, warning_text):
-        raise Exception(warning_text + "\nCould not install the C++-Simulator."
-                        "\nProjectQ will default to the (slow) Python "
-                        "simulator.\nUse --without-cppsimulator to skip "
-                        "building the (faster) C++ version of the simulator.")
+        self.link_opts.append(openmp)
 
 
-setup(name='projectq',
-    version=__version__,
-    author='ProjectQ',
-    author_email='info@projectq.ch',
-    url='http://www.projectq.ch',
-    description=('ProjectQ - '
-                 'An open source software framework for quantum computing'),
-    long_description=long_description,
-    features={'cppsimulator': cppsim},
-    install_requires=requirements,
-    cmdclass={'build_ext': BuildExt},
-    zip_safe=False,
-    license='Apache 2',
-      packages=find_packages())
+class Distribution(_Distribution):
+    def has_ext_modules(self):
+        # We want to always claim that we have ext_modules. This will be fine
+        # if we don't actually have them (such as on PyPy) because nothing
+        # will get built, however we don't want to provide an overally broad
+        # Wheel package when building a wheel without C support. This will
+        # ensure that Wheel knows to treat us as if the build output is
+        # platform specific.
+        return True
+
+
+def run_setup(with_cext):
+    kwargs = {}
+    if with_cext:
+        kwargs['ext_modules'] = ext_modules
+    else:
+        kwargs['ext_modules'] = []
+
+    setup(name='projectq',
+          version=__version__,
+          author='ProjectQ',
+          author_email='info@projectq.ch',
+          url='http://www.projectq.ch',
+          project_urls={
+              'Documentation': 'https://projectq.readthedocs.io/en/latest/',
+              'Issue Tracker':
+              'https://github.com/ProjectQ-Framework/ProjectQ/',
+          },
+          description=(
+              'ProjectQ - '
+              'An open source software framework for quantum computing'),
+          long_description=long_description,
+          install_requires=requirements,
+          cmdclass={'build_ext': BuildExt},
+          zip_safe=False,
+          license='Apache 2',
+          packages=find_packages(),
+          distclass=Distribution,
+          **kwargs)
+
+
+# ==============================================================================
+
+if not cpython:
+    run_setup(False)
+    status_msgs(
+        'WARNING: C/C++ extensions are not supported on ' +
+        'some features are disabled (e.g. C++ simulator).',
+        'Plain-Python build succeeded.',
+    )
+elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
+    run_setup(False)
+    status_msgs(
+        'DISABLE_PROJECTQ_CEXT is set; ' +
+        'not attempting to build C/C++ extensions.',
+        'Plain-Python build succeeded.',
+    )
+
+else:
+    try:
+        run_setup(True)
+    except BuildFailed as exc:
+        status_msgs(
+            exc.cause,
+            'WARNING: Some C/C++ extensions could not be compiled, ' +
+            'some features are disabled (e.g. C++ simulator).',
+            'Failure information, if any, is above.',
+            'Retrying the build without the C/C++ extensions now.',
+        )
+
+        run_setup(False)
+
+        status_msgs(
+            'WARNING: Some C/C++ extensions could not be compiled, ' +
+            'some features are disabled (e.g. C++ simulator).',
+            'Plain-Python build succeeded.',
+        )
