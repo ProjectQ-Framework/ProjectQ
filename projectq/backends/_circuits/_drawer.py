@@ -281,13 +281,12 @@ class CircuitDrawer(BasicEngine):
                     new_cmd.id = cmd.lines[0]
                 qubit_lines[new_line].append(new_cmd)
 
+        drawing_order = None
         if ordered:
-            return to_latex(qubit_lines,
-                            drawing_order=self._drawing_order,
-                            draw_gates_in_parallel=draw_gates_in_parallel)
+            drawing_order = self._drawing_order
 
         return to_latex(qubit_lines,
-                        drawing_order=None,
+                        drawing_order=drawing_order,
                         draw_gates_in_parallel=draw_gates_in_parallel)
 
     def receive(self, command_list):
