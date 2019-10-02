@@ -196,6 +196,50 @@ def test_body():
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
 
+def test_body_with_drawing_order():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    order = [ 0, 1, 2, #initializations
+              0, 2, 1, # H1, H3, H2
+              1#CNOT
+             ]
+
+    H | qubit1
+    H | qubit2
+    CNOT | (qubit1, qubit2)
+    H | qubit3
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings, order)
+
+    # there are three Hadamards in parallel
+    assert code.count("node[pos=.5] {H}") == 3
+
+    # line1_gate0 is initialisation
+    # line1_gate1 is empty
+    # line1_gate2 is for Hadamard on line1
+    # line1_gate3 is empty
+    # XOR of CNOT is node[xstyle] (line1_gate4)
+    assert code.count("node[xstyle] (line1_gate4)") == 1
+
+    # and the CNOT is at position 1.4, because of the offsets
+    assert code.count("ode[phase] (line0_gate4) at (1.4000000000000001") == 1
+    assert code.count("ode[xstyle] (line1_gate4) at (1.4000000000000001") == 1
+
 
 def test_qubit_allocations_at_zero():
     drawer = _drawer.CircuitDrawer()
