@@ -17,7 +17,7 @@ from projectq.ops import (Allocate, Deallocate, DaggeredGate, get_inverse,
                           Measure, SqrtSwap, Swap, X, Z)
 
 
-def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=False):
+def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
     """
     Translates a given circuit to a TikZ picture in a Latex document.
 
@@ -237,7 +237,7 @@ def _header(settings):
     return packages + init + gate_style + edge_style
 
 
-def _body(circuit, settings, drawing_order=None, draw_gates_in_parallel=False):
+def _body(circuit, settings, drawing_order=None, draw_gates_in_parallel=True):
     """
     Return the body of the Latex document, including the entire circuit in
     TikZ format.
@@ -305,7 +305,7 @@ class _Circ2Tikz(object):
         self.op_count = [0] * num_lines
         self.is_quantum = [settings['lines']['init_quantum']] * num_lines
 
-    def to_tikz(self, line, circuit, end=None, draw_gates_in_parallel=False):
+    def to_tikz(self, line, circuit, end=None, draw_gates_in_parallel=True):
         """
         Generate the TikZ code for one line of the circuit up to a certain
         gate.
@@ -451,10 +451,10 @@ class _Circ2Tikz(object):
             if not gate == Allocate:
                 tikz_code.append(connections)
 
-        if draw_gates_in_parallel:
-            for l in range(len(self.pos)):
-                if l != line:
-                    self.pos[l] = self.pos[line]
+            if not draw_gates_in_parallel:
+                for l in range(len(self.pos)):
+                    if l != line:
+                        self.pos[l] = self.pos[line]
 
         circuit[line] = circuit[line][end:]
         return "".join(tikz_code)

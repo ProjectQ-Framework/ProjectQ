@@ -196,7 +196,7 @@ def test_body():
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
 
-def test_body_with_drawing_order():
+def test_body_with_drawing_order_and_gates_parallel():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
@@ -206,15 +206,16 @@ def test_body_with_drawing_order():
     qubit2 = eng.allocate_qubit()
     qubit3 = eng.allocate_qubit()
 
-    order = [ 0, 1, 2, #initializations
-              0, 2, 1, # H1, H3, H2
-              1#CNOT
-             ]
-
     H | qubit1
     H | qubit2
-    CNOT | (qubit1, qubit2)
     H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
 
     del qubit1
     eng.flush()
@@ -224,7 +225,9 @@ def test_body_with_drawing_order():
 
     settings = _to_latex.get_default_settings()
     settings['gates']['AllocateQubitGate']['draw_id'] = True
-    code = _to_latex._body(circuit_lines, settings, order)
+    code = _to_latex._body(circuit_lines, settings,
+                           drawing_order=order,
+                           draw_gates_in_parallel=True)
 
     # there are three Hadamards in parallel
     assert code.count("node[pos=.5] {H}") == 3
@@ -234,11 +237,87 @@ def test_body_with_drawing_order():
     # line1_gate2 is for Hadamard on line1
     # line1_gate3 is empty
     # XOR of CNOT is node[xstyle] (line1_gate4)
-    assert code.count("node[xstyle] (line1_gate4)") == 1
+    assert code.count("node[xstyle] (line2_gate4)") == 1
 
     # and the CNOT is at position 1.4, because of the offsets
-    assert code.count("ode[phase] (line0_gate4) at (1.4000000000000001") == 1
-    assert code.count("ode[xstyle] (line1_gate4) at (1.4000000000000001") == 1
+    assert code.count("node[phase] (line0_gate4) at (1.4000000000000001") == 1
+    assert code.count("node[xstyle] (line2_gate4) at (1.4000000000000001") == 1
+
+
+def test_body_with_drawing_order_and_gates_not_parallel():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    H | qubit1
+    H | qubit2
+    H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings,
+                           drawing_order=order,
+                           draw_gates_in_parallel=False)
+
+    # and the CNOT is at position 4.0, because of the offsets
+    # which are 0.5 * 3 * 2 (due to three Hadamards) + the initialisations
+    assert code.count("node[phase] (line0_gate4) at (4.0,-0)") == 1
+    assert code.count("node[xstyle] (line2_gate4) at (4.0,-2)") == 1
+
+def test_body_without_drawing_order_and_gates_not_parallel():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    H | qubit1
+    H | qubit2
+    H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings,
+                           draw_gates_in_parallel=False)
+
+    # line1_gate1 is after the cnot line2_gate_4
+    idx1 = code.find("node[xstyle] (line2_gate4)")
+    idx2 = code.find("node[none] (line1_gate1)")
+    assert idx1 < idx2
 
 
 def test_qubit_allocations_at_zero():

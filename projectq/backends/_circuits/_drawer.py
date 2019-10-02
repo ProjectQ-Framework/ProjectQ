@@ -248,7 +248,7 @@ class CircuitDrawer(BasicEngine):
 
         self._drawing_order.append(all_lines[0])
 
-    def get_latex(self, ordered=False, draw_gates_in_parallel=False):
+    def get_latex(self, ordered=False, draw_gates_in_parallel=True):
         """
         Return the latex document string representing the circuit.
 
@@ -265,7 +265,7 @@ class CircuitDrawer(BasicEngine):
             ordered(bool): flag if the gates should be drawn in the order they
                 were added to the circuit
             draw_gates_in_parallel(bool): flag if parallel gates should be drawn
-                sequentially (True), or not (False)
+                parallel (True), or not (False)
         """
         qubit_lines = dict()
 
