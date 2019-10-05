@@ -87,37 +87,34 @@ def test_Ph_eigenvectors():
     assert num_phase/100. >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.35)
 
 
-# Does this test need to be implemented as a functional or a composed descendent of BasicGate?
-# (This looks like a subroutine, to me, not a BasicGate.)
-
-#def two_qubit_gate(system_q, time):
-#    CNOT | (system_q[0], system_q[1])
-#    Ph(2.0*cmath.pi*(time * 0.125)) | system_q[1]
-#    CNOT | (system_q[0], system_q[1])
+def two_qubit_gate(system_q, time):
+    CNOT | (system_q[0], system_q[1])
+    Ph(2.0*cmath.pi*(time * 0.125)) | system_q[1]
+    CNOT | (system_q[0], system_q[1])
 
 
-#def test_2qubitsPh_andfunction_eigenvectors():
-#    rule_set = DecompositionRuleSet(modules=[pe, dqft])
-#    eng = MainEngine(backend=Simulator(),
-#                     engine_list=[AutoReplacer(rule_set),
-#                                  ])
-#    num_phase = 0
-#    for i in range(100):
-#        autovector = eng.allocate_qureg(2)
-#        X | autovector[0]
-#        ancillas = eng.allocate_qureg(3)
-#        QPE(two_qubit_gate) | (ancillas, autovector)
-#        All(Measure) | ancillas
-#        fasebinlist = [int(q) for q in ancillas]
-#        fasebin = ''.join(str(j) for j in fasebinlist)
-#        faseint = int(fasebin, 2)
-#        phase = faseint / (2. ** (len(ancillas)))
-#        if (phase == pytest.approx(0.125, rel=tolerance, abs=tolerance)):
-#            num_phase = num_phase + 1
-#        All(Measure) | autovector
-#        eng.flush()
-#
-#    assert num_phase/100. >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.35)
+def test_2qubitsPh_andfunction_eigenvectors():
+    rule_set = DecompositionRuleSet(modules=[pe, dqft])
+    eng = MainEngine(backend=Simulator(),
+                     engine_list=[AutoReplacer(rule_set),
+                                  ])
+    results = np.array([])
+    for i in range(100):
+        autovector = eng.allocate_qureg(2)
+        X | autovector[0]
+        ancillas = eng.allocate_qureg(3)
+        QPE(two_qubit_gate) | (ancillas, autovector)
+        All(Measure) | ancillas
+        fasebinlist = [int(q) for q in ancillas]
+        fasebin = ''.join(str(j) for j in fasebinlist)
+        faseint = int(fasebin, 2)
+        phase = faseint / (2. ** (len(ancillas)))
+        results = np.append(results, phase)
+        All(Measure) | autovector
+        eng.flush()
+
+    num_phase = (results == 0.125).sum()
+    assert num_phase/100. >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.34)
 
 
 def test_X_no_eigenvectors():

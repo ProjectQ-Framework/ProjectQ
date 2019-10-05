@@ -55,6 +55,7 @@ The operations collection consists of various default gates and is a work-in-pro
 	projectq.ops.StatePreparation
 	projectq.ops.QPE
 	projectq.ops.FlipBits
+	projectq.ops.QAA
 
 
 Module contents

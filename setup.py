@@ -157,6 +157,8 @@ class BuildExt(build_ext):
                 opts.append('/arch:AVX')
             else:
                 opts.append('-march=native')
+                #Not compatible with Qrack at "dirty qubit" tolerances for deallocation:
+                #opts.append('-ffast-math')
 
         opts.append(openmp)
         if ct == 'unix':

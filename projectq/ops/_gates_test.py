@@ -156,6 +156,42 @@ def test_rz(angle):
     assert np.allclose(gate.matrix, expected_matrix)
 
 
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
+def test_rxx(angle):
+    gate = _gates.Rxx(angle)
+    expected_matrix = np.matrix([[cmath.cos(.5 * angle), 0, 0, -1j * cmath.sin(.5 * angle)],
+                                 [0, cmath.cos(.5 * angle), -1j * cmath.sin(.5 * angle), 0],
+                                 [0, -1j * cmath.sin(.5 * angle), cmath.cos(.5 * angle), 0],
+                                 [-1j * cmath.sin(.5 * angle), 0, 0, cmath.cos(.5 * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+
+
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
+def test_ryy(angle):
+    gate = _gates.Ryy(angle)
+    expected_matrix = np.matrix([[cmath.cos(.5 * angle), 0, 0,  1j * cmath.sin(.5 * angle)],
+                                 [0, cmath.cos(.5 * angle), -1j * cmath.sin(.5 * angle), 0],
+                                 [0, -1j * cmath.sin(.5 * angle), cmath.cos(.5 * angle), 0],
+                                 [ 1j * cmath.sin(.5 * angle), 0, 0, cmath.cos(.5 * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+
+
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi,
+                                   4 * math.pi])
+def test_rzz(angle):
+    gate = _gates.Rzz(angle)
+    expected_matrix = np.matrix([[cmath.exp(-.5 * 1j * angle), 0, 0, 0],
+                                 [0, cmath.exp( .5 * 1j * angle), 0, 0],
+                                 [0, 0, cmath.exp( .5 * 1j * angle), 0],
+                                 [0, 0, 0, cmath.exp(-.5 * 1j * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+
+
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi])
 def test_ph(angle):
     gate = _gates.Ph(angle)
