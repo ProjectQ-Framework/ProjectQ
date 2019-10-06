@@ -297,6 +297,16 @@ public:
                               std::vector<unsigned> const& ids){
         if (!check_ids(ids))
             throw(std::runtime_error("get_probability(): Unknown qubit id."));
+
+        if (ids.size() == 1) {
+            // If we're checking a single bit, this is significantly faster.
+            if (bit_string[0]) {
+                return qReg->Prob(map_[ids[0]]);
+            } else {
+                return ONE_R1 - qReg->Prob(map_[ids[0]]);
+            }
+        }
+
         std::size_t mask = 0, bit_str = 0;
         for (unsigned i = 0; i < ids.size(); i++){
             mask |= 1UL << map_[ids[i]];

@@ -118,61 +118,60 @@ def complex_oracle(eng, system_q, control):
 
     Uncompute(eng)
 
-# NOTE: For Qrack, not yet sure why this doesn't work
-#def test_complex_aa():
-#    rule_set = DecompositionRuleSet(modules=[aa])
-#
-#    eng = MainEngine(backend=Simulator(),
-#                     engine_list=[
-#                         AutoReplacer(rule_set),
-#                     ])
-#
-#    system_qubits = eng.allocate_qureg(6)
-#
-#    # Prepare the control qubit in the |-> state
-#    control = eng.allocate_qubit()
-#    X | control
-#    H | control
-#
-#    # Creates the initial state form the Algorithm
-#    complex_algorithm(eng, system_qubits)
-#
-#    # Get the probabilty of getting the marked state before the AA
-#    # to calculate the number of iterations
-#    eng.flush()
-#    prob000000 = eng.backend.get_probability('000000', system_qubits)
-#    prob111111 = eng.backend.get_probability('111111', system_qubits)
-#
-#    total_amp_before = math.sqrt(prob000000 + prob111111)
-#    theta_before = math.asin(total_amp_before)
-#
-#    # Apply Quantum Amplitude Amplification the correct number of times
-#    # Theta is calculated previously using get_probability
-#    # We calculate also the theoretical final probability
-#    # of getting the good state
-#    num_it = int(math.pi / (4. * theta_before)) # (Probability is maximized for floor, not midpoint rounded)
-#    theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
-#    with Loop(eng, num_it):
-#        QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
-#
-#    # Get the probabilty of getting the marked state after the AA
-#    # to compare with the theoretical probability after the AA
-#    eng.flush()
-#    prob000000 = eng.backend.get_probability('000000', system_qubits)
-#    prob111111 = eng.backend.get_probability('111111', system_qubits)
-#    total_prob_after = prob000000 + prob111111
-#
-#    All(Measure) | system_qubits
-#    H | control
-#    Measure | control
-#    result = [int(q) for q in system_qubits]
-#    control_result = int(control)
-#
-#    eng.flush()
-#
-#    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-2), (
-#        "The obtained probability is less than expected %f vs. %f" %
-#        (total_prob_after, theoretical_prob))
+def test_complex_aa():
+    rule_set = DecompositionRuleSet(modules=[aa])
+
+    eng = MainEngine(backend=Simulator(),
+                     engine_list=[
+                         AutoReplacer(rule_set),
+                     ])
+
+    system_qubits = eng.allocate_qureg(6)
+
+    # Prepare the control qubit in the |-> state
+    control = eng.allocate_qubit()
+    X | control
+    H | control
+
+    # Creates the initial state form the Algorithm
+    complex_algorithm(eng, system_qubits)
+
+    # Get the probabilty of getting the marked state before the AA
+    # to calculate the number of iterations
+    eng.flush()
+    prob000000 = eng.backend.get_probability('000000', system_qubits)
+    prob111111 = eng.backend.get_probability('111111', system_qubits)
+
+    total_amp_before = math.sqrt(prob000000 + prob111111)
+    theta_before = math.asin(total_amp_before)
+
+    # Apply Quantum Amplitude Amplification the correct number of times
+    # Theta is calculated previously using get_probability
+    # We calculate also the theoretical final probability
+    # of getting the good state
+    num_it = int(math.pi / (4. * theta_before)) # (Probability is maximized for floor, not midpoint rounded)
+    theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
+    with Loop(eng, num_it):
+        QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
+
+    # Get the probabilty of getting the marked state after the AA
+    # to compare with the theoretical probability after the AA
+    eng.flush()
+    prob000000 = eng.backend.get_probability('000000', system_qubits)
+    prob111111 = eng.backend.get_probability('111111', system_qubits)
+    total_prob_after = prob000000 + prob111111
+
+    All(Measure) | system_qubits
+    H | control
+    Measure | control
+    result = [int(q) for q in system_qubits]
+    control_result = int(control)
+
+    eng.flush()
+
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=2e-2), (
+        "The obtained probability is less than expected %f vs. %f" %
+        (total_prob_after, theoretical_prob))
 
 
 def test_string_functions():
