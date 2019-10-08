@@ -48,7 +48,126 @@ class CircuitItem(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+class CircuitDrawerMatplotlib(BasicEngine):
+    """
+    CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library 
+    for drawing quantum circuits
+    """
+    def __init__(self, accept_input=False, default_measure=0):
+        """
+        Initialize a circuit drawing engine(mpl)
+        """
+        BasicEngine.__init__(self)
 
+        self._accept_input = accept_input
+        self._default_measure = default_measure
+        self._qubit_lines = dict()
+        self._free_lines = []
+        self._map = dict()
+        self._gates = []
+        self._qubits = [] 
+    
+    def is_available(self, cmd):
+        """
+        Specialized implementation of is_available: Returns True if the
+        CircuitDrawer is the last engine (since it can print any command).
+
+        Args:
+            cmd (Command): Command for which to check availability (all
+                Commands can be printed).
+        Returns:
+            availability (bool): True, unless the next engine cannot handle
+            the Command (if there is a next engine).
+        """
+        try:
+            return BasicEngine.is_available(self, cmd)
+        except LastEngineException:
+            return True
+
+    def _print_cmd(self, cmd):
+        """
+        Add the command cmd to the circuit diagram, taking care of potential
+        measurements as specified in the __init__ function.
+
+        Queries the user for measurement input if a measurement command
+        arrives if accept_input was set to True. Otherwise, it uses the
+        default_measure parameter to register the measurement outcome.
+
+        Args:
+            cmd (Command): Command to add to the circuit diagram.
+        """
+        if cmd.gate == Allocate:
+            qubit_id = cmd.qubits[0][0].id
+            if qubit_id not in self._map:
+                self._map[qubit_id] = qubit_id
+            self._qubit_lines[qubit_id] = []
+
+        if cmd.gate == Deallocate:
+            qubit_id = cmd.qubits[0][0].id
+            self._free_lines.append(qubit_id)
+
+        if self.is_last_engine and cmd.gate == Measure:
+            assert(get_control_count(cmd) == 0)
+            for qureg in cmd.qubits:
+                for qubit in qureg:
+                    if self._accept_input:
+                        m = None
+                        while m != '0' and m != '1' and m != 1 and m != 0:
+                            prompt = ("Input measurement result (0 or 1) for "
+                                      "qubit " + str(qubit) + ": ")
+                            m = input(prompt)
+                    else:
+                        m = self._default_measure
+                    m = int(m)
+                    self.main_engine.set_measurement_result(qubit, m)
+
+        all_lines = [qb.id for qr in cmd.all_qubits for qb in qr]
+
+        gate = cmd.gate
+        lines = [qb.id for qr in cmd.qubits for qb in qr]
+        ctrl_lines = [qb.id for qb in cmd.control_qubits]
+        item = CircuitItem(gate, lines, ctrl_lines)
+        for l in all_lines:
+            self._qubit_lines[l].append(item)
+
+    def receive(self, command_list):
+        """
+        Receive a list of commands from the previous engine, print the
+        commands, and then send them on to the next engine.
+
+        Args:
+            command_list (list<Command>): List of Commands to print (and
+                potentially send on to the next engine).
+        """
+        for cmd in command_list:
+            l = []
+            g = str(cmd.gate)
+            for q in cmd.qubits:
+                l.append(str(q[0]))  # assume single target, the first element of q is the target qubit.
+            if len(cmd.control_qubits) > 0:
+                for cq in cmd.control_qubits:
+                    l.append(str(cq))
+
+            listOfStrings = ['', 'Allocate']
+
+            if not g in listOfStrings:
+                self._gates.append(tuple([g] + l))
+
+            if not cmd.gate == FlushGate():
+                self._print_cmd(cmd)
+            # (try to) send on
+            if not self.is_last_engine:
+                self.send([cmd])
+
+    def draw(self):
+        """
+        Use Matplotlib to plot a quantum circuit.
+        """
+        qubits = [str(self._map[id]) for id in self._map]
+        # extract all the allocated qubits from the circuit
+        
+        return to_draw(self._gates, qubits)
+    
 class CircuitDrawer(BasicEngine):
     """
     CircuitDrawer is a compiler engine which generates TikZ code for drawing
@@ -151,8 +270,6 @@ class CircuitDrawer(BasicEngine):
         self._qubit_lines = dict()
         self._free_lines = []
         self._map = dict()
-        
-        self._gates = []    # save a list of command in order
 
     def is_available(self, cmd):
         """
@@ -245,6 +362,38 @@ class CircuitDrawer(BasicEngine):
         for l in all_lines:
             self._qubit_lines[l].append(item)
 
+    def get_latex(self):
+        """
+        Return the latex document string representing the circuit.
+
+        Simply write this string into a tex-file or, alternatively, pipe the
+        output directly to, e.g., pdflatex:
+
+        .. code-block:: bash
+
+            python3 my_circuit.py | pdflatex
+
+        where my_circuit.py calls this function and prints it to the terminal.
+        """
+        qubit_lines = dict()
+
+        for line in range(len(self._qubit_lines)):
+            new_line = self._map[line]
+            qubit_lines[new_line] = []
+            for cmd in self._qubit_lines[line]:
+                lines = [self._map[qb_id] for qb_id in cmd.lines]
+                ctrl_lines = [self._map[qb_id] for qb_id in cmd.ctrl_lines]
+                gate = cmd.gate
+                new_cmd = CircuitItem(gate, lines, ctrl_lines)
+                if gate == Allocate:
+                    new_cmd.id = cmd.lines[0]
+                qubit_lines[new_line].append(new_cmd)
+
+        circuit = []
+        for lines in qubit_lines:
+            circuit.append(qubit_lines[lines])
+        return to_latex(qubit_lines)
+
     def receive(self, command_list):
         """
         Receive a list of commands from the previous engine, print the
@@ -255,29 +404,8 @@ class CircuitDrawer(BasicEngine):
                 potentially send on to the next engine).
         """
         for cmd in command_list:
-            l = []
-            g = str(cmd.gate)
-            for q in cmd.qubits:
-                l.append(str(q[0]))     # assume single target, the first element of q is the target qubit.
-            if len(cmd.control_qubits) > 0:
-                for cq in cmd.control_qubits:
-                    l.append(str(cq))
-
-            listOfStrings = ['','Allocate']
-            
-            if not g in listOfStrings:
-                self._gates.append(tuple([g] + l))
-            
             if not cmd.gate == FlushGate():
                 self._print_cmd(cmd)
             # (try to) send on
             if not self.is_last_engine:
                 self.send([cmd])
-
-    def draw(self):
-        """
-        Use Matplotlib to plot a quantum circuit.
-        """
-        label = [str(self._map[id]) for id in self._map]
-
-        return to_draw(self._gates,label)

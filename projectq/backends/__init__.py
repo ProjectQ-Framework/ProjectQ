@@ -27,6 +27,7 @@ This includes:
 """
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer
+from ._circuits import CircuitDrawerMatplotlib
 from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
