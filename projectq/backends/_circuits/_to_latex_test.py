@@ -240,8 +240,8 @@ def test_body_with_drawing_order_and_gates_parallel():
     assert code.count("node[xstyle] (line2_gate4)") == 1
 
     # and the CNOT is at position 1.4, because of the offsets
-    assert code.count("node[phase] (line0_gate4) at (1.4000000000000001") == 1
-    assert code.count("node[xstyle] (line2_gate4) at (1.4000000000000001") == 1
+    assert code.count("node[phase] (line0_gate4) at (1.4") == 1
+    assert code.count("node[xstyle] (line2_gate4) at (1.4") == 1
 
 
 def test_body_with_drawing_order_and_gates_not_parallel():
