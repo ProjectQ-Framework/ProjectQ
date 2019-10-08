@@ -13,4 +13,7 @@
 #   limitations under the License.
 
 from ._to_latex import to_latex
+from ._plot import to_draw
+
 from ._drawer import CircuitDrawer
+

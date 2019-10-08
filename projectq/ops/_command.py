@@ -106,11 +106,15 @@ class Command(object):
             tags (list[object]):
                 Tags associated with the command.
         """
+
         qubits = tuple([WeakQubitRef(qubit.engine, qubit.id)
                         for qubit in qreg]
                        for qreg in qubits)
-
+        
+        # get the command gate and qubit 
         self.gate = gate
+        self.label = qubits[0][0]
+        
         self.tags = list(tags)
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
