@@ -257,7 +257,8 @@ class CircuitDrawer(BasicEngine):
         for cmd in command_list:
             l = []
             g = str(cmd.gate)
-            l.append(str(cmd.label))
+            for q in cmd.qubits:
+                l.append(str(q[0]))     # assume single target, the first element of q is the target qubit.
             if len(cmd.control_qubits) > 0:
                 for cq in cmd.control_qubits:
                     l.append(str(cq))

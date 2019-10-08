@@ -111,10 +111,7 @@ class Command(object):
                         for qubit in qreg]
                        for qreg in qubits)
         
-        # get the command gate and qubit 
         self.gate = gate
-        self.label = qubits[0][0]
-        
         self.tags = list(tags)
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
