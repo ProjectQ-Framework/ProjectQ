@@ -75,9 +75,8 @@ def simple_graph():
     #       5       6
     graph = nx.Graph()
     graph.add_nodes_from(range(7))
-    graph.add_edges_from([(0, 1), (1, 2), (1, 5), (2, 3), (5, 3), (3, 4), (3,
-                                                                           6),
-                          (4, 6)])
+    graph.add_edges_from([(0, 1), (1, 2), (1, 5), (2, 3), (5, 3), (3, 4),
+                          (3, 6), (4, 6)])
     return graph
 
 
@@ -96,8 +95,8 @@ def grid33_graph():
 
 @pytest.fixture
 def grid22_graph_mapper(grid22_graph):
-    mapper = graphm.GraphMapper(
-        graph=grid22_graph, add_qubits_to_mapping="fcfs")
+    mapper = graphm.GraphMapper(graph=grid22_graph,
+                                add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -106,8 +105,8 @@ def grid22_graph_mapper(grid22_graph):
 
 @pytest.fixture
 def grid33_graph_mapper(grid33_graph):
-    mapper = graphm.GraphMapper(
-        graph=grid33_graph, add_qubits_to_mapping="fcfs")
+    mapper = graphm.GraphMapper(graph=grid33_graph,
+                                add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -116,8 +115,8 @@ def grid33_graph_mapper(grid33_graph):
 
 @pytest.fixture
 def simple_mapper(simple_graph):
-    mapper = graphm.GraphMapper(
-        graph=simple_graph, add_qubits_to_mapping="fcfs")
+    mapper = graphm.GraphMapper(graph=simple_graph,
+                                add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -200,8 +199,8 @@ def test_add_qubits_to_mapping_methods_failure(simple_graph):
 
 @pytest.mark.parametrize("add_qubits", ["fcfs", "fcfs_init", "FCFS"])
 def test_add_qubits_to_mapping_methods(simple_graph, add_qubits):
-    mapper = graphm.GraphMapper(
-        graph=simple_graph, add_qubits_to_mapping=add_qubits)
+    mapper = graphm.GraphMapper(graph=simple_graph,
+                                add_qubits_to_mapping=add_qubits)
     backend = DummyEngine(save_commands=True)
     backend.is_last_engine = True
     mapper.next_engine = backend
@@ -394,8 +393,11 @@ def test_send_possible_commands_allocate(simple_mapper):
     mapper, backend = simple_mapper
 
     qb0 = WeakQubitRef(engine=None, idx=0)
-    cmd0 = Command(
-        engine=None, gate=Allocate, qubits=([qb0], ), controls=[], tags=[])
+    cmd0 = Command(engine=None,
+                   gate=Allocate,
+                   qubits=([qb0], ),
+                   controls=[],
+                   tags=[])
     mapper._stored_commands += [cmd0]
     mapper._currently_allocated_ids = set([10])
     # not in mapping:
@@ -410,12 +412,11 @@ def test_send_possible_commands_allocate(simple_mapper):
     assert len(mapper._stored_commands) == 0
     # Only self._run() sends Allocate gates
     mapped0 = WeakQubitRef(engine=None, idx=3)
-    received_cmd = Command(
-        engine=mapper,
-        gate=Allocate,
-        qubits=([mapped0], ),
-        controls=[],
-        tags=[LogicalQubitIDTag(0)])
+    received_cmd = Command(engine=mapper,
+                           gate=Allocate,
+                           qubits=([mapped0], ),
+                           controls=[],
+                           tags=[LogicalQubitIDTag(0)])
     assert backend.received_commands[0] == received_cmd
     assert mapper._currently_allocated_ids == set([10, 0])
 
@@ -504,8 +505,11 @@ def test_send_possible_commands_deallocate(simple_mapper):
     mapper, backend = simple_mapper
 
     qb0 = WeakQubitRef(engine=None, idx=0)
-    cmd0 = Command(
-        engine=None, gate=Deallocate, qubits=([qb0], ), controls=[], tags=[])
+    cmd0 = Command(engine=None,
+                   gate=Deallocate,
+                   qubits=([qb0], ),
+                   controls=[],
+                   tags=[])
     mapper._stored_commands = [cmd0]
     mapper.current_mapping = dict()
     mapper._currently_allocated_ids = set([10])
@@ -548,12 +552,21 @@ def test_send_possible_commands_keep_remaining_gates(simple_mapper):
 
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
-    cmd0 = Command(
-        engine=None, gate=Allocate, qubits=([qb0], ), controls=[], tags=[])
-    cmd1 = Command(
-        engine=None, gate=Deallocate, qubits=([qb0], ), controls=[], tags=[])
-    cmd2 = Command(
-        engine=None, gate=Allocate, qubits=([qb1], ), controls=[], tags=[])
+    cmd0 = Command(engine=None,
+                   gate=Allocate,
+                   qubits=([qb0], ),
+                   controls=[],
+                   tags=[])
+    cmd1 = Command(engine=None,
+                   gate=Deallocate,
+                   qubits=([qb0], ),
+                   controls=[],
+                   tags=[])
+    cmd2 = Command(engine=None,
+                   gate=Allocate,
+                   qubits=([qb1], ),
+                   controls=[],
+                   tags=[])
 
     mapper._stored_commands = [cmd0, cmd1, cmd2]
     mapper.current_mapping = {0: 0}
@@ -566,8 +579,11 @@ def test_send_possible_commands_one_inactive_qubit(simple_mapper):
 
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
-    cmd0 = Command(
-        engine=None, gate=Allocate, qubits=([qb0], ), controls=[], tags=[])
+    cmd0 = Command(engine=None,
+                   gate=Allocate,
+                   qubits=([qb0], ),
+                   controls=[],
+                   tags=[])
     cmd1 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb1])
     mapper._stored_commands = [cmd0, cmd1]
     mapper.current_mapping = {0: 0}
@@ -635,7 +651,6 @@ def test_send_two_qubit_gate_before_swap(simple_mapper):
             Command(None, X, qubits=([qb[2]], ), controls=[qb[0]])
     ]:
         mapper, backend = deepcopy(simple_mapper)
-        mapper.enable_caching = False
 
         all_cmds[3] = cmd
 
@@ -644,13 +659,17 @@ def test_send_two_qubit_gate_before_swap(simple_mapper):
         mapper._run()
         assert mapper.num_mappings == 1
         if mapper.current_mapping[2] == 2:
-            # qb[2] has not moved, all_cmds[5] is possible
-            assert mapper._stored_commands == all_cmds[-4:]
+            # qb[2] has not moved, all_cmds[5] and everything
+            # thereafter is possible
+            assert mapper._stored_commands == all_cmds[-1:]
             assert mapper.current_mapping == {
                 0: 1,
                 1: 0,
                 2: 2,
                 3: 3,
+                4: 4,
+                5: 5,
+                6: 6
             }
         else:
             # qb[2] moved, all_cmds[5] not possible
@@ -685,7 +704,6 @@ def test_send_two_qubit_gate_before_swap_nonallocated_qubits(simple_mapper):
     ]:
         mapper, backend = deepcopy(simple_mapper)
         mapper.current_mapping = dict(enumerate(range(len(qb))))
-        mapper.enable_caching = False
 
         all_cmds[idx] = cmd
 
@@ -854,226 +872,9 @@ def test_check_that_local_optimizer_doesnt_merge(simple_graph):
     assert len(backend.received_commands) == 7
 
 
-@pytest.mark.parametrize("enable_caching", [False, True])
-def test_3x3_grid_multiple_simultaneous_non_intersecting_paths(
-        grid33_graph_mapper, enable_caching):
-    mapper, backend = grid33_graph_mapper
-    mapper.enable_caching = enable_caching
-
-    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
-
-    # 0 - 1 - 2
-    # |   |   |
-    # 3 - 4 - 5
-    # |   |   |
-    # 6 - 7 - 8
-
-    cmd0 = Command(None, X, qubits=([qb[0]], ), controls=[qb[6]])
-    cmd1 = Command(None, X, qubits=([qb[1]], ), controls=[qb[7]])
-    cmd2 = Command(None, X, qubits=([qb[2]], ), controls=[qb[8]])
-    cmd3 = Command(None, X, qubits=([qb[2]], ), controls=[qb[8]])
-
-    qb_flush = WeakQubitRef(engine=None, idx=-1)
-    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
-
-    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd2, cmd3, cmd_flush])
-    assert not mapper._stored_commands
-    assert mapper.num_mappings == 1
-    assert mapper.depth_of_swaps == {1: 1}
-    assert mapper.current_mapping == {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 6,
-        4: 7,
-        5: 8,
-        6: 3,
-        7: 4,
-        8: 5
-    } or mapper.current_mapping == {
-        0: 3,
-        1: 4,
-        2: 5,
-        3: 0,
-        4: 1,
-        5: 2,
-        6: 6,
-        7: 7,
-        8: 8
-    }
-
-    cmd3 = Command(None, X, qubits=([qb[0]], ), controls=[qb[2]])
-    cmd4 = Command(None, X, qubits=([qb[3]], ), controls=[qb[5]])
-    cmd5 = Command(None, X, qubits=([qb[6]], ), controls=[qb[8]])
-    mapper.receive([cmd3, cmd4, cmd5, cmd_flush])
-
-    assert not mapper._stored_commands
-    assert mapper.num_mappings == 2
-    assert mapper.depth_of_swaps == {1: 2}
-    assert mapper.current_mapping == {
-        0: 0,
-        1: 2,
-        2: 1,
-        3: 6,
-        4: 8,
-        5: 7,
-        6: 3,
-        7: 5,
-        8: 4
-    } or mapper.current_mapping == {
-        0: 4,
-        1: 3,
-        2: 5,
-        3: 1,
-        4: 0,
-        5: 2,
-        6: 7,
-        7: 6,
-        8: 8
-    }
-
-    if enable_caching:
-        assert mapper.paths.cache._cache
-        assert mapper.paths.cache.has_path(0, 6)
-        assert mapper.paths.cache.has_path(1, 7)
-        assert mapper.paths.cache.has_path(2, 8)
-        assert mapper.paths.cache.has_path(0, 2)
-        assert mapper.paths.cache.has_path(3, 5)
-        assert mapper.paths.cache.has_path(6, 8)
-        assert not mapper.paths.cache.has_path(0, 1)
-        assert not mapper.paths.cache.has_path(1, 2)
-        assert not mapper.paths.cache.has_path(3, 4)
-        assert not mapper.paths.cache.has_path(4, 5)
-        assert not mapper.paths.cache.has_path(6, 7)
-        assert not mapper.paths.cache.has_path(7, 8)
-
-
-@pytest.mark.parametrize("enable_caching", [False, True])
-def test_3x3_grid_multiple_simultaneous_intersecting_paths_impossible(
-        grid33_graph_mapper, enable_caching):
-    mapper, backend = grid33_graph_mapper
-    mapper.enable_caching = enable_caching
-
-    # 0 - 1 - 2
-    # |   |   |
-    # 3 - 4 - 5
-    # |   |   |
-    # 6 - 7 - 8
-    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
-
-    cmd0 = Command(None, X, qubits=([qb[1]], ), controls=[qb[7]])
-    cmd1 = Command(None, X, qubits=([qb[3]], ), controls=[qb[5]])
-
-    qb_flush = WeakQubitRef(engine=None, idx=-1)
-    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
-
-    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd_flush])
-    assert not mapper._stored_commands
-    assert mapper.num_mappings == 2
-    assert mapper.depth_of_swaps == {1: 2}
-    assert mapper.current_mapping == {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 7,
-        5: 4,
-        6: 6,
-        7: 5,
-        8: 8
-    } or mapper.current_mapping == {
-        0: 0,
-        1: 3,
-        2: 2,
-        3: 4,
-        4: 1,
-        5: 5,
-        6: 6,
-        7: 7,
-        8: 8
-    }
-
-    if enable_caching:
-        assert mapper.paths.cache._cache
-        assert mapper.paths.cache.has_path(1, 7)
-        assert mapper.paths.cache.has_path(3, 5)
-
-    mapper.current_mapping = dict(enumerate(range(len(qb))))
-
-    cmd2 = Command(None, X, qubits=([qb[7]], ), controls=[qb[1]])
-    cmd3 = Command(None, X, qubits=([qb[1]], ), controls=[qb[8]])
-    mapper.receive(allocate_cmds + [cmd2, cmd3, cmd_flush])
-    assert not mapper._stored_commands
-    assert mapper.num_mappings == 4
-    assert mapper.depth_of_swaps == {1: 4}
-
-    if enable_caching:
-        assert mapper.paths.cache._cache
-        assert mapper.paths.cache.has_path(1, 7)
-        assert mapper.paths.cache.has_path(3, 5)
-        assert mapper.paths.cache.has_path(1, 8)
-
-
-@pytest.mark.parametrize("enable_caching", [False, True])
-def test_3x3_grid_multiple_simultaneous_intersecting_paths_possible(
-        grid33_graph_mapper, enable_caching):
-    mapper, backend = grid33_graph_mapper
-    mapper.enable_caching = enable_caching
-
-    # 0 - 1 - 2
-    # |   |   |
-    # 3 - 4 - 5
-    # |   |   |
-    # 6 - 7 - 8
-    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
-
-    # NB. when generating the swaps for the paths through the graph, the path
-    #     0 -> 7 needs to be performed *before* the one 3 -> 5
-    cmd0 = Command(None, X, qubits=([qb[3]], ), controls=[qb[5]])
-    cmd1 = Command(None, X, qubits=([qb[0]], ), controls=[qb[7]])
-
-    qb_flush = WeakQubitRef(engine=None, idx=-1)
-    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
-
-    mapper.receive(allocate_cmds + [cmd0, cmd1, cmd_flush])
-
-    assert not mapper._stored_commands
-    assert mapper.num_mappings == 1
-    assert mapper.depth_of_swaps == {3: 1}
-    assert mapper.current_mapping == {
-        0: 0,
-        1: 3,
-        2: 2,
-        3: 4,
-        4: 7,
-        5: 5,
-        6: 6,
-        7: 1,
-        8: 8
-    } or mapper.current_mapping == {
-        0: 0,
-        1: 4,
-        2: 2,
-        3: 3,
-        4: 5,
-        5: 7,
-        6: 6,
-        7: 1,
-        8: 8
-    }
-
-    if enable_caching:
-        assert mapper.paths.cache._cache
-        assert mapper.paths.cache.has_path(0, 7)
-        assert mapper.paths.cache.has_path(3, 5)
-
-
-@pytest.mark.parametrize("enable_caching", [False, True])
-def test_mapper_to_str(simple_graph, enable_caching):
-    mapper = graphm.GraphMapper(
-        graph=simple_graph,
-        enable_caching=enable_caching,
-        add_qubits_to_mapping="fcfs")
+def test_mapper_to_str(simple_graph):
+    mapper = graphm.GraphMapper(graph=simple_graph,
+                                add_qubits_to_mapping="fcfs")
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend, [mapper])
     qureg = eng.allocate_qureg(len(simple_graph))
@@ -1096,8 +897,6 @@ def test_mapper_to_str(simple_graph, enable_caching):
     assert str_repr.count("1:   1") == 1
     assert str_repr.count("2:   1") == 2
     assert str_repr.count("3:   1") == 1
-    assert str_repr.count("  0 -   6: 1") == 1
-    assert str_repr.count("  0 -   3: 1") == 1
 
     sent_gates = [cmd.gate for cmd in backend.received_commands]
     assert sent_gates.count(H) == 1

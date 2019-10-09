@@ -31,8 +31,9 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
-from projectq.cengines._graph_path_manager import PathManager
-from projectq.cengines._command_list import CommandList
+from ._command_list import CommandList
+from ._multi_qubit_gate_manager import (MultiQubitGateManager,
+                                        look_ahead_parallelism_cost_fun)
 
 # ------------------------------------------------------------------------------
 
@@ -178,7 +179,7 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
                                       mapping and that need to be assigned a
                                       backend id
         stored_commands (CommandList): list of commands yet to be processed by
-                                       the mapper
+                                the mapper
 
     Returns: A new mapping
     """
@@ -256,6 +257,9 @@ class GraphMapper(BasicMapperEngine):
     Maps a quantum circuit to an arbitrary connected graph of connected qubits
     using Swap gates.
 
+    .. seealso::
+      :py:mod:`projectq.cengines._multi_qubit_gate_manager`
+
     Args:
         graph (networkx.Graph) : Arbitrary connected graph
         storage (int) Number of gates to temporarily store
@@ -273,8 +277,6 @@ class GraphMapper(BasicMapperEngine):
                                                      graph
                                                      new_logical_qubit_ids
                                                      stored_commands
-        enable_caching(Bool): Controls whether optimal path caching is
-                              enabled
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
@@ -298,12 +300,11 @@ class GraphMapper(BasicMapperEngine):
         3) Does not optimize for dirty qubits.
 
     """
-
     def __init__(self,
                  graph,
                  storage=1000,
                  add_qubits_to_mapping=_add_qubits_to_mapping,
-                 enable_caching=True):
+                 opts={}):
         """
         Initialize a GraphMapper compiler engine.
 
@@ -311,13 +312,46 @@ class GraphMapper(BasicMapperEngine):
             graph (networkx.Graph): Arbitrary connected graph representing
                                     Qubit connectivity
             storage (int): Number of gates to temporarily store
-            enable_caching (Bool): Controls whether path caching is enabled
+            generate_swap_opts (dict): extra options to customize swap
+                                       operation generation
+            opts (dict): Extra options (see below)
+
         Raises:
             RuntimeError: if the graph is not a connected graph
+
+        Note:
+            ``opts`` may contain the following key-values:
+
+           .. list-table::
+               :header-rows: 1
+
+               * - Key
+                 - Type
+                 - Description
+               * - cost_fun
+                 - ``function``
+                 -  | Cost function to be called when generating a new
+                    | list of swap operations.
+                    | Defaults to :py:func:`.look_ahead_parallelism_cost_fun`
+               * - decay_opts
+                 - ``dict``
+                 -  | Options to pass onto the :py:class:`.DecayManager`
+                      constructor
+                    | Defaults to ``{'delta': 0.001, 'max_lifetime': 5}``.
+               * - opts
+                 - ``dict``
+                 -  | Extra options to pass onto the cost function
+                    | (see :py:meth:`.MultiQubitGateManager.generate_swaps`)
+                    | Defaults to ``{'W': 0.5}``.
         """
         BasicMapperEngine.__init__(self)
 
-        self.paths = PathManager(graph, enable_caching)
+        self.qubit_manager = MultiQubitGateManager(graph=graph,
+                                                   decay_opts=opts.get(
+                                                       'decay_opts', {
+                                                           'delta': 0.001,
+                                                           'max_lifetime': 5
+                                                       }))
         self.num_qubits = graph.number_of_nodes()
         self.storage = storage
         # Randomness to pick permutations if there are too many.
@@ -336,6 +370,9 @@ class GraphMapper(BasicMapperEngine):
         self._reverse_current_mapping = dict()
         # Function to add new logical qubits ids to the mapping
         self.set_add_qubits_to_mapping(add_qubits_to_mapping)
+
+        self._cost_fun = opts.get('cost_fun', look_ahead_parallelism_cost_fun)
+        self._opts = opts.get('opts', {'W': 0.5})
 
         # Statistics:
         self.num_mappings = 0
@@ -403,10 +440,6 @@ class GraphMapper(BasicMapperEngine):
         allocated_qubits = deepcopy(self._currently_allocated_ids)
         active_qubits = deepcopy(self._currently_allocated_ids)
 
-        # Always start from scratch again
-        # (does not reset cache or path statistics)
-        self.paths.clear_paths()
-
         for cmd in self._stored_commands:
             if (len(allocated_qubits) == self.num_qubits
                     and not active_qubits):
@@ -448,19 +481,17 @@ class GraphMapper(BasicMapperEngine):
                 else:
                     if not_in_mapping_qubits:
                         self.current_mapping = self._add_qubits_to_mapping(
-                            self._current_mapping, self.paths.graph,
+                            self._current_mapping, self.qubit_manager.graph,
                             not_in_mapping_qubits, self._stored_commands)
                         not_in_mapping_qubits = []
 
-                    if not self.paths.push_interaction(
-                            self._current_mapping[qubit_ids[0]],
-                            self._current_mapping[qubit_ids[1]]):
-                        break
+                    self.qubit_manager.push_interaction(
+                        qubit_ids[0], qubit_ids[1])
 
         if not_in_mapping_qubits:
             self.current_mapping = self._add_qubits_to_mapping(
-                self._current_mapping, self.paths.graph, not_in_mapping_qubits,
-                self._stored_commands)
+                self._current_mapping, self.qubit_manager.graph,
+                not_in_mapping_qubits, self._stored_commands)
 
     def _send_possible_commands(self):
         """
@@ -485,11 +516,10 @@ class GraphMapper(BasicMapperEngine):
                         idx=self._current_mapping[cmd.qubits[0][0].id])
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
                     self.send([
-                        Command(
-                            engine=self,
-                            gate=AllocateQubitGate(),
-                            qubits=([qb0], ),
-                            tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        Command(engine=self,
+                                gate=AllocateQubitGate(),
+                                qubits=([qb0], ),
+                                tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
                     ])
                 else:
                     new_stored_commands.append(cmd)
@@ -502,36 +532,37 @@ class GraphMapper(BasicMapperEngine):
                     active_ids.remove(cmd.qubits[0][0].id)
                     self._current_mapping.pop(cmd.qubits[0][0].id)
                     self.send([
-                        Command(
-                            engine=self,
-                            gate=DeallocateQubitGate(),
-                            qubits=([qb0], ),
-                            tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        Command(engine=self,
+                                gate=DeallocateQubitGate(),
+                                qubits=([qb0], ),
+                                tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
                     ])
                 else:
                     new_stored_commands.append(cmd)
             else:
                 send_gate = True
-                backend_ids = set()
+                logical_ids = []
                 for qureg in cmd.all_qubits:
                     for qubit in qureg:
+                        logical_ids.append(qubit.id)
+
                         if qubit.id not in active_ids:
                             send_gate = False
-                            break
-                        backend_ids.add(self._current_mapping[qubit.id])
 
-                # Check that mapped ids are connected by an edge on the graph
-                if len(backend_ids) == 2:
-                    send_gate = self.paths.graph.has_edge(*list(backend_ids))
+                if send_gate:
+                    # Check that mapped ids are connected by an edge on the
+                    # graph
+                    if len(logical_ids) == 2:
+                        send_gate = self.qubit_manager.execute_gate(
+                            self._current_mapping, *logical_ids)
 
                 if send_gate:
                     self._send_cmd_with_mapped_ids(cmd)
                 else:
                     # Cannot execute gate -> make sure no other gate will use
                     # any of those qubits to preserve sequence
-                    for qureg in cmd.all_qubits:
-                        for qubit in qureg:
-                            active_ids.discard(qubit.id)
+                    for logical_id in logical_ids:
+                        active_ids.discard(logical_id)
                     new_stored_commands.append(cmd)
         self._stored_commands = new_stored_commands
 
@@ -555,7 +586,8 @@ class GraphMapper(BasicMapperEngine):
         if not self._stored_commands:
             return
 
-        swaps = self.paths.generate_swaps()
+        swaps, all_swapped_qubits = self.qubit_manager.generate_swaps(
+            self._current_mapping, self._cost_fun, self._opts)
 
         if swaps:  # first mapping requires no swaps
             backend_ids_used = {
@@ -565,8 +597,7 @@ class GraphMapper(BasicMapperEngine):
 
             # Get a list of the qubits we need to allocate just to perform the
             # swaps
-            not_allocated_ids = set(
-                self.paths.get_all_nodes()).difference(backend_ids_used)
+            not_allocated_ids = all_swapped_qubits.difference(backend_ids_used)
 
             # Calculate temporary internal reverse mapping
             new_internal_mapping = deepcopy(self._reverse_current_mapping)
@@ -577,10 +608,9 @@ class GraphMapper(BasicMapperEngine):
             for backend_id in not_allocated_ids:
                 qb0 = WeakQubitRef(engine=self, idx=backend_id)
                 self.send([
-                    Command(
-                        engine=self,
-                        gate=AllocateQubitGate(),
-                        qubits=([qb0], ))
+                    Command(engine=self,
+                            gate=AllocateQubitGate(),
+                            qubits=([qb0], ))
                 ])
 
                 # Those qubits are not part of the current mapping, so add them
@@ -635,10 +665,9 @@ class GraphMapper(BasicMapperEngine):
             for backend_id in not_needed_anymore:
                 qb0 = WeakQubitRef(engine=self, idx=backend_id)
                 self.send([
-                    Command(
-                        engine=self,
-                        gate=DeallocateQubitGate(),
-                        qubits=([qb0], ))
+                    Command(engine=self,
+                            gate=DeallocateQubitGate(),
+                            qubits=([qb0], ))
                 ])
 
             # Calculate new mapping
@@ -668,6 +697,7 @@ class GraphMapper(BasicMapperEngine):
                 receive.
         """
         for cmd in command_list:
+            print(cmd)
             if isinstance(cmd.gate, FlushGate):
                 while self._stored_commands:
                     self._run()
@@ -702,4 +732,4 @@ class GraphMapper(BasicMapperEngine):
         return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n" +
                 "Number of swaps per mapping:{}\n\n{}\n\n").format(
                     self.num_mappings, depth_of_swaps_str,
-                    num_swaps_per_mapping_str, str(self.paths))
+                    num_swaps_per_mapping_str, str(self.qubit_manager))

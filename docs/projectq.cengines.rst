@@ -14,13 +14,14 @@ The ProjectQ compiler engines package.
 	projectq.cengines.DummyEngine
 	projectq.cengines.ForwarderEngine
 	projectq.cengines.GridMapper
+	projectq.cengines.GraphMapper
 	projectq.cengines.InstructionFilter
 	projectq.cengines.IBM5QubitMapper
 	projectq.cengines.LinearMapper
 	projectq.cengines.LocalOptimizer
 	projectq.cengines.ManualMapper
 	projectq.cengines.MainEngine
-  projectq.cengines.SwapAndCNOTFlipper
+	projectq.cengines.SwapAndCNOTFlipper
 	projectq.cengines.TagRemover
 
 
