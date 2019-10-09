@@ -31,3 +31,21 @@ Module contents
     :members:
     :special-members: __init__
     :imported-members:
+
+
+Helper sub-modules
+------------------
+
+Multi-qubit gate sub-module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: projectq.cengines._multi_qubit_gate_manager
+    :members:
+    :imported-members:
+
+Command list sub-module
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: projectq.cengines._command_list
+    :members:
+    :imported-members:
