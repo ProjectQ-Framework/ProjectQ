@@ -15,106 +15,105 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle
 
 def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
     """
-
-    :param gates:
-    :param label:
-    :param inits:
-    :param plot_labels:
-    :param kwargs:
-    :return:
+    Use Matplotlib to plot a quantum circuit.
+    Args:
+        gates (list): List of tuples for each gate in the quantum circuit.
+            (name,target,control1,control2...). Targets and controls initially
+             defined in terms of labels.
+        labels (list): Qubits' index in the quantum circuit
+        inits (dict): Initialization list of gates, optional
+        plot_labels (bool): If plot_labels is false, the qubits' label will not
+            be drawed.
+        **kwargs (dict): Can override plot_parameters
     """
     plot_params = dict(scale=1.0, fontsize=14.0, linewidth=1.0,
-                       control_radius=0.05, not_radius=0.15,
+                       linebetween=0.04,control_radius=0.05, not_radius=0.15,
                        swap_delta=0.08, label_buffer=0.0)
     plot_params.update(kwargs)
     scale = plot_params['scale']
 
-    # Create labels from gates. This will become slow if there are a lot
-    #  of gates, in which case move to an ordered dictionary
-    # if not labels:
-    #     labels = []
-    #     for i, gate in enumerate_gates(gates):
-    #         for label in gate[1:]:
-    #             if label not in labels:
-    #                 labels.append(label)
-    
-    nq = len(labels)
-    ng = len(gates)
-    wire_grid = np.arange(0.0, nq * scale, scale, dtype=float)
-    gate_grid = np.arange(0.0, ng * scale, scale, dtype=float)
+    n_labels = len(labels)
+    n_gates = len(gates)
+    inits = {label: 0 for label in labels}
 
-    fig, ax = setup_figure(nq, ng, gate_grid, wire_grid, plot_params)
+    # create grid for the plot
+    wire_grid = np.arange(0.0, n_labels * scale, scale, dtype=float)
+    gate_grid = np.arange(0.0, n_gates * scale, scale, dtype=float)
 
-    measured = measured_wires(gates, labels)
-    draw_wires(ax, nq, gate_grid, wire_grid, plot_params, measured)
+    fig, ax = setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params)
+
+    draw_wires(ax, n_labels, gate_grid, wire_grid, plot_params)
 
     if plot_labels:
         draw_labels(ax, labels, inits, gate_grid, wire_grid, plot_params)
 
-    draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params, measured)
+    draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params)
     return ax
 
+def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
+    """
+    matching the position of each gate to the figure and draw each gate
+    Args:
+        ax (AxesSubplot): axes object
+        gates (list): List of tuples for each gate in the quantum circuit.
+        labels (list): contains qubits' label
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
 
-def enumerate_gates(l, schedule=False):
-    "Enumerate the gates in a way that can take l as either a list of gates or a schedule"
-    if schedule:
-        for i, gates in enumerate(l):
-            for gate in gates:
-                yield i, gate
-    else:
-        for i, gate in enumerate(l):
-            yield i, gate
-    return
-
-
-def measured_wires(l, labels, schedule=False):
-    "measured[i] = j means wire i is measured at step j"
-    # schedule is always false...not implemented.
-    measured = {}
-    for i, gate in enumerate_gates(l, schedule=schedule):
-        name, target = gate[:2]
-        j = get_flipped_index(target, labels)
-        if name.startswith('M'):
-            measured[j] = i
-    return measured
-
-
-def draw_gates(ax, l, labels, gate_grid, wire_grid, plot_params, measured={}, schedule=False):
+    # initialize the position of gates as 0 for each label
     x_labels = {label: 0 for label in labels}
     x_position = 0
-    for i, gate in enumerate_gates(l, schedule=schedule):
-        if len(gate) > 2:  # Controlled
+
+    for i, gate in enumerate(gates):
+        if len(gate) > 2:  # case: multi-control or target gate
+            # it only works for single target gate
             qb_target = gate[1]
             qb_control = gate[2]
 
             x_position = max(x_labels[qb_target], x_labels[qb_control])
-            draw_controls(ax, x_position, gate, labels, gate_grid, wire_grid, plot_params, measured)
+            draw_controls(ax, x_position, gate, labels,
+                          gate_grid, wire_grid, plot_params)
 
             x_labels[qb_target] = x_position
-            draw_target(ax, x_labels[qb_target], gate, labels, gate_grid, wire_grid, plot_params)
+            draw_target(ax, x_labels[qb_target], gate, labels,
+                        gate_grid, wire_grid, plot_params)
 
-            # all the x betweeen control and target has to be added 1...for multi. qubit.
+            # get the index of qubit between control and target qubit
             begin = min(qb_control, qb_target)
             end = max(qb_control, qb_target)
 
+            # update the position by adding 1
             for itr, value in x_labels.items():
                 if begin <= itr <= end:
                     x_labels[itr] = x_position + 1
-
         else:
             qb = gate[1]
 
-            draw_target(ax, x_labels[qb], gate, labels, gate_grid, wire_grid, plot_params)
+            draw_target(ax, x_labels[qb], gate, labels,
+                        gate_grid, wire_grid, plot_params)
 
             x_labels[qb] = x_labels[qb] + 1
 
-    return
+def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
+    """
+    draw the control qubit gate
+    Args:
+        ax (AxesSubplot): axes object
+        i (int): position of the control gate
+        gate (tuple): control qubit gate
+        labels (list): contains qubits' label
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
 
-
-def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params, measured={}):
     linewidth = plot_params['linewidth']
     scale = plot_params['scale']
     control_radius = plot_params['control_radius']
@@ -124,38 +123,40 @@ def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params, measur
     name, target = gate[:2]
     target_index = get_flipped_index(target, labels)
 
-    # what about multi control
+    # include multi-control gate
     controls = gate[2:]
     control_indices = get_flipped_indices(controls, labels)
     gate_indices = control_indices + [target_index]
 
     min_wire = min(gate_indices)
     max_wire = max(gate_indices)
-    line(ax, gate_grid[i], gate_grid[i], wire_grid[min_wire], wire_grid[max_wire], plot_params)
-
-    ismeasured = False
-    for index in control_indices:
-        # what is this used for???
-        if measured.get(index, 1000) < i:
-            ismeasured = True
-    if ismeasured:
-        dy = 0.04  # TODO: put in plot_params
-        line(ax, gate_grid[i] + dy, gate_grid[i] + dy, wire_grid[min_wire], wire_grid[max_wire], plot_params)
+    line(ax, gate_grid[i], gate_grid[i],
+         wire_grid[min_wire], wire_grid[max_wire], plot_params)
 
     for ci in control_indices:
         x = gate_grid[i]
         y = wire_grid[ci]
-        if name in ['SWAP']:
+        if name == 'SWAP':
             swapx(ax, x, y, plot_params)
         else:
             cdot(ax, x, y, plot_params)
-    return
-
 
 def draw_target(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
+    """
+    draw the target gate in figure
+    Args:
+        ax (AxesSubplot): axes object
+        i (int): position of the target gate
+        gate (tuple): control qubit gate
+        labels (list): contains qubits' label
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
     target_symbols = dict(CNOT='X', CPHASE='Z', NOP='', CX='X', CZ='Z')
     name, target = gate[:2]
-    symbol = target_symbols.get(name, name)  # override name with target_symbols, get(keyname,value)
+    # override name with target_symbols, get(keyname,value)
+    symbol = target_symbols.get(name, name)
     
     if symbol in ['X'] and len(gate) >= 3:
         name = 'CNOT'
@@ -167,77 +168,128 @@ def draw_target(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
     if not symbol: return
     if name in ['CNOT', 'TOFFOLI']:
         oplus(ax, x, y, plot_params)
-    elif name in ['CPHASE']:
+    elif name == 'CPHASE':
         cdot(ax, x, y, plot_params)
-    elif name in ['SWAP']:
+    elif name == 'SWAP':
         swapx(ax, x, y, plot_params)
-    elif name in ['M']:
+    elif name == 'Measure':
         draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params)
+
+        symbol = 'M' # it should be updated by new measurement symbol
 
         text(ax, x, y, symbol, plot_params, box=True)
     else:
         text(ax, x, y, symbol, plot_params, box=True)
-    return
-
 
 def line(ax, x1, x2, y1, y2, plot_params):
-    Line2D = matplotlib.lines.Line2D
+    """
+    draw line in the plot, begin at (x1, y1) and end at (x2, y2)
+    Args:
+        ax (AxesSubplot): axes object
+        x1 (float): x_1 coordinate
+        x2 (float): x_2 coordinate
+        y1 (float): y_1 coordinate
+        y2 (float): y_2 coordinate
+        plot_params (dict): parameter for the figure
+    """
     line = Line2D((x1, x2), (y1, y2),
                   color='k', lw=plot_params['linewidth'])
     ax.add_line(line)
 
 
 def text(ax, x, y, textstr, plot_params, box=False):
+    """
+    draw the name of gate or qubit and draw the rectangle box at (x, y)
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        textstr (str): text of the gate and box
+        plot_params (dict): parameter for the text
+        box (bool): draw the rectangle box if box is True
+    """
     linewidth = plot_params['linewidth']
     fontsize = plot_params['fontsize']
 
     if box:
-        bbox = dict(ec='k', fc='w', fill=True, lw=linewidth)  # draw gate box
+        # draw gate box
+        bbox = dict(ec='k', fc='w', fill=True, lw=linewidth)
     else:
-        bbox = dict(ec='w', fc='w', fill=False, lw=linewidth)  # draw the qubit box
-    ax.text(x, y, textstr, color='k', ha='center', va='center', bbox=bbox, size=fontsize)
-    return
-
+        # draw the qubit box
+        bbox = dict(ec='w', fc='w', fill=False, lw=linewidth)
+    # draw the text
+    ax.text(x, y, textstr, color='k', ha='center', va='center',
+            bbox=bbox, size=fontsize)
 
 def oplus(ax, x, y, plot_params):
-    Line2D = matplotlib.lines.Line2D
-    Circle = matplotlib.patches.Circle
+    """
+    Draw the Symbol for control gate
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        plot_params (dict): parameter for the text
+    """
     not_radius = plot_params['not_radius']
     linewidth = plot_params['linewidth']
+
     c = Circle((x, y), not_radius, ec='k',
                fc='w', fill=False, lw=linewidth)
     ax.add_patch(c)
-    line(ax, x, x, y - not_radius, y + not_radius, plot_params)
-    return
 
+    line(ax, x, x, y - not_radius, y + not_radius, plot_params)
 
 def cdot(ax, x, y, plot_params):
-    Circle = matplotlib.patches.Circle
+    """
+    draw the control dot for control gate
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        plot_params (dict): parameter for the text
+    """
     control_radius = plot_params['control_radius']
     scale = plot_params['scale']
     linewidth = plot_params['linewidth']
+
     c = Circle((x, y), control_radius * scale,
                ec='k', fc='k', fill=True, lw=linewidth)
     ax.add_patch(c)
-    return
-
 
 def swapx(ax, x, y, plot_params):
+    """
+    draw the SwapX symbol
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        plot_params (dict): parameter for the text
+    """
     d = plot_params['swap_delta']
     linewidth = plot_params['linewidth']
     line(ax, x - d, x + d, y - d, y + d, plot_params)
     line(ax, x - d, x + d, y + d, y - d, plot_params)
-    return
 
-
-def setup_figure(nq, ng, gate_grid, wire_grid, plot_params):
+def setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params):
+    """
+    Create the figure and set up the parameter of figure
+    Args:
+        n_labels (int): number of labels representing qubits
+        n_gates (int): number of gates to be drawed
+        gate_grid (ndarray): grid for positioning gates
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    Returns:
+    return the Figure and AxesSubplot object
+    """
     scale = plot_params['scale']
     fig = plt.figure(
-        figsize=(ng * scale, nq * scale),
+        figsize=(n_gates * scale, n_labels * scale),
         facecolor='w',
         edgecolor='w'
     )
-    ax = fig.add_subplot(1, 1, 1, frameon=True)
+
+    ax = plt.subplot()
     ax.set_axis_off()
     offset = 0.5 * scale
     ax.set_xlim(gate_grid[0] - offset, gate_grid[-1] + offset)
@@ -245,68 +297,102 @@ def setup_figure(nq, ng, gate_grid, wire_grid, plot_params):
     ax.set_aspect('equal')
     return fig, ax
 
-
-def draw_wires(ax, nq, gate_grid, wire_grid, plot_params, measured={}):
+def draw_wires(ax, n_labels, gate_grid, wire_grid, plot_params):
+    """
+    draw the circuit wire
+    Args:
+        ax (AxesSubplot): axes object
+        n_labels (int): number of qubit
+        gate_grid (ndarray): grid for positioning gates
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
     scale = plot_params['scale']
     linewidth = plot_params['linewidth']
     xdata = (gate_grid[0] - scale, gate_grid[-1] + scale)
-    for i in range(nq):
-        line(ax, gate_grid[0] - scale, gate_grid[-1] + scale, wire_grid[i], wire_grid[i], plot_params)
-    return
 
+    for i in range(n_labels):
+        line(ax, gate_grid[0] - scale, gate_grid[-1] + scale,
+             wire_grid[i], wire_grid[i], plot_params)
 
 def draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params):
-    # Add the doubling for measured wires:
+    """
+    Add the doubling for measured wires
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
     scale = plot_params['scale']
-    dy = 0.04  # TODO: add to plot_params
+    dy = plot_params['linebetween']
 
+    # gate_grid indicate x-axes
     line(ax, x, gate_grid[-1] + scale, y + dy, y + dy, plot_params)
 
-    # wired_grid indicate which qubit it belongs to
-    # gate_grid is the x-axes, x2=grid_grid[-1], so it will always draw the line to the end.
-    return
-
-
 def draw_labels(ax, labels, inits, gate_grid, wire_grid, plot_params):
+    """
+    draw the qubit label
+    Args:
+        ax (AxesSubplot): axes object
+        labels (list): labels of the qubit to be drawed
+        inits (list): Initialization of qubits
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
     scale = plot_params['scale']
     label_buffer = plot_params['label_buffer']
     fontsize = plot_params['fontsize']
-    nq = len(labels)
+    n_labels = len(labels)
+    if inits is None:
+        inits = {label: 0 for label in labels}
     xdata = (gate_grid[0] - scale, gate_grid[-1] + scale)
-    for i in range(nq):
+    for i in range(n_labels):
         j = get_flipped_index(labels[i], labels)
-        text(ax, xdata[0] - label_buffer, wire_grid[j], render_label(labels[i], inits), plot_params)
-    return
-
+        text(ax, xdata[0] - label_buffer, wire_grid[j],
+             render_label(labels[i], inits), plot_params)
 
 def get_flipped_index(target, labels):
-    """Get qubit labels from the rest of the line,and return indices
+    """
+    flip the index of the target qubit in order to match the coordination
 
     >>> get_flipped_index('q0', ['q0', 'q1'])
     1
     >>> get_flipped_index('q1', ['q0', 'q1'])
     0
+
+    Args:
+        target (str): target qubit
+        labels (list): contains all labels of qubits
     """
-    nq = len(labels)
+
+    n_labels = len(labels)
     i = labels.index(target)
-    return nq - i - 1
 
+    return n_labels - i - 1
 
-def get_flipped_indices(targets, labels): return [get_flipped_index(t, labels) for t in targets]
-
+def get_flipped_indices(targets, labels):
+    """
+    flip the index of the target qubit for multi targets
+    Args:
+        target (str): target qubit
+        labels (list): contains all labels of qubits
+    """
+    return [get_flipped_index(t, labels) for t in targets]
 
 def render_label(label, inits={}):
-    """Slightly more flexible way to render labels.
-
-    >>> render_label('q0')
-    '$|q0\\\\rangle$'
-    >>> render_label('q0', {'q0':'0'})
-    '$|0\\\\rangle$'
+    """
+    render qubit label as |0>
+    Args:
+        label: label of the qubit
+        inits (list): initial qubits
     """
     if label in inits:
         s = inits[label]
         if s is None:
             return ''
-        else:
-            return r'$|%s\rangle$' % inits[label]
-    return r'$|%s\rangle$' % label
+        return  r'$|{}\rangle$'.format(s)
+    return r'$|{}\rangle$'.format(label)

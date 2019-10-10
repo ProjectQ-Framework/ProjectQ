@@ -56,16 +56,20 @@ class CircuitDrawerMatplotlib(BasicEngine):
     def __init__(self, accept_input=False, default_measure=0):
         """
         Initialize a circuit drawing engine(mpl)
+        Args:
+            accept_input (bool): If accept_input is true, the printer queries
+                the user to input measurement results if the CircuitDrawerMPL is
+                the last engine. Otherwise, all measurements yield the result
+                default_measure (0 or 1).
+            default_measure (bool): Default value to use as measurement
+                results if accept_input is False and there is no underlying
+                backend to register real measurement results.
         """
         BasicEngine.__init__(self)
-
         self._accept_input = accept_input
         self._default_measure = default_measure
-        self._qubit_lines = dict()
-        self._free_lines = []
         self._map = dict()
         self._gates = []
-        self._qubits = [] 
     
     def is_available(self, cmd):
         """
@@ -100,11 +104,9 @@ class CircuitDrawerMatplotlib(BasicEngine):
             qubit_id = cmd.qubits[0][0].id
             if qubit_id not in self._map:
                 self._map[qubit_id] = qubit_id
-            self._qubit_lines[qubit_id] = []
 
         if cmd.gate == Deallocate:
             qubit_id = cmd.qubits[0][0].id
-            self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
             assert(get_control_count(cmd) == 0)
@@ -121,15 +123,6 @@ class CircuitDrawerMatplotlib(BasicEngine):
                     m = int(m)
                     self.main_engine.set_measurement_result(qubit, m)
 
-        all_lines = [qb.id for qr in cmd.all_qubits for qb in qr]
-
-        gate = cmd.gate
-        lines = [qb.id for qr in cmd.qubits for qb in qr]
-        ctrl_lines = [qb.id for qb in cmd.control_qubits]
-        item = CircuitItem(gate, lines, ctrl_lines)
-        for l in all_lines:
-            self._qubit_lines[l].append(item)
-
     def receive(self, command_list):
         """
         Receive a list of commands from the previous engine, print the
@@ -143,7 +136,8 @@ class CircuitDrawerMatplotlib(BasicEngine):
             l = []
             g = str(cmd.gate)
             for q in cmd.qubits:
-                l.append(str(q[0]))  # assume single target, the first element of q is the target qubit.
+                l.append(str(q[0]))  
+                # assume single target, 1st. element of q is the target qubit.
             if len(cmd.control_qubits) > 0:
                 for cq in cmd.control_qubits:
                     l.append(str(cq))
@@ -161,7 +155,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
     def draw(self):
         """
-        Use Matplotlib to plot a quantum circuit.
+        Returns the plot of the quantum circuit
         """
         qubits = [str(self._map[id]) for id in self._map]
         # extract all the allocated qubits from the circuit
