@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle
+from matplotlib.patches import Arc
 
 def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
     """
@@ -174,12 +175,38 @@ def draw_target(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
         swapx(ax, x, y, plot_params)
     elif name == 'Measure':
         draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params)
+        
+        measure(ax, x, y, plot_params)
 
-        symbol = 'M' # it should be updated by new measurement symbol
-
-        text(ax, x, y, symbol, plot_params, box=True)
     else:
         text(ax, x, y, symbol, plot_params, box=True)
+
+def measure(ax, x, y, plot_params):
+    """
+    drawing the measure gate
+    Args:
+        ax (AxesSubplot): axes object
+        x (float): x coordinate
+        y (float): y coordinate
+        plot_params: 
+
+    Returns:
+
+    """
+    HIG = 0.65
+    WID = 0.65
+    s = ''.ljust(5)
+
+    # add box
+    text(ax, x, y, s, plot_params, box=True)
+    # add measure symbol
+    arc = Arc(xy=(x, y - 0.15 * HIG), width=WID * 0.7,
+                      height=HIG * 0.7, theta1=0, theta2=180,
+                      fill=False, linewidth=1,zorder=5)
+    ax.add_patch(arc)
+    ax.plot([x, x + 0.35 * WID],
+                 [y - 0.15 * HIG, y + 0.20 * HIG], color='k',
+                 linewidth=1, zorder=5)
 
 def line(ax, x1, x2, y1, y2, plot_params):
     """
