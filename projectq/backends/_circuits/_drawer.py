@@ -136,11 +136,11 @@ class CircuitDrawerMatplotlib(BasicEngine):
             l = []
             g = str(cmd.gate)
             for q in cmd.qubits:
-                l.append(str(q[0]))  
+                l.append(q[0].id)
                 # assume single target, 1st. element of q is the target qubit.
             if len(cmd.control_qubits) > 0:
                 for cq in cmd.control_qubits:
-                    l.append(str(cq))
+                    l.append(cq.id)
 
             listOfStrings = ['', 'Allocate']
 
@@ -157,7 +157,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         """
         Returns the plot of the quantum circuit
         """
-        qubits = [str(self._map[id]) for id in self._map]
+        qubits = [self._map[id] for id in self._map]
         # extract all the allocated qubits from the circuit
         
         return to_draw(self._gates, qubits)

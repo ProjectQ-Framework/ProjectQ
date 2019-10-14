@@ -38,9 +38,11 @@ def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
     plot_params.update(kwargs)
     scale = plot_params['scale']
 
+    if len(inits) == 0:
+        inits = {label: 0 for label in labels}
+
     n_labels = len(labels)
     n_gates = len(gates)
-    inits = {label: 0 for label in labels}
 
     # create grid for the plot
     wire_grid = np.arange(0.0, n_labels * scale, scale, dtype=float)
@@ -78,17 +80,28 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
             qb_target = gate[1]
             qb_control = gate[2]
 
-            x_position = max(x_labels[qb_target], x_labels[qb_control])
+            # get the index of qubit between control and target qubit
+            begin = min(qb_control, qb_target)
+            end = max(qb_control, qb_target)
+
+            # check the max position between control and target gate
+            MaxPosition = max(x_labels[qb_target], x_labels[qb_control])
+            CheckMax = False
+            for x in range(begin, end + 1):
+                if x_labels[x] > MaxPosition:
+                    CheckMax = True
+                    break
+            if CheckMax:
+                x_position = max(x_labels.values())
+            else:
+                x_position = max(x_labels[qb_target], x_labels[qb_control])
+
             draw_controls(ax, x_position, gate, labels,
                           gate_grid, wire_grid, plot_params)
 
             x_labels[qb_target] = x_position
             draw_target(ax, x_labels[qb_target], gate, labels,
                         gate_grid, wire_grid, plot_params)
-
-            # get the index of qubit between control and target qubit
-            begin = min(qb_control, qb_target)
-            end = max(qb_control, qb_target)
 
             # update the position by adding 1
             for itr, value in x_labels.items():
@@ -120,7 +133,7 @@ def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
     control_radius = plot_params['control_radius']
 
     # what about multi target, can't set 2 here..
-    # make a case, specifically for multi target gate..
+    # ToDo: make a case, specifically for multi target gate..
     name, target = gate[:2]
     target_index = get_flipped_index(target, labels)
 
@@ -188,10 +201,7 @@ def measure(ax, x, y, plot_params):
         ax (AxesSubplot): axes object
         x (float): x coordinate
         y (float): y coordinate
-        plot_params: 
-
-    Returns:
-
+        plot_params (dict): parameter for the figure
     """
     HIG = 0.65
     WID = 0.65
