@@ -31,7 +31,6 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
-from ._command_list import CommandList
 from ._multi_qubit_gate_manager import (MultiQubitGateManager,
                                         look_ahead_parallelism_cost_fun)
 
@@ -59,7 +58,7 @@ class GraphMapperError(Exception):
 
 
 def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
-                                stored_commands):
+                                commands_dag):
     """
     Add active qubits to a mapping.
 
@@ -127,7 +126,7 @@ def _generate_mapping_minimize_swaps(graph, qubit_interaction_subgraphs):
 
 
 def _add_qubits_to_mapping_smart_init(current_mapping, graph,
-                                      new_logical_qubit_ids, stored_commands):
+                                      new_logical_qubit_ids, commands_dag):
     """
     Add active qubits to a mapping.
 
@@ -148,7 +147,7 @@ def _add_qubits_to_mapping_smart_init(current_mapping, graph,
     Returns: A new mapping
     """
     qubit_interaction_subgraphs = \
-        stored_commands.calculate_qubit_interaction_subgraphs(order=2)
+        commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
 
     # Interaction subgraph list can be empty if only single qubit gates are
     # present
@@ -159,11 +158,11 @@ def _add_qubits_to_mapping_smart_init(current_mapping, graph,
         return _generate_mapping_minimize_swaps(graph,
                                                 qubit_interaction_subgraphs)
     return _add_qubits_to_mapping_fcfs(current_mapping, graph,
-                                       new_logical_qubit_ids, stored_commands)
+                                       new_logical_qubit_ids, commands_dag)
 
 
 def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
-                           stored_commands):
+                           commands_dag):
     """
     Add active qubits to a mapping
 
@@ -184,7 +183,7 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
     Returns: A new mapping
     """
     qubit_interaction_subgraphs = \
-        stored_commands.calculate_qubit_interaction_subgraphs(order=2)
+        commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
 
     # Interaction subgraph list can be empty if only single qubit gates are
     # present
@@ -200,8 +199,7 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
     available_nodes = sorted(
         [n for n in graph if n not in currently_used_nodes],
         key=lambda n: len(graph[n]))
-    interactions = list(
-        itertools.chain.from_iterable(stored_commands.interactions))
+    interactions = commands_dag.calculate_interaction_list()
 
     for logical_id in uniquify_list(new_logical_qubit_ids):
         qubit_interactions = uniquify_list([
@@ -267,16 +265,21 @@ class GraphMapper(BasicMapperEngine):
                                                 are to be added to the current
                                                 mapping.
                                                 Special possible string values:
-                                                "fcfs": first-come first serve
-                                                "fcfs_init": first-come first
-                                                             serve with smarter
-                                                             mapping
-                                                             initialisation
-                                                Signature of the function call:
-                                                     current_mapping
-                                                     graph
-                                                     new_logical_qubit_ids
-                                                     stored_commands
+
+                                                - ``"fcfs"``: first-come first
+                                                  serve
+                                                - ``"fcfs_init"``: first-come
+                                                  first serve with smarter
+                                                  mapping initialisation
+
+    Note:
+        1) Gates are cached and only mapped from time to time. A
+           FastForwarding gate doesn't empty the cache, only a FlushGate does.
+        2) Only 1 and two qubit gates allowed.
+        3) Does not optimize for dirty qubits.
+        4) Signature for third argument is
+           ``add_qubits_to_mapping(current_mapping, graph,
+           new_logical_qubit_ids, command_dag)``
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
@@ -292,13 +295,6 @@ class GraphMapper(BasicMapperEngine):
                                          mappings which have been applied
         path_stats (dict) : Key is the endpoints of a path, value is the number
                             of such paths which have been applied
-
-    Note:
-        1) Gates are cached and only mapped from time to time. A
-           FastForwarding gate doesn't empty the cache, only a FlushGate does.
-        2) Only 1 and two qubit gates allowed.
-        3) Does not optimize for dirty qubits.
-
     """
     def __init__(self,
                  graph,
@@ -359,8 +355,6 @@ class GraphMapper(BasicMapperEngine):
         # the bound methods of the random module which might be used in other
         # places.
         self._rng = random.Random(11)
-        # Storing commands
-        self._stored_commands = CommandList()
         # Logical qubit ids for which the Allocate gate has already been
         # processed and sent to the next engine but which are not yet
         # deallocated:
@@ -373,6 +367,7 @@ class GraphMapper(BasicMapperEngine):
 
         self._cost_fun = opts.get('cost_fun', look_ahead_parallelism_cost_fun)
         self._opts = opts.get('opts', {'W': 0.5})
+        self._max_swap_steps = opts.get('max_swap_steps', 30)
 
         # Statistics:
         self.num_mappings = 0
@@ -417,154 +412,83 @@ class GraphMapper(BasicMapperEngine):
             num_qubits += len(qureg)
         return num_qubits <= 2
 
-    def _process_commands(self):
+    def _send_single_command(self, cmd):
         """
-        Process commands and if necessary, calculate paths through the graph.
-
-        Attempts to find as many paths through the graph as possible in order
-        to generate a new mapping that is able to apply as many gates as
-        possible.
-
-        It goes through stored_commands and tries to find paths through the
-        graph that can be applied simultaneously to move the qubits without
-        side effects so that as many gates can be applied; gates are applied
-        on on a first come first served basis.
+        Send a command to the next engine taking care of mapped qubit IDs
 
         Args:
-            None (list): Nothing here for now
-
-        Returns: A list of paths through the graph to move some qubits and have
-                 them interact
+            cmd (Command): A ProjectQ command
         """
-        not_in_mapping_qubits = []
-        allocated_qubits = deepcopy(self._currently_allocated_ids)
-        active_qubits = deepcopy(self._currently_allocated_ids)
 
-        for cmd in self._stored_commands:
-            if (len(allocated_qubits) == self.num_qubits
-                    and not active_qubits):
-                break
-
-            qubit_ids = [
-                qubit.id for qureg in cmd.all_qubits for qubit in qureg
-            ]
-
-            if len(qubit_ids) > 2 or not qubit_ids:
-                raise Exception("Invalid command (number of qubits): " +
-                                str(cmd))
-
-            elif isinstance(cmd.gate, AllocateQubitGate):
-                qubit_id = cmd.qubits[0][0].id
-                if len(allocated_qubits) < self.num_qubits:
-                    allocated_qubits.add(qubit_id)
-                    active_qubits.add(qubit_id)
-                    if qubit_id not in self._current_mapping:
-                        not_in_mapping_qubits.append(qubit_id)
-                        # not_in_mapping_qubits.add(qubit_id)
-
-            elif isinstance(cmd.gate, DeallocateQubitGate):
-                qubit_id = cmd.qubits[0][0].id
-                if qubit_id in active_qubits:
-                    active_qubits.remove(qubit_id)
-                    # Do not remove from allocated_qubits as this would
-                    # allow the mapper to add a new qubit to this location
-                    # before the next swaps which is currently not
-                    # supported
-
-            # Process a two qubit gate:
-            elif len(qubit_ids) == 2:
-                # At least one qubit is not an active qubit:
-                if qubit_ids[0] not in active_qubits \
-                   or qubit_ids[1] not in active_qubits:
-                    active_qubits.discard(qubit_ids[0])
-                    active_qubits.discard(qubit_ids[1])
-                else:
-                    if not_in_mapping_qubits:
-                        self.current_mapping = self._add_qubits_to_mapping(
-                            self._current_mapping, self.qubit_manager.graph,
-                            not_in_mapping_qubits, self._stored_commands)
-                        not_in_mapping_qubits = []
-
-                    self.qubit_manager.push_interaction(
-                        qubit_ids[0], qubit_ids[1])
-
-        if not_in_mapping_qubits:
-            self.current_mapping = self._add_qubits_to_mapping(
-                self._current_mapping, self.qubit_manager.graph,
-                not_in_mapping_qubits, self._stored_commands)
+        if isinstance(cmd.gate, AllocateQubitGate):
+            assert cmd.qubits[0][0].id in self._current_mapping
+            qb0 = WeakQubitRef(engine=self,
+                               idx=self._current_mapping[cmd.qubits[0][0].id])
+            self._currently_allocated_ids.add(cmd.qubits[0][0].id)
+            self.send([
+                Command(engine=self,
+                        gate=AllocateQubitGate(),
+                        qubits=([qb0], ),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+            ])
+        elif isinstance(cmd.gate, DeallocateQubitGate):
+            assert cmd.qubits[0][0].id in self._current_mapping
+            qb0 = WeakQubitRef(engine=self,
+                               idx=self._current_mapping[cmd.qubits[0][0].id])
+            self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
+            self._current_mapping.pop(cmd.qubits[0][0].id)
+            self.send([
+                Command(engine=self,
+                        gate=DeallocateQubitGate(),
+                        qubits=([qb0], ),
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+            ])
+        else:
+            self._send_cmd_with_mapped_ids(cmd)
 
     def _send_possible_commands(self):
         """
-        Send the stored commands possible without changing the mapping.
+        Send as many commands as possible without introducing swap operations
+
+        Note:
+            This function will modify the current mapping when qubit
+            allocation/deallocation gates are encountered
         """
-        active_ids = deepcopy(self._currently_allocated_ids)
 
-        for logical_id in self._current_mapping:
-            # So that loop doesn't stop before AllocateGate applied
-            active_ids.add(logical_id)
+        (cmds_to_execute,
+         allocate_cmds) = self.qubit_manager.get_executable_commands(
+             self._current_mapping)
 
-        new_stored_commands = CommandList()
-        for i in range(len(self._stored_commands)):
-            cmd = self._stored_commands[i]
-            if not active_ids:
-                new_stored_commands += self._stored_commands[i:]
-                break
-            if isinstance(cmd.gate, AllocateQubitGate):
-                if cmd.qubits[0][0].id in self._current_mapping:
-                    qb0 = WeakQubitRef(
-                        engine=self,
-                        idx=self._current_mapping[cmd.qubits[0][0].id])
-                    self._currently_allocated_ids.add(cmd.qubits[0][0].id)
-                    self.send([
-                        Command(engine=self,
-                                gate=AllocateQubitGate(),
-                                qubits=([qb0], ),
-                                tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
-                    ])
-                else:
-                    new_stored_commands.append(cmd)
-            elif isinstance(cmd.gate, DeallocateQubitGate):
-                if cmd.qubits[0][0].id in active_ids:
-                    qb0 = WeakQubitRef(
-                        engine=self,
-                        idx=self._current_mapping[cmd.qubits[0][0].id])
-                    self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
-                    active_ids.remove(cmd.qubits[0][0].id)
-                    self._current_mapping.pop(cmd.qubits[0][0].id)
-                    self.send([
-                        Command(engine=self,
-                                gate=DeallocateQubitGate(),
-                                qubits=([qb0], ),
-                                tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
-                    ])
-                else:
-                    new_stored_commands.append(cmd)
-            else:
-                send_gate = True
-                logical_ids = []
-                for qureg in cmd.all_qubits:
-                    for qubit in qureg:
-                        logical_ids.append(qubit.id)
+        # Execute all the commands that can possibly be executed
+        for cmd in cmds_to_execute:
+            self._send_single_command(cmd)
 
-                        if qubit.id not in active_ids:
-                            send_gate = False
+        # There are no more commands to
+        num_available_qubits = self.num_qubits - len(self._current_mapping)
+        if allocate_cmds and num_available_qubits > 0:
 
-                if send_gate:
-                    # Check that mapped ids are connected by an edge on the
-                    # graph
-                    if len(logical_ids) == 2:
-                        send_gate = self.qubit_manager.execute_gate(
-                            self._current_mapping, *logical_ids)
+            def rank_allocate_cmds(l, dag):
+                return l
 
-                if send_gate:
-                    self._send_cmd_with_mapped_ids(cmd)
-                else:
-                    # Cannot execute gate -> make sure no other gate will use
-                    # any of those qubits to preserve sequence
-                    for logical_id in logical_ids:
-                        active_ids.discard(logical_id)
-                    new_stored_commands.append(cmd)
-        self._stored_commands = new_stored_commands
+            allocate_cmds = rank_allocate_cmds(
+                allocate_cmds, self.qubit_manager._dag)[:num_available_qubits]
+            not_in_mapping_qubits = [node.logical_id for node in allocate_cmds]
+
+            new_mapping = self._add_qubits_to_mapping(self._current_mapping,
+                                                      self.qubit_manager.graph,
+                                                      not_in_mapping_qubits,
+                                                      self.qubit_manager._dag)
+
+            self.current_mapping = new_mapping
+
+            for cmd in self.qubit_manager.execute_allocate_cmds(
+                    allocate_cmds, self._current_mapping):
+                self._send_single_command(cmd)
+
+            cmds_to_execute, _ = self.qubit_manager.get_executable_commands(
+                self._current_mapping)
+            for cmd in cmds_to_execute:
+                self._send_single_command(cmd)
 
     def _run(self):
         """
@@ -576,18 +500,18 @@ class GraphMapper(BasicMapperEngine):
         executes all possible gates, and finally deallocates mapped qubit ids
         which don't store any information.
         """
-        num_of_stored_commands_before = len(self._stored_commands)
 
-        # Go through the command list and generate a list of paths.
-        # At the same time, add soon-to-be-allocated qubits to the mapping
-        self._process_commands()
+        num_of_stored_commands_before = self.qubit_manager.size()
 
         self._send_possible_commands()
-        if not self._stored_commands:
+        if not self.qubit_manager.size():
             return
 
         swaps, all_swapped_qubits = self.qubit_manager.generate_swaps(
-            self._current_mapping, self._cost_fun, self._opts)
+            self._current_mapping,
+            cost_fun=self._cost_fun,
+            opts=self._opts,
+            max_steps=self._max_swap_steps)
 
         if swaps:  # first mapping requires no swaps
             backend_ids_used = {
@@ -678,8 +602,9 @@ class GraphMapper(BasicMapperEngine):
 
         # Send possible gates:
         self._send_possible_commands()
+
         # Check that mapper actually made progress
-        if len(self._stored_commands) == num_of_stored_commands_before:
+        if self.qubit_manager.size() == num_of_stored_commands_before:
             raise RuntimeError("Mapper is potentially in an infinite loop. "
                                "It is likely that the algorithm requires "
                                "too many qubits. Increase the number of "
@@ -697,15 +622,24 @@ class GraphMapper(BasicMapperEngine):
                 receive.
         """
         for cmd in command_list:
-            print(cmd)
+
+            qubit_ids = [
+                qubit.id for qureg in cmd.all_qubits for qubit in qureg
+            ]
+
+            if len(qubit_ids) > 2 or not qubit_ids:
+                raise Exception("Invalid command (number of qubits): " +
+                                str(cmd))
+
             if isinstance(cmd.gate, FlushGate):
-                while self._stored_commands:
+                while self.qubit_manager.size() > 0:
                     self._run()
                 self.send([cmd])
             else:
-                self._stored_commands.append(cmd)
+                self.qubit_manager.add_command(cmd)
+
             # Storage is full: Create new map and send some gates away:
-            if len(self._stored_commands) >= self.storage:
+            if self.qubit_manager.size() >= self.storage:
                 self._run()
 
     def __str__(self):
