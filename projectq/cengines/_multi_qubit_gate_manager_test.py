@@ -441,15 +441,15 @@ def test_command_dag_remove_from_front_layer1(command_dag):
         search_cmd(command_dag, cmd0)
 
     with pytest.raises(RuntimeError):
-        command_dag.remove_from_front_layer(cmd0)
+        command_dag._remove_from_front_layer(cmd0)
 
     assert command_dag.front_layer == [dag_allocate0]
 
-    command_dag.remove_from_front_layer(allocate0)
+    command_dag._remove_from_front_layer(allocate0)
     assert command_dag.front_layer == [dag_deallocate]
     assert command_dag._logical_ids_in_diag == {0}
 
-    command_dag.remove_from_front_layer(deallocate0)
+    command_dag._remove_from_front_layer(deallocate0)
     assert not command_dag.front_layer
 
 
@@ -474,64 +474,24 @@ def test_command_dag_remove_from_front_layer2(command_dag):
     dag_node78 = search_cmd(command_dag, cmd78)
 
     with pytest.raises(RuntimeError):
-        command_dag.remove_from_front_layer(cmd12)
+        command_dag._remove_from_front_layer(cmd12)
 
     assert command_dag.front_layer == [dag_node01, dag_node56, dag_node78]
 
-    command_dag.remove_from_front_layer(cmd78)
+    command_dag._remove_from_front_layer(cmd78)
     assert command_dag.front_layer == [dag_node01, dag_node56]
     assert command_dag._logical_ids_in_diag == {0, 1, 2, 5, 6}
     assert 7 not in command_dag._back_layer
     assert 8 not in command_dag._back_layer
 
-    command_dag.remove_from_front_layer(cmd01)
+    command_dag._remove_from_front_layer(cmd01)
     assert command_dag.front_layer == [dag_node56, dag_node12]
 
-    command_dag.remove_from_front_layer(cmd56)
+    command_dag._remove_from_front_layer(cmd56)
     assert command_dag.front_layer == [dag_node12]
 
-    command_dag.remove_from_front_layer(cmd12)
+    command_dag._remove_from_front_layer(cmd12)
     assert command_dag.front_layer == [dag_node26]
-
-
-def test_command_dag_max_distance(command_dag):
-    cmd23a = gen_cmd(2, 3)
-    cmd56 = gen_cmd(5, 6)
-    cmd12 = gen_cmd(1, 2)
-    cmd34 = gen_cmd(3, 4)
-    cmd23b = gen_cmd(2, 3)
-    cmd46 = gen_cmd(4, 6)
-    cmd45 = gen_cmd(5, 4)
-    cmd14 = gen_cmd(4, 1)
-
-    # ----------------------------------
-
-    command_dag.add_command(cmd23a)
-    command_dag.add_command(cmd56)
-    command_dag.add_command(cmd12)
-    command_dag.add_command(cmd34)
-    command_dag.add_command(cmd23b)
-    command_dag.add_command(cmd46)
-    command_dag.add_command(cmd45)
-    command_dag.add_command(cmd14)
-    dag_node23a = search_cmd(command_dag, cmd23a)
-    dag_node56 = search_cmd(command_dag, cmd56)
-    dag_node12 = search_cmd(command_dag, cmd12)
-    dag_node34 = search_cmd(command_dag, cmd34)
-    dag_node23b = search_cmd(command_dag, cmd23b)
-    dag_node46 = search_cmd(command_dag, cmd46)
-    dag_node45 = search_cmd(command_dag, cmd45)
-    dag_node14 = search_cmd(command_dag, cmd14)
-
-    distance = command_dag.max_distance_in_dag()
-    assert distance[dag_node23a] == 0
-    assert distance[dag_node56] == 0
-    assert distance[dag_node12] == 1
-    assert distance[dag_node34] == 1
-    assert distance[dag_node23b] == 2
-    assert distance[dag_node46] == 2
-    assert distance[dag_node45] == 3
-    assert distance[dag_node14] == 4
 
 
 def test_command_dag_near_term_layer(command_dag):
@@ -715,10 +675,10 @@ def test_qubit_manager_clear(qubit_manager):
     qubit_manager._decay.add_to_decay(0)
 
     assert qubit_manager._decay._backend_ids
-    assert qubit_manager._dag._dag
+    assert qubit_manager.dag._dag
     qubit_manager.clear()
     assert not qubit_manager._decay._backend_ids
-    assert not qubit_manager._dag._dag
+    assert not qubit_manager.dag._dag
 
 
 def test_qubit_manager_generate_one_swap_step(qubit_manager):
@@ -874,7 +834,7 @@ def test_qubit_manager_get_executable_commands(qubit_manager):
     manager.add_command(cmd8b)
     manager.add_command(cmd7)
 
-    dag_allocate7 = search_cmd(manager._dag, cmd7)
+    dag_allocate7 = search_cmd(manager.dag, cmd7)
 
     assert manager.size() == 6
 
@@ -898,7 +858,7 @@ def test_qubit_manager_get_executable_commands(qubit_manager):
     manager.add_command(cmd8b)
     manager.add_command(cmd7)
 
-    dag_allocate7 = search_cmd(manager._dag, cmd7)
+    dag_allocate7 = search_cmd(manager.dag, cmd7)
 
     cmds_to_execute, allocate_cmds = manager.get_executable_commands(mapping)
 

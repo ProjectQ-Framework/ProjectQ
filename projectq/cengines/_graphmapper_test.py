@@ -140,7 +140,7 @@ def simple_mapper(simple_graph):
 
 
 def get_node_list(self):
-    return list(self._dag._dag.nodes)
+    return list(self.dag._dag.nodes)
 
 
 graphm.MultiQubitGateManager._get_node_list = get_node_list

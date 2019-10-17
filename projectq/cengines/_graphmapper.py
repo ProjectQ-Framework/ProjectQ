@@ -24,7 +24,7 @@ Output: Quantum circuit in which qubits are placed in 2-D square grid in which
 from copy import deepcopy
 
 import random
-import itertools
+import sys
 
 from projectq.cengines import (BasicMapperEngine, return_swap_depth)
 from projectq.meta import LogicalQubitIDTag
@@ -37,14 +37,15 @@ from ._multi_qubit_gate_manager import (MultiQubitGateManager,
 # ------------------------------------------------------------------------------
 
 # https://www.peterbe.com/plog/fastest-way-to-uniquify-a-list-in-python-3.6
-import sys
 if sys.version_info[0] >= 3 and sys.version_info[1] > 6:  # pragma: no cover
 
     def uniquify_list(seq):
+        #pylint: disable=missing-function-docstring
         return list(dict.fromkeys(seq))
 else:  # pragma: no cover
 
     def uniquify_list(seq):
+        #pylint: disable=missing-function-docstring
         seen = set()
         seen_add = seen.add
         return [x for x in seq if x not in seen and not seen_add(x)]
@@ -78,6 +79,8 @@ def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
 
     Returns: A new mapping
     """
+    #pylint: disable=unused-argument
+
     mapping = deepcopy(current_mapping)
     currently_used_nodes = sorted([v for _, v in mapping.items()])
     available_nodes = [n for n in graph if n not in currently_used_nodes]
@@ -199,11 +202,11 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
     available_nodes = sorted(
         [n for n in graph if n not in currently_used_nodes],
         key=lambda n: len(graph[n]))
-    interactions = commands_dag.calculate_interaction_list()
 
     for logical_id in uniquify_list(new_logical_qubit_ids):
         qubit_interactions = uniquify_list([
-            i[0] if i[0] != logical_id else i[1] for i in interactions
+            i[0] if i[0] != logical_id else i[1]
+            for i in commands_dag.calculate_interaction_list()
             if logical_id in i
         ])
 
@@ -300,7 +303,7 @@ class GraphMapper(BasicMapperEngine):
                  graph,
                  storage=1000,
                  add_qubits_to_mapping=_add_qubits_to_mapping,
-                 opts={}):
+                 opts=None):
         """
         Initialize a GraphMapper compiler engine.
 
@@ -342,8 +345,13 @@ class GraphMapper(BasicMapperEngine):
         """
         BasicMapperEngine.__init__(self)
 
+        if opts is None:
+            self._opts = {}
+        else:
+            self._opts = opts
+
         self.qubit_manager = MultiQubitGateManager(graph=graph,
-                                                   decay_opts=opts.get(
+                                                   decay_opts=self._opts.get(
                                                        'decay_opts', {
                                                            'delta': 0.001,
                                                            'max_lifetime': 5
@@ -364,10 +372,6 @@ class GraphMapper(BasicMapperEngine):
         self._reverse_current_mapping = dict()
         # Function to add new logical qubits ids to the mapping
         self.set_add_qubits_to_mapping(add_qubits_to_mapping)
-
-        self._cost_fun = opts.get('cost_fun', look_ahead_parallelism_cost_fun)
-        self._opts = opts.get('opts', {'W': 0.5})
-        self._max_swap_steps = opts.get('max_swap_steps', 30)
 
         # Statistics:
         self.num_mappings = 0
@@ -393,6 +397,17 @@ class GraphMapper(BasicMapperEngine):
             }
 
     def set_add_qubits_to_mapping(self, add_qubits_to_mapping):
+        """
+        Modify the callback function used to add qubits to an existing mapping
+
+        Args:
+            add_qubits_to_mapping (function): Callback function
+
+        Note:
+           Signature for callback function is:
+           ``add_qubits_to_mapping(current_mapping, graph,
+           new_logical_qubit_ids, command_dag)``
+        """
         if isinstance(add_qubits_to_mapping, str):
             if add_qubits_to_mapping.lower() == "fcfs":
                 self._add_qubits_to_mapping = _add_qubits_to_mapping_fcfs
@@ -467,17 +482,18 @@ class GraphMapper(BasicMapperEngine):
         num_available_qubits = self.num_qubits - len(self._current_mapping)
         if allocate_cmds and num_available_qubits > 0:
 
-            def rank_allocate_cmds(l, dag):
-                return l
+            def rank_allocate_cmds(cmds_list, dag):
+                #pylint: disable=unused-argument
+                return cmds_list
 
             allocate_cmds = rank_allocate_cmds(
-                allocate_cmds, self.qubit_manager._dag)[:num_available_qubits]
+                allocate_cmds, self.qubit_manager.dag)[:num_available_qubits]
             not_in_mapping_qubits = [node.logical_id for node in allocate_cmds]
 
             new_mapping = self._add_qubits_to_mapping(self._current_mapping,
                                                       self.qubit_manager.graph,
                                                       not_in_mapping_qubits,
-                                                      self.qubit_manager._dag)
+                                                      self.qubit_manager.dag)
 
             self.current_mapping = new_mapping
 
@@ -509,19 +525,18 @@ class GraphMapper(BasicMapperEngine):
 
         swaps, all_swapped_qubits = self.qubit_manager.generate_swaps(
             self._current_mapping,
-            cost_fun=self._cost_fun,
-            opts=self._opts,
-            max_steps=self._max_swap_steps)
+            cost_fun=self._opts.get('cost_fun',
+                                    look_ahead_parallelism_cost_fun),
+            opts=self._opts.get('opts', {'W': 0.5}),
+            max_steps=self._opts.get('max_swap_steps', 30))
 
-        if swaps:  # first mapping requires no swaps
-            backend_ids_used = {
-                self._current_mapping[logical_id]
-                for logical_id in self._currently_allocated_ids
-            }
-
+        if swaps:
             # Get a list of the qubits we need to allocate just to perform the
             # swaps
-            not_allocated_ids = all_swapped_qubits.difference(backend_ids_used)
+            not_allocated_ids = all_swapped_qubits.difference({
+                self._current_mapping[logical_id]
+                for logical_id in self._currently_allocated_ids
+            })
 
             # Calculate temporary internal reverse mapping
             new_internal_mapping = deepcopy(self._reverse_current_mapping)
@@ -628,8 +643,8 @@ class GraphMapper(BasicMapperEngine):
             ]
 
             if len(qubit_ids) > 2 or not qubit_ids:
-                raise Exception("Invalid command (number of qubits): " +
-                                str(cmd))
+                raise Exception("Invalid command (number of qubits): "
+                                + str(cmd))
 
             if isinstance(cmd.gate, FlushGate):
                 while self.qubit_manager.size() > 0:
@@ -663,7 +678,7 @@ class GraphMapper(BasicMapperEngine):
             num_swaps_per_mapping_str += "\n    {:3d}: {:3d}".format(
                 num_swaps_per_mapping, num_mapping)
 
-        return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n" +
-                "Number of swaps per mapping:{}\n\n{}\n\n").format(
+        return ("Number of mappings: {}\n" + "Depth of swaps:     {}\n\n"
+                + "Number of swaps per mapping:{}\n\n{}\n\n").format(
                     self.num_mappings, depth_of_swaps_str,
                     num_swaps_per_mapping_str, str(self.qubit_manager))
