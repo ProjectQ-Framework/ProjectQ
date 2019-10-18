@@ -20,7 +20,7 @@ import pytest
 
 from projectq.cengines import DummyEngine, MainEngine, NotYetMeasuredError
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import All, Allocate, CNOT, Command, H, Measure, QFT, Rz, X
+from projectq.ops import All, Allocate, CNOT, Command, H, Measure, QFT, Rz, Rzz, X
 from projectq.types import WeakQubitRef
 
 from projectq.backends import ResourceCounter
@@ -74,6 +74,7 @@ def test_resource_counter():
     CNOT | (qubit1, qubit3)
     Rz(0.1) | qubit1
     Rz(0.3) | qubit1
+    Rzz(0.5) | qubit1
 
     All(Measure) | qubit1 + qubit3
 
@@ -81,7 +82,7 @@ def test_resource_counter():
         int(qubit1)
 
     assert resource_counter.max_width == 2
-    assert resource_counter.depth_of_dag == 5
+    assert resource_counter.depth_of_dag == 6
 
     str_repr = str(resource_counter)
     assert str_repr.count(" HGate : 1") == 1
