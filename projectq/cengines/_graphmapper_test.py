@@ -182,19 +182,18 @@ def test_invalid_gates(simple_mapper):
         mapper.receive([cmd0, cmd1, cmd2, cmd3, cmd_flush])
 
 
-# def test_run_infinite_loop_detection(simple_mapper):
-#     mapper, backend = simple_mapper
-#     mapper.current_mapping = {i: i for i in range(7)}
+def test_init(simple_graph):
+    opts = {'decay_opts': {'delta': 0.002}}
 
-#     qb0 = WeakQubitRef(engine=None, idx=0)
-#     qb1 = WeakQubitRef(engine=None, idx=6)
+    mapper = graphm.GraphMapper(graph=simple_graph, opts=opts)
+    assert mapper.qubit_manager._decay._delta == 0.002
+    assert mapper.qubit_manager._decay._cutoff == 5
 
-#     qb_flush = WeakQubitRef(engine=None, idx=-1)
-#     cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+    opts = {'decay_opts': {'delta': 0.002, 'max_lifetime': 10}}
 
-#     cmd0 = Command(engine=None, gate=X, qubits=([qb0], ), controls=[qb1])
-#     with pytest.raises(RuntimeError):
-#         mapper.receive([cmd0, cmd_flush])
+    mapper = graphm.GraphMapper(graph=simple_graph, opts=opts)
+    assert mapper.qubit_manager._decay._delta == 0.002
+    assert mapper.qubit_manager._decay._cutoff == 10
 
 
 def test_resetting_mapping_to_none(simple_graph):
@@ -213,6 +212,27 @@ def test_resetting_mapping_to_none(simple_graph):
 def test_add_qubits_to_mapping_methods_failure(simple_graph):
     with pytest.raises(ValueError):
         graphm.GraphMapper(graph=simple_graph, add_qubits_to_mapping="as")
+
+
+@pytest.mark.parametrize("add_qubits", ["fcfs", "fcfs_init", "FCFS"])
+def test_add_qubits_to_mapping_methods_only_single(simple_graph, add_qubits):
+    mapper = graphm.GraphMapper(graph=simple_graph,
+                                add_qubits_to_mapping=add_qubits)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+    gates = [
+        Command(None, X, qubits=([qb[1]], )),
+        Command(None, X, qubits=([qb[2]], )),
+    ]
+
+    mapper.receive(list(itertools.chain(allocate_cmds, gates, [cmd_flush])))
+    assert mapper.num_mappings == 0
 
 
 @pytest.mark.parametrize("add_qubits", ["fcfs", "fcfs_init", "FCFS"])
@@ -594,7 +614,7 @@ def test_send_two_qubit_gate_before_swap_nonallocated_qubits(simple_mapper):
         assert mapper.current_mapping[4] == 4
         assert mapper.current_mapping[5] == 5
         assert mapper.current_mapping[6] in [3, 6]
-        
+
         if mapper.current_mapping[6] == 3:
             # qb[6] is on position 3, all commands are possible
             assert mapper.qubit_manager.size() == 0

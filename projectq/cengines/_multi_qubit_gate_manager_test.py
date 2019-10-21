@@ -17,10 +17,8 @@ from copy import deepcopy
 
 import pytest
 import networkx as nx
-# from projectq.cengines import DummyEngine, LocalOptimizer, MainEngine
-# from projectq.meta import LogicalQubitIDTag
-from projectq.ops import (Allocate, BasicGate, Command, Deallocate, FlushGate,
-                          X, H, All, Measure, CNOT)
+import re
+from projectq.ops import (Allocate, Command, Deallocate, X, H)
 from projectq.types import WeakQubitRef
 
 from projectq.cengines import _multi_qubit_gate_manager as multi
@@ -409,7 +407,7 @@ def test_command_dag_add_gate(command_dag):
     dag_node0 = search_cmd(command_dag, cmd0)
 
     assert len(command_dag.front_layer) == 1
-    assert not command_dag.front_layer_for_cost_fun
+    assert not command_dag.front_layer_2qubit
 
     assert command_dag._dag.number_of_nodes() == 2
     assert command_dag._dag.number_of_edges() == 1
@@ -421,10 +419,10 @@ def test_command_dag_add_gate(command_dag):
     dag_node56 = search_cmd(command_dag, cmd56)
 
     assert len(command_dag.front_layer) == 3
-    assert command_dag.front_layer_for_cost_fun == [dag_node56]
+    assert command_dag.front_layer_2qubit == [dag_node56]
 
 
-def test_command_dag_remove_from_front_layer1(command_dag):
+def test_command_dag_remove_command(command_dag):
     allocate0 = gen_cmd(0, gate=Allocate)
     cmd0 = gen_cmd(0)
     deallocate0 = gen_cmd(0, gate=Deallocate)
@@ -441,19 +439,19 @@ def test_command_dag_remove_from_front_layer1(command_dag):
         search_cmd(command_dag, cmd0)
 
     with pytest.raises(RuntimeError):
-        command_dag._remove_from_front_layer(cmd0)
+        command_dag.remove_command(cmd0)
 
     assert command_dag.front_layer == [dag_allocate0]
 
-    command_dag._remove_from_front_layer(allocate0)
+    command_dag.remove_command(allocate0)
     assert command_dag.front_layer == [dag_deallocate]
     assert command_dag._logical_ids_in_diag == {0}
 
-    command_dag._remove_from_front_layer(deallocate0)
+    command_dag.remove_command(deallocate0)
     assert not command_dag.front_layer
 
 
-def test_command_dag_remove_from_front_layer2(command_dag):
+def test_command_dag_remove_command2(command_dag):
     cmd01 = gen_cmd(0, 1)
     cmd56 = gen_cmd(5, 6)
     cmd12 = gen_cmd(1, 2)
@@ -474,23 +472,23 @@ def test_command_dag_remove_from_front_layer2(command_dag):
     dag_node78 = search_cmd(command_dag, cmd78)
 
     with pytest.raises(RuntimeError):
-        command_dag._remove_from_front_layer(cmd12)
+        command_dag.remove_command(cmd12)
 
     assert command_dag.front_layer == [dag_node01, dag_node56, dag_node78]
 
-    command_dag._remove_from_front_layer(cmd78)
+    command_dag.remove_command(cmd78)
     assert command_dag.front_layer == [dag_node01, dag_node56]
     assert command_dag._logical_ids_in_diag == {0, 1, 2, 5, 6}
     assert 7 not in command_dag._back_layer
     assert 8 not in command_dag._back_layer
 
-    command_dag._remove_from_front_layer(cmd01)
+    command_dag.remove_command(cmd01)
     assert command_dag.front_layer == [dag_node56, dag_node12]
 
-    command_dag._remove_from_front_layer(cmd56)
+    command_dag.remove_command(cmd56)
     assert command_dag.front_layer == [dag_node12]
 
-    command_dag._remove_from_front_layer(cmd12)
+    command_dag.remove_command(cmd12)
     assert command_dag.front_layer == [dag_node26]
 
 
@@ -515,7 +513,7 @@ def test_command_dag_near_term_layer(command_dag):
     dag_node34 = search_cmd(command_dag, cmd34)
 
     command_dag.calculate_near_term_layer({i: i for i in range(7)})
-    assert [dag_node12, dag_node34] == command_dag.near_term_layer
+    assert command_dag.near_term_layer == [dag_node12, dag_node34]
 
 
 def test_command_dag_calculate_interaction_list(command_dag):
@@ -533,9 +531,9 @@ def test_command_dag_calculate_interaction_list(command_dag):
 
     interactions = command_dag.calculate_interaction_list()
 
-    assert (0, 1) in interactions
-    assert (0, 3) in interactions
-    assert (3, 4) in interactions
+    assert (0, 1) in interactions or (1, 0) in interactions
+    assert (0, 3) in interactions or (3, 0) in interactions
+    assert (3, 4) in interactions or (4, 3) in interactions
 
 
 def test_command_dag_generate_qubit_interaction_graph(command_dag):
@@ -684,11 +682,13 @@ def test_qubit_manager_clear(qubit_manager):
 def test_qubit_manager_generate_one_swap_step(qubit_manager):
     cmd08 = gen_cmd(0, 8)
     cmd01 = gen_cmd(0, 1)
+    cmd5 = gen_cmd(5)
 
     # ----------------------------------
 
     manager = deepcopy(qubit_manager)
     manager.add_command(cmd08)
+    manager.add_command(cmd5)
 
     mapping = {i: i for i in range(9)}
     (logical_id0, backend_id0, logical_id1,
@@ -869,39 +869,36 @@ def test_qubit_manager_get_executable_commands(qubit_manager):
 
 def test_qubit_manager_generate_qubit_interaction_graph(qubit_manager):
     qb, allocate_cmds = allocate_all_qubits_cmd(9)
-    cmd0 = Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[1]])
-    cmd1 = Command(engine=None, gate=X, qubits=([qb[2]], ), controls=[qb[3]])
-    cmd2 = Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[2]])
-    cmd3 = Command(engine=None, gate=X, qubits=([qb[1]], ))
+    cmd_list = [
+        Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[1]]),
+        Command(engine=None, gate=X, qubits=([qb[2]], ), controls=[qb[3]]),
+        Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[2]]),
+        Command(engine=None, gate=X, qubits=([qb[1]], )),
+        Command(engine=None, gate=X, qubits=([qb[4]], ), controls=[qb[5]]),
+        Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[6]]),
+        Command(engine=None, gate=X, qubits=([qb[6]], ), controls=[qb[7]]),
+        Command(engine=None, gate=X, qubits=([qb[7]], ), controls=[qb[8]])
+    ]
 
-    qubit_manager.add_command(cmd0)
-    qubit_manager.add_command(cmd1)
-    qubit_manager.add_command(cmd2)
-    qubit_manager.add_command(cmd3)
+    for cmd_last in [
+            Command(engine=None, gate=X, qubits=([qb[3]], ), controls=[qb[0]]),
+            Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[3]])
+    ]:
+        qubit_manager.clear()
+        for cmd in cmd_list:
+            qubit_manager.add_command(cmd)
+        qubit_manager.add_command(cmd_last)
 
-    cmd4 = Command(engine=None, gate=X, qubits=([qb[4]], ), controls=[qb[5]])
-    cmd5 = Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[6]])
-    qubit_manager.add_command(cmd4)
-    qubit_manager.add_command(cmd5)
+        subgraphs = qubit_manager.calculate_qubit_interaction_subgraphs(
+            max_order=2)
 
-    cmd6 = Command(engine=None, gate=X, qubits=([qb[6]], ), controls=[qb[7]])
-    cmd7 = Command(engine=None, gate=X, qubits=([qb[7]], ), controls=[qb[8]])
-    qubit_manager.add_command(cmd6)
-    qubit_manager.add_command(cmd7)
-
-    qubit_manager.add_command(
-        Command(engine=None, gate=X, qubits=([qb[3]], ), controls=[qb[0]]))
-    subgraphs = qubit_manager.calculate_qubit_interaction_subgraphs(
-        max_order=2)
-
-    assert len(subgraphs) == 2
-    assert len(subgraphs[0]) == 4
-    assert all([n in subgraphs[0] for n in [0, 1, 2, 3]])
-    assert subgraphs[0][0] == 0
-    assert subgraphs[0][-2:] in ([1, 3], [3, 1])
-    assert len(subgraphs[1]) == 5
-    assert all([n in subgraphs[1] for n in [4, 5, 6, 7, 8]])
-    assert subgraphs[1][-2:] in ([4, 8], [8, 4])
+        assert len(subgraphs) == 2
+        assert len(subgraphs[0]) == 4
+        assert all([n in subgraphs[0] for n in [0, 1, 2, 3]])
+        assert subgraphs[0][0] == 0
+        assert subgraphs[0][-2:] in ([1, 3], [3, 1])
+        assert len(subgraphs[1]) == 3
+        assert all([n in subgraphs[1] for n in [4, 5, 6]])
 
 
 def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):
@@ -954,3 +951,55 @@ def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):
     cmd_list, _ = qubit_manager.get_executable_commands(mapping)
     assert cmd_list == [cmd05, cmd06]
     assert qubit_manager.size() == 1
+
+
+def test_qubit_manager_str():
+    qubit_manager = multi.MultiQubitGateManager(generate_grid_graph(3, 3))
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(9)
+    cmd_list = [
+        Command(engine=None, gate=H, qubits=([qb[0]], )),
+        Command(engine=None, gate=X, qubits=([qb[0]], ), controls=[qb[8]]),
+        Command(engine=None, gate=X, qubits=([qb[2]], ), controls=[qb[6]]),
+        Command(engine=None, gate=X, qubits=([qb[1]], ), controls=[qb[7]]),
+        Command(engine=None, gate=X, qubits=([qb[1]], )),
+        Command(engine=None, gate=X, qubits=([qb[4]], ), controls=[qb[5]]),
+        Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[4]]),
+        Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[6]]),
+        Command(engine=None, gate=X, qubits=([qb[6]], ), controls=[qb[7]]),
+        Command(engine=None, gate=X, qubits=([qb[7]], ), controls=[qb[8]]),
+    ]
+
+    for cmd in cmd_list:
+        qubit_manager.add_command(cmd)
+
+    mapping = {i: i for i in range(16)}
+
+    while qubit_manager.size() > 0:
+        qubit_manager.get_executable_commands(mapping)
+
+        swaps, all_qubits = qubit_manager.generate_swaps(
+            mapping, multi.look_ahead_parallelism_cost_fun, {'W': 0.5})
+
+        reverse_mapping = {v: k for k, v in mapping.items()}
+        for bqb0, bqb1 in swaps:
+            (reverse_mapping[bqb0],
+             reverse_mapping[bqb1]) = (reverse_mapping[bqb1],
+                                       reverse_mapping[bqb0])
+        mapping = {v: k for k, v in reverse_mapping.items()}
+
+    str_repr = str(qubit_manager)
+
+    num_of_2qubit_gates_ref = 0
+    for cmd in cmd_list:
+        if len({qubit.id for qureg in cmd.all_qubits for qubit in qureg}) == 2:
+            num_of_2qubit_gates_ref += 1
+
+    num_of_2qubit_gates = 0
+    for line in str_repr.split('\n'):
+        m = re.match(r'^\s+\[[0-9]+,\s[0-9]+\]:\s*([0-9]+)$', line)
+        if m:
+            num_of_2qubit_gates += int(m.group(1))
+
+    assert num_of_2qubit_gates == num_of_2qubit_gates_ref
+    assert str_repr.count("[4, 5]:  2") == 1

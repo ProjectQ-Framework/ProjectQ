@@ -149,15 +149,15 @@ def _add_qubits_to_mapping_smart_init(current_mapping, graph,
 
     Returns: A new mapping
     """
-    qubit_interaction_subgraphs = \
-        commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
-
-    # Interaction subgraph list can be empty if only single qubit gates are
-    # present
-    if not qubit_interaction_subgraphs:
-        qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
-
     if not current_mapping:
+        qubit_interaction_subgraphs = \
+            commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
+
+        # Interaction subgraph list can be empty if only single qubit gates are
+        # present
+        if not qubit_interaction_subgraphs:
+            qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
+
         return _generate_mapping_minimize_swaps(graph,
                                                 qubit_interaction_subgraphs)
     return _add_qubits_to_mapping_fcfs(current_mapping, graph,
@@ -185,15 +185,15 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
 
     Returns: A new mapping
     """
-    qubit_interaction_subgraphs = \
-        commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
-
-    # Interaction subgraph list can be empty if only single qubit gates are
-    # present
-    if not qubit_interaction_subgraphs:
-        qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
-
     if not current_mapping:
+        qubit_interaction_subgraphs = \
+            commands_dag.calculate_qubit_interaction_subgraphs(max_order=2)
+
+        # Interaction subgraph list can be empty if only single qubit gates are
+        # present
+        if not qubit_interaction_subgraphs:
+            qubit_interaction_subgraphs = [list(new_logical_qubit_ids)]
+
         return _generate_mapping_minimize_swaps(graph,
                                                 qubit_interaction_subgraphs)
 
@@ -213,17 +213,24 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
         backend_id = None
 
         if len(qubit_interactions) == 1:
+            # If there's only a single qubit interacting and it is already
+            # present within the mapping, find the neighbour with the highest
+            # degree
+
             qubit = qubit_interactions[0]
 
             if qubit in mapping:
-                candidates = sorted([
-                    n for n in graph[mapping[qubit]]
-                    if n not in currently_used_nodes
-                ],
-                                    key=lambda n: len(graph[n]))
+                candidates = sorted(
+                    [n for n in graph[mapping[qubit]] if n in available_nodes],
+                    key=lambda n: len(graph[n]))
                 if candidates:
                     backend_id = candidates[-1]
         elif qubit_interactions:
+            # If there are multiple qubits interacting, find out all the
+            # neighbouring nodes for each interaction. Then within those
+            # nodes, try to find the one that maximizes the number of
+            # interactions without swapping
+
             neighbours = []
             for qubit in qubit_interactions:
                 if qubit in mapping:
@@ -233,13 +240,17 @@ def _add_qubits_to_mapping(current_mapping, graph, new_logical_qubit_ids,
                 else:
                     break
 
+            # Try to find an intersection that maximizes the number of
+            # interactions by iteratively reducing the number of considered
+            # interactions
+
             intersection = set()
-            while neighbours:
+            while neighbours and not intersection:
                 intersection = neighbours[0].intersection(*neighbours[1:])
-                if intersection:
-                    backend_id = intersection.pop()
-                    break
                 neighbours.pop()
+
+            if intersection:
+                backend_id = intersection.pop()
 
         if backend_id is None:
             backend_id = available_nodes.pop()
@@ -342,6 +353,11 @@ class GraphMapper(BasicMapperEngine):
                  -  | Extra options to pass onto the cost function
                     | (see :py:meth:`.MultiQubitGateManager.generate_swaps`)
                     | Defaults to ``{'W': 0.5}``.
+               * - max_swap_steps
+                 - ``int``
+                 -  | Maximum number of swap steps per mapping
+                    | (see :py:meth:`.MultiQubitGateManager.generate_swaps`)
+                    | Defaults to 30
         """
         BasicMapperEngine.__init__(self)
 
@@ -483,7 +499,7 @@ class GraphMapper(BasicMapperEngine):
         if allocate_cmds and num_available_qubits > 0:
 
             def rank_allocate_cmds(cmds_list, dag):
-                #pylint: disable=unused-argument
+                # pylint: disable=unused-argument
                 return cmds_list
 
             allocate_cmds = rank_allocate_cmds(
@@ -663,7 +679,7 @@ class GraphMapper(BasicMapperEngine):
 
         Returns:
             A summary (string) of resources used, including depth of swaps and
-            statistics about the paths generated
+            statistics about the swaps themselves
         """
 
         depth_of_swaps_str = ""

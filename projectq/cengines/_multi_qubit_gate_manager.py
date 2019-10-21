@@ -22,6 +22,8 @@ route qubit through an arbitrary graph.
 """
 
 import networkx as nx
+import statistics
+import math
 from projectq.ops import (AllocateQubitGate, DeallocateQubitGate)
 
 # ==============================================================================
@@ -30,11 +32,11 @@ from projectq.ops import (AllocateQubitGate, DeallocateQubitGate)
 def _topological_sort(dag):
     indegree_map = {}
     zero_indegree = []
-    for v, d in dag.in_degree():
-        if d > 0:
-            indegree_map[v] = d
+    for node, degree in dag.in_degree():
+        if degree > 0:
+            indegree_map[node] = degree
         else:
-            zero_indegree.append(v)
+            zero_indegree.append(node)
 
     while zero_indegree:
         node = zero_indegree.pop()
@@ -48,10 +50,10 @@ def _topological_sort(dag):
 
 # Coffaman-Graham algorithm with infinite width
 def _coffman_graham_ranking(dag):
-    layers = []
+    layers = [[]]
     levels = {}
-    
-    for node in topological_sort(dag):
+
+    for node in _topological_sort(dag):
         dependant_level = -1
         for dependant in dag.pred[node]:
             level = levels[dependant]
@@ -68,6 +70,8 @@ def _coffman_graham_ranking(dag):
         layers[level].append(node)
         levels[node] = level
 
+    for layer in layers:
+        layer.reverse()
     return layers
 
 
@@ -123,7 +127,7 @@ def nearest_neighbours_cost_fun(gates_dag, mapping, distance_matrix, swap,
         Score of current swap operations
     """
     #pylint: disable=unused-argument
-    return _sum_distance_over_gates(gates_dag.front_layer, mapping,
+    return _sum_distance_over_gates(gates_dag.front_layer_2qubit, mapping,
                                     distance_matrix)
 
 
@@ -182,13 +186,13 @@ def look_ahead_parallelism_cost_fun(gates_dag, mapping, distance_matrix, swap,
     decay = opts['decay']
     near_term_weight = opts['W']
 
-    n_front = len(gates_dag.front_layer_for_cost_fun)
+    n_front = len(gates_dag.front_layer_2qubit)
     n_near = len(gates_dag.near_term_layer)
 
     decay_factor = max(decay.get_decay_value(swap[0]),
                        decay.get_decay_value(swap[1]))
     front_layer_term = (1. / n_front * _sum_distance_over_gates(
-        gates_dag.front_layer_for_cost_fun, mapping, distance_matrix))
+        gates_dag.front_layer_2qubit, mapping, distance_matrix))
 
     if n_near == 0:
         return decay_factor * front_layer_term
@@ -236,15 +240,6 @@ class DecayManager(object):
     User should call the :py:meth:`step` method each time a swap gate is added and
     :py:meth:`remove_decay` once a 2-qubit gate is executed.
     """
-
-    # def __repr__(self):
-    #     s = ''
-    #     for backend_id in self._backend_ids:
-    #         tmp = self._backend_ids[backend_id]
-    #         s += '\n  {:2}: {}, {}'.format(backend_id, tmp.decay, tmp.lifetime)
-    #     s += '\n'
-    #     return s
-
     def __init__(self, delta, max_lifetime):
         """
         Constructor
@@ -322,7 +317,7 @@ class DecayManager(object):
 
 
 class _DAGNodeBase(object):
-    #pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods
     def __init__(self, cmd, *args):
         self.logical_ids = frozenset(args)
         self.cmd = cmd
@@ -344,7 +339,7 @@ class _DAGNodeSingle(_DAGNodeBase):
     (DAG) of quantum gates
     """
 
-    #pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods
     def __init__(self, cmd, logical_id):
         super(_DAGNodeSingle, self).__init__(cmd, logical_id)
         self.logical_id = logical_id
@@ -356,7 +351,7 @@ class _DAGNodeDouble(_DAGNodeBase):
     of quantum gates
     """
 
-    #pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods
     def __init__(self, cmd, logical_id0, logical_id1):
         super(_DAGNodeDouble, self).__init__(cmd, logical_id0, logical_id1)
         self.logical_id0 = logical_id0
@@ -371,10 +366,23 @@ class CommandDAG(object):
     def __init__(self):
         self._dag = nx.DiGraph()
         self._logical_ids_in_diag = set()
-        self.front_layer = []
-        self.front_layer_for_cost_fun = []
         self.near_term_layer = []
+
+        self._layers_up_to_date = True
+        self._front_layer = []
+        self._front_layer_2qubit = []
+        self._layers = [[]]
         self._back_layer = {}
+
+    @property
+    def front_layer(self):
+        self.calculate_command_hierarchy()
+        return self._layers[0]
+
+    @property
+    def front_layer_2qubit(self):
+        self.calculate_command_hierarchy()
+        return self._front_layer_2qubit
 
     def size(self):
         """
@@ -393,10 +401,22 @@ class CommandDAG(object):
         """
         self._dag.clear()
         self._logical_ids_in_diag = set()
-        self.front_layer_for_cost_fun = []
-        self.front_layer = []
         self.near_term_layer = []
+
+        self._layers_up_to_date = True
+        self._front_layer = []
+        self._front_layer_2qubit = []
+        self._layers = [[]]
         self._back_layer = {}
+
+    def calculate_command_hierarchy(self):
+        if not self._layers_up_to_date:
+            self._layers = _coffman_graham_ranking(self._dag)
+            self._front_layer_2qubit = [
+                node for node in self._layers[0]
+                if isinstance(node, _DAGNodeDouble)
+            ]
+            self._layers_up_to_date = True
 
     def add_command(self, cmd):
         """
@@ -434,11 +454,7 @@ class CommandDAG(object):
             self._back_layer[logical_ids[0]] = new_node
             self._back_layer[logical_ids[1]] = new_node
 
-            # If both qubit are not already in the DAG, then we just got a new
-            # gate on the front layer
-            if not logical_id0_in_dag and not logical_id1_in_dag:
-                self.front_layer_for_cost_fun.append(new_node)
-                self.front_layer.append(new_node)
+            self._layers_up_to_date = False
         else:
             logical_id = logical_ids[0]
             logical_id_in_dag = logical_id in self._logical_ids_in_diag
@@ -452,9 +468,8 @@ class CommandDAG(object):
                 else:
                     self._logical_ids_in_diag.add(logical_id)
 
-                    self.front_layer.append(new_node)
-
                 self._back_layer[logical_id] = new_node
+                self._layers_up_to_date = False
             else:
                 if not logical_id_in_dag:
                     new_node = _DAGNodeSingle(cmd, logical_id)
@@ -462,62 +477,11 @@ class CommandDAG(object):
                     self._logical_ids_in_diag.add(logical_id)
 
                     self._back_layer[logical_id] = new_node
-
-                    self.front_layer.append(new_node)
+                    self._layers_up_to_date = False
                 else:
                     self._back_layer[logical_id].append_compatible_cmd(cmd)
 
-    def remove_from_front_layer(self, cmd):
-        """
-        Remove a gate from the front layer of the DAG
-
-        Args:
-            cmd (Command): A ProjectQ command
-
-        Raises:
-            RuntimeError if the gate does not exist in the front layer
-        """
-        # First find the gate inside the first layer list
-        node = next((node for node in self.front_layer if node.cmd is cmd),
-                    None)
-        if not node:
-            raise RuntimeError('({}) not found in DAG'.format(cmd))
-
-        logical_ids = [qubit.id for qureg in cmd.all_qubits for qubit in qureg]
-
-        descendants = list(self._dag[node])
-
-        if not descendants:
-            for logical_id in logical_ids:
-                self._logical_ids_in_diag.remove(logical_id)
-                del self._back_layer[logical_id]
-            self._dag.remove_node(node)
-        else:
-            if len(descendants) == 1:
-                if isinstance(node, _DAGNodeDouble):
-                    # Look for the logical_id not found in the descendant
-                    logical_id, tmp = logical_ids
-                    if logical_id in descendants[0].logical_ids:
-                        logical_id = tmp
-
-                    self._logical_ids_in_diag.remove(logical_id)
-                    del self._back_layer[logical_id]
-
-            # Remove gate from DAG
-            self._dag.remove_node(node)
-
-            for descendant in descendants:
-                if not self._dag.pred[descendant]:
-                    self.front_layer.append(descendant)
-                    if isinstance(descendant, _DAGNodeDouble):
-                        self.front_layer_for_cost_fun.append(descendant)
-
-        # Remove the gate from the first layer
-        self.front_layer.remove(node)
-        if isinstance(node, _DAGNodeDouble):
-            self.front_layer_for_cost_fun.remove(node)
-
-    def calculate_near_term_layer(self, mapping):
+    def calculate_near_term_layer(self, mapping, depth=1):
         """
         Calculate the first order near term layer.
 
@@ -527,23 +491,15 @@ class CommandDAG(object):
         Args:
             mapping (dict): current mapping
         """
-        near_term_layer_candidates = []
-        for node in self.front_layer_for_cost_fun:
-            for descendant in self._dag[node]:
-                if (isinstance(descendant, _DAGNodeDouble)
-                        and descendant.logical_id0 in mapping
-                        and descendant.logical_id1 in mapping):
-                    near_term_layer_candidates.append(descendant)
-
-        # Only add candidates for which all predecessors are in the front layer
+        self.calculate_command_hierarchy()
         self.near_term_layer = []
-        for node in near_term_layer_candidates:
-            for predecessor in self._dag.pred[node]:
-                if predecessor not in self.front_layer:
-                    break
-            else:
-                if node not in self.near_term_layer:
-                    self.near_term_layer.append(node)
+        if len(self._layers) > 1:
+            for layer in self._layers[1:depth + 1]:
+                self.near_term_layer.extend([
+                    node for node in layer
+                    if (isinstance(node, _DAGNodeDouble) and node.logical_id0
+                        in mapping and node.logical_id1 in mapping)
+                ])
 
     def calculate_interaction_list(self):
         """
@@ -553,11 +509,8 @@ class CommandDAG(object):
             List of tuples of logical qubit IDs for each 2-qubit gate present
             in the DAG.
         """
-        interactions = []
-        for node in self._dag:
-            if isinstance(node, _DAGNodeDouble):
-                interactions.append(tuple(node.logical_ids))
-        return interactions
+        return [(node.logical_id0, node.logical_id1) for node in self._dag
+                if isinstance(node, _DAGNodeDouble)]
 
     def calculate_qubit_interaction_subgraphs(self, max_order=2):
         """
@@ -575,10 +528,31 @@ class CommandDAG(object):
             components of the qubit interaction graph. Within each components,
             nodes are sorted in decreasing order of their degree.
         """
-        graph = nx.Graph()
+        self.calculate_command_hierarchy()
 
-        for node in self.front_layer:
-            self._add_to_interaction_graph(node, graph, max_order)
+        graph = nx.Graph()
+        for layer in self._layers:
+            for node in layer:
+                if isinstance(node, _DAGNodeDouble):
+                    node0_in_graph = node.logical_id0 in graph
+                    node1_in_graph = node.logical_id1 in graph
+
+                    add_edge = True
+                    if (node0_in_graph
+                            and len(graph[node.logical_id0]) >= max_order):
+                        add_edge = False
+                    if (node1_in_graph
+                            and len(graph[node.logical_id1]) >= max_order):
+                        add_edge = False
+
+                    if add_edge or graph.has_edge(node.logical_id0,
+                                                  node.logical_id1):
+                        graph.add_edge(node.logical_id0, node.logical_id1)
+                    else:
+                        break
+            else:
+                continue  # only executed if the inner loop did NOT break
+            break # only executed if the inner loop DID break
 
         return [
             sorted(graph.subgraph(g),
@@ -589,46 +563,45 @@ class CommandDAG(object):
                        reverse=True)
         ]
 
-    def _add_to_interaction_graph(self, node, graph, max_order):
+    def remove_command(self, cmd):
         """
-        Recursively add an interaction to the interaction graph
+        Remove a command from the DAG
+
+        Note:
+            Only commands present in the front layer of the DAG can be
+            removed.
 
         Args:
-            node (_DAGNodeDouble): Node from DAG
-            graph (networkx.Graph): Interaction graph
-            max_order (int): Maximum degree of the nodes in the resulting
-                             interaction graph
+            cmd (Command): A ProjectQ command
+
+        Raises:
+            RuntimeError if the gate does not exist in the front layer
         """
-        if isinstance(node, _DAGNodeDouble) \
-            and (node.logical_id0 not in graph
-                 or node.logical_id1 not in graph
-                     or (len(graph[node.logical_id0]) < max_order
-                         and len(graph[node.logical_id1]) < max_order)):
-            graph.add_edge(node.logical_id0, node.logical_id1)
+        # First find the gate inside the front layer list
+        node = next((node for node in self.front_layer if node.cmd is cmd),
+                    None)
+        if node is None:
+            raise RuntimeError(
+                '({}) not found in front layer of DAG'.format(cmd))
 
-        for descendant in self._dag[node]:
-            self._add_to_interaction_graph(descendant, graph, max_order)
+        logical_ids = {qubit.id for qureg in cmd.all_qubits for qubit in qureg}
 
-    def _max_distance_in_dag(self, node_max_distance, node, distance):
-        """
-        Recursively calculate the maximum distance for each node of the DAG
+        descendants = list(self._dag[node])
 
-        Args:
-            node_max_distance (dict): Dictionary containing the current
-                                      maximum distance for each node
-            node (_DAGNode): Root node from DAG for traversal
-            distance (int): Current distance offset
-        """
-        for descendant in self._dag[node]:
-            try:
-                if node_max_distance[descendant] < distance:
-                    node_max_distance[descendant] = distance
-            except KeyError:
-                node_max_distance[descendant] = distance
+        if not descendants:
+            self._logical_ids_in_diag -= logical_ids
+            for logical_id in logical_ids:
+                del self._back_layer[logical_id]
+        elif len(descendants) == 1 and isinstance(node, _DAGNodeDouble):
+            logical_id, = logical_ids.difference(descendants[0].logical_ids)
 
-            if self._dag[descendant]:
-                self._max_distance_in_dag(node_max_distance, descendant,
-                                          distance + 1)
+            self._logical_ids_in_diag.remove(logical_id)
+            del self._back_layer[logical_id]
+
+        # Remove gate from DAG
+        self._dag.remove_node(node)
+
+        self._layers_up_to_date = False
 
 
 # ==============================================================================
@@ -660,6 +633,30 @@ class MultiQubitGateManager(object):
         self.dag = CommandDAG()
         self._decay = DecayManager(decay_opts.get('delta', 0.001),
                                    decay_opts.get('max_lifetime', 5))
+        self._stats = {
+            'simul_exec': [],
+            '2qubit_gates_loc': {},
+        }
+
+    def __str__(self):
+        """
+        Return the string representation of this MultiQubitGateManager.
+
+        Returns:
+            A summary (string) about the commands executed.
+        """
+
+        max_width = int(
+            math.ceil(math.log10(max(
+                self._stats['2qubit_gates_loc'].values()))) + 1)
+        interactions_str = ""
+        for (backend_id0, backend_id1), number \
+            in sorted(self._stats['2qubit_gates_loc'].items(),
+                      key=lambda x: x[1], reverse=True):
+            interactions_str += "\n    {0}: {1:{2}}".format(
+                sorted([backend_id0, backend_id1]), number, max_width)
+
+        return ('2-qubit gates locations:{}').format(interactions_str)
 
     def size(self):
         """
@@ -712,7 +709,7 @@ class MultiQubitGateManager(object):
             operations.
         """
 
-        if not self.dag.front_layer_for_cost_fun:
+        if not self.dag.front_layer_2qubit:
             return ([], set())
 
         if opts is None:
@@ -760,7 +757,7 @@ class MultiQubitGateManager(object):
           :py:meth:`.GatesDAG.add_command`
         """
 
-        return self.dag.add_command(cmd)
+        self.dag.add_command(cmd)
 
     def get_executable_commands(self, mapping):
         """
@@ -777,36 +774,50 @@ class MultiQubitGateManager(object):
         cmds_to_execute = []
         allocate_cmds = []
         has_command_to_execute = True
+        self._stats['simul_exec'].append(0)
+
+        def _add_to_execute_list(node):
+            cmds_to_execute.append(node.cmd)
+            cmds_to_execute.extend(node.compatible_successor_cmds)
+            self.dag.remove_command(node.cmd)
+
+        self.dag.calculate_command_hierarchy()
 
         while has_command_to_execute:
             # Reset after each pass
             has_command_to_execute = False
 
-            for node in self.dag.front_layer.copy():
+            for node in self.dag.front_layer:
                 if isinstance(node, _DAGNodeSingle):
                     if isinstance(node.cmd.gate, AllocateQubitGate):
                         # Allocating a qubit already in mapping is allowed
                         if node.logical_id in mapping:
                             has_command_to_execute = True
-                            cmds_to_execute.append(node.cmd)
-                            cmds_to_execute.extend(
-                                node.compatible_successor_cmds)
-                            self.dag._remove_from_front_layer(node.cmd)
+                            _add_to_execute_list(node)
                         elif node not in allocate_cmds:
                             allocate_cmds.append(node)
                     elif node.logical_id in mapping:
                         has_command_to_execute = True
-                        cmds_to_execute.append(node.cmd)
-                        cmds_to_execute.extend(node.compatible_successor_cmds)
-                        self.dag._remove_from_front_layer(node.cmd)
+                        self._stats['simul_exec'][-1] += 1
+                        _add_to_execute_list(node)
                 elif node.logical_id0 in mapping and node.logical_id1 in mapping:
                     if self.graph.has_edge(mapping[node.logical_id0],
                                            mapping[node.logical_id1]):
                         has_command_to_execute = True
-                        cmds_to_execute.append(node.cmd)
-                        cmds_to_execute.extend(node.compatible_successor_cmds)
-                        self.dag._remove_from_front_layer(node.cmd)
+                        _add_to_execute_list(node)
+                        self._stats['simul_exec'][-1] += 1
+                        key = frozenset((mapping[node.logical_id0],
+                                         mapping[node.logical_id1]))
+                        self._stats['2qubit_gates_loc'][key] = self._stats.get(
+                            node.logical_ids, 0) + 1
+                        for cmd in node.compatible_successor_cmds:
+                            if len([
+                                    qubit.id for qureg in cmd.all_qubits
+                                    for qubit in qureg
+                            ]) == 2:
+                                self._stats['2qubit_gates_loc'][key] += 1
 
+        self.dag.calculate_command_hierarchy()
         return cmds_to_execute, allocate_cmds
 
     def execute_allocate_cmds(self, allocate_cmds, mapping):
@@ -827,8 +838,9 @@ class MultiQubitGateManager(object):
             if node.logical_id in mapping:
                 cmds_to_execute.append(node.cmd)
                 cmds_to_execute.extend(node.compatible_successor_cmds)
-                self.dag._remove_from_front_layer(node.cmd)
+                self.dag.remove_command(node.cmd)
 
+        self.dag.calculate_command_hierarchy()
         return cmds_to_execute
 
     # ==========================================================================
@@ -849,6 +861,7 @@ class MultiQubitGateManager(object):
         .. seealso::
            :py:meth:`CommandDAG.calculate_qubit_interaction_subgraphs`
         """
+        self.dag.calculate_command_hierarchy()
         return self.dag.calculate_qubit_interaction_subgraphs(max_order)
 
     # ==========================================================================
@@ -872,6 +885,7 @@ class MultiQubitGateManager(object):
             a logical qubit associated to it.
         """
 
+        self.dag.calculate_command_hierarchy()
         reverse_mapping = {v: k for k, v in mapping.items()}
 
         # Only consider gates from the front layer and generate a list of
@@ -879,7 +893,7 @@ class MultiQubitGateManager(object):
         # those concerned by a gate
 
         swap_candidates = []
-        for node in self.dag.front_layer_for_cost_fun:
+        for node in self.dag.front_layer_2qubit:
             for logical_id in node.logical_ids:
                 for backend_id1 in self.graph[mapping[logical_id]]:
                     swap_candidates.append(
@@ -908,6 +922,7 @@ class MultiQubitGateManager(object):
         Args:
             mapping (dict): Current mapping
         """
+        self.dag.calculate_command_hierarchy()
         for node in self.dag.front_layer:
             if isinstance(node, _DAGNodeSingle) and node.logical_id in mapping:
                 return True
