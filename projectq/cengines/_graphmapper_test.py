@@ -26,7 +26,7 @@ from projectq.types import WeakQubitRef
 
 from projectq.cengines import _graphmapper as graphm
 
-import projectq.cengines._multi_qubit_gate_manager as multi
+import projectq.cengines._gate_manager as gatemgr
 
 
 def decay_to_string(self):
@@ -36,7 +36,7 @@ def decay_to_string(self):
     return s
 
 
-multi.DecayManager.__str__ = decay_to_string
+gatemgr.DecayManager.__str__ = decay_to_string
 Command.__repr__ = Command.__str__
 
 
@@ -143,7 +143,7 @@ def get_node_list(self):
     return list(self.dag._dag.nodes)
 
 
-graphm.MultiQubitGateManager._get_node_list = get_node_list
+graphm.GateManager._get_node_list = get_node_list
 
 # ==============================================================================
 

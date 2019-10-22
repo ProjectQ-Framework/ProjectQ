@@ -6,7 +6,7 @@ The ProjectQ compiler engines package.
 .. autosummary::
 	projectq.cengines.AutoReplacer
 	projectq.cengines.BasicEngine
-	projectq.cengines.BasicMapper
+	projectq.cengines.BasicMapperEngine
 	projectq.cengines.CommandModifier
 	projectq.cengines.CompareEngine
 	projectq.cengines.DecompositionRule
@@ -37,9 +37,9 @@ Module contents
 Helper sub-modules
 ------------------
 
-Multi-qubit gate sub-module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Gate manager sub-module
+^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: projectq.cengines._multi_qubit_gate_manager
+.. automodule:: projectq.cengines._gate_manager
     :members:
     :imported-members:

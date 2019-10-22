@@ -21,7 +21,7 @@ import re
 from projectq.ops import (Allocate, Command, Deallocate, X, H)
 from projectq.types import WeakQubitRef
 
-from projectq.cengines import _multi_qubit_gate_manager as multi
+from projectq.cengines import _gate_manager as gatemgr
 
 # ==============================================================================
 
@@ -31,8 +31,8 @@ def dagnode_to_string(self):
     return '{} {}'.format(self.__class__.__name__, tuple(self.logical_ids))
 
 
-multi._DAGNodeBase.__str__ = dagnode_to_string
-multi._DAGNodeBase.__repr__ = dagnode_to_string
+gatemgr._DAGNodeBase.__str__ = dagnode_to_string
+gatemgr._DAGNodeBase.__repr__ = dagnode_to_string
 
 Command.__repr__ = Command.__str__
 
@@ -118,17 +118,17 @@ def grid33_graph():
 
 @pytest.fixture
 def decay_manager():
-    return multi.DecayManager(0.001, 5)
+    return gatemgr.DecayManager(0.001, 5)
 
 
 @pytest.fixture
 def command_dag():
-    return multi.CommandDAG()
+    return gatemgr.CommandDAG()
 
 
 @pytest.fixture
 def qubit_manager():
-    return multi.MultiQubitGateManager(generate_grid_graph(3, 3))
+    return gatemgr.GateManager(generate_grid_graph(3, 3))
 
 
 # ==============================================================================
@@ -612,18 +612,18 @@ def test_qubit_manager_valid_and_invalid_graphs(simple_graph):
     graph = nx.Graph()
     graph.add_nodes_from('abcd')
     with pytest.raises(RuntimeError):
-        multi.MultiQubitGateManager(graph=graph)
+        gatemgr.GateManager(graph=graph)
 
     graph.add_edges_from([('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'a')])
     with pytest.raises(RuntimeError):
-        multi.MultiQubitGateManager(graph=graph)
+        gatemgr.GateManager(graph=graph)
 
     graph = deepcopy(simple_graph)
     graph.remove_edge(0, 1)
     with pytest.raises(RuntimeError):
-        multi.MultiQubitGateManager(graph=graph)
+        gatemgr.GateManager(graph=graph)
 
-    manager = multi.MultiQubitGateManager(graph=simple_graph)
+    manager = gatemgr.GateManager(graph=simple_graph)
     dist = manager.distance_matrix
 
     assert dist[0][1] == 1
@@ -693,7 +693,7 @@ def test_qubit_manager_generate_one_swap_step(qubit_manager):
     mapping = {i: i for i in range(9)}
     (logical_id0, backend_id0, logical_id1,
      backend_id1) = manager._generate_one_swap_step(
-         mapping, multi.nearest_neighbours_cost_fun, {})
+         mapping, gatemgr.nearest_neighbours_cost_fun, {})
 
     assert logical_id0 in (0, 8)
     if logical_id0 == 0:
@@ -704,7 +704,7 @@ def test_qubit_manager_generate_one_swap_step(qubit_manager):
     mapping = {0: 0, 8: 8}
     (logical_id0, backend_id0, logical_id1,
      backend_id1) = manager._generate_one_swap_step(
-         mapping, multi.nearest_neighbours_cost_fun, {})
+         mapping, gatemgr.nearest_neighbours_cost_fun, {})
 
     assert logical_id1 == -1
     if logical_id0 == 0:
@@ -721,7 +721,7 @@ def test_qubit_manager_generate_one_swap_step(qubit_manager):
     mapping = {i: i for i in range(9)}
     (logical_id0, backend_id0, logical_id1,
      backend_id1) = manager._generate_one_swap_step(
-         mapping, multi.nearest_neighbours_cost_fun, {})
+         mapping, gatemgr.nearest_neighbours_cost_fun, {})
 
     # In this case, the only swap that does not increases the overall distance
     # is (0, 1)
@@ -739,7 +739,7 @@ def test_qubit_manager_generate_swaps(qubit_manager):
     mapping = {i: i for i in range(9)}
 
     swaps, all_qubits = manager.generate_swaps(
-        mapping, multi.nearest_neighbours_cost_fun)
+        mapping, gatemgr.nearest_neighbours_cost_fun)
 
     assert not swaps
     assert not all_qubits
@@ -751,14 +751,14 @@ def test_qubit_manager_generate_swaps(qubit_manager):
 
     with pytest.raises(RuntimeError):
         manager.generate_swaps(mapping,
-                               multi.nearest_neighbours_cost_fun,
+                               gatemgr.nearest_neighbours_cost_fun,
                                max_steps=2)
 
     # ----------------------------------
 
     mapping = {i: i for i in range(9)}
     swaps, _ = manager.generate_swaps(mapping,
-                                      multi.nearest_neighbours_cost_fun)
+                                      gatemgr.nearest_neighbours_cost_fun)
 
     # Make sure the original mapping was not modified
     assert mapping == {i: i for i in range(9)}
@@ -775,7 +775,7 @@ def test_qubit_manager_generate_swaps(qubit_manager):
 
     mapping = {i: i for i in range(9)}
     swaps, _ = manager.generate_swaps(mapping,
-                                      multi.look_ahead_parallelism_cost_fun,
+                                      gatemgr.look_ahead_parallelism_cost_fun,
                                       opts={'W': 0.5})
     reverse_mapping = {v: k for k, v in mapping.items()}
     for id0, id1 in swaps:
@@ -794,7 +794,7 @@ def test_qubit_manager_generate_swaps(qubit_manager):
     assert manager.size() == 2
 
     swaps, all_qubits = manager.generate_swaps(
-        mapping, multi.look_ahead_parallelism_cost_fun, opts={
+        mapping, gatemgr.look_ahead_parallelism_cost_fun, opts={
             'W': 0.5,
         })
 
@@ -913,7 +913,7 @@ def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):
     mapping = {i: i for i in range(9)}
 
     swaps, all_qubits = qubit_manager.generate_swaps(
-        mapping, multi.look_ahead_parallelism_cost_fun, {'W': 0.5})
+        mapping, gatemgr.look_ahead_parallelism_cost_fun, {'W': 0.5})
 
     reverse_mapping = {v: k for k, v in mapping.items()}
     for bqb0, bqb1 in swaps:
@@ -939,7 +939,7 @@ def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):
     mapping = {i: i for i in range(9)}
 
     swaps, all_qubits = qubit_manager.generate_swaps(
-        mapping, multi.look_ahead_parallelism_cost_fun, {'W': 0.5})
+        mapping, gatemgr.look_ahead_parallelism_cost_fun, {'W': 0.5})
 
     reverse_mapping = {v: k for k, v in mapping.items()}
     for bqb0, bqb1 in swaps:
@@ -954,7 +954,7 @@ def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):
 
 
 def test_qubit_manager_str():
-    qubit_manager = multi.MultiQubitGateManager(generate_grid_graph(3, 3))
+    qubit_manager = gatemgr.GateManager(generate_grid_graph(3, 3))
 
     qb, allocate_cmds = allocate_all_qubits_cmd(9)
     cmd_list = [
@@ -979,7 +979,7 @@ def test_qubit_manager_str():
         qubit_manager.get_executable_commands(mapping)
 
         swaps, all_qubits = qubit_manager.generate_swaps(
-            mapping, multi.look_ahead_parallelism_cost_fun, {'W': 0.5})
+            mapping, gatemgr.look_ahead_parallelism_cost_fun, {'W': 0.5})
 
         reverse_mapping = {v: k for k, v in mapping.items()}
         for bqb0, bqb1 in swaps:

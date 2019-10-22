@@ -31,8 +31,7 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
                           FlushGate, Swap)
 from projectq.types import WeakQubitRef
-from ._multi_qubit_gate_manager import (MultiQubitGateManager,
-                                        look_ahead_parallelism_cost_fun)
+from ._gate_manager import GateManager, look_ahead_parallelism_cost_fun
 
 # ------------------------------------------------------------------------------
 
@@ -270,21 +269,18 @@ class GraphMapper(BasicMapperEngine):
     using Swap gates.
 
     .. seealso::
-      :py:mod:`projectq.cengines._multi_qubit_gate_manager`
+      :py:mod:`projectq.cengines._gate_manager`
 
     Args:
         graph (networkx.Graph) : Arbitrary connected graph
         storage (int) Number of gates to temporarily store
-        add_qubits_to_mapping (function or str) Function called when new qubits
-                                                are to be added to the current
-                                                mapping.
-                                                Special possible string values:
+        add_qubits_to_mapping (function or str): Function called when
+            new qubits are to be added to the current mapping.
+            Special possible string values:
 
-                                                - ``"fcfs"``: first-come first
-                                                  serve
-                                                - ``"fcfs_init"``: first-come
-                                                  first serve with smarter
-                                                  mapping initialisation
+            - ``"fcfs"``: first-come first serve
+            - ``"fcfs_init"``: first-come first serve with smarter mapping
+                               initialisation
 
     Note:
         1) Gates are cached and only mapped from time to time. A
@@ -297,18 +293,15 @@ class GraphMapper(BasicMapperEngine):
 
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
-                          is mapped qubit id from 0,...,self.num_qubits
+            is mapped qubit id from 0,...,self.num_qubits
         storage (int): Number of gate it caches before mapping.
         num_qubits(int): number of qubits
         num_mappings (int): Number of times the mapper changed the mapping
         depth_of_swaps (dict): Key are circuit depth of swaps, value is the
-                               number of such mappings which have been
-                               applied
+            number of such mappings which have beenapplied
         num_of_swaps_per_mapping (dict): Key are the number of swaps per
-                                         mapping, value is the number of such
-                                         mappings which have been applied
-        path_stats (dict) : Key is the endpoints of a path, value is the number
-                            of such paths which have been applied
+            mapping, value is the number of such mappings which have
+            been applied
     """
     def __init__(self,
                  graph,
@@ -320,10 +313,16 @@ class GraphMapper(BasicMapperEngine):
 
         Args:
             graph (networkx.Graph): Arbitrary connected graph representing
-                                    Qubit connectivity
+                Qubit connectivity
             storage (int): Number of gates to temporarily store
-            generate_swap_opts (dict): extra options to customize swap
-                                       operation generation
+            add_qubits_to_mapping (function or str): Function called
+                when new qubits are to be added to the current
+                mapping.
+                Special possible string values:
+
+                - ``"fcfs"``: first-come first serve
+                - ``"fcfs_init"``: first-come first serve with smarter mapping
+                                   initialisation
             opts (dict): Extra options (see below)
 
         Raises:
@@ -366,12 +365,12 @@ class GraphMapper(BasicMapperEngine):
         else:
             self._opts = opts
 
-        self.qubit_manager = MultiQubitGateManager(graph=graph,
-                                                   decay_opts=self._opts.get(
-                                                       'decay_opts', {
-                                                           'delta': 0.001,
-                                                           'max_lifetime': 5
-                                                       }))
+        self.qubit_manager = GateManager(graph=graph,
+                                         decay_opts=self._opts.get(
+                                             'decay_opts', {
+                                                 'delta': 0.001,
+                                                 'max_lifetime': 5
+                                             }))
         self.num_qubits = graph.number_of_nodes()
         self.storage = storage
         # Randomness to pick permutations if there are too many.
@@ -526,11 +525,15 @@ class GraphMapper(BasicMapperEngine):
         """
         Create a new mapping and executes possible gates.
 
-        It first allocates all 0, ..., self.num_qubits-1 mapped qubit ids, if
-        they are not already used because we might need them all for the
-        swaps. Then it creates a new map, swaps all the qubits to the new map,
-        executes all possible gates, and finally deallocates mapped qubit ids
-        which don't store any information.
+        First execute all possible commands, given the current mapping. Then
+        find a new mapping, perform the swap operawtions to get to the new
+        mapping and then execute all possible gates once more. Non-allocated
+        qubits that are required for the swap operations will be automatically
+        allocated and deallocated as required.
+
+        Raises:
+            RuntimeError if the mapper is unable to make progress (possibly
+            due to an insufficient number of qubits)
         """
 
         num_of_stored_commands_before = self.qubit_manager.size()

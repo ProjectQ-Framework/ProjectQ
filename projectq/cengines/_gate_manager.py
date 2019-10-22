@@ -22,7 +22,6 @@ route qubit through an arbitrary graph.
 """
 
 import networkx as nx
-import statistics
 import math
 from projectq.ops import (AllocateQubitGate, DeallocateQubitGate)
 
@@ -30,6 +29,23 @@ from projectq.ops import (AllocateQubitGate, DeallocateQubitGate)
 
 
 def _topological_sort(dag):
+    """
+    Returns a generator of nodes in topologically sorted order.
+
+    A topological sort is a nonunique permutation of the nodes such that an
+    edge from u to v implies that u appears before v in the topological sort
+    order.
+
+    Args:
+        dag (networkx.DiGraph): A Directed Acyclic Graph (DAG)
+
+    Returns:
+        An iterable of node names in topological sorted order.
+
+    Note:
+        This implementation is based on
+        :py:func:`networkx.algorithms.dag.topological_sort`
+    """
     indegree_map = {}
     zero_indegree = []
     for node, degree in dag.in_degree():
@@ -50,6 +66,18 @@ def _topological_sort(dag):
 
 # Coffaman-Graham algorithm with infinite width
 def _coffman_graham_ranking(dag):
+    """
+    Apply the Coffman-Grapham layering algorithm to a DAG (with infinite width)
+
+    Args:
+        dag (networkx.DiGraph): A Directed Acyclic Graph (DAG)
+
+    Returns:
+        A list of layers (Python list of lists).
+
+    Note:
+        This function does not limit the width of any layers.
+    """
     layers = [[]]
     levels = {}
 
@@ -86,7 +114,7 @@ def _sum_distance_over_gates(node_list, mapping, distance_matrix):
         gate_list (list): List of 2-qubit gates
         mapping (dict): Current mapping
         distance_matrix (dict): Distance matrix within the hardware coupling
-                                graph
+            graph
 
     Returns:
         Sum of all pair-wise distances between qubits
@@ -118,10 +146,10 @@ def nearest_neighbours_cost_fun(gates_dag, mapping, distance_matrix, swap,
         gates_dag (CommandDAG): Direct acyclic graph of future quantum gates
         mapping (dict): Current mapping
         distance_matrix (dict): Distance matrix within the hardware coupling
-                                graph
+            graph
         swap (tuple): Candidate swap (not used by this function)
         opts (dict): Miscellaneous parameters for cost function (not used by
-                     this function)
+            this function)
 
     Returns:
         Score of current swap operations
@@ -159,7 +187,7 @@ def look_ahead_parallelism_cost_fun(gates_dag, mapping, distance_matrix, swap,
         gates_dag (CommandDAG): Direct acyclic graph of future quantum gates
         mapping (dict): Current mapping
         distance_matrix (dict): Distance matrix within the hardware coupling
-                                graph
+            graph
         swap (tuple): Candidate swap operation
         opts (dict): Miscellaneous parameters for cost function
 
@@ -237,8 +265,8 @@ class DecayManager(object):
     """
     Class managing the decay information about a list of backend qubit IDs
 
-    User should call the :py:meth:`step` method each time a swap gate is added and
-    :py:meth:`remove_decay` once a 2-qubit gate is executed.
+    User should call the :py:meth:`step` method each time a swap gate is added
+    and :py:meth:`remove_decay` once a 2-qubit gate is executed.
     """
     def __init__(self, delta, max_lifetime):
         """
@@ -247,7 +275,7 @@ class DecayManager(object):
         Args:
             delta (float): Decay parameter
             max_lifetime (int): Maximum lifetime of decay information for a
-                                particular qubit
+                particular qubit
         """
         self._delta = delta
         self._cutoff = max_lifetime
@@ -389,7 +417,9 @@ class CommandDAG(object):
         Return the size of the DAG (ie. number of nodes)
 
         Note:
-            This need not be the number of commands stored within the DAG.
+            This may not be equal to the number of commands stored within the
+            DAG as some nodes might store more than one gate if they are
+            compatible.
         """
         return self._dag.number_of_nodes()
 
@@ -521,7 +551,7 @@ class CommandDAG(object):
 
         Args:
             max_order (int): Maximum degree of the nodes in the resulting
-                             graph
+                graph
 
         Returns:
             A list of list of graph nodes corresponding to all the connected
@@ -607,7 +637,7 @@ class CommandDAG(object):
 # ==============================================================================
 
 
-class MultiQubitGateManager(object):
+class GateManager(object):
     """
     Class managing qubit interactions
     """
@@ -689,15 +719,14 @@ class MultiQubitGateManager(object):
         Args:
             mapping (dict): Current mapping
             cost_fun (function): Cost function to rank swap candidates
-                                 Must accept the following parameters:
-                                 - dag (_GatesDAG)
-                                 - new_mapping (dict)
-                                 - distance_matrix (dict)
-                                 - swap_candidate (tuple)
+                Must accept the following parameters:
+                - dag (_GatesDAG)
+                - new_mapping (dict)
+                - distance_matrix (dict)
+                - swap_candidate (tuple)
             max_steps (int): (optional) Maximum number of swap steps to
-                             attempt before giving up
+                attempt before giving up
             opts (dict): (optional) Extra parameters for cost function call
-
 
         .. seealso::
            :py:meth:`nearest_neighbours_cost_fun`
@@ -851,7 +880,7 @@ class MultiQubitGateManager(object):
 
         Args:
             max_order (int): Maximum degree of the nodes in the resulting
-                             interaction graph
+                interaction graph
 
         Returns:
             A list of list of graph nodes corresponding to all the connected
@@ -873,11 +902,11 @@ class MultiQubitGateManager(object):
         Args:
             mapping (dict): Current mapping
             cost_fun (function): Cost function to rank swap candidates
-                                 Must accept the following parameters:
-                                   - dag (_GatesDAG)
-                                   - new_mapping (dict)
-                                   - distance_matrix (dict)
-                                   - swap_candidate (tuple)
+                Must accept the following parameters:
+                - dag (_GatesDAG)
+                - new_mapping (dict)
+                - distance_matrix (dict)
+                - swap_candidate (tuple)
 
         Returns:
             Tuple with (logical_id0, backend_id0, logical_id1, backend_id1)
