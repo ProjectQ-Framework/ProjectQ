@@ -78,16 +78,16 @@ def generate_grid_graph(nrows, ncols):
     return graph
 
 
-def gen_cmd(*logical_ids, gate=X):
+def gen_cmd(*logical_ids, **kwargs):
+    gate = kwargs.get('gate', X)
     if len(logical_ids) == 1:
         qb0 = WeakQubitRef(engine=None, idx=logical_ids[0])
         return Command(None, gate, qubits=([qb0], ))
-    elif len(logical_ids) == 2:
+    if len(logical_ids) == 2:
         qb0 = WeakQubitRef(engine=None, idx=logical_ids[0])
         qb1 = WeakQubitRef(engine=None, idx=logical_ids[1])
         return Command(None, gate, qubits=([qb0], ), controls=[qb1])
-    else:
-        raise RuntimeError('Unsupported')
+    raise RuntimeError('Unsupported')
 
 
 def search_cmd(command_dag, cmd):
@@ -897,8 +897,8 @@ def test_qubit_manager_generate_qubit_interaction_graph(qubit_manager):
         assert all([n in subgraphs[0] for n in [0, 1, 2, 3]])
         assert subgraphs[0][0] == 0
         assert subgraphs[0][-2:] in ([1, 3], [3, 1])
-        assert len(subgraphs[1]) == 3
-        assert all([n in subgraphs[1] for n in [4, 5, 6]])
+        assert len(subgraphs[1]) == 4
+        assert all([n in subgraphs[1] for n in [4, 5, 6, 7]])
 
 
 def test_qubit_manager_generate_swaps_change_mapping(qubit_manager):

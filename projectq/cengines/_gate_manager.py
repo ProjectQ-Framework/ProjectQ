@@ -99,7 +99,7 @@ def _coffman_graham_ranking(dag):
         levels[node] = level
 
     for layer in layers:
-        layer.reverse()
+        layer.sort(key=lambda node: node.node_id)
     return layers
 
 
@@ -346,7 +346,8 @@ class DecayManager(object):
 
 class _DAGNodeBase(object):
     # pylint: disable=too-few-public-methods
-    def __init__(self, cmd, *args):
+    def __init__(self, node_id, cmd, *args):
+        self.node_id = node_id
         self.logical_ids = frozenset(args)
         self.cmd = cmd
         self.compatible_successor_cmds = []
@@ -368,8 +369,8 @@ class _DAGNodeSingle(_DAGNodeBase):
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, cmd, logical_id):
-        super(_DAGNodeSingle, self).__init__(cmd, logical_id)
+    def __init__(self, node_id, cmd, logical_id):
+        super(_DAGNodeSingle, self).__init__(node_id, cmd, logical_id)
         self.logical_id = logical_id
 
 
@@ -380,8 +381,9 @@ class _DAGNodeDouble(_DAGNodeBase):
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, cmd, logical_id0, logical_id1):
-        super(_DAGNodeDouble, self).__init__(cmd, logical_id0, logical_id1)
+    def __init__(self, node_id, cmd, logical_id0, logical_id1):
+        super(_DAGNodeDouble, self).__init__(node_id, cmd, logical_id0,
+                                             logical_id1)
         self.logical_id0 = logical_id0
         self.logical_id1 = logical_id1
 
@@ -393,6 +395,7 @@ class CommandDAG(object):
     """
     def __init__(self):
         self._dag = nx.DiGraph()
+        self._node_id = 0
         self._logical_ids_in_diag = set()
         self.near_term_layer = []
 
@@ -430,6 +433,7 @@ class CommandDAG(object):
         Remove all nodes from the DAG and all layers.
         """
         self._dag.clear()
+        self._node_id = 0
         self._logical_ids_in_diag = set()
         self.near_term_layer = []
 
@@ -466,7 +470,8 @@ class CommandDAG(object):
                 self._back_layer[logical_ids[1]].append_compatible_cmd(cmd)
                 return
 
-            new_node = _DAGNodeDouble(cmd, *logical_ids)
+            new_node = _DAGNodeDouble(self._node_id, cmd, *logical_ids)
+            self._node_id += 1
             self._dag.add_node(new_node)
 
             if logical_id0_in_dag:
@@ -490,7 +495,8 @@ class CommandDAG(object):
             logical_id_in_dag = logical_id in self._logical_ids_in_diag
 
             if isinstance(cmd.gate, (AllocateQubitGate, DeallocateQubitGate)):
-                new_node = _DAGNodeSingle(cmd, logical_id)
+                new_node = _DAGNodeSingle(self._node_id, cmd, logical_id)
+                self._node_id += 1
                 self._dag.add_node(new_node)
 
                 if logical_id_in_dag:
@@ -502,7 +508,8 @@ class CommandDAG(object):
                 self._layers_up_to_date = False
             else:
                 if not logical_id_in_dag:
-                    new_node = _DAGNodeSingle(cmd, logical_id)
+                    new_node = _DAGNodeSingle(self._node_id, cmd, logical_id)
+                    self._node_id += 1
                     self._dag.add_node(new_node)
                     self._logical_ids_in_diag.add(logical_id)
 
@@ -582,7 +589,7 @@ class CommandDAG(object):
                         break
             else:
                 continue  # only executed if the inner loop did NOT break
-            break # only executed if the inner loop DID break
+            break  # only executed if the inner loop DID break
 
         return [
             sorted(graph.subgraph(g),

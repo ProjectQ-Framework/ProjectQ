@@ -349,9 +349,8 @@ def test_qubit_placement_double_two_qubit_gate(grid33_graph_mapper):
     ])
     mapping = mapper.current_mapping
 
-    # Make sure that the qb[2] was allocated at backend_id 0
     assert backend.received_commands[0].gate == Allocate
-    assert backend.received_commands[0].qubits[0][0].id == 0
+    assert backend.received_commands[0].qubits[0][0].id in [0, 2, 6, 8]
     assert backend.received_commands[0].tags == [LogicalQubitIDTag(2)]
 
 
@@ -574,7 +573,7 @@ def test_send_two_qubit_gate_before_swap(simple_mapper):
             }
         else:
             # qb[2] moved, all_cmds[5] not possible
-            assert mapper._stored_commands == [all_cmds[5]] + all_cmds[-4:]
+            assert backend._stored_commands == [all_cmds[5]] + all_cmds[-4:]
             assert mapper.current_mapping == {
                 0: 0,
                 1: 2,
