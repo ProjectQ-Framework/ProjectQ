@@ -33,7 +33,7 @@ def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
         **kwargs (dict): Can override plot_parameters
     """
     plot_params = dict(scale=1.0, fontsize=14.0, linewidth=1.0,
-                       linebetween=0.04,control_radius=0.05, not_radius=0.15,
+                       linebetween=0.06,control_radius=0.05, not_radius=0.15,
                        swap_delta=0.08, label_buffer=0.0)
     plot_params.update(kwargs)
     scale = plot_params['scale']
@@ -47,6 +47,8 @@ def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
     # create grid for the plot
     wire_grid = np.arange(0.0, n_labels * scale, scale, dtype=float)
     gate_grid = np.arange(0.0, n_gates * scale, scale, dtype=float)
+    if len(gate_grid) == 0:
+        gate_grid = wire_grid
 
     fig, ax = setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params)
 
@@ -56,7 +58,7 @@ def to_draw(gates,labels=[],inits={},plot_labels=True,**kwargs):
         draw_labels(ax, labels, inits, gate_grid, wire_grid, plot_params)
 
     draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params)
-    return ax
+    return fig, ax
 
 def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
     """
@@ -205,7 +207,7 @@ def measure(ax, x, y, plot_params):
     """
     HIG = 0.65
     WID = 0.65
-    s = ''.ljust(5)
+    s = ''.ljust(2) # define box size
 
     # add box
     text(ax, x, y, s, plot_params, box=True)
@@ -320,15 +322,21 @@ def setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params):
     return the Figure and AxesSubplot object
     """
     scale = plot_params['scale']
+    width = n_gates * scale
+    height = n_labels * scale
+    if width == 0: 
+        width = height
+        
     fig = plt.figure(
-        figsize=(n_gates * scale, n_labels * scale),
+        figsize=(width, height),
         facecolor='w',
         edgecolor='w'
     )
 
     ax = plt.subplot()
     ax.set_axis_off()
-    offset = 0.5 * scale
+    offset = scale 
+    
     ax.set_xlim(gate_grid[0] - offset, gate_grid[-1] + offset)
     ax.set_ylim(wire_grid[0] - offset, wire_grid[-1] + offset)
     ax.set_aspect('equal')
@@ -346,10 +354,10 @@ def draw_wires(ax, n_labels, gate_grid, wire_grid, plot_params):
     """
     scale = plot_params['scale']
     linewidth = plot_params['linewidth']
-    xdata = (gate_grid[0] - scale, gate_grid[-1] + scale)
+    x_pos = (gate_grid[0] - 0.5 * scale, gate_grid[-1] + 2 * scale)
 
     for i in range(n_labels):
-        line(ax, gate_grid[0] - scale, gate_grid[-1] + scale,
+        line(ax, x_pos[0], x_pos[-1],
              wire_grid[i], wire_grid[i], plot_params)
 
 def draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params):
@@ -367,7 +375,7 @@ def draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params):
     dy = plot_params['linebetween']
 
     # gate_grid indicate x-axes
-    line(ax, x, gate_grid[-1] + scale, y + dy, y + dy, plot_params)
+    line(ax, x, gate_grid[-1] + 2 * scale, y + dy, y + dy, plot_params)
 
 def draw_labels(ax, labels, inits, gate_grid, wire_grid, plot_params):
     """

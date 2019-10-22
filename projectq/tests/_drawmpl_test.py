@@ -12,15 +12,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+'''
+    Tests for projectq.backends._circuits._drawer.py.
+    To generate the baseline images, run the tests with '--mpl-generate-path'
+    Then run the tests simply with '--mpl'
+'''
+
 import pytest
 from projectq import MainEngine
 from projectq.ops import *
 from projectq.backends import CircuitDrawerMatplotlib
 
-'''
-    To generate the baseline images, run the tests with '--mpl-generate-path'
-    hen run the tests simply with '--mpl'
-'''
 @pytest.mark.mpl_image_compare
 def test_drawer_mpl():
     drawer = CircuitDrawerMatplotlib()
