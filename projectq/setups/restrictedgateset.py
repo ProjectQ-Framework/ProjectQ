@@ -59,10 +59,13 @@ def one_and_two_qubit_gates(eng, cmd):
     else:
         return False
 
+def default_chooser(cmd,decomposition_list):
+    return decomposition_list[0]
 
 def get_engine_list(one_qubit_gates="any",
                     two_qubit_gates=(CNOT,),
-                    other_gates=()):
+                    other_gates=(),
+                    compiler_chooser=default_chooser):
     """
     Returns an engine list to compile to a restricted gate set.
 
@@ -101,6 +104,8 @@ def get_engine_list(one_qubit_gates="any",
                          instances of a class (e.g. QFT), it allows
                          all gates which are equal to it. If the gate is a
                          class, it allows all instances of this class.
+        compiler_chooser:function selecting the decomposition to use in the Autoreplacer
+                         engine
     Raises:
         TypeError: If input is for the gates is not "any" or a tuple. Also if
                    element within tuple is not a class or instance of BasicGate
@@ -196,15 +201,15 @@ def get_engine_list(one_qubit_gates="any",
             return True
         return False
 
-    return [AutoReplacer(rule_set),
+    return [AutoReplacer(rule_set,compiler_chooser),
             TagRemover(),
             InstructionFilter(high_level_gates),
             LocalOptimizer(5),
-            AutoReplacer(rule_set),
+            AutoReplacer(rule_set,compiler_chooser),
             TagRemover(),
             InstructionFilter(one_and_two_qubit_gates),
             LocalOptimizer(5),
-            AutoReplacer(rule_set),
+            AutoReplacer(rule_set,compiler_chooser),
             TagRemover(),
             InstructionFilter(low_level_gates),
             LocalOptimizer(5),
