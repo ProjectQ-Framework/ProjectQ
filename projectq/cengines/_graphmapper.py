@@ -59,7 +59,7 @@ class defaults(object):
     Class containing default values for some options
     """
     #: Defaults to :py:func:`.look_ahead_parallelism_cost_fun`
-    cost_fun = look_ahead_parallelism_cost_fun
+    cost_fun = staticmethod(look_ahead_parallelism_cost_fun)
     max_swap_steps = 30
 
 
