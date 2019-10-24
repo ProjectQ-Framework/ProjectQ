@@ -15,11 +15,12 @@
 Mapper for a quantum circuit to an arbitrary connected graph.
 
 Input: Quantum circuit with 1 and 2 qubit gates on n qubits. Gates are assumed
-       to be applied in parallel if they act on disjoint qubit(s) and any pair
-       of qubits can perform a 2 qubit gate (all-to-all connectivity)
+to be applied in parallel if they act on disjoint qubit(s) and any pair of
+qubits can perform a 2 qubit gate (all-to-all connectivity)
+
 Output: Quantum circuit in which qubits are placed in 2-D square grid in which
-        only nearest neighbour qubits can perform a 2 qubit gate. The mapper
-        uses Swap gates in order to move qubits next to each other.
+only nearest neighbour qubits can perform a 2 qubit gate. The mapper uses Swap
+gates in order to move qubits next to each other.
 """
 from copy import deepcopy
 
@@ -39,15 +40,27 @@ from ._gate_manager import GateManager, look_ahead_parallelism_cost_fun
 if sys.version_info[0] >= 3 and sys.version_info[1] > 6:  # pragma: no cover
 
     def uniquify_list(seq):
-        #pylint: disable=missing-function-docstring
+        # pylint: disable=missing-function-docstring
         return list(dict.fromkeys(seq))
 else:  # pragma: no cover
 
     def uniquify_list(seq):
-        #pylint: disable=missing-function-docstring
+        # pylint: disable=missing-function-docstring
         seen = set()
         seen_add = seen.add
         return [x for x in seq if x not in seen and not seen_add(x)]
+
+
+# ==============================================================================
+
+
+class defaults(object):
+    """
+    Class containing default values for some options
+    """
+    #: Defaults to :py:func:`.look_ahead_parallelism_cost_fun`
+    cost_fun = look_ahead_parallelism_cost_fun
+    max_swap_steps = 30
 
 
 # ==============================================================================
@@ -78,7 +91,7 @@ def _add_qubits_to_mapping_fcfs(current_mapping, graph, new_logical_qubit_ids,
 
     Returns: A new mapping
     """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
 
     mapping = deepcopy(current_mapping)
     currently_used_nodes = sorted([v for _, v in mapping.items()])
@@ -337,26 +350,20 @@ class GraphMapper(BasicMapperEngine):
                * - Key
                  - Type
                  - Description
-               * - cost_fun
-                 - ``function``
-                 -  | Cost function to be called when generating a new
-                    | list of swap operations.
-                    | Defaults to :py:func:`.look_ahead_parallelism_cost_fun`
                * - decay_opts
                  - ``dict``
                  -  | Options to pass onto the :py:class:`.DecayManager`
                       constructor
-                    | Defaults to ``{'delta': 0.001, 'max_lifetime': 5}``.
-               * - opts
+                    | (see :py:class:`._gate_manager.defaults`)
+               * - swap_opts
                  - ``dict``
-                 -  | Extra options to pass onto the cost function
-                    | (see :py:meth:`.MultiQubitGateManager.generate_swaps`)
-                    | Defaults to ``{'W': 0.5}``.
-               * - max_swap_steps
-                 - ``int``
-                 -  | Maximum number of swap steps per mapping
-                    | (see :py:meth:`.MultiQubitGateManager.generate_swaps`)
-                    | Defaults to 30
+                 -  | Extra options used when generating a list of swap
+                    | operations.
+                    | Acceptable keys: W, cost_fun, near_term_layer_depth,
+                    | max_swap_steps
+                    | (see :py:meth:`.GateManager.generate_swaps`,
+                    |  :py:class:`._graphmapper.defaults` and
+                    |  :py:class:`._gate_manager.defaults`)
         """
         BasicMapperEngine.__init__(self)
 
@@ -542,12 +549,14 @@ class GraphMapper(BasicMapperEngine):
         if not self.qubit_manager.size():
             return
 
+        # NB: default values are taken care of at place of access
+        swap_opts = self._opts.get('swap_opts', {})
+
         swaps, all_swapped_qubits = self.qubit_manager.generate_swaps(
             self._current_mapping,
-            cost_fun=self._opts.get('cost_fun',
-                                    look_ahead_parallelism_cost_fun),
-            opts=self._opts.get('opts', {'W': 0.5}),
-            max_steps=self._opts.get('max_swap_steps', 30))
+            cost_fun=swap_opts.get('cost_fun', defaults.cost_fun),
+            opts=swap_opts,
+            max_steps=swap_opts.get('max_swap_steps', defaults.max_swap_steps))
 
         if swaps:
             # Get a list of the qubits we need to allocate just to perform the

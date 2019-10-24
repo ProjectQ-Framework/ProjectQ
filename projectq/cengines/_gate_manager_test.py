@@ -511,9 +511,16 @@ def test_command_dag_near_term_layer(command_dag):
     command_dag.add_command(cmd14)
     dag_node12 = search_cmd(command_dag, cmd12)
     dag_node34 = search_cmd(command_dag, cmd34)
+    dag_node23b = search_cmd(command_dag, cmd23b)
+    dag_node46 = search_cmd(command_dag, cmd46)
 
-    command_dag.calculate_near_term_layer({i: i for i in range(7)})
+    command_dag.calculate_near_term_layer({i: i for i in range(7)}, depth=1)
     assert command_dag.near_term_layer == [dag_node12, dag_node34]
+
+    command_dag.calculate_near_term_layer({i: i for i in range(7)}, depth=2)
+    assert command_dag.near_term_layer == [
+        dag_node12, dag_node34, dag_node23b, dag_node46
+    ]
 
 
 def test_command_dag_calculate_interaction_list(command_dag):

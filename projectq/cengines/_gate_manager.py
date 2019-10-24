@@ -28,6 +28,20 @@ from projectq.ops import (AllocateQubitGate, DeallocateQubitGate)
 # ==============================================================================
 
 
+class defaults(object):
+    """
+    Class containing default values for some options
+    """
+
+    delta = 0.001
+    max_lifetime = 5
+    near_term_layer_depth = 1
+    W = 0.5
+
+
+# ==============================================================================
+
+
 def _topological_sort(dag):
     """
     Returns a generator of nodes in topologically sorted order.
@@ -154,7 +168,7 @@ def nearest_neighbours_cost_fun(gates_dag, mapping, distance_matrix, swap,
     Returns:
         Score of current swap operations
     """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     return _sum_distance_over_gates(gates_dag.front_layer_2qubit, mapping,
                                     distance_matrix)
 
@@ -212,7 +226,7 @@ def look_ahead_parallelism_cost_fun(gates_dag, mapping, distance_matrix, swap,
               - Weighting factor (see cost function formula)
     """
     decay = opts['decay']
-    near_term_weight = opts['W']
+    near_term_weight = opts.get('W', defaults.W)
 
     n_front = len(gates_dag.front_layer_2qubit)
     n_near = len(gates_dag.near_term_layer)
@@ -668,8 +682,9 @@ class GateManager(object):
         if decay_opts is None:
             decay_opts = {}
         self.dag = CommandDAG()
-        self._decay = DecayManager(decay_opts.get('delta', 0.001),
-                                   decay_opts.get('max_lifetime', 5))
+        self._decay = DecayManager(
+            decay_opts.get('delta', defaults.delta),
+            decay_opts.get('max_lifetime', defaults.max_lifetime))
         self._stats = {
             'simul_exec': [],
             '2qubit_gates_loc': {},
@@ -754,7 +769,9 @@ class GateManager(object):
         self._decay.clear()
         opts['decay'] = self._decay
 
-        self.dag.calculate_near_term_layer(current_mapping)
+        self.dag.calculate_near_term_layer(
+            current_mapping,
+            opts.get('near_term_layer_depth', defaults.near_term_layer_depth))
 
         mapping = current_mapping.copy()
         swaps = []
@@ -836,7 +853,8 @@ class GateManager(object):
                         has_command_to_execute = True
                         self._stats['simul_exec'][-1] += 1
                         _add_to_execute_list(node)
-                elif node.logical_id0 in mapping and node.logical_id1 in mapping:
+                elif (node.logical_id0 in mapping
+                      and node.logical_id1 in mapping):
                     if self.graph.has_edge(mapping[node.logical_id0],
                                            mapping[node.logical_id1]):
                         has_command_to_execute = True
@@ -938,7 +956,8 @@ class GateManager(object):
 
         # Rank swap candidates using the provided cost function
         scores = []
-        for logical_id0, backend_id0, logical_id1, backend_id1 in swap_candidates:
+        for (logical_id0, backend_id0, logical_id1,
+             backend_id1) in swap_candidates:
             new_mapping = mapping.copy()
 
             _apply_swap_to_mapping(new_mapping, logical_id0, logical_id1,

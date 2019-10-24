@@ -535,6 +535,68 @@ def test_run_and_receive(simple_graph, simple_mapper):
     assert mapper.num_mappings == 1
 
 
+@pytest.mark.parametrize("opts", [{}, {
+    'swap_opts': {
+    }
+}, {
+    'swap_opts': {
+        'W': 0.5,
+    }
+}, {
+    'swap_opts': {
+        'W': 0.5,
+        'near_term_layer_depth': 2
+    }
+}])
+def test_run_and_receive_with_opts(simple_graph, opts):
+    mapper = graphm.GraphMapper(graph=simple_graph,
+                                add_qubits_to_mapping="fcfs",
+                                opts=opts)
+    backend = DummyEngine(save_commands=True)
+    backend.is_last_engine = True
+    mapper.next_engine = backend
+
+    qb, allocate_cmds = allocate_all_qubits_cmd(mapper)
+
+    gates = [
+        Command(None, X, qubits=([qb[0]], ), controls=[qb[1]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[2]]),
+        Command(None, X, qubits=([qb[1]], ), controls=[qb[5]]),
+        Command(None, X, qubits=([qb[2]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[5]], ), controls=[qb[3]]),
+        Command(None, X, qubits=([qb[3]], ), controls=[qb[4]]),
+        Command(None, X, qubits=([qb[3]], ), controls=[qb[6]]),
+        Command(None, X, qubits=([qb[4]], ), controls=[qb[6]]),
+    ]
+    deallocate_cmds = [
+        Command(engine=None, gate=Deallocate, qubits=([qb[1]], ))
+    ]
+
+    allocated_qubits_ref = set([0, 2, 3, 4, 5, 6])
+
+    all_cmds = list(itertools.chain(allocate_cmds, gates, deallocate_cmds))
+    mapper.receive(all_cmds)
+    qb_flush = WeakQubitRef(engine=None, idx=-1)
+    cmd_flush = Command(engine=None, gate=FlushGate(), qubits=([qb_flush], ))
+    mapper.receive([cmd_flush])
+    assert mapper.qubit_manager.size() == 0
+    assert len(backend.received_commands) == len(all_cmds) + 1
+    assert mapper._currently_allocated_ids == allocated_qubits_ref
+
+    mapping = dict(enumerate(range(len(simple_graph))))
+    del mapping[1]
+    assert mapper.current_mapping == mapping
+
+    cmd9 = Command(None, X, qubits=([qb[0]], ), controls=[qb[6]])
+    mapper.receive([cmd9, cmd_flush])
+    assert mapper._currently_allocated_ids == allocated_qubits_ref
+    for idx in allocated_qubits_ref:
+        assert idx in mapper.current_mapping
+    assert mapper.qubit_manager.size() == 0
+    assert len(mapper.current_mapping) == 6
+    assert mapper.num_mappings == 1
+
+
 def test_send_two_qubit_gate_before_swap(simple_mapper):
     qb, all_cmds = allocate_all_qubits_cmd(simple_mapper[0])
 
