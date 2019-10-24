@@ -286,7 +286,7 @@ class GraphMapper(BasicMapperEngine):
 
     Args:
         graph (networkx.Graph) : Arbitrary connected graph
-        storage (int) Number of gates to temporarily store
+        storage (int): Approximate number of gates to temporarily store
         add_qubits_to_mapping (function or str): Function called when
             new qubits are to be added to the current mapping.
             Special possible string values:
@@ -307,7 +307,7 @@ class GraphMapper(BasicMapperEngine):
     Attributes:
         current_mapping:  Stores the mapping: key is logical qubit id, value
             is mapped qubit id from 0,...,self.num_qubits
-        storage (int): Number of gate it caches before mapping.
+        storage (int): Approximate number of gate it caches before mapping.
         num_qubits(int): number of qubits
         num_mappings (int): Number of times the mapper changed the mapping
         depth_of_swaps (dict): Key are circuit depth of swaps, value is the
@@ -327,7 +327,7 @@ class GraphMapper(BasicMapperEngine):
         Args:
             graph (networkx.Graph): Arbitrary connected graph representing
                 Qubit connectivity
-            storage (int): Number of gates to temporarily store
+            storage (int): Approximate number of gates to temporarily store
             add_qubits_to_mapping (function or str): Function called
                 when new qubits are to be added to the current
                 mapping.
@@ -584,14 +584,6 @@ class GraphMapper(BasicMapperEngine):
                 # to the temporary internal reverse mapping with invalid ids
                 new_internal_mapping[backend_id] = -1
 
-            # Calculate reverse internal mapping
-            new_internal_mapping = deepcopy(self._reverse_current_mapping)
-
-            # Add missing entries with invalid id to be able to process the
-            # swaps operations
-            for backend_id in not_allocated_ids:
-                new_internal_mapping[backend_id] = -1
-
             # Send swap operations to arrive at the new mapping
             for bqb0, bqb1 in swaps:
                 qb0 = WeakQubitRef(engine=self, idx=bqb0)
@@ -608,14 +600,9 @@ class GraphMapper(BasicMapperEngine):
             # Register statistics:
             self.num_mappings += 1
             depth = return_swap_depth(swaps)
-            if depth not in self.depth_of_swaps:
-                self.depth_of_swaps[depth] = 1
-            else:
-                self.depth_of_swaps[depth] += 1
-            if len(swaps) not in self.num_of_swaps_per_mapping:
-                self.num_of_swaps_per_mapping[len(swaps)] = 1
-            else:
-                self.num_of_swaps_per_mapping[len(swaps)] += 1
+            self.depth_of_swaps[depth] = self.depth_of_swaps.get(depth, 0) + 1
+            self.num_of_swaps_per_mapping[len(
+                swaps)] = self.num_of_swaps_per_mapping.get(len(swaps), 0) + 1
 
             # Calculate the list of "helper" qubits that need to be deallocated
             # and remove invalid entries
