@@ -972,6 +972,9 @@ def test_qubit_manager_str():
         Command(engine=None, gate=X, qubits=([qb[1]], )),
         Command(engine=None, gate=X, qubits=([qb[4]], ), controls=[qb[5]]),
         Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[4]]),
+        Command(engine=None, gate=X, qubits=([qb[3]], ), controls=[qb[4]]),
+        Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[4]]),
+        Command(engine=None, gate=X, qubits=([qb[3]], ), controls=[qb[4]]),
         Command(engine=None, gate=X, qubits=([qb[5]], ), controls=[qb[6]]),
         Command(engine=None, gate=X, qubits=([qb[6]], ), controls=[qb[7]]),
         Command(engine=None, gate=X, qubits=([qb[7]], ), controls=[qb[8]]),
@@ -1008,5 +1011,8 @@ def test_qubit_manager_str():
         if m:
             num_of_2qubit_gates += int(m.group(1))
 
+    edge34_count = int(re.search(r'\s+\[3, 4\]:\s+([0-9]+)',
+                                 str_repr).group(1))
     assert num_of_2qubit_gates == num_of_2qubit_gates_ref
-    assert str_repr.count("[4, 5]:  2") == 1
+    assert edge34_count > 1
+    assert str_repr.count("[4, 5]:  3") == 1

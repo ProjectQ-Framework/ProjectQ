@@ -862,8 +862,8 @@ class GateManager(object):
                         self._stats['simul_exec'][-1] += 1
                         key = frozenset((mapping[node.logical_id0],
                                          mapping[node.logical_id1]))
-                        self._stats['2qubit_gates_loc'][key] = self._stats.get(
-                            node.logical_ids, 0) + 1
+                        self._stats['2qubit_gates_loc'][key] \
+                            = self._stats['2qubit_gates_loc'].get(key, 0) + 1
                         for cmd in node.compatible_successor_cmds:
                             if len([
                                     qubit.id for qureg in cmd.all_qubits
