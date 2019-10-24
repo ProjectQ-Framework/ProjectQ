@@ -1,2 +1,3 @@
 # python artifacts
 *.pyc
+docs/projectq.*.rst
