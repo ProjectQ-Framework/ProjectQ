@@ -75,6 +75,7 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
     # initialize the position of gates as 0 for each label
     x_labels = {label: 0 for label in labels}
     x_position = 0
+    CheckGateLength = False  # keep track of the last gate length
 
     for i, gate in enumerate(gates):
         if len(gate) > 2:  # case: multi-control or target gate
@@ -106,16 +107,23 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
                         gate_grid, wire_grid, plot_params)
 
             # update the position by adding 1
+            distance = 2 if len(gate[0]) > 2 else 1
+            CheckGateLength = True if distance == 2 else False
             for itr, value in x_labels.items():
                 if begin <= itr <= end:
-                    x_labels[itr] = x_position + 1
+                    x_labels[itr] = x_position + distance
+
         else:
             qb = gate[1]
+            # if the last gate length > 2
+            if CheckGateLength == True:
+                x_labels[qb] = x_labels[qb] - 1
 
             draw_target(ax, x_labels[qb], gate, labels,
                         gate_grid, wire_grid, plot_params)
 
             x_labels[qb] = x_labels[qb] + 1
+            CheckGateLength = False
 
 def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
     """
