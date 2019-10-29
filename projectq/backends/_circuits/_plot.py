@@ -174,7 +174,7 @@ def draw_target(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
     # override name with target_symbols, get(keyname,value)
     symbol = target_symbols.get(name, name)
     
-    if symbol in ['X'] and len(gate) >= 3:
+    if symbol in ['X'] and len(gate) == 3:
         name = 'CNOT'
         
     x = gate_grid[i]
@@ -207,12 +207,12 @@ def measure(ax, x, y, plot_params):
     """
     HIG = 0.65
     WID = 0.65
-    s = ''.ljust(2) # define box size
+    s = ''.ljust(3) # define box size
 
     # add box
     text(ax, x, y, s, plot_params, box=True)
     # add measure symbol
-    arc = Arc(xy=(x, y - 0.15 * HIG), width=WID * 0.7,
+    arc = Arc(xy=(x, y - 0.15 * HIG), width=WID * 0.60,
                       height=HIG * 0.7, theta1=0, theta2=180,
                       fill=False, linewidth=1,zorder=5)
     ax.add_patch(arc)

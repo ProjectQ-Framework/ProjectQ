@@ -74,7 +74,8 @@ class CircuitDrawerMatplotlib(BasicEngine):
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: Returns True if the
-        CircuitDrawer is the last engine (since it can print any command).
+        CircuitDrawerMatplotlib is the last engine 
+        (since it can print any command).
 
         Args:
             cmd (Command): Command for which to check availability (all
@@ -132,9 +133,15 @@ class CircuitDrawerMatplotlib(BasicEngine):
             command_list (list<Command>): List of Commands to print (and
                 potentially send on to the next engine).
         """
+
         for cmd in command_list:
             l = []
-            g = str(cmd.gate)
+            # split the gate string "Gate()" at '(' get the gate name
+            g = str(cmd.gate).split('(')[0]
+            # case for R(1.57094543) Gate
+            if hasattr(cmd.gate, 'angle'):
+                g = g + '({0:.2f})'.format(cmd.gate.angle)
+
             for q in cmd.qubits:
                 l.append(q[0].id)
                 # assume single target, 1st. element of q is the target qubit.
@@ -174,7 +181,7 @@ class CircuitDrawer(BasicEngine):
     After initializing the CircuitDrawer, it can also be given the mapping
     from qubit IDs to wire location (via the :meth:`set_qubit_locations`
     function):
-
+··
     .. code-block:: python
 
         circuit_backend = CircuitDrawer()
