@@ -14,19 +14,27 @@
 
 '''
     Tests for projectq.backends._circuits._drawer.py.
-    To generate the baseline images, run the tests with '--mpl-generate-path'
+
+    To generate the baseline images
+    run the tests with '--mpl-generate-path=baseline'
+    
     Then run the tests simply with '--mpl'
 '''
 
 import pytest
 from projectq import MainEngine
 from projectq.ops import *
+from projectq.backends import Simulator
 from projectq.backends import CircuitDrawerMatplotlib
+from projectq.cengines import DecompositionRuleSet, AutoReplacer
+import projectq.setups.decompositions
 
 @pytest.mark.mpl_image_compare
 def test_drawer_mpl():
     drawer = CircuitDrawerMatplotlib()
-    eng = MainEngine(engine_list=[drawer])
+    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
+    eng = MainEngine(backend=Simulator(), engine_list=[AutoReplacer(rule_set),
+                                                       drawer])
     ctrl = eng.allocate_qureg(2)
     qureg = eng.allocate_qureg(3)
 
@@ -34,6 +42,7 @@ def test_drawer_mpl():
     Rx(1.0) | qureg[0]
     CNOT | (qureg[1], qureg[2])
     C(X, 2) | (ctrl[0], ctrl[1], qureg[2])
+    QFT | qureg
     All(Measure) | qureg
 
     eng.flush()
