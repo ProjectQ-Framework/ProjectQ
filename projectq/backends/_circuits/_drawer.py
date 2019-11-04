@@ -85,6 +85,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
             the Command (if there is a next engine).
         """
         try:
+            
             return BasicEngine.is_available(self, cmd)
         except LastEngineException:
             return True
@@ -135,24 +136,32 @@ class CircuitDrawerMatplotlib(BasicEngine):
         """
 
         for cmd in command_list:
-            l = []
+            target = []
+            control = []
+            gate = []
             # split the gate string "Gate()" at '(' get the gate name
             g = str(cmd.gate).split('(')[0]
             # case for R(1.57094543) Gate
             if hasattr(cmd.gate, 'angle'):
                 g = g + '({0:.2f})'.format(cmd.gate.angle)
+            gate.append(g)
+            gate = tuple(gate)
 
             for q in cmd.qubits:
-                l.append(q[0].id)
+                target.append(q[0].id)
                 # assume single target, 1st. element of q is the target qubit.
             if len(cmd.control_qubits) > 0:
                 for cq in cmd.control_qubits:
-                    l.append(cq.id)
+                    control.append(cq.id)
 
             listOfStrings = ['', 'Allocate']
-
+            T = tuple(target)
+            C = tuple(control)
             if not g in listOfStrings:
-                self._gates.append(tuple([g] + l))
+                if len(C) == 0:
+                    self._gates.append(gate + (T,))
+                else:
+                    self._gates.append(gate + (T,) + (C,))
 
             if not cmd.gate == FlushGate():
                 self._print_cmd(cmd)

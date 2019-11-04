@@ -79,16 +79,20 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
 
     for i, gate in enumerate(gates):
         if len(gate) > 2:  # case: multi-control or target gate
-            # it only works for single target gate
+
             qb_target = gate[1]
             qb_control = gate[2]
+            tar_max = max(qb_target)
+            tar_min = min(qb_target)
+            ctr_max = max(qb_control)
+            ctr_min = min(qb_control)
 
             # get the index of qubit between control and target qubit
-            begin = min(qb_control, qb_target)
-            end = max(qb_control, qb_target)
+            begin = min(ctr_min, tar_min)
+            end = max(ctr_max, tar_max)
 
             # check the max position between control and target gate
-            MaxPosition = max(x_labels[qb_target], x_labels[qb_control])
+            MaxPosition = max(x_labels[tar_max], x_labels[ctr_max])
             CheckMax = False
             for x in range(begin, end + 1):
                 if x_labels[x] > MaxPosition:
@@ -97,17 +101,20 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
             if CheckMax:
                 x_position = max(x_labels.values())
             else:
-                x_position = max(x_labels[qb_target], x_labels[qb_control])
+                x_position = MaxPosition
 
             draw_controls(ax, x_position, gate, labels,
                           gate_grid, wire_grid, plot_params)
 
-            x_labels[qb_target] = x_position
-            draw_target(ax, x_labels[qb_target], gate, labels,
-                        gate_grid, wire_grid, plot_params)
+            for i in qb_target:
+                x_labels[i] = x_position
 
+            draw_target(ax, x_labels, gate, labels,
+                        gate_grid, wire_grid, plot_params)
+            draw_lines(ax, x_labels, gate, labels,
+                        gate_grid, wire_grid, plot_params)
             # update the position by adding 1
-            distance = 2 if len(gate[0]) > 2 else 1
+            distance = 2 if len(gate[0]) > 4 else 1
             CheckGateLength = True if distance == 2 else False
             for itr, value in x_labels.items():
                 if begin <= itr <= end:
@@ -117,13 +124,68 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
             qb = gate[1]
             # if the last gate length > 2
             if CheckGateLength == True:
-                x_labels[qb] = x_labels[qb] - 1
+                for q in qb:
+                    x_labels[q] = x_labels[q] - 1
 
-            draw_target(ax, x_labels[qb], gate, labels,
+            draw_target(ax, x_labels, gate, labels,
+                        gate_grid, wire_grid, plot_params)
+            draw_lines(ax, x_labels, gate, labels,
                         gate_grid, wire_grid, plot_params)
 
-            x_labels[qb] = x_labels[qb] + 1
+            if len(qb) > 1:
+                begin = min(qb)
+                end = max(qb)
+                for itr, value in x_labels.items():
+                    if begin <= itr <= end:
+                        x_labels[itr] = x_labels[itr] + 1
+            else:
+                for q in qb:
+                    x_labels[q] = x_labels[q] + 1
+
             CheckGateLength = False
+
+def draw_lines(ax, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
+    """
+    draw the wires of connection between gates and control qubits
+    Args:
+        ax (AxesSubplot): axes object
+        x_labels (dict): the x position of each qubit
+        gate (tuple): control qubit gate
+        labels (list): contains qubits' label
+        gate_grid (ndarray): grid for positioning gate
+        wire_grid (ndarray): grid for positioning wires
+        plot_params (dict): parameter for the figure
+    """
+
+    if len(gate) == 3:
+        name, targets, controls = gate
+
+        tar_indices = get_flipped_indices(targets,labels)
+
+        # include multi-control gate
+        ctr_indices = get_flipped_indices(controls,labels)
+
+        i = x_labels[targets[0]]
+        tar_max = max(tar_indices)
+        tar_min = min(tar_indices)
+        ctr_max = max(ctr_indices)
+        ctr_min = min(ctr_indices)
+
+        min_wire = min(tar_min, ctr_min)
+        max_wire = max(tar_max, ctr_max)
+        line(ax, gate_grid[i], gate_grid[i],
+             wire_grid[min_wire], wire_grid[max_wire], plot_params)
+    else:
+        name, targets = gate
+        tar_indices = [get_flipped_index(targets, labels)] \
+            if isinstance(targets, int) else get_flipped_indices(targets,
+                                                                 labels)
+        i = x_labels[targets] if isinstance(targets, int) \
+            else x_labels[targets[0]]
+        tar_max = max(tar_indices)
+        tar_min = min(tar_indices)
+        line(ax, gate_grid[i], gate_grid[i],
+             wire_grid[tar_min], wire_grid[tar_max], plot_params)
 
 def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
     """
@@ -138,71 +200,72 @@ def draw_controls(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
         plot_params (dict): parameter for the figure
     """
 
-    linewidth = plot_params['linewidth']
-    scale = plot_params['scale']
-    control_radius = plot_params['control_radius']
+    name, targets, controls = gate
 
-    # what about multi target, can't set 2 here..
-    # ToDo: make a case, specifically for multi target gate..
-    name, target = gate[:2]
-    target_index = get_flipped_index(target, labels)
+    tar_indices = get_flipped_indices(targets, labels)
 
     # include multi-control gate
-    controls = gate[2:]
-    control_indices = get_flipped_indices(controls, labels)
-    gate_indices = control_indices + [target_index]
+    ctr_indices = get_flipped_indices(controls,labels)
 
-    min_wire = min(gate_indices)
-    max_wire = max(gate_indices)
-    line(ax, gate_grid[i], gate_grid[i],
-         wire_grid[min_wire], wire_grid[max_wire], plot_params)
+    tar_max = max(tar_indices)
+    tar_min = min(tar_indices)
+    ctr_max = max(ctr_indices)
+    ctr_min = min(ctr_indices)
 
-    for ci in control_indices:
+    min_wire = min(tar_min,ctr_min)
+    max_wire = max(tar_max,ctr_max)
+
+    for ci in ctr_indices:
         x = gate_grid[i]
         y = wire_grid[ci]
-        if name == 'SWAP':
-            swapx(ax, x, y, plot_params)
-        else:
-            cdot(ax, x, y, plot_params)
+        cdot(ax, x, y, plot_params)
 
-def draw_target(ax, i, gate, labels, gate_grid, wire_grid, plot_params):
+def draw_target(ax, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
     """
     draw the target gate in figure
     Args:
         ax (AxesSubplot): axes object
-        i (int): position of the target gate
+        x_labels (dict): the x position of each qubit
         gate (tuple): control qubit gate
         labels (list): contains qubits' label
         gate_grid (ndarray): grid for positioning gate
         wire_grid (ndarray): grid for positioning wires
         plot_params (dict): parameter for the figure
     """
-    target_symbols = dict(CNOT='X', CPHASE='Z', NOP='', CX='X', CZ='Z')
-    name, target = gate[:2]
-    # override name with target_symbols, get(keyname,value)
-    symbol = target_symbols.get(name, name)
-    
-    if symbol in ['X'] and len(gate) == 3:
-        name = 'CNOT'
-        
-    x = gate_grid[i]
-    target_index = get_flipped_index(target, labels)
-    y = wire_grid[target_index]
-    
-    if not symbol: return
-    if name in ['CNOT', 'TOFFOLI']:
-        oplus(ax, x, y, plot_params)
-    elif name == 'CPHASE':
-        cdot(ax, x, y, plot_params)
-    elif name == 'SWAP':
-        swapx(ax, x, y, plot_params)
-    elif name == 'Measure':
-        draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params)
-        
-        measure(ax, x, y, plot_params)
 
+    if len(gate) == 3:
+        name, targets, controls = gate
     else:
-        text(ax, x, y, symbol, plot_params, box=True)
+        name, targets = gate
+
+    target_indices = get_flipped_indices(targets, labels)
+
+    if name == 'X' and len(gate) == 3:
+        name = 'CNOT'
+
+    for qb in targets:
+        i = x_labels[qb]
+        x = gate_grid[i]
+
+        target_index = get_flipped_index(qb, labels)
+        y = wire_grid[target_index]
+
+        if name in ['CNOT', 'TOFFOLI']:
+            oplus(ax, x, y, plot_params)
+        elif name == 'CPHASE':
+            cdot(ax, x, y, plot_params)
+        elif name == 'Swap':
+            y1, y2 = target_indices
+            # line(ax, gate_grid[i], gate_grid[i],
+            #      wire_grid[y1], wire_grid[y2], plot_params)
+            swapx(ax, x, y, plot_params)
+
+        elif name == 'Measure':
+            draw_mwires(ax, x, y, gate_grid, wire_grid, plot_params)
+            measure(ax, x, y, plot_params)
+        else:
+            text(ax, x, y, name, plot_params, box=True)
+
 
 def measure(ax, x, y, plot_params):
     """
@@ -431,7 +494,7 @@ def get_flipped_indices(targets, labels):
     """
     flip the index of the target qubit for multi targets
     Args:
-        target (str): target qubit
+        targets (tuple): target qubit
         labels (list): contains all labels of qubits
     """
     return [get_flipped_index(t, labels) for t in targets]
