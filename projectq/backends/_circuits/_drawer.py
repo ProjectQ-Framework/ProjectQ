@@ -11,19 +11,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine which generates TikZ Latex code describing the
 circuit.
 """
-import sys
-
 from builtins import input
 
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import (SwapGate, FlushGate, Measure, Allocate, Deallocate)
 from projectq.meta import get_control_count
 from projectq.backends._circuits import to_latex, to_draw
+
 
 class CircuitItem(object):
     def __init__(self, gate, lines, ctrl_lines):
@@ -41,16 +39,17 @@ class CircuitItem(object):
         self.id = -1
 
     def __eq__(self, other):
-        return (self.gate == other.gate and self.lines == other.lines and
-                self.ctrl_lines == other.ctrl_lines and
-                self.id == other.id)
+        return (self.gate == other.gate and self.lines == other.lines
+                and self.ctrl_lines == other.ctrl_lines
+                and self.id == other.id)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class CircuitDrawerMatplotlib(BasicEngine):
     """
-    CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library 
+    CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library
     for drawing quantum circuits
     """
     def __init__(self, accept_input=False, default_measure=0):
@@ -58,9 +57,9 @@ class CircuitDrawerMatplotlib(BasicEngine):
         Initialize a circuit drawing engine(mpl)
         Args:
             accept_input (bool): If accept_input is true, the printer queries
-                the user to input measurement results if the CircuitDrawerMPL is
-                the last engine. Otherwise, all measurements yield the result
-                default_measure (0 or 1).
+                the user to input measurement results if the CircuitDrawerMPL
+                is the last engine. Otherwise, all measurements yield the
+                result default_measure (0 or 1).
             default_measure (bool): Default value to use as measurement
                 results if accept_input is False and there is no underlying
                 backend to register real measurement results.
@@ -70,7 +69,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         self._default_measure = default_measure
         self._map = dict()
         self._gates = []
-    
+
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: Returns True if the
@@ -106,20 +105,22 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
         for cmd in command_list:
             # split the gate string "Gate()" at '(' get the gate name
-            g = str(cmd.gate).split('(')[0]
+            gate_name = str(cmd.gate).split('(')[0]
             # case for R(1.57094543) Gate
             if hasattr(cmd.gate, 'angle'):
-                g = g + '({0:.2f})'.format(cmd.gate.angle)
+                gate_name = gate_name + '({0:.2f})'.format(cmd.gate.angle)
 
-            gate_names_ignore_list = ['', 'Allocate', 'Deallocate']
-            if g not in gate_names_ignore_list:
-                T = tuple(qubit.id for qureg in cmd.qubits for qubit in qureg)
+            if (cmd.gate not in [Allocate, Deallocate]
+                    and not isinstance(cmd.gate, FlushGate)):
+                targets = tuple(qubit.id for qureg in cmd.qubits
+                                for qubit in qureg)
 
                 if len(cmd.control_qubits) > 0:
                     self._gates.append(
-                        (g, T, tuple(qubit.id for qubit in cmd.control_qubits)))
+                        (gate_name, targets,
+                         tuple(qubit.id for qubit in cmd.control_qubits)))
                 else:
-                    self._gates.append((g, T))
+                    self._gates.append((gate_name, targets))
 
             if cmd.gate == Allocate:
                 qubit_id = cmd.qubits[0][0].id
@@ -127,12 +128,12 @@ class CircuitDrawerMatplotlib(BasicEngine):
                     self._map[qubit_id] = qubit_id
 
             elif self.is_last_engine and cmd.gate == Measure:
-                assert (get_control_count(cmd) == 0)
+                assert get_control_count(cmd) == 0
                 for qureg in cmd.qubits:
                     for qubit in qureg:
                         if self._accept_input:
                             m = None
-                            while m != '0' and m != '1' and m != 1 and m != 0:
+                            while m not in ('0', '1', 1, 0):
                                 prompt = ('Input measurement result (0 or 1) '
                                           'for qubit ' + str(qubit) + ': ')
                                 m = input(prompt)
@@ -151,9 +152,10 @@ class CircuitDrawerMatplotlib(BasicEngine):
         """
         qubits = [self._map[id] for id in self._map]
         # extract all the allocated qubits from the circuit
-        
+
         return to_draw(self._gates, qubits)
-    
+
+
 class CircuitDrawer(BasicEngine):
     """
     CircuitDrawer is a compiler engine which generates TikZ code for drawing
@@ -294,7 +296,7 @@ class CircuitDrawer(BasicEngine):
             raise RuntimeError("set_qubit_locations() has to be called before"
                                " applying gates!")
 
-        for k in range(min(id_to_loc), max(id_to_loc)+1):
+        for k in range(min(id_to_loc), max(id_to_loc) + 1):
             if k not in id_to_loc:
                 raise RuntimeError("set_qubit_locations(): Invalid id_to_loc "
                                    "mapping provided. All ids in the provided"
@@ -325,12 +327,12 @@ class CircuitDrawer(BasicEngine):
             self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert(get_control_count(cmd) == 0)
+            assert get_control_count(cmd) == 0
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
                         m = None
-                        while m != '0' and m != '1' and m != 1 and m != 0:
+                        while m not in ('0', '1', 1, 0):
                             prompt = ("Input measurement result (0 or 1) for "
                                       "qubit " + str(qubit) + ": ")
                             m = input(prompt)
