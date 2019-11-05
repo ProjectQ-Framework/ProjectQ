@@ -21,7 +21,7 @@ import sys
 from builtins import input
 
 from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import FlushGate, Measure, Allocate, Deallocate
+from projectq.ops import (SwapGate, FlushGate, Measure, Allocate, Deallocate)
 from projectq.meta import get_control_count
 from projectq.backends._circuits import to_latex, to_draw
 
@@ -74,7 +74,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: Returns True if the
-        CircuitDrawerMatplotlib is the last engine 
+        CircuitDrawerMatplotlib is the last engine
         (since it can print any command).
 
         Args:
@@ -85,45 +85,14 @@ class CircuitDrawerMatplotlib(BasicEngine):
             the Command (if there is a next engine).
         """
         try:
-            
+            # General multi-target qubit gates are not supported yet
+            if (not isinstance(cmd.gate, SwapGate)
+                    and len([qubit for qureg in cmd.qubits
+                             for qubit in qureg]) > 1):
+                return False
             return BasicEngine.is_available(self, cmd)
         except LastEngineException:
             return True
-
-    def _print_cmd(self, cmd):
-        """
-        Add the command cmd to the circuit diagram, taking care of potential
-        measurements as specified in the __init__ function.
-
-        Queries the user for measurement input if a measurement command
-        arrives if accept_input was set to True. Otherwise, it uses the
-        default_measure parameter to register the measurement outcome.
-
-        Args:
-            cmd (Command): Command to add to the circuit diagram.
-        """
-        if cmd.gate == Allocate:
-            qubit_id = cmd.qubits[0][0].id
-            if qubit_id not in self._map:
-                self._map[qubit_id] = qubit_id
-
-        if cmd.gate == Deallocate:
-            qubit_id = cmd.qubits[0][0].id
-
-        if self.is_last_engine and cmd.gate == Measure:
-            assert(get_control_count(cmd) == 0)
-            for qureg in cmd.qubits:
-                for qubit in qureg:
-                    if self._accept_input:
-                        m = None
-                        while m != '0' and m != '1' and m != 1 and m != 0:
-                            prompt = ("Input measurement result (0 or 1) for "
-                                      "qubit " + str(qubit) + ": ")
-                            m = input(prompt)
-                    else:
-                        m = self._default_measure
-                    m = int(m)
-                    self.main_engine.set_measurement_result(qubit, m)
 
     def receive(self, command_list):
         """
@@ -136,35 +105,42 @@ class CircuitDrawerMatplotlib(BasicEngine):
         """
 
         for cmd in command_list:
-            target = []
-            control = []
-            gate = []
             # split the gate string "Gate()" at '(' get the gate name
             g = str(cmd.gate).split('(')[0]
             # case for R(1.57094543) Gate
             if hasattr(cmd.gate, 'angle'):
                 g = g + '({0:.2f})'.format(cmd.gate.angle)
-            gate.append(g)
-            gate = tuple(gate)
 
-            for q in cmd.qubits:
-                target.append(q[0].id)
-                # assume single target, 1st. element of q is the target qubit.
-            if len(cmd.control_qubits) > 0:
-                for cq in cmd.control_qubits:
-                    control.append(cq.id)
+            gate_names_ignore_list = ['', 'Allocate', 'Deallocate']
+            if g not in gate_names_ignore_list:
+                T = tuple(qubit.id for qureg in cmd.qubits for qubit in qureg)
 
-            listOfStrings = ['', 'Allocate']
-            T = tuple(target)
-            C = tuple(control)
-            if not g in listOfStrings:
-                if len(C) == 0:
-                    self._gates.append(gate + (T,))
+                if len(cmd.control_qubits) > 0:
+                    self._gates.append(
+                        (g, T, tuple(qubit.id for qubit in cmd.control_qubits)))
                 else:
-                    self._gates.append(gate + (T,) + (C,))
+                    self._gates.append((g, T))
 
-            if not cmd.gate == FlushGate():
-                self._print_cmd(cmd)
+            if cmd.gate == Allocate:
+                qubit_id = cmd.qubits[0][0].id
+                if qubit_id not in self._map:
+                    self._map[qubit_id] = qubit_id
+
+            elif self.is_last_engine and cmd.gate == Measure:
+                assert (get_control_count(cmd) == 0)
+                for qureg in cmd.qubits:
+                    for qubit in qureg:
+                        if self._accept_input:
+                            m = None
+                            while m != '0' and m != '1' and m != 1 and m != 0:
+                                prompt = ('Input measurement result (0 or 1) '
+                                          'for qubit ' + str(qubit) + ': ')
+                                m = input(prompt)
+                        else:
+                            m = self._default_measure
+                        m = int(m)
+                        self.main_engine.set_measurement_result(qubit, m)
+
             # (try to) send on
             if not self.is_last_engine:
                 self.send([cmd])
