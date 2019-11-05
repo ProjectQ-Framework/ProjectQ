@@ -72,7 +72,7 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
         plot_params (dict): parameter for the figure
     """
 
-    # initialize the position of gates as 0 for each label
+    # initialize the position of gates as 0 for each qubit label
     x_labels = {label: 0 for label in labels}
     x_position = 0
     CheckGateLength = False  # keep track of the last gate length
@@ -113,7 +113,8 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
                         gate_grid, wire_grid, plot_params)
             draw_lines(ax, x_labels, gate, labels,
                         gate_grid, wire_grid, plot_params)
-            # update the position by adding 1
+
+            # update x position between control and target qubit
             distance = 2 if len(gate[0]) > 4 else 1
             CheckGateLength = True if distance == 2 else False
             for itr, value in x_labels.items():
@@ -121,8 +122,9 @@ def draw_gates(ax, gates, labels, gate_grid, wire_grid, plot_params):
                     x_labels[itr] = x_position + distance
 
         else:
+            # get target qubit (tuple)
             qb = gate[1]
-            # if the last gate length > 2
+            # if the last gate length > 4
             if CheckGateLength == True:
                 for q in qb:
                     x_labels[q] = x_labels[q] - 1
@@ -177,11 +179,10 @@ def draw_lines(ax, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
              wire_grid[min_wire], wire_grid[max_wire], plot_params)
     else:
         name, targets = gate
-        tar_indices = [get_flipped_index(targets, labels)] \
-            if isinstance(targets, int) else get_flipped_indices(targets,
-                                                                 labels)
-        i = x_labels[targets] if isinstance(targets, int) \
-            else x_labels[targets[0]]
+
+        tar_indices =  get_flipped_indices(targets, labels)
+        i = x_labels[targets[0]] # use the first target qubit position
+
         tar_max = max(tar_indices)
         tar_min = min(tar_indices)
         line(ax, gate_grid[i], gate_grid[i],
@@ -256,8 +257,6 @@ def draw_target(ax, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
             cdot(ax, x, y, plot_params)
         elif name == 'Swap':
             y1, y2 = target_indices
-            # line(ax, gate_grid[i], gate_grid[i],
-            #      wire_grid[y1], wire_grid[y2], plot_params)
             swapx(ax, x, y, plot_params)
 
         elif name == 'Measure':

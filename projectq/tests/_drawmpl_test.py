@@ -17,7 +17,7 @@
 
     To generate the baseline images
     run the tests with '--mpl-generate-path=baseline'
-    
+
     Then run the tests simply with '--mpl'
 '''
 
@@ -37,6 +37,9 @@ def test_drawer_mpl():
                                                        drawer])
     ctrl = eng.allocate_qureg(2)
     qureg = eng.allocate_qureg(3)
+
+    Swap | (qureg[0], qureg[2])
+    C(Swap) | (qureg[0], qureg[1], qureg[2])
 
     CNOT | (qureg[0], qureg[2])
     Rx(1.0) | qureg[0]
