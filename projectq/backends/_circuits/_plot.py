@@ -38,9 +38,14 @@ def to_draw(gates, labels=None, inits=None, plot_labels=True, **kwargs):
     if inits is None:
         inits = {label: 0 for label in labels}
 
-    plot_params = dict(scale=1.0, fontsize=14.0, linewidth=1.0,
-                       linebetween=0.06, control_radius=0.05, not_radius=0.15,
-                       swap_delta=0.08, label_buffer=0.0)
+    plot_params = dict(scale=1.0,
+                       fontsize=14.0,
+                       linewidth=1.0,
+                       linebetween=0.06,
+                       control_radius=0.05,
+                       not_radius=0.15,
+                       swap_delta=0.08,
+                       label_buffer=0.0)
     plot_params.update(kwargs)
     scale = plot_params['scale']
 
@@ -53,7 +58,8 @@ def to_draw(gates, labels=None, inits=None, plot_labels=True, **kwargs):
     if len(gate_grid) == 0:
         gate_grid = wire_grid
 
-    fig, axes = setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params)
+    fig, axes = setup_figure(n_labels, n_gates, gate_grid, wire_grid,
+                             plot_params)
 
     draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params)
 
@@ -105,16 +111,16 @@ def draw_gates(axes, gates, labels, gate_grid, wire_grid, plot_params):
             else:
                 x_position = max_position
 
-            draw_controls(axes, x_position, gate, labels,
-                          gate_grid, wire_grid, plot_params)
+            draw_controls(axes, x_position, gate, labels, gate_grid, wire_grid,
+                          plot_params)
 
             for qb_id in qb_target:
                 x_labels[qb_id] = x_position
 
-            draw_target(axes, x_labels, gate, labels,
-                        gate_grid, wire_grid, plot_params)
-            draw_lines(axes, x_labels, gate, labels,
-                       gate_grid, wire_grid, plot_params)
+            draw_target(axes, x_labels, gate, labels, gate_grid, wire_grid,
+                        plot_params)
+            draw_lines(axes, x_labels, gate, labels, gate_grid, wire_grid,
+                       plot_params)
 
             # update x position between control and target qubit
             distance = 2 if len(gate_name) > 4 else 1
@@ -131,10 +137,10 @@ def draw_gates(axes, gates, labels, gate_grid, wire_grid, plot_params):
                 for qb_id in target_qubits:
                     x_labels[qb_id] = x_labels[qb_id] - 1
 
-            draw_target(axes, x_labels, gate, labels,
-                        gate_grid, wire_grid, plot_params)
-            draw_lines(axes, x_labels, gate, labels,
-                       gate_grid, wire_grid, plot_params)
+            draw_target(axes, x_labels, gate, labels, gate_grid, wire_grid,
+                        plot_params)
+            draw_lines(axes, x_labels, gate, labels, gate_grid, wire_grid,
+                       plot_params)
 
             if len(target_qubits) > 1:
                 begin = min(target_qubits)
@@ -148,7 +154,9 @@ def draw_gates(axes, gates, labels, gate_grid, wire_grid, plot_params):
 
             check_gate_length = False
 
-def draw_lines(axes, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
+
+def draw_lines(axes, x_labels, gate, labels, gate_grid, wire_grid,
+               plot_params):
     """
     draw the wires of connection between gates and control qubits
     Args:
@@ -183,7 +191,7 @@ def draw_lines(axes, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
         _, targets = gate
 
         tar_indices = get_flipped_indices(targets, labels)
-        i = x_labels[targets[0]] # use the first target qubit position
+        i = x_labels[targets[0]]  # use the first target qubit position
 
         tar_max = max(tar_indices)
         tar_min = min(tar_indices)
@@ -213,7 +221,8 @@ def draw_controls(axes, i, gate, labels, gate_grid, wire_grid, plot_params):
         cdot(axes, gate_grid[i], wire_grid[cidx], plot_params)
 
 
-def draw_target(axes, x_labels, gate, labels, gate_grid, wire_grid, plot_params):
+def draw_target(axes, x_labels, gate, labels, gate_grid, wire_grid,
+                plot_params):
     """
     draw the target gate in figure
     Args:
@@ -269,13 +278,19 @@ def measure(axes, x, y, plot_params):
     # add box
     text(axes, x, y, '   ', plot_params, box=True)
     # add measure symbol
-    arc = Arc(xy=(x, y - 0.15 * height), width=width * 0.60,
-              height=height * 0.7, theta1=0, theta2=180,
-              fill=False, linewidth=1, zorder=5)
+    arc = Arc(xy=(x, y - 0.15 * height),
+              width=width * 0.60,
+              height=height * 0.7,
+              theta1=0,
+              theta2=180,
+              fill=False,
+              linewidth=1,
+              zorder=5)
     axes.add_patch(arc)
-    axes.plot([x, x + 0.35 * width],
-              [y - 0.15 * height, y + 0.20 * height], color='k',
-              linewidth=1, zorder=5)
+    axes.plot([x, x + 0.35 * width], [y - 0.15 * height, y + 0.20 * height],
+              color='k',
+              linewidth=1,
+              zorder=5)
 
 
 def line(axes, xdata, ydata, plot_params):
@@ -289,8 +304,7 @@ def line(axes, xdata, ydata, plot_params):
         y2 (float): y_2 coordinate
         plot_params (dict): parameter for the figure
     """
-    axes.add_line(Line2D(xdata, ydata,
-                         color='k', lw=plot_params['linewidth']))
+    axes.add_line(Line2D(xdata, ydata, color='k', lw=plot_params['linewidth']))
 
 
 def text(axes, x, y, textstr, plot_params, box=False):
@@ -316,8 +330,14 @@ def text(axes, x, y, textstr, plot_params, box=False):
         # draw the qubit box
         bbox = dict(ec='w', fc='w', fill=False, lw=linewidth)
     # draw the text
-    axes.text(x, y, textstr, color='k', ha='center', va='center',
-              bbox=bbox, size=fontsize)
+    axes.text(x,
+              y,
+              textstr,
+              color='k',
+              ha='center',
+              va='center',
+              bbox=bbox,
+              size=fontsize)
 
 
 def oplus(axes, x, y, plot_params):
@@ -334,10 +354,11 @@ def oplus(axes, x, y, plot_params):
     not_radius = plot_params['not_radius']
     linewidth = plot_params['linewidth']
 
-    axes.add_patch(Circle((x, y), not_radius, ec='k',
-                          fc='w', fill=False, lw=linewidth))
+    axes.add_patch(
+        Circle((x, y), not_radius, ec='k', fc='w', fill=False, lw=linewidth))
 
     line(axes, (x, x), (y - not_radius, y + not_radius), plot_params)
+
 
 def cdot(axes, x, y, plot_params):
     """
@@ -354,8 +375,14 @@ def cdot(axes, x, y, plot_params):
     scale = plot_params['scale']
     linewidth = plot_params['linewidth']
 
-    axes.add_patch(Circle((x, y), control_radius * scale,
-                          ec='k', fc='k', fill=True, lw=linewidth))
+    axes.add_patch(
+        Circle((x, y),
+               control_radius * scale,
+               ec='k',
+               fc='k',
+               fill=True,
+               lw=linewidth))
+
 
 def swapx(axes, x, y, plot_params):
     """
@@ -371,6 +398,7 @@ def swapx(axes, x, y, plot_params):
     d = plot_params['swap_delta']
     line(axes, (x - d, x + d), (y - d, y + d), plot_params)
     line(axes, (x - d, x + d), (y + d, y - d), plot_params)
+
 
 def setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params):
     """
@@ -390,11 +418,7 @@ def setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params):
     if width == 0:
         width = height
 
-    fig = plt.figure(
-        figsize=(width, height),
-        facecolor='w',
-        edgecolor='w'
-    )
+    fig = plt.figure(figsize=(width, height), facecolor='w', edgecolor='w')
 
     axes = plt.subplot()
     axes.set_axis_off()
@@ -404,6 +428,7 @@ def setup_figure(n_labels, n_gates, gate_grid, wire_grid, plot_params):
     axes.set_ylim(wire_grid[0] - offset, wire_grid[-1] + offset)
     axes.set_aspect('equal')
     return fig, axes
+
 
 def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
     """
@@ -421,8 +446,9 @@ def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
     x_pos = (gate_grid[0] - 0.5 * scale, gate_grid[-1] + 2 * scale)
 
     for i in range(n_labels):
-        line(axes, (x_pos[0], x_pos[-1]),
-             (wire_grid[i], wire_grid[i]), plot_params)
+        line(axes, (x_pos[0], x_pos[-1]), (wire_grid[i], wire_grid[i]),
+             plot_params)
+
 
 def draw_mwires(axes, x, y, gate_grid, wire_grid, plot_params):
     """
@@ -442,6 +468,7 @@ def draw_mwires(axes, x, y, gate_grid, wire_grid, plot_params):
 
     # gate_grid indicate x-axes
     line(axes, (x, gate_grid[-1] + 2 * scale), (y + dy, y + dy), plot_params)
+
 
 def draw_labels(axes, labels, inits, gate_grid, wire_grid, plot_params):
     """
@@ -465,6 +492,7 @@ def draw_labels(axes, labels, inits, gate_grid, wire_grid, plot_params):
         text(axes, xdata[0] - label_buffer, wire_grid[j],
              render_label(labels[i], inits), plot_params)
 
+
 def get_flipped_index(target, labels):
     """
     flip the index of the target qubit in order to match the coordination
@@ -484,6 +512,7 @@ def get_flipped_index(target, labels):
 
     return n_labels - i - 1
 
+
 def get_flipped_indices(targets, labels):
     """
     flip the index of the target qubit for multi targets
@@ -492,6 +521,7 @@ def get_flipped_indices(targets, labels):
         labels (list): contains all labels of qubits
     """
     return [get_flipped_index(t, labels) for t in targets]
+
 
 def render_label(label, inits):
     """
@@ -503,5 +533,5 @@ def render_label(label, inits):
     if label in inits:
         if inits[label] is None:
             return ''
-        return  r'$|{}\rangle$'.format(inits[label])
+        return r'$|{}\rangle$'.format(inits[label])
     return r'$|{}\rangle$'.format(label)
