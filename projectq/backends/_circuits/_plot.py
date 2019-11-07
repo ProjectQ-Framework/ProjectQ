@@ -32,8 +32,6 @@ def to_draw(gates, labels=None, inits=None, plot_labels=True, **kwargs):
             be drawed.
         **kwargs (dict): Can override plot_parameters
     """
-    if labels is None:
-        labels = []
 
     if inits is None:
         inits = {label: 0 for label in labels}
@@ -250,8 +248,6 @@ def draw_target(axes, x_labels, gate, labels, gate_grid, wire_grid,
 
         if name in ('X', 'CNOT', 'TOFFOLI'):
             oplus(axes, x, y, plot_params)
-        elif name == 'CPHASE':
-            cdot(axes, x, y, plot_params)
         elif name == 'Swap':
             swapx(axes, x, y, plot_params)
         elif name == 'Measure':
@@ -484,8 +480,6 @@ def draw_labels(axes, labels, inits, gate_grid, wire_grid, plot_params):
     scale = plot_params['scale']
     label_buffer = plot_params['label_buffer']
     n_labels = len(labels)
-    if inits is None:
-        inits = {label: 0 for label in labels}
     xdata = (gate_grid[0] - scale, gate_grid[-1] + scale)
     for i in range(n_labels):
         j = get_flipped_index(labels[i], labels)
@@ -531,7 +525,5 @@ def render_label(label, inits):
         inits (list): initial qubits
     """
     if label in inits:
-        if inits[label] is None:
-            return ''
         return r'$|{}\rangle$'.format(inits[label])
     return r'$|{}\rangle$'.format(label)
