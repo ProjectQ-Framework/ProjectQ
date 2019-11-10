@@ -118,6 +118,7 @@ def complex_oracle(eng, system_q, control):
 
     Uncompute(eng)
 
+
 def test_complex_aa():
     rule_set = DecompositionRuleSet(modules=[aa])
 
