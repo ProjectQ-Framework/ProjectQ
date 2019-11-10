@@ -28,7 +28,7 @@ from projectq.types import WeakQubitRef
 
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 
-tolerance = 1e-6
+tolerance = 2e-6
 
 
 def test_wrong_final_state():
