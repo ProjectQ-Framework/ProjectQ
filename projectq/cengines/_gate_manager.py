@@ -78,7 +78,7 @@ def _topological_sort(dag):
         yield node
 
 
-# Coffaman-Graham algorithm with infinite width
+# Coffman-Graham algorithm with infinite width
 def _coffman_graham_ranking(dag):
     """
     Apply the Coffman-Grapham layering algorithm to a DAG (with infinite width)
