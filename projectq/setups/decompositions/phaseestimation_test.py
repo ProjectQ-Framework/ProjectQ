@@ -34,7 +34,7 @@ import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
 
-tolerance = 1e-5
+tolerance = 1e-4
 
 def test_simple_test_X_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
@@ -113,7 +113,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    num_phase = (results == 0.125).sum()
+    num_phase = (results == pytest.approx(0.125, rel=tolerance, abs=tolerance)).sum()
     assert num_phase/100. >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.34)
 
 
