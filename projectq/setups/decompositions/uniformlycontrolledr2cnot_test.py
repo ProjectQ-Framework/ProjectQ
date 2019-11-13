@@ -28,7 +28,7 @@ from projectq.ops import (All, Measure, Ry, Rz, UniformlyControlledRy,
 
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
-tolerance = 1e-6
+tolerance = 5e-5
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):
     """
