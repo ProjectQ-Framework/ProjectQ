@@ -46,6 +46,7 @@ def get_available_simulators():
     # py_simulator throws a KeyError on probability test.
     # Qrack unit tests don't need to test the Python simulator, right now. 
     # result = ["py_simulator"]
+    result = []
     try:
         import projectq.backends._sim._cppsim as _
         result.append("cpp_simulator")
