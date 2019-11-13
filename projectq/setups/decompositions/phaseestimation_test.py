@@ -113,7 +113,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         All(Measure) | autovector
         eng.flush()
 
-    num_phase = (results == pytest.approx(0.125, rel=tolerance, abs=tolerance)).sum()
+    num_phase = (abs(results - 0.125) < tolerance).sum()
     assert num_phase/100. >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (num_phase/100., 0.34)
 
 
