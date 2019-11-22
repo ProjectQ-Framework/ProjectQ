@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """
-Registers a decomposition for the Ry gate into an Rz and Rx(pi/2) gate.
+Registers a decomposition for the Rz gate into an Rx and Ry(pi/2) or Ry(-pi/2) gate
 """
 
 import math
@@ -24,7 +24,7 @@ from projectq.ops import Rx, Ry, Rz, H
 
 
 def _decompose_rz_P(cmd):
-    """ Decompose the Ry gate."""
+    """ Decompose the Rz using negative angle. """
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
@@ -36,7 +36,7 @@ def _decompose_rz_P(cmd):
         Uncompute(eng)
 
 def _decompose_rz_M(cmd):
-    """ Decompose the Ry gate."""
+    """ Decompose the Rz using positive angle. """
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
