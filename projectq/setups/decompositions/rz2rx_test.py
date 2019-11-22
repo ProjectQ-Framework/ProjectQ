@@ -15,10 +15,9 @@ from projectq.ops import Measure, Ph, Rz
 from . import rz2rx
 
 def test_recognize_correct_gates():
-    """ Check that Rz gate is not part of a two-qubit control
-    gate """
-    # Creates a circuit and checks that there is only 
-    # a ctrl qubit if you create one in the circuit
+    """ Checks that the recognize_RzNoCtrl behaves as it should """
+    # Creates a circuit and checks that the recognize_RzNoCtrl
+    # asserts correctly that there is/isn't a ctrl qubit in a given command
     saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend)
     qubit = eng.allocate_qubit()
