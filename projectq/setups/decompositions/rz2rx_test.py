@@ -1,5 +1,18 @@
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
-"Tests for projectq.setups.decompositions.rx2rz.py"
+"Tests for projectq.setups.decompositions.rz2rx.py"
 
 import math
 
@@ -15,9 +28,7 @@ from projectq.ops import Measure, Ph, Rz
 from . import rz2rx
 
 def test_recognize_correct_gates():
-    """ Checks that the recognize_RzNoCtrl behaves as it should """
-    # Creates a circuit and checks that the recognize_RzNoCtrl
-    # asserts correctly that there is/isn't a ctrl qubit in a given command
+    """ Test that recognize_RzNoCtrl recognizes ctrl qubits """
     saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend)
     qubit = eng.allocate_qubit()
@@ -32,7 +43,7 @@ def test_recognize_correct_gates():
 
 
 def rz_decomp_gates(eng, cmd):
-    """ Check that cmd.gate is the gate Rz """
+    """ Test that cmd.gate is the gate Rz """
     g = cmd.gate
     if isinstance(g, Rz):
         return False
@@ -42,8 +53,11 @@ def rz_decomp_gates(eng, cmd):
 
 @pytest.mark.parametrize("angle", [0, math.pi, 2*math.pi, 4*math.pi, 0.5])
 def test_decomposition(angle):
-    """ Test whether the decomposition of Rz results in  
-    the same superposition of |0> and |1> as just using Rz """
+    """ Test that the decomposition of Rz produces correct amplitudes 
+    
+        Note that this function tests the first DecompositionRule in 
+        rz2rx.all_defined_decomposition_rules
+    """
     for basis_state in ([1, 0], [0, 1]):
         correct_dummy_eng = DummyEngine(save_commands=True)
         correct_eng = MainEngine(backend=Simulator(),
