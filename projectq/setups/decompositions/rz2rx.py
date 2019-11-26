@@ -32,7 +32,7 @@ def _decompose_rz_P(cmd):
     with Control(eng, cmd.control_qubits):
         with Compute(eng):
             Ry(-math.pi/2.) | qubit
-        Rx(angle) | qubit
+        Rx(-angle) | qubit
         Uncompute(eng)
 
 def _decompose_rz_M(cmd):
