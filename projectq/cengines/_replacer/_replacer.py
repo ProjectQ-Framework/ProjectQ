@@ -175,7 +175,6 @@ class AutoReplacer(BasicEngine):
 
             # use decomposition chooser to determine the best decomposition
             chosen_decomp = self._decomp_chooser(cmd, decomp_list)
-
             # the decomposed command must have the same tags
             # (plus the ones it gets from meta-statements inside the
             # decomposition rule).
