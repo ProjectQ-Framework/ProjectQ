@@ -45,7 +45,7 @@ def test_recognize_correct_gates():
 
 
 def h_decomp_gates(eng, cmd):
-    """ Test that cmd.gate is the gate H """
+    """ Test that cmd.gate is a gate of class HGate """
     g = cmd.gate
     if isinstance(g, HGate): # H is just a shortcut to HGate
         return False
