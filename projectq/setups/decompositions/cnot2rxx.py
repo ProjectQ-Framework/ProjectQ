@@ -23,30 +23,32 @@ import math
 
 def _decompose_cnot2rxx_M(cmd):
     """ Decompose CNOT gates. """
+    print("decompose_M called")
     ctrl = cmd.control_qubits
-    eng = cmd.engine
     Ry(math.pi/2) | ctrl[0]
-    Rx(3*math.pi/2)| ctrl[0]
-    Rx(3*math.pi/2)| cmd.qubits[0][0]
+    Rx(-math.pi/2)| ctrl[0]
+    Rx(-math.pi/2)| cmd.qubits[0][0]
     Rxx(math.pi/2) | (ctrl[0], cmd.qubits[0][0])
     Ry(-1*math.pi/2)| ctrl[0]
 
 def _decompose_cnot2rxx_P(cmd):
     """ Decompose CNOT gates. """
+    print("decompose_P called")
     ctrl = cmd.control_qubits
-    eng = cmd.engine
     Ry(-math.pi/2) | ctrl[0]
-    Rx(3*math.pi/2)| ctrl[0]
-    Rx(3*math.pi/2)| cmd.qubits[0][0]
+    Rx(-math.pi/2)| ctrl[0]
+    Rx(math.pi/2)| cmd.qubits[0][0]
     Rxx(math.pi/2) | (ctrl[0], cmd.qubits[0][0])
     Ry(math.pi/2)| ctrl[0]
 
-def _recognize_cnot2(cmd):
-    #return True
+def _recognize_cnot(cmd):
+    print('RECOGNIZE CNOT')
+    print(cmd)
+    print(get_control_count(cmd))
     return get_control_count(cmd) == 1
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
-    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot2),
-    DecompositionRule(X.__class__, _decompose_cnot2rxx_M, _recognize_cnot2)
+    DecompositionRule(X.__class__, _decompose_cnot2rxx_M, _recognize_cnot),
+    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot)
 ]
