@@ -22,7 +22,7 @@ from projectq.ops import Rxx,Ry,Rx,Rz,X,Y,Z
 import math
 
 def _decompose_cnot2rxx_M(cmd):
-    """ Decompose CNOT gates. """
+    """ Decompose CNOT gate into Rxx gate. """
     ctrl = cmd.control_qubits
     eng = cmd.engine
     Ry(math.pi/2) | ctrl[0]
@@ -32,7 +32,7 @@ def _decompose_cnot2rxx_M(cmd):
     Ry(-1*math.pi/2)| ctrl[0]
 
 def _decompose_cnot2rxx_P(cmd):
-    """ Decompose CNOT gates. """
+    """ Decompose CNOT gate into Rxx gate. """
     ctrl = cmd.control_qubits
     eng = cmd.engine
     Ry(-math.pi/2) | ctrl[0]
@@ -42,7 +42,6 @@ def _decompose_cnot2rxx_P(cmd):
     Ry(math.pi/2)| ctrl[0]
 
 def _recognize_cnot2(cmd):
-    #return True
     return get_control_count(cmd) == 1
 
 #: Decomposition rules

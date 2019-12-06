@@ -23,7 +23,7 @@ from projectq.meta import Compute, Control, get_control_count, Uncompute
 from projectq.ops import Rx, Ry, Rz, H
 
 
-def _decompose_rz_P(cmd):
+def _decompose_rz2rx_P(cmd):
     """ Decompose the Rz using negative angle. """
     qubit = cmd.qubits[0]
     eng = cmd.engine
@@ -35,7 +35,7 @@ def _decompose_rz_P(cmd):
         Rx(-angle) | qubit
         Uncompute(eng)
 
-def _decompose_rz_M(cmd):
+def _decompose_rz2rx_M(cmd):
     """ Decompose the Rz using positive angle. """
     qubit = cmd.qubits[0]
     eng = cmd.engine
@@ -54,6 +54,6 @@ def _recognize_RzNoCtrl(cmd):
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
-    DecompositionRule(Rz, _decompose_rz_P, _recognize_RzNoCtrl),
-    DecompositionRule(Rz, _decompose_rz_M, _recognize_RzNoCtrl)
+    DecompositionRule(Rz, _decompose_rz2rx_P, _recognize_RzNoCtrl),
+    DecompositionRule(Rz, _decompose_rz2rx_M, _recognize_RzNoCtrl)
 ]

@@ -23,14 +23,14 @@ from projectq.meta import Compute, Control, get_control_count, Uncompute
 from projectq.ops import Rx, Ry, Rz, H
 
 
-def _decompose_h_N(cmd):
+def _decompose_h2rx_N(cmd):
     """ Decompose the Ry gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
     Ry(-1*math.pi/2) | qubit
     Rx(math.pi) | qubit
 
-def _decompose_h_M(cmd):
+def _decompose_h2rx_M(cmd):
     """ Decompose the Ry gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
@@ -44,6 +44,6 @@ def _recognize_HNoCtrl(cmd):
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
-    DecompositionRule(H.__class__, _decompose_h_N, _recognize_HNoCtrl),
-    DecompositionRule(H.__class__, _decompose_h_M, _recognize_HNoCtrl)
+    DecompositionRule(H.__class__, _decompose_h2rx_N, _recognize_HNoCtrl),
+    DecompositionRule(H.__class__, _decompose_h2rx_M, _recognize_HNoCtrl)
 ]
