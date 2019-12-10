@@ -11,6 +11,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+#
+#   Module uses ideas from “Basic circuit compilation techniques 
+#   for an ion-trap quantum machine” by Dmitri Maslov (2017) at 
+#   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
+
 
 """
 Registers a decomposition for the Rz gate into an Rx and Ry(pi/2) or Ry(-pi/2) gate
@@ -25,6 +30,8 @@ from projectq.ops import Rx, Ry, Rz, H
 
 def _decompose_rz2rx_P(cmd):
     """ Decompose the Rz using negative angle. """
+    # Labelled 'P' for 'plus' because decomposition 
+    # ends with a Ry(+pi/2)
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
@@ -37,6 +44,8 @@ def _decompose_rz2rx_P(cmd):
 
 def _decompose_rz2rx_M(cmd):
     """ Decompose the Rz using positive angle. """
+    # Labelled 'M' for 'minus' because decomposition 
+    # ends with a Ry(-pi/2)
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle

@@ -11,6 +11,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+#
+#   Module uses ideas from “Basic circuit compilation techniques 
+#   for an ion-trap quantum machine” by Dmitri Maslov (2017) at 
+#   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
 
 """
 Registers a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates.
@@ -23,6 +27,8 @@ import math
 
 def _decompose_cnot2rxx_M(cmd):
     """ Decompose CNOT gate into Rxx gate. """
+    # Labelled 'M' for 'minus' because decomposition 
+    # ends with a Ry(-pi/2)
     ctrl = cmd.control_qubits
     Ry(math.pi/2) | ctrl[0]
     Rx(-math.pi/2)| ctrl[0]
@@ -32,6 +38,8 @@ def _decompose_cnot2rxx_M(cmd):
 
 def _decompose_cnot2rxx_P(cmd):
     """ Decompose CNOT gate into Rxx gate. """
+    # Labelled 'P' for 'plus' because decomposition 
+    # ends with a Ry(+pi/2)
     ctrl = cmd.control_qubits
     Ry(-math.pi/2) | ctrl[0]
     Rx(-math.pi/2)| ctrl[0]

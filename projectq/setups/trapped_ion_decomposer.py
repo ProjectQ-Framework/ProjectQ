@@ -11,6 +11,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+#
+#   Module uses ideas from “Basic circuit compilation techniques 
+#   for an ion-trap quantum machine” by Dmitri Maslov (2017) at 
+#   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
 
 """
 Apply the restricted gate set setup for trapped ion based quantum computers.
@@ -21,7 +25,7 @@ Rx and Ry single qubit gates and the Rxx two qubit gates.
 A decomposition chooser is implemented following the ideas in QUOTE for reducing the
 number of Ry gates in the new circuit. 
 NOTE: Because the decomposition chooser is only called when a gate has to be decomposed,
-This reduction will work better when the entire circuit has to be decomposed. Otherwise,
+this reduction will work better when the entire circuit has to be decomposed. Otherwise,
 If the circuit has both superconding gates and native ion trapped gates the decomposed
 circuit will not be optimal.  
 """
@@ -36,72 +40,96 @@ from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
                                TagRemover)
 from projectq.ops import (Rxx,Rx,Ry)
 
-#List of qubits and the last decomposition used on them
+# ------------------chooser_Ry_reducer-------------------#
+# List of qubits and the last decomposition used on them
 # If the qubit is not on the dictionary, then no decomposition occured
 # If the value is -1 then the last gate applied (during a decomposition!) was Ry(-math.pi/2)
 # If the value is 1 then the last gate applied (during a decomposition!) was Ry(math.pi/2)
 # If the value is 0 then the last gate applied (during a decomposition!) was a Rx
-liste=dict()
+
+prev_Ry_sign=dict() # Keep track of most recent Ry sign, i.e.
+                    # whether we had Ry(-pi/2) or Ry(pi/2)
+                    # prev_Ry_sign[qubit_index]  
+                    # should hold -1 or +1
 
 def chooser_Ry_reducer(cmd,decomposition_list):
     """
-    choose the decomposition to apply based on the previous decomposition used for the given qubit.
+    Choose the decomposition so as to maximise Ry cancellations,
+    based on the previous decomposition used for the given qubit. 
 
     Note:
-        Classical instructions gates such as e.g. Flush and Measure are
-        automatically allowed.
+        Classical instructions gates such as e.g. Flush and 
+        Measure are automatically allowed.
 
     Returns:
-        a decomposition object from the decomposition_list
+        A decomposition object from the decomposition_list.
     """
-    provisory_liste=dict() #Dictionary to evaluate available decomposition as well as the gate that needs to be decomposed
+    decomp_rule=dict() 
     name='default'
     
     for el in decomposition_list:
         try:
             decomposition=el.decompose.__name__.split('_')
             name=decomposition[2]
-            provisory_liste[decomposition[3]]=el
+            decomp_rule[decomposition[3]]=el
+            # 'M' stands for minus, 'P' stands for plus
+            # 'N' stands for neutral
+            # e.g. decomp_rule['M'] will give you the 
+            # decomposition_rule that ends with a Ry(-pi/2)
         except:
             pass
     if name=='cnot2rxx': 
         ctrl = cmd.control_qubits
-        idx=str(ctrl)
-        if idx in liste:
-            if liste[idx]<=0:
-                liste[idx]=-1
-                return provisory_liste['M']
+        idx=str(ctrl) # index of the qubit
+        if idx in prev_Ry_sign:
+            if prev_Ry_sign[idx]<=0:
+                # If the previous qubit had Ry(-pi.2)
+                # choose the decomposition that starts 
+                # with Ry(pi/2)
+                prev_Ry_sign[idx]=-1
+                # Now the prev_Ry_sign is set to -1
+                # since at the end of the decomposition
+                # we will have a Ry(-pi/2)
+                return decomp_rule['M']
             else:
-                liste[idx]=1
-                return provisory_liste['P']
+                # Previous qubit had Ry(pi/2)
+                # choose decomposition that starts 
+                # with Ry(-pi/2) and ends with R(pi/2)
+                prev_Ry_sign[idx]=1
+                return decomp_rule['P']
         else:
-            liste[idx]=-1
-            return provisory_liste['M']
+            # In this case where we have no previous Ry sign 
+            # we choose decomp_rule['M']
+            prev_Ry_sign[idx]=-1
+            return decomp_rule['M']
     elif name=='h2rx':
+        # Block operates similar to 'cnot2rxx' case
         qubit = cmd.qubits[0]
         idx=str(qubit)
-        if idx not in liste:
-            liste[idx]=+1
-            return provisory_liste['M']
-        elif liste[idx]==0:
-            liste[idx]=+1
-            return provisory_liste['M']
+        if idx not in prev_Ry_sign:
+            prev_Ry_sign[idx]=+1
+            return decomp_rule['M']
+        elif prev_Ry_sign[idx]==0:
+            prev_Ry_sign[idx]=+1
+            return decomp_rule['M']
         else:
-            liste[idx]=00
-            return provisory_liste['N']
+            prev_Ry_sign[idx]=00
+            return decomp_rule['N']
     elif name=='rz2rx':
+        # Block operates similar to 'cnot2rxx' case
         qubit = cmd.qubits[0]
         idx=str(qubit)
-        if idx not in liste:
-            liste[idx]=-1
-            return provisory_liste['M']
-        elif liste[idx]<=0:
-            liste[idx]=-1
-            return provisory_liste['M']
+        if idx not in prev_Ry_sign:
+            prev_Ry_sign[idx]=-1
+            return decomp_rule['M']
+        elif prev_Ry_sign[idx]<=0:
+            prev_Ry_sign[idx]=-1
+            return decomp_rule['M']
         else:
-            liste[idx]=1
-            return provisory_liste['P']
-    else: #Nothing worked, so decompose the first decompostion function like the default function
+            prev_Ry_sign[idx]=1
+            return decomp_rule['P']
+    else:   # Nothing worked, so use the first decompostion 
+            # in the list like the default function
         return decomposition_list[0]
 
 

@@ -15,7 +15,7 @@
 "Tests for projectq.setups.decompositions.rz2rx.py"
 
 import math
-
+import numpy as np
 import pytest
 
 from projectq import MainEngine
@@ -50,10 +50,23 @@ def rz_decomp_gates(eng, cmd):
     else:
         return True
 
+# ------------test_decomposition function-------------#
+# Creates two engines, correct_eng and test_eng. 
+# correct_eng implements Rz(angle) gate. 
+# test_eng implements the decomposition of the Rz(angle) gate.
+# correct_qb and test_qb represent results of these two
+# engines, respectively. 
+# The decomposition only needs to produce the 
+# same state in a qubit up to a global phase. 
+# test_vector and correct_vector represent the final 
+# wave states of correct_qb and test_qb. 
+# The dot product of correct_vector and test_vector
+# should have absolute value 1, if the two vectors are the
+# same up to a global phase.
 
 @pytest.mark.parametrize("angle", [0, math.pi, 2*math.pi, 4*math.pi, 0.5])
 def test_decomposition(angle):
-    """ Test that the decomposition of Rz produces correct amplitudes 
+    """ Test that this decomposition of Rz produces correct amplitudes 
     
         Note that this function tests the first DecompositionRule in 
         rz2rx.all_defined_decomposition_rules
@@ -78,13 +91,25 @@ def test_decomposition(angle):
         Rz(angle) | test_qb
         test_eng.flush()
 
-        assert correct_dummy_eng.received_commands[1].gate == Rz(angle)
-        assert test_dummy_eng.received_commands[1].gate != Rz(angle)
+        # Create empty vectors for the wave vectors for the correct 
+        # and test qubits
+        correct_vector = np.zeros((2,1),dtype=np.complex_)
+        test_vector = np.zeros((2,1),dtype=np.complex_)
 
+        i=0
         for fstate in ['0', '1']:
             test = test_eng.backend.get_amplitude(fstate, test_qb)
             correct = correct_eng.backend.get_amplitude(fstate, correct_qb)
-            assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
+            correct_vector[i] = correct
+            test_vector[i] = test
+            i+=1
+
+        # Necessary to transpose vector to use matrix dot product
+        test_vector = test_vector.transpose()
+        # Remember that transposed vector should come first in product
+        vector_dot_product = np.dot(test_vector, correct_vector) 
+
+        assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
 
         Measure | test_qb
         Measure | correct_qb
