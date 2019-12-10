@@ -100,12 +100,6 @@ projectq.setups.decompositions.globalphase module
     :members:
     :undoc-members:
 
-projectq.setups.decompositions.h2rx module
--------------------------------------------------
-
-.. automodule:: projectq.setups.decompositions.h2rx
-    :members:
-    :undoc-members:
 
 projectq.setups.decompositions.h2rx module
 ------------------------------------------

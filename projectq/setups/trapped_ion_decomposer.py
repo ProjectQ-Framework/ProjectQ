@@ -41,13 +41,12 @@ from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
 from projectq.ops import (Rxx,Rx,Ry)
 
 # ------------------chooser_Ry_reducer-------------------#
-# List of qubits and the last decomposition used on them
-# If the qubit is not on the dictionary, then no decomposition occured
+# If the qubit is not in the prev_Ry_sign dictionary, then no decomposition occured
 # If the value is -1 then the last gate applied (during a decomposition!) was Ry(-math.pi/2)
 # If the value is 1 then the last gate applied (during a decomposition!) was Ry(math.pi/2)
 # If the value is 0 then the last gate applied (during a decomposition!) was a Rx
 
-prev_Ry_sign=dict() # Keep track of most recent Ry sign, i.e.
+prev_Ry_sign=dict() # Keeps track of most recent Ry sign, i.e.
                     # whether we had Ry(-pi/2) or Ry(pi/2)
                     # prev_Ry_sign[qubit_index]  
                     # should hold -1 or +1
@@ -58,7 +57,7 @@ def chooser_Ry_reducer(cmd,decomposition_list):
     based on the previous decomposition used for the given qubit. 
 
     Note:
-        Classical instructions gates such as e.g. Flush and 
+        Classical instructions gates e.g. Flush and 
         Measure are automatically allowed.
 
     Returns:
@@ -83,7 +82,7 @@ def chooser_Ry_reducer(cmd,decomposition_list):
         idx=str(ctrl) # index of the qubit
         if idx in prev_Ry_sign:
             if prev_Ry_sign[idx]<=0:
-                # If the previous qubit had Ry(-pi.2)
+                # If the previous qubit had Ry(-pi/2)
                 # choose the decomposition that starts 
                 # with Ry(pi/2)
                 prev_Ry_sign[idx]=-1
@@ -128,7 +127,7 @@ def chooser_Ry_reducer(cmd,decomposition_list):
         else:
             prev_Ry_sign[idx]=1
             return decomp_rule['P']
-    else:   # Nothing worked, so use the first decompostion 
+    else:   # No decomposition chosen, so use the first decompostion 
             # in the list like the default function
         return decomposition_list[0]
 
@@ -141,7 +140,9 @@ def get_engine_list():
     Note:
         -Classical instructions gates such as e.g. Flush and Measure are
         automatically allowed.
-        -The restricted gate set engine does not work with Rxx gates, as ProjectQ will by default bounce back and forth between Cz gates and Cx gates. An appropriate decomposition chooser needs to be used!
+        -The restricted gate set engine does not work with Rxx gates, as 
+        ProjectQ will by default bounce back and forth between Cz gates 
+        and Cx gates. An appropriate decomposition chooser needs to be used!
 
     Returns:
         A list of suitable compiler engines.
