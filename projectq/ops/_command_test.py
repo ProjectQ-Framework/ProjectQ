@@ -132,6 +132,18 @@ def test_command_get_merged(main_engine):
     with pytest.raises(NotMergeable):
         cmd.get_merged(cmd4)
 
+def test_command_is_identity(main_engine):
+    qubit = main_engine.allocate_qubit()
+    qubit2 = main_engine.allocate_qubit()
+    cmd = _command.Command(main_engine, Rx(0.), (qubit,))
+    cmd2= _command.Command(main_engine, Rx(0.5), (qubit2,))
+    inverse_cmd = cmd.get_inverse()
+    inverse_cmd2 = cmd2.get_inverse()
+    assert inverse_cmd.gate.is_identity()
+    assert cmd.gate.is_identity()
+    assert inverse_cmd2.gate.is_identity()==False
+    assert cmd2.gate.is_identity()==False
+
 
 def test_command_order_qubits(main_engine):
     qubit0 = Qureg([Qubit(main_engine, 0)])
@@ -232,9 +244,9 @@ def test_command_comparison(main_engine):
 def test_command_str():
     qubit = Qureg([Qubit(main_engine, 0)])
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
-    cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
+    cmd = _command.Command(main_engine, Rx(0.5*math.pi), (qubit,))
     cmd.tags = ["TestTag"]
     cmd.add_control_qubits(ctrl_qubit)
-    assert str(cmd) == "CRx(0.5) | ( Qureg[1], Qureg[0] )"
-    cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
-    assert str(cmd2) == "Rx(0.5) | Qureg[0]"
+    assert str(cmd) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
+    cmd2 = _command.Command(main_engine, Rx(0.5*math.pi), (qubit,))
+    assert str(cmd2) == "Rx(0.5π) | Qureg[0]"

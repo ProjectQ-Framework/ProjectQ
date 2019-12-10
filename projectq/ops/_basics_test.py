@@ -163,15 +163,15 @@ def test_basic_rotation_gate_init(input_angle, modulo_angle):
 
 
 def test_basic_rotation_gate_str():
-    basic_rotation_gate = _basics.BasicRotationGate(0.5)
-    assert str(basic_rotation_gate) == "BasicRotationGate(0.5)"
+    basic_rotation_gate = _basics.BasicRotationGate(0.5*math.pi)
+    assert str(basic_rotation_gate) == "BasicRotationGate(0.5π)"
 
 
 def test_basic_rotation_tex_str():
-    basic_rotation_gate = _basics.BasicRotationGate(0.5)
-    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5}$"
+    basic_rotation_gate = _basics.BasicRotationGate(0.5*math.pi)
+    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5\pi}$"
     basic_rotation_gate = _basics.BasicRotationGate(4 * math.pi - 1e-13)
-    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.0}$"
+    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.0\pi}$"
 
 
 @pytest.mark.parametrize("input_angle, inverse_angle",
@@ -193,6 +193,14 @@ def test_basic_rotation_gate_get_merged():
     merged_gate = basic_rotation_gate1.get_merged(basic_rotation_gate2)
     assert merged_gate == basic_rotation_gate3
 
+def test_basic_rotation_gate_is_identity():
+    basic_gate = _basics.BasicGate()
+    basic_rotation_gate1 = _basics.BasicRotationGate(0.)
+    basic_rotation_gate2 = _basics.BasicRotationGate(1.0*math.pi)
+    basic_rotation_gate3 = _basics.BasicRotationGate(2.*math.pi)
+    assert 1 == basic_rotation_gate1.is_identity()
+    assert 0 == basic_rotation_gate2.is_identity()
+    assert 1 == basic_rotation_gate3.is_identity()
 
 def test_basic_rotation_gate_comparison_and_hash():
     basic_rotation_gate1 = _basics.BasicRotationGate(0.5)

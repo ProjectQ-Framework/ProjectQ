@@ -40,6 +40,8 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
+import unicodedata
+
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 RTOL = 1e-10
@@ -227,6 +229,9 @@ class BasicGate(object):
     def __hash__(self):
         return hash(str(self))
 
+    def is_identity(self):
+        return False
+
 
 class MatrixGate(BasicGate):
     """
@@ -317,19 +322,19 @@ class BasicRotationGate(BasicGate):
     A rotation gate has a continuous parameter (the angle), labeled 'angle' /
     self.angle. Its inverse is the same gate with the negated argument.
     Rotation gates of the same class can be merged by adding the angles.
-    The continuous parameter is modulo 4 * pi, self.angle is in the interval
-    [0, 4 * pi).
+    The continuous parameter is modulo 2 * pi, self.angle is in the interval
+    [0, 2 * pi).
     """
     def __init__(self, angle):
         """
         Initialize a basic rotation gate.
 
         Args:
-            angle (float): Angle of rotation (saved modulo 4 * pi)
+            angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         BasicGate.__init__(self)
-        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
-        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
+        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
             rounded_angle = 0.
         self.angle = rounded_angle
 
@@ -343,7 +348,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
+        return str(self.__class__.__name__) + "(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
 
     def tex_str(self):
         """
@@ -355,7 +360,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
+        return str(self.__class__.__name__) + "$_{" + str(round(self.angle/math.pi,3)) + "\pi}$"
 
     def get_inverse(self):
         """
@@ -365,7 +370,7 @@ class BasicRotationGate(BasicGate):
         if self.angle == 0:
             return self.__class__(0)
         else:
-            return self.__class__(-self.angle + 4 * math.pi)
+            return self.__class__(-self.angle + 2 * math.pi)
 
     def get_merged(self, other):
         """
@@ -400,6 +405,9 @@ class BasicRotationGate(BasicGate):
 
     def __hash__(self):
         return hash(str(self))
+
+    def is_identity(self):
+        return self.angle == 0. or self.angle==2*math.pi
 
 
 class BasicPhaseGate(BasicGate):

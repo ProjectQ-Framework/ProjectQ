@@ -130,6 +130,23 @@ class LocalOptimizer(BasicEngine):
             new_gateloc = limit
 
         while i < limit - 1:
+            # can be dropped if the gate is equivalent to an identity gate
+            try:
+                if self._l[idx][i].is_identity():
+                    # determine index of this gate on all qubits
+                    qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                                for qb in sublist]
+                    gid = self._get_gate_indices(idx, i, qubitids)
+                    for j in range(len(qubitids)):
+                        new_list = (self._l[qubitids[j]][0:gid[j]] +
+                                    self._l[qubitids[j]][gid[j] +1:])
+                        self._l[qubitids[j]] = new_list
+                    i = 0
+                    limit -= 1
+                    continue
+            except:
+                pass
+
             # can be dropped if two in a row are self-inverses
             inv = self._l[idx][i].get_inverse()
 
