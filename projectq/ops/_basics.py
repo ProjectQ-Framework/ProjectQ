@@ -406,7 +406,10 @@ class BasicRotationGate(BasicGate):
     def __hash__(self):
         return hash(str(self))
 
-    def is_identity(self):
+    def is_identity(self):        
+        """
+        Return True if the gate is equivalent to an Identity gate
+        """
         return self.angle == 0. or self.angle==2*math.pi
 
 
