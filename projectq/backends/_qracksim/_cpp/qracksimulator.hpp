@@ -34,7 +34,7 @@
 #include <omp.h>
 #endif
 
-#define CREATE_QUBITS(count) Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, count, 0, rnd_eng_, complex_type(ONE_R1, ZERO_R1), false, false, false, devID, true)
+#define CREATE_QUBITS(count) Qrack::CreateQuantumInterface(QrackEngine, QrackSubengine1, QrackSubengine2, count, 0, rnd_eng_, Qrack::ONE_CMPLX, false, false, false, devID, true)
 
 class QrackSimulator{
 public:
@@ -303,29 +303,29 @@ public:
             if (bit_string[0]) {
                 return qReg->Prob(map_[ids[0]]);
             } else {
-                return ONE_R1 - qReg->Prob(map_[ids[0]]);
+                return (ONE_R1 - qReg->Prob(map_[ids[0]]));
             }
         }
 
-        std::size_t mask = 0, bit_str = 0;
-        for (unsigned i = 0; i < ids.size(); i++){
-            mask |= 1UL << map_[ids[i]];
-            bit_str |= bit_string[i]? (1UL << map_[ids[i]]) : 0UL;
+        bitCapInt mask = 0, bit_str = 0;
+        for (bitLenInt i = 0; i < ids.size(); i++){
+            mask |= Qrack::pow2(map_[ids[i]]);
+            bit_str |= bit_string[i] ? Qrack::pow2(map_[ids[i]]) : 0;
         }
         return qReg->ProbMask(mask, bit_str);
     }
 
     std::complex<calc_type> get_amplitude(std::vector<bool> const& bit_string,
                                       std::vector<unsigned> const& ids){
-        std::size_t chk = 0;
-        std::size_t index = 0;
-        for (unsigned i = 0; i < ids.size(); i++){
+        bitCapInt chk = 0;
+        bitCapInt index = 0;
+        for (bitLenInt i = 0; i < ids.size(); i++){
             if (map_.count(ids[i]) == 0)
                 break;
-            chk |= 1UL << map_[ids[i]];
-            index |= bit_string[i] ? (1UL << map_[ids[i]]) : 0UL;
+            chk |= Qrack::pow2(map_[ids[i]]);
+            index |= bit_string[i] ? Qrack::pow2(map_[ids[i]]) : 0;
         }
-        if ((chk + 1U) != (std::size_t)(qReg->GetMaxQPower()))
+        if ((chk + 1U) != qReg->GetMaxQPower())
             throw(std::runtime_error("The second argument to get_amplitude() must be a permutation of all allocated qubits. Please make sure you have called eng.flush()."));
         complex_type result = qReg->GetAmplitude(index);
         return std::complex<calc_type>(real(result), imag(result));
