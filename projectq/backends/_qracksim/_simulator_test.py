@@ -385,12 +385,9 @@ def test_simulator_probability(sim, mapper):
     Ry(2 * math.acos(math.sqrt(0.4))) | qubits[2]
     eng.flush()
     assert eng.backend.get_probability([0], [qubits[2]]) == pytest.approx(0.4)
-    assert (eng.backend.get_probability([0, 0], qubits[:3:2]) ==
-            pytest.approx(0.12))
-    assert (eng.backend.get_probability([0, 1], qubits[:3:2]) ==
-            pytest.approx(0.18))
-    assert (eng.backend.get_probability([1, 0], qubits[:3:2]) ==
-            pytest.approx(0.28))
+    assert (numpy.isclose(0.12, eng.backend.get_probability([0, 0], qubits[:3:2]), rtol=tolerance, atol=tolerance))
+    assert (numpy.isclose(0.18, eng.backend.get_probability([0, 1], qubits[:3:2]), rtol=tolerance, atol=tolerance))
+    assert (numpy.isclose(0.28, eng.backend.get_probability([1, 0], qubits[:3:2]), rtol=tolerance, atol=tolerance))
     All(Measure) | qubits
 
 
