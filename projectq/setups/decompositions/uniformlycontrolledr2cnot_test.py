@@ -15,6 +15,7 @@
 """Tests for projectq.setups.decompositions.uniformlycontrolledr2cnot."""
 
 import pytest
+import numpy
 
 import projectq
 from projectq import MainEngine
@@ -120,7 +121,7 @@ def test_uniformly_controlled_ry(n, gate_classes):
                                           test_qb + test_ctrl_qureg)
             correct = correct_sim.get_amplitude(binary_state, correct_qb +
                                                 correct_ctrl_qureg)
-            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
+            assert numpy.linalg.norm(correct) == pytest.approx(numpy.linalg.norm(test), rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qb + test_ctrl_qureg
         All(Measure) | correct_qb + correct_ctrl_qureg
