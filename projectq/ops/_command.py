@@ -153,7 +153,8 @@ class Command(object):
         """
         Evaluate if the gate called in the command object is an identity gate.
 
-        Returns: True if the gate is equivalent to an Identity gate, False otherwise
+        Returns: 
+            True if the gate is equivalent to an Identity gate, False otherwise
         """
         return projectq.ops.is_identity(self.gate)
 
@@ -304,7 +305,10 @@ class Command(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __str__(self):
+    def __str__(self,symbols=False):
+        return self.to_String()
+
+    def to_String(self,symbols=False):
         """
         Get string representation of this Command object.
         """
@@ -322,4 +326,4 @@ class Command(object):
                 qstring += ", "
             qstring = qstring[:-2] + " )"
         cstring = "C" * len(ctrlqubits)
-        return cstring + str(self.gate) + " | " + qstring
+        return cstring + self.gate.to_String(symbols) + " | " + qstring

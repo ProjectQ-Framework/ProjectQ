@@ -226,6 +226,9 @@ class BasicGate(object):
     def __str__(self):
         raise NotImplementedError('This gate does not implement __str__.')
 
+    def to_String(self,symbols):
+        return str(self)
+
     def __hash__(self):
         return hash(str(self))
 
@@ -338,7 +341,10 @@ class BasicRotationGate(BasicGate):
             rounded_angle = 0.
         self.angle = rounded_angle
 
-    def __str__(self):
+    def __str__(self,symbols=False):
+        return self.to_String()
+
+    def to_String(self,symbols=False):
         """
         Return the string representation of a BasicRotationGate.
 
@@ -348,7 +354,11 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
+        if symbols:
+            angle="(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
+        else:
+            angle="(" + str(self.angle) + ")"
+        return str(self.__class__.__name__) + angle
 
     def tex_str(self):
         """

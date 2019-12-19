@@ -75,11 +75,10 @@ def chooser_Ry_reducer(cmd,decomposition_list):
             # 'N' stands for neutral
             # e.g. decomp_rule['M'] will give you the 
             # decomposition_rule that ends with a Ry(-pi/2)
-        except:
+        except IndexError:
             pass
     if name=='cnot2rxx': 
-        ctrl = cmd.control_qubits
-        idx=str(ctrl) # index of the qubit
+        idx = [qb.id for qb in cmd.control_qubits] # index of the qubit
         if idx in prev_Ry_sign:
             if prev_Ry_sign[idx]<=0:
                 # If the previous qubit had Ry(-pi/2)
@@ -103,8 +102,7 @@ def chooser_Ry_reducer(cmd,decomposition_list):
             return decomp_rule['M']
     elif name=='h2rx':
         # Block operates similar to 'cnot2rxx' case
-        qubit = cmd.qubits[0]
-        idx=str(qubit)
+        idx = [qb.id for qb in cmd.qubits[0]]
         if idx not in prev_Ry_sign:
             prev_Ry_sign[idx]=+1
             return decomp_rule['M']
@@ -116,8 +114,7 @@ def chooser_Ry_reducer(cmd,decomposition_list):
             return decomp_rule['N']
     elif name=='rz2rx':
         # Block operates similar to 'cnot2rxx' case
-        qubit = cmd.qubits[0]
-        idx=str(qubit)
+        idx = [qb.id for qb in cmd.qubits[0]]
         if idx not in prev_Ry_sign:
             prev_Ry_sign[idx]=-1
             return decomp_rule['M']
@@ -147,7 +144,8 @@ def get_engine_list():
     Returns:
         A list of suitable compiler engines.
     """
-    return restrictedgateset.get_engine_list(one_qubit_gates=(Rx,Ry),two_qubit_gates=(Rxx,),compiler_chooser=chooser_Ry_reducer)
+    return restrictedgateset.get_engine_list(one_qubit_gates=(Rx,Ry),
+            two_qubit_gates=(Rxx,),compiler_chooser=chooser_Ry_reducer)
 
 
 
