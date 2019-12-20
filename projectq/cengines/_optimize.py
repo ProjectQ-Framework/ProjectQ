@@ -125,10 +125,7 @@ class LocalOptimizer(BasicEngine):
         i = 0
         new_gateloc = 0
         limit = len(self._l[idx])
-        if lim is not None: # the argument for the limit of number
-                            # of operations is not None, then set the
-                            # limit to this number, otherwise the limit
-                            # is the number of commands on this qubit
+        if lim is not None:
             limit = lim
             new_gateloc = limit
 
@@ -139,7 +136,6 @@ class LocalOptimizer(BasicEngine):
                     # determine index of this gate on all qubits
                     qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
                                 for qb in sublist]
-                    print([str(qubitid) for qubitid in qubitids])
                     gid = self._get_gate_indices(idx, i, qubitids)
                     for j in range(len(qubitids)):
                         new_list = (self._l[qubitids[j]][0:gid[j]] +
@@ -150,7 +146,6 @@ class LocalOptimizer(BasicEngine):
                     continue
             except:
                 pass
-
 
             # can be dropped if two in a row are self-inverses
             inv = self._l[idx][i].get_inverse()
@@ -176,20 +171,8 @@ class LocalOptimizer(BasicEngine):
                     limit -= 2
                     continue
 
-            # Gates are not mergeable, see if they are commutable
-            #try:
-            command1 = self._l[idx][i]
-            command2 = self._l[idx][i + 1]
-            print("Command1")
-            print(command1)
-            print("Command2")
-            print(command2)
-            commutable = command1.is_commutable(command2)
             # gates are not each other's inverses --> check if they're
             # mergeable
-            # except:
-            #     pass  # gates not commutable.
-
             try:
                 merged_command = self._l[idx][i].get_merged(
                     self._l[idx][i + 1])
@@ -217,7 +200,6 @@ class LocalOptimizer(BasicEngine):
                 pass  # can't merge these two commands.
 
             i += 1  # next iteration: look at next gate
-
         return limit
 
     def _check_and_send(self):

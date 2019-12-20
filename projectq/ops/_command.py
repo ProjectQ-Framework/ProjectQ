@@ -157,22 +157,6 @@ class Command(object):
             True if the gate is equivalent to an Identity gate, False otherwise
         """
         return projectq.ops.is_identity(self.gate)
-    
-    def is_commutable(self, other):
-        """
-        Evaluate if the gate called in the command object is commutable with the next
-        gate.
-
-        Returns: True if the gates are commutable, False otherwise
-        """ 
-        if (self.qubits != other.qubits):
-            return False
-            print("self.gate")
-            print(self.gate)
-            print("other.gate")
-            print(other.gate)
-        return 0 #self.gate.is_commutable(self.gate, other.gate)
-
 
     def get_merged(self, other):
         """
