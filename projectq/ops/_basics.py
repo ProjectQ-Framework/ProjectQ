@@ -232,6 +232,8 @@ class BasicGate(object):
     def is_identity(self):
         return False
 
+    def is_commutable(self, other):
+        return False
 
 class MatrixGate(BasicGate):
     """
@@ -408,7 +410,6 @@ class BasicRotationGate(BasicGate):
 
     def is_identity(self):
         return self.angle == 0. or self.angle==2*math.pi
-
 
 class BasicPhaseGate(BasicGate):
     """

@@ -149,7 +149,7 @@ def is_identity(gate):
     """
     try:
         return gate.is_identity()
-    except :
+    except:
         return False
 
 class ControlledGate(BasicGate):

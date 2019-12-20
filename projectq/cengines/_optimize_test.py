@@ -15,10 +15,11 @@
 """Tests for projectq.cengines._optimize.py."""
 
 import pytest
+import math
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import (CNOT, H, Rx, Ry, AllocateQubitGate, X,
+from projectq.ops import (CNOT, H, Rx, Ry, Rxx, AllocateQubitGate, X,
                           FastForwardingGate, ClassicalInstructionGate)
 
 from projectq.cengines import _optimize
@@ -145,3 +146,23 @@ def test_local_optimizer_identity_gates():
     # Expect allocate, one Rx gate, and flush gate
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == Rx(0.5)
+
+def test_local_optimizer_commutable_gates():
+    #local_optimizer = _optimize.LocalOptimizer(m=4)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend)
+    # # Test that it commutes commutable gates such as Rx, Rxx
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    Rx(math.pi/2) | qb0
+    Rxx(math.pi/2) | (qb0, qb1)
+    Rx(math.pi/2) | qb0
+    eng.flush()
+    command1 = backend.received_commands[0]
+    command2 = backend.received_commands[1]
+    commutable = command1.is_commutable(command2)
+    print("commutable")
+    print(commutable)
+    #print("Commands")
+    #print([str(cmd) for cmd in backend.received_commands])
+    return 0
