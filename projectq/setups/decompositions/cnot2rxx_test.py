@@ -73,67 +73,67 @@ def _decomp_gates(eng, cmd):
 def test_decomposition():
     """ Test that this decomposition of CNOT produces correct amplitudes 
     
-        Note that this function tests the first DecompositionRule in 
+        Function tests each DecompositionRule in 
         cnot2rxx.all_defined_decomposition_rules
     """
-    for basis_state_index in range(0, 4):
-        basis_state = [0]*4
-        basis_state[basis_state_index] = 1.
-        correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(),
-                                 engine_list=[correct_dummy_eng])
-        rule_set = DecompositionRuleSet(modules=[cnot2rxx])
-        test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(_decomp_gates),
-                                           test_dummy_eng])
-        test_sim = test_eng.backend
-        correct_sim = correct_eng.backend
-        correct_qb = correct_eng.allocate_qubit()
-        correct_ctrl_qb = correct_eng.allocate_qubit()
-        correct_eng.flush()
-        test_qb = test_eng.allocate_qubit()
-        test_ctrl_qb = test_eng.allocate_qubit()
-        test_eng.flush()
+    decomposition_rule_list = cnot2rxx.all_defined_decomposition_rules
+    for rule in decomposition_rule_list:
+        for basis_state_index in range(0, 4):
+            basis_state = [0]*4
+            basis_state[basis_state_index] = 1.
+            correct_dummy_eng = DummyEngine(save_commands=True)
+            correct_eng = MainEngine(backend=Simulator(),
+                                    engine_list=[correct_dummy_eng])
+            rule_set = DecompositionRuleSet(rules=[rule])
+            test_dummy_eng = DummyEngine(save_commands=True)
+            test_eng = MainEngine(backend=Simulator(),
+                                engine_list=[AutoReplacer(rule_set),
+                                            InstructionFilter(_decomp_gates),
+                                            test_dummy_eng])
+            test_sim = test_eng.backend
+            correct_sim = correct_eng.backend
+            correct_qb = correct_eng.allocate_qubit()
+            correct_ctrl_qb = correct_eng.allocate_qubit()
+            correct_eng.flush()
+            test_qb = test_eng.allocate_qubit()
+            test_ctrl_qb = test_eng.allocate_qubit()
+            test_eng.flush()
 
-        correct_sim.set_wavefunction(basis_state, correct_qb +
-                                    correct_ctrl_qb)
-        test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qb)
-        CNOT | (test_ctrl_qb, test_qb)
-        CNOT | (correct_ctrl_qb, correct_qb)
+            correct_sim.set_wavefunction(basis_state, correct_qb +
+                                        correct_ctrl_qb)
+            test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qb)
+            CNOT | (test_ctrl_qb, test_qb)
+            CNOT | (correct_ctrl_qb, correct_qb)
 
-        test_eng.flush()
-        correct_eng.flush()
+            test_eng.flush()
+            correct_eng.flush()
 
-        assert len(correct_dummy_eng.received_commands) == 5
-        assert len(test_dummy_eng.received_commands) == 9
+            assert len(correct_dummy_eng.received_commands) == 5
+            assert len(test_dummy_eng.received_commands) == 9
 
-        # Create empty vectors for the wave vectors for the correct 
-        # and test qubits
-        correct_vector = np.zeros((4,1),dtype=np.complex_)
-        test_vector = np.zeros((4,1),dtype=np.complex_)
-
-        i=0
-        for fstate in range(4):
-            binary_state = format(fstate, '02b')
-            test = test_sim.get_amplitude(binary_state,
-                                          test_qb + test_ctrl_qb)
-            correct = correct_sim.get_amplitude(binary_state, correct_qb +
-                                                correct_ctrl_qb)
-            correct_vector[i] = correct
-            test_vector[i] = test
-            i+=1            
-        # Necessary to transpose vector to use matrix dot product
-        test_vector = test_vector.transpose()
-        # Remember that transposed vector should come first in product
-        vector_dot_product = np.dot(test_vector, correct_vector)
-
-        assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
- 
-        All(Measure) | test_qb + test_ctrl_qb
-        All(Measure) | correct_qb + correct_ctrl_qb
-        test_eng.flush(deallocate_qubits=True)
-        correct_eng.flush(deallocate_qubits=True)
+            # Create empty vectors for the wave vectors for the correct 
+            # and test qubits
+            correct_vector = np.zeros((4,1),dtype=np.complex_)
+            test_vector = np.zeros((4,1),dtype=np.complex_)
+            i=0
+            for fstate in range(4):
+                binary_state = format(fstate, '02b')
+                test = test_sim.get_amplitude(binary_state,
+                                            test_qb + test_ctrl_qb)
+                correct = correct_sim.get_amplitude(binary_state, correct_qb +
+                                                    correct_ctrl_qb)
+                correct_vector[i] = correct
+                test_vector[i] = test
+                i+=1            
+            # Necessary to transpose vector to use matrix dot product
+            test_vector = test_vector.transpose()
+            # Remember that transposed vector should come first in product
+            vector_dot_product = np.dot(test_vector, correct_vector)
+            assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
+    
+            All(Measure) | test_qb + test_ctrl_qb
+            All(Measure) | correct_qb + correct_ctrl_qb
+            test_eng.flush(deallocate_qubits=True)
+            correct_eng.flush(deallocate_qubits=True)
 
         
