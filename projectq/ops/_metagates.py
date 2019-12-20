@@ -147,10 +147,7 @@ def is_identity(gate):
             get_inverse(Rx(2*math.pi)) # returns True
             get_inverse(Rx(math.pi)) # returns False
     """
-    try:
-        return gate.is_identity()
-    except:
-        return False
+    return gate.is_identity()
 
 class ControlledGate(BasicGate):
     """
