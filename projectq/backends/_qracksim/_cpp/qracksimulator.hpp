@@ -161,7 +161,7 @@ public:
 
         if (ctrl.size() == 0) {
             for (bitLenInt i = 0; i < ids.size(); i++) {
-                qReg->ApplySingleBit(mArray, true, map_[ids[i]]);
+                qReg->ApplySingleBit(mArray, map_[ids[i]]);
             }
             return;
         }
@@ -238,7 +238,7 @@ public:
         };
 
         if (ctrl.size() == 0) {
-            qReg->ApplySingleBit(mArray, true, 0);
+            qReg->ApplySingleBit(mArray, 0);
             return;
         }
 
