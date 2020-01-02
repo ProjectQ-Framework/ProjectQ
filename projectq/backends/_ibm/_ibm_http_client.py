@@ -155,7 +155,8 @@ class DeviceTooSmall(Exception):
 class DeviceOfflineError(Exception):
     pass
 
-def show_devices(token,verbose=False):    """
+def show_devices(token,verbose=False):    
+    """
     Access the list of available devices and their properties (ex: for setup configuration)
 
     Args:

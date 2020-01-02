@@ -36,7 +36,7 @@ from projectq.cengines import (TagRemover,
                                InstructionFilter,
                                BasicMapperEngine,
                                GridMapper)
-from projectq.backends._ibm._ibm_http_client_v2 import show_devices
+from projectq.backends._ibm._ibm_http_client import show_devices
 
 def get_engine_list(token=None,device=None):
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])

@@ -36,10 +36,10 @@ from projectq.ops import (NOT,
                           Barrier,
                           FlushGate)
 
-from ._ibm_http_client_v2 import send, retrieve
+from ._ibm_http_client import send, retrieve
 
 
-class IBMBackend_v2(BasicEngine):
+class IBMBackend(BasicEngine):
     """
     The IBM Backend class, which stores the circuit, transforms it to JSON,
     and sends the circuit through the IBM API.
