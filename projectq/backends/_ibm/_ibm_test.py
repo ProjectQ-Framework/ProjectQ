@@ -45,9 +45,9 @@ _api_url_status = 'https://quantumexperience.ng.bluemix.net/api/'
 
 
 @pytest.mark.parametrize("single_qubit_gate, is_available", [
-    (X, True), (Y, True), (Z, True), (T, True), (Tdag, True), (S, True),
-    (Sdag, True), (Allocate, True), (Deallocate, True), (Measure, True),
-    (NOT, True), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), True),
+    (X, False), (Y, False), (Z, False), (T, False), (Tdag, False), (S, False),
+    (Sdag, False), (Allocate, True), (Deallocate, True), (Measure, True),
+    (NOT, False), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), True),
     (Barrier, True), (Entangle, False)])
 def test_ibm_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -175,7 +175,6 @@ def test_ibm_backend_functional_test(monkeypatch):
     qureg = eng.allocate_qureg(3)
     # entangle the qureg
     Entangle | qureg
-    Tdag | qureg[0]
     Sdag | qureg[0]
     Barrier | qureg
     Rx(0.2) | qureg[0]

@@ -20,10 +20,10 @@ from projectq.cengines import IBM5QubitMapper, SwapAndCNOTFlipper
 
 def test_ibm_cnot_mapper_in_cengines():
     import projectq.setups.ibm
-    found = 0
-    for engine in projectq.setups.ibm.get_engine_list():
-        if isinstance(engine, IBM5QubitMapper):
-            found |= 1
-        if isinstance(engine, SwapAndCNOTFlipper):
-            found |= 2
-    assert found == 3
+    engines_5qb=projectq.setups.ibm.get_engine_list(device='ibmq_burlington')
+    engines_15qb=projectq.setups.ibm.get_engine_list(device='ibmq_16_melbourne')
+    engines_simulator=projectq.setups.ibm.get_engine_list(device='ibmq_qasm_simulator')
+    assert len(engines_5qb)==15
+    assert len(engines_15qb)==16
+    assert len(engines_simulator)==13
+

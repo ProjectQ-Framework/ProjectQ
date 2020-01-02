@@ -13,44 +13,83 @@
 #   limitations under the License.
 
 """
-Defines a setup useful for the IBM QE chip with 5 qubits.
+Defines a setup allowing to compile code for the IBM quantum chips:
+->Any 5 qubit devices
+->the ibmq online simulator
+->the melbourne 15 qubit device
 
-It provides the `engine_list` for the `MainEngine`, and contains an
-AutoReplacer with most of the gate decompositions of ProjectQ, among others
-it includes:
-
-    * Controlled z-rotations --> Controlled NOTs and single-qubit rotations
-    * Toffoli gate --> CNOT and single-qubit gates
-    * m-Controlled global phases --> (m-1)-controlled phase-shifts
-    * Global phases --> ignore
-    * (controlled) Swap gates --> CNOTs and Toffolis
-    * Arbitrary single qubit gates --> Rz and Ry
-    * Controlled arbitrary single qubit gates --> Rz, Ry, and CNOT gates
-
-Moreover, it contains `LocalOptimizers` and a custom mapper for the CNOT
-gates.
-
+It provides the `engine_list` for the `MainEngine' based on the requested device.
+Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be translated
+in the backend in the U1/U2/U3/CX gate set. 
 """
 
 import projectq
 import projectq.setups.decompositions
+from projectq.setups import restrictedgateset
+from projectq.ops import (Rx,Ry,Rz,H,CNOT)
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                IBM5QubitMapper,
                                SwapAndCNOTFlipper,
-                               DecompositionRuleSet)
+                               DecompositionRuleSet,
+                               InstructionFilter,
+                               BasicMapperEngine,
+                               GridMapper)
+from projectq.backends._ibm._ibm_http_client_v2 import show_devices
 
-
-ibmqx4_connections = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
-
-
-def get_engine_list():
+def get_engine_list(token=None,device=None):
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    return [TagRemover(),
-            LocalOptimizer(10),
-            AutoReplacer(rule_set),
-            TagRemover(),
-            IBM5QubitMapper(),
-            SwapAndCNOTFlipper(ibmqx4_connections),
-            LocalOptimizer(10)]
+    #access to the hardware properties via show_devices
+    #can be extended to take into account gate fidelities, new available gate, etc..
+    devices=show_devices(token)
+    ibm_setup=[]
+    if device not in devices:
+        raise DeviceOfflineError('Error when configuring engine list: device '
+                                    'requested for Backend not connected')
+    elif devices[device]['nq']==5:
+        #The requested device is a 5 qubit processor
+        #Obtain the coupling map specific to the device
+        coupling_map=devices[device]['coupling_map']
+        coupling_map=ListToSet(coupling_map)
+        Mapper=IBM5QubitMapper(coupling_map)
+        ibm_setup=[Mapper,SwapAndCNOTFlipper(coupling_map),LocalOptimizer(10)]
+    elif device=='ibmq_qasm_simulator':
+        #the 32 qubit online simulator doesn't need a specific mapping for gates. 
+        #can also run wider gateset but this setup keep the restrictedgateset setup by convenience
+        mapper = BasicMapperEngine()
+        res=dict()
+        for i in range(devices[device]['nq']):
+            res[i]=i
+        mapper.current_mapping = res
+        ibm_setup=[mapper]
+    elif device=='ibmq_16_melbourne':
+        #Only 15 qubits available on this ibmqx2 unit(in particular qubit 7 on the grid), therefore need custom grid mapping
+        grid_to_physical = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 15, 8: 14,
+                    9: 13, 10: 12, 11: 11, 12: 10, 13: 9, 14: 8, 15: 7}
+        coupling_map=devices[device]['coupling_map']
+        coupling_map=ListToSet(coupling_map)
+        ibm_setup=[GridMapper(2, 8, grid_to_physical),LocalOptimizer(5),SwapAndCNOTFlipper(coupling_map),LocalOptimizer(5)]
+    else:
+        #Would be more ergonomic to include the 16qubit device and any other architecture there
+        raise DeviceNotHandledError('Device not yet fully handled by ProjectQ')
+
+    #Most IBM devices accept U1,U2,U3,CX gates.
+    #Most gates need to be decomposed into a subset that is manually converted
+    #in the backend (until the implementation of the U1,U2,U3)
+    setup=restrictedgateset.get_engine_list(one_qubit_gates=(Rx,Ry,Rz,H),
+                    two_qubit_gates=(CNOT,))
+    setup.extend(ibm_setup)
+    return setup
+
+class DeviceOfflineError(Exception):
+    pass
+
+class DeviceNotHandledError(Exception):
+    pass
+
+def ListToSet(coupling_list):
+    result=[]
+    for el in coupling_list:
+        result.append(tuple(el))
+    return set(result)

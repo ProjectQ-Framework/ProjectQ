@@ -40,7 +40,7 @@ class IBM5QubitMapper(BasicMapperEngine):
         **raises an Exception**.
     """
 
-    def __init__(self):
+    def __init__(self, connections=None):
         """
         Initialize an IBM 5-qubit mapper compiler engine.
 
@@ -49,6 +49,11 @@ class IBM5QubitMapper(BasicMapperEngine):
         BasicMapperEngine.__init__(self)
         self.current_mapping = dict()
         self._reset()
+        if connections is None:
+            self.connections=set([(0, 1), (1, 0), (1, 2), (1, 3),
+                                 (2, 1), (3, 1), (3, 4), (4, 3)])
+        else:
+            self.connections=connections
 
     def is_available(self, cmd):
         """
@@ -90,15 +95,15 @@ class IBM5QubitMapper(BasicMapperEngine):
             Cost measure taking into account CNOT directionality or None
             if the circuit cannot be executed given the mapping.
         """
-        from projectq.setups.ibm import ibmqx4_connections as connections
+        
         cost = 0
         for tpl in self._interactions:
             ctrl_id = tpl[0]
             target_id = tpl[1]
             ctrl_pos = mapping[ctrl_id]
             target_pos = mapping[target_id]
-            if not (ctrl_pos, target_pos) in connections:
-                if (target_pos, ctrl_pos) in connections:
+            if not (ctrl_pos, target_pos) in self.connections:
+                if (target_pos, ctrl_pos) in self.connections:
                     cost += self._interactions[tpl]
                 else:
                     return None

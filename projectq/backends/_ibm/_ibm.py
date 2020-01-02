@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """ Back-end to run quantum program on IBM's Quantum Experience."""
-
+import math
 import random
 import json
 
@@ -36,16 +36,16 @@ from projectq.ops import (NOT,
                           Barrier,
                           FlushGate)
 
-from ._ibm_http_client import send, retrieve
+from ._ibm_http_client_v2 import send, retrieve
 
 
-class IBMBackend(BasicEngine):
+class IBMBackend_v2(BasicEngine):
     """
-    The IBM Backend class, which stores the circuit, transforms it to JSON
-    QASM, and sends the circuit through the IBM API.
+    The IBM Backend class, which stores the circuit, transforms it to JSON,
+    and sends the circuit through the IBM API.
     """
     def __init__(self, use_hardware=False, num_runs=1024, verbose=False,
-                 user=None, password=None, device='ibmqx4',
+                 token='', device='ibmq_essex',
                  num_retries=3000, interval=1,
                  retrieve_execution=None):
         """
@@ -59,10 +59,8 @@ class IBMBackend(BasicEngine):
             verbose (bool): If True, statistics are printed, in addition to
                 the measurement result being registered (at the end of the
                 circuit).
-            user (string): IBM Quantum Experience user name
-            password (string): IBM Quantum Experience password
-            device (string): Device to use ('ibmqx4', or 'ibmqx5')
-                if use_hardware is set to True. Default is ibmqx4.
+            token (str): IBM quantum experience user password.
+            device (str): name of the IBM device to use. ibmq_essex By default
             num_retries (int): Number of times to retry to obtain
                 results from the IBM API. (default is 3000)
             interval (float, int): Number of seconds between successive
@@ -76,15 +74,15 @@ class IBMBackend(BasicEngine):
         if use_hardware:
             self.device = device
         else:
-            self.device = 'simulator'
+            self.device = 'ibmq_qasm_simulator'
         self._num_runs = num_runs
         self._verbose = verbose
-        self._user = user
-        self._password = password
+        self._token=token
         self._num_retries = num_retries
         self._interval = interval
         self._probabilities = dict()
         self.qasm = ""
+        self._json=[]
         self._measured_ids = []
         self._allocated_qubits = set()
         self._retrieve_execution = retrieve_execution
@@ -93,8 +91,8 @@ class IBMBackend(BasicEngine):
         """
         Return true if the command can be executed.
 
-        The IBM quantum chip can do X, Y, Z, T, Tdag, S, Sdag,
-        rotation gates, barriers, and CX / CNOT.
+        The IBM quantum chip can only do U1,U2,U3,barriers, and CX / CNOT.
+        Conversion implemented for Rotation gates and H gates.
 
         Args:
             cmd (Command): Command for which to check availability
@@ -103,13 +101,18 @@ class IBMBackend(BasicEngine):
         if g == NOT and get_control_count(cmd) <= 1:
             return True
         if get_control_count(cmd) == 0:
-            if g in (T, Tdag, S, Sdag, H, Y, Z):
+            if g == H:
                 return True
             if isinstance(g, (Rx, Ry, Rz)):
                 return True
         if g in (Measure, Allocate, Deallocate, Barrier):
             return True
         return False
+
+    def get_qasm(self):
+        """ Return the QASM representation of the circuit sent to the backend.
+        Should be called AFTER calling the ibm device """
+        return self.qasm
 
     def _reset(self):
         """ Reset all temporary variables (after flush gate). """
@@ -129,6 +132,7 @@ class IBMBackend(BasicEngine):
             self._probabilities = dict()
             self._clear = False
             self.qasm = ""
+            self._json=[]
             self._allocated_qubits = set()
 
         gate = cmd.gate
@@ -154,6 +158,7 @@ class IBMBackend(BasicEngine):
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
             self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+            self._json.append({'qubits': [ctrl_pos,  qb_pos], 'name': 'cx'})
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
             self.qasm += "\nbarrier "
@@ -161,13 +166,26 @@ class IBMBackend(BasicEngine):
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
             self.qasm += qb_str[:-2] + ";"
+            self._json.append({'qubits': [qb_pos], 'name': 'barrier'})
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
                       'Rz': 'u1({})'}
-            gate = u_strs[str(gate)[0:2]].format(gate.angle)
-            self.qasm += "\n{} q[{}];".format(gate, qb_pos)
+            u_name = {'Rx': 'u3', 'Ry': 'u3',
+                      'Rz': 'u1'}
+            u_angle = {'Rx': [gate.angle, -math.pi/2, math.pi/2], 'Ry': [gate.angle, 0, 0],
+                      'Rz': [gate.angle]}
+            gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
+            gate_name=u_name[str(gate)[0:2]]
+            params= u_angle[str(gate)[0:2]]
+            self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
+            self._json.append({'qubits': [qb_pos], 'name': gate_name,'params': params})
+        elif gate == H:
+            assert get_control_count(cmd) == 0
+            qb_pos = cmd.qubits[0][0].id
+            self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
+            self._json.append({'qubits': [qb_pos], 'name': 'u2','params': [0, 3.141592653589793]})
         else:
             assert get_control_count(cmd) == 0
             if str(gate) in self._gate_names:
@@ -177,6 +195,7 @@ class IBMBackend(BasicEngine):
 
             qb_pos = cmd.qubits[0][0].id
             self.qasm += "\n{} q[{}];".format(gate_str, qb_pos)
+            self._json.append({'qubits': [qb_pos], 'name': gate_str})
 
     def _logical_to_physical(self, qb_id):
         """
@@ -237,15 +256,15 @@ class IBMBackend(BasicEngine):
         """
         Run the circuit.
 
-        Send the circuit via the IBM API (JSON QASM) using the provided user
-        data / ask for username & password.
+        Send the circuit via a non documented IBM API (using JSON written circuits) using the provided user
+        data / ask for the user token.
         """
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
             self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
                                                             qb_loc)
-
+            self._json.append({'qubits': [qb_loc], 'name': 'measure','memory':[qb_loc]})
         # return if no operations / measurements have been performed.
         if self.qasm == "":
             return
@@ -255,22 +274,23 @@ class IBMBackend(BasicEngine):
                 self.qasm).format(nq=max_qubit_id + 1)
         info = {}
         info['qasms'] = [{'qasm': qasm}]
-        info['shots'] = self._num_runs
-        info['maxCredits'] = 5
-        info['backend'] = {'name': self.device}
-        info = json.dumps(info)
+        info['json']=self._json
+        info['nq']=max_qubit_id + 1
 
+        info['shots'] = self._num_runs
+        info['maxCredits'] = 10
+        info['backend'] = {'name': self.device}
         try:
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,
-                           user=self._user, password=self._password,
+                           token=self._token,
                            shots=self._num_runs,
                            num_retries=self._num_retries,
                            interval=self._interval,
                            verbose=self._verbose)
             else:
-                res = retrieve(device=self.device, user=self._user,
-                               password=self._password,
+                res = retrieve(device=self.device, 
+                               token=self._token,
                                jobid=self._retrieve_execution,
                                num_retries=self._num_retries,
                                interval=self._interval,
@@ -281,10 +301,12 @@ class IBMBackend(BasicEngine):
             P = random.random()
             p_sum = 0.
             measured = ""
+            length=len(self._measured_ids)
             for state in counts:
                 probability = counts[state] * 1. / self._num_runs
-                state = list(reversed(state))
-                state = "".join(state)
+                state=state.split('x')[1]
+                state="{0:b}".format(int(state))
+                state=state.zfill(length)
                 p_sum += probability
                 star = ""
                 if p_sum >= P and measured == "":
