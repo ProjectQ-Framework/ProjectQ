@@ -226,7 +226,12 @@ class BasicGate(object):
     def __str__(self):
         raise NotImplementedError('This gate does not implement __str__.')
 
-    def to_String(self,symbols):
+    def to_string(self,symbols):
+        """
+        String representation
+
+        achieve same function as str() but can be extended for configurable representation
+        """
         return str(self)
 
     def __hash__(self):
@@ -325,34 +330,40 @@ class BasicRotationGate(BasicGate):
     A rotation gate has a continuous parameter (the angle), labeled 'angle' /
     self.angle. Its inverse is the same gate with the negated argument.
     Rotation gates of the same class can be merged by adding the angles.
-    The continuous parameter is modulo 2 * pi, self.angle is in the interval
-    [0, 2 * pi).
+    The continuous parameter is modulo 4 * pi, self.angle is in the interval
+    [0, 4 * pi).
     """
     def __init__(self, angle):
         """
         Initialize a basic rotation gate.
 
         Args:
-            angle (float): Angle of rotation (saved modulo 2 * pi)
+            angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         BasicGate.__init__(self)
-        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
-        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
+        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
             rounded_angle = 0.
         self.angle = rounded_angle
 
-    def __str__(self,symbols=False):
-        return self.to_String()
-
-    def to_String(self,symbols=False):
+    def __str__(self):
         """
         Return the string representation of a BasicRotationGate.
 
         Returns the class name and the angle as
 
         .. code-block:: python
-
+        
             [CLASSNAME]([ANGLE])
+        """
+        return self.to_string()
+
+    def to_string(self,symbols=False):
+        """
+        Return the string representation of a BasicRotationGate.
+
+        Args:
+            symbols: uses the pi character and round the angle for a more user friendly display if True, full angle written in radian Otherwise
         """
         if symbols:
             angle="(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
@@ -380,7 +391,7 @@ class BasicRotationGate(BasicGate):
         if self.angle == 0:
             return self.__class__(0)
         else:
-            return self.__class__(-self.angle + 2 * math.pi)
+            return self.__class__(-self.angle + 4 * math.pi)
 
     def get_merged(self, other):
         """
@@ -420,7 +431,7 @@ class BasicRotationGate(BasicGate):
         """
         Return True if the gate is equivalent to an Identity gate
         """
-        return self.angle == 0. or self.angle==2*math.pi
+        return self.angle == 0. or self.angle==4*math.pi
 
 
 class BasicPhaseGate(BasicGate):

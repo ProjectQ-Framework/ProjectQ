@@ -79,6 +79,9 @@ def chooser_Ry_reducer(cmd,decomposition_list):
             pass
     if name=='cnot2rxx': 
         idx = [qb.id for qb in cmd.control_qubits] # index of the qubit
+        assert len(idx)==1 # this should be a 2 qubit gate, therefore with 1 control qubit
+        idx=idx[0] 
+        print(idx)
         if idx in prev_Ry_sign:
             if prev_Ry_sign[idx]<=0:
                 # If the previous qubit had Ry(-pi/2)
@@ -103,6 +106,8 @@ def chooser_Ry_reducer(cmd,decomposition_list):
     elif name=='h2rx':
         # Block operates similar to 'cnot2rxx' case
         idx = [qb.id for qb in cmd.qubits[0]]
+        assert len(idx)==1 # this should be a single qubit gate
+        idx=idx[0]
         if idx not in prev_Ry_sign:
             prev_Ry_sign[idx]=+1
             return decomp_rule['M']
@@ -115,6 +120,8 @@ def chooser_Ry_reducer(cmd,decomposition_list):
     elif name=='rz2rx':
         # Block operates similar to 'cnot2rxx' case
         idx = [qb.id for qb in cmd.qubits[0]]
+        assert len(idx)==1 # this should be a single qubit gate
+        idx=idx[0]
         if idx not in prev_Ry_sign:
             prev_Ry_sign[idx]=-1
             return decomp_rule['M']

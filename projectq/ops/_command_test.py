@@ -251,12 +251,14 @@ def test_command_str():
     cmd2 = _command.Command(main_engine, Rx(0.5*math.pi), (qubit,))
     assert str(cmd2) == "Rx(1.570796326795‬) | Qureg[0]"
 
-def test_command_to_String():
+def test_command_to_string():
     qubit = Qureg([Qubit(main_engine, 0)])
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5*math.pi), (qubit,))
     cmd.tags = ["TestTag"]
     cmd.add_control_qubits(ctrl_qubit)
-    assert cmd.to_String(symbols=True) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
+    assert cmd.to_string(symbols=True) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
+    assert cmd.to_string(symbols=False) == "CRx(1.570796326795‬) | ( Qureg[1], Qureg[0] )"
     cmd2 = _command.Command(main_engine, Rx(0.5*math.pi), (qubit,))
-    assert cmd2.to_String(symbols=True) == "Rx(0.5π) | Qureg[0]"
+    assert cmd2.to_string(symbols=True) == "Rx(0.5π) | Qureg[0]"
+    assert cmd2.to_string(symbols=False)  == "Rx(1.570796326795‬) | Qureg[0]"

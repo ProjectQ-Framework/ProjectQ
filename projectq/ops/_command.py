@@ -305,10 +305,10 @@ class Command(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __str__(self,symbols=False):
-        return self.to_String()
+    def __str__(self):
+        return self.to_string()
 
-    def to_String(self,symbols=False):
+    def to_string(self,symbols=False):
         """
         Get string representation of this Command object.
         """
@@ -326,4 +326,4 @@ class Command(object):
                 qstring += ", "
             qstring = qstring[:-2] + " )"
         cstring = "C" * len(ctrlqubits)
-        return cstring + self.gate.to_String(symbols) + " | " + qstring
+        return cstring + self.gate.to_string(symbols) + " | " + qstring

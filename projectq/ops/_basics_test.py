@@ -165,9 +165,8 @@ def test_basic_rotation_gate_init(input_angle, modulo_angle):
 def test_basic_rotation_gate_str():
     basic_rotation_gate = _basics.BasicRotationGate(math.pi)
     assert str(basic_rotation_gate) == "BasicRotationGate(3.14159265359)"
-    basic_rotation_gate = _basics.BasicRotationGate(0.5*math.pi)
-    assert basic_rotation_gate.to_String(symbols=True) == "BasicRotationGate(0.5π)"
-
+    assert basic_rotation_gate.to_string(symbols=True) == "BasicRotationGate(0.5π)"
+    assert basic_rotation_gate.to_string(symbols=False) == "BasicRotationGate(3.14159265359)"
 
 def test_basic_rotation_tex_str():
     basic_rotation_gate = _basics.BasicRotationGate(0.5*math.pi)
