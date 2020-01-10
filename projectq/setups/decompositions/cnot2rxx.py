@@ -48,6 +48,7 @@ def _decompose_cnot2rxx_P(cmd):
     Ry(math.pi/2)| ctrl[0]
 
 def _recognize_cnot2(cmd):
+    """ Identify that the command is a CNOT gate (control - X gate)"""
     return get_control_count(cmd) == 1
 
 #: Decomposition rules
