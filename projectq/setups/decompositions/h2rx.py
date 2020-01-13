@@ -23,7 +23,7 @@ import math
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
-from projectq.ops import Rx, Ry, H
+from projectq.ops import Ph, Rx, Ry, H
 
 
 def _decompose_h2rx_M(cmd):
@@ -31,6 +31,7 @@ def _decompose_h2rx_M(cmd):
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     qubit = cmd.qubits[0]
     Rx(math.pi) | qubit
+    Ph(math.pi/2) | qubit
     Ry(-1 * math.pi / 2) | qubit
 
 
@@ -40,6 +41,7 @@ def _decompose_h2rx_N(cmd):
     # Ry(pi/2) or Ry(-pi/2)
     qubit = cmd.qubits[0]
     Ry(math.pi / 2) | qubit
+    Ph(3*math.pi/2) | qubit
     Rx(-1 * math.pi) | qubit
 
 

@@ -23,7 +23,7 @@ from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
                                InstructionFilter)
 from projectq.meta import Control
-from projectq.ops import Measure, H, HGate
+from projectq.ops import Measure, X, H, HGate
 
 from . import h2rx
 
@@ -74,7 +74,10 @@ def test_decomposition():
     """
     decomposition_rule_list = h2rx.all_defined_decomposition_rules
     for rule in decomposition_rule_list:
-        for basis_state in ([1, 0], [0, 1]):
+        for basis_state_index in range(2):
+            basis_state = [0] * 2
+            basis_state[basis_state_index] = 1.
+
             correct_dummy_eng = DummyEngine(save_commands=True)
             correct_eng = MainEngine(backend=Simulator(),
                                      engine_list=[correct_dummy_eng])
@@ -89,37 +92,26 @@ def test_decomposition():
                                   ])
 
             correct_qb = correct_eng.allocate_qubit()
-            H | correct_qb
             correct_eng.flush()
-
             test_qb = test_eng.allocate_qubit()
-            H | test_qb
             test_eng.flush()
 
-            assert correct_dummy_eng.received_commands[1].gate == H
-            assert test_dummy_eng.received_commands[1].gate != H
+            correct_eng.backend.set_wavefunction(basis_state, correct_qb)
+            test_eng.backend.set_wavefunction(basis_state, test_qb)
 
-            # Create empty vectors for the wave vectors for the correct and
-            # test qubits
-            correct_vector = np.zeros((2, 1), dtype=np.complex_)
-            test_vector = np.zeros((2, 1), dtype=np.complex_)
+            H | correct_qb
+            H | test_qb
 
-            i = 0
-            for fstate in ['0', '1']:
-                test = test_eng.backend.get_amplitude(fstate, test_qb)
-                correct = correct_eng.backend.get_amplitude(fstate, correct_qb)
-                correct_vector[i] = correct
-                test_vector[i] = test
-                i += 1
+            correct_eng.flush()
+            test_eng.flush()
 
-            # Necessary to transpose vector to use matrix dot product
-            test_vector = test_vector.transpose()
-            # Remember that transposed vector should come first in product
-            vector_dot_product = np.dot(test_vector, correct_vector)
+            assert H in (cmd.gate
+                         for cmd in correct_dummy_eng.received_commands)
+            assert H not in (cmd.gate
+                             for cmd in test_dummy_eng.received_commands)
 
-            assert np.absolute(vector_dot_product) == pytest.approx(1,
-                                                                    rel=1e-12,
-                                                                    abs=1e-12)
+            assert correct_eng.backend.cheat()[1] == pytest.approx(
+                test_eng.backend.cheat()[1], rel=1e-12, abs=1e-12)
 
             Measure | test_qb
             Measure | correct_qb
