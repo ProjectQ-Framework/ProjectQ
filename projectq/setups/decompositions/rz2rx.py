@@ -57,7 +57,7 @@ def _decompose_rz2rx_M(cmd):
         Uncompute(eng)
 
 def _recognize_RzNoCtrl(cmd):
-    """ For efficiency reasons only if no control qubits."""
+    """ Decompose the gate only if the command represents a single qubit gate (if it is not part of a control gate)."""
     return get_control_count(cmd) == 0
 
 
