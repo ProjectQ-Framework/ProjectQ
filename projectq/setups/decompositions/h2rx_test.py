@@ -14,20 +14,19 @@
 
 "Tests for projectq.setups.decompositions.h2rx.py"
 
-import math
-
 import numpy as np
 
 import pytest
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               DummyEngine, InstructionFilter, MainEngine)
+from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
+                               InstructionFilter)
 from projectq.meta import Control
-from projectq.ops import Measure, Ph, H, HGate
+from projectq.ops import Measure, H, HGate
 
-import h2rx
+from . import h2rx
+
 
 def test_recognize_correct_gates():
     """ Test that recognize_HNoCtrl recognizes ctrl qubits """
@@ -47,29 +46,30 @@ def test_recognize_correct_gates():
 def h_decomp_gates(eng, cmd):
     """ Test that cmd.gate is a gate of class HGate """
     g = cmd.gate
-    if isinstance(g, HGate): # H is just a shortcut to HGate
+    if isinstance(g, HGate):  # H is just a shortcut to HGate
         return False
     else:
         return True
 
+
 # ------------test_decomposition function-------------#
-# Creates two engines, correct_eng and test_eng. 
-# correct_eng implements H gate. 
+# Creates two engines, correct_eng and test_eng.
+# correct_eng implements H gate.
 # test_eng implements the decomposition of the H gate.
-# correct_qb and test_qb represent results of these two
-# engines, respectively. 
-# The decomposition in this case only produces the 
-# same state as H up to a global phase. 
-# test_vector and correct_vector represent the final 
-# wave states of correct_qb and test_qb. 
-# The dot product of correct_vector and test_vector
-# should have absolute value 1, if the two vectors are the
-# same up to a global phase.
+# correct_qb and test_qb represent results of these two engines, respectively.
+#
+# The decomposition in this case only produces the same state as H up to a
+# global phase.
+# test_vector and correct_vector represent the final wave states of correct_qb
+# and test_qb.
+# The dot product of correct_vector and test_vector should have absolute value
+# 1, if the two vectors are the same up to a global phase.
+
 
 def test_decomposition():
-    """ Test that this decomposition of H produces correct amplitudes 
-    
-        Function tests each DecompositionRule in 
+    """ Test that this decomposition of H produces correct amplitudes
+
+        Function tests each DecompositionRule in
         h2rx.all_defined_decomposition_rules
     """
     decomposition_rule_list = h2rx.all_defined_decomposition_rules
@@ -77,14 +77,16 @@ def test_decomposition():
         for basis_state in ([1, 0], [0, 1]):
             correct_dummy_eng = DummyEngine(save_commands=True)
             correct_eng = MainEngine(backend=Simulator(),
-                                    engine_list=[correct_dummy_eng])
+                                     engine_list=[correct_dummy_eng])
 
             rule_set = DecompositionRuleSet(rules=[rule])
             test_dummy_eng = DummyEngine(save_commands=True)
             test_eng = MainEngine(backend=Simulator(),
-                                engine_list=[AutoReplacer(rule_set),
-                                            InstructionFilter(h_decomp_gates),
-                                            test_dummy_eng])
+                                  engine_list=[
+                                      AutoReplacer(rule_set),
+                                      InstructionFilter(h_decomp_gates),
+                                      test_dummy_eng
+                                  ])
 
             correct_qb = correct_eng.allocate_qubit()
             H | correct_qb
@@ -97,25 +99,27 @@ def test_decomposition():
             assert correct_dummy_eng.received_commands[1].gate == H
             assert test_dummy_eng.received_commands[1].gate != H
 
-            # Create empty vectors for the wave vectors for the correct 
-            # and test qubits
-            correct_vector = np.zeros((2,1),dtype=np.complex_)
-            test_vector = np.zeros((2,1),dtype=np.complex_)
+            # Create empty vectors for the wave vectors for the correct and
+            # test qubits
+            correct_vector = np.zeros((2, 1), dtype=np.complex_)
+            test_vector = np.zeros((2, 1), dtype=np.complex_)
 
-            i=0
+            i = 0
             for fstate in ['0', '1']:
                 test = test_eng.backend.get_amplitude(fstate, test_qb)
                 correct = correct_eng.backend.get_amplitude(fstate, correct_qb)
                 correct_vector[i] = correct
                 test_vector[i] = test
-                i+=1
+                i += 1
 
             # Necessary to transpose vector to use matrix dot product
             test_vector = test_vector.transpose()
             # Remember that transposed vector should come first in product
-            vector_dot_product = np.dot(test_vector, correct_vector) 
-            
-            assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
+            vector_dot_product = np.dot(test_vector, correct_vector)
+
+            assert np.absolute(vector_dot_product) == pytest.approx(1,
+                                                                    rel=1e-12,
+                                                                    abs=1e-12)
 
             Measure | test_qb
             Measure | correct_qb

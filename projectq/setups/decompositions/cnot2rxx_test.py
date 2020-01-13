@@ -17,7 +17,6 @@
 import pytest
 import numpy as np
 
-import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
@@ -25,7 +24,8 @@ from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
 from projectq.meta import Control
 from projectq.ops import All, CNOT, CZ, Measure, X, Z
 
-from projectq.setups.decompositions import cnot2rxx
+from . import cnot2rxx
+
 
 def test_recognize_correct_gates():
     """Test that recognize_cnot recognizes cnot gates. """
@@ -49,47 +49,51 @@ def test_recognize_correct_gates():
     for cmd in saving_backend.received_commands[7:9]:
         assert not cnot2rxx._recognize_cnot2(cmd)
 
+
 def _decomp_gates(eng, cmd):
     """ Test that the cmd.gate is a gate of class X """
-    g = cmd.gate
     if len(cmd.control_qubits) == 1 and isinstance(cmd.gate, X.__class__):
         return False
     return True
 
+
 # ------------test_decomposition function-------------#
-# Creates two engines, correct_eng and test_eng. 
-# correct_eng implements CNOT gate. 
+# Creates two engines, correct_eng and test_eng.
+# correct_eng implements CNOT gate.
 # test_eng implements the decomposition of the CNOT gate.
-# correct_qb and test_qb represent results of these two
-# engines, respectively. 
-# The decomposition in this case only produces the 
-# same state as CNOT up to a global phase. 
-# test_vector and correct_vector represent the final 
-# wave states of correct_qb and test_qb. 
-# The dot product of correct_vector and test_vector
-# should have absolute value 1, if the two vectors are the
-# same up to a global phase.
+# correct_qb and test_qb represent results of these two engines, respectively.
+#
+# The decomposition in this case only produces the same state as CNOT up to a
+# global phase.
+# test_vector and correct_vector represent the final wave states of correct_qb
+# and test_qb.
+#
+# The dot product of correct_vector and test_vector should have absolute value
+# 1, if the two vectors are the same up to a global phase.
+
 
 def test_decomposition():
-    """ Test that this decomposition of CNOT produces correct amplitudes 
-    
-        Function tests each DecompositionRule in 
+    """ Test that this decomposition of CNOT produces correct amplitudes
+
+        Function tests each DecompositionRule in
         cnot2rxx.all_defined_decomposition_rules
     """
     decomposition_rule_list = cnot2rxx.all_defined_decomposition_rules
     for rule in decomposition_rule_list:
         for basis_state_index in range(0, 4):
-            basis_state = [0]*4
+            basis_state = [0] * 4
             basis_state[basis_state_index] = 1.
             correct_dummy_eng = DummyEngine(save_commands=True)
             correct_eng = MainEngine(backend=Simulator(),
-                                    engine_list=[correct_dummy_eng])
+                                     engine_list=[correct_dummy_eng])
             rule_set = DecompositionRuleSet(rules=[rule])
             test_dummy_eng = DummyEngine(save_commands=True)
             test_eng = MainEngine(backend=Simulator(),
-                                engine_list=[AutoReplacer(rule_set),
-                                            InstructionFilter(_decomp_gates),
-                                            test_dummy_eng])
+                                  engine_list=[
+                                      AutoReplacer(rule_set),
+                                      InstructionFilter(_decomp_gates),
+                                      test_dummy_eng
+                                  ])
             test_sim = test_eng.backend
             correct_sim = correct_eng.backend
             correct_qb = correct_eng.allocate_qubit()
@@ -99,8 +103,8 @@ def test_decomposition():
             test_ctrl_qb = test_eng.allocate_qubit()
             test_eng.flush()
 
-            correct_sim.set_wavefunction(basis_state, correct_qb +
-                                        correct_ctrl_qb)
+            correct_sim.set_wavefunction(basis_state,
+                                         correct_qb + correct_ctrl_qb)
             test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qb)
             CNOT | (test_ctrl_qb, test_qb)
             CNOT | (correct_ctrl_qb, correct_qb)
@@ -111,29 +115,29 @@ def test_decomposition():
             assert len(correct_dummy_eng.received_commands) == 5
             assert len(test_dummy_eng.received_commands) == 9
 
-            # Create empty vectors for the wave vectors for the correct 
+            # Create empty vectors for the wave vectors for the correct
             # and test qubits
-            correct_vector = np.zeros((4,1),dtype=np.complex_)
-            test_vector = np.zeros((4,1),dtype=np.complex_)
-            i=0
+            correct_vector = np.zeros((4, 1), dtype=np.complex_)
+            test_vector = np.zeros((4, 1), dtype=np.complex_)
+            i = 0
             for fstate in range(4):
                 binary_state = format(fstate, '02b')
                 test = test_sim.get_amplitude(binary_state,
-                                            test_qb + test_ctrl_qb)
-                correct = correct_sim.get_amplitude(binary_state, correct_qb +
-                                                    correct_ctrl_qb)
+                                              test_qb + test_ctrl_qb)
+                correct = correct_sim.get_amplitude(
+                    binary_state, correct_qb + correct_ctrl_qb)
                 correct_vector[i] = correct
                 test_vector[i] = test
-                i+=1            
+                i += 1
             # Necessary to transpose vector to use matrix dot product
             test_vector = test_vector.transpose()
             # Remember that transposed vector should come first in product
             vector_dot_product = np.dot(test_vector, correct_vector)
-            assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
-    
+            assert np.absolute(vector_dot_product) == pytest.approx(1,
+                                                                    rel=1e-12,
+                                                                    abs=1e-12)
+
             All(Measure) | test_qb + test_ctrl_qb
             All(Measure) | correct_qb + correct_ctrl_qb
             test_eng.flush(deallocate_qubits=True)
             correct_eng.flush(deallocate_qubits=True)
-
-        

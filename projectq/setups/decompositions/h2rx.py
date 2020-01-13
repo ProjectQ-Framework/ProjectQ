@@ -12,11 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-#   Module uses ideas from “Basic circuit compilation techniques 
-#   for an ion-trap quantum machine” by Dmitri Maslov (2017) at 
+#   Module uses ideas from “Basic circuit compilation techniques for an
+#   ion-trap quantum machine” by Dmitri Maslov (2017) at
 #   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
-
-
 """
 Registers a decomposition for the H gate into an Ry and Rx gate.
 """
@@ -24,25 +22,26 @@ Registers a decomposition for the H gate into an Ry and Rx gate.
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
-from projectq.ops import Rx, Ry, Rz, H
+from projectq.meta import get_control_count
+from projectq.ops import Rx, Ry, H
 
 
 def _decompose_h2rx_M(cmd):
     """ Decompose the Ry gate."""
-    # Labelled 'M' for 'minus' because decomposition 
-    # ends with a Ry(-pi/2)
+    # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     qubit = cmd.qubits[0]
     Rx(math.pi) | qubit
-    Ry(-1*math.pi/2) | qubit
+    Ry(-1 * math.pi / 2) | qubit
+
 
 def _decompose_h2rx_N(cmd):
     """ Decompose the Ry gate."""
-    # Labelled 'N' for 'neutral' because decomposition 
-    # doesn't end with Ry(pi/2) or Ry(-pi/2)
+    # Labelled 'N' for 'neutral' because decomposition doesn't end with
+    # Ry(pi/2) or Ry(-pi/2)
     qubit = cmd.qubits[0]
-    Ry(math.pi/2) | qubit
-    Rx(-1*math.pi) | qubit
+    Ry(math.pi / 2) | qubit
+    Rx(-1 * math.pi) | qubit
+
 
 def _recognize_HNoCtrl(cmd):
     """ For efficiency reasons only if no control qubits."""
