@@ -12,8 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-#   Module uses ideas from “Basic circuit compilation techniques
-#   for an ion-trap quantum machine” by Dmitri Maslov (2017) at
+#   Module uses ideas from "Basic circuit compilation techniques
+#   for an ion-trap quantum machine" by Dmitri Maslov (2017) at
 #   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
 """
 Registers a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates.
