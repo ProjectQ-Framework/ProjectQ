@@ -21,7 +21,7 @@ Registers a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates.
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
-from projectq.ops import Rxx, Ry, Rx, X
+from projectq.ops import Ph, Rxx, Ry, Rx, X
 import math
 
 
@@ -30,6 +30,7 @@ def _decompose_cnot2rxx_M(cmd):
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     ctrl = cmd.control_qubits
     Ry(math.pi / 2) | ctrl[0]
+    Ph(7 * math.pi / 4) | ctrl[0]
     Rx(-math.pi / 2) | ctrl[0]
     Rx(-math.pi / 2) | cmd.qubits[0][0]
     Rxx(math.pi / 2) | (ctrl[0], cmd.qubits[0][0])
@@ -41,6 +42,7 @@ def _decompose_cnot2rxx_P(cmd):
     # Labelled 'P' for 'plus' because decomposition ends with a Ry(+pi/2)
     ctrl = cmd.control_qubits
     Ry(-math.pi / 2) | ctrl[0]
+    Ph(math.pi / 4) | ctrl[0]
     Rx(-math.pi / 2) | ctrl[0]
     Rx(math.pi / 2) | cmd.qubits[0][0]
     Rxx(math.pi / 2) | (ctrl[0], cmd.qubits[0][0])
