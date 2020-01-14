@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.setups.restrictedgateset."""
 
 import pytest
@@ -89,14 +88,14 @@ def test_restriction():
 
 def test_wrong_init():
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(two_qubit_gates=(CNOT))
+        restrictedgateset.get_engine_list(two_qubit_gates=(CNOT))
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(one_qubit_gates="Any")
+        restrictedgateset.get_engine_list(one_qubit_gates="Any")
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(other_gates="any")
+        restrictedgateset.get_engine_list(other_gates="any")
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(one_qubit_gates=(CRz,))
+        restrictedgateset.get_engine_list(one_qubit_gates=(CRz, ))
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(two_qubit_gates=(CRz,))
+        restrictedgateset.get_engine_list(two_qubit_gates=(CRz, ))
     with pytest.raises(TypeError):
-        engine_list = restrictedgateset.get_engine_list(other_gates=(CRz,))
+        restrictedgateset.get_engine_list(other_gates=(CRz, ))
