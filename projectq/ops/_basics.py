@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines the BasicGate class, the base class of all gates, the
 BasicRotationGate class, the SelfInverseGate, the FastForwardingGate, the
@@ -39,11 +38,10 @@ import numpy as np
 from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
-
 import unicodedata
 
 ANGLE_PRECISION = 12
-ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
+ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
 RTOL = 1e-10
 ATOL = 1e-12
 
@@ -159,7 +157,7 @@ class BasicGate(object):
             (or list of Qubits) objects.
         """
         if not isinstance(qubits, tuple):
-            qubits = (qubits,)
+            qubits = (qubits, )
 
         qubits = list(qubits)
 
@@ -210,8 +208,9 @@ class BasicGate(object):
         Equality comparision
 
         Return True if instance of the same class, unless other is an instance
-        of :class:MatrixGate, in which case equality is to be checked by testing
-        for existence and (approximate) equality of matrix representations.
+        of :class:MatrixGate, in which case equality is to be checked by
+        testing for existence and (approximate) equality of matrix
+        representations.
         """
         if isinstance(other, self.__class__):
             return True
@@ -226,11 +225,12 @@ class BasicGate(object):
     def __str__(self):
         raise NotImplementedError('This gate does not implement __str__.')
 
-    def to_string(self,symbols):
+    def to_string(self, symbols):
         """
         String representation
 
-        achieve same function as str() but can be extended for configurable representation
+        Achieve same function as str() but can be extended for configurable
+        representation
         """
         return str(self)
 
@@ -284,20 +284,19 @@ class MatrixGate(BasicGate):
         """
         if not hasattr(other, 'matrix'):
             return False
-        if (not isinstance(self.matrix, np.matrix) or
-                not isinstance(other.matrix, np.matrix)):
+        if (not isinstance(self.matrix, np.matrix)
+                or not isinstance(other.matrix, np.matrix)):
             raise TypeError("One of the gates doesn't have the correct "
                             "type (numpy.matrix) for the matrix "
                             "attribute.")
-        if (self.matrix.shape == other.matrix.shape and
-            np.allclose(self.matrix, other.matrix,
-                        rtol=RTOL, atol=ATOL,
-                        equal_nan=False)):
+        if (self.matrix.shape == other.matrix.shape and np.allclose(
+                self.matrix, other.matrix, rtol=RTOL, atol=ATOL,
+                equal_nan=False)):
             return True
         return False
 
     def __str__(self):
-        return("MatrixGate(" + str(self.matrix.tolist()) + ")")
+        return ("MatrixGate(" + str(self.matrix.tolist()) + ")")
 
     def __hash__(self):
         return hash(str(self))
@@ -353,22 +352,25 @@ class BasicRotationGate(BasicGate):
         Returns the class name and the angle as
 
         .. code-block:: python
-        
+
             [CLASSNAME]([ANGLE])
         """
         return self.to_string()
 
-    def to_string(self,symbols=False):
+    def to_string(self, symbols=False):
         """
         Return the string representation of a BasicRotationGate.
 
         Args:
-            symbols: uses the pi character and round the angle for a more user friendly display if True, full angle written in radian Otherwise
+            symbols (bool): uses the pi character and round the angle for a
+                            more user friendly display if True, full angle
+                            written in radian otherwise.
         """
         if symbols:
-            angle="(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
+            angle = ("(" + str(round(self.angle / math.pi, 3))
+                     + unicodedata.lookup("GREEK SMALL LETTER PI") + ")")
         else:
-            angle="(" + str(self.angle) + ")"
+            angle = "(" + str(self.angle) + ")"
         return str(self.__class__.__name__) + angle
 
     def tex_str(self):
@@ -381,7 +383,8 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(round(self.angle/math.pi,3)) + "\pi}$"
+        return (str(self.__class__.__name__) + "$_{"
+                + str(round(self.angle / math.pi, 3)) + "\\pi}$")
 
     def get_inverse(self):
         """
@@ -427,11 +430,11 @@ class BasicRotationGate(BasicGate):
     def __hash__(self):
         return hash(str(self))
 
-    def is_identity(self):        
+    def is_identity(self):
         """
         Return True if the gate is equivalent to an Identity gate
         """
-        return self.angle == 0. or self.angle==4*math.pi
+        return self.angle == 0. or self.angle == 4 * math.pi
 
 
 class BasicPhaseGate(BasicGate):
@@ -629,6 +632,7 @@ class BasicMathGate(BasicGate):
 
         def math_function(x):
             return list(math_fun(*x))
+
         self._math_function = math_function
 
     def __str__(self):

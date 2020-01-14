@@ -16,6 +16,7 @@
 
 import pytest
 
+import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (CNOT, H, Rx, Ry, AllocateQubitGate, X,
@@ -128,6 +129,7 @@ def test_local_optimizer_mergeable_gates():
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == Rx(10 * 0.5)
 
+
 def test_local_optimizer_identity_gates():
     local_optimizer = _optimize.LocalOptimizer(m=4)
     backend = DummyEngine(save_commands=True)
@@ -137,8 +139,8 @@ def test_local_optimizer_identity_gates():
     for _ in range(10):
         Rx(0.0) | qb0
         Ry(0.0) | qb0
-        Rx(2*math.pi) | qb0
-        Ry(2*math.pi) | qb0
+        Rx(4*math.pi) | qb0
+        Ry(4*math.pi) | qb0
     Rx(0.5) | qb0
     assert len(backend.received_commands) == 0
     eng.flush()
