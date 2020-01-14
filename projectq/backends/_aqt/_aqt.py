@@ -242,11 +242,12 @@ class AQTBackend(BasicEngine):
         # instead of 'GATE' 
         info['circuit']=str(self._circuit).replace("'",'"')
         info['nq']=max_qubit_id + 1
-
         info['shots'] = self._num_runs
         info['backend'] = {'name': self.device}
+
         if self._num_runs>200:
             raise Exception("Number of shots limited to 200")
+
         try:
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,
@@ -266,7 +267,6 @@ class AQTBackend(BasicEngine):
             counts = self._format_counts(res,length)
             # Determine random outcome
             P = random.random()
-            print(P)
             p_sum = 0.
             measured = ""
             for state in counts:
