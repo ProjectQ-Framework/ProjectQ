@@ -23,7 +23,7 @@ from projectq.cengines import (MainEngine, DummyEngine, AutoReplacer,
 from projectq.meta import get_control_count
 
 from . import restrictedgateset
-from .trapped_ion_decomposer import chooser_Ry_reducer
+from .trapped_ion_decomposer import chooser_Ry_reducer, get_engine_list
 
 
 def filter_gates(eng, cmd):
@@ -132,13 +132,11 @@ def test_chooser_Ry_reducer():
     # Using the chooser_Rx_reducer you get 10 commands, since you now have 4
     # single qubit gates and 1 two qubit gate.
 
-    for args, count in [(dict(), 13),
-                        ({
-                            'compiler_chooser': chooser_Ry_reducer
-                        }, 11)]:
+    for engine_list, count in [(restrictedgateset.get_engine_list(
+                                   one_qubit_gates=(Rx, Ry),
+                                   two_qubit_gates=(Rxx, )), 13),
+                               (get_engine_list(), 11)]:
 
-        engine_list = restrictedgateset.get_engine_list(
-            one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx, ), **args)
         backend = DummyEngine(save_commands=True)
         eng = projectq.MainEngine(backend, engine_list, verbose=True)
         qubit1 = eng.allocate_qubit()
