@@ -27,8 +27,7 @@ from projectq.ops import (H,
 from projectq.meta import Control
 
 import projectq.backends._circuits._drawer as _drawer
-from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer\
-                                                , CircuitDrawerMatplotlib
+from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
 
 def test_drawer_getlatex():
     old_latex = _drawer.to_latex
