@@ -31,7 +31,8 @@ def no_requests(monkeypatch):
 _api_url = 'https://api.quantum-computing.ibm.com/api/'
 
 def test_send_real_device_online_verbose(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
+            'json': 'instructions','maxCredits': 10,'nq': 1}
     json_qasm = json.dumps(qasms)
     name = 'projectq_test'
     access_token = "access"
@@ -42,7 +43,6 @@ def test_send_real_device_online_verbose(monkeypatch):
     json_data = ''.join(['{', json_body, '}'])
     shots = 1
     device = "ibmqx4"
-    json_data_run = ''.join(['{"qasm":', json_qasm, '}'])
     execution_id = 3
     result_ready = [False]
     result = "my_result"
@@ -80,13 +80,12 @@ def test_send_real_device_online_verbose(monkeypatch):
               result_ready[0] and request_num[0] == 3):
             result_ready[0] = True
             request_num[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
+            return MockResponse({"status": "RUNNING"}, 200)
         elif (args[0] == urljoin(_api_url,
               "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id)) and
               kwargs["params"]["access_token"] == access_token and
               result_ready[0] and request_num[0] == 4):
-            print("state ok")
-            return MockResponse({"qasms": [{"result": result}]}, 200)
+            return MockResponse({"results": [result],"status": "COMPLETED"}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -108,18 +107,17 @@ def test_send_real_device_online_verbose(monkeypatch):
 
         # Authentication
         if (args[0] == urljoin(_api_url, "users/loginWithToken") and
-                kwargs["json"]["apiToken"] == token
+                kwargs["json"]["apiToken"] == token and
                 request_num[0] == 1):
             request_num[0] += 1
             return MockPostResponse({"userId": user_id, "id": access_token})
         # Run code
         elif (args[0] == urljoin(_api_url, "Jobs") and
-                kwargs["data"] == json_qasm and
+                kwargs["data"] == None and
                 kwargs["params"]["access_token"] == access_token and
-                kwargs["params"]["deviceRunType"] == device and
-                kwargs["params"]["fromCache"] == "false" and
-                kwargs["params"]["shots"] == shots and
-                kwargs["headers"]["Content-Type"] == "application/json" and
+                kwargs["backend"]["name"] == device and
+                kwargs["json"]["qObject"]['config']['shots'] == shots and
+                kwargs["headers"]["X-Qx-Client-Application"] == "ibmqprovider/0.4.4" and
                 request_num[0] == 2):
             request_num[0] += 1
             return MockPostResponse({"id": execution_id})
@@ -140,7 +138,6 @@ def test_send_real_device_online_verbose(monkeypatch):
                                 device="ibmqx4",
                                 token=None,
                                 shots=shots, verbose=True)
-    print(res)
     assert res == result
 
 
@@ -289,7 +286,8 @@ def test_send_that_errors_are_caught3(monkeypatch):
 
 
 def test_timeout_exception(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
+            'json': 'instructions','maxCredits': 10,'nq': 1}
     json_qasm = json.dumps(qasms)
     tries = [0]
 
@@ -350,7 +348,8 @@ def test_timeout_exception(monkeypatch):
 
 
 def test_retrieve_and_device_offline_exception(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
+            'json': 'instructions','maxCredits': 10,'nq': 1}
     json_qasm = json.dumps(qasms)
     request_num = [0]
 
@@ -375,7 +374,7 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
         job_url = 'Jobs/{}'.format("123e")
         if args[0] == urljoin(_api_url, job_url):
             request_num[0] += 1
-            return MockResponse({"noqasms": "not done"}, 200)
+            return MockResponse({"status": "RUNNING"}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -403,12 +402,13 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
     _ibm_http_client.time.sleep = lambda x: x
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
         _ibm_http_client.retrieve(device="ibmqx4",
-                                  user="test", password="test",
+                                  token=token,
                                   jobid="123e")
 
 
 def test_retrieve(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
+    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
+            'json': 'instructions','maxCredits': 10,'nq': 1}
     json_qasm = json.dumps(qasms)
     request_num = [0]
 
@@ -431,10 +431,10 @@ def test_retrieve(monkeypatch):
         job_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/{}'.format("123e")
         if args[0] == urljoin(_api_url, job_url) and request_num[0] < 1:
             request_num[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
+            return MockResponse({"status": "RUNNING"}, 200)
         elif args[0] == urljoin(_api_url, job_url):
-            return MockResponse({"qObjectResult": [{'qasm': 'qasm',
-                                            'result': 'correct'}],"status": {"id": "COMPLETED"}}, 200)
+            return MockResponse({"qObjectResult": {'qasm': 'qasm',
+                                            'results': ['correct']},"status": "COMPLETED"}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:

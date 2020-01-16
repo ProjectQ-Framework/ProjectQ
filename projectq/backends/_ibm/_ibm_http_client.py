@@ -231,7 +231,7 @@ def retrieve(device, token, jobid, num_retries=3000,
 
 
 def send(info, device='ibmq_qasm_simulator',token=None,
-         shots=1, num_retries=3000, interval=1, verbose=False):
+         shots=None, num_retries=3000, interval=1, verbose=False):
     """
     Sends QASM through the IBM API and runs the quantum circuit.
 
@@ -250,7 +250,9 @@ def send(info, device='ibmq_qasm_simulator',token=None,
     """
     try:
         ibmq_session=IBMQ()
-
+        #shots argument deprecated, as already 
+        if shots is not None:
+            info['shots']=shots
         if verbose:
             print("- Authenticating...")
             print('user API token: '+token)

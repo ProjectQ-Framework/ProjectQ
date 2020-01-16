@@ -281,7 +281,6 @@ class IBMBackend(BasicEngine):
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,
                            token=self._token,
-                           shots=self._num_runs,
                            num_retries=self._num_retries,
                            interval=self._interval,
                            verbose=self._verbose)
