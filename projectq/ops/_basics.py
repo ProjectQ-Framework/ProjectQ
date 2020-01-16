@@ -40,8 +40,6 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 
-import unicodedata
-
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 RTOL = 1e-10
@@ -226,19 +224,8 @@ class BasicGate(object):
     def __str__(self):
         raise NotImplementedError('This gate does not implement __str__.')
 
-    def to_string(self,symbols):
-        """
-        String representation
-
-        achieve same function as str() but can be extended for configurable representation
-        """
-        return str(self)
-
     def __hash__(self):
         return hash(str(self))
-
-    def is_identity(self):
-        return False
 
 
 class MatrixGate(BasicGate):
@@ -353,23 +340,10 @@ class BasicRotationGate(BasicGate):
         Returns the class name and the angle as
 
         .. code-block:: python
-        
+
             [CLASSNAME]([ANGLE])
         """
-        return self.to_string()
-
-    def to_string(self,symbols=False):
-        """
-        Return the string representation of a BasicRotationGate.
-
-        Args:
-            symbols: uses the pi character and round the angle for a more user friendly display if True, full angle written in radian Otherwise
-        """
-        if symbols:
-            angle="(" + str(round(self.angle/math.pi,3)) +unicodedata.lookup("GREEK SMALL LETTER PI")+ ")"
-        else:
-            angle="(" + str(self.angle) + ")"
-        return str(self.__class__.__name__) + angle
+        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
 
     def tex_str(self):
         """
@@ -381,7 +355,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(round(self.angle/math.pi,3)) + "\pi}$"
+        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
         """
@@ -426,12 +400,6 @@ class BasicRotationGate(BasicGate):
 
     def __hash__(self):
         return hash(str(self))
-
-    def is_identity(self):        
-        """
-        Return True if the gate is equivalent to an Identity gate
-        """
-        return self.angle == 0. or self.angle==4*math.pi
 
 
 class BasicPhaseGate(BasicGate):
