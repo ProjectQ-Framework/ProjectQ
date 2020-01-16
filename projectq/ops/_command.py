@@ -149,6 +149,15 @@ class Command(object):
                        list(self.control_qubits),
                        deepcopy(self.tags))
 
+    def is_identity(self):
+        """
+        Evaluate if the gate called in the command object is an identity gate.
+
+        Returns: 
+            True if the gate is equivalent to an Identity gate, False otherwise
+        """
+        return projectq.ops.is_identity(self.gate)
+
     def get_merged(self, other):
         """
         Merge this command with another one and return the merged command
@@ -297,6 +306,9 @@ class Command(object):
         return not self.__eq__(other)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self,symbols=False):
         """
         Get string representation of this Command object.
         """
@@ -314,4 +326,4 @@ class Command(object):
                 qstring += ", "
             qstring = qstring[:-2] + " )"
         cstring = "C" * len(ctrlqubits)
-        return cstring + str(self.gate) + " | " + qstring
+        return cstring + self.gate.to_string(symbols) + " | " + qstring
