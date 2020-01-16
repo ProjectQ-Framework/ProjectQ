@@ -26,20 +26,18 @@ in the backend in the U1/U2/U3/CX gate set.
 import projectq
 import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rx,Ry,Rz,H,CNOT)
+from projectq.ops import (Rx, Ry, Rz, H, CNOT)
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                IBM5QubitMapper,
                                SwapAndCNOTFlipper,
-                               DecompositionRuleSet,
                                InstructionFilter,
-                               ManualMapper,
+                               BasicMapperEngine,
                                GridMapper)
 from projectq.backends._ibm._ibm_http_client import show_devices
 
 def get_engine_list(token=None,device=None):
-    rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     #access to the hardware properties via show_devices
     #can be extended to take into account gate fidelities, new available gate, etc..
     devices=show_devices(token)
@@ -58,7 +56,13 @@ def get_engine_list(token=None,device=None):
         #the 32 qubit online simulator doesn't need a specific mapping for gates. 
         #can also run wider gateset but this setup keep the restrictedgateset setup for
         #coherence
-        mapper = ManualMapper()
+        mapper = BasicMapperEngine()
+        #Note: Manual Mapper doesn't work, because its map is updated only if gates are applied
+        #if gates in the register are not used, then it will lead to state errors
+        res=dict()
+        for i in range(devices[device]['nq']):
+            res[i]=i
+        mapper.current_mapping = res
         ibm_setup=[mapper]
     elif device=='ibmq_16_melbourne':
         #Only 15 qubits available on this ibmqx2 unit(in particular qubit 7 on the grid),

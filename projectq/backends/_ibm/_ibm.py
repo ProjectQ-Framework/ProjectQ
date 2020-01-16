@@ -136,7 +136,6 @@ class IBMBackend(BasicEngine):
             self._allocated_qubits = set()
 
         gate = cmd.gate
-
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
             return
@@ -187,15 +186,8 @@ class IBMBackend(BasicEngine):
             self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
             self._json.append({'qubits': [qb_pos], 'name': 'u2','params': [0, 3.141592653589793]})
         else:
-            assert get_control_count(cmd) == 0
-            if str(gate) in self._gate_names:
-                gate_str = self._gate_names[str(gate)]
-            else:
-                gate_str = str(gate).lower()
-
-            qb_pos = cmd.qubits[0][0].id
-            self.qasm += "\n{} q[{}];".format(gate_str, qb_pos)
-            self._json.append({'qubits': [qb_pos], 'name': gate_str})
+            raise Exception('Command not authorized. You should run the circuit with the appropriate ibm setup.'
+                            'Forbidden command: '+str(cmd))
 
     def _logical_to_physical(self, qb_id):
         """
@@ -217,6 +209,8 @@ class IBMBackend(BasicEngine):
     def get_probabilities(self, qureg):
         """
         Return the list of basis states with corresponding probabilities.
+        If input qureg is a subset of the register used for the experiment,
+        then returns the projected probabilities over the other states.
 
         The measured bits are ordered according to the supplied quantum
         register, i.e., the left-most bit in the state-string corresponds to
@@ -242,13 +236,16 @@ class IBMBackend(BasicEngine):
             raise RuntimeError("Please, run the circuit first!")
 
         probability_dict = dict()
-
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i in range(len(qureg)):
                 mapped_state[i] = state[self._logical_to_physical(qureg[i].id)]
             probability = self._probabilities[state]
-            probability_dict["".join(mapped_state)] = probability
+            mapped_state = "".join(mapped_state)
+            if mapped_state not in probability_dict:
+                probability_dict[mapped_state] = probability
+            else:
+                probability_dict[mapped_state] += probability
 
         return probability_dict
 
@@ -269,13 +266,13 @@ class IBMBackend(BasicEngine):
         if self.qasm == "":
             return
 
-        max_qubit_id = max(self._allocated_qubits)
+        max_qubit_id = max(self._allocated_qubits) + 1
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
-                self.qasm).format(nq=max_qubit_id + 1)
+                self.qasm).format(nq=max_qubit_id)
         info = {}
         info['qasms'] = [{'qasm': qasm}]
         info['json']=self._json
-        info['nq']=max_qubit_id + 1
+        info['nq']=max_qubit_id
 
         info['shots'] = self._num_runs
         info['maxCredits'] = 10
@@ -295,7 +292,6 @@ class IBMBackend(BasicEngine):
                                num_retries=self._num_retries,
                                interval=self._interval,
                                verbose=self._verbose)
-
             counts = res['data']['counts']
             # Determine random outcome
             P = random.random()
@@ -304,9 +300,10 @@ class IBMBackend(BasicEngine):
             length=len(self._measured_ids)
             for state in counts:
                 probability = counts[state] * 1. / self._num_runs
-                state=state.split('x')[1]
-                state="{0:b}".format(int(state))
-                state=state.zfill(length)
+                state="{0:b}".format(int(state,0))
+                state=state.zfill(max_qubit_id)
+                #states in ibmq are right-ordered, so need to reverse state string
+                state=state[::-1]
                 p_sum += probability
                 star = ""
                 if p_sum >= P and measured == "":
@@ -345,8 +342,3 @@ class IBMBackend(BasicEngine):
                 self._run()
                 self._reset()
 
-    """
-    Mapping of gate names from our gate objects to the IBM QASM representation.
-    """
-    _gate_names = {str(Tdag): "tdg",
-                   str(Sdag): "sdg"}

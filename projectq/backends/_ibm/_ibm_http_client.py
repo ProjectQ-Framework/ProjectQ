@@ -13,7 +13,9 @@
 #   limitations under the License.
 
 # helpers to run the jsonified gate sequence on ibm quantum experience server
-# api documentation is at https://qcwi-staging.mybluemix.net/explorer/
+# api documentation does not exist and has to be deduced from the qiskit code source
+# at: https://github.com/Qiskit/qiskit-ibmq-provider
+
 import requests
 import getpass
 import json
@@ -25,6 +27,7 @@ from requests import Session
 
 _auth_api_url = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken'
 _api_url = 'https://api.quantum-computing.ibm.com/api/'
+
 CLIENT_APPLICATION = 'ibmqprovider/0.4.4'#TODO: call to get the API version automatically
 
 
@@ -35,10 +38,19 @@ class IBMQ(Session):
         self.timeout=5.0
 
     def get_list_devices(self,verbose=False):
+        """
+        Get the list of available IBM backends with their properties
+
+        Args:
+            verbose (bool): print the returned dictionnary if True
+        Returns:
+            (dict) backends dictionary by name device, containing the qubit size 'nq',
+                    the coupling map 'coupling_map' as well as the device
+                    version 'version'
+        """
         list_device_url='Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
         r = super().request('GET', urljoin(_api_url, list_device_url), **argument)
-
         r.raise_for_status()
         r_json=r.json()
         self.backends=dict()
@@ -50,6 +62,14 @@ class IBMQ(Session):
         return self.backends
 
     def is_online(self,device):
+        """
+        check if the device is in the list of available IBM backends
+
+        Args:
+            device (str): name of the device to check
+        Returns:
+            (bool) True if device is available, False otherwise
+        """
         return device in self.backends
 
     def can_run_experiment(self,info,device):
@@ -59,8 +79,11 @@ class IBMQ(Session):
         Args:
             info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the ibm device to use
-        :return:
-            (bool): True if device is big enough, False otherwise
+        Returns:
+            (tuple): (bool) True if device is big enough, False otherwise
+                     (int) maximum number of qubit available on the device
+                     (int) number of qubit needed for the circuit
+
         """
         nb_qubit_max=self.backends[device]['nq']
         nb_qubit_needed=info['nq']
@@ -68,8 +91,9 @@ class IBMQ(Session):
 
     def _authenticate(self,token=None):
         """
-        :param token:
-        :return:
+        Args:
+            token (str): IBM quantum experience user API token.
+        Returns:
         """
         if token is None:
             token = getpass.getpass(prompt='IBM Q token > ')
@@ -98,8 +122,24 @@ class IBMQ(Session):
             c_label.append(['c',i])
         for i in range(mq):
             q_label.append(['q',i])
-        experiment=[{'header': {'qreg_sizes': [['q', mq]], 'n_qubits': mq, 'memory_slots': nq, 'creg_sizes': [['c', nq]], 'clbit_labels': c_label, 'qubit_labels': q_label, 'name': 'circuit0'}, 'config': {'n_qubits': mq, 'memory_slots': nq}, 'instructions':instructions}]
-        argument={'data': None, 'json': {'qObject': {'type': 'QASM', 'schema_version': '1.1.0', 'config': {'shots': shots, 'max_credits': maxcredit, 'n_qubits': mq, 'memory_slots': nq, 'memory': False, 'parameter_binds': []}, 'experiments': experiment, 'header': {'backend_version': version, 'backend_name': device}, 'qobj_id': 'e72443f5-7752-4e32-9ac8-156f1f3fee18'}, 'backend': {'name': device}, 'shots': shots}, 'timeout': (self.timeout, None)}
+        experiment=[{'header': {'qreg_sizes': [['q', mq]], 'n_qubits': mq,
+                                'memory_slots': nq, 'creg_sizes': [['c', nq]],
+                                'clbit_labels': c_label, 'qubit_labels': q_label,
+                                'name': 'circuit0'},
+                     'config': {'n_qubits': mq, 'memory_slots': nq},
+                     'instructions':instructions}]
+        #Note: qobj_id is not necessary in projectQ, so fixed string for now
+        argument={'data': None,
+                  'json': {'qObject': {'type': 'QASM', 'schema_version': '1.1.0',
+                                       'config': {'shots': shots, 'max_credits': maxcredit,
+                                                  'n_qubits': mq, 'memory_slots': nq,
+                                                  'memory': False, 'parameter_binds': []},
+                                        'experiments': experiment,
+                                        'header': {'backend_version': version,
+                                                   'backend_name': device},
+                                        'qobj_id': 'e72443f5-7752-4e32-9ac8-156f1f3fee18'},
+                  'backend': {'name': device}, 'shots': shots},
+                  'timeout': (self.timeout, None)}
         r = super().request('POST', urljoin(_api_url, post_job_url), **argument)
         r.raise_for_status()
         r_json=r.json()
@@ -160,7 +200,7 @@ def show_devices(token,verbose=False):
     Access the list of available devices and their properties (ex: for setup configuration)
 
     Args:
-        token (str): IBM quantum experience user password.
+        token (str): IBM quantum experience user API token.
         verbose (bool): If True, additional information is printed
 
     Return:
@@ -177,7 +217,7 @@ def retrieve(device, token, jobid, num_retries=3000,
 
     Args:
         device (str): Device on which the code was run / is running.
-        token (str): IBM quantum experience user password.
+        token (str): IBM quantum experience user API token.
         jobid (str): Id of the job to retrieve
     
     Return:
@@ -198,7 +238,7 @@ def send(info, device='ibmq_qasm_simulator',token=None,
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the ibm device. Simulator chosen by default
-        token (str): IBM quantum experience user password.
+        token (str): IBM quantum experience user API token.
         shots (int): Number of runs of the same circuit to collect statistics.
         verbose (bool): If True, additional information is printed, such as
             measurement statistics. Otherwise, the backend simply registers
@@ -213,7 +253,7 @@ def send(info, device='ibmq_qasm_simulator',token=None,
 
         if verbose:
             print("- Authenticating...")
-            print('TOKEN: '+token)
+            print('user API token: '+token)
         ibmq_session._authenticate(token)
 
         # check if the device is online
