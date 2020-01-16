@@ -17,6 +17,7 @@ circuit.
 """
 
 from builtins import input
+import re
 
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import (SwapGate, FlushGate, Measure, Allocate, Deallocate)
@@ -81,11 +82,23 @@ class CircuitDrawerMatplotlib(BasicEngine):
         """
 
         for cmd in command_list:
-            # split the gate string "Gate()" at '(' get the gate name
-            gate_name = str(cmd.gate).split('(')[0]
-            # case for R(1.57094543) Gate
-            if hasattr(cmd.gate, 'angle'):
-                gate_name = gate_name + '({0:.2f})'.format(cmd.gate.angle)
+            param_str = ''
+            gate_name = str(cmd.gate)
+            if '(' in gate_name:
+                (gate_name, param_str) = re.search(r'(.+)\((.*)\)',
+                                                   gate_name).groups()
+                params = re.findall(r'([^,]+)', param_str)
+                params_str_list = []
+                for param in params:
+                    try:
+                        params_str_list.append('{0:.2f}'.format(float(param)))
+                    except ValueError:
+                        if len(param) < 8:
+                            params_str_list.append(param)
+                        else:
+                            params_str_list.append(param[:5] + '...')
+
+                gate_name += '(' + ','.join(params_str_list) + ')'
 
             if (cmd.gate not in [Allocate, Deallocate]
                     and not isinstance(cmd.gate, FlushGate)):
