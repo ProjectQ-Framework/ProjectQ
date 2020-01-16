@@ -310,7 +310,7 @@ def test_timeout_exception(monkeypatch):
         job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123e")
         if args[0] == urljoin(_api_url, job_url):
             tries[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
+            return MockResponse({"status": "RUNNING"}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -342,15 +342,12 @@ def test_timeout_exception(monkeypatch):
         _ibm_http_client.send(json_qasm,
                               device="ibmqx4",
                               token="test",
-                              shots=1,num_retries=10 verbose=False)
+                              shots=1,num_retries=10, verbose=False)
     assert "123e" in str(excinfo.value)  # check that job id is in exception
     assert tries[0] > 0
 
 
 def test_retrieve_and_device_offline_exception(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
-            'json': 'instructions','maxCredits': 10,'nq': 1}
-    json_qasm = json.dumps(qasms)
     request_num = [0]
 
     def mocked_requests_get(*args, **kwargs):
@@ -407,9 +404,6 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
 
 
 def test_retrieve(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}],'shots': 1, 
-            'json': 'instructions','maxCredits': 10,'nq': 1}
-    json_qasm = json.dumps(qasms)
     request_num = [0]
 
     def mocked_requests_get(*args, **kwargs):
