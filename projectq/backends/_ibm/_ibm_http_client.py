@@ -96,7 +96,7 @@ class IBMQ(Session):
         Returns:
         """
         if token is None:
-            token = getpass.getpass(prompt='IBM Q token > ')
+            token = getpass.getpass(prompt="IBM QE token > ")
         self.headers.update({'X-Qx-Client-Application': CLIENT_APPLICATION})
         args={'data': None, 'json': {'apiToken': token}, 'timeout': (self.timeout, None)}
         r = super().request('POST', _auth_api_url, **args)
