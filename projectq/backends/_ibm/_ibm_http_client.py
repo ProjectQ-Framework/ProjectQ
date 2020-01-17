@@ -33,7 +33,7 @@ CLIENT_APPLICATION = 'ibmqprovider/0.4.4'#TODO: call to get the API version auto
 
 class IBMQ(Session):
     def __init__(self):
-        super().__init__()
+        super(Session,self).__init__()#Python 2 compatibility
         self.backends=dict()
         self.timeout=5.0
 

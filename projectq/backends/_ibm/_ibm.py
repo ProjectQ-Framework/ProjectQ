@@ -98,7 +98,7 @@ class IBMBackend(BasicEngine):
             cmd (Command): Command for which to check availability
         """
         g = cmd.gate
-        if g == NOT and get_control_count(cmd) <= 1:
+        if g == NOT and get_control_count(cmd) == 1:
             return True
         if get_control_count(cmd) == 0:
             if g == H:

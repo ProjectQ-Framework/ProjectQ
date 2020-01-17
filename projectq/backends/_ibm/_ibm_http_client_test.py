@@ -399,7 +399,7 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
     _ibm_http_client.time.sleep = lambda x: x
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
         _ibm_http_client.retrieve(device="ibmqx4",
-                                  token=token,
+                                  token="test",
                                   jobid="123e")
 
 

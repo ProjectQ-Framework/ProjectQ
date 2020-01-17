@@ -24,6 +24,7 @@ from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                IBM5QubitMapper,
+                               BasicMapperEngine,
                                SwapAndCNOTFlipper,
                                DummyEngine,
                                DecompositionRuleSet)

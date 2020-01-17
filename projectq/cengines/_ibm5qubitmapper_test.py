@@ -120,7 +120,7 @@ def test_ibm5qubitmapper_optimizeifpossible():
     backend = DummyEngine(save_commands=True)
     connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(),
+                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(connections=connectivity),
                                   SwapAndCNOTFlipper(connectivity)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()

@@ -50,8 +50,9 @@ class IBM5QubitMapper(BasicMapperEngine):
         self.current_mapping = dict()
         self._reset()
         if connections is None:
-            self.connections=set([(0, 1), (1, 0), (1, 2), (1, 3),
-                                 (2, 1), (3, 1), (3, 4), (4, 3)])
+            #general connectivity easier for testing functions
+            self.connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
+                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
         else:
             self.connections=connections
 
