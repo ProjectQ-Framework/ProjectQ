@@ -33,7 +33,7 @@ CLIENT_APPLICATION = 'ibmqprovider/0.4.4'#TODO: call to get the API version auto
 
 class IBMQ(Session):
     def __init__(self, **kwargs):
-        super().__init__( **kwargs)#Python 2 compatibility
+        super(IBMQ,self).__init__( **kwargs)#Python 2 compatibility
         self.backends=dict()
         self.timeout=5.0
 
@@ -53,7 +53,6 @@ class IBMQ(Session):
         r = super().get(urljoin(_api_url, list_device_url), **argument)
         r.raise_for_status()
         r_json=r.json()
-        print(r_json)
         self.backends=dict()
         for el in r_json:
             self.backends[el['backend_name']]={'nq':el['n_qubits'],'coupling_map':el['coupling_map'],'version':el['backend_version']}
@@ -105,7 +104,6 @@ class IBMQ(Session):
         r = super().post(_auth_api_url, **args)
         r.raise_for_status()
         r_json=r.json()
-        print(r_json)
         self.params.update({'access_token': r_json['id']}) 
         return 
 
@@ -145,7 +143,6 @@ class IBMQ(Session):
         r = super().post(urljoin(_api_url, post_job_url), **argument)
         r.raise_for_status()
         r_json=r.json()
-        print(r.json())
         execution_id = r_json["id"]
         return execution_id
 
@@ -165,17 +162,12 @@ class IBMQ(Session):
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
-            print('is online')
-            print(self.is_online(device))
             for retries in range(num_retries):
                 
                 argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
                 r = super().get(urljoin(_api_url, job_status_url), **argument)
                 r.raise_for_status()
                 r_json = r.json()
-                print(r_json)
-                print(retries)
-                print(retries % 60)
                 if r_json['status']=='COMPLETED':
                     return r_json['qObjectResult']['results'][0]
                 elif r_json['status']!='RUNNING':
@@ -183,7 +175,7 @@ class IBMQ(Session):
                         .format(r_json['status']))
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
-                    print(self.get_list_devices())
+                    self.get_list_devices()
                     if not self.is_online(device):
                         raise DeviceOfflineError("Device went offline. The ID of "
                                                 "your submitted job is {}."
