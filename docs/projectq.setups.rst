@@ -86,6 +86,13 @@ restrictedgateset
     :special-members: __init__
     :undoc-members:
 
+trapped_ion_decomposer
+----------------------
+.. automodule:: projectq.setups.trapped_ion_decomposer
+    :members:
+    :special-members: __init__
+    :undoc-members:
+
 Module contents
 ---------------
 

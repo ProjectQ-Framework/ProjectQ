@@ -10,16 +10,19 @@ The decomposition package is a collection of gate decomposition / replacement ru
     projectq.setups.decompositions.barrier
     projectq.setups.decompositions.carb1qubit2cnotrzandry
     projectq.setups.decompositions.cnot2cz
+    projectq.setups.decompositions.cnot2rxx
     projectq.setups.decompositions.cnu2toffoliandcu
     projectq.setups.decompositions.crz2cxandrz
     projectq.setups.decompositions.entangle
     projectq.setups.decompositions.globalphase
+    projectq.setups.decompositions.h2rx
     projectq.setups.decompositions.ph2r
     projectq.setups.decompositions.qft2crandhadamard
     projectq.setups.decompositions.qubitop2onequbit
     projectq.setups.decompositions.r2rzandph
     projectq.setups.decompositions.rx2rz
     projectq.setups.decompositions.ry2rz
+    projectq.setups.decompositions.rz2rx
     projectq.setups.decompositions.sqrtswap2cnot
     projectq.setups.decompositions.stateprep2cnot
     projectq.setups.decompositions.swap2cnot
@@ -62,6 +65,13 @@ projectq.setups.decompositions.cnot2cz module
     :members:
     :undoc-members:
 
+projectq.setups.decompositions.cnot2rxx module
+---------------------------------------------
+
+.. automodule:: projectq.setups.decompositions.cnot2rxx
+    :members:
+    :undoc-members:
+
 projectq.setups.decompositions.cnu2toffoliandcu module
 ------------------------------------------------------
 
@@ -90,7 +100,8 @@ projectq.setups.decompositions.globalphase module
     :members:
     :undoc-members:
 
-projectq.setups.decompositions.ph2r module
+
+projectq.setups.decompositions.h2rx module
 ------------------------------------------
 
 .. automodule:: projectq.setups.decompositions.ph2r
@@ -129,6 +140,13 @@ projectq.setups.decompositions.ry2rz module
 -------------------------------------------
 
 .. automodule:: projectq.setups.decompositions.ry2rz
+    :members:
+    :undoc-members:
+
+projectq.setups.decompositions.rz2rx module
+-------------------------------------------
+
+.. automodule:: projectq.setups.decompositions.rz2rx
     :members:
     :undoc-members:
 
