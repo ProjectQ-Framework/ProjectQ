@@ -15,9 +15,10 @@
 """Tests for projectq.backends._ibm._ibm.py."""
 
 import pytest
+import requests
 import json
-
-import projectq.setups.restrictedgateset
+import math
+from projectq.setups import restrictedgateset
 from projectq import MainEngine
 from projectq.backends._ibm import _ibm
 from projectq.cengines import (TagRemover,
@@ -30,7 +31,7 @@ from projectq.cengines import (TagRemover,
                                DecompositionRuleSet)
 from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
                           Entangle, Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag,
-                          X, Y, Z, H)
+                          X, Y, Z, H, CNOT)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -53,7 +54,7 @@ def test_ibm_backend_is_available(single_qubit_gate, is_available):
 
 
 @pytest.mark.parametrize("num_ctrl_qubits, is_available", [
-    (0, True), (1, True), (2, False), (3, False)])
+    (0, False), (1, True), (2, False), (3, False)])
 def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -122,7 +123,7 @@ def test_ibm_retrieve(monkeypatch):
         'success': True,
         'time_taken': 0.0045786460000000005}
     monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
-    backend = _ibm.IBMBackend(retrieve_execution="ab1s2")
+    backend = _ibm.IBMBackend(retrieve_execution="ab1s2",num_runs=1000)
     mapper = BasicMapperEngine()
     res=dict()
     for i in range(4):
@@ -147,12 +148,14 @@ def test_ibm_retrieve(monkeypatch):
     # run the circuit
     eng.flush()
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
+    assert prob_dict['000'] == pytest.approx(0.504)
     assert prob_dict['111'] == pytest.approx(0.482)
     assert prob_dict['011'] == pytest.approx(0.006)
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = {'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];'
+    correct_info = {'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}], 'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]}, {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]}, {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]}, {'qubits': [1], 'name': 'measure', 'memory': [1]}, {'qubits': [2], 'name': 'measure', 'memory': [2]}, {'qubits': [3], 'name': 'measure', 'memory': [3]}], 'nq': 4, 'shots': 1000, 'maxCredits': 10, 'backend': {'name': 'ibmq_qasm_simulator'}}
+    """{'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];'
                                         '\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];'
                                         '\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];'
                                         '\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];'
@@ -170,10 +173,10 @@ def test_ibm_backend_functional_test(monkeypatch):
                                 'nq': 4,
                                 'shots': 1000,
                                 'maxCredits': 10,
-                                'backend': {'name': 'ibmq_qasm_simulator'}}
+                                'backend': {'name': 'ibmq_qasm_simulator'}}"""
 
     def mock_send(*args, **kwargs):
-        assert json.loads(args[0]) == json.loads(correct_info)
+        assert args[0] == correct_info
         return {'data': {'counts': {'0x0': 504, '0x2': 8, '0xc': 6, '0xe': 482}},
         'header': {'clbit_labels': [['c', 0], ['c', 1], ['c', 2], ['c', 3]],
                 'creg_sizes': [['c', 4]],
@@ -196,13 +199,13 @@ def test_ibm_backend_functional_test(monkeypatch):
                 'time_taken': 0.0045786460000000005}
     monkeypatch.setattr(_ibm, "send", mock_send)
 
-    backend = _ibm.IBMBackend(verbose=True)
+    backend = _ibm.IBMBackend(verbose=True,num_runs=1000)
     # no circuit has been executed -> raises exception
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
     mapper = BasicMapperEngine()
     res=dict()
-    for i in range(3):
+    for i in range(4):
         res[i]=i
     mapper.current_mapping = res
     ibm_setup=[mapper]
@@ -226,6 +229,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     # run the circuit
     eng.flush()
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
+    assert prob_dict['000'] == pytest.approx(0.504)
     assert prob_dict['111'] == pytest.approx(0.482)
     assert prob_dict['011'] == pytest.approx(0.006)
 

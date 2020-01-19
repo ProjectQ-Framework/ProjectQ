@@ -32,8 +32,8 @@ CLIENT_APPLICATION = 'ibmqprovider/0.4.4'#TODO: call to get the API version auto
 
 
 class IBMQ(Session):
-    def __init__(self):
-        super(Session,self).__init__()#Python 2 compatibility
+    def __init__(self, **kwargs):
+        super().__init__( **kwargs)#Python 2 compatibility
         self.backends=dict()
         self.timeout=5.0
 
@@ -50,9 +50,10 @@ class IBMQ(Session):
         """
         list_device_url='Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
-        r = super().request('GET', urljoin(_api_url, list_device_url), **argument)
+        r = super().get(urljoin(_api_url, list_device_url), **argument)
         r.raise_for_status()
         r_json=r.json()
+        print(r_json)
         self.backends=dict()
         for el in r_json:
             self.backends[el['backend_name']]={'nq':el['n_qubits'],'coupling_map':el['coupling_map'],'version':el['backend_version']}
@@ -97,12 +98,14 @@ class IBMQ(Session):
         """
         if token is None:
             token = getpass.getpass(prompt="IBM QE token > ")
+        if len(token)==0:
+            raise Exception('Error with the IBM QE token')
         self.headers.update({'X-Qx-Client-Application': CLIENT_APPLICATION})
         args={'data': None, 'json': {'apiToken': token}, 'timeout': (self.timeout, None)}
-        r = super().request('POST', _auth_api_url, **args)
-
+        r = super().post(_auth_api_url, **args)
         r.raise_for_status()
         r_json=r.json()
+        print(r_json)
         self.params.update({'access_token': r_json['id']}) 
         return 
 
@@ -115,7 +118,6 @@ class IBMQ(Session):
         version=self.backends[device]['version']
         instructions=info['json']
         maxcredit=info['maxCredits']
-
         c_label=[]
         q_label=[]
         for i in range(nq):
@@ -138,11 +140,12 @@ class IBMQ(Session):
                                         'header': {'backend_version': version,
                                                    'backend_name': device},
                                         'qobj_id': 'e72443f5-7752-4e32-9ac8-156f1f3fee18'},
-                  'backend': {'name': device}, 'shots': shots},
+                            'backend': {'name': device}, 'shots': shots},
                   'timeout': (self.timeout, None)}
-        r = super().request('POST', urljoin(_api_url, post_job_url), **argument)
+        r = super().post(urljoin(_api_url, post_job_url), **argument)
         r.raise_for_status()
         r_json=r.json()
+        print(r.json())
         execution_id = r_json["id"]
         return execution_id
 
@@ -162,13 +165,17 @@ class IBMQ(Session):
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
-
+            print('is online')
+            print(self.is_online(device))
             for retries in range(num_retries):
                 
                 argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
-                r = super().request('GET', urljoin(_api_url, job_status_url), **argument)
+                r = super().get(urljoin(_api_url, job_status_url), **argument)
                 r.raise_for_status()
                 r_json = r.json()
+                print(r_json)
+                print(retries)
+                print(retries % 60)
                 if r_json['status']=='COMPLETED':
                     return r_json['qObjectResult']['results'][0]
                 elif r_json['status']!='RUNNING':
@@ -176,7 +183,7 @@ class IBMQ(Session):
                         .format(r_json['status']))
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
-                    self.get_list_devices()
+                    print(self.get_list_devices())
                     if not self.is_online(device):
                         raise DeviceOfflineError("Device went offline. The ID of "
                                                 "your submitted job is {}."
@@ -224,8 +231,9 @@ def retrieve(device, token, jobid, num_retries=3000,
         (dict) result form the IBMQ server
     """
     ibmq_session=IBMQ()
-    imbq_session._authenticate(token)
-    res = imbq_session._get_result(device, jobid, num_retries=num_retries,
+    ibmq_session._authenticate(token)
+    ibmq_session.get_list_devices(verbose)
+    res = ibmq_session._get_result(device, jobid, num_retries=num_retries,
                       interval=interval, verbose=verbose)
     return res
 
@@ -255,6 +263,7 @@ def send(info, device='ibmq_qasm_simulator',token=None,
             info['shots']=shots
         if verbose:
             print("- Authenticating...")
+        if token is not None:
             print('user API token: '+token)
         ibmq_session._authenticate(token)
 

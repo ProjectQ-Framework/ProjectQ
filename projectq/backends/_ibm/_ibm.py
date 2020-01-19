@@ -265,7 +265,6 @@ class IBMBackend(BasicEngine):
         # return if no operations / measurements have been performed.
         if self.qasm == "":
             return
-
         max_qubit_id = max(self._allocated_qubits) + 1
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
                 self.qasm).format(nq=max_qubit_id)

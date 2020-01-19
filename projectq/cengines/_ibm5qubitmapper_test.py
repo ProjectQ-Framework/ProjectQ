@@ -34,9 +34,10 @@ def test_ibm5qubitmapper_is_available(monkeypatch):
 
 
 def test_ibm5qubitmapper_invalid_circuit():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -51,9 +52,10 @@ def test_ibm5qubitmapper_invalid_circuit():
 
 
 def test_ibm5qubitmapper_valid_circuit1():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -70,9 +72,10 @@ def test_ibm5qubitmapper_valid_circuit1():
 
 
 def test_ibm5qubitmapper_valid_circuit2():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -89,6 +92,7 @@ def test_ibm5qubitmapper_valid_circuit2():
 
 
 def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
 
     class FakeIBMBackend(IBMBackend):
@@ -100,7 +104,7 @@ def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
     backend.is_last_engine = True
 
     eng = MainEngine(backend=fake,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
