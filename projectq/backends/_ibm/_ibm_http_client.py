@@ -50,7 +50,7 @@ class IBMQ(Session):
         """
         list_device_url='Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
-        r = super().get(urljoin(_api_url, list_device_url), **argument)
+        r = super(IBMQ,self).get(urljoin(_api_url, list_device_url), **argument)
         r.raise_for_status()
         r_json=r.json()
         self.backends=dict()
@@ -101,7 +101,7 @@ class IBMQ(Session):
             raise Exception('Error with the IBM QE token')
         self.headers.update({'X-Qx-Client-Application': CLIENT_APPLICATION})
         args={'data': None, 'json': {'apiToken': token}, 'timeout': (self.timeout, None)}
-        r = super().post(_auth_api_url, **args)
+        r = super(IBMQ,self).post(_auth_api_url, **args)
         r.raise_for_status()
         r_json=r.json()
         self.params.update({'access_token': r_json['id']}) 
@@ -140,7 +140,7 @@ class IBMQ(Session):
                                         'qobj_id': 'e72443f5-7752-4e32-9ac8-156f1f3fee18'},
                             'backend': {'name': device}, 'shots': shots},
                   'timeout': (self.timeout, None)}
-        r = super().post(urljoin(_api_url, post_job_url), **argument)
+        r = super(IBMQ,self).post(urljoin(_api_url, post_job_url), **argument)
         r.raise_for_status()
         r_json=r.json()
         execution_id = r_json["id"]
@@ -165,7 +165,7 @@ class IBMQ(Session):
             for retries in range(num_retries):
                 
                 argument={'allow_redirects': True, 'timeout': (self.timeout, None)}
-                r = super().get(urljoin(_api_url, job_status_url), **argument)
+                r = super(IBMQ,self).get(urljoin(_api_url, job_status_url), **argument)
                 r.raise_for_status()
                 r_json = r.json()
                 if r_json['status']=='COMPLETED':
