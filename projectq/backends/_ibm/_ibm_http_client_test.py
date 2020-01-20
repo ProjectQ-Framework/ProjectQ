@@ -136,6 +136,13 @@ def test_send_real_device_online_verbose(monkeypatch):
                                 token=None,
                                 shots=shots, verbose=True)
     assert res == result
+    json_qasm['nq']=40
+    request_num[0]=0
+    with pytest.raises(_ibm_http_client.DeviceTooSmall):
+        res = _ibm_http_client.send(json_qasm,
+                                device="ibmqx4",
+                                token=None,
+                                shots=shots, verbose=True)
 
 
 def test_send_real_device_offline(monkeypatch):
@@ -195,6 +202,64 @@ def test_send_real_device_offline(monkeypatch):
                               shots=shots, verbose=True)
 
 
+def test_show_device(monkeypatch):
+    access_token = "access"
+    user_id = 2016
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+        def raise_for_status(self):
+            pass
+
+    def mocked_requests_get(*args, **kwargs):
+        # Accessing status of device. Return online.
+        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
+        if args[1] == urljoin(_api_url, status_url):
+            connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
+                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
+            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
+
+    def mocked_requests_post(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, body="", url=""):
+                self.body = body
+                self.url = url
+
+        class MockPostResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Authentication
+        if (args[1] == _auth_api_url and
+                kwargs["json"]["apiToken"] == token):
+            return MockPostResponse({"userId": user_id, "id": access_token})
+
+    monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
+    monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
+    # Patch login data
+    token = '12345'
+
+    def user_password_input(prompt):
+        if prompt == "IBM QE token > ":
+            return token
+
+    monkeypatch.setattr("getpass.getpass", user_password_input)
+    assert _ibm_http_client.show_devices() == {'ibmqx4':{'coupling_map': {(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
+                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)}, 'version': '0.1.547', 'nq': 32}}
+
 def test_send_that_errors_are_caught(monkeypatch):
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -207,7 +272,7 @@ def test_send_that_errors_are_caught(monkeypatch):
     def mocked_requests_get(*args, **kwargs):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url_status, status_url):
+        if args[1] == urljoin(_api_url, status_url):
             connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
                                  (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
             return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
@@ -250,7 +315,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
     def mocked_requests_get(*args, **kwargs):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url_status, status_url):
+        if args[1] == urljoin(_api_url, status_url):
             connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
                                  (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
             return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
@@ -292,7 +357,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
     def mocked_requests_get(*args, **kwargs):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url_status, status_url):
+        if args[1] == urljoin(_api_url, status_url):
             connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
                                  (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
             return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)

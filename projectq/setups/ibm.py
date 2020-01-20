@@ -26,7 +26,7 @@ in the backend in the U1/U2/U3/CX gate set.
 import projectq
 import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rx, Ry, Rz, H, CNOT)
+from projectq.ops import (Rx, Ry, Rz, H, CNOT, Barrier)
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
@@ -83,7 +83,7 @@ def get_engine_list(token=None,device=None):
     #in the backend (until the implementation of the U1,U2,U3)
     #available gates decomposable now for U1,U2,U3: Rx,Ry,Rz and H
     setup=restrictedgateset.get_engine_list(one_qubit_gates=(Rx,Ry,Rz,H),
-                    two_qubit_gates=(CNOT,))
+                    two_qubit_gates=(CNOT,),other_gates=(Barrier,))
     setup.extend(ibm_setup)
     return setup
 

@@ -21,6 +21,7 @@ import math
 from projectq.setups import restrictedgateset
 from projectq import MainEngine
 from projectq.backends._ibm import _ibm
+from projectq.backends._ibm import _ibm_http_client
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
@@ -98,6 +99,32 @@ def test_ibm_sent_error(monkeypatch):
     dummy.is_last_engine = True
     eng.next_engine = dummy
 
+def test_ibm_sent_error_2(monkeypatch):
+    # patch send
+    def mock_send(*args, **kwargs):
+        pass
+    monkeypatch.setattr(_ibm, "send", mock_send)
+    backend = _ibm.IBMBackend(verbose=True)
+    mapper = BasicMapperEngine()
+    res=dict()
+    for i in range(4):
+        res[i]=i
+    mapper.current_mapping = res
+    eng = MainEngine(backend=backend,
+                     engine_list=[mapper])
+    qubit = eng.allocate_qubit()
+    Rx(math.pi) | qubit
+
+    with pytest.raises(Exception):
+        S | qubit # no setup to decompose S gate, so not accepted by the Backend
+        eng.flush()
+    # atexit sends another FlushGate, therefore we remove the backend:
+    dummy = DummyEngine()
+    dummy.is_last_engine = True
+    eng.next_engine = dummy
+
+
+
 
 def test_ibm_retrieve(monkeypatch):
     # patch send
@@ -154,27 +181,22 @@ def test_ibm_retrieve(monkeypatch):
 
 
 def test_ibm_backend_functional_test(monkeypatch):
-    correct_info = {'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}], 'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]}, {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]}, {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]}, {'qubits': [1], 'name': 'measure', 'memory': [1]}, {'qubits': [2], 'name': 'measure', 'memory': [2]}, {'qubits': [3], 'name': 'measure', 'memory': [3]}], 'nq': 4, 'shots': 1000, 'maxCredits': 10, 'backend': {'name': 'ibmq_qasm_simulator'}}
-    """{'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];'
-                                        '\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];'
-                                        '\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];'
-                                        '\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];'
-                                        '\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}],
-                                'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]},
-                                         {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'},
-                                         {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
-                                         {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]},
-                                         {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
-                                         {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]},
-                                         {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]},
-                                         {'qubits': [1], 'name': 'measure', 'memory': [1]},
-                                         {'qubits': [2], 'name': 'measure', 'memory': [2]},
-                                         {'qubits': [3], 'name': 'measure', 'memory': [3]}],
-                                'nq': 4,
-                                'shots': 1000,
-                                'maxCredits': 10,
-                                'backend': {'name': 'ibmq_qasm_simulator'}}"""
-
+    correct_info = {'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]},
+                             {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'},
+                             {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
+                             {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]},
+                             {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
+                             {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]},
+                             {'qubits': [1, 2, 3], 'name': 'barrier'},
+                             {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]},
+                             {'qubits': [1], 'name': 'measure', 'memory': [1]},
+                             {'qubits': [2], 'name': 'measure', 'memory': [2]},
+                             {'qubits': [3], 'name': 'measure', 'memory': [3]}],
+                    'nq': 4,
+                    'shots': 1000,
+                    'maxCredits': 10,
+                    'backend': {'name': 'ibmq_qasm_simulator'}}
+    #{'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}], 'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]}, {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]}, {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]}, {'qubits': [1], 'name': 'measure', 'memory': [1]}, {'qubits': [2], 'name': 'measure', 'memory': [2]}, {'qubits': [3], 'name': 'measure', 'memory': [3]}], 'nq': 4, 'shots': 1000, 'maxCredits': 10, 'backend': {'name': 'ibmq_qasm_simulator'}}
     def mock_send(*args, **kwargs):
         assert args[0] == correct_info
         return {'data': {'counts': {'0x0': 504, '0x2': 8, '0xc': 6, '0xe': 482}},
@@ -210,7 +232,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     mapper.current_mapping = res
     ibm_setup=[mapper]
     setup=restrictedgateset.get_engine_list(one_qubit_gates=(Rx,Ry,Rz,H),
-                    two_qubit_gates=(CNOT,))
+                    two_qubit_gates=(CNOT,),other_gates=(Barrier,))
     setup.extend(ibm_setup)
     eng = MainEngine(backend=backend, engine_list=setup)
     #4 qubits circuit is run, but first is unused to test ability for get_probability
@@ -228,10 +250,17 @@ def test_ibm_backend_functional_test(monkeypatch):
     All(Measure) | qureg
     # run the circuit
     eng.flush()
-    prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
-    assert prob_dict['000'] == pytest.approx(0.504)
-    assert prob_dict['111'] == pytest.approx(0.482)
-    assert prob_dict['011'] == pytest.approx(0.006)
+    prob_dict = eng.backend.get_probabilities([qureg[2], qureg[1]])
+    assert prob_dict['00'] == pytest.approx(0.512)
+    assert prob_dict['11'] == pytest.approx(0.488)
+    result="\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];"
+    result+="\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];"
+    result+="\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];"
+    result+="\nbarrier q[1], q[2], q[3];"
+    result+="\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];"
+    result+="\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];"
+
+    assert eng.backend.get_qasm() == result
 
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(eng.allocate_qubit())

@@ -165,7 +165,7 @@ class IBMBackend(BasicEngine):
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
             self.qasm += qb_str[:-2] + ";"
-            self._json.append({'qubits': [qb_pos], 'name': 'barrier'})
+            self._json.append({'qubits': qb_pos, 'name': 'barrier'})
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
@@ -186,8 +186,7 @@ class IBMBackend(BasicEngine):
             self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
             self._json.append({'qubits': [qb_pos], 'name': 'u2','params': [0, 3.141592653589793]})
         else:
-            raise Exception('Command not authorized. You should run the circuit with the appropriate ibm setup.'
-                            'Forbidden command: '+str(cmd))
+            raise Exception('Command not authorized. You should run the circuit with the appropriate ibm setup.')
 
     def _logical_to_physical(self, qb_id):
         """
@@ -246,7 +245,8 @@ class IBMBackend(BasicEngine):
                 probability_dict[mapped_state] = probability
             else:
                 probability_dict[mapped_state] += probability
-
+        print('QASM')
+        print(self.qasm)
         return probability_dict
 
     def _run(self):
@@ -269,7 +269,6 @@ class IBMBackend(BasicEngine):
         qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
                 self.qasm).format(nq=max_qubit_id)
         info = {}
-        info['qasms'] = [{'qasm': qasm}]
         info['json']=self._json
         info['nq']=max_qubit_id
 
