@@ -22,7 +22,8 @@ from projectq import MainEngine
 from projectq.backends._aqt import _aqt
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
-                               DummyEngine)
+                               DummyEngine,
+                               BasicMapperEngine)
 from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
                           Entangle, Measure, NOT, Rx, Ry, Rz, Rxx, S, Sdag, T, Tdag,
                           X, Y, Z)
@@ -38,9 +39,14 @@ def no_requests(monkeypatch):
 @pytest.mark.parametrize("single_qubit_gate, is_available", [
     (X, False), (Y, False), (Z, False), (T, False), (Tdag, False), (S, False),
     (Sdag, False), (Allocate, True), (Deallocate, True), (Measure, True),
-    (NOT, False), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), True),
+    (NOT, False), (Rx(0.5), True), (Ry(0.5), True), (Rz(0.5), False),
     (Rxx(0.5), True),(Barrier, True), (Entangle, False)])
-
+def test_aqt_backend_is_available(single_qubit_gate, is_available):
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qubit1 = eng.allocate_qubit()
+    aqt_backend = _aqt.AQTBackend()
+    cmd = Command(eng, single_qubit_gate, (qubit1,))
+    assert aqt_backend.is_available(cmd) == is_available
 
 @pytest.mark.parametrize("num_ctrl_qubits, is_available", [
     (0, True), (1, False), (2, False), (3, False)])
@@ -48,17 +54,19 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
-    aqt_backend = _aqt.IBMBackend()
+    aqt_backend = _aqt.AQTBackend()
     cmd = Command(eng, Rx(0.5), (qubit1,), controls=qureg)
+    assert aqt_backend.is_available(cmd) == is_available
+    cmd = Command(eng, Rxx(0.5), (qubit1,), controls=qureg)
     assert aqt_backend.is_available(cmd) == is_available
 
 def test_aqt_backend_init():
-    backend = _aqt.IBMBackend(verbose=True, use_hardware=True)
-    assert len(backend.circuit) == 0
+    backend = _aqt.AQTBackend(verbose=True, use_hardware=True)
+    assert len(backend._circuit) == 0
 
 
 def test_aqt_empty_circuit():
-    backend = _ibm.IBMBackend(verbose=True)
+    backend = _aqt.AQTBackend(verbose=True)
     eng = MainEngine(backend=backend)
     eng.flush()
 
@@ -86,18 +94,22 @@ def test_aqt_retrieve(monkeypatch):
     # patch send
     def mock_retrieve(*args, **kwargs):
         return {'id': 'a3877d18-314f-46c9-86e7-316bc4dbe968',
-                'no_qubits': 2,
-                'received': [['Y', 0.5, [0]], ['X', 0.5, [0]], ['X', 0.5, [0]],
-                            ['Y', 0.5, [0]], ['MS', 0.5, [0, 1]], ['X', -0.5, [0]],
-                            ['Y', -0.5, [0]], ['X', -0.5, [1]]],
+                'no_qubits': 3,
+                'received': [['Y', 0.5, [1]], ['X', 0.5, [1]], ['X', 0.5, [1]],
+                            ['Y', 0.5, [1]], ['MS', 0.5, [1, 2]], ['X', -0.5, [1]],
+                            ['Y', -0.5, [1]], ['X', -0.5, [2]]],
                 'repetitions': 10,
-                'samples': [0, 3, 0, 3, 0, 0, 0, 3, 0, 3],
+                'samples': [0, 6, 0, 6, 0, 0, 0, 6, 0, 6],
                 'status': 'finished'}
     monkeypatch.setattr(_aqt, "retrieve", mock_retrieve)
-    backend = _aqt.AQTBackend(retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968")
-    engine_list = [TagRemover(),
-                   LocalOptimizer(10)]
-    eng = MainEngine(backend=backend, engine_list=engine_list)
+    backend = _aqt.AQTBackend(retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968",verbose=True)
+    mapper = BasicMapperEngine()
+    res=dict()
+    for i in range(4):
+        res[i]=i
+    mapper.current_mapping = res
+    eng = MainEngine(backend=backend,
+                     engine_list=[mapper])
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(2)
     # entangle the qureg
@@ -120,27 +132,37 @@ def test_aqt_retrieve(monkeypatch):
 
 
 def test_aqt_backend_functional_test(monkeypatch):
-    correct_info = """{'data': '[["Y", 0.5, [0]], ["X", 0.5, [0]], ["X", 0.5, [0]],
-                            '["Y", 0.5, [0]], ["MS", 0.5, [0, 1]], ["X", -0.5, [0]],'
-                            '["Y", -0.5, [0]], ["X", -0.5, [1]]]',
-                    'access_token': 'TOKEN',
-                    'repetitions': 100,
-                    'no_qubits': 2}"""
+    correct_info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 10, 'backend': {'name': 'simulator'}}
 
     def mock_send(*args, **kwargs):
-        assert json.loads(args[0]) == json.loads(correct_info)
-        return {'id': 'a3877d18-314f-46c9-86e7-316bc4dbe968', 'status': 'queued'}
+        assert args[0] == correct_info
+        return {'id': 'a3877d18-314f-46c9-86e7-316bc4dbe968',
+                'no_qubits': 3,
+                'received': [['Y', 0.5, [1]], ['X', 0.5, [1]], ['X', 0.5, [1]],
+                            ['Y', 0.5, [1]], ['MS', 0.5, [1, 2]], ['X', -0.5, [1]],
+                            ['Y', -0.5, [1]], ['X', -0.5, [2]]],
+                'repetitions': 10,
+                'samples': [0, 6, 0, 6, 0, 0, 0, 6, 0, 6],
+                'status': 'finished'}
 
     monkeypatch.setattr(_aqt, "send", mock_send)
 
-    backend = _aqt.AQTBackend(verbose=True)
+    backend = _aqt.AQTBackend(verbose=True,num_runs=10)
     # no circuit has been executed -> raises exception
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
 
-    engine_list = [TagRemover(),
-                   LocalOptimizer(10)]
-    eng = MainEngine(backend=backend, engine_list=engine_list)
+    mapper = BasicMapperEngine()
+    res=dict()
+    for i in range(4):
+        res[i]=i
+    mapper.current_mapping = res
+    eng = MainEngine(backend=backend,
+                     engine_list=[mapper])
+
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(2)
     # entangle the qureg

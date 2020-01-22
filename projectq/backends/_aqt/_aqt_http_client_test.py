@@ -31,70 +31,29 @@ def no_requests(monkeypatch):
 _api_url = 'https://gateway.aqt.eu/marmot/'
 
 def test_send_real_device_online_verbose(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
-    json_qasm = json.dumps(qasms)
-    name = 'projectq_test'
-    access_token = "access"
-    user_id = 2016
-    code_id = 11
-    name_item = '"name":"{name}", "jsonQASM":'.format(name=name)
-    json_body = ''.join([name_item, json_qasm])
-    json_data = ''.join(['{', json_body, '}'])
+    json_aqt = {'data': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                         '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                 'access_token': 'access', 'repetitions': 1, 'no_qubits': 3}
+    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    token = "access"
     shots = 1
     device = "aqt_simulator"
-    json_data_run = ''.join(['{"qasm":', json_qasm, '}'])
-    execution_id = 3
+    execution_id = '3'
     result_ready = [False]
     result = "my_result"
     request_num = [0]  # To assert correct order of calls
 
-    # Mock of AQT server:
-    def mocked_requests_get(*args, **kwargs):
-        class MockRequest:
-            def __init__(self, url=""):
-                self.url = url
-
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-                self.request = MockRequest()
-                self.text = ""
-
-            def json(self):
-                return self.json_data
-
-            def raise_for_status(self):
-                pass
-
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if (args[0] == urljoin(_api_url_status, status_url) and
-                (request_num[0] == 0 or request_num[0] == 3)):
-            request_num[0] += 1
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-        # Getting result
-        elif (args[0] == urljoin(_api_url,
-              "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id)) and
-              kwargs["params"]["access_token"] == access_token and not
-              result_ready[0] and request_num[0] == 3):
-            result_ready[0] = True
-            request_num[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
-        elif (args[0] == urljoin(_api_url,
-              "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id)) and
-              kwargs["params"]["access_token"] == access_token and
-              result_ready[0] and request_num[0] == 4):
-            print("state ok")
-            return MockResponse({"qasms": [{"result": result}]}, 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         class MockRequest:
             def __init__(self, body="", url=""):
                 self.body = body
                 self.url = url
 
-        class MockPostResponse:
+        class MockPutResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
                 self.text = text
@@ -106,68 +65,39 @@ def test_send_real_device_online_verbose(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        # Authentication
-        if (args[0] == urljoin(_api_url, "users/loginWithToken") and
-                kwargs["json"]["apiToken"] == token
-                request_num[0] == 1):
-            request_num[0] += 1
-            return MockPostResponse({"userId": user_id, "id": access_token})
         # Run code
-        elif (args[0] == urljoin(_api_url, "Jobs") and
-                kwargs["data"] == json_qasm and
-                kwargs["params"]["access_token"] == access_token and
-                kwargs["params"]["deviceRunType"] == device and
-                kwargs["params"]["fromCache"] == "false" and
-                kwargs["params"]["shots"] == shots and
-                kwargs["headers"]["Content-Type"] == "application/json" and
-                request_num[0] == 2):
+        if (args[1] == urljoin(_api_url, "sim/") and
+                kwargs["data"] == json_aqt and
+                request_num[0] == 0):
             request_num[0] += 1
-            return MockPostResponse({"id": execution_id})
+            return MockPutResponse({"id": execution_id,"status":"queued"},200)
+        elif (args[1] == urljoin(_api_url,"sim/") and
+              kwargs["data"]["access_token"] == token and
+              kwargs["data"]["id"] == execution_id and not
+              result_ready[0] and request_num[0] == 1):
+            result_ready[0] = True
+            request_num[0] += 1
+            return MockPutResponse({"status":'running'}, 200)
+        elif (args[1] == urljoin(_api_url,"sim/") and
+              kwargs["data"]["access_token"] == token and
+              kwargs["data"]["id"] == execution_id and
+              result_ready[0] and request_num[0] == 2):
+            return MockPutResponse({"samples": result,"status": 'finished'}, 200)
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
-    # Patch login data
-    token = 12345
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
     def user_password_input(prompt):
-        if prompt == "AQT QE token > ":
+        if prompt == "AQT token > ":
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
 
     # Code to test:
-    res = _aqt_http_client.send(json_qasm,
+    res = _aqt_http_client.send(info,
                                 device="aqt_simulator",
                                 token=None,
                                 shots=shots, verbose=True)
-    print(res)
     assert res == result
-
-
-def test_send_real_device_offline(monkeypatch):
-    def mocked_requests_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url, status_url):
-            return MockResponse({"state": False}, 200)
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    shots = 1
-    json_qasm = "my_json_qasm"
-    name = 'projectq_test'
-    with pytest.raises(_ibm_http_client.DeviceOfflineError):
-        _aqt_http_client.send(json_qasm,
-                              device="aqt_simulator",
-                              token=None,
-                              shots=shots, verbose=True)
-
 
 def test_send_that_errors_are_caught(monkeypatch):
     class MockResponse:
@@ -178,35 +108,28 @@ def test_send_that_errors_are_caught(monkeypatch):
         def json(self):
             return self.json_data
 
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url_status, status_url):
-            return MockResponse([{'backend_name': 'aqt_simulator', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.HTTPError
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
     # Patch login data
     token = 12345
 
     def user_password_input(prompt):
-        if prompt == "AQT QE token > ":
+        if prompt == "AQT token > ":
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    json_qasm = "my_json_qasm"
-    name = 'projectq_test'
-    _ibm_http_client.send(json_qasm,
-                          device="ibmqx4",
+    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    _aqt_http_client.send(info,
+                          device="aqt_simulator",
                           token=None,
                           shots=shots, verbose=True)
-
-
 
 
 def test_send_that_errors_are_caught2(monkeypatch):
@@ -218,34 +141,28 @@ def test_send_that_errors_are_caught2(monkeypatch):
         def json(self):
             return self.json_data
 
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url_status, status_url):
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.RequestException
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
     # Patch login data
     token = 12345
 
     def user_password_input(prompt):
-        if prompt == "AQT QE token > ":
+        if prompt == "AQT token > ":
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    json_qasm = "my_json_qasm"
-    name = 'projectq_test'
-    _aqt_http_client.send(json_qasm,
-                          device="ibmqx4",
+    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    _aqt_http_client.send(info,
+                          device="aqt_simulator",
                           token=None,
                           shots=shots, verbose=True)
-
 
 
 def test_send_that_errors_are_caught3(monkeypatch):
@@ -257,69 +174,58 @@ def test_send_that_errors_are_caught3(monkeypatch):
         def json(self):
             return self.json_data
 
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url_status, status_url):
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise KeyError
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
     # Patch login data
     token = 12345
 
     def user_password_input(prompt):
-        if prompt == "AQT QE token > ":
+        if prompt == "AQT token > ":
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    json_qasm = "my_json_qasm"
-    name = 'projectq_test'
-    _aqt_http_client.send(json_qasm,
-                          device="ibmqx4",
+    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    _aqt_http_client.send(info,
+                          device="aqt_simulator",
                           token=None,
                           shots=shots, verbose=True)
 
 
 
 
+
+
+
 def test_timeout_exception(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
-    json_qasm = json.dumps(qasms)
+    json_aqt = {'data': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                         '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                 'access_token': 'access', 'repetitions': 1, 'no_qubits': 3}
+    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    token = "access"
+    shots = 1
+    device = "aqt_simulator"
+    execution_id = '123e'
+    result_ready = [False]
     tries = [0]
 
-    def mocked_requests_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-            def raise_for_status(self):
-                pass
-
-        # Accessing status of device. Return device info.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url_status, status_url):
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123e")
-        if args[0] == urljoin(_api_url, job_url):
-            tries[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         class MockRequest:
-            def __init__(self, url=""):
+            def __init__(self, body="", url=""):
+                self.body = body
                 self.url = url
 
-        class MockPostResponse:
+        class MockPutResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
                 self.text = text
@@ -331,117 +237,51 @@ def test_timeout_exception(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        login_url = 'users/loginWithToken'
-        if args[0] == urljoin(_api_url, login_url):
-            return MockPostResponse({"userId": "1", "id": "12"})
-        if args[0] == urljoin(_api_url, 'Jobs'):
-            return MockPostResponse({"id": "123e"})
+        # Run code
+        if (args[1] == urljoin(_api_url, "sim/") and
+                kwargs["data"] == json_aqt):
+            return MockPutResponse({"id": execution_id,"status":"queued"},200)
+        elif (args[1] == urljoin(_api_url,"sim/") and
+              kwargs["data"]["access_token"] == token and
+              kwargs["data"]["id"] == execution_id):
+            tries[0] += 1
+            return MockPutResponse({"status":'running'}, 200)
+  
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
-    _ibm_http_client.time.sleep = lambda x: x
+    def user_password_input(prompt):
+        if prompt == "AQT token > ":
+            return token
+
+    monkeypatch.setattr("getpass.getpass", user_password_input)
+
+    # Code to test:
+    _aqt_http_client.time.sleep = lambda x: x
     with pytest.raises(Exception) as excinfo:
-        _ibm_http_client.send(json_qasm,
-                              device="ibmqx4",
-                              token="test",
-                              shots=1,num_retries=10 verbose=False)
+        _aqt_http_client.send(info,
+                                device="aqt_simulator",
+                                token=None,
+                                num_retries=10,
+                                shots=shots, verbose=True)
     assert "123e" in str(excinfo.value)  # check that job id is in exception
     assert tries[0] > 0
-
-
-def test_retrieve_and_device_offline_exception(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
-    json_qasm = json.dumps(qasms)
-    request_num = [0]
-
-    def mocked_requests_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-            def raise_for_status(self):
-                pass
-
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url, status_url) and request_num[0] < 2:
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-        elif args[0] == urljoin(_api_url, status_url):#ibmqx4 gets disconnected, replaced by ibmqx5
-            return MockResponse([{'backend_name': 'ibmqx5', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-        job_url = 'Jobs/{}'.format("123e")
-        if args[0] == urljoin(_api_url, job_url):
-            request_num[0] += 1
-            return MockResponse({"noqasms": "not done"}, 200)
-
-    def mocked_requests_post(*args, **kwargs):
-        class MockRequest:
-            def __init__(self, url=""):
-                self.url = url
-
-        class MockPostResponse:
-            def __init__(self, json_data, text=" "):
-                self.json_data = json_data
-                self.text = text
-                self.request = MockRequest()
-
-            def json(self):
-                return self.json_data
-
-            def raise_for_status(self):
-                pass
-
-        login_url = 'users/loginWithToken'
-        if args[0] == urljoin(_api_url, login_url):
-            return MockPostResponse({"userId": "1", "id": "12"})
-
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
-    _ibm_http_client.time.sleep = lambda x: x
-    with pytest.raises(_ibm_http_client.DeviceOfflineError):
-        _ibm_http_client.retrieve(device="ibmqx4",
-                                  user="test", password="test",
-                                  jobid="123e")
-
+                       
 
 def test_retrieve(monkeypatch):
-    qasms = {'qasms': [{'qasm': 'my qasm'}]}
-    json_qasm = json.dumps(qasms)
-    request_num = [0]
+    token = "access"
+    device = "aqt_simulator"
+    execution_id = '123e'
+    result_ready = [False]
+    result = "my_result"
+    request_num = [0]  # To assert correct order of calls
 
-    def mocked_requests_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-            def raise_for_status(self):
-                pass
-
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[0] == urljoin(_api_url, status_url):
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': None, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-        job_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/{}'.format("123e")
-        if args[0] == urljoin(_api_url, job_url) and request_num[0] < 1:
-            request_num[0] += 1
-            return MockResponse({"status": {"id": "RUNNING"}}, 200)
-        elif args[0] == urljoin(_api_url, job_url):
-            return MockResponse({"qObjectResult": [{'qasm': 'qasm',
-                                            'result': 'correct'}],"status": {"id": "COMPLETED"}}, 200)
-
-    def mocked_requests_post(*args, **kwargs):
+    def mocked_requests_put(*args, **kwargs):
         class MockRequest:
-            def __init__(self, url=""):
+            def __init__(self, body="", url=""):
+                self.body = body
                 self.url = url
 
-        class MockPostResponse:
+        class MockPutResponse:
             def __init__(self, json_data, text=" "):
                 self.json_data = json_data
                 self.text = text
@@ -453,14 +293,33 @@ def test_retrieve(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        login_url = 'users/loginWithToken'
-        if args[0] == urljoin(_api_url, login_url):
-            return MockPostResponse({"userId": "1", "id": "12"})
+        # Run code
+        if (args[1] == urljoin(_api_url,"sim/") and
+              kwargs["data"]["access_token"] == token and
+              kwargs["data"]["id"] == execution_id and not
+              result_ready[0] and request_num[0] < 1):
+            result_ready[0] = True
+            request_num[0] += 1
+            return MockPutResponse({"status":'running'}, 200)
+        elif (args[1] == urljoin(_api_url,"sim/") and
+              kwargs["data"]["access_token"] == token and
+              kwargs["data"]["id"] == execution_id and
+              result_ready[0] and request_num[0] == 1):
+            return MockPutResponse({"samples": result,"status": 'finished'}, 200)
+        else:
+            return MockPutResponse({'url':args[1],'data':kwargs},200)
 
-    monkeypatch.setattr("requests.get", mocked_requests_get)
-    monkeypatch.setattr("requests.post", mocked_requests_post)
-    _ibm_http_client.time.sleep = lambda x: x
-    res = _ibm_http_client.retrieve(device="ibmqx4",
-                                    token="test",
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
+
+    def user_password_input(prompt):
+        if prompt == "AQT token > ":
+            return token
+
+    monkeypatch.setattr("getpass.getpass", user_password_input)
+
+    # Code to test:
+    _aqt_http_client.time.sleep = lambda x: x
+    res = _aqt_http_client.retrieve(device="aqt_simulator",
+                                    token=None, verbose=True,
                                     jobid="123e")
-    assert res == 'correct'
+    assert res == result

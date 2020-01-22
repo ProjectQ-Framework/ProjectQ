@@ -172,22 +172,19 @@ class AQTBackend(BasicEngine):
     def get_probabilities(self, qureg):
         """
         Return the list of basis states with corresponding probabilities.
-
+        If input qureg is a subset of the register used for the experiment,
+        then returns the projected probabilities over the other states.
         The measured bits are ordered according to the supplied quantum
         register, i.e., the left-most bit in the state-string corresponds to
         the first qubit in the supplied quantum register.
-
         Warning:
             Only call this function after the circuit has been executed!
-
         Args:
             qureg (list<Qubit>): Quantum register determining the order of the
                 qubits.
-
         Returns:
             probability_dict (dict): Dictionary mapping n-bit strings to
             probabilities.
-
         Raises:
             RuntimeError: If no data is available (i.e., if the circuit has
                 not been executed). Or if a qubit was supplied which was not
@@ -197,20 +194,22 @@ class AQTBackend(BasicEngine):
             raise RuntimeError("Please, run the circuit first!")
 
         probability_dict = dict()
-
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i in range(len(qureg)):
                 mapped_state[i] = state[self._logical_to_physical(qureg[i].id)]
             probability = self._probabilities[state]
-            probability_dict["".join(mapped_state)] = probability
-
+            mapped_state = "".join(mapped_state)
+            if mapped_state not in probability_dict:
+                probability_dict[mapped_state] = probability
+            else:
+                probability_dict[mapped_state] += probability
         return probability_dict
 
     #_rearrange_result & _format_counts imported and modified from qiskit
     def _rearrange_result(self, input,length):
         bin_input = list(bin(input)[2:].rjust(length, '0'))
-        return ''.join(bin_input)
+        return ''.join(bin_input)[::-1]
 
     def _format_counts(self, samples,length):
         counts = {}
@@ -236,15 +235,14 @@ class AQTBackend(BasicEngine):
         if self._circuit == []:
             return
 
-        max_qubit_id = max(self._allocated_qubits)
+        n_qubit = max(self._allocated_qubits)+1
         info = {}
         # Hack: AQT instructions specifically need "GATE" string representation
         # instead of 'GATE' 
         info['circuit']=str(self._circuit).replace("'",'"')
-        info['nq']=max_qubit_id + 1
+        info['nq']=n_qubit
         info['shots'] = self._num_runs
         info['backend'] = {'name': self.device}
-
         if self._num_runs>200:
             raise Exception("Number of shots limited to 200")
 
@@ -263,8 +261,8 @@ class AQTBackend(BasicEngine):
                                num_retries=self._num_retries,
                                interval=self._interval,
                                verbose=self._verbose)
-            length=len(self._measured_ids)
-            counts = self._format_counts(res,length)
+            self._num_runs = res['repetitions']
+            counts = self._format_counts(res['samples'],n_qubit)
             # Determine random outcome
             P = random.random()
             p_sum = 0.
@@ -280,7 +278,6 @@ class AQTBackend(BasicEngine):
                 if self._verbose and probability > 0:
                     print(str(state) + " with p = " + str(probability) +
                           star)
-
             class QB():
                 def __init__(self, ID):
                     self.id = ID

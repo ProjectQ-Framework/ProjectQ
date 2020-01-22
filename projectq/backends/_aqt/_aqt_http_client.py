@@ -28,7 +28,7 @@ _api_url = 'https://gateway.aqt.eu/marmot/'
 
 class AQT(Session):
     def __init__(self):
-        super().__init__()
+        super(AQT,self).__init__()
         self.backends=dict()
         self.timeout=5.0
         self.token=None
@@ -72,7 +72,7 @@ class AQT(Session):
         :return:
         """
         if token is None:
-            token = getpass.getpass(prompt='AQT Q token > ')
+            token = getpass.getpass(prompt='AQT token > ')
         self.headers.update({'Ocp-Apim-Subscription-Key': token, 'SDK': 'ProjectQ'})
         self.token=token
         return 
@@ -82,7 +82,7 @@ class AQT(Session):
         nq=info['nq']
         instructions=info['circuit']
         argument={'data': instructions, 'access_token':self.token,'repetitions':shots,'no_qubits':nq}
-        r = super().put(urljoin(_api_url, self.backends[device]['url']), data=argument)
+        r = super(AQT,self).put(urljoin(_api_url, self.backends[device]['url']), data=argument)
         r.raise_for_status()
         r_json=r.json()
         if r_json['status'] != 'queued':
@@ -108,7 +108,7 @@ class AQT(Session):
             for retries in range(num_retries):
                 
                 argument={'id': execution_id, 'access_token': self.token}
-                r = super().put(urljoin(_api_url, self.backends[device]['url']), data=argument)
+                r = super(AQT,self).put(urljoin(_api_url, self.backends[device]['url']), data=argument)
                 r.raise_for_status()
                 r_json = r.json()
                 if r_json['status']=='finished':
@@ -165,6 +165,7 @@ def retrieve(device, token, jobid, num_retries=3000,
     """
     aqt_session=AQT()
     aqt_session._authenticate(token)
+    aqt_session.get_list_devices(verbose)
     res = aqt_session._get_result(device, jobid, num_retries=num_retries,
                       interval=interval, verbose=verbose)
     return res
@@ -193,7 +194,8 @@ def send(info, device='aqt_simulator',token=None,
 
         if verbose:
             print("- Authenticating...")
-            print('TOKEN: '+token)
+        if token is not None:
+            print('user API token: '+token)
         aqt_session._authenticate(token)
 
         # check if the device is online
