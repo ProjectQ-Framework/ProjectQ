@@ -261,8 +261,8 @@ class AQTBackend(BasicEngine):
                                num_retries=self._num_retries,
                                interval=self._interval,
                                verbose=self._verbose)
-            self._num_runs = res['repetitions']
-            counts = self._format_counts(res['samples'],n_qubit)
+            self._num_runs = len(res)
+            counts = self._format_counts(res,n_qubit)
             # Determine random outcome
             P = random.random()
             p_sum = 0.

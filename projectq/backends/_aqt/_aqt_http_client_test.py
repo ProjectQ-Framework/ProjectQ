@@ -305,9 +305,7 @@ def test_retrieve(monkeypatch):
               kwargs["data"]["access_token"] == token and
               kwargs["data"]["id"] == execution_id and
               result_ready[0] and request_num[0] == 1):
-            return MockPutResponse({"samples": result,"status": 'finished'}, 200)
-        else:
-            return MockPutResponse({'url':args[1],'data':kwargs},200)
+            return MockPutResponse({"samples": result,"status": 'finished'}, 200)z
 
     monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
