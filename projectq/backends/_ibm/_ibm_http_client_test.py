@@ -145,6 +145,21 @@ def test_send_real_device_online_verbose(monkeypatch):
                                 shots=shots, verbose=True)
 
 
+def test_no_password_given(monkeypatch):
+    token = ''  
+    json_qasm  = ''
+    def user_password_input(prompt):
+        if prompt == "IBM QE token > ":
+            return token
+
+    monkeypatch.setattr("getpass.getpass", user_password_input)
+
+    with pytest.raises(Exception):
+        res = _ibm_http_client.send(json_qasm,
+                                device="ibmqx4",
+                                token=None,
+                                shots=1, verbose=True)
+
 def test_send_real_device_offline(monkeypatch):
     token = '12345'
     access_token = "access"
@@ -263,25 +278,12 @@ def test_show_device(monkeypatch):
 def test_send_that_errors_are_caught(monkeypatch):
     class MockResponse:
         def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url, status_url):
-            connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
-                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-
+            pass
+ 
     def mocked_requests_post(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.HTTPError
 
-    monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
     monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
     # Patch login data
     token = '12345'
@@ -306,25 +308,12 @@ def test_send_that_errors_are_caught(monkeypatch):
 def test_send_that_errors_are_caught2(monkeypatch):
     class MockResponse:
         def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url, status_url):
-            connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
-                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
-
+            pass
+  
     def mocked_requests_post(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.RequestException
 
-    monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
     monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
     # Patch login data
     token = '12345'
@@ -348,25 +337,12 @@ def test_send_that_errors_are_caught2(monkeypatch):
 def test_send_that_errors_are_caught3(monkeypatch):
     class MockResponse:
         def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    def mocked_requests_get(*args, **kwargs):
-        # Accessing status of device. Return online.
-        status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if args[1] == urljoin(_api_url, status_url):
-            connections=set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
-                                 (2, 1), (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{'backend_name': 'ibmqx4', 'coupling_map': connections, 'backend_version': '0.1.547', 'n_qubits': 32}], 200)
+            pass
 
     def mocked_requests_post(*args, **kwargs):
         # Test that this error gets caught
         raise KeyError
 
-    monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
     monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
     # Patch login data
     token = '12345'

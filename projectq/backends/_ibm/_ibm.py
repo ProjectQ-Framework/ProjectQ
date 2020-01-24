@@ -245,8 +245,6 @@ class IBMBackend(BasicEngine):
                 probability_dict[mapped_state] = probability
             else:
                 probability_dict[mapped_state] += probability
-        print('QASM')
-        print(self.qasm)
         return probability_dict
 
     def _run(self):

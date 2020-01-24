@@ -100,10 +100,6 @@ def test_ibm_sent_error(monkeypatch):
     eng.next_engine = dummy
 
 def test_ibm_sent_error_2(monkeypatch):
-    # patch send
-    def mock_send(*args, **kwargs):
-        pass
-    monkeypatch.setattr(_ibm, "send", mock_send)
     backend = _ibm.IBMBackend(verbose=True)
     mapper = BasicMapperEngine()
     res=dict()
@@ -117,8 +113,6 @@ def test_ibm_sent_error_2(monkeypatch):
 
     with pytest.raises(Exception):
         S | qubit # no setup to decompose S gate, so not accepted by the Backend
-        eng.flush()
-    # atexit sends another FlushGate, therefore we remove the backend:
     dummy = DummyEngine()
     dummy.is_last_engine = True
     eng.next_engine = dummy
