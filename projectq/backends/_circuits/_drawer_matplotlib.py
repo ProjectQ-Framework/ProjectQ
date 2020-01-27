@@ -18,11 +18,37 @@ circuit.
 
 from builtins import input
 import re
+import itertools
 
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import (SwapGate, FlushGate, Measure, Allocate, Deallocate)
 from projectq.meta import get_control_count
 from projectq.backends._circuits import to_draw
+
+# ==============================================================================
+
+
+def _format_gate_str(cmd):
+    param_str = ''
+    gate_name = str(cmd.gate)
+    if '(' in gate_name:
+        (gate_name, param_str) = re.search(r'(.+)\((.*)\)', gate_name).groups()
+        params = re.findall(r'([^,]+)', param_str)
+        params_str_list = []
+        for param in params:
+            try:
+                params_str_list.append('{0:.2f}'.format(float(param)))
+            except ValueError:
+                if len(param) < 8:
+                    params_str_list.append(param)
+                else:
+                    params_str_list.append(param[:5] + '...')
+
+        gate_name += '(' + ','.join(params_str_list) + ')'
+    return gate_name
+
+
+# ==============================================================================
 
 
 class CircuitDrawerMatplotlib(BasicEngine):
@@ -46,7 +72,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         self._accept_input = accept_input
         self._default_measure = default_measure
         self._map = dict()
-        self._gates = []
+        self._qubit_lines = {}
 
     def is_available(self, cmd):
         """
@@ -62,14 +88,81 @@ class CircuitDrawerMatplotlib(BasicEngine):
             the Command (if there is a next engine).
         """
         try:
-            # General multi-target qubit gates are not supported yet
-            if (not isinstance(cmd.gate, SwapGate)
-                    and len([qubit for qureg in cmd.qubits
-                             for qubit in qureg]) > 1):
-                return False
+            # Multi-qubit gates may fail at drawing time if the target qubits
+            # are not right next to each other on the output graphic.
             return BasicEngine.is_available(self, cmd)
         except LastEngineException:
             return True
+
+    def _process(self, cmd):
+        """
+        Process the command cmd and stores it in the internal storage
+
+        Queries the user for measurement input if a measurement command
+        arrives if accept_input was set to True. Otherwise, it uses the
+        default_measure parameter to register the measurement outcome.
+
+        Args:
+            cmd (Command): Command to add to the circuit diagram.
+        """
+        if cmd.gate == Allocate:
+            qubit_id = cmd.qubits[0][0].id
+            if qubit_id not in self._map:
+                self._map[qubit_id] = qubit_id
+            self._qubit_lines[qubit_id] = []
+            return
+
+        if cmd.gate == Deallocate:
+            return
+
+        if self.is_last_engine and cmd.gate == Measure:
+            assert get_control_count(cmd) == 0
+            for qureg in cmd.qubits:
+                for qubit in qureg:
+                    if self._accept_input:
+                        measurement = None
+                        while measurement not in ('0', '1', 1, 0):
+                            prompt = ("Input measurement result (0 or 1) for "
+                                      "qubit " + str(qubit) + ": ")
+                            measurement = input(prompt)
+                    else:
+                        measurement = self._default_measure
+                    self.main_engine.set_measurement_result(
+                        qubit, int(measurement))
+
+        targets = [qubit.id for qureg in cmd.qubits for qubit in qureg]
+        controls = [qubit.id for qubit in cmd.control_qubits]
+
+        ref_qubit_id = targets[0]
+        gate_str = _format_gate_str(cmd)
+
+        # First find out what is the maximum index that this command might
+        # have
+        max_depth = max(
+            len(self._qubit_lines[qubit_id])
+            for qubit_id in itertools.chain(targets, controls))
+
+        # If we have a multi-qubit gate, make sure that all the qubit axes
+        # have the same depth. We do that by recalculating the maximum index
+        # over all the known qubit axes.
+        # This is to avoid the possibility of a multi-qubit gate overlapping
+        # with some other gates. This could potentially be improved by only
+        # considering the qubit axes that are between the topmost and
+        # bottommost qubit axes of the current command.
+        if len(targets) + len(controls) > 1:
+            max_depth = max(
+                len(self._qubit_lines[qubit_id])
+                for qubit_id in self._qubit_lines)
+
+        for qubit_id in itertools.chain(targets, controls):
+            depth = len(self._qubit_lines[qubit_id])
+            self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
+
+            if qubit_id == ref_qubit_id:
+                self._qubit_lines[qubit_id].append(
+                    (gate_str, targets, controls))
+            else:
+                self._qubit_lines[qubit_id].append(None)
 
     def receive(self, command_list):
         """
@@ -80,67 +173,29 @@ class CircuitDrawerMatplotlib(BasicEngine):
             command_list (list<Command>): List of Commands to print (and
                 potentially send on to the next engine).
         """
-
         for cmd in command_list:
-            param_str = ''
-            gate_name = str(cmd.gate)
-            if '(' in gate_name:
-                (gate_name, param_str) = re.search(r'(.+)\((.*)\)',
-                                                   gate_name).groups()
-                params = re.findall(r'([^,]+)', param_str)
-                params_str_list = []
-                for param in params:
-                    try:
-                        params_str_list.append('{0:.2f}'.format(float(param)))
-                    except ValueError:
-                        if len(param) < 8:
-                            params_str_list.append(param)
-                        else:
-                            params_str_list.append(param[:5] + '...')
+            if not isinstance(cmd.gate, FlushGate):
+                self._process(cmd)
 
-                gate_name += '(' + ','.join(params_str_list) + ')'
-
-            if (cmd.gate not in [Allocate, Deallocate]
-                    and not isinstance(cmd.gate, FlushGate)):
-                targets = tuple(qubit.id for qureg in cmd.qubits
-                                for qubit in qureg)
-
-                if len(cmd.control_qubits) > 0:
-                    self._gates.append(
-                        (gate_name, targets,
-                         tuple(qubit.id for qubit in cmd.control_qubits)))
-                else:
-                    self._gates.append((gate_name, targets))
-
-            if cmd.gate == Allocate:
-                qubit_id = cmd.qubits[0][0].id
-                if qubit_id not in self._map:
-                    self._map[qubit_id] = qubit_id
-
-            elif self.is_last_engine and cmd.gate == Measure:
-                assert get_control_count(cmd) == 0
-                for qureg in cmd.qubits:
-                    for qubit in qureg:
-                        if self._accept_input:
-                            m = None
-                            while m not in ('0', '1', 1, 0):
-                                prompt = ('Input measurement result (0 or 1) '
-                                          'for qubit ' + str(qubit) + ': ')
-                                m = input(prompt)
-                        else:
-                            m = self._default_measure
-                        m = int(m)
-                        self.main_engine.set_measurement_result(qubit, m)
-
-            # (try to) send on
             if not self.is_last_engine:
                 self.send([cmd])
 
-    def draw(self):
+    def draw(self, qubit_labels=None, drawing_order=None):
         """
         Returns the plot of the quantum circuit
-        """
-        qubits = [self._map[id] for id in self._map]
-        # extract all the allocated qubits from the circuit
 
-        return to_draw(self._gates, qubits)
+        Args:
+            drawing_order (dictionary): position of each qubit in the output
+            graphic. Keys: qubit IDs, Values: position of qubit on the qubit
+            line in the graphic.
+        """
+        max_depth = max(
+            len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
+        for qubit_id in self._qubit_lines:
+            depth = len(self._qubit_lines[qubit_id])
+            if depth < max_depth:
+                self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
+
+        return to_draw(self._qubit_lines,
+                       qubit_labels=qubit_labels,
+                       drawing_order=drawing_order)
