@@ -59,7 +59,7 @@ class CircuitDrawer(BasicEngine):
     After initializing the CircuitDrawer, it can also be given the mapping
     from qubit IDs to wire location (via the :meth:`set_qubit_locations`
     function):
-··
+
     .. code-block:: python
 
         circuit_backend = CircuitDrawer()
