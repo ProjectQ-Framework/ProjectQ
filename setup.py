@@ -144,13 +144,13 @@ class BuildExt(build_ext):
 
         opts.append(openmp)
         if ct == 'unix':
-            if not has_flag(self.compiler, '-std=c++11'):
-                self.warning("Compiler needs to have C++11 support!")
+            if not has_flag(self.compiler, '-std=c++14'):
+                self.warning("Compiler needs to have C++14 support!")
                 return
 
             opts.append('-DVERSION_INFO="%s"'
                         % self.distribution.get_version())
-            opts.append('-std=c++11')
+            opts.append('-std=c++14')
             if has_flag(self.compiler, '-fvisibility=hidden'):
                 opts.append('-fvisibility=hidden')
         elif ct == 'msvc':

@@ -27,8 +27,13 @@ using calc_type = double;
 using complex_type = std::complex<calc_type>;
 using gate_type = std::array<std::array<complex_type, 2>, 2>;
 
-const double tol = 1e-12;
-const complex_type I(0., 1.);
+using namespace std::complex_literals;
+
+
+#ifndef TOL
+#  define TOL 1e-12
+#endif // !TOL
+
 
 
 double get_time() {
@@ -60,28 +65,30 @@ gate_type dagger(const gate_type& g) {
              std::conj(g[0][1]), std::conj(g[1][1]) };
 }
 
+
+
 // matrix containing normalized eigen vectors assuming eigenvalues
 // are (i, -i)
 gate_type eigen_vectors(const gate_type& gate) {
     gate_type u;
-    if(std::abs(gate[1][0]) > tol) {
-        u[0][0] = I - gate[1][1];
-        u[0][1] = -I - gate[1][1];
+    if(std::abs(gate[1][0]) > TOL) {
+        u[0][0] = 1i - gate[1][1];
+        u[0][1] = -1i - gate[1][1];
         u[1][0] = gate[1][0];
         u[1][1] = gate[1][0];
-    } else if(std::abs(gate[0][1]) > tol) {
+    } else if(std::abs(gate[0][1]) > TOL) {
         u[0][0] = gate[0][1];
         u[0][1] = gate[0][1];
-        u[1][0] = I - gate[0][0];
-        u[1][1] = -I - gate[0][0];
+        u[1][0] = 1i - gate[0][0];
+        u[1][1] = -1i - gate[0][0];
     } else {
-        if(std::abs(gate[0][0] - I) < tol) {
+        if(std::abs(gate[0][0] - 1i) < TOL) {
             u[0][0] = 1;
             u[1][0] = 0;
 
             u[0][1] = 0;
             u[1][1] = 1;
-        } else if(std::abs(gate[0][0] + I) < tol) {
+        } else if(std::abs(gate[0][0] + 1i) < TOL) {
             u[0][0] = 0;
             u[1][0] = 1;
 
@@ -252,15 +259,15 @@ private:
         calc_type delta = M_PI / 2.0;
         calc_type phi = std::arg(det);
         calc_type psi = std::arg(x11);
-        complex_type r1 = std::exp(I * ((delta - phi/2 - psi) / 2));
-        complex_type r2 = std::exp(I * ((delta - phi/2 + psi + M_PI) / 2));
+        complex_type r1 = std::exp(1i * ((delta - phi/2 - psi) / 2));
+        complex_type r2 = std::exp(1i * ((delta - phi/2 + psi + M_PI) / 2));
         gate_type r = {r1, 0.0, 0.0, r2};
         gate_type rxr = {
             r1*r1*x[0][0], r1*r2*x[0][1],
             r1*r2*x[1][0], r2*r2*x[1][1]
         };
         gate_type u = eigen_vectors(rxr);
-        complex_type z = std::exp(I*calc_type(M_PI/4));
+        complex_type z = std::exp(1i * calc_type(M_PI/4));
         gate_type v = {
             z*std::conj(r1*u[0][0]), z*std::conj(r2*u[1][0]),
             std::conj(z*r1*u[0][1]), std::conj(z*r2*u[1][1])
@@ -444,7 +451,7 @@ private:
         auto mcg_decomposition = prepare_disentangle(k, s);
 
         for(unsigned l = 0; l < a(k,s); ++l)
-            assert(std::abs(c(k, l)) < tol);
+            assert(std::abs(c(k, l)) < TOL);
 
         unsigned l_max = 1 << (n-1-s);
         unsigned l_min = a(k,s+1);
@@ -482,11 +489,11 @@ private:
     MCG::Decomposition prepare_disentangle(unsigned k, unsigned s) {
         if(b(k,s+1) == 0 || ((k>>s)&1) != 0)
             return MCG(identity_gate()).get_decomposition();
-        if(std::abs(c(k, 2*a(k,s+1)+1)) <= tol)
+        if(std::abs(c(k, 2*a(k,s+1)+1)) <= TOL)
             return MCG(identity_gate()).get_decomposition();
 
         for(unsigned l = 0; l < a(k,s); ++l)
-            assert(std::abs(c(k, l)) < tol);
+            assert(std::abs(c(k, l)) < TOL);
 
         gate_type U(to_zero_gate(k, a(k,s+1)));
 
@@ -640,7 +647,7 @@ private:
     // O(2^n)
     void apply_inv_diagonal(const Diagonal& diagonal, unsigned k, unsigned s, unsigned col) {
         for(unsigned q = 0; q < 1<<(n-s); ++q)
-            if(std::abs(std::abs(std::conj(diagonal.phase(q)))-1.0) > tol)
+            if(std::abs(std::abs(std::conj(diagonal.phase(q)))-1.0) > TOL)
                 std::cout << "bad phase: " << diagonal.phase(q) << std::endl;
         if(col < k) {
             c(col, 0) *= std::conj(diagonal.phase(col>>s));
@@ -665,7 +672,7 @@ private:
         auto c0 = c(col, 2*l);
         auto c1 = c(col, 2*l+1);
         auto r = std::sqrt(std::norm(c0) + std::norm(c1));
-        if(r < tol)
+        if(r < TOL)
             return identity_gate();
         c0 /= r;
         c1 /= r;
@@ -679,7 +686,7 @@ private:
         auto c0 = c(col, 2*l);
         auto c1 = c(col, 2*l+1);
         auto r = std::sqrt(std::norm(c0) + std::norm(c1));
-        if(r < tol)
+        if(r < TOL)
             return identity_gate();
         c0 /= r;
         c1 /= r;
