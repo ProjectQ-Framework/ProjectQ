@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 from projectq.ops import get_inverse, BasicGate
-from ._basics import BasicGate, NotInvertible, NotMergeable
-
-import numpy as np
-import copy
-import math
-import cmath
+from ._basics import NotInvertible, NotMergeable
 
 
 class UniformlyControlledGate(BasicGate):
@@ -36,7 +32,7 @@ class UniformlyControlledGate(BasicGate):
         gates: list of 2^k single qubit gates
     """
     def __init__(self, gates, up_to_diagonal=False):
-        self._gates = copy.deepcopy(gates)
+        self._gates = deepcopy(gates)
         self.interchangeable_qubit_indices = []
         self._decomposition = None
         self.up_to_diagonal = up_to_diagonal
@@ -44,9 +40,8 @@ class UniformlyControlledGate(BasicGate):
     def get_inverse(self):
         if self.up_to_diagonal:
             raise NotInvertible
-        else:
-            inverted_gates = [get_inverse(gate) for gate in self._gates]
-            return UniformlyControlledGate(inverted_gates)
+        inverted_gates = [get_inverse(gate) for gate in self._gates]
+        return UniformlyControlledGate(inverted_gates)
 
     def get_merged(self, other):
         if self.up_to_diagonal:
@@ -59,8 +54,7 @@ class UniformlyControlledGate(BasicGate):
                                           other.gates[i].matrix)
                          for i in range(len(other.gates))]
             return UniformlyControlledGate(new_gates)
-        else:
-            raise NotMergeable("Cannot merge these two gates.")
+        raise NotMergeable("Cannot merge these two gates.")
 
     @property
     def decomposition(self):

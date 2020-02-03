@@ -27,9 +27,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_PLUGIN(cppdec) {
-    py::module m("cppdec", "cppdec");
-
+PYBIND11_MODULE(cppdec, m) {
     py::class_<Diagonal>(m, "_DecomposeDiagonal")
         .def(py::init<std::vector<complex_type>&>())
         .def("get_decomposition", &Diagonal::get_decomposition)

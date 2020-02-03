@@ -43,5 +43,4 @@ class _SingleQubitGate(BasicGate):
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return np.allclose(self.matrix, other.matrix)
-        else:
-            return False
+        return False

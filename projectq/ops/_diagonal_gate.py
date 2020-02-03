@@ -23,8 +23,7 @@ import copy
 def _is_power_of_2(k):
     if(k < 1):
         return False
-    else:
-        return ((k-1) & k) == 0
+    return ((k-1) & k) == 0
 
 
 class DiagonalGate(BasicGate):
@@ -88,8 +87,7 @@ class DiagonalGate(BasicGate):
     def get_inverse(self):
         if len(self._angles) > 0:
             return DiagonalGate(angles=[-a for a in self._angles])
-        else:
-            return DiagonalGate(phases=[p.conjugate() for p in self._phases])
+        return DiagonalGate(phases=[p.conjugate() for p in self._phases])
 
     # TODO: can also be merged with uniformly controlled gates
     def get_merged(self, other):

@@ -43,21 +43,6 @@ class _DecomposeIsometry(object):
         return reductions, diagonal.decomposition
 
 
-def _print_qureg(qureg):
-    eng = qureg.engine
-    eng.flush()
-    bla, vec = eng.backend.cheat()
-    for i in range(len(vec)):
-        print("{}: {:.3f}, {}".format(i, abs(vec[i]), cmath.phase(vec[i])))
-    print("-")
-
-
-def _print_vec(vec):
-    for i in range(len(vec)):
-        print("{}: {:.3f}, {}".format(i, abs(vec[i]), cmath.phase(vec[i])))
-    print("-")
-
-
 def _pretty(num):
     if abs(num) < 1e-10:
         return "0"

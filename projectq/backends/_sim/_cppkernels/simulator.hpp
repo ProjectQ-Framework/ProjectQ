@@ -19,9 +19,9 @@
 #include <complex>
 
 #if defined(NOINTRIN) || !defined(INTRIN)
-#include "nointrin/kernels.hpp"
+#  include "nointrin/kernels.hpp"
 #else
-#include "intrin/kernels.hpp"
+#  include "intrin/kernels.hpp"
 #endif
 
 #include "intrin/alignedallocator.hpp"
@@ -239,7 +239,6 @@ public:
         }
     }
 
-    template <class M>
     void apply_diagonal_gate(std::vector<calc_type> angles,
                              std::vector<unsigned> ids,
                              std::vector<unsigned> ctrl_ids)
