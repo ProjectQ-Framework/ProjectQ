@@ -50,7 +50,7 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("measure_qubits", &Simulator::measure_qubits_return)
         .def("apply_controlled_gate", &Simulator::apply_controlled_gate<MatrixType>)
         .def("apply_uniformly_controlled_gate", &Simulator::apply_uniformly_controlled_gate<MatrixType>)
-        .def("apply_diagonal_gate", &Simulator::apply_diagonal_gate<MatrixType>)
+        .def("apply_diagonal_gate", &Simulator::apply_diagonal_gate)
         .def("emulate_math", &emulate_math_wrapper<QuRegs>)
         .def("get_expectation_value", &Simulator::get_expectation_value)
         .def("apply_qubit_operator", &Simulator::apply_qubit_operator)
