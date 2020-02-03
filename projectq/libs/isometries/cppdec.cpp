@@ -42,6 +42,4 @@ PYBIND11_MODULE(cppdec, m) {
         .def(py::init<DecomposeIsometry::Isometry&, unsigned>())
         .def("get_decomposition", &DecomposeIsometry::get_decomposition)
         ;
-
-    return m.ptr();
 }
