@@ -150,6 +150,9 @@ class CircuitDrawer(BasicEngine):
         self._free_lines = []
         self._map = dict()
 
+        # Order in which qubit lines are drawn
+        self._drawing_order = []
+
     def is_available(self, cmd):
         """
         Specialized implementation of is_available: Returns True if the
@@ -219,6 +222,7 @@ class CircuitDrawer(BasicEngine):
 
         if self.is_last_engine and cmd.gate == Measure:
             assert get_control_count(cmd) == 0
+
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
@@ -241,7 +245,9 @@ class CircuitDrawer(BasicEngine):
         for l in all_lines:
             self._qubit_lines[l].append(item)
 
-    def get_latex(self):
+        self._drawing_order.append(all_lines[0])
+
+    def get_latex(self, ordered=False, draw_gates_in_parallel=True):
         """
         Return the latex document string representing the circuit.
 
@@ -253,6 +259,12 @@ class CircuitDrawer(BasicEngine):
             python3 my_circuit.py | pdflatex
 
         where my_circuit.py calls this function and prints it to the terminal.
+
+        Args:
+            ordered(bool): flag if the gates should be drawn in the order they
+                were added to the circuit
+            draw_gates_in_parallel(bool): flag if parallel gates should be drawn
+                parallel (True), or not (False)
         """
         qubit_lines = dict()
 
@@ -268,10 +280,13 @@ class CircuitDrawer(BasicEngine):
                     new_cmd.id = cmd.lines[0]
                 qubit_lines[new_line].append(new_cmd)
 
-        circuit = []
-        for lines in qubit_lines:
-            circuit.append(qubit_lines[lines])
-        return to_latex(qubit_lines)
+        drawing_order = None
+        if ordered:
+            drawing_order = self._drawing_order
+
+        return to_latex(qubit_lines,
+                        drawing_order=drawing_order,
+                        draw_gates_in_parallel=draw_gates_in_parallel)
 
     def receive(self, command_list):
         """
