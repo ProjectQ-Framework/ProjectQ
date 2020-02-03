@@ -25,6 +25,7 @@ from ._basics import (NotMergeable,
 from ._command import apply_command, Command
 from ._metagates import (DaggeredGate,
                          get_inverse,
+                         is_identity,
                          ControlledGate,
                          C,
                          Tensor,
@@ -41,3 +42,4 @@ from ._uniformly_controlled_rotation import (UniformlyControlledRy,
                                              UniformlyControlledRz)
 from ._state_prep import StatePreparation
 from ._qpegate import QPE
+from ._qaagate import QAA

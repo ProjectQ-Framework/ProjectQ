@@ -16,16 +16,19 @@ from . import (arb1qubit2rzandry,
                barrier,
                carb1qubit2cnotrzandry,
                crz2cxandrz,
+               cnot2rxx,
                cnot2cz,
                cnu2toffoliandcu,
                entangle,
                globalphase,
+               h2rx,
                ph2r,
                qubitop2onequbit,
                qft2crandhadamard,
                r2rzandph,
                rx2rz,
                ry2rz,
+               rz2rx,
                sqrtswap2cnot,
                stateprep2cnot,
                swap2cnot,
@@ -35,7 +38,8 @@ from . import (arb1qubit2rzandry,
                diagonal_gate,
                isometry,
                uniformlycontrolledr2cnot,
-               phaseestimation)
+               phaseestimation,
+               amplitudeamplification)
 
 all_defined_decomposition_rules = [
     rule
@@ -43,16 +47,19 @@ all_defined_decomposition_rules = [
                    barrier,
                    carb1qubit2cnotrzandry,
                    crz2cxandrz,
+                   cnot2rxx,
                    cnot2cz,
                    cnu2toffoliandcu,
                    entangle,
                    globalphase,
+                   h2rx,
                    ph2r,
                    qubitop2onequbit,
                    qft2crandhadamard,
                    r2rzandph,
                    rx2rz,
                    ry2rz,
+                   rz2rx,
                    sqrtswap2cnot,
                    stateprep2cnot,
                    swap2cnot,
@@ -62,6 +69,7 @@ all_defined_decomposition_rules = [
                    diagonal_gate,
                    isometry,
                    uniformlycontrolledr2cnot,
-                   phaseestimation]
+                   phaseestimation,
+                   amplitudeamplification]
     for rule in module.all_defined_decomposition_rules
 ]

@@ -771,3 +771,55 @@ def test_simulator_convert_logical_to_mapped_qubits(sim):
                               qubit1[0].id: qubit0[0].id}
     assert (sim._convert_logical_to_mapped_qureg(qubit0 + qubit1) ==
             qubit1 + qubit0)
+
+
+def test_simulator_constant_math_emulation():
+    if "cpp_simulator" not in get_available_simulators():
+        pytest.skip("No C++ simulator")
+        return
+
+    results = [[[1, 1, 0, 0, 0]], [[0, 1, 0, 0, 0]], [[0, 1, 1, 1, 0]]]
+
+    import projectq.backends._sim._simulator as _sim
+    from projectq.backends._sim._pysim import Simulator as PySim
+    from projectq.backends._sim._cppsim import Simulator as CppSim
+    from projectq.libs.math import (AddConstant, AddConstantModN,
+                                    MultiplyByConstantModN)
+
+    def gate_filter(eng, cmd):
+        g = cmd.gate
+        if isinstance(g, BasicMathGate):
+            return False
+        return eng.next_engine.is_available(cmd)
+
+    def run_simulation(sim):
+        eng = MainEngine(sim, [])
+        quint = eng.allocate_qureg(5)
+        AddConstant(3) | quint
+        All(Measure) | quint
+        eng.flush()
+        results[0].append([int(qb) for qb in quint])
+
+        AddConstantModN(4, 5) | quint
+        All(Measure) | quint
+        eng.flush()
+        results[1].append([int(qb) for qb in quint])
+
+        MultiplyByConstantModN(15, 16) | quint
+        All(Measure) | quint
+        eng.flush()
+        results[2].append([int(qb) for qb in quint])
+
+    cppsim = Simulator(gate_fusion=False)
+    cppsim._simulator = CppSim(1)
+    run_simulation(cppsim)
+
+    _sim.FALLBACK_TO_PYSIM = True
+    pysim = Simulator()
+    pysim._simulator = PySim(1)
+    # run_simulation(pysim)
+
+    for result in results:
+        ref = result[0]
+        for res in result[1:]:
+            assert ref == res
