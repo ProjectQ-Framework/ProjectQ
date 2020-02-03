@@ -168,7 +168,7 @@ def gate_width(axes, gate_str, plot_params):
                     0,
                     gate_str,
                     visible=True,
-                    bbox=dict(ec='k', fc='w', fill=True, lw=1.0),
+                    bbox=dict(edgecolor='k', facecolor='w', fill=True, lw=1.0),
                     fontsize=14)
     obj.figure.canvas.draw()
     width = (obj.get_window_extent(obj.figure.canvas.get_renderer()).width
@@ -386,8 +386,9 @@ def draw_generic_gate(axes, gate_pos, wire_pos, gate_str, plot_params):
     factor = plot_params['units_per_inch'] / obj.figure.dpi
     gate_offset = plot_params['gate_offset']
 
-    width = obj.get_window_extent().width * factor + 2 * gate_offset
-    height = obj.get_window_extent().height * factor + 2 * gate_offset
+    renderer = obj.figure.canvas.get_renderer()
+    width = obj.get_window_extent(renderer).width * factor + 2 * gate_offset
+    height = obj.get_window_extent(renderer).height * factor + 2 * gate_offset
 
     axes.add_patch(
         Rectangle((gate_pos - width / 2, wire_pos - height / 2),
@@ -439,8 +440,8 @@ def draw_measure_gate(axes, gate_pos, wire_pos, plot_params):
     ]
 
     gate = PatchCollection(patches,
-                           ec='k',
-                           fc='w',
+                           edgecolors='k',
+                           facecolors='w',
                            linewidths=plot_params['linewidth'],
                            zorder=5)
     gate.set_label('Measure')
@@ -472,13 +473,14 @@ def multi_qubit_gate(axes, gate_str, gate_pos, wire_pos_min, wire_pos_max,
                     zorder=7)
     height = wire_pos_max - wire_pos_min + 2 * gate_offset
     inv = axes.transData.inverted()
-    width = inv.transform_bbox(obj.get_window_extent()).width
+    width = inv.transform_bbox(
+        obj.get_window_extent(obj.figure.canvas.get_renderer())).width
     return axes.add_patch(
         Rectangle((gate_pos - width / 2, wire_pos_min - gate_offset),
                   width,
                   height,
-                  ec='k',
-                  fc='w',
+                  edgecolor='k',
+                  facecolor='w',
                   fill=True,
                   lw=plot_params['linewidth'],
                   zorder=6))
@@ -501,8 +503,8 @@ def draw_x_gate(axes, gate_pos, wire_pos, plot_params):
         Line2D((gate_pos, gate_pos),
                (wire_pos - not_radius, wire_pos + not_radius))
     ],
-                           ec='k',
-                           fc='w',
+                           edgecolors='k',
+                           facecolors='w',
                            linewidths=plot_params['linewidth'])
     gate.set_label('NOT')
     axes.add_collection(gate)
@@ -526,8 +528,8 @@ def draw_control_z_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
             (gate_pos, wire_pos2), plot_params['control_radius'], fill=True),
         Line2D((gate_pos, gate_pos), (wire_pos1, wire_pos2))
     ],
-                           ec='k',
-                           fc='k',
+                           edgecolors='k',
+                           facecolors='k',
                            linewidths=plot_params['linewidth'])
     gate.set_label('CZ')
     axes.add_collection(gate)
@@ -581,7 +583,7 @@ def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
                        wire_grid[i]), (gate_grid[-1], wire_grid[i])))
     all_lines = LineCollection(lines,
                                linewidths=plot_params['linewidth'],
-                               ec='k')
+                               edgecolor='k')
     all_lines.set_label('qubit_wires')
     axes.add_collection(all_lines)
 
