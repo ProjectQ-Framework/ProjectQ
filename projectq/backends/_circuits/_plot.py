@@ -11,6 +11,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+"""
+This module provides the basic functionality required to plot a quantum
+circuit in a matplotlib figure.
+It is mainly used by the CircuitDrawerMatplotlib compiler engine.
+
+Currently, it supports all single-qubit gates, including their controlled
+versions to an arbitrary number of control qubits. It also supports
+multi-target qubit gates under some restrictions. Namely that the target
+qubits must be neighbours in the output figure (which cannot be determined
+durinng compilation at this time).
+"""
 
 from copy import deepcopy
 import numpy as np
@@ -47,6 +58,89 @@ _DEFAULT_PLOT_PARAMS = dict(fontsize=14.0,
                             wire_height=1)
 
 # ==============================================================================
+
+
+def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
+    """
+    Translates a given circuit to a matplotlib figure.
+
+    Args:
+        qubit_lines (dict): list of gates for each qubit axis
+        qubit_labels (dict): label to print in front of the qubit wire for
+            each qubit ID
+        drawing_order (dict): index of the wire for each qubit ID to be drawn.
+        **kwargs (dict): additional parameters are used to update the default
+            plot parameters
+
+    Returns:
+        A tuple with (figure, axes)
+
+    Note:
+        Numbering of qubit wires starts at 0 at the bottom and increases
+        vertically.
+    """
+    if qubit_labels is None:
+        qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}
+    else:
+        if list(qubit_labels) != list(qubit_lines):
+            raise RuntimeError('Qubit IDs in qubit_labels do not match '
+                               + 'qubit IDs in qubit_lines!')
+
+    if drawing_order is None:
+        n_qubits = len(qubit_lines)
+        drawing_order = {
+            qubit_id: n_qubits - qubit_id - 1
+            for qubit_id in list(qubit_lines)
+        }
+    else:
+        if list(drawing_order) != list(qubit_lines):
+            raise RuntimeError('Qubit IDs in drawing_order do not match '
+                               + 'qubit IDs in qubit_lines!')
+        if (list(sorted(drawing_order.values())) != list(
+                range(len(drawing_order)))):
+            raise RuntimeError(
+                'Indices of qubit wires in drawing_order '
+                + 'must be between 0 and {}!'.format(len(drawing_order)))
+
+    plot_params = deepcopy(_DEFAULT_PLOT_PARAMS)
+    plot_params.update(kwargs)
+
+    n_labels = len(list(qubit_lines))
+
+    wire_height = plot_params['wire_height']
+    # Grid in inches
+    wire_grid = np.arange(wire_height, (n_labels + 1) * wire_height,
+                          wire_height,
+                          dtype=float)
+
+    fig, axes = create_figure(plot_params)
+
+    # Grid in inches
+    gate_grid = calculate_gate_grid(axes, qubit_lines, plot_params)
+
+    width = gate_grid[-1] + plot_params['column_spacing']
+    height = wire_grid[-1] + wire_height
+
+    resize_figure(fig, axes, width, height, plot_params)
+
+    # Convert grids into data coordinates
+    units_per_inch = plot_params['units_per_inch']
+
+    gate_grid *= units_per_inch
+    gate_grid = gate_grid + plot_params['x_offset']
+    wire_grid *= units_per_inch
+    plot_params['column_spacing'] *= units_per_inch
+
+    draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params)
+
+    draw_labels(axes, qubit_labels, drawing_order, wire_grid, plot_params)
+
+    draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,
+               plot_params)
+    return fig, axes
+
+
+# ==============================================================================
 # Functions used to calculate the layout
 
 
@@ -64,8 +158,6 @@ def gate_width(axes, gate_str, plot_params):
     """
     if gate_str == 'X':
         return 2 * plot_params['not_radius'] / plot_params['units_per_inch']
-    # if gate_str == 'Z':
-    #     return ...
     if gate_str == 'Swap':
         return 2 * plot_params['swap_delta'] / plot_params['units_per_inch']
 
@@ -185,68 +277,6 @@ def resize_figure(fig, axes, width, height, plot_params):
     new_limits = plot_params['units_per_inch'] * np.array([width, height])
     axes.set_xlim(0, new_limits[0])
     axes.set_ylim(0, new_limits[1])
-
-
-def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
-    """
-    Draws a quantum circuit in a matplotlib figure.
-
-    Args:
-        qubit_lines (dict): list of gates for each qubit axis
-        qubit_labels (dict): label to print in front of the qubit wire for
-                             each qubit ID
-        drawing_order (dict): index of the wire for each qubit ID to be drawn
-        **kwargs (dict): additional parameters are used to update the default
-                         plot parameters
-
-    Returns:
-        A tuple with (figure, axes)
-    """
-    if drawing_order is None:
-        n_qubits = len(qubit_lines)
-        drawing_order = {
-            qubit_id: n_qubits - qubit_id - 1
-            for qubit_id in list(qubit_lines)
-        }
-
-    plot_params = deepcopy(_DEFAULT_PLOT_PARAMS)
-    plot_params.update(kwargs)
-
-    n_labels = len(list(qubit_lines))
-
-    wire_height = plot_params['wire_height']
-    # Grid in inches
-    wire_grid = np.arange(wire_height, (n_labels + 1) * wire_height,
-                          wire_height,
-                          dtype=float)
-
-    fig, axes = create_figure(plot_params)
-
-    # Grid in inches
-    gate_grid = calculate_gate_grid(axes, qubit_lines, plot_params)
-
-    width = gate_grid[-1] + plot_params['column_spacing']
-    height = wire_grid[-1] + wire_height
-
-    resize_figure(fig, axes, width, height, plot_params)
-
-    # Convert grids into data coordinates
-    units_per_inch = plot_params['units_per_inch']
-
-    gate_grid *= units_per_inch
-    gate_grid = gate_grid + plot_params['x_offset']
-    wire_grid *= units_per_inch
-    plot_params['column_spacing'] *= units_per_inch
-
-    draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params)
-
-    if qubit_labels is None:
-        qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}
-    draw_labels(axes, qubit_labels, drawing_order, wire_grid, plot_params)
-
-    draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,
-               plot_params)
-    return fig, axes
 
 
 def draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,

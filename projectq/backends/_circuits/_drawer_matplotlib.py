@@ -21,7 +21,7 @@ import re
 import itertools
 
 from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import (SwapGate, FlushGate, Measure, Allocate, Deallocate)
+from projectq.ops import (FlushGate, Measure, Allocate, Deallocate)
 from projectq.meta import get_control_count
 from projectq.backends._circuits import to_draw
 

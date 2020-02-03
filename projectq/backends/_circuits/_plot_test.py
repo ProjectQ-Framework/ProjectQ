@@ -27,11 +27,9 @@ if platform.system() == 'Darwin':
     import matplotlib
     matplotlib.use('Qt5Agg')
 
-from projectq import MainEngine
-from projectq.ops import *
-from projectq.backends import CircuitDrawerMatplotlib
-
 import projectq.backends._circuits._plot as _plot
+
+# ==============================================================================
 
 
 class PseudoCanvas(object):
@@ -244,3 +242,54 @@ def test_draw_simple(plot_params):
         mgate_width))
     assert (measure_gate.get_paths()[0].get_extents().height == pytest.approx(
         0.9 * mgate_width))
+
+
+def test_draw_advanced(plot_params):
+    qubit_lines = {0: [('X', [0], []), ('Measure', [0], [])], 1: [None, None]}
+
+    with pytest.raises(RuntimeError):
+        _plot.to_draw(qubit_lines, qubit_labels={1: 'qb1', 2: 'qb2'})
+
+    with pytest.raises(RuntimeError):
+        _plot.to_draw(qubit_lines, drawing_order={0: 0, 1: 2})
+
+    with pytest.raises(RuntimeError):
+        _plot.to_draw(qubit_lines, drawing_order={1: 1, 2: 0})
+
+    # --------------------------------------------------------------------------
+
+    _, axes = _plot.to_draw(qubit_lines)
+    for text in axes.texts:
+        assert text.get_text() == r'$|0\rangle$'
+
+    # NB numbering of wire starts from bottom.
+    _, axes = _plot.to_draw(qubit_lines,
+                            qubit_labels={
+                                0: 'qb0',
+                                1: 'qb1'
+                            },
+                            drawing_order={
+                                0: 0,
+                                1: 1
+                            })
+    assert ([axes.texts[qubit_id].get_text()
+             for qubit_id in range(2)] == ['qb0', 'qb1'])
+
+    positions = [axes.texts[qubit_id].get_position() for qubit_id in range(2)]
+    assert positions[1][1] > positions[0][1]
+
+    _, axes = _plot.to_draw(qubit_lines,
+                            qubit_labels={
+                                0: 'qb2',
+                                1: 'qb3'
+                            },
+                            drawing_order={
+                                0: 1,
+                                1: 0
+                            })
+
+    assert ([axes.texts[qubit_id].get_text()
+             for qubit_id in range(2)] == ['qb2', 'qb3'])
+
+    positions = [axes.texts[qubit_id].get_position() for qubit_id in range(2)]
+    assert positions[1][1] < positions[0][1]
