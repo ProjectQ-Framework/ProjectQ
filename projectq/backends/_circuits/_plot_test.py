@@ -21,12 +21,6 @@
 """
 import pytest
 from copy import deepcopy
-import platform
-
-if platform.system() == 'Darwin':
-    import matplotlib
-    matplotlib.use('Qt5Agg')
-
 import projectq.backends._circuits._plot as _plot
 
 # ==============================================================================
