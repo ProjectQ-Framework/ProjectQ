@@ -43,6 +43,7 @@ class IBMQ(Session):
 
         Args:
             verbose (bool): print the returned dictionnary if True
+
         Returns:
             (dict) backends dictionary by name device, containing the qubit size 'nq',
                     the coupling map 'coupling_map' as well as the device
@@ -63,10 +64,11 @@ class IBMQ(Session):
 
     def is_online(self,device):
         """
-        check if the device is in the list of available IBM backends
+        Check if the device is in the list of available IBM backends.
 
         Args:
             device (str): name of the device to check
+
         Returns:
             (bool) True if device is available, False otherwise
         """
@@ -74,11 +76,12 @@ class IBMQ(Session):
 
     def can_run_experiment(self,info,device):
         """
-        check if the device is big enough to run the code
+        Check if the device is big enough to run the code.
 
         Args:
             info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the ibm device to use
+
         Returns:
             (tuple): (bool) True if device is big enough, False otherwise
                      (int) maximum number of qubit available on the device
@@ -93,7 +96,6 @@ class IBMQ(Session):
         """
         Args:
             token (str): IBM quantum experience user API token.
-        Returns:
         """
         if token is None:
             token = getpass.getpass(prompt="IBM QE token > ")
@@ -196,13 +198,14 @@ class DeviceOfflineError(Exception):
 
 def show_devices(token=None,verbose=False):    
     """
-    Access the list of available devices and their properties (ex: for setup configuration)
+    Access the list of available devices and their properties (ex: for setup
+    configuration)
 
     Args:
         token (str): IBM quantum experience user API token.
         verbose (bool): If True, additional information is printed
 
-    Return:
+    Returns:
         (list) list of available devices and their properties
     """
     ibmq_session=IBMQ()
@@ -219,7 +222,7 @@ def retrieve(device, token, jobid, num_retries=3000,
         token (str): IBM quantum experience user API token.
         jobid (str): Id of the job to retrieve
     
-    Return:
+    Returns:
         (dict) result form the IBMQ server
     """
     ibmq_session=IBMQ()
@@ -244,7 +247,7 @@ def send(info, device='ibmq_qasm_simulator',token=None,
             measurement statistics. Otherwise, the backend simply registers
             one measurement result (same behavior as the projectq Simulator).
 
-    Return:
+    Returns:
         (dict) result form the IBMQ server
 
     """
@@ -255,8 +258,8 @@ def send(info, device='ibmq_qasm_simulator',token=None,
             info['shots']=shots
         if verbose:
             print("- Authenticating...")
-        if token is not None:
-            print('user API token: '+token)
+            if token is not None:
+                print('user API token: '+token)
         ibmq_session._authenticate(token)
 
         # check if the device is online

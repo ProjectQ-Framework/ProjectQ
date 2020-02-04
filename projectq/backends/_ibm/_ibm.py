@@ -224,7 +224,7 @@ class IBMBackend(BasicEngine):
 
         Returns:
             probability_dict (dict): Dictionary mapping n-bit strings to
-            probabilities.
+                probabilities.
 
         Raises:
             RuntimeError: If no data is available (i.e., if the circuit has
@@ -251,8 +251,8 @@ class IBMBackend(BasicEngine):
         """
         Run the circuit.
 
-        Send the circuit via a non documented IBM API (using JSON written circuits) using the provided user
-        data / ask for the user token.
+        Send the circuit via a non documented IBM API (using JSON written
+        circuits) using the provided user data / ask for the user token.
         """
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
@@ -336,4 +336,3 @@ class IBMBackend(BasicEngine):
             else:
                 self._run()
                 self._reset()
-
