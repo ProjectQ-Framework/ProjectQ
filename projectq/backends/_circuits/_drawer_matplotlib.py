@@ -83,6 +83,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         Args:
             cmd (Command): Command for which to check availability (all
                 Commands can be printed).
+
         Returns:
             availability (bool): True, unless the next engine cannot handle
             the Command (if there is a next engine).
@@ -182,12 +183,18 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
     def draw(self, qubit_labels=None, drawing_order=None):
         """
-        Returns the plot of the quantum circuit
+        Generates and returns the plot of the quantum circuit stored so far
 
         Args:
-            drawing_order (dictionary): position of each qubit in the output
-            graphic. Keys: qubit IDs, Values: position of qubit on the qubit
-            line in the graphic.
+            qubit_labels (dict): label for each wire in the output figure.
+                Keys: qubit IDs, Values: string to print out as label for
+                that particular qubit wire.
+            drawing_order (dict): position of each qubit in the output
+                graphic. Keys: qubit IDs, Values: position of qubit on the
+                qubit line in the graphic.
+
+        Returns:
+            A tuple containing the matplotlib figure and axes objects
         """
         max_depth = max(
             len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
