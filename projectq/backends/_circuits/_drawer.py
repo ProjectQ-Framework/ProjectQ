@@ -15,8 +15,6 @@
 Contains a compiler engine which generates TikZ Latex code describing the
 circuit.
 """
-import sys
-
 from builtins import input
 
 from projectq.cengines import LastEngineException, BasicEngine
@@ -223,12 +221,13 @@ class CircuitDrawer(BasicEngine):
             self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert (get_control_count(cmd) == 0)
+            assert get_control_count(cmd) == 0
+
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
                         m = None
-                        while m != '0' and m != '1' and m != 1 and m != 0:
+                        while m not in ('0', '1', 1, 0):
                             prompt = ("Input measurement result (0 or 1) for "
                                       "qubit " + str(qubit) + ": ")
                             m = input(prompt)

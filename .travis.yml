@@ -42,6 +42,9 @@ install:
   - if [ "${PYTHON:0:1}" = "3" ]; then pip$PY install dormouse; fi
   - pip$PY install -e .
 
+before_script:
+  - "echo 'backend: Agg' > matplotlibrc"
+
 # command to run tests
 script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq
 
