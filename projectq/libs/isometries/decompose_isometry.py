@@ -57,13 +57,13 @@ class _DecomposeIsometry(object):
         return reductions, diagonal.decomposition
 
 
-def _pretty(num):
+def _pretty(num):  # pragma: no cover
     if abs(num) < 1e-10:
         return "0"
     return "*"
 
 
-def _debug(local_quregs):
+def _debug(local_quregs):  # pragma: no cover
     matrix = []
     for i in range(len(local_quregs)):
         eng = local_quregs[i].engine
@@ -109,7 +109,7 @@ class ToZeroGate(BasicGate):
         assert np.allclose(m.getH()*m, np.eye(2))
         return m
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "TZG"
 
 
@@ -124,7 +124,7 @@ class ToOneGate(BasicGate):
         assert np.allclose(m.getH()*m, np.eye(2))
         return m
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "TOG"
 
 
@@ -179,13 +179,6 @@ def _disentangle(k, s, local_quregs, threshold):
         UCG | (q[s+1:], q[s])
 
     return mcg_decomposition, UCG.decomposition
-
-
-def _apply_mask(mask, qureg):
-    n = len(qureg)
-    for pos in range(n):
-        if ((mask >> pos) & 1) == 0:
-            X | qureg[pos]
 
 
 def _get_one_bits(qureg, mask):

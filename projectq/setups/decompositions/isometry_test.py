@@ -32,6 +32,7 @@ import cmath
 import copy
 import random
 import pytest
+from ._isometries_fixture import decomposition_module
 
 from . import isometry as iso
 
@@ -40,7 +41,7 @@ def normalize(v):
     return v/np.linalg.norm(v)
 
 
-def test_state_prep():
+def test_state_prep(decomposition_module):
     n = 5
     target_state = np.array([i for i in range(1 << n)])
     target_state = normalize(target_state)
@@ -61,7 +62,7 @@ def test_state_prep():
     All(Measure) | qureg
 
 
-def test_2_columns():
+def test_2_columns(decomposition_module):
     col_0 = normalize(np.array([1.j, 2., 3.j, 4., -5.j, 6., 1+7.j, 8.]))
     col_1 = normalize(np.array([8.j, 7., 6.j, 5., -4.j, 3., 1+2.j, 1.]))
     # must be orthogonal
@@ -101,7 +102,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("index", range(8))
-def test_full_unitary_3_qubits(index):
+def test_full_unitary_3_qubits(index, decomposition_module):
     n = 3
     N = 1 << n
     np.random.seed(7)
@@ -130,7 +131,7 @@ def test_full_unitary_3_qubits(index):
 
 
 @pytest.mark.parametrize("index", range(8))
-def test_full_permutation_matrix_3_qubits(index):
+def test_full_permutation_matrix_3_qubits(index, decomposition_module):
     n = 3
     N = 1 << n
     np.random.seed(7)

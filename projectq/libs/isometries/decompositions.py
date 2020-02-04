@@ -1,6 +1,6 @@
 try:
     from projectq.libs.isometries.cppdec import _DecomposeDiagonal
-except ImportError:
+except ImportError:  # pragma: no cover
     from .decompose_diagonal import _DecomposeDiagonal
 
 
@@ -27,13 +27,12 @@ try:
             unwrapped_gates, phases = self._backend.get_decomposition()
             return _wrap(unwrapped_gates), phases
 
-except ImportError:
+except ImportError:  # pragma: no cover
     from .decompose_ucg import _DecomposeUCG
 
 
 try:
     from projectq.libs.isometries.cppdec import _BackendDecomposeIsometry
-    import numpy as np
 
     class _DecomposeIsometry(object):
         def __init__(self, V, threshold):
@@ -49,7 +48,7 @@ try:
                                                                phases2)
             return reductions, diagonal_decomposition
 
-except ImportError:
+except ImportError:  # pragma: no cover
     from .decompose_isometry import _DecomposeIsometry
 
 

@@ -17,10 +17,6 @@ from projectq.ops import BasicGate
 import numpy as np
 
 
-def _is_unitary(m):
-    return np.allclose(m*m.H, np.eye(2))
-
-
 # Helper class
 class _SingleQubitGate(BasicGate):
     def __init__(self, m):

@@ -20,10 +20,6 @@ from projectq.meta import Dagger, Control, Compute, Uncompute
 from . import _decompose_diagonal_gate
 
 
-def _is_unitary(G):
-    return np.linalg.norm(G.getH()*G - np.eye(2))
-
-
 def _count_trailing_zero_bits(v):
     assert v > 0
     v = (v ^ (v - 1)) >> 1
@@ -87,13 +83,6 @@ def _apply_uniformly_controlled_gate(decomposition, target, choice_reg,
     _apply_diagonal_gate(decomposed_diagonal, [target]+choice_reg)
 
 
-def _apply_mask(mask, qureg):
-    n = len(qureg)
-    for pos in range(n):
-        if ((mask >> pos) & 1) == 0:
-            X | qureg[pos]
-
-
 def _get_one_bits(qureg, bks):
     res = []
     for i in range(len(qureg)):
@@ -142,11 +131,3 @@ def _apply_isometry(decomposition, threshold, qureg):
             Ph(p) | qureg[0]
         else:
             _apply_diagonal_gate(decomposed_diagonal, qureg[:nqubits])
-
-
-def a(k, s):
-    return k >> s
-
-
-def b(k, s):
-    return k - (a(k, s) << s)

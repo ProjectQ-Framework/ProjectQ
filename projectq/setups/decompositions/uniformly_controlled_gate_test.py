@@ -36,8 +36,9 @@ from projectq.libs.isometries import (_SingleQubitGate,
                                       _decompose_uniformly_controlled_gate,
                                       _apply_uniformly_controlled_gate)
 
+from ._isometries_fixture import decomposition_module
 
-def test_full_decomposition_1_choice():
+def test_full_decomposition_1_choice(decomposition_module):
     eng = MainEngine()
     qureg = eng.allocate_qureg(2)
     eng.flush()
@@ -55,7 +56,7 @@ def test_full_decomposition_1_choice():
     assert np.isclose((reference*vec).item(0), 1)
 
 
-def test_full_decomposition_2_choice():
+def test_full_decomposition_2_choice(decomposition_module):
     eng = MainEngine()
     qureg = eng.allocate_qureg(3)
     eng.flush()
@@ -75,7 +76,7 @@ def test_full_decomposition_2_choice():
     assert np.isclose((reference*vec).item(0), 1)
 
 
-def test_full_decomposition_2_choice_target_in_middle():
+def test_full_decomposition_2_choice_target_in_middle(decomposition_module):
     eng = MainEngine()
     qureg = eng.allocate_qureg(3)
     eng.flush()
@@ -113,7 +114,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("init", range(10))
-def test_full_decomposition_4_choice_target_in_middle(init):
+def test_full_decomposition_4_choice_target_in_middle(init, decomposition_module):
     n = 4
     eng = MainEngine()
     qureg = eng.allocate_qureg(n)

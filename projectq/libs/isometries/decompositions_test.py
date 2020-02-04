@@ -98,3 +98,9 @@ def test_basic_decomposition_1_choice():
 
     All(Measure) | qureg
     eng.flush()
+
+    assert U != V
+
+    U2 = ucg._SingleQubitGate(u)
+    assert U is not U2
+    assert U == U2

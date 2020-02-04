@@ -26,6 +26,7 @@ import copy
 import random
 import pytest
 
+from ._isometries_fixture import decomposition_module
 
 def create_initial_state(mask, qureg):
     n = len(qureg)
@@ -35,7 +36,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("init", range(16))
-def test_decompose_diagonal_gate(init):
+def test_decompose_diagonal_gate(init, decomposition_module):
     angles = list(range(1, 9))
     eng = MainEngine(verbose=True)
     qureg = eng.allocate_qureg(4)
