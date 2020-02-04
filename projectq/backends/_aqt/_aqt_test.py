@@ -22,8 +22,8 @@ from projectq import MainEngine
 from projectq.backends._aqt import _aqt
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
-                               DummyEngine,
-                               BasicMapperEngine)
+                               DummyEngine)#,
+                               #BasicMapperEngine)
 from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
                           Entangle, Measure, NOT, Rx, Ry, Rz, Rxx, S, Sdag, T, Tdag,
                           X, Y, Z)
@@ -93,23 +93,12 @@ def test_aqt_sent_error(monkeypatch):
 def test_aqt_retrieve(monkeypatch):
     # patch send
     def mock_retrieve(*args, **kwargs):
-        return {'id': 'a3877d18-314f-46c9-86e7-316bc4dbe968',
-                'no_qubits': 3,
-                'received': [['Y', 0.5, [1]], ['X', 0.5, [1]], ['X', 0.5, [1]],
-                            ['Y', 0.5, [1]], ['MS', 0.5, [1, 2]], ['X', -0.5, [1]],
-                            ['Y', -0.5, [1]], ['X', -0.5, [2]]],
-                'repetitions': 10,
-                'samples': [0, 6, 0, 6, 0, 0, 0, 6, 0, 6],
-                'status': 'finished'}
+        return [0, 6, 0, 6, 0, 0, 0, 6, 0, 6]
     monkeypatch.setattr(_aqt, "retrieve", mock_retrieve)
     backend = _aqt.AQTBackend(retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968",verbose=True)
-    mapper = BasicMapperEngine()
-    res=dict()
-    for i in range(4):
-        res[i]=i
-    mapper.current_mapping = res
+
     eng = MainEngine(backend=backend,
-                     engine_list=[mapper])
+                     engine_list=[])
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(2)
     # entangle the qureg
@@ -139,14 +128,7 @@ def test_aqt_backend_functional_test(monkeypatch):
 
     def mock_send(*args, **kwargs):
         assert args[0] == correct_info
-        return {'id': 'a3877d18-314f-46c9-86e7-316bc4dbe968',
-                'no_qubits': 3,
-                'received': [['Y', 0.5, [1]], ['X', 0.5, [1]], ['X', 0.5, [1]],
-                            ['Y', 0.5, [1]], ['MS', 0.5, [1, 2]], ['X', -0.5, [1]],
-                            ['Y', -0.5, [1]], ['X', -0.5, [2]]],
-                'repetitions': 10,
-                'samples': [0, 6, 0, 6, 0, 0, 0, 6, 0, 6],
-                'status': 'finished'}
+        return [0, 6, 0, 6, 0, 0, 0, 6, 0, 6]
 
     monkeypatch.setattr(_aqt, "send", mock_send)
 
@@ -155,13 +137,8 @@ def test_aqt_backend_functional_test(monkeypatch):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
 
-    mapper = BasicMapperEngine()
-    res=dict()
-    for i in range(4):
-        res[i]=i
-    mapper.current_mapping = res
     eng = MainEngine(backend=backend,
-                     engine_list=[mapper])
+                     engine_list=[])
 
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(2)

@@ -74,6 +74,7 @@ class AQTBackend(BasicEngine):
         self._interval = interval
         self._probabilities = dict()
         self._circuit=[]
+        self._mapper=[]
         self._measured_ids = []
         self._allocated_qubits = set()
         self._retrieve_execution = retrieve_execution
@@ -129,7 +130,10 @@ class AQTBackend(BasicEngine):
                 if isinstance(t, LogicalQubitIDTag):
                     logical_id = t.logical_qubit_id
                     break
-            assert logical_id is not None
+            #assert logical_id is not None
+            if logical_id is None:
+                logical_id = qb_id
+                self._mapper.append(qb_id)
             self._measured_ids += [logical_id]
             return
         if isinstance(gate, (Rx, Ry, Rxx)):
@@ -155,19 +159,27 @@ class AQTBackend(BasicEngine):
     def _logical_to_physical(self, qb_id):
         """
         Return the physical location of the qubit with the given logical id.
+        If no mapper is present then simply returns the qubit ID.
 
         Args:
             qb_id (int): ID of the logical qubit whose position should be
                 returned.
         """
-        assert self.main_engine.mapper is not None
-        mapping = self.main_engine.mapper.current_mapping
-        if qb_id not in mapping:
-            raise RuntimeError("Unknown qubit id {}. Please make sure "
+        try:
+            mapping = self.main_engine.mapper.current_mapping
+            if qb_id not in mapping:
+                raise RuntimeError("Unknown qubit id {}. Please make sure "
+                                   "eng.flush() was called and that the qubit "
+                                   "was eliminated during optimization."
+                                   .format(qb_id))
+            return mapping[qb_id]
+        except AttributeError:
+            if qb_id not in self._mapper:
+                raise RuntimeError("Unknown qubit id {}. Please make sure "
                                "eng.flush() was called and that the qubit "
                                "was eliminated during optimization."
                                .format(qb_id))
-        return mapping[qb_id]
+            return qb_id
 
     def get_probabilities(self, qureg):
         """
@@ -245,7 +257,6 @@ class AQTBackend(BasicEngine):
         info['backend'] = {'name': self.device}
         if self._num_runs>200:
             raise Exception("Number of shots limited to 200")
-
         try:
             if self._retrieve_execution is None:
                 res = send(info, device=self.device,

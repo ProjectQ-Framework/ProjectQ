@@ -111,7 +111,7 @@ class AQT(Session):
                 r = super(AQT,self).put(urljoin(_api_url, self.backends[device]['url']), data=argument)
                 r.raise_for_status()
                 r_json = r.json()
-                if r_json['status']=='finished':
+                if r_json['status']=='finished' or 'samples' in r_json:
                     return r_json['samples']
                 elif r_json['status']!='running':
                     raise Exception("Error while running the code: {}."
