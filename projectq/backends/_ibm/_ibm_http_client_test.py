@@ -358,6 +358,14 @@ def test_send_that_errors_are_caught(monkeypatch):
                           shots=shots,
                           verbose=True)
 
+    token = ''
+    with pytest.raises(Exception):
+        _ibm_http_client.send(json_qasm,
+                              device="ibmqx4",
+                              token=None,
+                              shots=shots,
+                              verbose=True)
+
 
 def test_send_that_errors_are_caught2(monkeypatch):
     class MockResponse:
@@ -544,8 +552,10 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
                 'backend_version': '0.1.547',
                 'n_qubits': 32
             }], 200)
-        job_url = job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
+        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
             "123e")
+        err_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
+            "123ee")
         if args[1] == urljoin(_API_URL, job_url):
             request_num[0] += 1
             return MockResponse(
@@ -553,6 +563,13 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
                     "status": "RUNNING",
                     'iteration': request_num[0]
                 }, 200)
+        if args[1] == urljoin(_API_URL, err_url):
+            request_num[0] += 1
+            return MockResponse(
+                {
+                    "status": "TERMINATED",
+                    'iteration': request_num[0]
+                }, 400)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -582,6 +599,11 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
         _ibm_http_client.retrieve(device="ibmqx4",
                                   token="test",
                                   jobid="123e",
+                                  num_retries=200)
+    with pytest.raises(Exception):
+        _ibm_http_client.retrieve(device="ibmqx4",
+                                  token="test",
+                                  jobid="123ee",
                                   num_retries=200)
 
 
