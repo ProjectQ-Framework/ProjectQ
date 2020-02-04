@@ -32,3 +32,6 @@ from ._replacer import (AutoReplacer,
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper
+from ._graphmapper import GraphMapper
+from ._gate_manager import (nearest_neighbours_cost_fun,
+                            look_ahead_parallelism_cost_fun)
