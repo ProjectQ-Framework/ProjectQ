@@ -35,7 +35,8 @@ class AQT(Session):
 
     def get_list_devices(self,verbose=False):
         """
-        return list of available devices
+        Returns:
+            (list): list of available devices
 
         Up to my knowledge there is no proper API call for online devices,
         so we just assume that the list from AQT portal always up to date
@@ -59,7 +60,7 @@ class AQT(Session):
         Args:
             info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the aqt device to use
-        :return:
+        Returns:
             (bool): True if device is big enough, False otherwise
         """
         nb_qubit_max=self.backends[device]['nq']
@@ -68,8 +69,8 @@ class AQT(Session):
 
     def _authenticate(self,token=None):
         """
-        :param token:
-        :return:
+        Args:
+            token (str): AQT user API token.
         """
         if token is None:
             token = getpass.getpass(prompt='AQT token > ')
@@ -144,7 +145,7 @@ def show_devices(verbose=False):
     Args:
         verbose (bool): If True, additional information is printed
 
-    Return:
+    ReturnS:
         (list) list of available devices and their properties
     """
     aqt_session=AQT()
@@ -157,10 +158,10 @@ def retrieve(device, token, jobid, num_retries=3000,
 
     Args:
         device (str): Device on which the code was run / is running.
-        token (str): AQT quantum experience user token.
+        token (str): AQT user API token.
         jobid (str): Id of the job to retrieve
     
-    Return:
+    Returns:
         (list) samples form the AQT server
     """
     aqt_session=AQT()
@@ -179,13 +180,13 @@ def send(info, device='aqt_simulator',token=None,
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the aqt device. Simulator chosen by default
-        token (str): AQT quantum experience user token.
+        token (str): AQT user API token.
         shots (int): Number of runs of the same circuit to collect statistics. max for AQT is 200.
         verbose (bool): If True, additional information is printed, such as
             measurement statistics. Otherwise, the backend simply registers
             one measurement result (same behavior as the projectq Simulator).
 
-    Return:
+    Returns:
         (list) samples form the AQT server
 
     """

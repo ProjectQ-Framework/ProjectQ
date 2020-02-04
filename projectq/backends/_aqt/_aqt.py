@@ -44,14 +44,14 @@ class AQTBackend(BasicEngine):
         Initialize the Backend object.
 
         Args:
-            use_hardware (bool): If True, the code is run on the IBM quantum
-                chip (instead of using the IBM simulator)
+            use_hardware (bool): If True, the code is run on the AQT quantum
+                chip (instead of using the AQT simulator)
             num_runs (int): Number of runs to collect statistics.
-                (default is 100, max is usually around 250)
+                (default is 100, max is usually around 200)
             verbose (bool): If True, statistics are printed, in addition to
                 the measurement result being registered (at the end of the
                 circuit).
-            token (str): AQT user password. 
+            token (str): AQT user API token. 
             device (str): name of the AQT device to use. simulator By default
             num_retries (int): Number of times to retry to obtain
                 results from the AQT API. (default is 3000)
