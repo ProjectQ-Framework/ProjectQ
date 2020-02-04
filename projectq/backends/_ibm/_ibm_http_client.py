@@ -127,30 +127,30 @@ class IBMQ(Session):
     def _run(self, info, device):
         post_job_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
         shots = info['shots']
-        nq = info['nq']
-        mq = self.backends[device]['nq']
+        n_classical_reg = info['nq']
+        n_qubits = self.backends[device]['nq']
         version = self.backends[device]['version']
         instructions = info['json']
         maxcredit = info['maxCredits']
         c_label = []
         q_label = []
-        for i in range(nq):
+        for i in range(n_classical_reg):
             c_label.append(['c', i])
-        for i in range(mq):
+        for i in range(n_qubits):
             q_label.append(['q', i])
         experiment = [{
             'header': {
-                'qreg_sizes': [['q', mq]],
-                'n_qubits': mq,
-                'memory_slots': nq,
-                'creg_sizes': [['c', nq]],
+                'qreg_sizes': [['q', n_qubits]],
+                'n_qubits': n_qubits,
+                'memory_slots': n_classical_reg,
+                'creg_sizes': [['c', n_classical_reg]],
                 'clbit_labels': c_label,
                 'qubit_labels': q_label,
                 'name': 'circuit0'
             },
             'config': {
-                'n_qubits': mq,
-                'memory_slots': nq
+                'n_qubits': n_qubits,
+                'memory_slots': n_classical_reg
             },
             'instructions': instructions
         }]
@@ -164,8 +164,8 @@ class IBMQ(Session):
                     'config': {
                         'shots': shots,
                         'max_credits': maxcredit,
-                        'n_qubits': mq,
-                        'memory_slots': nq,
+                        'n_qubits': n_qubits,
+                        'memory_slots': n_classical_reg,
                         'memory': False,
                         'parameter_binds': []
                     },
