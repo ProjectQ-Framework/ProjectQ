@@ -5,7 +5,6 @@ backends
 	
 	projectq.backends.CommandPrinter
 	projectq.backends.CircuitDrawer
-	projectq.backends.CircuitDrawerMatplotlib
 	projectq.backends.Simulator
 	projectq.backends.ClassicalSimulator
 	projectq.backends.ResourceCounter
