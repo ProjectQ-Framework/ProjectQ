@@ -50,7 +50,7 @@ def test_aqt_backend_is_available(single_qubit_gate, is_available):
 
 @pytest.mark.parametrize("num_ctrl_qubits, is_available", [
     (0, True), (1, False), (2, False), (3, False)])
-def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
+def test_aqt_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
