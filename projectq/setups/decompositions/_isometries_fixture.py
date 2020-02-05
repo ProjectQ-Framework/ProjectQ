@@ -1,4 +1,6 @@
 import pytest
+import projectq
+import projectq.libs.isometries.decompositions
 import projectq.libs.isometries.decompositions as decompositions
 
 
@@ -30,18 +32,34 @@ def iso_decomp_chooser(request, monkeypatch):
         return _DecomposeIsometry(columns, threshold).get_decomposition()
 
     if request.param == 'python':
-        monkeypatch.setattr(decompositions, "_decompose_diagonal_gate",
+        monkeypatch.setattr(projectq.libs.isometries,
+                            "_decompose_diagonal_gate",
                             _decompose_dg)
-        monkeypatch.setattr(decompositions,
+        monkeypatch.setattr(projectq.libs.isometries.decompositions,
+                            "_decompose_diagonal_gate",
+                            _decompose_dg)
+
+        monkeypatch.setattr(projectq.libs.isometries,
                             "_decompose_uniformly_controlled_gate",
                             _decompose_ucg)
-        monkeypatch.setattr(decompositions, "_decompose_isometry",
+        monkeypatch.setattr(projectq.libs.isometries.decompositions,
+                            "_decompose_uniformly_controlled_gate",
+                            _decompose_ucg)
+
+        monkeypatch.setattr(projectq.libs.isometries,
+                            "_decompose_isometry",
+                            _decompose_ig)
+        monkeypatch.setattr(projectq.libs.isometries.decompositions,
+                            "_decompose_isometry",
                             _decompose_ig)
 
         assert decompositions._decompose_diagonal_gate is _decompose_dg
         assert decompositions._decompose_uniformly_controlled_gate is _decompose_ucg
         assert decompositions._decompose_isometry is _decompose_ig
+
     else:
+        # Make sure we are not using the Python verison of the important
+        # classes
         assert decompositions._DecomposeDiagonal is not _DecomposeDiagonal
         assert decompositions._DecomposeUCG is not _DecomposeUCG
         assert decompositions._DecomposeIsometry is not _DecomposeIsometry

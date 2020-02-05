@@ -14,14 +14,12 @@
 
 from projectq import MainEngine
 from projectq.ops import X, DiagonalGate
-
 from . import diagonal_gate as diag
+from ._isometries_fixture import iso_decomp_chooser
 
 import numpy as np
 import cmath
 import pytest
-
-from ._isometries_fixture import iso_decomp_chooser
 
 
 def create_initial_state(mask, qureg):

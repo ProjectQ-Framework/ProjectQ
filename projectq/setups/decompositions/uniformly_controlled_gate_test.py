@@ -107,8 +107,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("init", range(10))
-def test_full_decomposition_4_choice_target_in_middle(init,
-                                                      iso_decomp_chooser):
+def test_full_decomposition_4_choice_target_in_middle(init, iso_decomp_chooser):
     n = 4
     eng = MainEngine()
     qureg = eng.allocate_qureg(n)

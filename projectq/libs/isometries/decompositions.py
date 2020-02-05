@@ -11,7 +11,7 @@ def _unwrap(gates):
 
 
 try:
-    import cppdec
+    from . import cppdec
     _DecomposeDiagonal = cppdec._DecomposeDiagonal
 
     class _DecomposeUCG(object):
