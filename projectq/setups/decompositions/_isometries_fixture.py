@@ -37,6 +37,10 @@ def iso_decomp_chooser(request, monkeypatch):
                             _decompose_ucg)
         monkeypatch.setattr(decompositions, "_decompose_isometry",
                             _decompose_ig)
+
+        assert decompositions._decompose_diagonal_gate is _decompose_dg
+        assert decompositions._decompose_uniformly_controlled_gate is _decompose_ucg
+        assert decompositions._decompose_isometry is _decompose_ig
     else:
         assert decompositions._DecomposeDiagonal is not _DecomposeDiagonal
         assert decompositions._DecomposeUCG is not _DecomposeUCG

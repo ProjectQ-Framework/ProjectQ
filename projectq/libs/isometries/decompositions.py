@@ -1,5 +1,5 @@
 import numpy as np
-from projectq.libs.isometries.single_qubit_gate import _SingleQubitGate
+from .single_qubit_gate import _SingleQubitGate
 
 
 def _wrap(gates):
@@ -11,7 +11,7 @@ def _unwrap(gates):
 
 
 try:
-    import projectq.libs.isometries.cppdec as cppdec
+    import cppdec
     _DecomposeDiagonal = cppdec._DecomposeDiagonal
 
     class _DecomposeUCG(object):
