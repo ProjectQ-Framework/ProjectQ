@@ -413,7 +413,8 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
         _ibm_http_client.retrieve(device="ibmqx4",
                                   user="test", password="test",
-                                  jobid="123e")
+                                  jobid="123e",
+                                  verbose=True)
 
 
 def test_retrieve(monkeypatch):
