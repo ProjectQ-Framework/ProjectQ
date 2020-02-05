@@ -1,9 +1,4 @@
-try:
-    from projectq.libs.isometries.cppdec import _DecomposeDiagonal
-except ImportError:  # pragma: no cover
-    from .decompose_diagonal import _DecomposeDiagonal
-
-
+import numpy as np
 from projectq.libs.isometries.single_qubit_gate import _SingleQubitGate
 
 
@@ -16,27 +11,20 @@ def _unwrap(gates):
 
 
 try:
-    from projectq.libs.isometries.cppdec import _BackendDecomposeUCG
-    import numpy as np
+    import projectq.libs.isometries.cppdec as cppdec
+    _DecomposeDiagonal = cppdec._DecomposeDiagonal
 
     class _DecomposeUCG(object):
         def __init__(self, wrapped_gates):
-            self._backend = _BackendDecomposeUCG(_unwrap(wrapped_gates))
+            self._backend = cppdec._BackendDecomposeUCG(_unwrap(wrapped_gates))
 
         def get_decomposition(self):
             unwrapped_gates, phases = self._backend.get_decomposition()
             return _wrap(unwrapped_gates), phases
 
-except ImportError:  # pragma: no cover
-    from .decompose_ucg import _DecomposeUCG
-
-
-try:
-    from projectq.libs.isometries.cppdec import _BackendDecomposeIsometry
-
     class _DecomposeIsometry(object):
         def __init__(self, V, threshold):
-            self._backend = _BackendDecomposeIsometry(V, threshold)
+            self._backend = cppdec._BackendDecomposeIsometry(V, threshold)
 
         def get_decomposition(self):
             reductions, diagonal_decomposition = \
@@ -49,6 +37,8 @@ try:
             return reductions, diagonal_decomposition
 
 except ImportError:  # pragma: no cover
+    from .decompose_diagonal import _DecomposeDiagonal
+    from .decompose_ucg import _DecomposeUCG
     from .decompose_isometry import _DecomposeIsometry
 
 

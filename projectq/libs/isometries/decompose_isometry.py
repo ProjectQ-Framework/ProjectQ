@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 from projectq import MainEngine
-from projectq.ops import Measure, X, Rz, UniformlyControlledGate, DiagonalGate
+from projectq.ops import Rz, UniformlyControlledGate, DiagonalGate
 from projectq.ops._basics import BasicGate
-from projectq.meta import Control, Compute, Uncompute, Dagger
+from projectq.meta import Control
 
 import numpy as np
 import math
-import cmath
-import copy
-import random
 
 
 class _DecomposeIsometry(object):
@@ -55,28 +50,6 @@ class _DecomposeIsometry(object):
         diagonal = DiagonalGate(phases=phases)
 
         return reductions, diagonal.decomposition
-
-
-def _pretty(num):  # pragma: no cover
-    if abs(num) < 1e-10:
-        return "0"
-    return "*"
-
-
-def _debug(local_quregs):  # pragma: no cover
-    matrix = []
-    for i in range(len(local_quregs)):
-        eng = local_quregs[i].engine
-        eng.flush()
-        bla, vec = eng.backend.cheat()
-        matrix.append(vec)
-
-    N = len(matrix)
-    for i in range(len(matrix[0])):
-        for j in range(N):
-            print(_pretty(matrix[j][i]), end=' ', flush=True)
-        print('')
-    print('-')
 
 
 def a(k, s):

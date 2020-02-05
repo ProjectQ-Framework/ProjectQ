@@ -13,26 +13,12 @@
 # limitations under the License.
 
 from projectq import MainEngine
-from projectq.ops import Measure, C, X, UniformlyControlledGate, Isometry
-from projectq.backends import (CommandPrinter, ResourceCounter,
-                               Simulator, IBMBackend)
-from projectq.ops._basics import BasicGate
-from projectq.meta import Control, Compute, Uncompute, get_control_count
-import projectq.setups.decompositions
-from projectq.cengines import (InstructionFilter, AutoReplacer,
-                               DecompositionRuleSet, DummyEngine)
-from projectq.ops import (All, Command, X, Y, Z, T, H, Tdag, S, Sdag, Measure,
-                          Allocate, Deallocate, NOT, Rx, Ry, Rz, Barrier,
-                          Entangle)
-from projectq.setups.decompositions import all_defined_decomposition_rules
+from projectq.ops import (All, Measure, X, Isometry)
 
 import numpy as np
-import math
 import cmath
-import copy
-import random
 import pytest
-from ._isometries_fixture import decomposition_module
+from ._isometries_fixture import iso_decomp_chooser
 
 from . import isometry as iso
 
@@ -41,7 +27,7 @@ def normalize(v):
     return v/np.linalg.norm(v)
 
 
-def test_state_prep(decomposition_module):
+def test_state_prep(iso_decomp_chooser):
     n = 5
     target_state = np.array([i for i in range(1 << n)])
     target_state = normalize(target_state)
@@ -62,7 +48,7 @@ def test_state_prep(decomposition_module):
     All(Measure) | qureg
 
 
-def test_2_columns(decomposition_module):
+def test_2_columns(iso_decomp_chooser):
     col_0 = normalize(np.array([1.j, 2., 3.j, 4., -5.j, 6., 1+7.j, 8.]))
     col_1 = normalize(np.array([8.j, 7., 6.j, 5., -4.j, 3., 1+2.j, 1.]))
     # must be orthogonal
@@ -102,7 +88,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("index", range(8))
-def test_full_unitary_3_qubits(index, decomposition_module):
+def test_full_unitary_3_qubits(index, iso_decomp_chooser):
     n = 3
     N = 1 << n
     np.random.seed(7)
@@ -131,7 +117,7 @@ def test_full_unitary_3_qubits(index, decomposition_module):
 
 
 @pytest.mark.parametrize("index", range(8))
-def test_full_permutation_matrix_3_qubits(index, decomposition_module):
+def test_full_permutation_matrix_3_qubits(index, iso_decomp_chooser):
     n = 3
     N = 1 << n
     np.random.seed(7)

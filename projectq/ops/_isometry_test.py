@@ -26,6 +26,8 @@ from . import _isometry as iso
 from . import _uniformly_controlled_gate as ucg
 from . import _diagonal_gate as diag
 
+from ..setups.decompositions._isometries_fixture import iso_decomp_chooser
+
 
 def create_initial_state(mask, qureg):
     n = len(qureg)
@@ -35,7 +37,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("index", range(8))
-def test_matrix(index):
+def test_matrix(index, iso_decomp_chooser):
     A = np.asarray(H.matrix)
     B = np.asarray(Ry(7).matrix)
     A_B = np.array(block_diag(A, B))

@@ -13,20 +13,16 @@
 # limitations under the License.
 
 from projectq import MainEngine
-from projectq.ops import Measure, X, DiagonalGate, Rz, CNOT
-from projectq.ops._basics import BasicGate
-from projectq.meta import Control, Compute, Uncompute, Dagger
+from projectq.ops import X, DiagonalGate
 
 from . import diagonal_gate as diag
 
 import numpy as np
-import math
 import cmath
-import copy
-import random
 import pytest
 
-from ._isometries_fixture import decomposition_module
+from ._isometries_fixture import iso_decomp_chooser
+
 
 def create_initial_state(mask, qureg):
     n = len(qureg)
@@ -36,7 +32,7 @@ def create_initial_state(mask, qureg):
 
 
 @pytest.mark.parametrize("init", range(16))
-def test_decompose_diagonal_gate(init, decomposition_module):
+def test_decompose_diagonal_gate(init, iso_decomp_chooser):
     angles = list(range(1, 9))
     eng = MainEngine(verbose=True)
     qureg = eng.allocate_qureg(4)
