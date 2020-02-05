@@ -113,7 +113,7 @@ def _authenticate(email=None, password=None):
     if email is None:
         try:
             input_fun = raw_input
-        except NameError:
+        except NameError:  # pragma: no cover
             input_fun = input
         email = input_fun('IBM QE user (e-mail) > ')
     if password is None:
@@ -157,7 +157,7 @@ def _get_result(device, execution_id, access_token, num_retries=3000,
 
     original_sigint_handler = signal.getsignal(signal.SIGINT)
 
-    def _handle_sigint_during_get_result(*_):
+    def _handle_sigint_during_get_result(*_):  # pragma: no cover
         raise Exception("Interrupted. The ID of your submitted job is {}."
                         .format(execution_id))
 
