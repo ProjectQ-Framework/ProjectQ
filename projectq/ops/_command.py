@@ -104,6 +104,7 @@ class Command(object):
             tags (list[object]):
                 Tags associated with the command.
         """
+
         qubits = tuple(
             [WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg]
             for qreg in qubits)
