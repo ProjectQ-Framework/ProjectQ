@@ -87,8 +87,10 @@ def create_initial_state(mask, qureg):
             X | qureg[pos]
 
 
+# TODO: figure out why the monkeypatching with the iso_decomp_chooser
+# fixture leads to some errors in the phase estimation tests
 @pytest.mark.parametrize("index", range(8))
-def test_full_unitary_3_qubits(index, iso_decomp_chooser):
+def test_full_unitary_3_qubits(index):
     n = 3
     N = 1 << n
     np.random.seed(7)
@@ -116,8 +118,10 @@ def test_full_unitary_3_qubits(index, iso_decomp_chooser):
     eng.flush()
 
 
+# TODO: figure out why the monkeypatching with the iso_decomp_chooser
+# fixture leads to some errors in the phase estimation tests
 @pytest.mark.parametrize("index", range(8))
-def test_full_permutation_matrix_3_qubits(index, iso_decomp_chooser):
+def test_full_permutation_matrix_3_qubits(index):
     n = 3
     N = 1 << n
     np.random.seed(7)

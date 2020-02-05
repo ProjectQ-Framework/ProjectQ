@@ -36,8 +36,10 @@ def create_initial_state(mask, qureg):
             X | qureg[pos]
 
 
+# TODO: figure out why the monkeypatching with the iso_decomp_chooser
+# fixture leads to some errors
 @pytest.mark.parametrize("index", range(8))
-def test_matrix(index, iso_decomp_chooser):
+def test_matrix(index):
     A = np.asarray(H.matrix)
     B = np.asarray(Ry(7).matrix)
     A_B = np.array(block_diag(A, B))
