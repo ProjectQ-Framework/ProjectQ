@@ -143,6 +143,33 @@ def compiler_test(compiler,
     return ret
 
 
+def _fix_macosx_header_paths(*args):
+    # Fix path to SDK headers if necessary
+    _MACOSX_XCODE_REF_PATH = ('/Applications/Xcode.app/Contents/'
+                              + 'Developer/Platforms/MacOSX.platform/'
+                              + 'Developer')
+    _MACOSX_DEVTOOLS_REF_PATH = '/Library/Developer/CommandLineTools/'
+    _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
+    _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)
+    if not _has_xcode and not _has_devtools:
+        status_msgs('ERROR: Must install either Xcode or '
+                    + 'CommandLineTools!')
+        raise BuildFailed()
+
+    def _do_replace(idx, item):
+        if not _has_xcode and _MACOSX_XCODE_REF_PATH in item:
+            compiler_args[idx] = item.replace(_MACOSX_XCODE_REF_PATH,
+                                              _MACOSX_DEVTOOLS_REF_PATH)
+
+        if not _has_devtools and _MACOSX_DEVTOOLS_REF_PATH in item:
+            compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH,
+                                              _MACOSX_XCODE_REF_PATH)
+
+    for compiler_args in args:
+        for idx, item in enumerate(compiler_args):
+            _do_replace(idx, item)
+
+
 class BuildExt(build_ext):
     '''A custom build extension for adding compiler-specific options.'''
     c_opts = {
@@ -173,7 +200,9 @@ class BuildExt(build_ext):
 
     def _configure_compiler(self):
         if sys.platform == 'darwin':
-            self.c_opts['unix'] += ['-mmacosx-version-min=10.7']
+            _fix_macosx_header_paths(self.compiler.compiler,
+                                     self.compiler.compiler_so)
+
             if compiler_test(self.compiler, '-stdlib=libc++'):
                 self.c_opts['unix'] += ['-stdlib=libc++']
 
@@ -244,22 +273,24 @@ class BuildExt(build_ext):
         # Other compiler tests
 
         if ct == 'unix':
-            # Avoiding C++17 for now because of compilation issues on MacOSX
-            if compiler_test(self.compiler, '-std=c++14'):
+            if compiler_test(self.compiler, '-std=c++17'):
+                self.opts.append('-std=c++17')
+            elif compiler_test(self.compiler, '-std=c++14'):
                 self.opts.append('-std=c++14')
             elif compiler_test(self.compiler, '-std=c++11'):
                 self.opts.append('-std=c++11')
             else:
-                status_msgs('ERROR: compiler needs to have at least C++11 support!')
+                status_msgs(
+                    'ERROR: compiler needs to have at least C++11 support!')
                 raise BuildFailed()
 
             self.opts.append("-DVERSION_INFO='{}'".format(
-                             self.distribution.get_version()))
+                self.distribution.get_version()))
             if compiler_test(self.compiler, '-fvisibility=hidden'):
                 self.opts.append('-fvisibility=hidden')
         elif ct == 'msvc':
             self.opts.append("/DVERSION_INFO=\\'%s\\'".format(
-                             self.distribution.get_version()))
+                self.distribution.get_version()))
 
         self.link_opts.append(openmp)
 
@@ -310,15 +341,15 @@ def run_setup(with_cext):
 if not cpython:
     run_setup(False)
     status_msgs(
-        'WARNING: C/C++ extensions are not supported on ' +
-        'some features are disabled (e.g. C++ simulator).',
+        'WARNING: C/C++ extensions are not supported on '
+        + 'some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
 elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
     run_setup(False)
     status_msgs(
-        'DISABLE_PROJECTQ_CEXT is set; ' +
-        'not attempting to build C/C++ extensions.',
+        'DISABLE_PROJECTQ_CEXT is set; '
+        + 'not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
     )
 
@@ -328,8 +359,8 @@ else:
     except BuildFailed as exc:
         status_msgs(
             exc.cause,
-            'WARNING: Some C/C++ extensions could not be compiled, ' +
-            'some features are disabled (e.g. C++ simulator).',
+            'WARNING: Some C/C++ extensions could not be compiled, '
+            + 'some features are disabled (e.g. C++ simulator).',
             'Failure information, if any, is above.',
             'Retrying the build without the C/C++ extensions now.',
         )
@@ -337,7 +368,7 @@ else:
         run_setup(False)
 
         status_msgs(
-            'WARNING: Some C/C++ extensions could not be compiled, ' +
-            'some features are disabled (e.g. C++ simulator).',
+            'WARNING: Some C/C++ extensions could not be compiled, '
+            + 'some features are disabled (e.g. C++ simulator).',
             'Plain-Python build succeeded.',
         )
