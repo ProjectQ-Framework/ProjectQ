@@ -261,10 +261,10 @@ class BuildExt(build_ext):
 
         status_msgs('Other compiler tests')
         if ct == 'unix':
-            self.opts.append("-DVERSION_INFO='{}'".format(
-                self.distribution.get_version()))
             if compiler_test(self.compiler, '-fvisibility=hidden'):
                 self.opts.append('-fvisibility=hidden')
+            self.opts.append("-DVERSION_INFO=\\'{}\\'".format(
+                self.distribution.get_version()))
         elif ct == 'msvc':
             self.opts.append("/DVERSION_INFO=\\'{}\\'".format(
                 self.distribution.get_version()))
@@ -336,14 +336,21 @@ class BuildExt(build_ext):
         important_msgs('WARNING: compiler does not support OpenMP!')
 
     def _configure_intrinsics(self):
-        for flag in ['-march=native', '-mavx2', '/arch:AVX2', '/arch:AVX']:
+        for flag in [
+                '-march=native', '-mavx2', '/arch:AVX2', '/arch:CORE-AVX2',
+                '/arch:AVX'
+        ]:
             if compiler_test(
                     self.compiler,
                     flagname=flag,
                     link=False,
                     include='#include <immintrin.h>',
                     body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
-                self.opts.extend(('-DINTRIN', flag))
+
+                if sys.platform == 'win32':
+                    self.opts.extend(('/DINTRIN', flag))
+                else:
+                    self.opts.extend(('-DINTRIN', flag))
                 break
 
         for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
