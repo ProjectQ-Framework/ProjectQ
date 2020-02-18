@@ -36,8 +36,8 @@
 
 from __future__ import print_function
 from setuptools import setup, Extension, find_packages
-from distutils.errors import (CompileError, CCompilerError, DistutilsExecError,
-                              DistutilsPlatformError)
+from distutils.errors import (CompileError, LinkError, CCompilerError,
+                              DistutilsExecError, DistutilsPlatformError)
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_ext import build_ext
 import sys
@@ -108,6 +108,8 @@ def compiler_test(compiler,
             os.dup2(err.fileno(), sys.stderr.fileno())
 
         obj_file = compiler.compile([f.name], extra_postargs=postargs)
+        if not os.path.exists(obj_file[0]):
+            raise RuntimeError('')
         if link:
             compiler.link_executable(obj_file,
                                      exec_name,
@@ -119,7 +121,7 @@ def compiler_test(compiler,
             with open('err.txt', 'r') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
-    except (CompileError, RuntimeError):
+    except (CompileError, LinkError, RuntimeError):
         ret = False
     os.unlink(f.name)
     return ret
@@ -263,7 +265,7 @@ class BuildExt(build_ext):
         if ct == 'unix':
             if compiler_test(self.compiler, '-fvisibility=hidden'):
                 self.opts.append('-fvisibility=hidden')
-            self.opts.append("-DVERSION_INFO=\\'{}\\'".format(
+            self.opts.append("-DVERSION_INFO=\"{}\"".format(
                 self.distribution.get_version()))
         elif ct == 'msvc':
             self.opts.append("/DVERSION_INFO=\\'{}\\'".format(
