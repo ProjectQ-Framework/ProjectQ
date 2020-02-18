@@ -36,7 +36,7 @@
 
 from __future__ import print_function
 from setuptools import setup, Extension, find_packages
-from distutils.errors import (CCompilerError, DistutilsExecError,
+from distutils.errors import (CompileError, CCompilerError, DistutilsExecError,
                               DistutilsPlatformError)
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_ext import build_ext
@@ -101,12 +101,25 @@ def compiler_test(compiler,
 
     try:
         exec_name = os.path.join(tempfile.mkdtemp(), 'test')
+
+        if compiler.compiler_type == 'msvc':
+            olderr = os.dup(sys.stderr.fileno())
+            err = open('err.txt', 'w')
+            os.dup2(err.fileno(), sys.stderr.fileno())
+
         obj_file = compiler.compile([f.name], extra_postargs=postargs)
         if link:
             compiler.link_executable(obj_file,
                                      exec_name,
                                      extra_postargs=postargs)
-    except:
+
+        if compiler.compiler_type == 'msvc':
+            err.close()
+            os.dup2(olderr, sys.stderr.fileno())
+            with open('err.txt', 'r') as err_file:
+                if err_file.readlines():
+                    raise RuntimeError('')
+    except (CompileError, RuntimeError):
         ret = False
     os.unlink(f.name)
     return ret
@@ -253,7 +266,7 @@ class BuildExt(build_ext):
             if compiler_test(self.compiler, '-fvisibility=hidden'):
                 self.opts.append('-fvisibility=hidden')
         elif ct == 'msvc':
-            self.opts.append("/DVERSION_INFO=\\'%s\\'".format(
+            self.opts.append("/DVERSION_INFO=\\'{}\\'".format(
                 self.distribution.get_version()))
 
         status_msgs('Finished configuring compiler!')
@@ -327,7 +340,7 @@ class BuildExt(build_ext):
             if compiler_test(
                     self.compiler,
                     flagname=flag,
-                    link=True,
+                    link=False,
                     include='#include <immintrin.h>',
                     body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
                 self.opts.extend(('-DINTRIN', flag))
