@@ -34,6 +34,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+from __future__ import print_function
 from setuptools import setup, Extension, find_packages
 from distutils.errors import (CCompilerError, DistutilsExecError,
                               DistutilsPlatformError)
@@ -45,6 +46,7 @@ import subprocess
 import platform
 
 # ==============================================================================
+# Helper functions and classes
 
 
 class get_pybind_include(object):
@@ -61,51 +63,18 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
-def status_msgs(*msgs):
+def important_msgs(*msgs):
     print('*' * 75)
     for msg in msgs:
         print(msg)
     print('*' * 75)
 
 
-# ==============================================================================
-
-cpython = platform.python_implementation() == 'CPython'
-
-ext_modules = [
-    Extension(
-        'projectq.backends._sim._cppsim',
-        ['projectq/backends/_sim/_cppsim.cpp'],
-        include_dirs=[
-            # Path to pybind11 headers
-            get_pybind_include(),
-            get_pybind_include(user=True)
-        ],
-        language='c++'),
-]
-
-ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
-if sys.platform == 'win32':
-    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
-    # find the compiler
-    ext_errors += (IOError, )
-
-
-class BuildFailed(Exception):
-    def __init__(self):
-        self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
-
-
-# This reads the __version__ variable from projectq/_version.py
-exec(open('projectq/_version.py').read())
-
-# Readme file as long_description:
-long_description = open('README.rst').read()
-
-# Read in requirements.txt
-with open('requirements.txt', 'r') as f_requirements:
-    requirements = f_requirements.readlines()
-requirements = [r.strip() for r in requirements]
+def status_msgs(*msgs):
+    print('-' * 75)
+    for msg in msgs:
+        print('# INFO: ', msg)
+    print('-' * 75)
 
 
 def compiler_test(compiler,
@@ -152,8 +121,8 @@ def _fix_macosx_header_paths(*args):
     _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
     _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)
     if not _has_xcode and not _has_devtools:
-        status_msgs('ERROR: Must install either Xcode or '
-                    + 'CommandLineTools!')
+        important_msgs('ERROR: Must install either Xcode or '
+                       + 'CommandLineTools!')
         raise BuildFailed()
 
     def _do_replace(idx, item):
@@ -168,6 +137,55 @@ def _fix_macosx_header_paths(*args):
     for compiler_args in args:
         for idx, item in enumerate(compiler_args):
             _do_replace(idx, item)
+
+
+# ------------------------------------------------------------------------------
+
+
+class BuildFailed(Exception):
+    def __init__(self):
+        self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
+
+
+# ------------------------------------------------------------------------------
+# Python build related variable
+
+cpython = platform.python_implementation() == 'CPython'
+ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+if sys.platform == 'win32':
+    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+    # find the compiler
+    ext_errors += (IOError, )
+
+# ==============================================================================
+
+# This reads the __version__ variable from projectq/_version.py
+exec(open('projectq/_version.py').read())
+
+# Readme file as long_description:
+long_description = open('README.rst').read()
+
+# Read in requirements.txt
+with open('requirements.txt', 'r') as f_requirements:
+    requirements = f_requirements.readlines()
+requirements = [r.strip() for r in requirements]
+
+# ------------------------------------------------------------------------------
+# ProjectQ C++ extensions
+
+ext_modules = [
+    Extension(
+        'projectq.backends._sim._cppsim',
+        ['projectq/backends/_sim/_cppsim.cpp'],
+        include_dirs=[
+            # Path to pybind11 headers
+            get_pybind_include(),
+            get_pybind_include(user=True)
+        ],
+        language='c++'),
+]
+
+# ==============================================================================
 
 
 class BuildExt(build_ext):
@@ -211,25 +229,53 @@ class BuildExt(build_ext):
         self.link_opts = []
 
         if not compiler_test(self.compiler):
-            status_msgs('ERROR: something is wrong with your C++ compiler.\n'
-                        'Failed to compile a simple test program!')
+            important_msgs(
+                'ERROR: something is wrong with your C++ compiler.\n'
+                'Failed to compile a simple test program!')
             raise BuildFailed()
 
         # ------------------------------
-        # Test for OpenMP
+
+        status_msgs('Configuring OpenMP')
+        self._configure_openmp()
+        status_msgs('Configuring compiler intrinsics')
+        self._configure_intrinsics()
+        status_msgs('Configuring C++ standard')
+        self._configure_cxx_standard()
+
+        # ------------------------------
+        # Other compiler tests
+
+        status_msgs('Other compiler tests')
+        if ct == 'unix':
+            self.opts.append("-DVERSION_INFO='{}'".format(
+                self.distribution.get_version()))
+            if compiler_test(self.compiler, '-fvisibility=hidden'):
+                self.opts.append('-fvisibility=hidden')
+        elif ct == 'msvc':
+            self.opts.append("/DVERSION_INFO=\\'%s\\'".format(
+                self.distribution.get_version()))
+
+        status_msgs('Finished configuring compiler!')
+
+    def _configure_openmp(self):
+        if self.compiler.compiler_type == 'msvc':
+            return
 
         kwargs = {
             'link': True,
             'include': '#include <omp.h>',
             'body': 'int a = omp_get_num_threads(); ++a;'
         }
-        openmp = ''
-        if compiler_test(self.compiler, '-fopenmp', **kwargs):
-            openmp = '-fopenmp'
-        elif compiler_test(self.compiler, '-qopenmp', **kwargs):
-            openmp = '-qopenmp'
-        elif (sys.platform == 'darwin'
-              and compiler_test(self.compiler, '-fopenmp')):
+
+        for flag in ['-openmp', '-fopenmp', '-qopenmp', '/Qopenmp']:
+            if compiler_test(self.compiler, flag, **kwargs):
+                self.opts.append(flag)
+                self.link_opts.append(flag)
+                return
+
+        flag = '-fopenmp'
+        if (sys.platform == 'darwin' and compiler_test(self.compiler, flag)):
             try:
                 llvm_root = subprocess.check_output(
                     ['brew', '--prefix', 'llvm']).decode('utf-8')[:-1]
@@ -241,58 +287,84 @@ class BuildExt(build_ext):
                 if llvm_root in compiler_root:
                     l_arg = '-L{}/lib'.format(llvm_root)
                     if compiler_test(self.compiler,
-                                     '-fopenmp',
+                                     flag,
                                      postargs=[l_arg],
                                      **kwargs):
-                        self.link_opts.append(l_arg)
-                        openmp = '-fopenmp'
+                        self.opts.append(flag)
+                        self.link_opts.extend((l_arg, flag))
+                        return
             except subprocess.CalledProcessError:
                 pass
 
-        if ct == 'msvc':
-            openmp = ''  # supports only OpenMP 2.0
+            try:
+                # Only relevant for MacPorts users with clang-3.7
+                port_path = subprocess.check_output(['which', 'port'
+                                                     ]).decode('utf-8')[:-1]
+                macports_root = os.path.dirname(os.path.dirname(port_path))
+                compiler_root = subprocess.check_output(
+                    ['which', self.compiler.compiler[0]]).decode('utf-8')[:-1]
 
-        self.opts.append(openmp)
+                # Only add the flag if the compiler we are using is the one
+                # from MacPorts
+                if macports_root in compiler_root:
+                    c_arg = '-I{}/include/libomp'.format(macports_root)
+                    l_arg = '-L{}/lib/libomp'.format(macports_root)
 
-        # ------------------------------
-        # Test for compiler intrinsics
+                    if compiler_test(self.compiler,
+                                     flag,
+                                     postargs=[c_arg, l_arg],
+                                     **kwargs):
+                        self.opts.extend((c_arg, flag))
+                        self.link_opts.extend((l_arg, flag))
+                        return
+            except subprocess.CalledProcessError:
+                pass
 
-        if compiler_test(self.compiler,
-                         flagname='-march=native',
-                         link=True,
-                         include='#include <immintrin.h>',
-                         body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
-            self.opts.append('-DINTRIN')
-            if ct == 'msvc':
-                self.opts.append('/arch:AVX')
-            else:
-                self.opts.append('-march=native')
-                self.opts.append('-ffast-math')
+        important_msgs('WARNING: compiler does not support OpenMP!')
 
-        # ------------------------------
-        # Other compiler tests
+    def _configure_intrinsics(self):
+        for flag in ['-march=native', '-mavx2', '/arch:AVX2', '/arch:AVX']:
+            if compiler_test(
+                    self.compiler,
+                    flagname=flag,
+                    link=True,
+                    include='#include <immintrin.h>',
+                    body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
+                self.opts.extend(('-DINTRIN', flag))
+                break
 
-        if ct == 'unix':
-            if compiler_test(self.compiler, '-std=c++17'):
-                self.opts.append('-std=c++17')
-            elif compiler_test(self.compiler, '-std=c++14'):
-                self.opts.append('-std=c++14')
-            elif compiler_test(self.compiler, '-std=c++11'):
-                self.opts.append('-std=c++11')
-            else:
-                status_msgs(
-                    'ERROR: compiler needs to have at least C++11 support!')
-                raise BuildFailed()
+        for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
+            if compiler_test(self.compiler, flagname=flag):
+                self.opts.append(flag)
+                break
 
-            self.opts.append("-DVERSION_INFO='{}'".format(
-                self.distribution.get_version()))
-            if compiler_test(self.compiler, '-fvisibility=hidden'):
-                self.opts.append('-fvisibility=hidden')
-        elif ct == 'msvc':
-            self.opts.append("/DVERSION_INFO=\\'%s\\'".format(
-                self.distribution.get_version()))
+    def _configure_cxx_standard(self):
+        if self.compiler.compiler_type == 'msvc':
+            return
 
-        self.link_opts.append(openmp)
+        cxx_standards = [17, 14, 11]
+        if sys.version_info[0] < 3:
+            cxx_standards = [year for year in cxx_standards if year < 17]
+
+        if sys.platform == 'darwin':
+            _, minor_version, _ = [
+                int(i) for i in platform.mac_ver()[0].split('.')
+            ]
+            if minor_version < 14:
+                cxx_standards = [year for year in cxx_standards if year < 17]
+
+        for year in cxx_standards:
+            flag = '-std=c++{}'.format(year)
+            if compiler_test(self.compiler, flag):
+                self.opts.append(flag)
+                return
+            flag = '/Qstd=c++{}'.format(year)
+            if compiler_test(self.compiler, flag):
+                self.opts.append(flag)
+                return
+
+        important_msgs('ERROR: compiler needs to have at least C++11 support!')
+        raise BuildFailed()
 
 
 class Distribution(_Distribution):
@@ -304,6 +376,9 @@ class Distribution(_Distribution):
         # ensure that Wheel knows to treat us as if the build output is
         # platform specific.
         return True
+
+
+# ==============================================================================
 
 
 def run_setup(with_cext):
@@ -340,14 +415,14 @@ def run_setup(with_cext):
 
 if not cpython:
     run_setup(False)
-    status_msgs(
+    important_msgs(
         'WARNING: C/C++ extensions are not supported on '
         + 'some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
 elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
     run_setup(False)
-    status_msgs(
+    important_msgs(
         'DISABLE_PROJECTQ_CEXT is set; '
         + 'not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
@@ -357,7 +432,7 @@ else:
     try:
         run_setup(True)
     except BuildFailed as exc:
-        status_msgs(
+        important_msgs(
             exc.cause,
             'WARNING: Some C/C++ extensions could not be compiled, '
             + 'some features are disabled (e.g. C++ simulator).',
@@ -367,7 +442,7 @@ else:
 
         run_setup(False)
 
-        status_msgs(
+        important_msgs(
             'WARNING: Some C/C++ extensions could not be compiled, '
             + 'some features are disabled (e.g. C++ simulator).',
             'Plain-Python build succeeded.',
