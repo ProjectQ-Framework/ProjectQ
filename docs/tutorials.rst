@@ -171,9 +171,9 @@ Detailed instructions and OS-specific hints
 
 	**MacPorts**
 
-	Either use the standard python and install pip as shown in option 1 or better use macports to install a newer python version, e.g., Python 3.7 and the corresponding pip. Visit `macports.org <https://www.macports.org/install.php>`_ and install the latest version corresponding to your operating system's version (afterwards open a new terminal).
+	Visit `macports.org <https://www.macports.org/install.php>`_ and install the latest version that corresponds to your operating system's version. Afterwards, open a new terminal window.
 
-	Then, use macports to install Python 3.7 by
+	Then, use macports to install Python 3.7 by entering the following command
 
 	.. code-block:: bash
 
@@ -201,7 +201,7 @@ Detailed instructions and OS-specific hints
 
 	.. code-block:: bash
 
-		env CC=clang-mp-9.0 env CXX=clang++-mp-9.0 python37 -m pip install --user projectq
+		env CC=clang-mp-9.0 env CXX=clang++-mp-9.0 /opt/local/bin/python3.7 -m pip install --user projectq
 
 
 The ProjectQ syntax
