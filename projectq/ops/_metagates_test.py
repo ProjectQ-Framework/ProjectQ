@@ -122,6 +122,16 @@ def test_get_inverse():
     inv2 = _metagates.get_inverse(invertible_gate)
     assert inv2 == Y
 
+def test_is_identity():
+    # Choose gate which is not an identity gate:
+    non_identity_gate=Rx(0.5)
+    assert not non_identity_gate.is_identity()
+    assert not _metagates.is_identity(non_identity_gate)  
+    # Choose gate which is an identity gate:
+    identity_gate=Rx(0.)
+    assert identity_gate.is_identity()
+    assert _metagates.is_identity(identity_gate)
+
 
 def test_controlled_gate_init():
     one_control = _metagates.ControlledGate(Y, 1)

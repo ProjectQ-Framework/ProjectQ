@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._circuits._to_latex.py.
 """
@@ -22,18 +21,19 @@ import copy
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
-from projectq.ops import (BasicGate,
-                          H,
-                          X,
-                          CNOT,
-                          Measure,
-                          Z,
-                          Swap,
-                          SqrtX,
-                          SqrtSwap,
-                          C,
-                          get_inverse,
-                          )
+from projectq.ops import (
+    BasicGate,
+    H,
+    X,
+    CNOT,
+    Measure,
+    Z,
+    Swap,
+    SqrtX,
+    SqrtSwap,
+    C,
+    get_inverse,
+)
 from projectq.meta import Control
 from projectq.backends import CircuitDrawer
 
@@ -47,7 +47,7 @@ def test_tolatex():
     old_footer = _to_latex._footer
 
     _to_latex._header = lambda x: "H"
-    _to_latex._body = lambda x, y: x
+    _to_latex._body = lambda x, settings, drawing_order, draw_gates_in_parallel: x
     _to_latex._footer = lambda x: "F"
 
     latex = _to_latex.to_latex("B")
@@ -68,11 +68,26 @@ def test_default_settings():
 
 
 def test_header():
-    settings = {'gate_shadow': False, 'control': {'shadow': False, 'size': 0},
-                'gates': {'MeasureGate': {'height': 0, 'width': 0},
-                          'XGate': {'height': 1, 'width': .5}
-                          },
-                'lines': {'style': 'my_style'}}
+    settings = {
+        'gate_shadow': False,
+        'control': {
+            'shadow': False,
+            'size': 0
+        },
+        'gates': {
+            'MeasureGate': {
+                'height': 0,
+                'width': 0
+            },
+            'XGate': {
+                'height': 1,
+                'width': .5
+            }
+        },
+        'lines': {
+            'style': 'my_style'
+        }
+    }
     header = _to_latex._header(settings)
 
     assert 'minimum' in header
@@ -104,7 +119,7 @@ def test_large_gates():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
@@ -136,7 +151,7 @@ def test_body():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
@@ -181,12 +196,135 @@ def test_body():
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
 
+def test_body_with_drawing_order_and_gates_parallel():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    H | qubit1
+    H | qubit2
+    H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings,
+                           drawing_order=order,
+                           draw_gates_in_parallel=True)
+
+    # there are three Hadamards in parallel
+    assert code.count("node[pos=.5] {H}") == 3
+
+    # line1_gate0 is initialisation
+    # line1_gate1 is empty
+    # line1_gate2 is for Hadamard on line1
+    # line1_gate3 is empty
+    # XOR of CNOT is node[xstyle] (line1_gate4)
+    assert code.count("node[xstyle] (line2_gate4)") == 1
+
+    # and the CNOT is at position 1.4, because of the offsets
+    assert code.count("node[phase] (line0_gate4) at (1.4") == 1
+    assert code.count("node[xstyle] (line2_gate4) at (1.4") == 1
+
+
+def test_body_with_drawing_order_and_gates_not_parallel():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    H | qubit1
+    H | qubit2
+    H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings,
+                           drawing_order=order,
+                           draw_gates_in_parallel=False)
+
+    # and the CNOT is at position 4.0, because of the offsets
+    # which are 0.5 * 3 * 2 (due to three Hadamards) + the initialisations
+    assert code.count("node[phase] (line0_gate4) at (4.0,-0)") == 1
+    assert code.count("node[xstyle] (line2_gate4) at (4.0,-2)") == 1
+
+def test_body_without_drawing_order_and_gates_not_parallel():
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+    qubit3 = eng.allocate_qubit()
+
+    H | qubit1
+    H | qubit2
+    H | qubit3
+    CNOT | (qubit1, qubit3)
+
+    # replicates the above order
+    order = [0, 1, 2,  # initializations
+             0, 1, 2,  # H1, H3, H2
+             0  # CNOT
+             ]
+
+    del qubit1
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+    code = _to_latex._body(circuit_lines, settings,
+                           draw_gates_in_parallel=False)
+
+    # line1_gate1 is after the cnot line2_gate_4
+    idx1 = code.find("node[xstyle] (line2_gate4)")
+    idx2 = code.find("node[none] (line1_gate1)")
+    assert idx1 < idx2
+
 
 def test_qubit_allocations_at_zero():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     a = eng.allocate_qureg(4)
 
@@ -219,7 +357,7 @@ def test_qubit_lines_classicalvsquantum1():
     drawer = _drawer.CircuitDrawer()
     eng = MainEngine(drawer, [])
     old_tolatex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     qubit1 = eng.allocate_qubit()
 

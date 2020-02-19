@@ -26,7 +26,7 @@ This includes:
 * an interface to the IBM Quantum Experience chip (and simulator).
 """
 from ._printer import CommandPrinter
-from ._circuits import CircuitDrawer
+from ._circuits import CircuitDrawer, CircuitDrawerMatplotlib
 from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
