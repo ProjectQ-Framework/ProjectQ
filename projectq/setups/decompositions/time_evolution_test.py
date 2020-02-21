@@ -244,6 +244,4 @@ def test_decompose_individual_terms():
     print(step5)
     print(final_wavefunction5)
 
-    # This comes slightly off arbitrary phase factors for Qrack, but it satisfies probabilities:
-    for i in range(len(step5)):
-        assert numpy.isclose(numpy.absolute(step5[i]), numpy.absolute(final_wavefunction5[i]))
+    assert numpy.allclose(step5, final_wavefunction5)
