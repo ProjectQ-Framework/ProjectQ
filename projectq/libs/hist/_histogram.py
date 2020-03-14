@@ -16,9 +16,6 @@ import matplotlib.pyplot as plt
 from projectq.backends import Simulator
 
 def histogram(sim, qureg):
-    #qubit_ids = set()
-    #for qb in qubit_list:
-    #qubit_ids.add(qb.id)
     qubit_list = []
     for q in qureg:
         if(isinstance(q, list)):
