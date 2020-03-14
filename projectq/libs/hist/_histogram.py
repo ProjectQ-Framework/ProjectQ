@@ -22,8 +22,7 @@ def histogram(sim, qureg):
     qubit_list = []
     for q in qureg:
         if(isinstance(q, list)):
-            for qb in q:
-                qubit_list.append(qb)
+            qubit_list.extend(q)
         else:
             qubit_list.append(q)
     if len(qubit_list) > 5:
