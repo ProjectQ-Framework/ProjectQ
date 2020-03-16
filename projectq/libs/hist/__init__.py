@@ -11,4 +11,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+"""
+contains a function to plot measurement outcome probabilities
+as a histogram for the simulator
+"""
+
 from ._histogram import histogram

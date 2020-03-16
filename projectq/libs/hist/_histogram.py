@@ -16,6 +16,24 @@ import matplotlib.pyplot as plt
 from projectq.backends import Simulator
 
 def histogram(sim, qureg):
+    """
+    Make a measurement outcome probability histogram for the given qubits
+
+    Args:
+        sim (Simulator): The simulator to call get_probability
+        qureg (list of qubits and/or quregs): The qubits,
+        for which to make the histogram
+
+    Returns:
+        A tuple (fig, axes, probabilities), where:
+        fig: The histogram as figure
+        axes: The axes of the histogram
+        probabilities (dict): A dictionary mapping outcomes as string
+        to their probabilities
+
+    Note:
+        Don't forget to flush() before using this function.
+    """
     qubit_list = []
     for q in qureg:
         if(isinstance(q, list)):
@@ -42,5 +60,4 @@ def histogram(sim, qureg):
     values = list(probabilities.values())
     axes.bar(names, values)
     fig.suptitle('Measurement Probabilities')
-    plt.show()
     return(fig, axes, probabilities)
