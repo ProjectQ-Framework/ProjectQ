@@ -17,7 +17,7 @@ from projectq.backends import Simulator
 
 def histogram(sim, qureg):
     """
-    Make a measurement outcome probability histogram for the given qubits
+    Make a measurement outcome probability histogram for the given qubits.
 
     Args:
         sim (Simulator): The simulator to call get_probability
@@ -41,9 +41,9 @@ def histogram(sim, qureg):
         else:
             qubit_list.append(q)
     if len(qubit_list) > 5:
-        print(f'Warning: For {len(qubit_list)} qubits there are 2^{len(qubit_list)} different outcomes')
-        print("The resulting histogram may look bad and/or take too long")
-        print("Consider calling histogram() with a sublist of the qubits", flush=True)
+        print('Warning: For ', len(qubit_list), ' qubits there are 2^', len(qubit_list),  ' different outcomes.', sep='')
+        print("The resulting histogram may look bad and/or take too long.")
+        print("Consider calling histogram() with a sublist of the qubits.", flush=True)
     outcome = [0] * len(qubit_list)
     n_outcomes = (1 << len(qubit_list))
     probabilities = {}
