@@ -527,9 +527,11 @@ The types package contains quantum types such as Qubit, Qureg, and WeakQubitRef.
 # ------------------------------------------------------------------------------
 # Automatically generate ReST files for each package of ProjectQ
 
+docgen_path = os.path.join(os.path.dirname(os.path.abspath('__file__')),
+                           '_doc_gen')
+os.mkdir(docgen_path)
 for desc in descriptions:
-    fname = os.path.join(os.path.dirname(os.path.abspath('__file__')),
-                         'projectq.{}.rst'.format(desc.name))
+    fname = os.path.join(docgen_path, 'projectq.{}.rst'.format(desc.name))
     lines = None
     if os.path.exists(fname):
         with open(fname, 'r') as fd:
