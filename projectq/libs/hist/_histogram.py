@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 import matplotlib.pyplot as plt
-from projectq.backends import Simulator
+
 
 def histogram(sim, qureg):
     """
@@ -22,7 +22,7 @@ def histogram(sim, qureg):
     Args:
         sim (Simulator): The simulator to call get_probability
         qureg (list of qubits and/or quregs): The qubits,
-        for which to make the histogram
+            for which to make the histogram
 
     Returns:
         A tuple (fig, axes, probabilities), where:
@@ -32,32 +32,39 @@ def histogram(sim, qureg):
         to their probabilities
 
     Note:
-        Don't forget to flush() before using this function.
+        Don't forget to call eng.flush() before using this function.
     """
     qubit_list = []
     for q in qureg:
-        if(isinstance(q, list)):
+        if isinstance(q, list):
             qubit_list.extend(q)
         else:
             qubit_list.append(q)
+
     if len(qubit_list) > 5:
-        print('Warning: For ', len(qubit_list), ' qubits there are 2^', len(qubit_list),  ' different outcomes.', sep='')
+        print('Warning: For {0} qubits there are 2^{0} different outcomes'.
+              format(len(qubit_list)))
         print("The resulting histogram may look bad and/or take too long.")
-        print("Consider calling histogram() with a sublist of the qubits.", flush=True)
+        print("Consider calling histogram() with a sublist of the qubits.",
+              flush=True)
+
     outcome = [0] * len(qubit_list)
     n_outcomes = (1 << len(qubit_list))
     probabilities = {}
-    for i in range (n_outcomes):
-        for pos in range (len(qubit_list)):
-            if((1 << pos) & i):
+    for i in range(n_outcomes):
+        for pos in range(len(qubit_list)):
+            if (1 << pos) & i:
                 outcome[pos] = 1
             else:
                 outcome[pos] = 0
-        str1 = ""
-        probabilities[''.join([str(bit) for bit in outcome])] = sim.get_probability(outcome, qubit_list)
-    fig, axes = plt.subplots(figsize = (min(21.2, 2 + 0.6 * (1 << len(qubit_list))), 7))
+        probabilities[''.join([str(bit) for bit in outcome
+                               ])] = sim.get_probability(outcome, qubit_list)
+
+    # Empirical figure size for up to 5 qubits
+    fig, axes = plt.subplots(figsize=(min(21.2, 2
+                                          + 0.6 * (1 << len(qubit_list))), 7))
     names = list(probabilities.keys())
     values = list(probabilities.values())
     axes.bar(names, values)
     fig.suptitle('Measurement Probabilities')
-    return(fig, axes, probabilities)
+    return (fig, axes, probabilities)
