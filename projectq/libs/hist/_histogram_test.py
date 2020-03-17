@@ -92,11 +92,13 @@ def test_combination(matplotlib_setup):
     Measure | qubit
 
 
-def test_too_many_qubits():
+def test_too_many_qubits(matplotlib_setup, capsys):
     sim = Simulator()
     eng = MainEngine(sim)
     qureg = eng.allocate_qureg(6)
     eng.flush()
+    l_ref = len(capsys.readouterr().out)
     _, _, prob = histogram(sim, qureg)
+    assert len(capsys.readouterr().out) > l_ref
     assert prob["000000"] == pytest.approx(1)
     All(Measure)
