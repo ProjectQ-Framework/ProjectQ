@@ -78,6 +78,27 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
     Note:
         Numbering of qubit wires starts at 0 at the bottom and increases
         vertically.
+
+    Note:
+        Additional keyword arguments can be passed to this
+        function in order to further customize the figure output
+        by matplotlib (default value in parentheses):
+
+          - fontsize (14): Font size in pt
+          - column_spacing (.5): Vertical spacing between two
+            neighbouring gates (roughly in inches)
+          - control_radius (.015): Radius of the circle for controls
+          - labels_margin (1): Margin between labels and begin of
+            wire (roughly in inches)
+          - linewidth (1): Width of line
+          - not_radius (.03): Radius of the circle for X/NOT gates
+          - gate_offset (.05): Inner margins for gates with a text
+            representation
+          - mgate_width (.1): Width of the measurement gate
+          - swap_delta (.02): Half-size of the SWAP gate
+          - x_offset (.05): Absolute X-offset for drawing within the axes
+          - wire_height (1): Vertical spacing between two qubit
+            wires (roughly in inches)
     """
     if qubit_labels is None:
         qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}

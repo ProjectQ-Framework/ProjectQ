@@ -49,8 +49,9 @@ if __name__ == "__main__":
     if device is None:
         token = getpass.getpass(prompt='IBM device > ')
     # create main compiler engine for the IBM back-end
-    eng = MainEngine(IBMBackend(use_hardware=True, token=token num_runs=1024,
+    eng = MainEngine(IBMBackend(use_hardware=True, token=token, num_runs=1024,
                                 verbose=False, device=device),
-                     engine_list=projectq.setups.ibm.get_engine_list(token=token, device=device))
+                     engine_list=projectq.setups.ibm.get_engine_list(
+                         token=token, device=device))
     # run the circuit and print the result
     print(run_entangle(eng))
