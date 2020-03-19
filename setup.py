@@ -13,8 +13,9 @@
 # - Ants Aasma <ants.aasma@gmail.com>
 # - Paul Johnston <paj@pajhome.org.uk>
 # - Jonathan Ellis <jbellis@gmail.com>
+# - Damien Nguyen <damien1@huawei.com> (ProjectQ)
 
-# Copyright 2005-2019 SQLAlchemy authors and contributors (see above)
+# Copyright 2005-2020 SQLAlchemy and ProjectQ authors and contributors (see above)
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
