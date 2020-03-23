@@ -12,5 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
-__version__ = "0.5.0"
+"""Tests for projectq.ops._qpegate."""
+
+from projectq.ops import _qpegate, X
+
+
+def test_qpe_str():
+    unitary = X
+    gate = _qpegate.QPE(unitary)
+    assert str(gate) == "QPE(X)"

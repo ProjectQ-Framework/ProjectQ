@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines a setup to compile to a restricted gate set.
 
@@ -27,8 +26,7 @@ import projectq
 import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               InstructionFilter, LocalOptimizer,
-                               TagRemover)
+                               InstructionFilter, LocalOptimizer, TagRemover)
 from projectq.ops import (BasicGate, BasicMathGate, ClassicalInstructionGate,
                           CNOT, ControlledGate, get_inverse, QFT, Swap)
 
@@ -60,9 +58,14 @@ def one_and_two_qubit_gates(eng, cmd):
         return False
 
 
+def default_chooser(cmd, decomposition_list):
+    return decomposition_list[0]
+
+
 def get_engine_list(one_qubit_gates="any",
-                    two_qubit_gates=(CNOT,),
-                    other_gates=()):
+                    two_qubit_gates=(CNOT, ),
+                    other_gates=(),
+                    compiler_chooser=default_chooser):
     """
     Returns an engine list to compile to a restricted gate set.
 
@@ -73,8 +76,8 @@ def get_engine_list(one_qubit_gates="any",
         even the gate sets which work might not yet be optimized. So make sure
         to double check and potentially extend the decomposition rules.
         This implemention currently requires that the one qubit gates must
-        contain Rz and at least one of {Ry(best), Rx, H} and the two qubit gate
-        must contain CNOT (recommended) or CZ.
+        contain Rz and at least one of {Ry(best), Rx, H} and the two qubit
+        gate must contain CNOT (recommended) or CZ.
 
     Note:
         Classical instructions gates such as e.g. Flush and Measure are
@@ -86,21 +89,24 @@ def get_engine_list(one_qubit_gates="any",
                         other_gates=(TimeEvolution,))
 
     Args:
-        one_qubit_gates: "any" allows any one qubit gate, otherwise provide
-                         a tuple of the allowed gates. If the gates are
+        one_qubit_gates: "any" allows any one qubit gate, otherwise provide a
+                         tuple of the allowed gates. If the gates are
                          instances of a class (e.g. X), it allows all gates
-                         which are equal to it. If the gate is a class (Rz), it
-                         allows all instances of this class. Default is "any"
-        two_qubit_gates: "any" allows any two qubit gate, otherwise provide
-                         a tuple of the allowed gates. If the gates are
+                         which are equal to it. If the gate is a class (Rz),
+                         it allows all instances of this class. Default is
+                         "any"
+        two_qubit_gates: "any" allows any two qubit gate, otherwise provide a
+                         tuple of the allowed gates. If the gates are
                          instances of a class (e.g. CNOT), it allows all gates
                          which are equal to it. If the gate is a class, it
                          allows all instances of this class.
                          Default is (CNOT,).
         other_gates:     A tuple of the allowed gates. If the gates are
-                         instances of a class (e.g. QFT), it allows
-                         all gates which are equal to it. If the gate is a
-                         class, it allows all instances of this class.
+                         instances of a class (e.g. QFT), it allows all gates
+                         which are equal to it. If the gate is a class, it
+                         allows all instances of this class.
+        compiler_chooser:function selecting the decomposition to use in the
+                         Autoreplacer engine
     Raises:
         TypeError: If input is for the gates is not "any" or a tuple. Also if
                    element within tuple is not a class or instance of BasicGate
@@ -119,8 +125,8 @@ def get_engine_list(one_qubit_gates="any",
     if not isinstance(other_gates, tuple):
         raise TypeError("other_gates parameter must be a tuple.")
 
-    rule_set = DecompositionRuleSet(modules=[projectq.libs.math,
-                                             projectq.setups.decompositions])
+    rule_set = DecompositionRuleSet(
+        modules=[projectq.libs.math, projectq.setups.decompositions])
     allowed_gate_classes = []  # n-qubit gates
     allowed_gate_instances = []
     allowed_gate_classes1 = []  # 1-qubit gates
@@ -192,20 +198,21 @@ def get_engine_list(one_qubit_gates="any",
         elif cmd.gate in allowed_gate_instances1 and len(all_qubits) == 1:
             return True
         elif ((cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2
-               and len(all_qubits) == 2):
+              and len(all_qubits) == 2):
             return True
         return False
 
-    return [AutoReplacer(rule_set),
-            TagRemover(),
-            InstructionFilter(high_level_gates),
-            LocalOptimizer(5),
-            AutoReplacer(rule_set),
-            TagRemover(),
-            InstructionFilter(one_and_two_qubit_gates),
-            LocalOptimizer(5),
-            AutoReplacer(rule_set),
-            TagRemover(),
-            InstructionFilter(low_level_gates),
-            LocalOptimizer(5),
-            ]
+    return [
+        AutoReplacer(rule_set, compiler_chooser),
+        TagRemover(),
+        InstructionFilter(high_level_gates),
+        LocalOptimizer(5),
+        AutoReplacer(rule_set, compiler_chooser),
+        TagRemover(),
+        InstructionFilter(one_and_two_qubit_gates),
+        LocalOptimizer(5),
+        AutoReplacer(rule_set, compiler_chooser),
+        TagRemover(),
+        InstructionFilter(low_level_gates),
+        LocalOptimizer(5),
+    ]

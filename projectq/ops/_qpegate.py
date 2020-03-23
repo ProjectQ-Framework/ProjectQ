@@ -12,5 +12,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
-__version__ = "0.5.0"
+from ._basics import BasicGate
+
+
+class QPE(BasicGate):
+    """
+    Quantum Phase Estimation gate.
+
+    See setups.decompositions for the complete implementation
+    """
+    def __init__(self, unitary):
+        BasicGate.__init__(self)
+        self.unitary = unitary
+
+    def __str__(self):
+        return 'QPE({})'.format(str(self.unitary))

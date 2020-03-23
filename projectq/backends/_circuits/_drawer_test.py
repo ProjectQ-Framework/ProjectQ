@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends.circuits._drawer.py.
 """
@@ -20,19 +19,17 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import LastEngineException
-from projectq.ops import (H,
-                          X,
-                          CNOT,
-                          Measure)
+from projectq.ops import (H, X, CNOT, Measure)
 from projectq.meta import Control
 
 import projectq.backends._circuits._drawer as _drawer
 from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
 
 
-def test_drawer_getlatex():
+@pytest.mark.parametrize("ordered", [False, True])
+def test_drawer_getlatex(ordered):
     old_latex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     drawer = CircuitDrawer()
     drawer.set_qubit_locations({0: 1, 1: 0})
@@ -46,13 +43,13 @@ def test_drawer_getlatex():
     X | qureg[0]
     CNOT | (qureg[0], qureg[1])
 
-    lines = drawer2.get_latex()
+    lines = drawer2.get_latex(ordered=ordered)
     assert len(lines) == 2
     assert len(lines[0]) == 4
     assert len(lines[1]) == 3
 
     # check if it was sent on correctly:
-    lines = drawer.get_latex()
+    lines = drawer.get_latex(ordered=ordered)
     assert len(lines) == 2
     assert len(lines[0]) == 3
     assert len(lines[1]) == 4
