@@ -87,6 +87,7 @@ class LoopEngine(BasicEngine):
         engines, i.e., if
 
         .. code-block:: python
+
             is_meta_tag_supported(next_engine, LoopTag) == False
         """
         error_message = ("\n Error. Qubits have been allocated in with "
