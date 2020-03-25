@@ -46,8 +46,7 @@ def histogram(sim, qureg):
         print('Warning: For {0} qubits there are 2^{0} different outcomes'.
               format(len(qubit_list)))
         print("The resulting histogram may look bad and/or take too long.")
-        print("Consider calling histogram() with a sublist of the qubits.",
-              flush=True)
+        print("Consider calling histogram() with a sublist of the qubits.")
 
     outcome = [0] * len(qubit_list)
     n_outcomes = (1 << len(qubit_list))
