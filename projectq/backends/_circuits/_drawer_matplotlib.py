@@ -181,7 +181,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
             if not self.is_last_engine:
                 self.send([cmd])
 
-    def draw(self, qubit_labels=None, drawing_order=None):
+    def draw(self, qubit_labels=None, drawing_order=None, **kwargs):
         """
         Generates and returns the plot of the quantum circuit stored so far
 
@@ -228,4 +228,5 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
         return to_draw(self._qubit_lines,
                        qubit_labels=qubit_labels,
-                       drawing_order=drawing_order)
+                       drawing_order=drawing_order,
+                       **kwargs)
