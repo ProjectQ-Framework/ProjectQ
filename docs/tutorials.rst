@@ -25,13 +25,9 @@ or, alternatively, `clone/download <https://github.com/projectq-framework>`_ thi
 ProjectQ comes with a high-performance quantum simulator written in C++. Please see the detailed OS specific installation instructions below to make sure that you are installing the fastest version.
 
 .. note::
-	The setup will try to build a C++-Simulator, which is much faster than the Python implementation. If it fails, you may use the `--without-cppsimulator` parameter, i.e., 
-	
-	.. code-block:: bash
-	
-		python -m pip install --user --global-option=--without-cppsimulator .
-	
-	and the framework will use the **slow Python simulator instead**. Note that this only works if the installation has been tried once without the `--without-cppsimulator` parameter and hence all requirements are now installed. See the instructions below if you want to run larger simulations. The Python simulator works perfectly fine for the small examples (e.g., running Shor's algorithm for factoring 15 or 21).
+	The setup will try to build a C++-Simulator, which is much faster than the Python implementation. If the C++ compilation were to fail, the setup will install a pure Python implementation of the simulator instead. The Python simulator should work fine for small examples (e.g., running Shor's algorithm for factoring 15 or 21).
+
+	If you want to skip the installation of the C++-Simulator altogether, you can define the ``DISABLE_PROJECTQ_CEXT`` environment variable to avoid any compilation steps.
 
 .. note::
 	If building the C++-Simulator does not work out of the box, consider specifying a different compiler. For example:
@@ -40,13 +36,13 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 	
 			env CC=g++-5 python -m pip install --user projectq
 
-	Please note that the compiler you specify must support **C++11**!
+	Please note that the compiler you specify must support at leaste **C++11**!
 
 .. note::
 	Please use pip version v6.1.0 or higher as this ensures that dependencies are installed in the `correct order <https://pip.pypa.io/en/stable/reference/pip_install/#installation-order>`_.
 
 .. note::
-	ProjectQ should be installed on each computer individually as the C++ simulator compilation creates binaries which are optimized for the specific hardware on which it is being installed (potentially using our AVX version and `-march=native`). Therefore, sharing the same ProjectQ installation across different hardware can cause problems.
+	ProjectQ should be installed on each computer individually as the C++ simulator compilation creates binaries which are optimized for the specific hardware on which it is being installed (potentially using our AVX version and `-march=native`). Therefore, sharing the same ProjectQ installation across different hardware may cause some problems.
 
 
 Detailed instructions and OS-specific hints
@@ -70,38 +66,75 @@ Detailed instructions and OS-specific hints
 	
 	.. code-block:: bash
 		
-		sudo pip3 install --user projectq
+		sudo python3 -m pip install --user projectq
+	
+	all dependencies (such as numpy and pybind11) should be installed automatically.
+
+
+**ArchLinux/Manjaro**:
+
+        Make sure that you have a C/C++ compiler installed:
+
+	.. code-block:: bash
+	
+		sudo pacman -Syu gcc
+	
+	You only need to install Python (and the package manager). For version 3, run
+	
+	.. code-block:: bash
+	
+		sudo pacman -Syu python python-pip
+	
+	When you then run
+	
+	.. code-block:: bash
+		
+		sudo python3 -m pip install --user projectq
 	
 	all dependencies (such as numpy and pybind11) should be installed automatically.
 
 
 **Windows**:
 
-	It is easiest to install a pre-compiled version of Python, including numpy and many more useful packages. One way to do so is using, e.g., the Python3.5 installers from `python.org <https://www.python.org/downloads>`_ or `ANACONDA <https://www.continuum.io/downloads>`_. Installing ProjectQ right away will succeed for the (slow) Python simulator (i.e., with the `--without-cppsimulator` flag). For a compiled version of the simulator, install the Visual C++ Build Tools and the Microsoft Windows SDK prior to doing a pip install. The built simulator will not support multi-threading due to the limited OpenMP support of msvc.
+	It is easiest to install a pre-compiled version of Python, including numpy and many more useful packages. One way to do so is using, e.g., the Python 3.7 installers from `python.org <https://www.python.org/downloads>`_ or `ANACONDA <https://www.continuum.io/downloads>`_. Installing ProjectQ right away will succeed for the (slow) Python simulator. For a compiled version of the simulator, install the Visual C++ Build Tools and the Microsoft Windows SDK prior to doing a pip install. The built simulator will not support multi-threading due to the limited OpenMP support of the Visual Studio compiler.
+
+	If the Python executable is added to your PATH (option normally suggested at the end of the Python installation procedure), you can then open a cmdline window (WIN + R, type "cmd" and click *OK*) and enter the following in order to install ProjectQ:
+
+	.. code-block:: batch
+		
+		python -m pip install --user projectq
+	
 
 	Should you want to run multi-threaded simulations, you can install a compiler which supports newer OpenMP versions, such as MinGW GCC and then manually build the C++ simulator with OpenMP enabled.
 
 
 **macOS**:
 
-	These are the steps to install ProjectQ on a new Mac:
+        Similarly to the other platforms, installing ProjectQ without the C++ simulator is really easy:
 
-	In order to install the fast C++ simulator, we require that your system has a C++ compiler (see option 3 below on how to only install the slower Python simulator via the `--without-cppsimulator` parameter)
+	.. code-block:: bash
 
-	Below you will find two options to install the fast C++ simulator. The first one is the easiest and requires only the standard compiler which Apple distributes with XCode. The second option uses macports to install the simulator with additional support for multi-threading by using OpenMP, which makes it slightly faster. We show how to install the required C++ compiler (clang) which supports OpenMP and additionally, we show how to install a newer python version.
+		python3 -m pip install --user projectq
 
-.. note::
-	Depending on your system you might need to use `sudo` for the installation.
+	
+	In order to install the fast C++ simulator, we require that a C++ compiler is installed on your system. There are essentially three options you can choose from:
 
-1. Installation using XCode and the default python:
+	1. Using the compiler provided by Apple through the XCode command line tools.
+	2. Using Homebrew
+	3. Using MacPorts
 
-	Install XCode by opening a terminal and running the following command:
+	For both options 2 and 3, you will be required to first install the XCode command line tools
+
+
+	**Apple XCode command line tool**
+
+	Install the XCode command line tools by opening a terminal window and running the following command:
 
 	.. code-block:: bash
 
 		xcode-select --install
-
-	Next, you will need to install Python and pip. See option 2 for information on how to install a newer python version with macports. Here, we are using the standard python which is preinstalled with macOS. Pip can be installed by:
+	
+	Next, you will need to install Python and pip. See options 2 and 3 for information on how to install a newer python version with either Homebrew or MacPorts. Here, we are using the standard python which is preinstalled with macOS. Pip can be installed by:
 
 	.. code-block:: bash
 
@@ -111,56 +144,64 @@ Detailed instructions and OS-specific hints
 
 	.. code-block:: bash
 
-		python -m pip install --user projectq
+		python3 -m pip install --user projectq
 
+	Note that the compiler provided by Apple is currently not able to compile ProjectQ's multi-threaded code.
 
-2. Installation using macports:
+        **Homebrew**
 
-	Either use the standard python and install pip as shown in option 1 or better use macports to install a newer python version, e.g., Python 3.5 and the corresponding pip. Visit `macports.org <https://www.macports.org/install.php>`_ and install the latest version (afterwards open a new terminal). Then, use macports to install Python 3.5 by
-
-	.. code-block:: bash
-
-		sudo port install python35
-
-	It might show a warning that if you intend to use python from the terminal, you should also install
+	First install the XCode command line tools. Then install Homebrew with the following command:
 
 	.. code-block:: bash
 
-		sudo port install py35-readline
+		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+	Then proceed to install Python as well as a C/C++ compiler (note: gcc installed via Homebrew may lead to some issues):
+
+	.. code-block:: bash
+
+		brew install python llvm
+        
+	You should now be able to install ProjectQ with the C++ simulator using the following command:
+
+	.. code-block:: bash
+
+		env P=/usr/local/opt/llvm/bin CC=$P/clang CXX=$P/clang++ python3 -m pip install --user projectq
+
+
+	**MacPorts**
+
+	Visit `macports.org <https://www.macports.org/install.php>`_ and install the latest version that corresponds to your operating system's version. Afterwards, open a new terminal window.
+
+	Then, use macports to install Python 3.7 by entering the following command
+
+	.. code-block:: bash
+
+		sudo port install python37
+
+	It might show a warning that if you intend to use python from the terminal. In this case, you should also install
+
+	.. code-block:: bash
+
+		sudo port install py37-gnureadline
 
 	Install pip by
 
 	.. code-block:: bash
 
-		sudo port install py35-pip
+		sudo port install py37-pip
 
-	Next, we can install ProjectQ with the high performance simulator written in C++. First, we will need to install a suitable compiler with support for **C++11**, OpenMP, and instrinsics. The best option is to install clang 3.9 also using macports (note: gcc installed via macports does not work)
+	Next, we can install ProjectQ with the high performance simulator written in C++. First, we will need to install a suitable compiler with support for **C++11**, OpenMP, and instrinsics. The best option is to install clang 9.0 also using macports (note: gcc installed via macports does not work).
 
 	.. code-block:: bash
 
-		sudo port install clang-3.9
+		sudo port install clang-9.0
 
 	ProjectQ is now installed by:
 
 	.. code-block:: bash
 
-		env CC=clang-mp-3.9 env CXX=clang++-mp-3.9 python3.5 -m pip install --user projectq
-
-3. Installation with only the slow Python simulator:
-
-	While this simulator works fine for small examples, it is suggested to install the high performance simulator written in C++.
-
-	If you just want to install ProjectQ with the (slow) Python simulator and no compiler, then first try to install ProjectQ with the default compiler 
-
-	.. code-block:: bash
-
-		python -m pip install --user projectq
-
-	which most likely will fail. Then, try again with the flag ``--without-cppsimulator``:
-
-	.. code-block:: bash
-
-		python -m pip install --user --global-option=--without-cppsimulator projectq
+		env CC=clang-mp-9.0 env CXX=clang++-mp-9.0 /opt/local/bin/python3.7 -m pip install --user projectq
 
 
 The ProjectQ syntax

@@ -181,7 +181,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
             if not self.is_last_engine:
                 self.send([cmd])
 
-    def draw(self, qubit_labels=None, drawing_order=None):
+    def draw(self, qubit_labels=None, drawing_order=None, **kwargs):
         """
         Generates and returns the plot of the quantum circuit stored so far
 
@@ -192,9 +192,32 @@ class CircuitDrawerMatplotlib(BasicEngine):
             drawing_order (dict): position of each qubit in the output
                 graphic. Keys: qubit IDs, Values: position of qubit on the
                 qubit line in the graphic.
+            **kwargs (dict): additional parameters are used to update
+                the default plot parameters
 
         Returns:
             A tuple containing the matplotlib figure and axes objects
+
+        Note:
+            Additional keyword arguments can be passed to this
+            function in order to further customize the figure output
+            by matplotlib (default value in parentheses):
+
+              - fontsize (14): Font size in pt
+              - column_spacing (.5): Vertical spacing between two
+                neighbouring gates (roughly in inches)
+              - control_radius (.015): Radius of the circle for controls
+              - labels_margin (1): Margin between labels and begin of
+                wire (roughly in inches)
+              - linewidth (1): Width of line
+              - not_radius (.03): Radius of the circle for X/NOT gates
+              - gate_offset (.05): Inner margins for gates with a text
+                representation
+              - mgate_width (.1): Width of the measurement gate
+              - swap_delta (.02): Half-size of the SWAP gate
+              - x_offset (.05): Absolute X-offset for drawing within the axes
+              - wire_height (1): Vertical spacing between two qubit
+                wires (roughly in inches)
         """
         max_depth = max(
             len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
@@ -205,4 +228,5 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
         return to_draw(self._qubit_lines,
                        qubit_labels=qubit_labels,
-                       drawing_order=drawing_order)
+                       drawing_order=drawing_order,
+                       **kwargs)
