@@ -74,10 +74,6 @@ def test_send_real_device_online_verbose(monkeypatch):
 
             def raise_for_status(self):
                 pass
-        print('GET REQUEST')
-        print(args[1]) 
-        print(request_num[0])
-        print('______')
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if (args[1] == urljoin(_API_URL, status_url)
@@ -147,10 +143,6 @@ def test_send_real_device_online_verbose(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        print('POST REQUEST')
-        print(args[1]) 
-        print(request_num[0])
-        print('______')
         jobs_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
         # Authentication
         if (args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token
@@ -202,11 +194,6 @@ def test_send_real_device_online_verbose(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        
-        print('PUT REQUEST')
-        print(args[1]) 
-        print(request_num[0])
-        print('______')
         # STEP3
         if (args[1] == "s3_url"
               and request_num[0] == 4):
@@ -230,10 +217,6 @@ def test_send_real_device_online_verbose(monkeypatch):
                                 token=None,
                                 shots=shots,
                                 verbose=True)
-    print('request num')
-    print(request_num[0])
-    print('res')
-    print(res)
 
     assert res == result
     json_qasm['nq'] = 40
@@ -543,9 +526,6 @@ def test_timeout_exception(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        print('GET REQUEST')
-        print(args[1]) 
-        print('______')
         # Accessing status of device. Return device info.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
@@ -590,10 +570,6 @@ def test_timeout_exception(monkeypatch):
             def raise_for_status(self):
                 pass
 
-
-        print('POST REQUEST')
-        print(args[1]) 
-        print('______')
         jobs_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
         if args[1] == _AUTH_API_URL:
             return MockPostResponse({"userId": "1", "id": "12"})
@@ -629,10 +605,6 @@ def test_timeout_exception(monkeypatch):
             def raise_for_status(self):
                 pass
 
-        
-        print('PUT REQUEST')
-        print(args[1]) 
-        print('______')
         # STEP3
         if (args[1] == "s3_url"):
             return MockResponse({}, 200)
