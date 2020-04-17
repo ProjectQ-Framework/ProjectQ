@@ -292,8 +292,8 @@ class AQTBackend(BasicEngine):
                     print(str(state) + " with p = " + str(probability) + star)
 
             class QB():
-                def __init__(self, ID):
-                    self.id = ID
+                def __init__(self, qubit_id):
+                    self.id = qubit_id
 
             # register measurement result
             for qubit_id in self._measured_ids:
@@ -313,7 +313,7 @@ class AQTBackend(BasicEngine):
             command_list: List of commands to execute
         """
         for cmd in command_list:
-            if not cmd.gate == FlushGate():
+            if not isinstance(cmd.gate, FlushGate):
                 self._store(cmd)
             else:
                 self._run()
