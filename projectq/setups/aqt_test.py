@@ -33,7 +33,7 @@ def test_aqt_mapper_in_cengines(monkeypatch):
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)
     engines_simulator = projectq.setups.aqt.get_engine_list(
         device='aqt_simulator')
-    assert len(engines_simulator) == 1
+    assert len(engines_simulator) == 13
 
 
 def test_aqt_errors(monkeypatch):
