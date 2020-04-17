@@ -35,7 +35,7 @@ class AQT(Session):
         self.timeout = 5.0
         self.token = None
 
-    def get_list_devices(self, verbose=False):
+    def update_devices_list(self, verbose=False):
         """
         Returns:
             (list): list of available devices
@@ -43,7 +43,7 @@ class AQT(Session):
         Up to my knowledge there is no proper API call for online devices,
         so we just assume that the list from AQT portal always up to date
         """
-        # TODO: update once the API gets created
+        # TODO: update once the API for getting online devices is available
         self.backends = dict()
         self.backends['aqt_simulator'] = {
             'nq': 11,
@@ -63,7 +63,6 @@ class AQT(Session):
         if verbose:
             print('- List of AQT devices available:')
             print(self.backends)
-        return self.backends
 
     def is_online(self, device):
         # useless at the moment, may change if API evolves
@@ -150,8 +149,11 @@ class AQT(Session):
                         r_json['status']))
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
-                    self.get_list_devices()
-                    if not self.is_online(device):
+                    self.update_devices_list()
+                    
+                    # TODO: update once the API for getting online devices is
+                    #       available
+                    if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
                             "Device went offline. The ID of "
                             "your submitted job is {}.".format(execution_id))
@@ -184,7 +186,8 @@ def show_devices(verbose=False):
         (list) list of available devices and their properties
     """
     aqt_session = AQT()
-    return aqt_session.get_list_devices(verbose=verbose)
+    aqt_session.update_devices_list(verbose=verbose)
+    return aqt_session.backends
 
 
 def retrieve(device,
@@ -206,7 +209,7 @@ def retrieve(device,
     """
     aqt_session = AQT()
     aqt_session._authenticate(token)
-    aqt_session.get_list_devices(verbose)
+    aqt_session.update_devices_list(verbose)
     res = aqt_session._get_result(device,
                                   jobid,
                                   num_retries=num_retries,
@@ -249,7 +252,7 @@ def send(info,
         aqt_session._authenticate(token)
 
         # check if the device is online
-        aqt_session.get_list_devices(verbose)
+        aqt_session.update_devices_list(verbose)
         online = aqt_session.is_online(device)
         # useless for the moment
         if not online:  # pragma: no cover

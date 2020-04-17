@@ -34,7 +34,7 @@ def test_is_online():
 
     aqt_session = _aqt_http_client.AQT()
     aqt_session._authenticate(token)
-    aqt_session.get_list_devices()
+    aqt_session.update_devices_list()
     assert aqt_session.is_online('aqt_simulator')
     assert aqt_session.is_online('aqt_simulator_noise')
     assert aqt_session.is_online('aqt_device')
@@ -43,7 +43,7 @@ def test_is_online():
 
 def test_show_devices():
     device_list = _aqt_http_client.show_devices(verbose=True)
-    # TODO: update once the API gets created
+    # TODO: update once the API for getting online devices is available
     assert len(device_list) == 3
 
 
