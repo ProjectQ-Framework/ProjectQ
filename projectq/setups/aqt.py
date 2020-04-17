@@ -54,7 +54,7 @@ def get_engine_list(token=None, device=None):
             res[i] = i
         mapper.current_mapping = res
         aqt_setup = [mapper]
-    .else:
+    else:
         # If there is an online device not handled into ProjectQ it's not too
         # bad, the engine_list can be constructed manually with the
         # appropriate mapper and the 'coupling_map' parameter
