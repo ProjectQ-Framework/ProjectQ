@@ -248,7 +248,7 @@ class IBMQ(Session):
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
-        def _handle_sigint_during_get_result(*_):
+        def _handle_sigint_during_get_result(*_):  # pragma: no cover
             raise Exception(
                 "Interrupted. The ID of your submitted job is {}.".format(
                     execution_id))
