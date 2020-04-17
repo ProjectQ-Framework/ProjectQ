@@ -29,7 +29,7 @@ from projectq.ops import (Rx, Ry, Rxx, Barrier)
 from projectq.cengines import (LocalOptimizer, IBM5QubitMapper,
                                SwapAndCNOTFlipper, BasicMapperEngine,
                                GridMapper)
-from projectq.backends._aqt._ibm_http_client import show_devices
+from projectq.backends._aqt._aqt_http_client import show_devices
 
 
 def get_engine_list(token=None, device=None):
@@ -41,7 +41,7 @@ def get_engine_list(token=None, device=None):
     if device not in devices:
         raise DeviceOfflineError('Error when configuring engine list: device '
                                  'requested for Backend not connected')
-    if device == 'simulator':
+    if device == 'aqt_simulator':
         # The 32 qubit online simulator doesn't need a specific mapping for
         # gates. Can also run wider gateset but this setup keep the
         # restrictedgateset setup for coherence
