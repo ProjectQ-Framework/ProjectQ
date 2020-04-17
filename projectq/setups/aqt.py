@@ -12,14 +12,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines a setup allowing to compile code for the IBM quantum chips:
-->Any 5 qubit devices
-->the ibmq online simulator
-->the melbourne 15 qubit device
+Defines a setup allowing to compile code for the AQT trapped ion devices:
+->The 4 qubits device
+->The 11 qubits simulator
+->The 11 qubits noisy simulator
 
 It provides the `engine_list` for the `MainEngine' based on the requested
-device.  Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be
-translated in the backend in the U1/U2/U3/CX gate set.
+device.  Decompose the circuit into a Rx/Ry/Rxx gate set that will be
+translated in the backend in the Rx/Ry/MS gate set.
 """
 
 import projectq
@@ -42,7 +42,7 @@ def get_engine_list(token=None, device=None):
         raise DeviceOfflineError('Error when configuring engine list: device '
                                  'requested for Backend not connected')
     if device == 'aqt_simulator':
-        # The 32 qubit online simulator doesn't need a specific mapping for
+        # The 11 qubit online simulator doesn't need a specific mapping for
         # gates. Can also run wider gateset but this setup keep the
         # restrictedgateset setup for coherence
         mapper = BasicMapperEngine()
@@ -60,12 +60,10 @@ def get_engine_list(token=None, device=None):
         # appropriate mapper and the 'coupling_map' parameter
         raise DeviceNotHandledError('Device not yet fully handled by ProjectQ')
 
-    # Most IBM devices accept U1,U2,U3,CX gates.
     # Most gates need to be decomposed into a subset that is manually converted
     # in the backend (until the implementation of the U1,U2,U3)
-    # available gates decomposable now for U1,U2,U3: Rx,Ry,Rz and H
-    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry, Rxx),
-                                              two_qubit_gates=tuple(),
+    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry),
+                                              two_qubit_gates=(Rxx,),
                                               other_gates=(Barrier, ))
     setup.extend(aqt_setup)
     return setup
