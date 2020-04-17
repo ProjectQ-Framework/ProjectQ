@@ -146,7 +146,6 @@ class IBMQ(Session):
 
         # STEP1: Obtain most of the URLs for handling communication with
         #        quantum device
-        post_job_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
         json_step1 = {
             'data': None,
             'json': {
@@ -158,8 +157,9 @@ class IBMQ(Session):
             },
             'timeout': (self.timeout, None)
         }
-        request = super(IBMQ, self).post(urljoin(_API_URL, post_job_url),
-                                         **json_step1)
+        request = super(IBMQ, self).post(
+            urljoin(_API_URL, 'Network/ibm-q/Groups/open/Projects/main/Jobs'),
+            **json_step1)
         request.raise_for_status()
         r_json = request.json()
         download_endpoint_url = r_json['objectStorageInfo'][
@@ -173,28 +173,23 @@ class IBMQ(Session):
         request = super(IBMQ, self).get(upload_endpoint_url, **json_step2)
         request.raise_for_status()
         r_json = request.json()
-        new_upload_url = r_json['url']
 
         # STEP3: WE USE THE ENDPOINT TO GET THE UPLOT LINK
-        shots = info['shots']
         n_classical_reg = info['nq']
         # hack: easier to restrict labels to measured qubits
         n_qubits = n_classical_reg  # self.backends[device]['nq']
-        version = self.backends[device]['version']
         instructions = info['json']
         maxcredit = info['maxCredits']
-        c_label = []
-        q_label = []
-        for i in range(n_classical_reg):
-            c_label.append(["c", i])
-        for i in range(n_qubits):
-            q_label.append(["q", i])
+        c_label = [["c", i] for i in range(n_classical_reg)]
+        q_label = [["q", i] for i in range(n_qubits)]
+
         # hack: the data value in the json quantum code is a string
         instruction_str = str(instructions).replace('\'', '\"')
         data = '{"qobj_id": "' + str(uuid.uuid4()) + '", '
         data += '"header": {"backend_name": "' + device + '", '
-        data += '"backend_version": "' + version + '"}, '
-        data += '"config": {"shots": ' + str(shots) + ', '
+        data += ('"backend_version": "' + self.backends[device]['version']
+                 + '"}, ')
+        data += '"config": {"shots": ' + str(info['shots']) + ', '
         data += '"max_credits": ' + str(maxcredit) + ', "memory": false, '
         data += ('"parameter_binds": [], "memory_slots": '
                  + str(n_classical_reg))
@@ -220,7 +215,7 @@ class IBMQ(Session):
             },
             'timeout': (5.0, None)
         }
-        request = super(IBMQ, self).put(new_upload_url, **json_step3)
+        request = super(IBMQ, self).put(r_json['url'], **json_step3)
         request.raise_for_status()
 
         # STEP4: CONFIRM UPLOAD
@@ -275,20 +270,18 @@ class IBMQ(Session):
                 acceptable_status = ['VALIDATING', 'VALIDATED', 'RUNNING']
                 if r_json['status'] == 'COMPLETED':
                     # STEP6: Get the endpoint to get the result
-                    url_step6 = job_status_url + '/resultDownloadUrl'
                     json_step6 = {
                         'allow_redirects': True,
                         'timeout': (self.timeout, None)
                     }
-                    request = super(IBMQ,
-                                    self).get(urljoin(_API_URL, url_step6),
-                                              **json_step6)
+                    request = super(IBMQ, self).get(
+                        urljoin(_API_URL,
+                                job_status_url + '/resultDownloadUrl'),
+                        **json_step6)
                     request.raise_for_status()
                     r_json = request.json()
 
                     # STEP7: Get the result
-                    url_step7 = r_json['url']
-
                     json_step7 = {
                         'allow_redirects': True,
                         'params': {
@@ -296,7 +289,8 @@ class IBMQ(Session):
                         },
                         'timeout': (self.timeout, None)
                     }
-                    request = super(IBMQ, self).get(url_step7, **json_step7)
+                    request = super(IBMQ, self).get(r_json['url'],
+                                                    **json_step7)
                     r_json = request.json()
                     result = r_json['results'][0]
 
@@ -306,16 +300,16 @@ class IBMQ(Session):
                         'json': None,
                         'timeout': (5.0, None)
                     }
-                    url_step8 = job_status_url + '/resultDownloaded'
-                    request = super(IBMQ,
-                                    self).post(urljoin(_API_URL, url_step8),
-                                               **json_step8)
+                    request = super(IBMQ, self).post(
+                        urljoin(_API_URL,
+                                job_status_url + '/resultDownloaded'),
+                        **json_step8)
                     r_json = request.json()
                     return result
 
                 # Note: if stays stuck if 'Validating' mode, then sthg went
                 #       wrong in step 3
-                if (r_json['status'] not in acceptable_status):
+                if r_json['status'] not in acceptable_status:
                     raise Exception(
                         "Error while running the code. Last status: {}.".
                         format(r_json['status']))
