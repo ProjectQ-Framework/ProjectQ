@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.backends._aqt._aqt_http_client.py."""
 
 import json
@@ -30,15 +29,89 @@ def no_requests(monkeypatch):
 
 _api_url = 'https://gateway.aqt.eu/marmot/'
 
+
+def test_is_online():
+    token = 'access'
+
+    aqt_session = _aqt_http_client.AQT()
+    aqt_session._authenticate(token)
+    aqt_session.get_list_devices()
+    assert aqt_session.is_online('aqt_simulator')
+    assert aqt_session.is_online('aqt_simulator_noise')
+    assert aqt_session.is_online('aqt_device')
+    assert not aqt_session.is_online('aqt_unknown')
+
+
+def test_show_devices():
+    device_list = _aqt_http_client.show_devices(verbose=True)
+    # TODO: update once the API gets created
+    assert len(device_list) == 3
+
+
+def test_send_too_many_qubits(monkeypatch):
+    json_aqt = {
+        'data':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'access_token':
+        'access',
+        'repetitions':
+        1,
+        'no_qubits':
+        3
+    }
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        100,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
+    token = "access"
+    shots = 1
+
+    # Code to test:
+    with pytest.raises(_aqt_http_client.DeviceTooSmall):
+        _aqt_http_client.send(info,
+                              device="aqt_simulator",
+                              token=token,
+                              shots=shots,
+                              verbose=True)
+
+
 def test_send_real_device_online_verbose(monkeypatch):
-    json_aqt = {'data': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                         '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                 'access_token': 'access', 'repetitions': 1, 'no_qubits': 3}
-    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    json_aqt = {
+        'data':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'access_token':
+        'access',
+        'repetitions':
+        1,
+        'no_qubits':
+        3
+    }
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        3,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
     token = "access"
     shots = 1
     device = "aqt_simulator"
@@ -66,23 +139,28 @@ def test_send_real_device_online_verbose(monkeypatch):
                 pass
 
         # Run code
-        if (args[1] == urljoin(_api_url, "sim/") and
-                kwargs["data"] == json_aqt and
-                request_num[0] == 0):
+        if (args[1] == urljoin(_api_url, "sim/") and kwargs["data"] == json_aqt
+                and request_num[0] == 0):
             request_num[0] += 1
-            return MockPutResponse({"id": execution_id,"status":"queued"},200)
-        elif (args[1] == urljoin(_api_url,"sim/") and
-              kwargs["data"]["access_token"] == token and
-              kwargs["data"]["id"] == execution_id and not
-              result_ready[0] and request_num[0] == 1):
+            return MockPutResponse({
+                "id": execution_id,
+                "status": "queued"
+            }, 200)
+        elif (args[1] == urljoin(_api_url, "sim/")
+              and kwargs["data"]["access_token"] == token
+              and kwargs["data"]["id"] == execution_id and not result_ready[0]
+              and request_num[0] == 1):
             result_ready[0] = True
             request_num[0] += 1
-            return MockPutResponse({"status":'running'}, 200)
-        elif (args[1] == urljoin(_api_url,"sim/") and
-              kwargs["data"]["access_token"] == token and
-              kwargs["data"]["id"] == execution_id and
-              result_ready[0] and request_num[0] == 2):
-            return MockPutResponse({"samples": result,"status": 'finished'}, 200)
+            return MockPutResponse({"status": 'running'}, 200)
+        elif (args[1] == urljoin(_api_url, "sim/")
+              and kwargs["data"]["access_token"] == token
+              and kwargs["data"]["id"] == execution_id and result_ready[0]
+              and request_num[0] == 2):
+            return MockPutResponse({
+                "samples": result,
+                "status": 'finished'
+            }, 200)
 
     monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
@@ -96,8 +174,10 @@ def test_send_real_device_online_verbose(monkeypatch):
     res = _aqt_http_client.send(info,
                                 device="aqt_simulator",
                                 token=None,
-                                shots=shots, verbose=True)
+                                shots=shots,
+                                verbose=True)
     assert res == result
+
 
 def test_send_that_errors_are_caught(monkeypatch):
     class MockResponse:
@@ -122,14 +202,24 @@ def test_send_that_errors_are_caught(monkeypatch):
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        3,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
     _aqt_http_client.send(info,
                           device="aqt_simulator",
                           token=None,
-                          shots=shots, verbose=True)
+                          shots=shots,
+                          verbose=True)
 
 
 def test_send_that_errors_are_caught2(monkeypatch):
@@ -155,14 +245,24 @@ def test_send_that_errors_are_caught2(monkeypatch):
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        3,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
     _aqt_http_client.send(info,
                           device="aqt_simulator",
                           token=None,
-                          shots=shots, verbose=True)
+                          shots=shots,
+                          verbose=True)
 
 
 def test_send_that_errors_are_caught3(monkeypatch):
@@ -188,30 +288,41 @@ def test_send_that_errors_are_caught3(monkeypatch):
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
-    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        3,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
     _aqt_http_client.send(info,
                           device="aqt_simulator",
                           token=None,
-                          shots=shots, verbose=True)
+                          shots=shots,
+                          verbose=True)
 
 
-
-
-
-
-
-def test_timeout_exception(monkeypatch):
-    json_aqt = {'data': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                         '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                 'access_token': 'access', 'repetitions': 1, 'no_qubits': 3}
-    info = {'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-                                '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-                                '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-                     'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
+def test_send_that_errors_are_caught4(monkeypatch):
+    json_aqt = {
+        'data': '[]',
+        'access_token': 'access',
+        'repetitions': 1,
+        'no_qubits': 3
+    }
+    info = {
+        'circuit': '[]',
+        'nq': 3,
+        'shots': 1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
     token = "access"
     shots = 1
     device = "aqt_simulator"
@@ -238,15 +349,90 @@ def test_timeout_exception(monkeypatch):
                 pass
 
         # Run code
-        if (args[1] == urljoin(_api_url, "sim/") and
-                kwargs["data"] == json_aqt):
-            return MockPutResponse({"id": execution_id,"status":"queued"},200)
-        elif (args[1] == urljoin(_api_url,"sim/") and
-              kwargs["data"]["access_token"] == token and
-              kwargs["data"]["id"] == execution_id):
+        if (args[1] == urljoin(_api_url, "sim/")
+                and kwargs["data"] == json_aqt):
+            return MockPutResponse({
+                "id": execution_id,
+                "status": "error"
+            }, 200)
+
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
+
+    # Code to test:
+    _aqt_http_client.time.sleep = lambda x: x
+    with pytest.raises(Exception):
+        _aqt_http_client.send(info,
+                              device="aqt_simulator",
+                              token=token,
+                              num_retries=10,
+                              shots=shots,
+                              verbose=True)
+
+
+def test_timeout_exception(monkeypatch):
+    json_aqt = {
+        'data':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'access_token':
+        'access',
+        'repetitions':
+        1,
+        'no_qubits':
+        3
+    }
+    info = {
+        'circuit':
+        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
+        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
+        'nq':
+        3,
+        'shots':
+        1,
+        'backend': {
+            'name': 'aqt_simulator'
+        }
+    }
+    token = "access"
+    shots = 1
+    device = "aqt_simulator"
+    execution_id = '123e'
+    result_ready = [False]
+    tries = [0]
+
+    def mocked_requests_put(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, body="", url=""):
+                self.body = body
+                self.url = url
+
+        class MockPutResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Run code
+        if (args[1] == urljoin(_api_url, "sim/")
+                and kwargs["data"] == json_aqt):
+            return MockPutResponse({
+                "id": execution_id,
+                "status": "queued"
+            }, 200)
+        elif (args[1] == urljoin(_api_url, "sim/")
+              and kwargs["data"]["access_token"] == token
+              and kwargs["data"]["id"] == execution_id):
             tries[0] += 1
-            return MockPutResponse({"status":'running'}, 200)
-  
+            return MockPutResponse({"status": 'running'}, 200)
+
     monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
     def user_password_input(prompt):
@@ -257,15 +443,17 @@ def test_timeout_exception(monkeypatch):
 
     # Code to test:
     _aqt_http_client.time.sleep = lambda x: x
-    with pytest.raises(Exception) as excinfo:
-        _aqt_http_client.send(info,
-                                device="aqt_simulator",
-                                token=None,
-                                num_retries=10,
-                                shots=shots, verbose=True)
+    for tok in (None, token):
+        with pytest.raises(Exception) as excinfo:
+            _aqt_http_client.send(info,
+                                  device="aqt_simulator",
+                                  token=tok,
+                                  num_retries=10,
+                                  shots=shots,
+                                  verbose=True)
     assert "123e" in str(excinfo.value)  # check that job id is in exception
     assert tries[0] > 0
-                       
+
 
 def test_retrieve(monkeypatch):
     token = "access"
@@ -294,18 +482,21 @@ def test_retrieve(monkeypatch):
                 pass
 
         # Run code
-        if (args[1] == urljoin(_api_url,"sim/") and
-              kwargs["data"]["access_token"] == token and
-              kwargs["data"]["id"] == execution_id and not
-              result_ready[0] and request_num[0] < 1):
+        if (args[1] == urljoin(_api_url, "sim/")
+                and kwargs["data"]["access_token"] == token
+                and kwargs["data"]["id"] == execution_id
+                and not result_ready[0] and request_num[0] < 1):
             result_ready[0] = True
             request_num[0] += 1
-            return MockPutResponse({"status":'running'}, 200)
-        elif (args[1] == urljoin(_api_url,"sim/") and
-              kwargs["data"]["access_token"] == token and
-              kwargs["data"]["id"] == execution_id and
-              result_ready[0] and request_num[0] == 1):
-            return MockPutResponse({"samples": result,"status": 'finished'}, 200)
+            return MockPutResponse({"status": 'running'}, 200)
+        elif (args[1] == urljoin(_api_url, "sim/")
+              and kwargs["data"]["access_token"] == token
+              and kwargs["data"]["id"] == execution_id and result_ready[0]
+              and request_num[0] == 1):
+            return MockPutResponse({
+                "samples": result,
+                "status": 'finished'
+            }, 200)
 
     monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
 
@@ -318,6 +509,58 @@ def test_retrieve(monkeypatch):
     # Code to test:
     _aqt_http_client.time.sleep = lambda x: x
     res = _aqt_http_client.retrieve(device="aqt_simulator",
-                                    token=None, verbose=True,
+                                    token=None,
+                                    verbose=True,
                                     jobid="123e")
     assert res == result
+
+
+def test_retrieve_that_errors_are_caught(monkeypatch):
+    token = "access"
+    device = "aqt_simulator"
+    execution_id = '123e'
+    result_ready = [False]
+    result = "my_result"
+    request_num = [0]  # To assert correct order of calls
+
+    def mocked_requests_put(*args, **kwargs):
+        class MockRequest:
+            def __init__(self, body="", url=""):
+                self.body = body
+                self.url = url
+
+        class MockPutResponse:
+            def __init__(self, json_data, text=" "):
+                self.json_data = json_data
+                self.text = text
+                self.request = MockRequest()
+
+            def json(self):
+                return self.json_data
+
+            def raise_for_status(self):
+                pass
+
+        # Run code
+        if (args[1] == urljoin(_api_url, "sim/")
+                and kwargs["data"]["access_token"] == token
+                and kwargs["data"]["id"] == execution_id
+                and not result_ready[0] and request_num[0] < 1):
+            result_ready[0] = True
+            request_num[0] += 1
+            return MockPutResponse({"status": 'running'}, 200)
+        elif (args[1] == urljoin(_api_url, "sim/")
+              and kwargs["data"]["access_token"] == token
+              and kwargs["data"]["id"] == execution_id and result_ready[0]
+              and request_num[0] == 1):
+            return MockPutResponse({"status": 'error'}, 200)
+
+    monkeypatch.setattr("requests.sessions.Session.put", mocked_requests_put)
+
+    # Code to test:
+    _aqt_http_client.time.sleep = lambda x: x
+    with pytest.raises(Exception):
+        _aqt_http_client.retrieve(device="aqt_simulator",
+                                  token=token,
+                                  verbose=True,
+                                  jobid="123e")

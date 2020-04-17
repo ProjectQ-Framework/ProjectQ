@@ -43,6 +43,7 @@ class AQT(Session):
         Up to my knowledge there is no proper API call for online devices,
         so we just assume that the list from AQT portal always up to date
         """
+        # TODO: update once the API gets created
         self.backends = dict()
         self.backends['aqt_simulator'] = {
             'nq': 11,
@@ -250,7 +251,8 @@ def send(info,
         # check if the device is online
         aqt_session.get_list_devices(verbose)
         online = aqt_session.is_online(device)
-        if not online:  # useless for the moment
+        # useless for the moment
+        if not online:  # pragma: no cover
             print("The device is offline (for maintenance?). Use the "
                   "simulator instead or try again later.")
             raise DeviceOfflineError("Device is offline.")
