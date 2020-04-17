@@ -180,14 +180,6 @@ def test_send_real_device_online_verbose(monkeypatch):
 
 
 def test_send_that_errors_are_caught(monkeypatch):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
     def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.HTTPError
@@ -223,14 +215,6 @@ def test_send_that_errors_are_caught(monkeypatch):
 
 
 def test_send_that_errors_are_caught2(monkeypatch):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
     def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise requests.exceptions.RequestException
@@ -266,14 +250,6 @@ def test_send_that_errors_are_caught2(monkeypatch):
 
 
 def test_send_that_errors_are_caught3(monkeypatch):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
     def mocked_requests_put(*args, **kwargs):
         # Test that this error gets caught
         raise KeyError

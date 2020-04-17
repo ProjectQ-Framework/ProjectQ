@@ -228,10 +228,9 @@ class AQTBackend(BasicEngine):
                 mapped_state[i] = state[self._logical_to_physical(qubit.id)]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
-            if mapped_state not in probability_dict:
-                probability_dict[mapped_state] = probability
-            else:
-                probability_dict[mapped_state] += probability
+
+            probability_dict[mapped_state] = (
+                probability_dict.get(mapped_state, 0) + probability)
         return probability_dict
 
     def _run(self):
