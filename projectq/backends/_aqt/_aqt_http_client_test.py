@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 #   limitations under the License.
 """Tests for projectq.backends._aqt._aqt_http_client.py."""
 
-import json
 import pytest
 import requests
 from requests.compat import urljoin
@@ -49,18 +48,6 @@ def test_show_devices():
 
 
 def test_send_too_many_qubits(monkeypatch):
-    json_aqt = {
-        'data':
-        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
-        '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
-        '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-        'access_token':
-        'access',
-        'repetitions':
-        1,
-        'no_qubits':
-        3
-    }
     info = {
         'circuit':
         '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
@@ -303,8 +290,6 @@ def test_send_that_errors_are_caught4(monkeypatch):
     shots = 1
     device = "aqt_simulator"
     execution_id = '123e'
-    result_ready = [False]
-    tries = [0]
 
     def mocked_requests_put(*args, **kwargs):
         class MockRequest:
@@ -375,7 +360,6 @@ def test_timeout_exception(monkeypatch):
     shots = 1
     device = "aqt_simulator"
     execution_id = '123e'
-    result_ready = [False]
     tries = [0]
 
     def mocked_requests_put(*args, **kwargs):
@@ -403,7 +387,7 @@ def test_timeout_exception(monkeypatch):
                 "id": execution_id,
                 "status": "queued"
             }, 200)
-        elif (args[1] == urljoin(_api_url, "sim/")
+        if (args[1] == urljoin(_api_url, "sim/")
               and kwargs["data"]["access_token"] == token
               and kwargs["data"]["id"] == execution_id):
             tries[0] += 1
@@ -465,7 +449,7 @@ def test_retrieve(monkeypatch):
             result_ready[0] = True
             request_num[0] += 1
             return MockPutResponse({"status": 'running'}, 200)
-        elif (args[1] == urljoin(_api_url, "sim/")
+        if (args[1] == urljoin(_api_url, "sim/")
               and kwargs["data"]["access_token"] == token
               and kwargs["data"]["id"] == execution_id and result_ready[0]
               and request_num[0] == 1):
@@ -496,7 +480,6 @@ def test_retrieve_that_errors_are_caught(monkeypatch):
     device = "aqt_simulator"
     execution_id = '123e'
     result_ready = [False]
-    result = "my_result"
     request_num = [0]  # To assert correct order of calls
 
     def mocked_requests_put(*args, **kwargs):
@@ -525,7 +508,7 @@ def test_retrieve_that_errors_are_caught(monkeypatch):
             result_ready[0] = True
             request_num[0] += 1
             return MockPutResponse({"status": 'running'}, 200)
-        elif (args[1] == urljoin(_api_url, "sim/")
+        if (args[1] == urljoin(_api_url, "sim/")
               and kwargs["data"]["access_token"] == token
               and kwargs["data"]["id"] == execution_id and result_ready[0]
               and request_num[0] == 1):

@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
 """Tests for projectq.backends._aqt._aqt.py."""
 
 import pytest
-import json
 import math
 
 from projectq import MainEngine
 from projectq.backends._aqt import _aqt
 from projectq.types import WeakQubitRef, Qubit
-from projectq.cengines import (TagRemover, LocalOptimizer, DummyEngine,
-                               BasicMapperEngine)
+from projectq.cengines import DummyEngine, BasicMapperEngine
 from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
                           Entangle, Measure, NOT, Rx, Ry, Rz, Rxx, S, Sdag, T,
                           Tdag, X, Y, Z)
-
-from projectq.setups import restrictedgateset
 
 
 # Insure that no HTTP request can be made in all tests in this module
