@@ -11,12 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""Tests for projectq.setup.ibm."""
+"""Tests for projectq.setup.aqt."""
 
 import pytest
 
 
-def test_aqt_cnot_mapper_in_cengines(monkeypatch):
+def test_aqt_mapper_in_cengines(monkeypatch):
     import projectq.setups.aqt
 
     def mock_show_devices(*args, **kwargs):
@@ -33,7 +33,7 @@ def test_aqt_cnot_mapper_in_cengines(monkeypatch):
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)
     engines_simulator = projectq.setups.aqt.get_engine_list(
         device='aqt_simulator')
-    assert len(engines_simulator) == 13
+    assert len(engines_simulator) == 1
 
 
 def test_aqt_errors(monkeypatch):
