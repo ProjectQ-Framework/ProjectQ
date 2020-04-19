@@ -80,10 +80,10 @@ class DaggeredGate(BasicGate):
             pass
 
     def __str__(self):
-        """
+        r"""
         Return string representation (str(gate) + \"^\dagger\").
         """
-        return str(self._gate) + "^\dagger"
+        return str(self._gate) + r"^\dagger"
 
     def tex_str(self):
         """
@@ -132,6 +132,22 @@ def get_inverse(gate):
     except NotInvertible:
         return DaggeredGate(gate)
 
+def is_identity(gate):
+    """
+    Return True if the gate is an identity gate.
+
+    Tries to call gate.is_identity and, upon failure, returns False
+
+    Args:
+        gate: Gate of which to get the inverse
+
+    Example:
+        .. code-block:: python
+
+            get_inverse(Rx(2*math.pi)) # returns True
+            get_inverse(Rx(math.pi)) # returns False
+    """
+    return gate.is_identity()
 
 class ControlledGate(BasicGate):
     """

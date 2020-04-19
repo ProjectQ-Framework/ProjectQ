@@ -11,12 +11,12 @@ For a detailed documentation of a subpackage or module, click on its name below:
     :maxdepth: 1
     :titlesonly:
     
-    projectq.backends
-    projectq.cengines
-    projectq.libs
-    projectq.meta
-    projectq.ops
-    projectq.setups
-    projectq.types
+    _doc_gen/projectq.backends
+    _doc_gen/projectq.cengines
+    _doc_gen/projectq.libs
+    _doc_gen/projectq.meta
+    _doc_gen/projectq.ops
+    _doc_gen/projectq.setups
+    _doc_gen/projectq.types
 
 

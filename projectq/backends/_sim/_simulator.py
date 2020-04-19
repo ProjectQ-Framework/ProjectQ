@@ -33,10 +33,12 @@ from projectq.ops import (NOT,
                           TimeEvolution)
 from projectq.types import WeakQubitRef
 
+FALLBACK_TO_PYSIM = False
 try:
     from ._cppsim import Simulator as SimulatorBackend
 except ImportError:
     from ._pysim import Simulator as SimulatorBackend
+    FALLBACK_TO_PYSIM = True
 
 
 class Simulator(BasicEngine):
@@ -384,14 +386,34 @@ class Simulator(BasicEngine):
             ID = cmd.qubits[0][0].id
             self._simulator.deallocate_qubit(ID)
         elif isinstance(cmd.gate, BasicMathGate):
+            # improve performance by using C++ code for some commomn gates
+            from projectq.libs.math import (AddConstant,
+                                            AddConstantModN,
+                                            MultiplyByConstantModN)
             qubitids = []
             for qr in cmd.qubits:
                 qubitids.append([])
                 for qb in qr:
                     qubitids[-1].append(qb.id)
-            math_fun = cmd.gate.get_math_function(cmd.qubits)
-            self._simulator.emulate_math(math_fun, qubitids,
-                                         [qb.id for qb in cmd.control_qubits])
+            if FALLBACK_TO_PYSIM:
+                math_fun = cmd.gate.get_math_function(cmd.qubits)
+                self._simulator.emulate_math(math_fun, qubitids,
+                                             [qb.id for qb in cmd.control_qubits])
+            else:
+                # individual code for different standard gates to make it faster!
+                if isinstance(cmd.gate, AddConstant):
+                    self._simulator.emulate_math_addConstant(cmd.gate.a, qubitids,
+                                                             [qb.id for qb in cmd.control_qubits])
+                elif isinstance(cmd.gate, AddConstantModN):
+                    self._simulator.emulate_math_addConstantModN(cmd.gate.a, cmd.gate.N, qubitids,
+                                                                 [qb.id for qb in cmd.control_qubits])
+                elif isinstance(cmd.gate, MultiplyByConstantModN):
+                    self._simulator.emulate_math_multiplyByConstantModN(cmd.gate.a, cmd.gate.N, qubitids,
+                                                                        [qb.id for qb in cmd.control_qubits])
+                else:
+                    math_fun = cmd.gate.get_math_function(cmd.qubits)
+                    self._simulator.emulate_math(math_fun, qubitids,
+                                                 [qb.id for qb in cmd.control_qubits])
         elif isinstance(cmd.gate, TimeEvolution):
             op = [(list(term), coeff) for (term, coeff)
                   in cmd.gate.hamiltonian.terms.items()]

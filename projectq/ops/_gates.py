@@ -16,17 +16,29 @@
 Contains definitions of standard gates such as
 * Hadamard (H)
 * Pauli-X (X / NOT)
+* Pauli-Y (Y)
 * Pauli-Z (Z)
+* S and its inverse (S / Sdagger)
 * T and its inverse (T / Tdagger)
+* SqrtX gate (SqrtX)
 * Swap gate (Swap)
+* SqrtSwap gate (SqrtSwap)
+* Entangle (Entangle)
 * Phase gate (Ph)
+* Rotation-X (Rx)
+* Rotation-Y (Ry)
 * Rotation-Z (Rz)
+* Rotation-XX on two qubits (Rxx)
+* Rotation-YY on two qubits (Ryy)
+* Rotation-ZZ on two qubits (Rzz)
 * Phase-shift (R)
 * Measurement (Measure)
 
 and meta gates, i.e.,
 * Allocate / Deallocate qubits
 * Flush gate (end of circuit)
+* Barrier
+* FlipBits
 """
 
 import math
@@ -37,6 +49,7 @@ import numpy as np
 
 from projectq.ops import get_inverse
 from ._basics import (BasicGate,
+                      MatrixGate,
                       SelfInverseGate,
                       BasicRotationGate,
                       BasicPhaseGate,
@@ -44,7 +57,6 @@ from ._basics import (BasicGate,
                       FastForwardingGate,
                       BasicMathGate)
 from ._command import apply_command
-from projectq.types import BasicQubit
 
 
 class HGate(SelfInverseGate):
@@ -110,7 +122,7 @@ class SGate(BasicGate):
 
 #: Shortcut (instance of) :class:`projectq.ops.SGate`
 S = SGate()
-#: Shortcut (instance of) :class:`projectq.ops.SGate`
+#: Inverse (and shortcut) of :class:`projectq.ops.SGate`
 Sdag = Sdagger = get_inverse(S)
 
 
@@ -125,7 +137,7 @@ class TGate(BasicGate):
 
 #: Shortcut (instance of) :class:`projectq.ops.TGate`
 T = TGate()
-#: Shortcut (instance of) :class:`projectq.ops.TGate`
+#: Inverse (and shortcut) of :class:`projectq.ops.TGate`
 Tdag = Tdagger = get_inverse(T)
 
 
@@ -145,10 +157,9 @@ class SqrtXGate(BasicGate):
 SqrtX = SqrtXGate()
 
 
-class SwapGate(SelfInverseGate, BasicMathGate):
+class SwapGate(SelfInverseGate):
     """ Swap gate class (swaps 2 qubits) """
     def __init__(self):
-        BasicMathGate.__init__(self, lambda x, y: (y, x))
         SelfInverseGate.__init__(self)
         self.interchangeable_qubit_indices = [[0, 1]]
 
@@ -217,7 +228,7 @@ class Rx(BasicRotationGate):
 
 
 class Ry(BasicRotationGate):
-    """ RotationX gate class """
+    """ RotationY gate class """
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),
@@ -232,6 +243,36 @@ class Rz(BasicRotationGate):
     def matrix(self):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0],
                           [0, cmath.exp(.5 * 1j * self.angle)]])
+
+
+class Rxx(BasicRotationGate):
+    """ RotationXX gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, -1j*cmath.sin(.5 * self.angle)],
+                          [0, cmath.cos( .5 * self.angle), -1j*cmath.sin(.5 * self.angle), 0],
+                          [0, -1j*cmath.sin(.5 * self.angle), cmath.cos( .5 * self.angle), 0],
+                          [-1j*cmath.sin(.5 * self.angle), 0, 0, cmath.cos( .5 * self.angle)]])
+
+
+class Ryy(BasicRotationGate):
+    """ RotationYY gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, 1j*cmath.sin(.5 * self.angle)],
+                          [0, cmath.cos( .5 * self.angle), -1j*cmath.sin(.5 * self.angle), 0],
+                          [0, -1j*cmath.sin(.5 * self.angle), cmath.cos( .5 * self.angle), 0],
+                          [1j*cmath.sin(.5 * self.angle), 0, 0, cmath.cos( .5 * self.angle)]])
+
+
+class Rzz(BasicRotationGate):
+    """ RotationZZ gate class """
+    @property
+    def matrix(self):
+        return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0, 0, 0],
+                          [0, cmath.exp( .5 * 1j * self.angle), 0, 0],
+                          [0, 0, cmath.exp( .5 * 1j * self.angle), 0],
+                          [0, 0, 0, cmath.exp(-.5 * 1j * self.angle)]])
 
 
 class R(BasicPhaseGate):
@@ -338,3 +379,56 @@ class BarrierGate(BasicGate):
 
 #: Shortcut (instance of) :class:`projectq.ops.BarrierGate`
 Barrier = BarrierGate()
+
+
+class FlipBits(SelfInverseGate):
+    """ Gate for flipping qubits by means of XGates """
+    def __init__(self, bits_to_flip):
+        """
+        Initialize FlipBits gate.
+
+        Example:
+            .. code-block:: python
+
+                qureg = eng.allocate_qureg(2)
+                FlipBits([0, 1]) | qureg
+
+        Args:
+            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1,
+               True/False, or string of 0/1 identifying the qubits to flip.
+               In case of int, the bits to flip are determined from the
+               binary digits, with the least significant bit corresponding
+               to qureg[0]. If bits_to_flip is negative, exactly all qubits
+               which would not be flipped for the input -bits_to_flip-1 are
+               flipped, i.e., bits_to_flip=-1 flips all qubits.
+        """
+        SelfInverseGate.__init__(self)
+        if isinstance(bits_to_flip, int):
+            self.bits_to_flip = bits_to_flip
+        else:
+            self.bits_to_flip = 0
+            for i in reversed(list(bits_to_flip)):
+                bit = 0b1 if i == '1' or i == 1 or i is True else 0b0
+                self.bits_to_flip = (self.bits_to_flip << 1) | bit
+
+    def __str__(self):
+        return "FlipBits("+str(self.bits_to_flip)+")"
+
+    def __or__(self, qubits):
+        quregs_tuple = self.make_tuple_of_qureg(qubits)
+        if len(quregs_tuple) > 1:
+            raise ValueError(self.__str__()+' can only be applied to qubits,'
+                             'quregs, arrays of qubits, and tuples with one'
+                             'individual qubit')
+        for qureg in quregs_tuple:
+            for i, qubit in enumerate(qureg):
+                if (self.bits_to_flip >> i) & 1:
+                    XGate() | qubit
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.bits_to_flip == other.bits_to_flip
+        return False
+
+    def __hash__(self):
+        return hash(self.__str__())
