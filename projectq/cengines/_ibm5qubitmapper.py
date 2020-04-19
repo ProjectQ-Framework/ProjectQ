@@ -11,12 +11,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine to map to the 5-qubit IBM chip
 """
-from copy import deepcopy
-
 import itertools
 
 from projectq.cengines import BasicMapperEngine
@@ -39,8 +36,7 @@ class IBM5QubitMapper(BasicMapperEngine):
         without performing Swaps, the mapping procedure
         **raises an Exception**.
     """
-
-    def __init__(self):
+    def __init__(self, connections=None):
         """
         Initialize an IBM 5-qubit mapper compiler engine.
 
@@ -49,6 +45,16 @@ class IBM5QubitMapper(BasicMapperEngine):
         BasicMapperEngine.__init__(self)
         self.current_mapping = dict()
         self._reset()
+        self._cmds = []
+        self._interactions = dict()
+
+        if connections is None:
+            #general connectivity easier for testing functions
+            self.connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
+                                    (2, 1), (2, 3), (2, 4), (3, 1), (3, 4),
+                                    (4, 3)])
+        else:
+            self.connections = connections
 
     def is_available(self, cmd):
         """
@@ -67,17 +73,6 @@ class IBM5QubitMapper(BasicMapperEngine):
         self._cmds = []
         self._interactions = dict()
 
-    def _is_cnot(self, cmd):
-        """
-        Check if the command corresponds to a CNOT (controlled NOT gate).
-
-        Args:
-            cmd (Command): Command to check whether it is a controlled NOT
-                gate.
-        """
-        return (isinstance(cmd.gate, NOT.__class__) and
-                get_control_count(cmd) == 1)
-
     def _determine_cost(self, mapping):
         """
         Determines the cost of the circuit with the given mapping.
@@ -90,15 +85,15 @@ class IBM5QubitMapper(BasicMapperEngine):
             Cost measure taking into account CNOT directionality or None
             if the circuit cannot be executed given the mapping.
         """
-        from projectq.setups.ibm import ibmqx4_connections as connections
+
         cost = 0
         for tpl in self._interactions:
             ctrl_id = tpl[0]
             target_id = tpl[1]
             ctrl_pos = mapping[ctrl_id]
             target_pos = mapping[target_id]
-            if not (ctrl_pos, target_pos) in connections:
-                if (target_pos, ctrl_pos) in connections:
+            if not (ctrl_pos, target_pos) in self.connections:
+                if (target_pos, ctrl_pos) in self.connections:
                     cost += self._interactions[tpl]
                 else:
                     return None
@@ -114,20 +109,22 @@ class IBM5QubitMapper(BasicMapperEngine):
                 the mapping was already determined but more CNOTs get sent
                 down the pipeline.
         """
-        if (len(self.current_mapping) > 0 and
-                max(self.current_mapping.values()) > 4):
+        if (len(self.current_mapping) > 0
+                and max(self.current_mapping.values()) > 4):
             raise RuntimeError("Too many qubits allocated. The IBM Q "
                                "device supports at most 5 qubits and no "
                                "intermediate measurements / "
                                "reallocations.")
         if len(self._interactions) > 0:
-            logical_ids = [qbid for qbid in self.current_mapping]
+            logical_ids = list(self.current_mapping)
             best_mapping = self.current_mapping
             best_cost = None
             for physical_ids in itertools.permutations(list(range(5)),
                                                        len(logical_ids)):
-                mapping = {logical_ids[i]: physical_ids[i]
-                           for i in range(len(logical_ids))}
+                mapping = {
+                    logical_ids[i]: physical_ids[i]
+                    for i in range(len(logical_ids))
+                }
                 new_cost = self._determine_cost(mapping)
                 if new_cost is not None:
                     if best_cost is None or new_cost < best_cost:
@@ -153,7 +150,7 @@ class IBM5QubitMapper(BasicMapperEngine):
         """
         if not cmd.gate == FlushGate():
             target = cmd.qubits[0][0].id
-        if self._is_cnot(cmd):
+        if _is_cnot(cmd):
             # CNOT encountered
             ctrl = cmd.control_qubits[0].id
             if not (ctrl, target) in self._interactions:
@@ -187,3 +184,15 @@ class IBM5QubitMapper(BasicMapperEngine):
             if isinstance(cmd.gate, FlushGate):
                 self._run()
                 self._reset()
+
+
+def _is_cnot(cmd):
+    """
+    Check if the command corresponds to a CNOT (controlled NOT gate).
+
+    Args:
+        cmd (Command): Command to check whether it is a controlled NOT
+            gate.
+    """
+    return (isinstance(cmd.gate, NOT.__class__)
+            and get_control_count(cmd) == 1)
