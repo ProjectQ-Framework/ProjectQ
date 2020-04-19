@@ -44,6 +44,9 @@ install:
   - cd qrack && mkdir _build && cd _build && cmake .. && sudo make install && cd ../.. && sudo rm -r qrack && cd vm6502q/ProjectQ
   - pip$PY install -e . --global-option="--with-qracksimulator"
 
+before_script:
+  - "echo 'backend: Agg' > matplotlibrc"
+
 # command to run tests
 script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq
 

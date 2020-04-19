@@ -27,7 +27,6 @@ from projectq.ops import Measure, Rz
 
 from . import rz2rx
 
-
 tolerance = 1e-6
 
 

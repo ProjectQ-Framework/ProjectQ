@@ -11,14 +11,13 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._ibm5qubitmapper.py."""
 
 import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, CNOT, X, Measure, All
+from projectq.ops import H, CNOT, All
 
 from projectq.cengines import _ibm5qubitmapper, SwapAndCNOTFlipper
 from projectq.backends import IBMBackend
@@ -28,15 +27,20 @@ def test_ibm5qubitmapper_is_available(monkeypatch):
     # Test that IBM5QubitMapper calls IBMBackend if gate is available.
     def mock_send(*args, **kwargs):
         return "Yes"
+
     monkeypatch.setattr(_ibm5qubitmapper.IBMBackend, "is_available", mock_send)
     mapper = _ibm5qubitmapper.IBM5QubitMapper()
     assert mapper.is_available("TestCommand") == "Yes"
 
 
 def test_ibm5qubitmapper_invalid_circuit():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[
+            _ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)
+        ])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -51,9 +55,13 @@ def test_ibm5qubitmapper_invalid_circuit():
 
 
 def test_ibm5qubitmapper_valid_circuit1():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[
+            _ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)
+        ])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -70,9 +78,13 @@ def test_ibm5qubitmapper_valid_circuit1():
 
 
 def test_ibm5qubitmapper_valid_circuit2():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[
+            _ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)
+        ])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -89,6 +101,7 @@ def test_ibm5qubitmapper_valid_circuit2():
 
 
 def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
+    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     backend = DummyEngine(save_commands=True)
 
     class FakeIBMBackend(IBMBackend):
@@ -99,8 +112,11 @@ def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
     fake.is_available = backend.is_available
     backend.is_last_engine = True
 
-    eng = MainEngine(backend=fake,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper()])
+    eng = MainEngine(
+        backend=fake,
+        engine_list=[
+            _ibm5qubitmapper.IBM5QubitMapper(connections=connectivity)
+        ])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -119,9 +135,12 @@ def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
 def test_ibm5qubitmapper_optimizeifpossible():
     backend = DummyEngine(save_commands=True)
     connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
-    eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(),
-                                  SwapAndCNOTFlipper(connectivity)])
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[
+            _ibm5qubitmapper.IBM5QubitMapper(connections=connectivity),
+            SwapAndCNOTFlipper(connectivity)
+        ])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
@@ -158,8 +177,10 @@ def test_ibm5qubitmapper_toomanyqubits():
     backend = DummyEngine(save_commands=True)
     connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
     eng = MainEngine(backend=backend,
-                     engine_list=[_ibm5qubitmapper.IBM5QubitMapper(),
-                                  SwapAndCNOTFlipper(connectivity)])
+                     engine_list=[
+                         _ibm5qubitmapper.IBM5QubitMapper(),
+                         SwapAndCNOTFlipper(connectivity)
+                     ])
     qubits = eng.allocate_qureg(6)
     All(H) | qubits
     CNOT | (qubits[0], qubits[1])

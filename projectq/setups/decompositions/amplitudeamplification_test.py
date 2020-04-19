@@ -27,6 +27,8 @@ from projectq.meta import Loop, Control, Compute, Uncompute
 from projectq.ops import QAA
 from projectq.setups.decompositions import amplitudeamplification as aa
 
+tolerance = 1e-5
+
 
 def hache_algorithm(eng, qreg):
     All(H) | qreg
@@ -71,7 +73,7 @@ def test_simple_grover():
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi / (4. * theta_before)) # (Probability is maximized for floor, not midpoint rounded)
+    num_it = int(math.pi / (4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
         QAA(hache_algorithm, simple_oracle) | (system_qubits, control)
@@ -90,8 +92,7 @@ def test_simple_grover():
 
     eng.flush()
 
-    # NOTE: For Qrack, tolerance is much wider, for now
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=2e-2), (
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=tolerance), (
         "The obtained probability is less than expected %f vs. %f" %
         (total_prob_after, theoretical_prob))
 
@@ -150,7 +151,7 @@ def test_complex_aa():
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi / (4. * theta_before)) # (Probability is maximized for floor, not midpoint rounded)
+    num_it = int(math.pi / (4. * theta_before) + 1)
     theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
     with Loop(eng, num_it):
         QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
@@ -170,7 +171,7 @@ def test_complex_aa():
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=2e-2), (
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-2), (
         "The obtained probability is less than expected %f vs. %f" %
         (total_prob_after, theoretical_prob))
 
