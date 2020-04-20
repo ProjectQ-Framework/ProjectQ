@@ -30,6 +30,7 @@ using interchangeable qubit indices defined by the gate to allow the
 optimizer to cancel the following two gates
 
 .. code-block:: python
+
     Swap | (qubit1, qubit2)
     Swap | (qubit2, qubit1)
 

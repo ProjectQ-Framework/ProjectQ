@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,5 +12,4 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
-__version__ = "0.5.0"
+from ._aqt import AQTBackend
