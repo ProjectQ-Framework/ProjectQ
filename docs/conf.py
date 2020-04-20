@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
@@ -28,7 +29,6 @@ import projectq.libs.revkit
 import projectq.setups.default
 import projectq.setups.grid
 import projectq.setups.ibm
-import projectq.setups.ibm16
 import projectq.setups.linear
 import projectq.setups.restrictedgateset
 import projectq.setups.decompositions
