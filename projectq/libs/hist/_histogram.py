@@ -32,7 +32,7 @@ def histogram(backend, qureg):
         fig: The histogram as figure
         axes: The axes of the histogram
         probabilities (dict): A dictionary mapping outcomes as string
-        to their probabilities
+            to their probabilities
 
     Note:
         Don't forget to call eng.flush() before using this function.

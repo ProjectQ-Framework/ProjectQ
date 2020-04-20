@@ -17,7 +17,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from projectq import MainEngine
-from projectq.ops import H, C, X, Measure, All
+from projectq.ops import H, C, X, Measure, All, AllocateQubitGate, FlushGate
+from projectq.cengines import DummyEngine, BasicEngine
 from projectq.backends import Simulator
 from projectq.libs.hist import histogram
 
@@ -28,6 +29,36 @@ def matplotlib_setup():
     matplotlib.use('agg')  # avoid showing the histogram plots
     yield
     matplotlib.use(old_backend)
+
+
+def test_invalid_backend(matplotlib_setup):
+    eng = MainEngine(backend=DummyEngine())
+    qubit = eng.allocate_qubit()
+    eng.flush()
+
+    with pytest.raises(RuntimeError):
+        histogram(eng.backend, qubit)
+
+
+def test_backend_get_probabilities_method(matplotlib_setup):
+    class MyBackend(BasicEngine):
+        def get_probabilities(self, qureg):
+            return {'000': 0.5, '111': 0.5}
+
+        def is_available(self, cmd):
+            return True
+
+        def receive(self, command_list):
+            for cmd in command_list:
+                if not isinstance(cmd.gate, FlushGate):
+                    assert isinstance(cmd.gate, AllocateQubitGate)
+
+    eng = MainEngine(backend=MyBackend(), verbose=True)
+    qureg = eng.allocate_qureg(3)
+    eng.flush()
+    _, _, prob = histogram(eng.backend, qureg)
+    assert prob['000'] == 0.5
+    assert prob['111'] == 0.5
 
 
 def test_qubit(matplotlib_setup):
