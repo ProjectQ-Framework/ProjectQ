@@ -15,13 +15,15 @@
 from __future__ import print_function
 import matplotlib.pyplot as plt
 
+from projectq.backends import Simulator
 
-def histogram(sim, qureg):
+
+def histogram(backend, qureg):
     """
     Make a measurement outcome probability histogram for the given qubits.
 
     Args:
-        sim (Simulator): The simulator to call get_probability
+        backend (BasicEngine): A ProjectQ backend
         qureg (list of qubits and/or quregs): The qubits,
             for which to make the histogram
 
@@ -48,17 +50,23 @@ def histogram(sim, qureg):
         print("The resulting histogram may look bad and/or take too long.")
         print("Consider calling histogram() with a sublist of the qubits.")
 
-    outcome = [0] * len(qubit_list)
-    n_outcomes = (1 << len(qubit_list))
-    probabilities = {}
-    for i in range(n_outcomes):
-        for pos in range(len(qubit_list)):
-            if (1 << pos) & i:
-                outcome[pos] = 1
-            else:
-                outcome[pos] = 0
-        probabilities[''.join([str(bit) for bit in outcome
-                               ])] = sim.get_probability(outcome, qubit_list)
+    if hasattr(backend, 'get_probabilities'):
+        probabilities = backend.get_probabilities(qureg)
+    elif isinstance(backend, Simulator):
+        outcome = [0] * len(qubit_list)
+        n_outcomes = (1 << len(qubit_list))
+        probabilities = {}
+        for i in range(n_outcomes):
+            for pos in range(len(qubit_list)):
+                if (1 << pos) & i:
+                    outcome[pos] = 1
+                else:
+                    outcome[pos] = 0
+            probabilities[''.join([str(bit) for bit in outcome
+                                   ])] = backend.get_probability(
+                                       outcome, qubit_list)
+    else:
+        raise RuntimeError('Unable to retrieve probabilities from backend')
 
     # Empirical figure size for up to 5 qubits
     fig, axes = plt.subplots(figsize=(min(21.2, 2
