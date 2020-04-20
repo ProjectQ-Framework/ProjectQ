@@ -1,7 +1,11 @@
-import projectq.setups.ibm
-from projectq.backends import IBMBackend
-from projectq.ops import Measure, Entangle, All
+import matplotlib.pyplot as plt
+import getpass
+
 from projectq import MainEngine
+from projectq.backends import IBMBackend
+from projectq.libs.hist import histogram
+from projectq.ops import Measure, Entangle, All
+import projectq.setups.ibm
 
 
 def run_entangle(eng, num_qubits=5):
@@ -28,15 +32,28 @@ def run_entangle(eng, num_qubits=5):
     eng.flush()
 
     # access the probabilities via the back-end:
-    results = eng.backend.get_probabilities(qureg)
-    for state in results:
-        print("Measured {} with p = {}.".format(state, results[state]))
+    # results = eng.backend.get_probabilities(qureg)
+    # for state in results:
+    #     print("Measured {} with p = {}.".format(state, results[state]))
+    # or plot them directly:
+    histogram(eng.backend, qureg)
+    plt.show()
 
     # return one (random) measurement outcome.
     return [int(q) for q in qureg]
 
 
 if __name__ == "__main__":
+    #devices commonly available :
+    # ibmq_16_melbourne (15 qubit)
+    # ibmq_essex (5 qubit)
+    # ibmq_qasm_simulator (32 qubits)
+    device = None # replace by the IBM device name you want to use
+    token = None  # replace by the token given by IBMQ
+    if token is None:
+        token = getpass.getpass(prompt='IBM Q token > ')
+    if device is None:
+        token = getpass.getpass(prompt='IBM device > ')
     # create main compiler engine for the IBM back-end
     eng = MainEngine(IBMBackend(use_hardware=True, token=token, num_runs=1024,
                                 verbose=False, device=device),
