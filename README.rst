@@ -106,9 +106,13 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
 
 .. code-block:: python
 
-    compiler_engines = projectq.setups.ibm16.get_engine_list()
+    import projectq.setups.ibm
+    from projectq.backends import IBMBackend
+    
+    device='ibmq_16_melbourne'
+    compiler_engines = projectq.setups.ibm.get_engine_list(device=device)
     eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
-                                verbose=False, device='ibmqx5'),
+                                verbose=False, device=device),
                      engine_list=compiler_engines)
 
 
