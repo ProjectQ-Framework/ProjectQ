@@ -68,10 +68,10 @@ public:
 
         if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
-            QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+            QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         } else {
-            QrackEngine = Qrack::QINTERFACE_QFUSION;
+            QrackEngine = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         }
