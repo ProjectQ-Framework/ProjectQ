@@ -48,7 +48,7 @@ public:
     using ComplexTermsDict = std::vector<std::pair<Term, std::complex<calc_type>>>;
     using Matrix = std::vector<std::vector<std::complex<double>, aligned_allocator<std::complex<double>, 64>>>;
     enum Qrack::QInterfaceEngine QrackEngine = Qrack::QINTERFACE_QUNIT;
-    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+    enum Qrack::QInterfaceEngine QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
     enum Qrack::QInterfaceEngine QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
     typedef std::function<void(bitLenInt*, bitLenInt, bitLenInt, calc_type*)> UCRFunc;
     typedef std::function<void(bitLenInt, bitLenInt, bitLenInt*, bitLenInt)> CINTFunc;
@@ -68,10 +68,10 @@ public:
 
         if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
-            QrackSubengine1 = Qrack::QINTERFACE_QFUSION;
+            QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         } else {
-            QrackEngine = Qrack::QINTERFACE_QFUSION;
+            QrackEngine = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine1 = Qrack::QINTERFACE_OPTIMAL;
             QrackSubengine2 = Qrack::QINTERFACE_OPTIMAL;
         }
