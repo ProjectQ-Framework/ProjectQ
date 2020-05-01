@@ -13,17 +13,60 @@
 #   limitations under the License.
 """Tests for projectq.setup.ibm."""
 
-import projectq
-from projectq import MainEngine
-from projectq.cengines import IBM5QubitMapper, SwapAndCNOTFlipper
+import pytest
 
 
-def test_ibm_cnot_mapper_in_cengines():
+def test_ibm_cnot_mapper_in_cengines(monkeypatch):
     import projectq.setups.ibm
-    found = 0
-    for engine in projectq.setups.ibm.get_engine_list():
-        if isinstance(engine, IBM5QubitMapper):
-            found |= 1
-        if isinstance(engine, SwapAndCNOTFlipper):
-            found |= 2
-    assert found == 3
+
+    def mock_show_devices(*args, **kwargs):
+        connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
+                           (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
+        return {
+            'ibmq_burlington': {
+                'coupling_map': connections,
+                'version': '0.0.0',
+                'nq': 5
+            },
+            'ibmq_16_melbourne': {
+                'coupling_map': connections,
+                'version': '0.0.0',
+                'nq': 15
+            },
+            'ibmq_qasm_simulator': {
+                'coupling_map': connections,
+                'version': '0.0.0',
+                'nq': 32
+            }
+        }
+
+    monkeypatch.setattr(projectq.setups.ibm, "show_devices", mock_show_devices)
+    engines_5qb = projectq.setups.ibm.get_engine_list(device='ibmq_burlington')
+    engines_15qb = projectq.setups.ibm.get_engine_list(
+        device='ibmq_16_melbourne')
+    engines_simulator = projectq.setups.ibm.get_engine_list(
+        device='ibmq_qasm_simulator')
+    assert len(engines_5qb) == 15
+    assert len(engines_15qb) == 16
+    assert len(engines_simulator) == 13
+
+
+def test_ibm_errors(monkeypatch):
+    import projectq.setups.ibm
+
+    def mock_show_devices(*args, **kwargs):
+        connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
+                           (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
+        return {
+            'ibmq_imaginary': {
+                'coupling_map': connections,
+                'version': '0.0.0',
+                'nq': 6
+            }
+        }
+
+    monkeypatch.setattr(projectq.setups.ibm, "show_devices", mock_show_devices)
+    with pytest.raises(projectq.setups.ibm.DeviceOfflineError):
+        projectq.setups.ibm.get_engine_list(device='ibmq_burlington')
+    with pytest.raises(projectq.setups.ibm.DeviceNotHandledError):
+        projectq.setups.ibm.get_engine_list(device='ibmq_imaginary')
