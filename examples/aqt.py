@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import getpass
 
 from projectq import MainEngine
-from projectq.backends import IBMBackend
+from projectq.backends import AQTBackend
 from projectq.libs.hist import histogram
 from projectq.ops import Measure, Entangle, All
-import projectq.setups.ibm
+import projectq.setups.aqt
 
 
 def run_entangle(eng, num_qubits=3):
@@ -44,25 +44,24 @@ def run_entangle(eng, num_qubits=3):
 
 
 if __name__ == "__main__":
-    #devices commonly available :
-    # ibmq_16_melbourne (15 qubit)
-    # ibmq_essex (5 qubit)
-    # ibmq_qasm_simulator (32 qubits)
-    # and plenty of other 5 qubits devices!
-    #
-    # To get a token, create a profile at:
-    # https://quantum-computing.ibm.com/
-    #
-    device = None # replace by the IBM device name you want to use
-    token = None  # replace by the token given by IBMQ
+    #devices available to subscription:
+    # aqt_simulator (11 qubits)
+    # aqt_simulator_noise (11 qubits)
+    # aqt_device (4 qubits)
+    # 
+    # To get a subscription, create a profile at :
+    # https://gateway-portal.aqt.eu/
+    #  
+    device = None # replace by the AQT device name you want to use
+    token = None  # replace by the token given by AQT
     if token is None:
-        token = getpass.getpass(prompt='IBM Q token > ')
+        token = getpass.getpass(prompt='AQT token > ')
     if device is None:
-        device = getpass.getpass(prompt='IBM device > ')
-    # create main compiler engine for the IBM back-end
-    eng = MainEngine(IBMBackend(use_hardware=True, token=token, num_runs=1024,
+        device = getpass.getpass(prompt='AQT device > ')
+    # create main compiler engine for the AQT back-end
+    eng = MainEngine(AQTBackend(use_hardware=True, token=token, num_runs=200,
                                 verbose=False, device=device),
-                     engine_list=projectq.setups.ibm.get_engine_list(
+                     engine_list=projectq.setups.aqt.get_engine_list(
                          token=token, device=device))
     # run the circuit and print the result
     print(run_entangle(eng))

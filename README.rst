@@ -102,13 +102,35 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
 
 **Running a quantum program on IBM's QE chips**
 
-To run a program on the IBM Quantum Experience chips, all one has to do is choose the `IBMBackend` and the corresponding compiler:
+To run a program on the IBM Quantum Experience chips, all one has to do is choose the `IBMBackend` and the corresponding setup:
 
 .. code-block:: python
 
-    compiler_engines = projectq.setups.ibm16.get_engine_list()
-    eng = MainEngine(IBMBackend(use_hardware=True, num_runs=1024,
-                                verbose=False, device='ibmqx5'),
+    import projectq.setups.ibm
+    from projectq.backends import IBMBackend
+    
+    token='MY_TOKEN'
+    device='ibmq_16_melbourne'
+    compiler_engines = projectq.setups.ibm.get_engine_list(token=token,device=device)
+    eng = MainEngine(IBMBackend(token=token, use_hardware=True, num_runs=1024,
+                                verbose=False, device=device),
+                     engine_list=compiler_engines)
+
+
+**Running a quantum program on AQT devices**
+
+To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend` and the corresponding setup:
+
+.. code-block:: python
+
+    import projectq.setups.aqt
+    from projectq.backends import AQTBackend
+    
+    token='MY_TOKEN'
+    device='aqt_device'
+    compiler_engines = projectq.setups.aqt.get_engine_list(token=token,device=device)
+    eng = MainEngine(AQTBackend(token=token,use_hardware=True, num_runs=1024,
+                                verbose=False, device=device),
                      engine_list=compiler_engines)
 
 
