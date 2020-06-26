@@ -6,3 +6,4 @@ requests
 scipy
 networkx
 matplotlib>=2.2.3
+wheels
