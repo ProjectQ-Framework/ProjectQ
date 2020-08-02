@@ -44,6 +44,7 @@ from ._qracksim import QrackSimulator as SimulatorBackend
 class SimulatorType(IntEnum):
     QINTERFACE_QUNIT = 1
     QINTERFACE_QENGINE = 2
+    QINTERFACE_QUNIT_MULTI = 3
 
 class Simulator(BasicEngine):
     """

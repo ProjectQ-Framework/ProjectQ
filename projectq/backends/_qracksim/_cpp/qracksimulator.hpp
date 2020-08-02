@@ -64,8 +64,10 @@ public:
         // Initialize OpenCL engine, and set the default device context.
         Qrack::OCLEngine::InitOCL(build_from_source, save_binaries, cache_path);
 #endif
-
-        if (simulator_type == 1) {
+        if (simulator_type == 3) {
+            QrackEngine = Qrack::QINTERFACE_QUNIT_MULTI;
+            QrackSubengine = Qrack::QINTERFACE_OPTIMAL;
+        } else if (simulator_type == 1) {
             QrackEngine = Qrack::QINTERFACE_QUNIT;
             QrackSubengine = Qrack::QINTERFACE_OPTIMAL;
         } else {
