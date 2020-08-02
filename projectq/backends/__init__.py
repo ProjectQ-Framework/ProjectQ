@@ -24,12 +24,14 @@ This includes:
 * a resource counter (counts gates and keeps track of the maximal width of the
   circuit)
 * an interface to the IBM Quantum Experience chip (and simulator).
+* an interface to the AQT trapped ion system (and simulator).
 """
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer, CircuitDrawerMatplotlib
 from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
+<<<<<<< HEAD
 
 try:
     # Try to import the Qrack Simulator, if it exists.
@@ -37,3 +39,6 @@ try:
 except ImportError:
     # If the Qrack Simulator isn't built, import the default ProjectQ simulator.
     from ._sim import Simulator
+=======
+from ._aqt import AQTBackend
+>>>>>>> master

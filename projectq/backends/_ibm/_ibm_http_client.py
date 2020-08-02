@@ -13,17 +13,20 @@
 #   limitations under the License.
 
 # helpers to run the jsonified gate sequence on ibm quantum experience server
-# api documentation does not exist and has to be deduced from the qiskit code source
-# at: https://github.com/Qiskit/qiskit-ibmq-provider
+# api documentation does not exist and has to be deduced from the qiskit code
+# source at: https://github.com/Qiskit/qiskit-ibmq-provider
 
 import getpass
 import time
 import signal
+import uuid
+
 import requests
 from requests.compat import urljoin
 from requests import Session
 
-_AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken'
+_AUTH_API_URL = ('https://auth.quantum-computing.ibm.com/api/users/'
+                 'loginWithToken')
 _API_URL = 'https://api.quantum-computing.ibm.com/api/'
 
 # TODO: call to get the API version automatically
@@ -34,7 +37,6 @@ class IBMQ(Session):
     """
     Manage a session between ProjectQ and the IBMQ web API.
     """
-
     def __init__(self, **kwargs):
         super(IBMQ, self).__init__(**kwargs)  # Python 2 compatibility
         self.backends = dict()
@@ -59,11 +61,11 @@ class IBMQ(Session):
         request.raise_for_status()
         r_json = request.json()
         self.backends = dict()
-        for el in r_json:
-            self.backends[el['backend_name']] = {
-                'nq': el['n_qubits'],
-                'coupling_map': el['coupling_map'],
-                'version': el['backend_version']
+        for obj in r_json:
+            self.backends[obj['backend_name']] = {
+                'nq': obj['n_qubits'],
+                'coupling_map': obj['coupling_map'],
+                'version': obj['backend_version']
             }
 
         if verbose:
@@ -125,69 +127,110 @@ class IBMQ(Session):
         self.params.update({'access_token': r_json['id']})
 
     def _run(self, info, device):
-        post_job_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
-        shots = info['shots']
-        n_classical_reg = info['nq']
-        n_qubits = self.backends[device]['nq']
-        version = self.backends[device]['version']
-        instructions = info['json']
-        maxcredit = info['maxCredits']
-        c_label = []
-        q_label = []
-        for i in range(n_classical_reg):
-            c_label.append(['c', i])
-        for i in range(n_qubits):
-            q_label.append(['q', i])
-        experiment = [{
-            'header': {
-                'qreg_sizes': [['q', n_qubits]],
-                'n_qubits': n_qubits,
-                'memory_slots': n_classical_reg,
-                'creg_sizes': [['c', n_classical_reg]],
-                'clbit_labels': c_label,
-                'qubit_labels': q_label,
-                'name': 'circuit0'
-            },
-            'config': {
-                'n_qubits': n_qubits,
-                'memory_slots': n_classical_reg
-            },
-            'instructions': instructions
-        }]
-        # Note: qobj_id is not necessary in projectQ, so fixed string for now
-        argument = {
+        """
+        Run the quantum code to the IBMQ machine.
+        Update since March2020: only protocol available is what they call
+        'object storage' where a job request via the POST method gets in
+        return a url link to which send the json data. A final http validates
+        the data communication.
+
+        Args:
+            info (dict): dictionary sent by the backend containing the code to
+                run
+            device (str): name of the ibm device to use
+
+        Returns:
+            (tuple): (str) Execution Id
+
+        """
+
+        # STEP1: Obtain most of the URLs for handling communication with
+        #        quantum device
+        json_step1 = {
             'data': None,
             'json': {
-                'qObject': {
-                    'type': 'QASM',
-                    'schema_version': '1.1.0',
-                    'config': {
-                        'shots': shots,
-                        'max_credits': maxcredit,
-                        'n_qubits': n_qubits,
-                        'memory_slots': n_classical_reg,
-                        'memory': False,
-                        'parameter_binds': []
-                    },
-                    'experiments': experiment,
-                    'header': {
-                        'backend_version': version,
-                        'backend_name': device
-                    },
-                    'qobj_id': 'e72443f5-7752-4e32-9ac8-156f1f3fee18'
-                },
                 'backend': {
                     'name': device
                 },
-                'shots': shots
+                'allowObjectStorage': True,
+                'shareLevel': 'none'
             },
             'timeout': (self.timeout, None)
         }
-        request = super(IBMQ, self).post(urljoin(_API_URL, post_job_url),
-                                         **argument)
+        request = super(IBMQ, self).post(
+            urljoin(_API_URL, 'Network/ibm-q/Groups/open/Projects/main/Jobs'),
+            **json_step1)
         request.raise_for_status()
         r_json = request.json()
-        execution_id = r_json["id"]
+        download_endpoint_url = r_json['objectStorageInfo'][
+            'downloadQObjectUrlEndpoint']
+        upload_endpoint_url = r_json['objectStorageInfo'][
+            'uploadQobjectUrlEndpoint']
+        upload_url = r_json['objectStorageInfo']['uploadUrl']
+
+        # STEP2: WE USE THE ENDPOINT TO GET THE UPLOT LINK
+        json_step2 = {'allow_redirects': True, 'timeout': (5.0, None)}
+        request = super(IBMQ, self).get(upload_endpoint_url, **json_step2)
+        request.raise_for_status()
+        r_json = request.json()
+
+        # STEP3: WE USE THE ENDPOINT TO GET THE UPLOT LINK
+        n_classical_reg = info['nq']
+        # hack: easier to restrict labels to measured qubits
+        n_qubits = n_classical_reg  # self.backends[device]['nq']
+        instructions = info['json']
+        maxcredit = info['maxCredits']
+        c_label = [["c", i] for i in range(n_classical_reg)]
+        q_label = [["q", i] for i in range(n_qubits)]
+
+        # hack: the data value in the json quantum code is a string
+        instruction_str = str(instructions).replace('\'', '\"')
+        data = '{"qobj_id": "' + str(uuid.uuid4()) + '", '
+        data += '"header": {"backend_name": "' + device + '", '
+        data += ('"backend_version": "' + self.backends[device]['version']
+                 + '"}, ')
+        data += '"config": {"shots": ' + str(info['shots']) + ', '
+        data += '"max_credits": ' + str(maxcredit) + ', "memory": false, '
+        data += ('"parameter_binds": [], "memory_slots": '
+                 + str(n_classical_reg))
+        data += (', "n_qubits": ' + str(n_qubits)
+                 + '}, "schema_version": "1.1.0", ')
+        data += '"type": "QASM", "experiments": [{"config": '
+        data += '{"n_qubits": ' + str(n_qubits) + ', '
+        data += '"memory_slots": ' + str(n_classical_reg) + '}, '
+        data += ('"header": {"qubit_labels": '
+                 + str(q_label).replace('\'', '\"') + ', ')
+        data += '"n_qubits": ' + str(n_classical_reg) + ', '
+        data += '"qreg_sizes": [["q", ' + str(n_qubits) + ']], '
+        data += '"clbit_labels": ' + str(c_label).replace('\'', '\"') + ', '
+        data += '"memory_slots": ' + str(n_classical_reg) + ', '
+        data += '"creg_sizes": [["c", ' + str(n_classical_reg) + ']], '
+        data += ('"name": "circuit0"}, "instructions": ' + instruction_str
+                 + '}]}')
+
+        json_step3 = {
+            'data': data,
+            'params': {
+                'access_token': None
+            },
+            'timeout': (5.0, None)
+        }
+        request = super(IBMQ, self).put(r_json['url'], **json_step3)
+        request.raise_for_status()
+
+        # STEP4: CONFIRM UPLOAD
+        json_step4 = {
+            'data': None,
+            'json': None,
+            'timeout': (self.timeout, None)
+        }
+        upload_data_url = upload_endpoint_url.replace('jobUploadUrl',
+                                                      'jobDataUploaded')
+        request = super(IBMQ, self).post(upload_data_url, **json_step4)
+        request.raise_for_status()
+        r_json = request.json()
+        execution_id = upload_endpoint_url.split('/')[-2]
+
         return execution_id
 
     def _get_result(self,
@@ -205,7 +248,7 @@ class IBMQ(Session):
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
-        def _handle_sigint_during_get_result(*_):
+        def _handle_sigint_during_get_result(*_):  # pragma: no cover
             raise Exception(
                 "Interrupted. The ID of your submitted job is {}.".format(
                     execution_id))
@@ -214,20 +257,62 @@ class IBMQ(Session):
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
             for retries in range(num_retries):
 
-                argument = {
+                # STEP5: WAIT FOR THE JOB TO BE RUN
+                json_step5 = {
                     'allow_redirects': True,
                     'timeout': (self.timeout, None)
                 }
                 request = super(IBMQ,
                                 self).get(urljoin(_API_URL, job_status_url),
-                                          **argument)
+                                          **json_step5)
                 request.raise_for_status()
                 r_json = request.json()
+                acceptable_status = ['VALIDATING', 'VALIDATED', 'RUNNING']
                 if r_json['status'] == 'COMPLETED':
-                    return r_json['qObjectResult']['results'][0]
-                if r_json['status'] != 'RUNNING':
-                    raise Exception("Error while running the code: {}.".format(
-                        r_json['status']))
+                    # STEP6: Get the endpoint to get the result
+                    json_step6 = {
+                        'allow_redirects': True,
+                        'timeout': (self.timeout, None)
+                    }
+                    request = super(IBMQ, self).get(
+                        urljoin(_API_URL,
+                                job_status_url + '/resultDownloadUrl'),
+                        **json_step6)
+                    request.raise_for_status()
+                    r_json = request.json()
+
+                    # STEP7: Get the result
+                    json_step7 = {
+                        'allow_redirects': True,
+                        'params': {
+                            'access_token': None
+                        },
+                        'timeout': (self.timeout, None)
+                    }
+                    request = super(IBMQ, self).get(r_json['url'],
+                                                    **json_step7)
+                    r_json = request.json()
+                    result = r_json['results'][0]
+
+                    # STEP8: Confirm the data was downloaded
+                    json_step8 = {
+                        'data': None,
+                        'json': None,
+                        'timeout': (5.0, None)
+                    }
+                    request = super(IBMQ, self).post(
+                        urljoin(_API_URL,
+                                job_status_url + '/resultDownloaded'),
+                        **json_step8)
+                    r_json = request.json()
+                    return result
+
+                # Note: if stays stuck if 'Validating' mode, then sthg went
+                #       wrong in step 3
+                if r_json['status'] not in acceptable_status:
+                    raise Exception(
+                        "Error while running the code. Last status: {}.".
+                        format(r_json['status']))
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.get_list_devices()
