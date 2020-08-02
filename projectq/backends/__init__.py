@@ -31,7 +31,7 @@ from ._circuits import CircuitDrawer, CircuitDrawerMatplotlib
 from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
-<<<<<<< HEAD
+from ._aqt import AQTBackend
 
 try:
     # Try to import the Qrack Simulator, if it exists.
@@ -39,6 +39,3 @@ try:
 except ImportError:
     # If the Qrack Simulator isn't built, import the default ProjectQ simulator.
     from ._sim import Simulator
-=======
-from ._aqt import AQTBackend
->>>>>>> master
