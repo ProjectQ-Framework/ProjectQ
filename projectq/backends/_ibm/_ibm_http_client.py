@@ -129,7 +129,7 @@ class IBMQ(Session):
     def _run(self, info, device):
         """
         Run the quantum code to the IBMQ machine.
-        Update since March2020: only protocol available is what they call
+        Update since September 2020: only protocol available is what they call
         'object storage' where a job request via the POST method gets in
         return a url link to which send the json data. A final http validates
         the data communication.
@@ -162,19 +162,10 @@ class IBMQ(Session):
             **json_step1)
         request.raise_for_status()
         r_json = request.json()
-        download_endpoint_url = r_json['objectStorageInfo'][
-            'downloadQObjectUrlEndpoint']
-        upload_endpoint_url = r_json['objectStorageInfo'][
-            'uploadQobjectUrlEndpoint']
         upload_url = r_json['objectStorageInfo']['uploadUrl']
+        execution_id = r_json['id']
 
-        # STEP2: WE USE THE ENDPOINT TO GET THE UPLOT LINK
-        json_step2 = {'allow_redirects': True, 'timeout': (5.0, None)}
-        request = super(IBMQ, self).get(upload_endpoint_url, **json_step2)
-        request.raise_for_status()
-        r_json = request.json()
-
-        # STEP3: WE USE THE ENDPOINT TO GET THE UPLOT LINK
+        # STEP2: WE UPLOAD THE CIRCUIT DATA
         n_classical_reg = info['nq']
         # hack: easier to restrict labels to measured qubits
         n_qubits = n_classical_reg  # self.backends[device]['nq']
@@ -194,7 +185,7 @@ class IBMQ(Session):
         data += ('"parameter_binds": [], "memory_slots": '
                  + str(n_classical_reg))
         data += (', "n_qubits": ' + str(n_qubits)
-                 + '}, "schema_version": "1.1.0", ')
+                 + '}, "schema_version": "1.2.0", ')
         data += '"type": "QASM", "experiments": [{"config": '
         data += '{"n_qubits": ' + str(n_qubits) + ', '
         data += '"memory_slots": ' + str(n_classical_reg) + '}, '
@@ -205,31 +196,31 @@ class IBMQ(Session):
         data += '"clbit_labels": ' + str(c_label).replace('\'', '\"') + ', '
         data += '"memory_slots": ' + str(n_classical_reg) + ', '
         data += '"creg_sizes": [["c", ' + str(n_classical_reg) + ']], '
-        data += ('"name": "circuit0"}, "instructions": ' + instruction_str
+        data += ('"name": "circuit0", "global_phase": 0}, "instructions": ' + instruction_str
                  + '}]}')
 
-        json_step3 = {
+        json_step2 = {
             'data': data,
             'params': {
                 'access_token': None
             },
             'timeout': (5.0, None)
         }
-        request = super(IBMQ, self).put(r_json['url'], **json_step3)
+        request = super(IBMQ, self).put(upload_url, **json_step2)
         request.raise_for_status()
 
-        # STEP4: CONFIRM UPLOAD
-        json_step4 = {
+        # STEP3: CONFIRM UPLOAD
+        json_step3 = {
             'data': None,
             'json': None,
             'timeout': (self.timeout, None)
         }
-        upload_data_url = upload_endpoint_url.replace('jobUploadUrl',
-                                                      'jobDataUploaded')
-        request = super(IBMQ, self).post(upload_data_url, **json_step4)
+        
+        upload_data_url = urljoin(_API_URL,
+                          'Network/ibm-q/Groups/open/Projects/main/Jobs/'+str(execution_id)
+                                  +'/jobDataUploaded')
+        request = super(IBMQ, self).post(upload_data_url, **json_step3)
         request.raise_for_status()
-        r_json = request.json()
-        execution_id = upload_endpoint_url.split('/')[-2]
 
         return execution_id
 
