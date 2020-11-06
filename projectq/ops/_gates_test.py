@@ -151,6 +151,28 @@ def test_rz(angle):
 
 
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
+def test_u3(angle):
+    gate = _gates.U3(angle, angle, angle)
+    expected_matrix = np.matrix([[cmath.exp(-1j * angle) + math.cos(.5 * angle),
+                           -1 + math.sin(.5 * angle)],
+                          [1 + math.sin(.5 * angle),
+                           cmath.exp(1j * angle) + math.cos(.5 * angle)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+
+
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
+def test_u2(angle):
+    gate = _gates.U2(angle, angle)
+    expected_matrix = np.matrix([[cmath.exp(-1j * angle) + math.cos(.25 * math.pi),
+                           -1 + math.sin(.25 * math.pi)],
+                          [1 + math.sin(.25 * math.pi),
+                           cmath.exp(1j * angle) + math.cos(.25 * math.pi)]])
+    assert gate.matrix.shape == expected_matrix.shape
+    assert np.allclose(gate.matrix, expected_matrix)
+
+
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
 def test_rxx(angle):
     gate = _gates.Rxx(angle)
     expected_matrix = np.matrix(
