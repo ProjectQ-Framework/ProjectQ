@@ -54,6 +54,7 @@ from ._basics import (
     ClassicalInstructionGate,
     FastForwardingGate,
     SelfInverseGate,
+    U3Gate,
 )
 from ._command import apply_command
 from ._metagates import get_inverse
@@ -307,6 +308,28 @@ class Rz(BasicRotationGate):
                 [0, cmath.exp(0.5 * 1j * self.angle)],
             ]
         )
+
+
+class U3(U3Gate):
+    @property
+    def matrix(self):
+        return np.matrix(
+            [
+                [
+                    cmath.exp(-0.5j * (self.phi + self.lamda)) + math.cos(0.5 * self.theta),
+                    -cmath.exp(-0.5j * (self.phi - self.lamda)) + math.sin(0.5 * self.theta),
+                ],
+                [
+                    cmath.exp(0.5j * (self.phi - self.lamda)) + math.sin(0.5 * self.theta),
+                    cmath.exp(0.5j * (self.phi + self.lamda)) + math.cos(0.5 * self.theta),
+                ],
+            ]
+        )
+
+
+class U2(U3):
+    def __init__(self, phi, lamda):
+        super().__init__(math.pi / 2, phi, lamda)
 
 
 class Rxx(BasicRotationGate):
