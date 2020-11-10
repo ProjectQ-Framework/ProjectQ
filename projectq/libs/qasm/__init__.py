@@ -18,20 +18,22 @@ Contains functions/classes to handle OpenQASM
 try:
     from ._parse_qasm_qiskit import read_qasm_file, read_qasm_str
 except ImportError:  # pragma: no cover
-    import warnings
+    try:
+        from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str
+    except ImportError as e:
+        import warnings
+        err = ('Unable to import either qiskit or pyparsing\n'
+               'Please install either of them (e.g. using the '
+               'command python -m pip install qiskit')
 
-    err = ('Unable to import qiskit\n'
-           'Please install it (e.g. using the command: '
-           'python -m pip install qiskit')
+        warnings.warn(err + '\n'
+                      'The provided read_qasm_* functions will systematically'
+                      'raise a RuntimeError')
 
-    warnings.warn(err + 'c\n'
-                  'The provided read_qasm_* functions will systematically'
-                  'raise a RuntimeError')
+        def read_qasm_file(eng, filename):
+            # pylint: disable=unused-argument
+            raise RuntimeError(err)
 
-    def read_qasm_file(eng, filename):
-        # pylint: disable=unused-argument
-        raise RuntimeError(err)
-
-    def read_qasm_str(eng, qasm_str):
-        # pylint: disable=unused-argument
-        raise RuntimeError(err)
+        def read_qasm_str(eng, qasm_str):
+            # pylint: disable=unused-argument
+            raise RuntimeError(err)
