@@ -13,12 +13,12 @@
 #   limitations under the License.
 """ Define function to read OpenQASM file format (using Qiskit). """
 
-from projectq.ops import All, Measure, ControlledGate, SwapGate
+from projectq.ops import All, Measure
 
-from qiskit.circuit import QuantumCircuit, ClassicalRegister, Clbit
+from qiskit.circuit import QuantumCircuit, Clbit
 
 from ._qiskit_conv import gates_conv_table
-from ._utils import apply_gate, OpaqueGate
+from ._utils import apply_gate
 
 # ==============================================================================
 
@@ -37,6 +37,7 @@ def apply_op(eng, gate, qubits, bits, bits_map):
         qubits (list): List of ProjectQ qubits to apply the gate to
         bits (list): List of classical bits to apply the gate to
     """
+    # pylint: disable = expression-not-assigned, protected-access
 
     if bits:
         # Only measurement gates have clasical bits
@@ -76,7 +77,7 @@ def apply_op(eng, gate, qubits, bits, bits_map):
                     cbit_value = bits_map[cbit.name][0]
                 else:
                     cbit_value = 0
-                    for bit in bits_map[cbit.name]:
+                    for bit in reversed(bits_map[cbit.name]):
                         cbit_value = (cbit_value << 1) | bit
 
                 if cbit_value == value:
@@ -85,7 +86,10 @@ def apply_op(eng, gate, qubits, bits, bits_map):
                 apply_gate(gate_projectq, qubits)
 
 
-def _convert_qiskit_circuit(eng, qc):
+# ==============================================================================
+
+
+def _convert_qiskit_circuit(eng, circuit):
     """
     Convert a QisKit circuit and convert it to ProjectQ commands.
 
@@ -93,7 +97,7 @@ def _convert_qiskit_circuit(eng, qc):
 
     Args:
         eng (MainEngine): MainEngine to use for creating qubits and commands.
-        qc (qiskit.QuantumCircuit): Quantum circuit to process
+        circuit (qiskit.QuantumCircuit): Quantum circuit to process
 
     Note:
         At this time, we support most of OpenQASM 2.0 and some of 3.0,
@@ -102,18 +106,21 @@ def _convert_qiskit_circuit(eng, qc):
     # Create maps between qiskit and ProjectQ for qubits and bits
     qubits_map = {
         qureg.name: eng.allocate_qureg(qureg.size)
-        for qureg in qc.qregs
+        for qureg in circuit.qregs
     }
-    bits_map = {bit.name: [False] * bit.size for bit in qc.cregs}
+    bits_map = {bit.name: [False] * bit.size for bit in circuit.cregs}
 
     # Convert all the gates to ProjectQ commands
-    for gate, quregs, bits in qc.data:
+    for gate, quregs, bits in circuit.data:
         apply_op(
             eng, gate,
             [qubits_map[qubit.register.name][qubit.index]
              for qubit in quregs], bits, bits_map)
 
     return qubits_map, bits_map
+
+
+# ==============================================================================
 
 
 def read_qasm_str(eng, qasm_str):
@@ -132,8 +139,11 @@ def read_qasm_str(eng, qasm_str):
         At this time, we support most of OpenQASM 2.0 and some of 3.0,
         although the latter is still experimental.
     """
-    qc = QuantumCircuit.from_qasm_str(qasm_str)
-    return _convert_qiskit_circuit(eng, qc)
+    circuit = QuantumCircuit.from_qasm_str(qasm_str)
+    return _convert_qiskit_circuit(eng, circuit)
+
+
+# ------------------------------------------------------------------------------
 
 
 def read_qasm_file(eng, filename):
@@ -153,6 +163,9 @@ def read_qasm_file(eng, filename):
         although the latter is still experimental.
     """
 
-    qc = QuantumCircuit.from_qasm_file(filename)
+    circuit = QuantumCircuit.from_qasm_file(filename)
 
-    return _convert_qiskit_circuit(eng, qc)
+    return _convert_qiskit_circuit(eng, circuit)
+
+
+# ==============================================================================
