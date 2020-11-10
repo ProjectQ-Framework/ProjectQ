@@ -15,7 +15,7 @@
 
 from projectq.ops import All, Measure, ControlledGate, SwapGate
 
-from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import QuantumCircuit, ClassicalRegister, Clbit
 
 from ._qiskit_conv import gates_conv_table
 
@@ -68,7 +68,8 @@ def apply_op(eng, gate, qubits, bits, bits_map):
         eng.flush()
 
         for idx, bit in enumerate(bits):
-            bits_map[bit.register.name][idx] = bool(qubits[idx])
+            assert isinstance(bit, Clbit)
+            bits_map[bit.register.name][bit.index] = bool(qubits[idx])
     else:
         if gate.name not in gates_conv_table:
             if not gate._definition:
@@ -93,9 +94,14 @@ def apply_op(eng, gate, qubits, bits, bits_map):
                 # OpenQASM 2.0
                 cbit, value = gate.condition
 
-                # Note: apparently, it is illegal to write if (c0[0] == 1)
-                #      so we always assume that index == 0...
-                if bits_map[cbit.name][0] == value:
+                if cbit.size == 1:
+                    cbit_value = bits_map[cbit.name][0]
+                else:
+                    cbit_value = 0
+                    for bit in bits_map[cbit.name]:
+                        cbit_value = (cbit_value << 1) | bit
+
+                if cbit_value == value:
                     apply_gate(gate_projectq, qubits)
             else:
                 apply_gate(gate_projectq, qubits)
@@ -120,7 +126,7 @@ def _convert_qiskit_circuit(eng, qc):
         qureg.name: eng.allocate_qureg(qureg.size)
         for qureg in qc.qregs
     }
-    bits_map = {bit.name: [None] * bit.size for bit in qc.cregs}
+    bits_map = {bit.name: [False] * bit.size for bit in qc.cregs}
 
     # Convert all the gates to ProjectQ commands
     for gate, quregs, bits in qc.data:
@@ -130,6 +136,7 @@ def _convert_qiskit_circuit(eng, qc):
              for qubit in quregs], bits, bits_map)
 
     return qubits_map, bits_map
+
 
 def read_qasm_str(eng, qasm_str):
     """

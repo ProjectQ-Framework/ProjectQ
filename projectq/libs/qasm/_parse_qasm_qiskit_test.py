@@ -144,7 +144,7 @@ creg d[2];
 
     engine = deepcopy(eng)
     qubits_map, bits_map = read_qasm_str(engine, qasm_str)
-    assert bits_map == {'c': [None], 'd': [None, None]}
+    assert bits_map == {'c': [False], 'd': [False, False]}
     assert len(engine.backend.received_commands) == 3
     assert all(cmd.gate == Allocate for cmd in engine.backend.received_commands)
 
@@ -321,6 +321,7 @@ my_cu1(1) q[0],q[1];
     assert cmd.gate == Rz(0.5)
     assert [qubit for qureg in cmd.qubits for qubit in qureg] == [b]
 
+
 def test_read_qasm2_file(eng):
     qasm_str = """
 OPENQASM 2.0;
@@ -334,10 +335,69 @@ creg c0[1];
         fd.seek(0)
         engine = deepcopy(eng)
         qubits_map, bits_map = read_qasm_file(engine, fd.name)
-        assert bits_map == {'c0': [None]}
+        assert bits_map == {'c0': [False]}
         assert len(engine.backend.received_commands) == 2
         assert engine.backend.received_commands[0].gate == Allocate
         assert engine.backend.received_commands[1].gate == Allocate
+
+
+def test_qasm_qft2(eng):
+    qasm_str = """
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg a[2];
+creg b[2];
+measure a -> b;
+qreg q[3];
+creg c[3];
+// optional post-rotation for state tomography
+gate post q { }
+u3(0.3,0.2,0.1) q[0];
+h q[1];
+cx q[1],q[2];
+barrier q;
+cx q[0],q[1];
+h q[0];
+measure q[0] -> c[0];
+measure q[1] -> c[1];
+if(c==1) z q[2];
+if(c==2) x q[2];
+if(c==3) y q[2];
+if(c==4) z q[1];
+if(c==5) x q[1];
+if(c==6) y q[1];
+if(c==7) z q[0];
+if(c==8) x q[0];
+post q[2];
+measure q[2] -> c[2];
+    """
+
+    qubits_map, bits_map = read_qasm_str(eng, qasm_str)
+    assert {'q', 'a'} == set(qubits_map)
+    assert len(qubits_map['a']) == 2
+    assert len(qubits_map['q']) == 3
+    assert bits_map == {'b': [True, True], 'c': [True, True, True]}
+
+    assert len([
+        cmd for cmd in eng.backend.received_commands if cmd.gate == Allocate
+    ]) == 5
+    assert len([
+        cmd for cmd in eng.backend.received_commands
+        if isinstance(cmd.gate, U3)
+    ]) == 1
+    assert len([cmd for cmd in eng.backend.received_commands
+                if cmd.gate == X]) == 2
+    cmds = [cmd for cmd in eng.backend.received_commands if cmd.gate == Y]
+    assert len(cmds) == 1
+    assert ([qubits_map['q'][1]
+             ] == [qubit for qureg in cmds[0].qubits for qubit in qureg])
+    assert len([cmd for cmd in eng.backend.received_commands
+                if cmd.gate == Z]) == 0
+    assert len([cmd for cmd in eng.backend.received_commands
+                if cmd.gate == H]) == 2
+    cmds = [cmd for cmd in eng.backend.received_commands if cmd.gate == Barrier]
+    assert len(cmds) == 1
+    assert len([qubit for qureg in cmds[0].qubits for qubit in qureg]) == 3
 
 
 # ==============================================================================
