@@ -18,32 +18,9 @@ from projectq.ops import All, Measure, ControlledGate, SwapGate
 from qiskit.circuit import QuantumCircuit, ClassicalRegister, Clbit
 
 from ._qiskit_conv import gates_conv_table
+from ._utils import apply_gate, OpaqueGate
 
 # ==============================================================================
-
-
-def apply_gate(gate, qubits):
-    """
-    Apply a gate to some qubits while separating control and target qubits.
-
-
-    Args:
-        gate (BasicGate): Instance of a ProjectQ gate
-        qubits (list): List of ProjectQ qubits the gate applies to.
-    """
-    if isinstance(gate, ControlledGate):
-        ctrls = qubits[:gate._n]
-        qubits = qubits[gate._n:]
-        if isinstance(gate._gate, SwapGate):
-            assert len(qubits) == 2
-            gate | (ctrls, qubits[0], qubits[1])
-        else:
-            gate | (ctrls, qubits)
-    elif isinstance(gate, SwapGate):
-        assert len(qubits) == 2
-        gate | (qubits[0], qubits[1])
-    else:
-        gate | qubits
 
 
 def apply_op(eng, gate, qubits, bits, bits_map):
@@ -73,6 +50,7 @@ def apply_op(eng, gate, qubits, bits, bits_map):
     else:
         if gate.name not in gates_conv_table:
             if not gate._definition:
+                # TODO: This will silently discard opaque gates...
                 return
 
             gate_args = {gate._definition.qregs[0].name: qubits}
