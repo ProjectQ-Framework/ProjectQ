@@ -18,7 +18,6 @@ from projectq.ops import All, X, Swap, Measure, CNOT
 from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
 from ._gates import (AddQuantum, 
                      SubtractQuantum) 
-from projectq.libs.math._gates_math_test import get_all_probabilities
 
 """
 Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
