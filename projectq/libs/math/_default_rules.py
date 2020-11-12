@@ -106,20 +106,6 @@ def _replace_inverse_add_quantum(cmd):
             subtract_quantum(eng, quint_a, quint_b)
 
 
-def _replace_subtractquantum(cmd):
-    eng = cmd.engine
-    quint_a = cmd.qubits[0]
-    quint_b = cmd.qubits[1]
-
-    if len(cmd.qubits) == 3:
-        quint_c = cmd.qubits[2]
-        with Control(eng, cmd.control_qubits):
-            inverse_add_quantum_carry(eng, quint_a, [quint_b, quint_c])
-    else:
-        with Control(eng, cmd.control_qubits):
-            subtract_quantum(eng, quint_a, quint_b)
-
-
 def _replace_comparator(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
@@ -176,7 +162,7 @@ all_defined_decomposition_rules = [
     DecompositionRule(MultiplyByConstantModN, _replace_multiplybyconstantmodN),
     DecompositionRule(AddQuantum.__class__, _replace_addquantum),
     DecompositionRule(_InverseAddQuantumGate, _replace_inverse_add_quantum),
-    DecompositionRule(SubtractQuantum.__class__, _replace_subtractquantum),
+    DecompositionRule(SubtractQuantum.__class__, _replace_inverse_add_quantum),
     DecompositionRule(ComparatorQuantum.__class__, _replace_comparator),
     DecompositionRule(DivideQuantum.__class__, _replace_quantumdivision),
     DecompositionRule(_InverseDivideQuantumGate,
