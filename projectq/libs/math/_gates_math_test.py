@@ -18,15 +18,13 @@ import pytest
 from projectq.cengines import (MainEngine, TagRemover, AutoReplacer,
                                InstructionFilter, DecompositionRuleSet)
 from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import All, Measure, X, QFTGate, DaggeredGate
+from projectq.ops import (All, Measure, X, BasicMathGate,
+                          ClassicalInstructionGate)
 import projectq.setups.decompositions
 
 import projectq.libs.math
 from . import (AddConstant, AddQuantum, SubtractQuantum, ComparatorQuantum,
                DivideQuantum, MultiplyQuantum)
-
-from ._gates import (_InverseAddQuantumGate, _InverseDivideQuantumGate,
-                     _InverseMultiplyQuantumGate)
 
 from projectq.backends import CommandPrinter
 
@@ -59,29 +57,22 @@ def _eng_emulation():
 
 
 def _eng_decomp():
-    def math_gates(eng, cmd):
-        gate = cmd.gate
-        if isinstance(gate, DaggeredGate):
-            gate = cmd.gate._gate
-
-        if gate in (AddQuantum, SubtractQuantum, ComparatorQuantum,
-                    DivideQuantum, MultiplyQuantum):
+    def no_math_emulation(eng, cmd):
+        if isinstance(cmd.gate, BasicMathGate):
             return False
-
-        if isinstance(gate, (_InverseAddQuantumGate, _InverseDivideQuantumGate,
-                             _InverseMultiplyQuantumGate)):
+        if isinstance(cmd.gate, ClassicalInstructionGate):
+            return True
+        try:
+            return len(cmd.gate.matrix) == 2
+        except AttributeError:
             return False
-
-        if isinstance(gate, QFTGate):
-            return False
-        return True
 
     rule_set = DecompositionRuleSet(
         modules=[projectq.libs.math, projectq.setups.decompositions])
     eng = MainEngine(engine_list=[
         TagRemover(),
         AutoReplacer(rule_set),
-        InstructionFilter(math_gates),
+        InstructionFilter(no_math_emulation),
         TagRemover(),
         CommandPrinter()
     ])

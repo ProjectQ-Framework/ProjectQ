@@ -67,12 +67,16 @@ def no_math_emulation(eng, cmd):
 rule_set = DecompositionRuleSet(modules=[projectq.libs.math, swap2cnot])
 
 
-def test_quantum_adder():
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
+@pytest.fixture
+def eng():
+    return MainEngine(backend=Simulator(),
+                      engine_list=[
+                          AutoReplacer(rule_set),
+                          InstructionFilter(no_math_emulation)
+                      ])
 
+
+def test_quantum_adder(eng):
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
     control_qubit = eng.allocate_qubit()
@@ -161,13 +165,7 @@ def test_quantum_adder():
     Measure | c
 
 
-def test_quantumsubtraction():
-
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
-
+def test_quantumsubtraction(eng):
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
     control_qubit = eng.allocate_qubit()
@@ -215,12 +213,7 @@ def test_quantumsubtraction():
     All(Measure) | qureg_b
 
 
-def test_comparator():
-
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
+def test_comparator(eng):
     qureg_a = eng.allocate_qureg(3)
     qureg_b = eng.allocate_qureg(3)
     compare_qubit = eng.allocate_qubit()
@@ -237,12 +230,7 @@ def test_comparator():
     Measure | compare_qubit
 
 
-def test_quantumdivision():
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
-
+def test_quantumdivision(eng):
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
     qureg_c = eng.allocate_qureg(4)
@@ -284,13 +272,7 @@ def test_quantumdivision():
     All(Measure) | qureg_c
 
 
-def test_quantummultiplication():
-
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
-
+def test_quantummultiplication(eng):
     qureg_a = eng.allocate_qureg(3)
     qureg_b = eng.allocate_qureg(3)
     qureg_c = eng.allocate_qureg(7)
