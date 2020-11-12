@@ -18,12 +18,9 @@ from ._gates import (AddConstant,
                      SubConstantModN,
                      MultiplyByConstantModN,
                      AddQuantum,
-                     InverseAddQuantum,
                      SubtractQuantum,
-                     Comparator,
-                     QuantumDivision,
-                     InverseQuantumDivision,
-                     QuantumMultiplication,
-                     InverseQuantumMultiplication)
+                     ComparatorQuantum,
+                     DivideQuantum,
+                     MultiplyQuantum)
 
 from ._default_rules import all_defined_decomposition_rules

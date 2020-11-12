@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a few default replacement rules for Shor's algorithm to work
 (see Examples).
@@ -19,34 +18,25 @@ Registers a few default replacement rules for Shor's algorithm to work
 from projectq.meta import Control, Dagger
 from projectq.cengines import DecompositionRule
 
-from ._gates import (AddConstant,
-                     SubConstant,
-                     AddConstantModN,
-                     SubConstantModN,
-                     MultiplyByConstantModN,
-                     AddQuantum,
-                     InverseAddQuantum,
-                     SubtractQuantum,
-                     Comparator,
-                     QuantumDivision,
-                     InverseQuantumDivision,
-                     QuantumMultiplication,
-                     InverseQuantumMultiplication)
+from ._gates import (AddConstant, SubConstant, AddConstantModN,
+                     SubConstantModN, MultiplyByConstantModN, AddQuantum,
+                     SubtractQuantum, ComparatorQuantum, DivideQuantum,
+                     MultiplyQuantum)
 
-from ._constantmath import (add_constant,
-                            add_constant_modN,
-                            mul_by_constant_modN,)
+from ._gates import (_InverseAddQuantumGate, _InverseDivideQuantumGate,
+                     _InverseMultiplyQuantumGate)
 
-from ._quantummath import (add_quantum,
-                           subtract_quantum,
-                           inverse_add_quantum_carry,
-                           comparator,
-                           quantum_conditional_add,
-                           quantum_division,
-                           inverse_quantum_division,
-                           quantum_conditional_add_carry,
-                           quantum_multiplication,
-                           inverse_quantum_multiplication)
+from ._constantmath import (
+    add_constant,
+    add_constant_modN,
+    mul_by_constant_modN,
+)
+
+from ._quantummath import (
+    add_quantum, subtract_quantum, inverse_add_quantum_carry, comparator,
+    quantum_conditional_add, quantum_division, inverse_quantum_division,
+    quantum_conditional_add_carry, quantum_multiplication,
+    inverse_quantum_multiplication)
 
 
 def _replace_addconstant(cmd):
@@ -78,7 +68,7 @@ def _replace_multiplybyconstantmodN(cmd):
         mul_by_constant_modN(eng, c, N, quint)
 
 
-def _replace_addquantum(cmd):    
+def _replace_addquantum(cmd):
     eng = cmd.engine
     if cmd.control_qubits == []:
         quint_a = cmd.qubits[0]
@@ -94,34 +84,37 @@ def _replace_addquantum(cmd):
         if len(cmd.qubits) == 3:
             c = cmd.qubits[2]
             with Control(eng, cmd.control_qubits):
-                quantum_conditional_add_carry(eng, quint_a, quint_b, cmd.control_qubits,c)
+                quantum_conditional_add_carry(eng, quint_a, quint_b,
+                                              cmd.control_qubits, c)
         else:
             with Control(eng, cmd.control_qubits):
-                quantum_conditional_add(eng, quint_a, quint_b, cmd.control_qubits)
-        
+                quantum_conditional_add(eng, quint_a, quint_b,
+                                        cmd.control_qubits)
+
 
 def _replace_inverse_add_quantum(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
     quint_b = cmd.qubits[1]
-    
+
     if len(cmd.qubits) == 3:
         quint_c = cmd.qubits[2]
         with Control(eng, cmd.control_qubits):
-            inverse_add_quantum_carry(eng, quint_a,[quint_b, quint_c])
-    else: 
+            inverse_add_quantum_carry(eng, quint_a, [quint_b, quint_c])
+    else:
         with Control(eng, cmd.control_qubits):
             subtract_quantum(eng, quint_a, quint_b)
+
 
 def _replace_subtractquantum(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
     quint_b = cmd.qubits[1]
-    
+
     if len(cmd.qubits) == 3:
-        quint_c =  cmd.qubits[2]
+        quint_c = cmd.qubits[2]
         with Control(eng, cmd.control_qubits):
-            inverse_add_quantum(eng, quint_a, [quint_b, quint_c])
+            inverse_add_quantum_carry(eng, quint_a, [quint_b, quint_c])
     else:
         with Control(eng, cmd.control_qubits):
             subtract_quantum(eng, quint_a, quint_b)
@@ -146,6 +139,7 @@ def _replace_quantumdivision(cmd):
     with Control(eng, cmd.control_qubits):
         quantum_division(eng, quint_a, quint_b, quint_c)
 
+
 def _replace_inversequantumdivision(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
@@ -154,6 +148,7 @@ def _replace_inversequantumdivision(cmd):
 
     with Control(eng, cmd.control_qubits):
         inverse_quantum_division(eng, quint_a, quint_b, quint_c)
+
 
 def _replace_quantummultiplication(cmd):
     eng = cmd.engine
@@ -164,6 +159,7 @@ def _replace_quantummultiplication(cmd):
     with Control(eng, cmd.control_qubits):
         quantum_multiplication(eng, quint_a, quint_b, quint_c)
 
+
 def _replace_inversequantummultiplication(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
@@ -173,17 +169,19 @@ def _replace_inversequantummultiplication(cmd):
     with Control(eng, cmd.control_qubits):
         inverse_quantum_multiplication(eng, quint_a, quint_b, quint_c)
 
+
 all_defined_decomposition_rules = [
     DecompositionRule(AddConstant, _replace_addconstant),
     DecompositionRule(AddConstantModN, _replace_addconstmodN),
     DecompositionRule(MultiplyByConstantModN, _replace_multiplybyconstantmodN),
-    DecompositionRule(AddQuantum, _replace_addquantum),
-    DecompositionRule(InverseAddQuantum, _replace_inverse_add_quantum),
-    DecompositionRule(SubtractQuantum, _replace_subtractquantum),
-    DecompositionRule(Comparator, _replace_comparator),
-    DecompositionRule(QuantumDivision, _replace_quantumdivision),
-    DecompositionRule(InverseQuantumDivision, _replace_inversequantumdivision),
-    DecompositionRule(QuantumMultiplication, _replace_quantummultiplication),
-    DecompositionRule(InverseQuantumMultiplication, 
+    DecompositionRule(AddQuantum.__class__, _replace_addquantum),
+    DecompositionRule(_InverseAddQuantumGate, _replace_inverse_add_quantum),
+    DecompositionRule(SubtractQuantum.__class__, _replace_subtractquantum),
+    DecompositionRule(ComparatorQuantum.__class__, _replace_comparator),
+    DecompositionRule(DivideQuantum.__class__, _replace_quantumdivision),
+    DecompositionRule(_InverseDivideQuantumGate,
+                      _replace_inversequantumdivision),
+    DecompositionRule(MultiplyQuantum.__class__, _replace_quantummultiplication),
+    DecompositionRule(_InverseMultiplyQuantumGate,
                       _replace_inversequantummultiplication),
 ]

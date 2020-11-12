@@ -12,49 +12,45 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import math
-
-from projectq.ops import All, X, Swap, Measure, CNOT
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from ._gates import (AddQuantum, 
-                     SubtractQuantum) 
-
-"""
-Quantum addition using ripple carry from: https://arxiv.org/pdf/0910.2530.pdf.
-With carry bit,
-Ancilla: 0, Size: 7n-6, Toffoli: 2n-1, Depth: 5n-3.
-"""
-def get_all_probabilities(eng, qureg):
-    i = 0
-    y = len(qureg)
-    while i < (2**y):
-        qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
-        qubit_list = qubit_list[::-1]
-        l = eng.backend.get_probability(qubit_list, qureg)
-        if l != 0.0:
-            print(l, qubit_list, i)
-        i += 1
+from projectq.ops import All, X, CNOT
+from projectq.meta import Control
+from ._gates import (AddQuantum, SubtractQuantum)
 
 
-def add_quantum(eng, quint_a, quint_b, carry=[]):
+def add_quantum(eng, quint_a, quint_b, carry=None):
     """
     Adds two quantum integers, i.e.,
 
     |a0...a(n-1)>|b(0)...b(n-1)>|c> -> |a0...a(n-1)>|b+a(0)...b+a(n)>
 
-    (only works if quint_a and quint_b are the same size and carry is a single 
+    (only works if quint_a and quint_b are the same size and carry is a single
     qubit)
-    """
 
-    assert(len(quint_a) == len(quint_b))
-    assert(len(carry) == 1 or carry == [])
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        carry (list): Carry qubit
+
+    Notes:
+        Ancilla: 0, size: 7n-6, toffoli: 2n-1, depth: 5n-3.
+
+    .. rubric:: References
+
+    Quantum addition using ripple carry from:
+    https://arxiv.org/pdf/0910.2530.pdf
+    """
+    # pylint: disable = pointless-statement
+
+    assert len(quint_a) == len(quint_b)
+    assert carry and len(carry) == 1 or not carry
 
     n = len(quint_a) + 1
 
     for i in range(1, n - 1):
         CNOT | (quint_a[i], quint_b[i])
 
-    if carry != []:
+    if carry:
         CNOT | (quint_a[n - 2], carry)
 
     for j in range(n - 3, 0, -1):
@@ -64,7 +60,7 @@ def add_quantum(eng, quint_a, quint_b, carry=[]):
         with Control(eng, [quint_a[k], quint_b[k]]):
             X | (quint_a[k + 1])
 
-    if carry != []:
+    if carry:
         with Control(eng, [quint_a[n - 2], quint_b[n - 2]]):
             X | carry
 
@@ -80,17 +76,6 @@ def add_quantum(eng, quint_a, quint_b, carry=[]):
         CNOT | (quint_a[n], quint_b[n])
 
 
-
-"""
-Quantum subtraction using bitwise complementation of quantum adder: 
-b-a = (a + b')'. Same as the quantum addition circuit except that the steps 
-involving the carry qubit are left out and complement b at the start and at 
-the end of the circuit is added.
-
-Ancilla: 0, Size: 9n-8, Toffoli: 2n-2, Depth: 5n-5.
-"""
-
-
 def subtract_quantum(eng, quint_a, quint_b):
     """
     Subtracts two quantum integers, i.e.,
@@ -98,8 +83,30 @@ def subtract_quantum(eng, quint_a, quint_b):
     |a>|b> -> |a>|b-a>
 
     (only works if quint_a and quint_b are the same size)
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+
+    Notes:
+        Quantum subtraction using bitwise complementation of quantum
+        adder: b-a = (a + b')'. Same as the quantum addition circuit
+        except that the steps involving the carry qubit are left out
+        and complement b at the start and at the end of the circuit is
+        added.
+
+        Ancilla: 0, size: 9n-8, toffoli: 2n-2, depth: 5n-5.
+
+
+    .. rubric:: References
+
+    Quantum addition using ripple carry from:
+    https://arxiv.org/pdf/0910.2530.pdf
     """
-    assert(len(quint_a) == len(quint_b))
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert len(quint_a) == len(quint_b)
     n = len(quint_a) + 1
 
     All(X) | quint_b
@@ -129,28 +136,29 @@ def subtract_quantum(eng, quint_a, quint_b):
 
 
 def inverse_add_quantum_carry(eng, quint_a, quint_b):
+    """
+    Inverse of quantum addition with carry
 
-    assert(len(quint_a) == len(quint_b[0]))
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+    """
+    # pylint: disable = pointless-statement, expression-not-assigned
+    # pylint: disable = unused-argument
+
+    assert (len(quint_a) == len(quint_b[0]))
 
     All(X) | quint_b[0]
     X | quint_b[1][0]
 
-    AddQuantum() | (quint_a, quint_b[0], quint_b[1])
-        
+    AddQuantum | (quint_a, quint_b[0], quint_b[1])
+
     All(X) | quint_b[0]
     X | quint_b[1][0]
 
-"""
-Comparator flipping a compare qubit by computing the high bit of b-a, which is
-1 if and only if a > b. The high bit is computed using the first half of 
-circuit in AddQuantum (such that the high bit is written to  the carry qubit) 
-and then undoing the first half of the circuit. By complementing b at the 
-start and b+a at the end the high bit of b-a is calculated.
 
-Ancilla: 0, Size: 8n-3, Toffoli: 2n+1, Depth: 4n+3.
-"""
-
-def comparator(eng, quint_a, quint_b, comparator):
+def comparator(eng, quint_a, quint_b, comp):
     """
     Compares the size of two quantum integers, i.e,
 
@@ -160,9 +168,28 @@ def comparator(eng, quint_a, quint_b, comparator):
 
     (only works if quint_a and quint_b are the same size and the comparator
     is 1 qubit)
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        comp (Qubit): Comparator qubit
+
+    Notes:
+        Comparator flipping a compare qubit by computing the high bit
+        of b-a, which is 1 if and only if a > b. The high bit is
+        computed using the first half of circuit in AddQuantum (such
+        that the high bit is written to the carry qubit) and then
+        undoing the first half of the circuit. By complementing b at
+        the start and b+a at the end the high bit of b-a is
+        calculated.
+
+        Ancilla: 0, size: 8n-3, toffoli: 2n+1, depth: 4n+3.
     """
-    assert(len(quint_a) == len(quint_b))
-    assert(len(comparator) == 1)
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert len(quint_a) == len(quint_b)
+    assert len(comp) == 1
 
     n = len(quint_a) + 1
 
@@ -171,7 +198,7 @@ def comparator(eng, quint_a, quint_b, comparator):
     for i in range(1, n - 1):
         CNOT | (quint_a[i], quint_b[i])
 
-    CNOT | (quint_a[n - 2], comparator)
+    CNOT | (quint_a[n - 2], comp)
 
     for j in range(n - 3, 0, -1):
         CNOT | (quint_a[j], quint_a[j + 1])
@@ -181,7 +208,7 @@ def comparator(eng, quint_a, quint_b, comparator):
             X | (quint_a[k + 1])
 
     with Control(eng, [quint_a[n - 2], quint_b[n - 2]]):
-        X | comparator
+        X | comp
 
     for k in range(0, n - 2):
         with Control(eng, [quint_a[k], quint_b[k]]):
@@ -195,14 +222,6 @@ def comparator(eng, quint_a, quint_b, comparator):
 
     All(X) | quint_b
 
-
-"""
-Quantum Conditional Add from https://arxiv.org/pdf/1609.01241.pdf.
-If an input qubit labeled "conditional" is high, the two quantum integers
-are added, if "conditional" is low no operation is performed.
-
-Ancilla: 0, Size: 7n-7, Toffoli: 3n-3, Depth: 5n-3. 
-"""
 
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     """
@@ -213,9 +232,24 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
 
     if conditional is low, no operation is performed, i.e.,
     |a>|b>|c> -> |a>|b>|c>
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        conditional (list): Conditional qubit
+
+    Notes:
+        Ancilla: 0, Size: 7n-7, Toffoli: 3n-3, Depth: 5n-3.
+
+    .. rubric:: References
+
+    Quantum Conditional Add from https://arxiv.org/pdf/1609.01241.pdf
     """
-    assert(len(quint_a) == len(quint_b))
-    assert(len(conditional) == 1)
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert len(quint_a) == len(quint_b)
+    assert len(conditional) == 1
 
     n = len(quint_a) + 1
 
@@ -245,16 +279,6 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
         CNOT | (quint_a[o], quint_b[o])
 
 
-"""
-Quantum Restoring Integer Division from: https://arxiv.org/pdf/1609.01241.pdf.
-The circuit consits of three parts i) leftshift ii) subtraction 
-iii) conditional add operation.
-
-Ancilla: n, Size 16n^2 - 13, Toffoli: 5n^2 -5 , Depth: 10n^2 - 6.
-
-"""
-
-
 def quantum_division(eng, dividend, remainder, divisor):
     """
     Performs restoring integer division, i.e.,
@@ -262,8 +286,30 @@ def quantum_division(eng, dividend, remainder, divisor):
     |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
 
     (only works if all three qubits are of equal length)
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        dividend (list): Quantum register (or list of qubits)
+        remainder (list): Quantum register (or list of qubits)
+        divisor (list): Quantum register (or list of qubits)
+
+    Notes:
+        Ancilla: n, size 16n^2 - 13, toffoli: 5n^2 -5 , depth: 10n^2-6.
+
+    .. rubric:: References
+
+    Quantum Restoring Integer Division from:
+    https://arxiv.org/pdf/1609.01241.pdf.
     """
-    assert(len(dividend) == len(remainder) == len(divisor))
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    # The circuit consits of three parts
+    # i) leftshift
+    # ii) subtraction
+    # iii) conditional add operation.
+
+    assert len(dividend) == len(remainder) == len(divisor)
+
     j = len(remainder)
     n = len(dividend)
 
@@ -275,10 +321,10 @@ def quantum_division(eng, dividend, remainder, divisor):
         for i in range(0, n - 1):
             combined_reg.append(remainder[i])
 
-        SubtractQuantum() | (divisor[0:n], combined_reg)
+        SubtractQuantum | (divisor[0:n], combined_reg)
         CNOT | (combined_reg[n - 1], remainder[n - 1])
-        with Control(eng, remainder[n-1]):
-            AddQuantum() | (divisor[0:n], combined_reg)
+        with Control(eng, remainder[n - 1]):
+            AddQuantum | (divisor[0:n], combined_reg)
         X | remainder[n - 1]
 
         remainder.insert(0, dividend[n - 1])
@@ -287,37 +333,41 @@ def quantum_division(eng, dividend, remainder, divisor):
         del dividend[n]
 
         j -= 1
-    
+
+
 def inverse_quantum_division(eng, remainder, quotient, divisor):
     """
-    |remainder>|quotient>|divisor> ->  |dividend>|remainder(0)>|divisor>
-    
-    """
+    Performs the inverse of a restoring integer division, i.e.,
 
-    assert(len(remainder) == len(quotient) == len(divisor))
+    |remainder>|quotient>|divisor> ->  |dividend>|remainder(0)>|divisor>
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        dividend (list): Quantum register (or list of qubits)
+        remainder (list): Quantum register (or list of qubits)
+        divisor (list): Quantum register (or list of qubits)
+    """
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert (len(remainder) == len(quotient) == len(divisor))
+
     j = 0
     n = len(quotient)
+
     while j != n:
         X | quotient[0]
-        with Control(eng,quotient[0]):
-            SubtractQuantum() | (divisor, remainder)
+        with Control(eng, quotient[0]):
+            SubtractQuantum | (divisor, remainder)
         CNOT | (remainder[-1], quotient[0])
-        
-        AddQuantum() | (divisor,remainder)
-       
+
+        AddQuantum | (divisor, remainder)
+
         remainder.insert(n, quotient[0])
-        quotient.insert(n,remainder[0])
+        quotient.insert(n, remainder[0])
         del remainder[0]
         del quotient[0]
         j += 1
-    
 
-"""
-Quantum conditional add with no input carry from: 
-https://arxiv.org/pdf/1706.05113.pdf
-
-Ancilla: 2, Size: 7n - 4, Toffoli: 3n + 2, Depth: 5n.
-"""
 
 def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
     """
@@ -332,11 +382,27 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
 
     (only works if quint_a and quint_b are of the same size, ctrl is a
     single qubit and z is a quantum register with 2 qubits.
-    """
 
-    assert(len(quint_a) == len(quint_b))
-    assert(len(ctrl) == 1)
-    assert(len(z) == 2)
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        ctrl (list): Control qubit
+        z (list): Quantum register with 2 qubits
+
+    Notes:
+        Ancilla: 2, size: 7n - 4, toffoli: 3n + 2, depth: 5n.
+
+    .. rubric:: References
+
+    Quantum conditional add with no input carry from:
+    https://arxiv.org/pdf/1706.05113.pdf
+    """
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert len(quint_a) == len(quint_b)
+    assert len(ctrl) == 1
+    assert len(z) == 2
 
     n = len(quint_a)
 
@@ -378,64 +444,82 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
         CNOT | (quint_a[n], quint_b[n])
 
 
-"""
-Quantum multiplication from: https://arxiv.org/abs/1706.05113.
-
-Ancilla: 2n + 1, Size: 7n^2 - 9n + 4, Toffoli: 5n^2 - 4n, Depth: 3n^2 - 2.
-"""
-
-
 def quantum_multiplication(eng, quint_a, quint_b, product):
     """
-    Multiplies two quintum integers, i.e,
+    Multiplies two quantum integers, i.e,
 
     |a>|b>|0> -> |a>|b>|a*b>
 
     (only works if quint_a and quint_b are of the same size, n qubits and
     product has size 2n+1).
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        product (list): Quantum register (or list of qubits) storing
+            the result
+
+    Notes:
+        Ancilla: 2n + 1, size: 7n^2 - 9n + 4, toffoli: 5n^2 - 4n,
+        depth: 3n^2 - 2.
+
+    .. rubric:: References
+
+    Quantum multiplication from: https://arxiv.org/abs/1706.05113.
+
     """
-    assert(len(quint_a) == len(quint_b))
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert (len(quint_a) == len(quint_b))
     n = len(quint_a)
-    assert(len(product) == ((2 * n) + 1))
+    assert (len(product) == ((2 * n) + 1))
 
     for i in range(0, n):
         with Control(eng, [quint_a[i], quint_b[0]]):
             X | product[i]
 
     with Control(eng, quint_b[1]):
-        AddQuantum() | (quint_a[0:(n - 1)], 
-                                    product[1:n], 
-                                    [product[n + 1], product[n + 2]])
-
-    for j in range(2, n):
-        with Control(eng, quint_b[j]):  
-            AddQuantum() | (quint_a[0:(n - 1)], product[(0 + j):(n - 1 + j)], 
-                                        [product[n + j], product[n + j + 1]])
-
-def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
-    """
-    |a>|b>|a*b> -> |a>|b>|0>
-    (only works if quint_a and quint_b are of the same size, n qubits and
-    product has size 2n+1)
-    """
-
-    print('testing')
-
-    assert(len(quint_a) == len(quint_b))
-    n = len(quint_a)
-    assert(len(product) == ((2 * n) + 1))
+        AddQuantum | (quint_a[0:(n - 1)], product[1:n],
+                      [product[n + 1], product[n + 2]])
 
     for j in range(2, n):
         with Control(eng, quint_b[j]):
-                SubtractQuantum() | (quint_a[0:(n - 1)], 
-                                     product[(0 + j):(n - 1 + j)],
-                                     [product[n + j], product[n + j + 1]])
+            AddQuantum | (quint_a[0:(n - 1)], product[(0 + j):(n - 1 + j)],
+                          [product[n + j], product[n + j + 1]])
+
+
+def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
+    """
+    Inverse of the multiplication of two quantum integers, i.e,
+
+    |a>|b>|a*b> -> |a>|b>|0>
+
+    (only works if quint_a and quint_b are of the same size, n qubits and
+    product has size 2n+1)
+
+    Args:
+        eng (MainEngine): ProjectQ MainEngine
+        quint_a (list): Quantum register (or list of qubits)
+        quint_b (list): Quantum register (or list of qubits)
+        product (list): Quantum register (or list of qubits) storing
+            the result
+
+    """
+    # pylint: disable = pointless-statement, expression-not-assigned
+
+    assert len(quint_a) == len(quint_b)
+    n = len(quint_a)
+    assert len(product) == ((2 * n) + 1)
+
+    for j in range(2, n):
+        with Control(eng, quint_b[j]):
+            SubtractQuantum | (quint_a[0:(n - 1)], product[(0 + j):(
+                n - 1 + j)], [product[n + j], product[n + j + 1]])
     for i in range(0, n):
         with Control(eng, [quint_a[i], quint_b[0]]):
-                X | product[i]
+            X | product[i]
 
     with Control(eng, quint_b[1]):
-         SubtractQuantum() | (quint_a[0:(n - 1)],
-                              product[1:n],
-                              [product[n + 1], product[n + 2]])
-
+        SubtractQuantum | (quint_a[0:(n - 1)], product[1:n],
+                           [product[n + 1], product[n + 2]])

@@ -15,7 +15,7 @@
 import math
 try:
     from math import gcd
-except ImportError:
+except ImportError:  # pragma: no cover
     from fractions import gcd
 
 from projectq.ops import R, X, Swap, Measure, CNOT, QFT

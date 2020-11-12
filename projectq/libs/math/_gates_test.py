@@ -11,23 +11,19 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.libs.math_gates.py."""
 
 import pytest
 
-from projectq.libs.math import (AddConstant,
-                                AddConstantModN,
-                                MultiplyByConstantModN,
-                                SubConstant,
-                                SubConstantModN,
-                                AddQuantum,
-                                SubtractQuantum,
-                                Comparator,
-                                QuantumDivision,
-                                InverseQuantumDivision,
-                                QuantumMultiplication,
-                                InverseQuantumMultiplication)
+from projectq.libs.math import (AddConstant, AddConstantModN,
+                                MultiplyByConstantModN, SubConstant,
+                                SubConstantModN, AddQuantum, SubtractQuantum,
+                                ComparatorQuantum, DivideQuantum, MultiplyQuantum)
+
+from ._gates import (AddQuantumGate, SubtractQuantumGate,
+                     MultiplyQuantumGate, DivideQuantumGate,
+                     ComparatorQuantumGate)
+
 
 def test_addconstant():
     assert AddConstant(3) == AddConstant(3)
@@ -55,30 +51,38 @@ def test_multiplybyconstmodn():
 
 
 def test_AddQuantum():
-    assert AddQuantum() == AddQuantum()
-    assert not AddQuantum() == SubtractQuantum()
-    assert str(AddQuantum()) == "AddQuantum"
+    assert AddQuantum == AddQuantumGate()
+    assert AddQuantum != SubtractQuantum
+    assert not AddQuantum == SubtractQuantum
+    assert str(AddQuantum) == "AddQuantum"
 
 
 def test_SubtractQuantum():
-    assert SubtractQuantum() == SubtractQuantum()
-    assert not SubtractQuantum() == Comparator()
-    assert str(SubtractQuantum()) == "SubtractQuantum"
+    assert SubtractQuantum == SubtractQuantumGate()
+    assert SubtractQuantum != AddQuantum
+    assert not SubtractQuantum == ComparatorQuantum
+    assert str(SubtractQuantum) == "SubtractQuantum"
 
 
 def test_Comparator():
-    assert Comparator() == Comparator()
-    assert str(Comparator()) == "Comparator"
+    assert ComparatorQuantum == ComparatorQuantumGate()
+    assert ComparatorQuantum != AddQuantum
+    assert not ComparatorQuantum == AddQuantum
+    assert str(ComparatorQuantum) == "Comparator"
 
 
 def test_QuantumDivision():
-    assert QuantumDivision() == QuantumDivision()
-    assert str(QuantumDivision()) == "QuantumDivision"
+    assert DivideQuantum == DivideQuantumGate()
+    assert DivideQuantum != MultiplyQuantum
+    assert not DivideQuantum == MultiplyQuantum
+    assert str(DivideQuantum) == "DivideQuantum"
 
 
 def test_QuantumMultiplication():
-    assert QuantumMultiplication() == QuantumMultiplication()
-    assert str(QuantumMultiplication()) == "QuantumMultiplication"
+    assert MultiplyQuantum == MultiplyQuantumGate()
+    assert MultiplyQuantum != DivideQuantum
+    assert not MultiplyQuantum == DivideQuantum
+    assert str(MultiplyQuantum) == "MultiplyQuantum"
 
 
 def test_hash_function_implemented():
@@ -88,8 +92,8 @@ def test_hash_function_implemented():
     assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
     assert hash(MultiplyByConstantModN(3, 5)) == hash(
         str(MultiplyByConstantModN(3, 5)))
-    assert hash(AddQuantum()) == hash(str(AddQuantum()))
-    assert hash(SubtractQuantum()) == hash(str(SubtractQuantum()))
-    assert hash(Comparator()) == hash(str(Comparator()))
-    assert hash(QuantumDivision()) == hash(str(QuantumDivision()))
-    assert hash(QuantumMultiplication()) == hash(str(QuantumMultiplication()))
+    assert hash(AddQuantum) == hash(str(AddQuantum))
+    assert hash(SubtractQuantum) == hash(str(SubtractQuantum))
+    assert hash(ComparatorQuantum) == hash(str(ComparatorQuantum))
+    assert hash(DivideQuantum) == hash(str(DivideQuantum))
+    assert hash(MultiplyQuantum) == hash(str(MultiplyQuantum))

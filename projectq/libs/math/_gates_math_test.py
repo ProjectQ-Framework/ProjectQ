@@ -16,15 +16,19 @@ import pytest
 
 from projectq.backends import Simulator
 from projectq.cengines import (MainEngine, TagRemover, AutoReplacer,
-                               DecompositionRuleSet)
+                               InstructionFilter, DecompositionRuleSet)
 from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import All, Measure, X
+from projectq.ops import All, Measure, X, QFTGate, DaggeredGate
 import projectq.setups.decompositions
 
 import projectq.libs.math
-from . import (AddConstant, AddQuantum, SubtractQuantum, Comparator,
-               QuantumDivision, InverseQuantumDivision, QuantumMultiplication,
-               InverseQuantumMultiplication)
+from . import (AddConstant, AddQuantum, SubtractQuantum, ComparatorQuantum,
+               DivideQuantum, MultiplyQuantum)
+
+from ._gates import (_InverseAddQuantumGate, _InverseDivideQuantumGate,
+                     _InverseMultiplyQuantumGate)
+
+from projectq.backends import CommandPrinter
 
 
 def print_all_probabilities(eng, qureg):
@@ -33,20 +37,63 @@ def print_all_probabilities(eng, qureg):
     while i < (2**y):
         qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
         qubit_list = qubit_list[::-1]
-        l = eng.backend.get_probability(qubit_list, qureg)
-        if l != 0.0:
-            print(l, qubit_list, i)
+        prob = eng.backend.get_probability(qubit_list, qureg)
+        if prob != 0.0:
+            print(prob, qubit_list, i)
+
         i += 1
 
 
-@pytest.fixture
-def eng():
+def _eng_emulation():
+    # Only decomposing native ProjectQ gates
+    # -> using emulation for gates in projectq.libs.math
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    eng = MainEngine(
-        engine_list=[TagRemover(),
-                     AutoReplacer(rule_set),
-                     TagRemover()])
+    eng = MainEngine(engine_list=[
+        TagRemover(),
+        AutoReplacer(rule_set),
+        TagRemover(),
+        CommandPrinter(),
+    ],
+                     verbose=True)
     return eng
+
+
+def _eng_decomp():
+    def math_gates(eng, cmd):
+        gate = cmd.gate
+        if isinstance(gate, DaggeredGate):
+            gate = cmd.gate._gate
+
+        if gate in (AddQuantum, SubtractQuantum, ComparatorQuantum,
+                    DivideQuantum, MultiplyQuantum):
+            return False
+
+        if isinstance(gate, (_InverseAddQuantumGate, _InverseDivideQuantumGate,
+                             _InverseMultiplyQuantumGate)):
+            return False
+
+        if isinstance(gate, QFTGate):
+            return False
+        return True
+
+    rule_set = DecompositionRuleSet(
+        modules=[projectq.libs.math, projectq.setups.decompositions])
+    eng = MainEngine(engine_list=[
+        TagRemover(),
+        AutoReplacer(rule_set),
+        InstructionFilter(math_gates),
+        TagRemover(),
+        CommandPrinter()
+    ])
+    return eng
+
+
+@pytest.fixture(params=['no_decomp', 'full_decomp'])
+def eng(request):
+    if request.param == 'no_decomp':
+        return _eng_emulation()
+    elif request.param == 'full_decomp':
+        return _eng_decomp()
 
 
 def test_constant_addition(eng):
@@ -69,7 +116,7 @@ def test_addition(eng):
     carry_bit = eng.allocate_qubit()
     X | qunum_a[2]  # qunum_a is now equal to 4
     X | qunum_b[3]  # qunum_b is now equal to 8
-    AddQuantum() | (qunum_a, qunum_b, carry_bit)
+    AddQuantum | (qunum_a, qunum_b, carry_bit)
 
     eng.flush()
 
@@ -86,7 +133,7 @@ def test_inverse_addition(eng):
     X | qunum_a[2]
     X | qunum_b[3]
     with Compute(eng):
-        AddQuantum() | (qunum_a, qunum_b)
+        AddQuantum | (qunum_a, qunum_b)
     Uncompute(eng)
 
     eng.flush()
@@ -106,7 +153,7 @@ def test_inverse_addition_with_control(eng):
     X | qunum_c
     with Compute(eng):
         with Control(eng, qunum_c):
-            AddQuantum() | (qunum_a, qunum_b)
+            AddQuantum | (qunum_a, qunum_b)
 
     Uncompute(eng)
 
@@ -122,11 +169,11 @@ def test_addition_with_control(eng):
     qunum_a = eng.allocate_qureg(5)
     qunum_b = eng.allocate_qureg(5)
     control_bit = eng.allocate_qubit()
-    X | qunum_a[1]  #qunum_a is now equal to 2
-    X | qunum_b[4]  #qunum_b is now equal to 16
+    X | qunum_a[1]  # qunum_a is now equal to 2
+    X | qunum_b[4]  # qunum_b is now equal to 16
     X | control_bit
     with Control(eng, control_bit):
-        AddQuantum() | (qunum_a, qunum_b)
+        AddQuantum | (qunum_a, qunum_b)
 
     eng.flush()
 
@@ -147,7 +194,7 @@ def test_addition_with_control_carry(eng):
     X | control_bit
 
     with Control(eng, control_bit):
-        AddQuantum() | (qunum_a, qunum_b, qunum_c)
+        AddQuantum | (qunum_a, qunum_b, qunum_c)
     # qunum_a and ctrl don't change, qunum_b and qunum_c are now both equal
     # to 1 so in binary together 10001 (2 + 15 = 17)
 
@@ -176,7 +223,7 @@ def test_inverse_addition_with_control_carry(eng):
     X | control_bit
     with Compute(eng):
         with Control(eng, control_bit):
-            AddQuantum() | (qunum_a, qunum_b, qunum_c)
+            AddQuantum | (qunum_a, qunum_b, qunum_c)
     Uncompute(eng)
 
     eng.flush()
@@ -201,7 +248,7 @@ def test_subtraction(eng):
     X | qunum_a[2]
     X | qunum_b[3]
 
-    SubtractQuantum() | (qunum_a, qunum_b)
+    SubtractQuantum | (qunum_a, qunum_b)
 
     eng.flush()
 
@@ -219,7 +266,7 @@ def test_inverse_subtraction(eng):
     X | qunum_b[3]
 
     with Compute(eng):
-        SubtractQuantum() | (qunum_a, qunum_b)
+        SubtractQuantum | (qunum_a, qunum_b)
     Uncompute(eng)
 
     eng.flush()
@@ -237,7 +284,7 @@ def test_comparator(eng):
     X | qunum_a[4]  # qunum_a is now equal to 16
     X | qunum_b[3]  # qunum_b is now equal to 8
 
-    Comparator() | (qunum_a, qunum_b, compare_bit)
+    ComparatorQuantum | (qunum_a, qunum_b, compare_bit)
 
     eng.flush()
     print_all_probabilities(eng, qunum_a)
@@ -257,7 +304,7 @@ def test_division(eng):
     All(X) | [qunum_a[0], qunum_a[3]]  # qunum_a is now equal to 9
     X | qunum_c[2]  # qunum_c is now 4
 
-    QuantumDivision() | (qunum_a, qunum_b, qunum_c)
+    DivideQuantum | (qunum_a, qunum_b, qunum_c)
     eng.flush()
 
     assert 1. == pytest.approx(
@@ -277,7 +324,7 @@ def test_inverse_division(eng):
     X | qunum_c[2]
 
     with Compute(eng):
-        QuantumDivision() | (qunum_a, qunum_b, qunum_c)
+        DivideQuantum | (qunum_a, qunum_b, qunum_c)
     Uncompute(eng)
     eng.flush()
 
@@ -295,7 +342,7 @@ def test_multiplication(eng):
     qunum_c = eng.allocate_qureg(9)
     X | qunum_a[2]  # qunum_a is now 4
     X | qunum_b[3]  # qunum_b is now 8
-    QuantumMultiplication() | (qunum_a, qunum_b, qunum_c)
+    MultiplyQuantum | (qunum_a, qunum_b, qunum_c)
     # qunum_a remains 4 and qunum_b remains 8, qunum_c is now equal to 32
 
     eng.flush()
@@ -308,14 +355,14 @@ def test_multiplication(eng):
         eng.backend.get_probability([0, 0, 0, 0, 0, 1, 0, 0, 0], qunum_c))
 
 
-def test_inverse_division(eng):
+def test_inverse_multiplication(eng):
     qunum_a = eng.allocate_qureg(4)
     qunum_b = eng.allocate_qureg(4)
     qunum_c = eng.allocate_qureg(9)
     X | qunum_a[2]  # qunum_a is now 4
     X | qunum_b[3]  # qunum_b is now 8
     with Compute(eng):
-        QuantumMultiplication() | (qunum_a, qunum_b, qunum_c)
+        MultiplyQuantum | (qunum_a, qunum_b, qunum_c)
     Uncompute(eng)
 
     eng.flush()

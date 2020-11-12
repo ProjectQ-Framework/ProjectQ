@@ -15,26 +15,27 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import (InstructionFilter,
-                               AutoReplacer,
+from projectq.cengines import (InstructionFilter, AutoReplacer,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
 from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
                           Measure, X)
 
-
-from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
+from projectq.setups.decompositions import swap2cnot
 
 import projectq.libs.math
-from projectq.libs.math import (AddQuantum,
-                                SubtractQuantum,
-                                Comparator,
-                                QuantumDivision,
-                                QuantumMultiplication,)
+from projectq.libs.math import (
+    AddQuantum,
+    SubtractQuantum,
+    ComparatorQuantum,
+    DivideQuantum,
+    MultiplyQuantum,
+)
 
 from projectq.meta import Control, Compute, Uncompute
 
-def get_all_probabilities(eng, qureg):
+
+def print_all_probabilities(eng, qureg):
     i = 0
     y = len(qureg)
     while i < (2**y):
@@ -45,10 +46,12 @@ def get_all_probabilities(eng, qureg):
             print(l, qubit_list, i)
         i += 1
 
+
 def init(engine, quint, value):
     for i in range(len(quint)):
         if ((value >> i) & 1) == 1:
             X | quint[i]
+
 
 def no_math_emulation(eng, cmd):
     if isinstance(cmd.gate, BasicMathGate):
@@ -57,93 +60,113 @@ def no_math_emulation(eng, cmd):
         return True
     try:
         return len(cmd.gate.matrix) == 2
-    except:
+    except AttributeError:
         return False
+
 
 rule_set = DecompositionRuleSet(modules=[projectq.libs.math, swap2cnot])
 
+
 def test_quantum_adder():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
     control_qubit = eng.allocate_qubit()
-    
+
     init(eng, qureg_a, 2)
     init(eng, qureg_b, 1)
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0],qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 0, 0], qureg_b))
 
     with Control(eng, control_qubit):
-        AddQuantum() | (qureg_a, qureg_b) 
-    
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0],qureg_b))
+        AddQuantum | (qureg_a, qureg_b)
 
-    X | control_qubit 
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 0, 0], qureg_b))
+
+    X | control_qubit
 
     with Control(eng, control_qubit):
-        AddQuantum() | (qureg_a, qureg_b)
+        AddQuantum | (qureg_a, qureg_b)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0],qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 0], qureg_b))
 
-    init(eng, qureg_a, 2) #reset
-    init(eng, qureg_b, 3) #reset
+    init(eng, qureg_a, 2)  #reset
+    init(eng, qureg_b, 3)  #reset
 
     c = eng.allocate_qubit()
-    init(eng,qureg_a, 15)
-    init(eng,qureg_b, 15)
+    init(eng, qureg_a, 15)
+    init(eng, qureg_b, 15)
 
-    AddQuantum() | (qureg_a, qureg_b, c)
-    
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1],qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1],c))
+    AddQuantum | (qureg_a, qureg_b, c)
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 1, 1], qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([1], c))
 
     with Compute(eng):
         with Control(eng, control_qubit):
-            AddQuantum() | (qureg_a, qureg_b)
-    Uncompute(eng)
-    
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1],qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1],c))
-    
-    AddQuantum() | (qureg_a, qureg_b)
-   
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,1],qureg_b))
-    
-    with Compute(eng):
-        AddQuantum() | (qureg_a, qureg_b)
+            AddQuantum | (qureg_a, qureg_b)
     Uncompute(eng)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,1],qureg_b))
-    
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 1, 1], qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([1], c))
+
+    AddQuantum | (qureg_a, qureg_b)
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 1], qureg_b))
+
+    with Compute(eng):
+        AddQuantum | (qureg_a, qureg_b)
+    Uncompute(eng)
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 1], qureg_b))
+
     d = eng.allocate_qureg(2)
 
     with Compute(eng):
         with Control(eng, control_qubit):
-            AddQuantum() | (qureg_a, qureg_b,d)
+            AddQuantum | (qureg_a, qureg_b, d)
     Uncompute(eng)
-    
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1,1],qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,1],qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,0],d))
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 1], qureg_b))
+    assert 1. == pytest.approx(eng.backend.get_probability([0, 0], d))
 
     All(Measure) | qureg_b
     Measure | c
-    
-    
+
+
 def test_quantumsubtraction():
 
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
@@ -151,46 +174,53 @@ def test_quantumsubtraction():
 
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 7)
-    
+
     X | control_qubit
-    with Control(eng,control_qubit):
-        SubtractQuantum() | (qureg_a, qureg_b)
+    with Control(eng, control_qubit):
+        SubtractQuantum | (qureg_a, qureg_b)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0,0,0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 0, 0, 0], qureg_b))
 
-    init(eng, qureg_a, 5) #reset 
-    init(eng, qureg_b, 2) #reset  
+    init(eng, qureg_a, 5)  #reset
+    init(eng, qureg_b, 2)  #reset
 
-    init(eng, qureg_a, 5)  
+    init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
-    
-    SubtractQuantum() | (qureg_a, qureg_b)
 
-    print(get_all_probabilities(eng,qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,1,1,0], qureg_b))
+    SubtractQuantum | (qureg_a, qureg_b)
 
-    init(eng, qureg_a, 5) #reset
-    init(eng, qureg_b, 14) #reset 
+    print_all_probabilities(eng, qureg_b)
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 1, 1, 1, 0], qureg_b))
+
+    init(eng, qureg_a, 5)  #reset
+    init(eng, qureg_b, 14)  #reset
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
 
     with Compute(eng):
-        SubtractQuantum() | (qureg_a, qureg_b)
+        SubtractQuantum | (qureg_a, qureg_b)
     Uncompute(eng)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,0], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0,0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 0, 0], qureg_b))
     All(Measure) | qureg_a
     All(Measure) | qureg_b
-    
+
 
 def test_comparator():
 
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
     qureg_a = eng.allocate_qureg(3)
     qureg_b = eng.allocate_qureg(3)
     compare_qubit = eng.allocate_qubit()
@@ -198,7 +228,7 @@ def test_comparator():
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
 
-    Comparator() | (qureg_a, qureg_b, compare_qubit)
+    ComparatorQuantum | (qureg_a, qureg_b, compare_qubit)
 
     assert 1. == pytest.approx(eng.backend.get_probability([1], compare_qubit))
 
@@ -209,8 +239,9 @@ def test_comparator():
 
 def test_quantumdivision():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg_a = eng.allocate_qureg(4)
     qureg_b = eng.allocate_qureg(4)
@@ -218,75 +249,80 @@ def test_quantumdivision():
 
     init(eng, qureg_a, 10)
     init(eng, qureg_c, 3)
-    
-    QuantumDivision() | (qureg_a, qureg_b, qureg_c)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,0,0], qureg_a)
-                               )
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_c))
+    DivideQuantum | (qureg_a, qureg_b, qureg_c)
 
-    
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 0, 0], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 0], qureg_c))
+
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     All(Measure) | qureg_c
 
-    init(eng, qureg_a, 1) # reset
-    init(eng, qureg_b, 3) # reset
+    init(eng, qureg_a, 1)  # reset
+    init(eng, qureg_b, 3)  # reset
 
     init(eng, qureg_a, 11)
 
-
     with Compute(eng):
-        QuantumDivision() | (qureg_a, qureg_b, qureg_c)
+        DivideQuantum | (qureg_a, qureg_b, qureg_c)
     Uncompute(eng)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,1], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,0], qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0,0], qureg_c))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 1], qureg_a))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 1, 0, 0], qureg_c))
 
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     All(Measure) | qureg_c
 
+
 def test_quantummultiplication():
-    
+
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg_a = eng.allocate_qureg(3)
     qureg_b = eng.allocate_qureg(3)
     qureg_c = eng.allocate_qureg(7)
-    
+
     init(eng, qureg_a, 7)
     init(eng, qureg_b, 3)
 
-    QuantumMultiplication() | (qureg_a, qureg_b, qureg_c)
+    MultiplyQuantum | (qureg_a, qureg_b, qureg_c)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,1], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0], qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,0,1,0,1,0,0], qureg_c))
-    
+    assert 1. == pytest.approx(eng.backend.get_probability([1, 1, 1], qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([1, 1, 0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([1, 0, 1, 0, 1, 0, 0], qureg_c))
+
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     All(Measure) | qureg_c
 
-
     init(eng, qureg_a, 7)
     init(eng, qureg_b, 3)
     init(eng, qureg_c, 21)
-    
-    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,0,0,0,0]
-                                                           ,qureg_c))
+
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 0, 0, 0, 0], qureg_c))
     init(eng, qureg_a, 2)
     init(eng, qureg_b, 3)
 
     with Compute(eng):
-        QuantumMultiplication() | (qureg_a, qureg_b, qureg_c)
+        MultiplyQuantum | (qureg_a, qureg_b, qureg_c)
     Uncompute(eng)
 
-    assert 1. == pytest.approx(eng.backend.get_probability([0,1,0], qureg_a))
-    assert 1. == pytest.approx(eng.backend.get_probability([1,1,0], qureg_b))
-    assert 1. == pytest.approx(eng.backend.get_probability([0,0,0,0,0,0,0]
-                                                           ,qureg_c))
+    assert 1. == pytest.approx(eng.backend.get_probability([0, 1, 0], qureg_a))
+    assert 1. == pytest.approx(eng.backend.get_probability([1, 1, 0], qureg_b))
+    assert 1. == pytest.approx(
+        eng.backend.get_probability([0, 0, 0, 0, 0, 0, 0], qureg_c))
