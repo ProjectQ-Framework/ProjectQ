@@ -258,14 +258,21 @@ class AddQuantumGate(BasicMathGate):
 
         def math_fun(a):
             a[1] = a[0] + a[1]
-            if len("{0:b}".format(a[1])) > n:
-                a[1] = a[1] % (n**2)
+            if len(bin(a[1])[2:]) > n:
+                a[1] = a[1] % (2**n)
+
+                # The part below was originally written by peter-janderks
+                # It literally makes literally no sense to me...
+                # if len(a) == 3:
+                #     if a[2] in (1, 3):
+                #         a[2] -= 1
+                #     else:
+                #         a[2] += 1
+
                 if len(a) == 3:
-                    if a[2] == 1:
-                        a[2] = 0
-                    elif a[2] == 3:
-                        a[2] = 2
-                    else:
+                    # This will most likely pose some problem in case
+                    # of overflow
+                    if a[2] < 3:
                         a[2] += 1
             return (a)
 
@@ -293,14 +300,25 @@ class _InverseAddQuantumGate(BasicMathGate):
     def get_math_function(self, qubits):
         n = len(qubits[1])
 
-            def math_fun(a):
-                if len(a) == 3:
-                    if a[2] == 1:
-                        a[2] = n**2
-                    a[1] += a[2]
+        def math_fun(a):
+            if len(a) == 3:
+                # This would be the proper way of inverting if we were
+                # using the code from peter-janderks
+                # if a[2] in (0, 2):
+                #     a[1] += 2**n
+                #     a[2] += 1
+                # elif a[2] == 3:
+                #     a[1] += 2**n
+                #     a[2] -= 1
+                # else:
+                #     a[2] -= 1
 
-                a[1] -= a[0]
-                return (a)
+                if a[2] > 0:
+                    a[1] += 2**n
+                    a[2] -= 1
+
+            a[1] -= a[0]
+            return (a)
 
         return math_fun
 
@@ -442,13 +460,14 @@ class DivideQuantumGate(BasicMathGate):
         """
         def division(dividend, remainder, divisor):
             if divisor == 0 or divisor > dividend:
-                return(divisor,remainder,dividend)
+                return (remainder, dividend, divisor)
 
             else:
-                quotient = remainder + dividend//divisor
-                return((dividend - (quotient* divisor)), quotient, divisor)
-        BasicMathGate.__init__(self,division)
-    
+                quotient = remainder + dividend // divisor
+                return ((dividend - (quotient * divisor)), quotient, divisor)
+
+        BasicMathGate.__init__(self, division)
+
     def get_inverse(self):
         return _InverseDivideQuantumGate()
 
@@ -474,11 +493,15 @@ class _InverseDivideQuantumGate(BasicMathGate):
     division.
     """
     def __init__(self):
-        def inverse_division(remainder,quotient,divisor):
-            dividend = remainder + quotient*divisor
+        def inverse_division(remainder, quotient, divisor):
+            if divisor == 0:
+                return (quotient, remainder, divisor)
+
+            dividend = remainder + quotient * divisor
             remainder = 0
-            return(dividend,remainder,divisor)
-        BasicMathGate.__init__(self,inverse_division)
+            return (dividend, remainder, divisor)
+
+        BasicMathGate.__init__(self, inverse_division)
 
 
 class MultiplyQuantumGate(BasicMathGate):
