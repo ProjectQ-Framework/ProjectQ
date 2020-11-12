@@ -45,71 +45,66 @@ def no_math_emulation(eng, cmd):
         return False
 
 
+@pytest.fixture
+def eng():
+    return MainEngine(backend=Simulator(),
+                      engine_list=[
+                          AutoReplacer(rule_set),
+                          InstructionFilter(no_math_emulation)
+                      ])
+
+
 rule_set = DecompositionRuleSet(
     modules=[projectq.libs.math, qft2crandhadamard, swap2cnot])
 
 
-def test_adder():
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
+def test_adder(eng):
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
     AddConstant(3) | qureg
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][7]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][7]))
 
     init(eng, qureg, 7)  # reset
     init(eng, qureg, 2)
 
     # check for overflow -> should be 15+2 = 1 (mod 16)
     AddConstant(15) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][1]))
 
     All(Measure) | qureg
 
 
-def test_modadder():
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
-
+def test_modadder(eng):
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
     AddConstantModN(3, 6) | qureg
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][1]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][1]))
 
     init(eng, qureg, 1)  # reset
     init(eng, qureg, 7)
 
     AddConstantModN(10, 13) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][4]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][4]))
 
     All(Measure) | qureg
 
 
-def test_modmultiplier():
-    sim = Simulator()
-    eng = MainEngine(
-        sim, [AutoReplacer(rule_set),
-              InstructionFilter(no_math_emulation)])
-
+def test_modmultiplier(eng):
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
     MultiplyByConstantModN(3, 7) | qureg
 
-    assert 1. == pytest.approx(abs(sim.cheat()[1][5]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][5]))
 
     init(eng, qureg, 5)  # reset
     init(eng, qureg, 7)
 
     MultiplyByConstantModN(4, 13) | qureg
-    assert 1. == pytest.approx(abs(sim.cheat()[1][2]))
+    assert 1. == pytest.approx(abs(eng.backend.cheat()[1][2]))
 
     All(Measure) | qureg
