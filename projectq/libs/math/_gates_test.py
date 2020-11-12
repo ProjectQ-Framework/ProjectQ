@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,18 +11,16 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""Tests for projectq.libs.math_gates.py."""
-
-import pytest
+"""Tests for projectq.libs.math._gates.py."""
 
 from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN, SubConstant,
                                 SubConstantModN, AddQuantum, SubtractQuantum,
-                                ComparatorQuantum, DivideQuantum, MultiplyQuantum)
+                                ComparatorQuantum, DivideQuantum,
+                                MultiplyQuantum)
 
-from ._gates import (AddQuantumGate, SubtractQuantumGate,
-                     MultiplyQuantumGate, DivideQuantumGate,
-                     ComparatorQuantumGate)
+from ._gates import (AddQuantumGate, SubtractQuantumGate, MultiplyQuantumGate,
+                     DivideQuantumGate, ComparatorQuantumGate)
 
 
 def test_addconstant():

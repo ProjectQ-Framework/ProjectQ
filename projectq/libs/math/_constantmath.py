@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ try:
 except ImportError:  # pragma: no cover
     from fractions import gcd
 
-from projectq.ops import R, X, Swap, Measure, CNOT, QFT
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
+from projectq.ops import R, X, Swap, CNOT, QFT
+from projectq.meta import Control, Compute, Uncompute, CustomUncompute
 from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
 
 
@@ -51,7 +51,7 @@ def add_constant_modN(eng, c, N, quint):
     using Draper addition and the construction from
     https://arxiv.org/abs/quant-ph/0205095.
     """
-    assert(c < N and c >= 0)
+    assert (c < N and c >= 0)
 
     AddConstant(c) | quint
 
@@ -84,8 +84,8 @@ def mul_by_constant_modN(eng, c, N, quint_in):
     (only works if a and N are relative primes, otherwise the modular inverse
     does not exist).
     """
-    assert(c < N and c >= 0)
-    assert(gcd(c, N) == 1)
+    assert (c < N and c >= 0)
+    assert (gcd(c, N) == 1)
 
     n = len(quint_in)
     quint_out = eng.allocate_qureg(n + 1)

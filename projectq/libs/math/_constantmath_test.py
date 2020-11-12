@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,14 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.libs.math_constantmath.py."""
 
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import (InstructionFilter,
-                               AutoReplacer,
+from projectq.cengines import (InstructionFilter, AutoReplacer,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
 from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
@@ -26,8 +24,7 @@ from projectq.ops import (All, BasicMathGate, ClassicalInstructionGate,
 
 import projectq.libs.math
 from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
-from projectq.libs.math import (AddConstant,
-                                AddConstantModN,
+from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
 
 
@@ -44,7 +41,7 @@ def no_math_emulation(eng, cmd):
         return True
     try:
         return len(cmd.gate.matrix) == 2
-    except:
+    except AttributeError:
         return False
 
 
@@ -54,8 +51,9 @@ rule_set = DecompositionRuleSet(
 
 def test_adder():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
 
@@ -75,8 +73,9 @@ def test_adder():
 
 def test_modadder():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)
@@ -96,8 +95,9 @@ def test_modadder():
 
 def test_modmultiplier():
     sim = Simulator()
-    eng = MainEngine(sim, [AutoReplacer(rule_set),
-                           InstructionFilter(no_math_emulation)])
+    eng = MainEngine(
+        sim, [AutoReplacer(rule_set),
+              InstructionFilter(no_math_emulation)])
 
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)

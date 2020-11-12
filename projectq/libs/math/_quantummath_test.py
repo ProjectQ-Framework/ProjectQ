@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -102,8 +102,8 @@ def test_quantum_adder():
     assert 1. == pytest.approx(
         eng.backend.get_probability([1, 1, 0, 0], qureg_b))
 
-    init(eng, qureg_a, 2)  #reset
-    init(eng, qureg_b, 3)  #reset
+    init(eng, qureg_a, 2)  # reset
+    init(eng, qureg_b, 3)  # reset
 
     c = eng.allocate_qubit()
     init(eng, qureg_a, 15)
@@ -184,8 +184,8 @@ def test_quantumsubtraction():
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 1, 0, 0, 0], qureg_b))
 
-    init(eng, qureg_a, 5)  #reset
-    init(eng, qureg_b, 2)  #reset
+    init(eng, qureg_a, 5)  # reset
+    init(eng, qureg_b, 2)  # reset
 
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
@@ -198,8 +198,8 @@ def test_quantumsubtraction():
     assert 1. == pytest.approx(
         eng.backend.get_probability([0, 1, 1, 1, 0], qureg_b))
 
-    init(eng, qureg_a, 5)  #reset
-    init(eng, qureg_b, 14)  #reset
+    init(eng, qureg_a, 5)  # reset
+    init(eng, qureg_b, 14)  # reset
     init(eng, qureg_a, 5)
     init(eng, qureg_b, 3)
 

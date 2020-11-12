@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 Registers a few default replacement rules for Shor's algorithm to work
 (see Examples).
 """
-from projectq.meta import Control, Dagger
+
+from projectq.meta import Control
 from projectq.cengines import DecompositionRule
 
-from ._gates import (AddConstant, SubConstant, AddConstantModN,
-                     SubConstantModN, MultiplyByConstantModN, AddQuantum,
-                     SubtractQuantum, ComparatorQuantum, DivideQuantum,
-                     MultiplyQuantum)
+from ._gates import (AddConstant, AddConstantModN, MultiplyByConstantModN,
+                     AddQuantum, SubtractQuantum, ComparatorQuantum,
+                     DivideQuantum, MultiplyQuantum)
 
 from ._gates import (_InverseAddQuantumGate, _InverseDivideQuantumGate,
                      _InverseMultiplyQuantumGate)
@@ -181,7 +181,8 @@ all_defined_decomposition_rules = [
     DecompositionRule(DivideQuantum.__class__, _replace_quantumdivision),
     DecompositionRule(_InverseDivideQuantumGate,
                       _replace_inversequantumdivision),
-    DecompositionRule(MultiplyQuantum.__class__, _replace_quantummultiplication),
+    DecompositionRule(MultiplyQuantum.__class__,
+                      _replace_quantummultiplication),
     DecompositionRule(_InverseMultiplyQuantumGate,
                       _replace_inversequantummultiplication),
 ]
