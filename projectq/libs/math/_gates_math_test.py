@@ -63,12 +63,13 @@ def _eng_decomp():
         if isinstance(cmd.gate, ClassicalInstructionGate):
             return True
         try:
-            return len(cmd.gate.matrix) == 2
+            return len(cmd.gate.matrix) > 0
         except AttributeError:
             return False
 
-    rule_set = DecompositionRuleSet(
-        modules=[projectq.libs.math, projectq.setups.decompositions])
+    rule_set = DecompositionRuleSet(modules=[
+        projectq.libs.math, projectq.setups.decompositions.qft2crandhadamard
+    ])
     eng = MainEngine(engine_list=[
         TagRemover(),
         AutoReplacer(rule_set),
