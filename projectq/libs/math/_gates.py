@@ -262,19 +262,9 @@ class AddQuantumGate(BasicMathGate):
             if len(bin(a[1])[2:]) > n:
                 a[1] = a[1] % (2**n)
 
-                # The part below was originally written by peter-janderks
-                # It literally makes literally no sense to me...
-                # if len(a) == 3:
-                #     if a[2] in (1, 3):
-                #         a[2] -= 1
-                #     else:
-                #         a[2] += 1
-
                 if len(a) == 3:
-                    # This will most likely pose some problem in case
-                    # of overflow
-                    if a[2] < 3:
-                        a[2] += 1
+                    # Flip the last bit of the carry register
+                    a[2] ^= 1
             return (a)
 
         return math_fun
@@ -303,20 +293,8 @@ class _InverseAddQuantumGate(BasicMathGate):
 
         def math_fun(a):
             if len(a) == 3:
-                # This would be the proper way of inverting if we were
-                # using the code from peter-janderks
-                # if a[2] in (0, 2):
-                #     a[1] += 2**n
-                #     a[2] += 1
-                # elif a[2] == 3:
-                #     a[1] += 2**n
-                #     a[2] -= 1
-                # else:
-                #     a[2] -= 1
-
-                if a[2] > 0:
-                    a[1] += 2**n
-                    a[2] -= 1
+                # Flip the last bit of the carry register
+                a[2] ^= 1
 
             a[1] -= a[0]
             return (a)
