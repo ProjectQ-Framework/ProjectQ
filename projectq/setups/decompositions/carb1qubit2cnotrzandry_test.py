@@ -27,6 +27,7 @@ from projectq.setups.decompositions import arb1qubit2rzandry_test as arb1q_t
 
 from . import carb1qubit2cnotrzandry as carb1q
 
+tolerance = 1e-6
 
 def test_recognize_correct_gates():
     saving_backend = DummyEngine(save_commands=True)
@@ -138,7 +139,7 @@ def test_decomposition(gate_matrix):
             test = test_sim.get_amplitude(fstate, test_qb + test_ctrl_qb)
             correct = correct_sim.get_amplitude(fstate, correct_qb +
                                                 correct_ctrl_qb)
-            assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
+            assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
         All(Measure) | test_qb + test_ctrl_qb
         All(Measure) | correct_qb + correct_ctrl_qb

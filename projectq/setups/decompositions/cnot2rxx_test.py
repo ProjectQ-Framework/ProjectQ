@@ -72,6 +72,7 @@ def _decomp_gates(eng, cmd):
 # 1, if the two vectors are the same up to a global phase.
 
 
+@pytest.mark.skip(reason="Qrack properly raises exception for lack of support for gates used in this test")
 def test_decomposition():
     """ Test that this decomposition of CNOT produces correct amplitudes
 

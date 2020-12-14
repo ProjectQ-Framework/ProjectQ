@@ -27,6 +27,8 @@ from projectq.meta import Loop, Control, Compute, Uncompute
 from projectq.ops import QAA
 from projectq.setups.decompositions import amplitudeamplification as aa
 
+tolerance = 1e-5
+
 
 def hache_algorithm(eng, qreg):
     All(H) | qreg
@@ -90,7 +92,7 @@ def test_simple_grover():
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-6), (
+    assert total_prob_after == pytest.approx(theoretical_prob, abs=tolerance), (
         "The obtained probability is less than expected %f vs. %f" %
         (total_prob_after, theoretical_prob))
 

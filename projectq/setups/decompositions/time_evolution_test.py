@@ -22,6 +22,7 @@ from scipy import sparse as sps
 import scipy.sparse.linalg
 
 from projectq import MainEngine
+# Qrack simulator does not yet support time evolution, so always use the default simulator:
 from projectq.backends import Simulator
 from projectq.cengines import (DummyEngine, AutoReplacer, InstructionFilter,
                                InstructionFilter, DecompositionRuleSet)

@@ -52,7 +52,6 @@ import platform
 
 class get_pybind_include(object):
     '''Helper class to determine the pybind11 include path
-
     The purpose of this class is to postpone importing pybind11
     until it is actually installed, so that the ``get_include()``
     method can be invoked. '''
@@ -62,6 +61,20 @@ class get_pybind_include(object):
     def __str__(self):
         import pybind11
         return pybind11.get_include(self.user)
+
+class get_opencl_library(object):
+    '''Helper class to determine if OpenCL is present'''
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        from ctypes import cdll
+        try:
+            cdll.LoadLibrary('libOpenCL.so.1')
+            return 'OpenCL'
+        except OSError:
+            # Return something inoffensive that always works
+            return 'm'
 
 
 def important_msgs(*msgs):
@@ -199,6 +212,17 @@ ext_modules = [
             get_pybind_include(user=True)
         ],
         language='c++'),
+    Extension(
+            'projectq.backends._qracksim._qracksim',
+            ['projectq/backends/_qracksim/_qracksim.cpp'],
+            include_dirs=[
+                # Path to pybind11 headers
+                get_pybind_include(),
+                get_pybind_include(user=True),
+            ],
+            libraries=['qrack', str(get_opencl_library())],
+            language='c++'
+        ),
 ]
 
 # ==============================================================================
@@ -356,10 +380,11 @@ class BuildExt(build_ext):
                     self.opts.extend(('-DINTRIN', flag))
                 break
 
-        for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
-            if compiler_test(self.compiler, flagname=flag):
-                self.opts.append(flag)
-                break
+        #Not compatible with Qrack at "dirty qubit" tolerances for deallocation:
+        #for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
+        #    if compiler_test(self.compiler, flagname=flag):
+        #        self.opts.append(flag)
+        #        break
 
     def _configure_cxx_standard(self):
         if self.compiler.compiler_type == 'msvc':

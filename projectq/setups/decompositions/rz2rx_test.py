@@ -27,6 +27,8 @@ from projectq.ops import Measure, Rz
 
 from . import rz2rx
 
+tolerance = 1e-6
+
 
 def test_recognize_correct_gates():
     """ Test that recognize_RzNoCtrl recognizes ctrl qubits """
@@ -118,8 +120,8 @@ def test_decomposition(angle):
             vector_dot_product = np.dot(test_vector, correct_vector)
 
             assert np.absolute(vector_dot_product) == pytest.approx(1,
-                                                                    rel=1e-12,
-                                                                    abs=1e-12)
+                                                                    rel=tolerance,
+                                                                    abs=tolerance)
 
             Measure | test_qb
             Measure | correct_qb

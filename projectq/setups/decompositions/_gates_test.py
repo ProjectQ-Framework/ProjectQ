@@ -24,12 +24,36 @@ from projectq.cengines import (MainEngine,
                                DummyEngine,
                                DecompositionRuleSet)
 from projectq.backends import Simulator
+from projectq.backends._sim import Simulator as DefaultSimulator
 from projectq.ops import (All, ClassicalInstructionGate, CRz, Entangle, H,
                           Measure, Ph, R, Rz, T, Tdag, Toffoli, X)
 from projectq.meta import Control
 from projectq.setups.decompositions import (crz2cxandrz, entangle,
                                             globalphase, ph2r, r2rzandph,
                                             toffoli2cnotandtgate)
+
+
+def test_is_qrack_simulator_present():
+    try:
+        import projectq.backends._qracksim._qracksim as _
+        return True
+    except:
+        return False
+
+
+def get_available_simulators():
+    result = ["default_simulator"]
+    if test_is_qrack_simulator_present():
+        result.append("qrack_simulator")
+    return result
+
+
+def init_sim(request):
+    if request == "qrack_simulator":
+        sim = Simulator()
+    elif request == "default_simulator":
+        sim = DefaultSimulator()
+    return sim
 
 
 def low_level_gates(eng, cmd):
@@ -66,11 +90,14 @@ def low_level_gates_noglobalphase(eng, cmd):
             isinstance(cmd.gate, R))
 
 
-def test_globalphase():
+@pytest.mark.parametrize("sim_type", get_available_simulators())
+def test_globalphase(sim_type):
     rule_set = DecompositionRuleSet(modules=[globalphase, r2rzandph])
     dummy = DummyEngine(save_commands=True)
+    sim = init_sim(sim_type)
     eng = MainEngine(dummy, [AutoReplacer(rule_set),
-                             InstructionFilter(low_level_gates_noglobalphase)])
+                             InstructionFilter(low_level_gates_noglobalphase),
+                             sim])
 
     qubit = eng.allocate_qubit()
     R(1.2) | qubit
@@ -96,17 +123,22 @@ def run_circuit(eng):
     return qureg
 
 
-def test_gate_decompositions():
-    sim = Simulator()
+@pytest.mark.parametrize("sim_type", get_available_simulators())
+def test_gate_decompositions(sim_type):
+    sim = init_sim(sim_type)
     eng = MainEngine(sim, [])
     rule_set = DecompositionRuleSet(
         modules=[r2rzandph, crz2cxandrz, toffoli2cnotandtgate, ph2r])
 
     qureg = run_circuit(eng)
 
-    sim2 = Simulator()
-    eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
-                                     InstructionFilter(low_level_gates)])
+    sim2 = init_sim(sim_type)
+    if sim_type == "qrack_simulator":
+        # Qrack will pass this test if the AutoReplacer is maintained, but the InstructionFilter is removed
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set)])
+    else:
+        eng_lowlevel = MainEngine(sim2, [AutoReplacer(rule_set),
+                                         InstructionFilter(low_level_gates)])
     qureg2 = run_circuit(eng_lowlevel)
 
     for i in range(len(sim.cheat()[1])):

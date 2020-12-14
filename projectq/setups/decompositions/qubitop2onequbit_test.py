@@ -17,6 +17,7 @@ import cmath
 import pytest
 
 from projectq import MainEngine
+# Qrack simulator does not yet support QubitOperator, so always use the default simulator:
 from projectq.backends import Simulator
 from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
                                InstructionFilter)
@@ -26,6 +27,7 @@ from projectq.ops import All, Measure, Ph, QubitOperator, X, Y, Z
 
 import projectq.setups.decompositions.qubitop2onequbit as qubitop2onequbit
 
+tolerance = 1e-6
 
 def test_recognize():
     saving_backend = DummyEngine(save_commands=True)
@@ -63,7 +65,7 @@ def test_qubitop2singlequbit():
     test_eng.flush()
     test_eng.backend.set_wavefunction(random_initial_state,
                                       test_qureg + test_ctrl_qb)
-    correct_eng = MainEngine()
+    correct_eng = MainEngine(backend=Simulator())
     correct_qureg = correct_eng.allocate_qureg(num_qubits)
     correct_ctrl_qb = correct_eng.allocate_qubit()
     correct_eng.flush()
@@ -92,7 +94,7 @@ def test_qubitop2singlequbit():
                                               test_qureg + test_ctrl_qb)
         correct = correct_eng.backend.get_amplitude(
             binary_state, correct_qureg + correct_ctrl_qb)
-        assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)
+        assert correct == pytest.approx(test, rel=tolerance, abs=tolerance)
 
     All(Measure) | correct_qureg + correct_ctrl_qb
     All(Measure) | test_qureg + test_ctrl_qb

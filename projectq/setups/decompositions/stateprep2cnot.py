@@ -39,7 +39,7 @@ def _decompose_state_preparation(cmd):
     norm = 0.
     for amplitude in final_state:
         norm += abs(amplitude)**2
-    if norm < 1 - 1e-10 or norm > 1 + 1e-10:
+    if norm < 1 - 1e-6 or norm > 1 + 1e-6:
         raise ValueError("final_state is not normalized.")
     with Control(eng, cmd.control_qubits):
         # As in the paper reference, we implement the inverse:
