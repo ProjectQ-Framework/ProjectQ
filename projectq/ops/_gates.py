@@ -56,8 +56,11 @@ from ._basics import (BasicGate,
                       ClassicalInstructionGate,
                       FastForwardingGate,
                       BasicMathGate)
+from ._metagates import C
 from ._command import apply_command
-
+from ._command import Command
+from ._relative_command import RelativeCommand
+from projectq.types import BasicQubit
 
 class HGate(SelfInverseGate):
     """ Hadamard gate class """
@@ -74,6 +77,7 @@ H = HGate()
 
 class XGate(SelfInverseGate):
     """ Pauli-X gate class """
+
     def __str__(self):
         return "X"
 
@@ -81,9 +85,20 @@ class XGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, 1], [1, 0]])
 
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls """
+        if (n == 1):
+            # i.e. this is a CNOT gate (one control)
+            # We define the qubit with the NOT as qb0, the qubit with 
+            # the control as qb1, then all next qbs are labelled 2,3 etc.
+            commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,)), RelativeCommand(H,(0,))]]
+            return commutable_circuit_list
+        else:
+            return [] # don't change _commutable_circuit_list
+
 #: Shortcut (instance of) :class:`projectq.ops.XGate`
 X = NOT = XGate()
-
 
 class YGate(SelfInverseGate):
     """ Pauli-Y gate class """
@@ -219,6 +234,11 @@ class Ph(BasicPhaseGate):
 
 class Rx(BasicRotationGate):
     """ RotationX gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self._commutable_gates = [Rxx,]
+
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),
@@ -229,6 +249,11 @@ class Rx(BasicRotationGate):
 
 class Ry(BasicRotationGate):
     """ RotationY gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self._commutable_gates = [Ryy,]
+
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),
@@ -239,6 +264,12 @@ class Ry(BasicRotationGate):
 
 class Rz(BasicRotationGate):
     """ RotationZ gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self._commutable_gates = [Rzz,]
+        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
+        
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0],
@@ -247,6 +278,12 @@ class Rz(BasicRotationGate):
 
 class Rxx(BasicRotationGate):
     """ RotationXX gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
+        self._commutable_gates = [Rx,]
+
     @property
     def matrix(self):
         return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, -1j*cmath.sin(.5 * self.angle)],
@@ -257,6 +294,13 @@ class Rxx(BasicRotationGate):
 
 class Ryy(BasicRotationGate):
     """ RotationYY gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
+        self._commutable_gates = [Ry,]
+
+
     @property
     def matrix(self):
         return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, 1j*cmath.sin(.5 * self.angle)],
@@ -267,6 +311,12 @@ class Ryy(BasicRotationGate):
 
 class Rzz(BasicRotationGate):
     """ RotationZZ gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
+        self._commutable_gates = [Rz,]
+        
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0, 0, 0],
@@ -287,7 +337,7 @@ class FlushGate(FastForwardingGate):
     Flush gate (denotes the end of the circuit).
 
     Note:
-        All compiler engines (cengines) which cache/buffer gates are obligated
+        All compiler engines (cengines) with cache/buffer gates are obligated
         to flush and send all gates to the next compiler engine (followed by
         the flush command).
 

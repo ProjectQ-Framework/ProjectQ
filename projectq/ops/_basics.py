@@ -101,6 +101,8 @@ class BasicGate(object):
                 self.set_interchangeable_qubit_indices([[0,1],[2,3,4]])
         """
         self.interchangeable_qubit_indices = []
+        self._commutable_gates = []
+        self._commutable_circuit_list = []
 
     def get_inverse(self):
         """
@@ -123,6 +125,10 @@ class BasicGate(object):
             NotMergeable: merging is not implemented
         """
         raise NotMergeable("BasicGate: No get_merged() implemented.")
+
+    def get_commutable_circuit_list(self, n=0):
+        """ Returns the list of commutable circuits associated with this gate. """
+        return self._commutable_circuit_list
 
     @staticmethod
     def make_tuple_of_qureg(qubits):
@@ -239,6 +245,16 @@ class BasicGate(object):
 
     def is_identity(self):
         return False
+
+    def is_commutable(self, other):
+        # If gate is commutable with other gate, return 1
+        for gate in self._commutable_gates:
+            if (other.__class__ == gate):
+                return 1
+        else:
+            # Default is to return False, including if 
+            # other gate and gate are identical
+            return 0
 
 
 class MatrixGate(BasicGate):
@@ -435,7 +451,7 @@ class BasicRotationGate(BasicGate):
         Return True if the gate is equivalent to an Identity gate
         """
         return self.angle == 0. or self.angle == 4 * math.pi
-
+    
 
 class BasicPhaseGate(BasicGate):
     """

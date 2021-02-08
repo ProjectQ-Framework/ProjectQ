@@ -29,15 +29,12 @@ As well as the meta functions
 """
 
 from ._basics import BasicGate, NotInvertible
-from ._command import Command, apply_command
-
 
 class ControlQubitError(Exception):
     """
     Exception thrown when wrong number of control qubits are supplied.
     """
     pass
-
 
 class DaggeredGate(BasicGate):
     """
@@ -110,7 +107,6 @@ class DaggeredGate(BasicGate):
 
     def __hash__(self):
         return hash(str(self))
-
 
 def get_inverse(gate):
     """
@@ -191,7 +187,7 @@ class ControlledGate(BasicGate):
         else:
             self._gate = gate
             self._n = n
-
+            
     def __str__(self):
         """ Return string representation, i.e., CC...C(gate). """
         return "C" * self._n + str(self._gate)
@@ -246,6 +242,9 @@ class ControlledGate(BasicGate):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @property
+    def commutable_circuit_list(self):
+        return self._gate.get_commutable_circuit_list(self._n)
 
 def C(gate, n=1):
     """
@@ -261,7 +260,6 @@ def C(gate, n=1):
             C(NOT) | (c, q) # equivalent to CNOT | (c, q)
     """
     return ControlledGate(gate, n)
-
 
 class Tensor(BasicGate):
     """

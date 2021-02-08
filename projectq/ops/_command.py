@@ -39,10 +39,8 @@ apply wrapper (apply_command).
 """
 
 from copy import deepcopy
-
 import projectq
 from projectq.types import WeakQubitRef, Qureg
-
 
 def apply_command(cmd):
     """
@@ -57,14 +55,14 @@ def apply_command(cmd):
     engine = cmd.engine
     engine.receive([cmd])
 
-
 class Command(object):
     """
-    Class used as a container to store commands. If a gate is applied to
-    qubits, then the gate and qubits are saved in a command object. Qubits
-    are copied into WeakQubitRefs in order to allow early deallocation (would
-    be kept alive otherwise). WeakQubitRef qubits don't send deallocate gate
-    when destructed.
+    Class: 
+        used as a container to store commands. If a gate is applied to
+        qubits, then the gate and qubits are saved in a command object. Qubits
+        are copied into WeakQubitRefs in order to allow early deallocation (would
+        be kept alive otherwise). WeakQubitRef qubits don't send deallocate gate
+        when destructed.
 
     Attributes:
         gate: The gate to execute
@@ -115,6 +113,7 @@ class Command(object):
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
         self.engine = engine  # property
+        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(n=len(self.control_qubits))
 
     @property
     def qubits(self):
@@ -152,6 +151,24 @@ class Command(object):
             True if the gate is equivalent to an Identity gate, False otherwise
         """
         return projectq.ops.is_identity(self.gate)
+    
+    def is_commutable(self, other):
+        """
+        Evaluate if this command is commutable with another command.
+        Returns:
+            True if the other command concerns the same qubits and
+            the gates are commutable. 
+        """
+        if (overlap(self.all_qubits, other.all_qubits)==0):
+            return 0
+        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(len(self.control_qubits))
+        # If other gate may be part of a list which is 
+        # commutable with gate, return 2
+        for circuit in self._commutable_circuit_list:
+            if (other.gate.__class__ == circuit[0]._gate.__class__):
+                return 2
+        else:
+            return self.gate.is_commutable(other.gate)
 
     def get_merged(self, other):
         """
@@ -319,3 +336,25 @@ class Command(object):
             qstring = qstring[:-2] + " )"
         cstring = "C" * len(ctrlqubits)
         return cstring + self.gate.to_string(symbols) + " | " + qstring
+
+def overlap(tuple1, tuple2):
+    """ 
+    Takes two tuples of lists and turns them into, flattens
+    them and counts the number of common elements. Intended
+    to be used to see if two commands have qubits or control
+    qubits in common. 
+
+    i.e.    command1.all_qubits = [[control_qubits], [qubits]]
+            command2.all_qubits = [[control_qubits], [qubits]]  
+            overlap(command1, command2) = 4
+            means command1 and command2 have 4 qubits or control
+            qubits in common. 
+
+    """
+    flat_tuple1 = [item for sublist in tuple1 for item in sublist]
+    flat_tuple2 = [item for sublist in tuple2 for item in sublist]
+    n=0
+    for element in flat_tuple1:
+        if element in flat_tuple2:
+            n+=1
+    return n
