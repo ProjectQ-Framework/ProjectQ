@@ -46,7 +46,7 @@ before_script:
   - "echo 'backend: Agg' > matplotlibrc"
 
 # command to run tests
-script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq
+script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq -p no:warnings
 
 after_success:
   - coveralls
