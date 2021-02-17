@@ -288,6 +288,9 @@ class _InverseAddQuantumGate(BasicMathGate):
     def __init__(self):
         BasicMathGate.__init__(self, None)
 
+    def __str__(self):
+        return "_InverseAddQuantum"
+
     def get_math_function(self, qubits):
         n = len(qubits[1])
 
@@ -482,6 +485,8 @@ class _InverseDivideQuantumGate(BasicMathGate):
 
         BasicMathGate.__init__(self, inverse_division)
 
+    def __str__(self):
+        return "_InverseDivideQuantum"
 
 class MultiplyQuantumGate(BasicMathGate):
     """
@@ -540,3 +545,6 @@ class _InverseMultiplyQuantumGate(BasicMathGate):
             return (a, b, c - a * b)
 
         BasicMathGate.__init__(self, inverse_multiplication)
+
+    def __str__(self):
+        return "_InverseMultiplyQuantum"
