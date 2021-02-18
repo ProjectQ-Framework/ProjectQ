@@ -1,0 +1,215 @@
+# Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from projectq import MainEngine
+from projectq.ops import Rz, UniformlyControlledGate, DiagonalGate
+from projectq.ops._basics import BasicGate
+from projectq.meta import Control
+
+import numpy as np
+import math
+
+
+class _DecomposeIsometry(object):
+    def __init__(self, cols, threshold):
+        self._cols = cols
+        self._threshold = threshold
+
+    def get_decomposition(self):
+        n = int(round(np.log2(len(self._cols[0]))))
+
+        # store colums in quregs for easy manipulation
+        local_engines = []
+        local_quregs = []
+        for col in self._cols:
+            eng = MainEngine()
+            qureg = eng.allocate_qureg(n)
+            eng.flush()
+            local_engines.append(eng)
+            local_quregs.append(qureg)
+            eng.backend.set_wavefunction(col, qureg)
+
+        reductions = []
+        for k in range(len(self._cols)):
+            reductions.append(_reduce_column(k, local_quregs, self._threshold))
+
+        phases = [1./c(local_quregs[k], k) for k in range(len(self._cols))]
+        nqubits = int(math.ceil(np.log2(len(self._cols))))
+        phases = phases + [1.0]*((1 << nqubits) - len(phases))
+        diagonal = DiagonalGate(phases=phases)
+
+        return reductions, diagonal.decomposition
+
+
+def a(k, s):
+    return k >> s
+
+
+def b(k, s):
+    return k - (a(k, s) << s)
+
+
+def c(qureg, t, k=0, s=0):
+    eng = qureg.engine
+    n = len(qureg)
+    t = b(k, s) + t * 2**s
+    assert 0 <= t and t <= 2**n - 1
+    bit_string = ("{0:0"+str(n)+"b}").format(t)[::-1]
+    eng.flush()
+    return eng.backend.get_amplitude(bit_string, qureg)
+
+
+# maps [c0,c1] to [1,0]
+class ToZeroGate(BasicGate):
+    @property
+    def matrix(self):
+        r = math.sqrt(abs(self.c0)**2 + abs(self.c1)**2)
+        if r < 1e-15:
+            return np.matrix([[1, 0], [0, 1]])
+        m = np.matrix([[np.conj(self.c0), np.conj(self.c1)],
+                      [-self.c1, self.c0]]) / r
+        assert np.allclose(m.getH()*m, np.eye(2))
+        return m
+
+    def __str__(self):  # pragma: no cover
+        return "TZG"
+
+
+class ToOneGate(BasicGate):
+    @property
+    def matrix(self):
+        r = math.sqrt(abs(self.c0)**2 + abs(self.c1)**2)
+        if r < 1e-15:
+            return np.matrix([[1, 0], [0, 1]])
+        m = np.matrix([[-self.c1, self.c0],
+                       [np.conj(self.c0), np.conj(self.c1)]]) / r
+        assert np.allclose(m.getH()*m, np.eye(2))
+        return m
+
+    def __str__(self):  # pragma: no cover
+        return "TOG"
+
+
+# compute G_k which reduces column k to |k>
+# and apply it to following columns and the user_qureg
+def _reduce_column(k, local_quregs, threshold):
+    n = len(local_quregs[0])
+    reduction = []
+    for s in range(n):
+        reduction.append(_disentangle(k, s, local_quregs, threshold))
+    return reduction
+
+
+tol = 1e-12
+
+
+def _disentangle(k, s, local_quregs, threshold):
+    qureg = local_quregs[k]
+    n = len(qureg)
+
+    assert n >= 1
+    assert 0 <= k and k < 2**n
+    assert 0 <= s and s < n
+
+    mcg_decomposition = _prepare_disentangle(k, s, local_quregs, threshold)
+
+    for l in range(a(k, s)):
+        assert abs(c(qureg, l, k, s)) < tol
+
+    if b(k, s+1) == 0:
+        range_l = list(range(a(k, s+1), 2**(n-1-s)))
+    else:
+        range_l = list(range(a(k, s+1)+1, 2**(n-1-s)))
+
+    if ((k >> s) & 1) == 0:
+        gate = ToZeroGate
+    else:
+        gate = ToOneGate
+
+    gates = []
+    if len(range_l) == 0:
+        return [mcg_decomposition, gates]
+    for l in range(range_l[0]):
+        gates.append(Rz(0))
+    for l in range_l:
+        U = gate()
+        U.c0 = c(qureg, 2*l, k, s)
+        U.c1 = c(qureg, 2*l + 1, k, s)
+        gates.append(U)
+    UCG = UniformlyControlledGate(gates, up_to_diagonal=True)
+    for q in local_quregs:
+        UCG | (q[s+1:], q[s])
+
+    return mcg_decomposition, UCG.decomposition
+
+
+def _get_one_bits(qureg, mask):
+    res = []
+    for i in range(len(qureg)):
+        if mask & (1 << i):
+            res.append(qureg[i])
+    return res
+
+
+def _count_one_bits(mask):
+    cnt = 0
+    while mask:
+        if mask & 1:
+            cnt += 1
+        mask >>= 1
+    return cnt
+
+
+def _prepare_disentangle(k, s, local_quregs, threshold):
+    qureg = local_quregs[k]
+    n = len(qureg)
+
+    if b(k, s+1) == 0 or ((k >> s) & 1) != 0:
+        return [Rz(0)], None
+    if abs(c(qureg, 2*a(k, s+1)+1, k, s)) <= tol:
+        return [Rz(0)], None
+
+    assert 1 <= k and k <= 2**n-1
+    assert 0 <= s and s <= n-1
+    assert (k >> s) & 1 == 0
+    assert b(k, s+1) != 0
+
+    for l in range(a(k, s)):
+        assert abs(c(qureg, l, k, s)) < tol
+
+    U = ToZeroGate()
+    U.c0 = c(qureg, 2*a(k, s+1), k, s)
+    U.c1 = c(qureg, 2*a(k, s+1)+1, k, s)
+
+    mask = k
+
+    ctrl = _count_one_bits(mask)
+    if ctrl > 0 and ctrl < threshold:
+        gates = [Rz(0)] * ((1 << ctrl)-1) + [U]
+        UCG = UniformlyControlledGate(gates, up_to_diagonal=True)
+        for q in local_quregs:
+            controls = _get_one_bits(q, mask)
+            UCG | (controls, q[s])
+        return UCG.decomposition
+
+    for q in local_quregs:
+        qubits = _get_one_bits(q, mask)
+        e = q.engine
+        if len(qubits) == 0:
+            U | q[s]
+        else:
+            with Control(e, qubits):
+                U | q[s]
+
+    return [U], None

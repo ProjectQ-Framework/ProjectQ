@@ -38,7 +38,8 @@ from projectq.meta import Control, get_control_count
 from projectq.ops import BasicGate, Ph, Ry, Rz
 
 
-TOLERANCE = 1e-12
+#TOLERANCE = 1e-12
+TOLERANCE = 1e-6
 
 
 def _recognize_arb1qubit(cmd):

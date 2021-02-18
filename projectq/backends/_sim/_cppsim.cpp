@@ -49,6 +49,8 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("is_classical", &Simulator::is_classical)
         .def("measure_qubits", &Simulator::measure_qubits_return)
         .def("apply_controlled_gate", &Simulator::apply_controlled_gate<MatrixType>)
+        .def("apply_uniformly_controlled_gate", &Simulator::apply_uniformly_controlled_gate<MatrixType>)
+        .def("apply_diagonal_gate", &Simulator::apply_diagonal_gate)
         .def("emulate_math", &emulate_math_wrapper<QuRegs>)
         .def("emulate_math_addConstant", &Simulator::emulate_math_addConstant<QuRegs>)
         .def("emulate_math_addConstantModN", &Simulator::emulate_math_addConstantModN<QuRegs>)

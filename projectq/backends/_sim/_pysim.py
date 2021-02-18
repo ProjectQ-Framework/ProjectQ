@@ -20,6 +20,7 @@ Please compile the c++ simulator for large-scale simulations.
 
 import random
 import numpy as _np
+import cmath
 
 
 class Simulator(object):
@@ -396,6 +397,43 @@ class Simulator(object):
         else:
             pos = [self._map[ID] for ID in ids]
             self._multi_qubit_gate(m, pos, mask)
+
+    def apply_uniformly_controlled_gate(self, unitaries, target_id,
+                                        choice_ids, ctrl_ids):
+        choice_pos = [self._map[ID] for ID in choice_ids]
+        pos = self._map[target_id]
+        mask = self._get_control_mask(ctrl_ids)
+
+        def kernel(u, d, m):
+            return u * m[0][0] + d * m[0][1], u * m[1][0] + d * m[1][1]
+
+        dist = 1 << pos
+        n = len(self._state)
+        for high in range(0, n, 2*dist):
+            for low in range(0, dist):
+                entry = high+low
+                if (entry & mask) == mask:
+                    u = 0
+                    for i in range(len(choice_pos)):
+                        u |= ((entry >> choice_pos[i]) & 1) << i
+                    id1 = entry
+                    id2 = entry + dist
+                    self._state[id1], self._state[id2] = kernel(
+                        self._state[id1],
+                        self._state[id2],
+                        unitaries[u])
+
+    def apply_diagonal_gate(self, angles, ids, ctrlids):
+        pos = [self._map[ID] for ID in ids]
+        mask = self._get_control_mask(ctrlids)
+
+        n = len(self._state)
+        for entry in range(n):
+            if (entry & mask) == mask:
+                a = 0
+                for i in range(len(pos)):
+                    a |= ((entry >> pos[i]) & 1) << i
+                self._state[entry] *= cmath.exp(1j*angles[a])
 
     def _single_qubit_gate(self, m, pos, mask):
         """

@@ -19,6 +19,7 @@ and the C++ simulator as backends.
 
 import copy
 import math
+import cmath
 import numpy
 import pytest
 import random
@@ -31,7 +32,8 @@ from projectq.cengines import (BasicEngine, BasicMapperEngine, DummyEngine,
                                LocalOptimizer, NotYetMeasuredError)
 from projectq.ops import (All, Allocate, BasicGate, BasicMathGate, CNOT,
                           Command, H, MatrixGate, Measure, QubitOperator,
-                          Rx, Ry, Rz, S, TimeEvolution, Toffoli, X, Y, Z)
+                          Rx, Ry, Rz, S, T, TimeEvolution, Toffoli, X, Y, Z,
+                          DiagonalGate, UniformlyControlledGate)
 from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
@@ -519,6 +521,92 @@ def test_simulator_time_evolution(sim):
     assert numpy.allclose(hadamard_f * res, final_wavefunction[half:])
     assert numpy.allclose(final_wavefunction[:half], hadamard_f *
                           init_wavefunction)
+
+
+def test_simulator_apply_diagonal_gate(sim):
+    eng = MainEngine(sim)
+    qureg = eng.allocate_qureg(4)
+    eng.flush()
+
+    target_1 = qureg[0]
+    control = qureg[1]
+    target_0 = qureg[2]
+    empty = qureg[3]
+
+    wf = [1./4.]*(1 << 4)
+    eng.backend.set_wavefunction(wf, qureg)
+
+    D = DiagonalGate(angles=range(4))
+    with Control(eng, control):
+        D | (target_0, target_1)
+
+    eng.flush()
+    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+    All(Measure) | qureg
+
+    desired_state = [1./4.*cmath.exp(1j*i) for i in
+                     [0, 0, 0, 2, 0, 0, 1, 3, 0, 0, 0, 2, 0, 0, 1, 3]]
+    assert numpy.allclose(final_wavefunction, desired_state)
+
+
+def test_simulator_apply_uniformly_controlled_gate():
+    eng = MainEngine()
+    qureg = eng.allocate_qureg(3)
+    eng.flush()
+    wf = [math.sqrt(1./8.)]*(1 << 3)
+    eng.backend.set_wavefunction(wf, qureg)
+
+    A = Rx(numpy.pi/5)
+    B = H
+    C = Rz(numpy.pi/5)
+    D = Ry(numpy.pi/3)
+    U = UniformlyControlledGate([A, B, C, D])
+    with Dagger(eng):
+        U | ([qureg[0], qureg[2]], qureg[1])
+    eng.flush()
+    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+    vec = numpy.array([final_wavefunction]).T
+    vec[[1, 2]] = vec[[2, 1]]  # reorder basis
+    vec[[5, 6]] = vec[[6, 5]]
+    reference = numpy.matrix(scipy.linalg.block_diag(A.matrix, B.matrix,
+                                                     C.matrix, D.matrix))
+    assert numpy.allclose(reference*vec, wf)
+
+
+def test_simulator_apply_uniformly_controlled_gate_with_control(sim):
+    eng = MainEngine(sim)
+    qureg = eng.allocate_qureg(5)
+    eng.flush()
+
+    control = qureg[0]
+    choice_1 = qureg[1]
+    target = qureg[2]
+    empty = qureg[3]
+    choice_0 = qureg[4]
+
+    gates = [X, H, S, T]
+    U = UniformlyControlledGate(gates)
+
+    id = Rz(0.0)
+    gates_equiv = [id, X, id, S, id, X, id, S,
+                   id, H, id, T, id, H, id, T]
+    U_equiv = UniformlyControlledGate(gates_equiv)
+
+    All(H) | qureg
+    with Control(eng, control):
+        U | ([choice_0, choice_1], target)
+
+    with Dagger(eng):
+        All(H) | qureg
+        U_equiv | (qureg[0:2]+qureg[3:5], target)
+
+    eng.flush()
+    qbit_to_bit_map, final_wavefunction = copy.deepcopy(eng.backend.cheat())
+    All(Measure) | qureg
+
+    print(final_wavefunction)
+    desired_state = [1.0] + [0.0]*31
+    assert numpy.allclose(final_wavefunction, desired_state)
 
 
 def test_simulator_set_wavefunction(sim, mapper):

@@ -8,7 +8,7 @@ from projectq.ops import Measure, Entangle, All
 import projectq.setups.ibm
 
 
-def run_entangle(eng, num_qubits=3):
+def run_entangle(eng, num_qubits=5):
     """
     Runs an entangling operation on the provided compiler engine.
 

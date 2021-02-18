@@ -19,9 +19,9 @@
 #include <complex>
 
 #if defined(NOINTRIN) || !defined(INTRIN)
-#include "nointrin/kernels.hpp"
+#  include "nointrin/kernels.hpp"
 #else
-#include "intrin/kernels.hpp"
+#  include "intrin/kernels.hpp"
 #endif
 
 #include "intrin/alignedallocator.hpp"
@@ -219,6 +219,57 @@ public:
         }
         else
             fused_gates_ = fused_gates;
+    }
+
+    template <class M>
+    void apply_uniformly_controlled_gate(std::vector<M> &unitaries,
+                                         unsigned target_id,
+                                         std::vector<unsigned> choice_ids,
+                                         std::vector<unsigned> ctrl_ids){
+        run();
+        std::size_t n = vec_.size();
+        std::size_t dist = 1UL << map_[target_id];
+
+        auto mask = get_control_mask(ctrl_ids);
+
+        #pragma omp parallel for collapse(2) schedule(static)
+        for(std::size_t high = 0; high < n; high += 2*dist){
+            for(std::size_t low = 0; low < dist; ++low){
+                std::size_t entry = high+low;
+                if((entry&mask) == mask) {
+                    unsigned u = 0;
+                    for(std::size_t i = 0; i < choice_ids.size(); ++i)
+                        u |= ((entry >> map_[choice_ids[i]]) & 1) << i;
+
+                    auto &m = unitaries[u];
+                    std::complex<double> v[2];
+                    v[0] = vec_[entry];
+                    v[1] = vec_[entry + dist];
+                    vec_[entry]        = v[0]*m[0][0] + v[1]*m[0][1];
+                    vec_[entry + dist] = v[0]*m[1][0] + v[1]*m[1][1];
+                }
+            }
+        }
+    }
+
+    void apply_diagonal_gate(std::vector<calc_type> angles,
+                             std::vector<unsigned> ids,
+                             std::vector<unsigned> ctrl_ids)
+    {
+        run();
+        std::size_t n = vec_.size();
+        complex_type I(0., 1.);
+        auto mask = get_control_mask(ctrl_ids);
+
+        #pragma omp parallel for schedule(static)
+        for(std::size_t entry = 0; entry < n; ++entry) {
+            if((entry&mask) == mask) {
+                unsigned a = 0;
+                for(std::size_t i = 0; i < ids.size(); ++i)
+                    a |= ((entry >> map_[ids[i]]) & 1) << i;
+                vec_[entry] *= std::exp(I * angles[a]);
+            }
+        }
     }
 
     template <class F, class QuReg>

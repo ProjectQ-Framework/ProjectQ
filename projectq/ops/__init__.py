@@ -35,6 +35,9 @@ from ._qftgate import QFT, QFTGate
 from ._qubit_operator import QubitOperator
 from ._shortcuts import *
 from ._time_evolution import TimeEvolution
+from ._uniformly_controlled_gate import UniformlyControlledGate
+from ._diagonal_gate import DiagonalGate
+from ._isometry import Isometry
 from ._uniformly_controlled_rotation import (UniformlyControlledRy,
                                              UniformlyControlledRz)
 from ._state_prep import StatePreparation
