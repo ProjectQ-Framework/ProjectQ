@@ -32,3 +32,4 @@ from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
 from ._aqt import AQTBackend
+from ._awsbraket import AWSBraketBackend

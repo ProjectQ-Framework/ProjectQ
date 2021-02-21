@@ -134,6 +134,24 @@ To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend
                      engine_list=compiler_engines)
 
 
+**Running a quantum program on a AWS Braket provided device**
+
+To run a program on some of the devices provided by the AWS Braket service,
+choose the `AWSBraketBackend`. The currend devices supported are Aspen-8 from Rigetti,
+IonQ from IonQ and the state vector simulator SV1:
+
+.. code-block:: python
+
+    from projectq.backends import AWSBraketBackend
+    
+    creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
+    s3_folder = ['S3Bucket', 'S3Directory']
+    device='IonQ'
+    eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,
+                     num_runs=1024, verbose=False, device=device),
+                     engine_list=[]])
+
+
 **Classically simulate a quantum program**
 
 ProjectQ has a high-performance simulator which allows simulating up to about 30 qubits on a regular laptop. See the `simulator tutorial <https://github.com/ProjectQ-Framework/ProjectQ/blob/feature/update-readme/examples/simulator_tutorial.ipynb>`__ for more information. Using the emulation features of our simulator (fast classical shortcuts), one can easily emulate Shor's algorithm for problem sizes for which a quantum computer would require above 50 qubits, see our `example codes <http://projectq.readthedocs.io/en/latest/examples.html#shor-s-algorithm-for-factoring>`__.
