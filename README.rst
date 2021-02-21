@@ -149,7 +149,7 @@ IonQ from IonQ and the state vector simulator SV1:
     device='IonQ'
     eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,
                      num_runs=1024, verbose=False, device=device),
-                     engine_list=[]])
+                     engine_list=[])
 
 
 **Classically simulate a quantum program**
