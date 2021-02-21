@@ -96,12 +96,14 @@ class AWSBraketBackend(BasicEngine):
 
         # Dictionary to translate the gates from ProjectQ to AWSBraket
         self._gationary = {'X': 'x', 'Y': 'y', 'Z': 'z',
-                     'H': 'h', 'R': 'phasesift', 'Rx': 'rx', 'Ry': 'ry', 'Rz': 'rz',
-                     'S': 's', r'S^\dagger': 'si', 'T': 't', r'T^\dagger': 'ti',
-                     'Swap': 'swap', 'SqrtX': 'v'}
-        
-        # Static head and tail to be added to the circuit to build the "action".
-        # Always the same
+                           'H': 'h', 'R': 'phasesift',
+                           'Rx': 'rx', 'Ry': 'ry', 'Rz': 'rz',
+                           'S': 's', r'S^\dagger': 'si',
+                           'T': 't', r'T^\dagger': 'ti',
+                           'Swap': 'swap', 'SqrtX': 'v'}
+
+        # Static head and tail to be added to the circuit
+        # to build the "action".
         self._circuithead = '{"braketSchemaHeader": \
 {"name": "braket.ir.jaqcd.program", "version": "1"}, \
 "results": [], "basis_rotation_instructions": [], \
@@ -113,18 +115,19 @@ class AWSBraketBackend(BasicEngine):
         Return true if the command can be executed.
 
         Depending on the device chosen, the operations available differ.
-        
+
         The operations avialable for the device Rigetti Aspen-8 are:
         - "cz" = Control Z, "xy" = Not available in ProjectQ,
           "ccnot" = Control Control X, "cnot" = Control X,
           "cphaseshift" = Control R,
-          "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available in ProjectQ,
+          "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available
+          in ProjectQ,
           "cswap" = Control Swap, "h" = H, "i" = Identity, not in ProjectQ,
           "iswap" = Not available in ProjectQ, "phaseshift" = R,
           "pswap" = Not available in ProjectQ, "rx" = Rx, "ry" = Ry, "rz" = Rz,
           "s" = S, "si" = Sdag, "swap" = Swap, "t" = T, "ti" = Tdag,
           "x" = X, "y" = Y, "z" = Z
-        
+
         The operations available for IonQ device are:
         - "x" = X, "y" = Y, "z" = Z, "rx" = Rx, "ry" = Ry, "rz" = Rz, "h", H,
           "cnot" = Control X, "s" = S, "si" = Sdag, "t" = T, "ti" = Tdag,
@@ -134,8 +137,9 @@ class AWSBraketBackend(BasicEngine):
 
         The operations available for the StateVector simulator (SV1) are
         the union of the ones for Rigetti Aspen-8 and IonQ plus some more:
-        - "cy" = Control Y, "unitary" = Arbitrary unitary gate defined as a matrix
-          equivalent to the MatrixGate in ProjectQ: TODO, "xy" =  Not available in ProjectQ
+        - "cy" = Control Y, "unitary" = Arbitrary unitary gate defined as
+          a matrix equivalent to the MatrixGate in ProjectQ.
+          TODO, "xy" =  Not available in ProjectQ
 
         Args:
             cmd (Command): Command for which to check availability
@@ -172,7 +176,7 @@ class AWSBraketBackend(BasicEngine):
                 return True
             if g in (Z, Y, X, Swap) and get_control_count(cmd) == 1:
                 return True
-            if g == X and  get_control_count(cmd) == 2:
+            if g == X and get_control_count(cmd) == 2:
                 return True
             if get_control_count(cmd) == 0:
                 if isinstance(g, (R, Rx, Ry, Rz)):
@@ -208,10 +212,11 @@ class AWSBraketBackend(BasicEngine):
         # Previous to store the gate, checks availability against the device
         available = self.is_available(cmd)
         if not available:
-            raise Exception('Invalid command: ' + str(cmd) + \
-                        '. Please check the available commands for the device ' + \
-                        self.device + '.')
-        
+            raise Exception('Invalid command: ' + str(cmd) +
+                            '. Please check the available commands'
+                            'for the device ' +
+                            self.device + '.')
+
         gate = cmd.gate
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
@@ -237,44 +242,44 @@ class AWSBraketBackend(BasicEngine):
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
             angle = gate.angle
-            self._circuit += '{"control": '+str(ctrl_pos)+ \
-                             ', "target": '+str(qb_pos)+ \
-                             ', "angle": '+ str(angle) + \
+            self._circuit += '{"control": ' + str(ctrl_pos) + \
+                             ', "target": ' + str(qb_pos) + \
+                             ', "angle": ' + str(angle) + \
                              ', "type": "cphaseshift"}, '
             return
         if gate in (Z, Y) and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
             gatetxt = self._gationary[gate.__str__()]
-            self._circuit += '{"control": '+str(ctrl_pos)+ \
-                             ', "target": '+str(qb_pos)+ \
-                             ', "type": "c'+gatetxt+'"}, '
+            self._circuit += '{"control": ' + str(ctrl_pos) + \
+                             ', "target": ' + str(qb_pos) + \
+                             ', "type": "c' + gatetxt + '"}, '
             return
         if gate == X and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self._circuit += '{"control": '+str(ctrl_pos)+ \
-                             ', "target": '+str(qb_pos)+ \
+            self._circuit += '{"control": ' + str(ctrl_pos) + \
+                             ', "target": ' + str(qb_pos) + \
                              ', "type": "cnot"}, '
             return
         if gate == Swap and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos0 = cmd.qubits[0][0].id
             qb_pos1 = cmd.qubits[1][0].id
-            self._circuit += '{"targets": ['+ \
-                               str(qb_pos0)+', '+str(qp_pos1)+ \
-                            ' ], \
-                             "control": '+str(ctrl_pos)+ \
-                            '"type": "cswap"}, '
+            self._circuit += '{"targets": [' + \
+                str(qb_pos0) + ', ' + str(qp_pos1) + \
+                ' ], \
+                "control": ' + str(ctrl_pos) + \
+                '"type": "cswap"}, '
             return
         if gate == X and get_control_count(cmd) == 2:
             ctrl_pos0 = cmd.control_qubits[0].id
             ctrl_pos1 = cmd.control_qubits[1].id
             qb_pos = cmd.qubits[0][0].id
-            self._circuit += '{"controls": [ '+ \
-                             str(ctrl_pos0)+', '+str(ctrl_pos1)+ \
+            self._circuit += '{"controls": [ ' + \
+                             str(ctrl_pos0) + ', ' + str(ctrl_pos1) + \
                              ' ], \
-                                "target": '+str(qb_pos)+ \
+                                "target": ' + str(qb_pos) + \
                              ', "type": "ccnot"}, '
             return
         if get_control_count(cmd) == 0:
@@ -282,29 +287,30 @@ class AWSBraketBackend(BasicEngine):
                 qb_pos = cmd.qubits[0][0].id
                 angle = gate.angle
                 gatetxt = self._gationary[gate.__str__().split('(')[0]]
-                self._circuit += '{"angle": '+str(angle)+ \
-                                 ', "target": '+str(qb_pos)+ \
-                                 ', "type": "'+gatetxt+'"}, '
+                self._circuit += '{"angle": ' + str(angle) + \
+                                 ', "target": ' + str(qb_pos) + \
+                                 ', "type": "' + gatetxt + '"}, '
                 return
             if gate in (X, Y, Z, H, S, T, Sdag, Tdag, SqrtX):
                 qb_pos = cmd.qubits[0][0].id
                 gatetxt = self._gationary[gate.__str__()]
-                self._circuit += '{"target": '+str(qb_pos)+ \
-                                 ', "type": "'+gatetxt+'"}, '
+                self._circuit += '{"target": ' + str(qb_pos) + \
+                                 ', "type": "' + gatetxt + '"}, '
                 return
             if gate == Swap:
                 qb_pos0 = cmd.qubits[0][0].id
                 qb_pos1 = cmd.qubits[1][0].id
-                self._circuit += '{"targets": ['+ \
-                                 str(qb_pos0)+', '+str(qp_pos1)+ \
-                                     '], \
-                                    "type": "swap"}, '
+                self._circuit += '{"targets": [' + \
+                                 str(qb_pos0) + ', ' + str(qp_pos1) + \
+                                 '], \
+                                 "type": "swap"}, '
                 return
             # TODO: Add unitary for the SV1 simulator as MatrixGate
         if gate == Barrier:
             return
-        raise Exception('Invalid command: ' + str(cmd) + \
-                        '. Please check the available commands for the device ' + \
+        raise Exception('Invalid command: ' + str(cmd) +
+                        '. Please check the available commands'
+                        'for the device ' +
                         self.device + '.')
 
     def _logical_to_physical(self, qb_id):
@@ -345,13 +351,14 @@ class AWSBraketBackend(BasicEngine):
             Only call this function after the circuit has been executed!
 
         Warning:
-            This is maintained in the same form of IBM and AQT for compatibility
-            but in AWSBraket a previously executed circuit will store the
-            results in the S3 bucket and it can be retreived at any time after.
+            This is maintained in the same form of IBM and AQT for
+            compatibility but in AWSBraket a previously executed circuit
+            will store the results in the S3 bucket and it can be retreived
+            at any time after.
             It should require no circuit execution at the time of retrieving
             the results and probabilities.
             In order to obtain the probabilities of a previous job
-            you have to get the TaskArn and remember the qubits and ordering 
+            you have to get the TaskArn and remember the qubits and ordering
             used in the original job.
 
         Args:
@@ -387,24 +394,24 @@ class AWSBraketBackend(BasicEngine):
         """
         Run the circuit.
 
-        Send the circuit via the AWS Boto3 SDK. Use the provided Access Key and 
+        Send the circuit via the AWS Boto3 SDK. Use the provided Access Key and
         Secret key or ask for them if not provided
         """
         # finally: measurements (no intermediate measurements are allowed)
         # No explicit measurements have to be writen down. To run the circuit
         # make implicit measurement of all the qubits
-        
+
         # In Braket the results for the jobs are stored in S3.
-        # You can recover the results from previous jobs using the 
+        # You can recover the results from previous jobs using the
         # TaskArn (self._retrieve_execution).
         # Keept the code for retreive here to maintain the same strcuture
         try:
             if self._retrieve_execution is not None:
                 res = retrieve(credentials=self._credentials,
-                        taskArn=self._retrieve_execution,
-                        num_retries=self._num_retries,
-                        interval=self._interval,
-                        verbose=self._verbose)          
+                               taskArn=self._retrieve_execution,
+                               num_retries=self._num_retries,
+                               interval=self._interval,
+                               verbose=self._verbose)
             else:
                 # Return if no operations are added.
                 if self._circuit == "":
@@ -412,17 +419,19 @@ class AWSBraketBackend(BasicEngine):
 
                 n_qubit = max(self._allocated_qubits) + 1
                 info = {}
-                info['circuit'] = self._circuithead + self._circuit.rstrip(', ') + self._circuittail
+                info['circuit'] = self._circuithead + \
+                    self._circuit.rstrip(', ') + \
+                    self._circuittail
                 info['nq'] = n_qubit
                 info['shots'] = self._num_runs
                 info['backend'] = {'name': self.device}
                 res = send(info,
-                        device=self.device,
-                        credentials=self._credentials,
-                        s3_folder=self._s3_folder,
-                        num_retries=self._num_retries,
-                        interval=self._interval,
-                        verbose=self._verbose)
+                           device=self.device,
+                           credentials=self._credentials,
+                           s3_folder=self._s3_folder,
+                           num_retries=self._num_retries,
+                           interval=self._interval,
+                           verbose=self._verbose)
 
             counts = res
 
@@ -430,7 +439,7 @@ class AWSBraketBackend(BasicEngine):
             P = random.random()
             p_sum = 0.
             measured = ""
-            length=len(self._measured_ids)
+            length = len(self._measured_ids)
             for state in counts:
                 probability = counts[state]
                 p_sum += probability
@@ -442,11 +451,11 @@ class AWSBraketBackend(BasicEngine):
                 if self._verbose and probability > 0:
                     print(state + " with p = " + str(probability) +
                           star)
-        
+
             class QB():
                 def __init__(self, qubit_id):
                     self.id = qubit_id
-            
+
             # register measurement result
             for qubit_id in self._measured_ids:
                 location = self._logical_to_physical(qubit_id)
@@ -455,7 +464,6 @@ class AWSBraketBackend(BasicEngine):
             self._reset()
         except TypeError:
             raise Exception("Failed to run the circuit. Aborting.")
-
 
     def receive(self, command_list):
         """
@@ -471,4 +479,3 @@ class AWSBraketBackend(BasicEngine):
             else:
                 self._run()
                 self._reset()
-

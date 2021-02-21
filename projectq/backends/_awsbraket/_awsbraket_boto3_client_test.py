@@ -34,8 +34,9 @@ results_json = json.dumps({
     }
 )
 body = StreamingBody(StringIO(results_json), len(results_json))
-results_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, },
-                'Body': body}
+results_dict = {
+    'ResponseMetadata': {
+        'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body}
 res_completed = {"000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3}
 
 search_value = {
@@ -63,7 +64,7 @@ search_value = {
             },
         ]
     }
-    
+
 device_value_devicecapabilities = json.dumps(
     {
     "braketSchemaHeader": {
@@ -91,16 +92,20 @@ device_value_devicecapabilities = json.dumps(
     "paradigm": {
         "qubitCount": 30,
         "nativeGateSet": ["ccnot", "cy"],
-        "connectivity": {"fullyConnected": False, "connectivityGraph": {"1": ["2", "3"]}},
+        "connectivity": {
+            "fullyConnected": False, "connectivityGraph": {"1": ["2", "3"]}},
     },
     "deviceParameters": {
-        "properties": {"braketSchemaHeader": {"const" :
+        "properties": {"braketSchemaHeader": {"const":
             {"name": "braket.device_schema.rigetti.rigetti_device_parameters",
              "version": "1"}
             }},
-        "definitions": {"GateModelParameters": {"properties": {"braketSchemaHeader": {"const":
-            {"name": "braket.device_schema.gate_model_parameters",
-             "version": "1"}
+        "definitions": {
+            "GateModelParameters": {"properties": {
+                "braketSchemaHeader": {
+                    "const": {
+                        "name": "braket.device_schema.gate_model_parameters",
+                        "version": "1"}
             }}}},
         },
     }
@@ -116,32 +121,38 @@ device_value = {
 
 devicelist_result = {
     'name1': {'coupling_map': {},
-              'deviceArn': 'arn1', 'location': 'us-east-1', 'nq': 30, 'version': '1',
-              'deviceParameters': 
-                    {'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
+              'deviceArn': 'arn1', 'location': 'us-east-1',
+              'nq': 30, 'version': '1',
+              'deviceParameters':
+                    {'name':
+                     'braket.device_schema.rigetti.rigetti_device_parameters',
                      'version': '1'},
               'deviceModelParameters':
                     {'name': 'braket.device_schema.gate_model_parameters',
                      'version': '1'}
             },
     'name2': {'coupling_map': {'1': ['2', '3']},
-              'deviceArn': 'arn2', 'location': 'us-east-1', 'nq': 30, 'version': '1',
-              'deviceParameters': 
-                    {'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
-                     'version': '1'},
-              'deviceModelParameters':
-                    {'name': 'braket.device_schema.gate_model_parameters',
-                     'version': '1'}            
-            },
-    'name3': {'coupling_map': {'1': ['2', '3']},
-              'deviceArn': 'arn3', 'location': 'us-east-1', 'nq': 30, 'version': '1',
-              'deviceParameters': 
-                    {'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
+              'deviceArn': 'arn2', 'location': 'us-east-1',
+              'nq': 30, 'version': '1',
+              'deviceParameters':
+                    {'name':
+                     'braket.device_schema.rigetti.rigetti_device_parameters',
                      'version': '1'},
               'deviceModelParameters':
                     {'name': 'braket.device_schema.gate_model_parameters',
                      'version': '1'}
-            }
+            },
+    'name3': {'coupling_map': {'1': ['2', '3']},
+              'deviceArn': 'arn3', 'location': 'us-east-1',
+              'nq': 30, 'version': '1',
+              'deviceParameters': {
+                  'name':
+                    'braket.device_schema.rigetti.rigetti_device_parameters',
+                  'version': '1'},
+              'deviceModelParameters':
+                    {'name': 'braket.device_schema.gate_model_parameters',
+                     'version': '1'}
+        }
     }
 
 creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
@@ -157,9 +168,10 @@ def test_show_devices(mock_boto3_client):
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
-        
+
     devicelist = _awsbraket_boto3_client.show_devices(credentials=creds)
     assert devicelist == devicelist_result
+
 
 completed_value = {
     'deviceArn': 'arndevice',
@@ -196,10 +208,12 @@ other_value = {
     'status': 'OTHER',
 }
 
+
 @patch('boto3.client')
-@pytest.mark.parametrize("var_status, var_result",
-             [('completed',completed_value), ('failed', failed_value),
-              ('cancelling', cancelling_value), ('other', other_value)])
+@pytest.mark.parametrize(
+    "var_status, var_result", [(
+        'completed', completed_value), ('failed', failed_value), (
+            'cancelling', cancelling_value), ('other', other_value)])
 def test_retrieve(mock_boto3_client, var_status, var_result):
 
     mock_boto3_client.return_value = mock_boto3_client
@@ -208,24 +222,33 @@ def test_retrieve(mock_boto3_client, var_status, var_result):
     mock_boto3_client.get_object.return_value = results_dict
 
     if var_status == 'completed':
-        res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
+        res = _awsbraket_boto3_client.retrieve(
+            credentials=creds, taskArn=arntask)
         assert res == res_completed
     else:
         with pytest.raises(Exception) as exinfo:
-            _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask, num_retries=2)
+            _awsbraket_boto3_client.retrieve(
+                credentials=creds, taskArn=arntask, num_retries=2)
         print(exinfo.value)
         if var_status == 'failed':
-            assert str(exinfo.value) == "Error while running the code: FAILED. The failure \
-reason was: This is a failure reason."
+            assert str(exinfo.value) == \
+                "Error while running the code: FAILED. \
+The failure reason was: This is a failure reason."
         if var_status == 'cancelling':
-            assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
+            assert str(exinfo.value) == \
+                "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert str(exinfo.value) == "Timeout. The Arn of your submitted job is \
-arn:aws:braket:us-east-1:id:taskuuid and the status of the job is OTHER."
+            assert str(exinfo.value) == \
+                "Timeout. The Arn of your submitted job \
+is arn:aws:braket:us-east-1:id:taskuuid \
+and the status of the job is OTHER."
+
 
 body_qpu = StreamingBody(StringIO(results_json), len(results_json))
-results_dict_qpu = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, },
-                'Body': body_qpu}
+results_dict_qpu = {
+    'ResponseMetadata': {
+        'RequestId': 'CF4CAA48CC18836C',
+        'HTTPHeaders': {}, }, 'Body': body_qpu}
 
 device_value_simulator = {
     "deviceName": "SV1",
@@ -238,22 +261,31 @@ device_value_simulator = {
 results_json_simulator = json.dumps({
     "braketSchemaHeader": {
         "name": "braket.task_result.gate_model_task_result", "version": "1"},
-    "measurements": [[0, 0], [0, 1], [1, 1], [0, 1], [0, 1], 
+    "measurements": [[0, 0], [0, 1], [1, 1], [0, 1], [0, 1],
                      [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
     "measuredQubits": [0, 1],
     }
 )
-body_simulator = StreamingBody(StringIO(results_json_simulator), len(results_json_simulator))
-results_dict_simulator = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, },
-                'Body': body_simulator}
+body_simulator = \
+    StreamingBody(
+        StringIO(results_json_simulator), len(
+            results_json_simulator))
+results_dict_simulator = {
+    'ResponseMetadata': {
+        'RequestId': 'CF4CAA48CC18836C',
+        'HTTPHeaders': {}, }, 'Body': body_simulator}
 res_completed_simulator = {"00": 0.1, "01": 0.3, "11": 0.6}
 
+
 @patch('boto3.client')
-@pytest.mark.parametrize("var_device_value, var_result_dict, var_res_completed",
-            [(device_value, results_dict_qpu, res_completed),
-             (device_value_simulator, results_dict_simulator, res_completed_simulator)])
+@pytest.mark.parametrize(
+    "var_device_value, var_result_dict, var_res_completed", [
+        (device_value, results_dict_qpu, res_completed), (
+            device_value_simulator, results_dict_simulator,
+            res_completed_simulator)])
 def test_retrieve_devicetypes(mock_boto3_client,
-            var_device_value, var_result_dict, var_res_completed):
+                              var_device_value,
+                              var_result_dict, var_res_completed):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = completed_value
@@ -269,7 +301,9 @@ info_too_much = {
     '{"braketSchemaHeader":'
     '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
     '"results": [], "basis_rotation_instructions": [], '
-    '"instructions": [{"target": 0, "type": "h"}, {"target": 1, "type": "h"}, {"control": 1, "target": 2, "type": "cnot"}]}',
+    '"instructions": [{"target": 0, "type": "h"}, {\
+        "target": 1, "type": "h"}, {\
+            "control": 1, "target": 2, "type": "cnot"}]}',
     'nq':
     100,
     'shots':
@@ -279,6 +313,7 @@ info_too_much = {
     }
 }
 s3_folder = ['S3Bucket', "S3Directory"]
+
 
 @patch('boto3.client')
 def test_send_too_many_qubits(mock_boto3_client):
@@ -299,7 +334,9 @@ info = {
     '{"braketSchemaHeader":'
     '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
     '"results": [], "basis_rotation_instructions": [], '
-    '"instructions": [{"target": 0, "type": "h"}, {"target": 1, "type": "h"}, {"control": 1, "target": 2, "type": "cnot"}]}',
+    '"instructions": [{"target": 0, "type": "h"}, {\
+        "target": 1, "type": "h"}, {\
+            "control": 1, "target": 2, "type": "cnot"}]}',
     'nq':
     10,
     'shots':
@@ -310,14 +347,18 @@ info = {
 }
 
 body2 = StreamingBody(StringIO(results_json), len(results_json))
-results2_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, },
-                'Body': body2}
+results2_dict = {
+    'ResponseMetadata': {
+        'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body2}
+
 
 @patch('boto3.client')
-@pytest.mark.parametrize("var_status, var_result",
-             [('completed',completed_value), ('failed', failed_value),
-              ('cancelling', cancelling_value), ('other', other_value)])
-def test_send_real_device_online_verbose(mock_boto3_client, var_status, var_result):
+@pytest.mark.parametrize(
+    "var_status, var_result", [(
+        'completed', completed_value), ('failed', failed_value), (
+            'cancelling', cancelling_value), ('other', other_value)])
+def test_send_real_device_online_verbose(mock_boto3_client,
+                                         var_status, var_result):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
@@ -349,32 +390,40 @@ def test_send_real_device_online_verbose(mock_boto3_client, var_status, var_resu
                                          num_retries=2)
         print(exinfo.value)
         if var_status == 'failed':
-            assert str(exinfo.value) == "Error while running the code: FAILED. The failure \
+            assert str(exinfo.value) == \
+                "Error while running the code: FAILED. The failure \
 reason was: This is a failure reason."
         if var_status == 'cancelling':
-            assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
+            assert str(exinfo.value) == \
+                "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert str(exinfo.value) == "Timeout. The Arn of your submitted job is \
-arn:aws:braket:us-east-1:id:taskuuid and the status of the job is OTHER."
-            
+            assert str(exinfo.value) == \
+                "Timeout. The Arn of your submitted job \
+is arn:aws:braket:us-east-1:id:taskuuid \
+and the status of the job is OTHER."
+
+
 body3 = StreamingBody(StringIO(results_json), len(results_json))
-results3_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, },
-                'Body': body3}
+results3_dict = {
+    'ResponseMetadata': {
+        'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body3}
+
 
 @patch('boto3.client')
-@pytest.mark.parametrize("var_error",
-             [('AccessDeniedException'), ('DeviceOfflineException'),
-              ('InternalServiceException'), ('ServiceQuotaExceededException'),
-              ('ValidationException')])
-def test_send_that_errors_are_caught(mock_boto3_client,var_error):
+@pytest.mark.parametrize(
+    "var_error", [('AccessDeniedException'), (
+        'DeviceOfflineException'), ('InternalServiceException'), (
+            'ServiceQuotaExceededException'), ('ValidationException')])
+def test_send_that_errors_are_caught(mock_boto3_client, var_error):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
-    mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": var_error, 
-                   "Message": "Msg error for "+var_error}}, "create_quantum_task"
-        )
+    mock_boto3_client.create_quantum_task.side_effect = \
+        botocore.exceptions.ClientError(
+            {"Error": {
+                "Code": var_error,
+                "Message": "Msg error for "+var_error}}, "create_quantum_task")
 
     with pytest.raises(botocore.exceptions.ClientError) as exinfo:
         _awsbraket_boto3_client.send(info,

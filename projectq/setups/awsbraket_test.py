@@ -48,8 +48,8 @@ search_value = {
             },
         ]
     }
-    
-    
+
+
 device_value_devicecapabilities = json.dumps(
     {
     "braketSchemaHeader": {
@@ -77,16 +77,18 @@ device_value_devicecapabilities = json.dumps(
     "paradigm": {
         "qubitCount": 30,
         "nativeGateSet": ["ccnot", "cy"],
-        "connectivity": {"fullyConnected": False, "connectivityGraph": {"1": ["2", "3"]}},
+        "connectivity": {"fullyConnected": False,
+                         "connectivityGraph": {"1": ["2", "3"]}},
     },
     "deviceParameters": {
-        "properties": {"braketSchemaHeader": {"const" :
+        "properties": {"braketSchemaHeader": {"const":
             {"name": "braket.device_schema.rigetti.rigetti_device_parameters",
              "version": "1"}
             }},
-        "definitions": {"GateModelParameters": {"properties": {"braketSchemaHeader": {"const":
-            {"name": "braket.device_schema.gate_model_parameters",
-             "version": "1"}
+        "definitions": {"GateModelParameters": {"properties":
+            {"braketSchemaHeader": {"const":
+                {"name": "braket.device_schema.gate_model_parameters",
+                 "version": "1"}
             }}}},
         },
     }
@@ -114,6 +116,7 @@ def test_awsbraket_get_engine_list(mock_boto3_client):
                     device='Aspen-8')
     assert len(engine_list) == 13
 
+
 @patch('boto3.client')
 def test_awsbraket_error(mock_boto3_client):
 
@@ -123,7 +126,4 @@ def test_awsbraket_error(mock_boto3_client):
 
     with pytest.raises(projectq.setups.awsbraket.DeviceOfflineError):
         projectq.setups.awsbraket.get_engine_list(credentials=creds,
-                    device='Imaginary')
-
-
-
+                                                  device='Imaginary')

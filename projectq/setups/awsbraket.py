@@ -32,6 +32,7 @@ from projectq.cengines import (LocalOptimizer, IBM5QubitMapper,
                                GridMapper)
 from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 
+
 def get_engine_list(credentials=None, device=None):
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
@@ -41,12 +42,16 @@ def get_engine_list(credentials=None, device=None):
     if device not in devices:
         raise DeviceOfflineError('Error when configuring engine list: device '
                                  'requested for Backend not available')
-    
-    # Not explicit mapping by now. We left the real revide to manage the mapping
-    # and optimizacion: "The IonQ and Rigetti devices compile the provided circuit
-    # into their respective native gate sets automatically, and they map the
-    # abstract qubit indices to physical qubits on the respective QPU."
-    # (see: https://docs.aws.amazon.com/braket/latest/developerguide/braket-submit-to-qpu.html).
+
+    # Not explicit mapping by now.
+    # We left the real revide to manage the mapping
+    # and optimizacion: "The IonQ and Rigetti devices compile the provided
+    # circuit into their respective native gate sets automatically, and
+    # they map the abstract qubit indices to physical qubits on the
+    # respective QPU."
+    # (see:
+    # https://docs.aws.amazon.com/braket/latest/developerguide/braket-submit-to-qpu.html
+    # ).
     # The simulator is having full conectivity
     # TODO: Investigate if explicit mapping is an advantage
 
@@ -59,27 +64,29 @@ def get_engine_list(credentials=None, device=None):
 
     if device == 'SV1':
         setup = restrictedgateset.get_engine_list(
-                   one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z, SqrtX),
-                   two_qubit_gates=(Swap, ),
-                   other_gates=(Barrier, ))
+                    one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag,
+                                     T, Tdag, X, Y, Z, SqrtX),
+                    two_qubit_gates=(Swap, ),
+                    other_gates=(Barrier, ))
         setup.extend(awsbraket_setup)
         return setup
     if device == 'Aspen-8':
         setup = restrictedgateset.get_engine_list(
-                   one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z),
-                   two_qubit_gates=(Swap, ),
-                   other_gates=(Barrier, ))
+                    one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag,
+                                     T, Tdag, X, Y, Z),
+                    two_qubit_gates=(Swap, ),
+                    other_gates=(Barrier, ))
         setup.extend(awsbraket_setup)
         return setup
     if device == 'IonQ':
         setup = restrictedgateset.get_engine_list(
-                   one_qubit_gates=(H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z, SqrtX),
-                   two_qubit_gates=(Swap, ),
-                   other_gates=(Barrier, ))
+                    one_qubit_gates=(H, Rx, Ry, Rz, S, Sdag, T,
+                                     Tdag, X, Y, Z, SqrtX),
+                    two_qubit_gates=(Swap, ),
+                    other_gates=(Barrier, ))
         setup.extend(awsbraket_setup)
         return setup
 
 
 class DeviceOfflineError(Exception):
     pass
-
