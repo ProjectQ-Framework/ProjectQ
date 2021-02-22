@@ -341,8 +341,9 @@ def test_matrix_gate():
 
 
 def test_is_commutable():
-    # At the gate level is_commutable can return 
-    # true or false (not maybe (2) this is at the command level)
+    """ At the gate level is_commutable can return 
+    true or false. Test that is_commutable is working
+    as expected. """
     gate1 = _basics.BasicRotationGate(math.pi)
     gate2 = _basics.MatrixGate()
     gate3 = _basics.BasicRotationGate(math.pi)

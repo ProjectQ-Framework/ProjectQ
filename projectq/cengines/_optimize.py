@@ -115,6 +115,10 @@ class LocalOptimizer(BasicEngine):
         """ 
         Deletes the command at self._l[idx][command_idx] accounting 
         for all qubits in the optimizer dictionary. 
+
+        Args:
+            idx (int): qubit index
+            command_idx (int): command position in qubit idx's command list
         """
         # List of the indices of the qubits that are involved
         # in command
@@ -136,6 +140,12 @@ class LocalOptimizer(BasicEngine):
         """ 
         Replaces the command at self._l[idx][command_idx] accounting 
         for all qubits in the optimizer dictionary. 
+
+        Args:
+            idx (int): qubit index
+            command_idx (int): command position in qubit idx's command list
+            new_command (Command): The command to replace the command 
+                at self._l[idx][command_idx]
         """
         # List of the indices of the qubits that are involved
         # in command
@@ -159,6 +169,15 @@ class LocalOptimizer(BasicEngine):
         Determines whether inverse commands should be cancelled
         with one another. i.e. the commands between the pair are all
         commutable for each qubit involved in the command.
+
+        Args:
+            idx (int): qubit index
+            qubitids (list of int): the qubit ids involved in the command we're examining.
+            commandidcs (list of int): command position in qubit idx's command list.
+            inverse_command (Command): the command to be cancelled with.
+            apply_commutation (bool): True/False depending on whether optimizer 
+                is considering commutation rules. 
+
         """
         erase = True
         # We dont want to examine qubit idx because the optimizer 
@@ -206,10 +225,18 @@ class LocalOptimizer(BasicEngine):
         """
         To determine whether mergeable commands should be merged
         with one another. i.e. the commands between them are all
-        commutable, for each qubit involved in the command. It does
+        commutable for each qubit involved in the command. It does
         not check for the situation where commands are separated by
         a commutable list. However other parts of the optimizer 
         should find this situation.
+
+        Args: 
+            idx (int): qubit index
+            qubitids (list of int): the qubit ids involved in the command we're examining.
+            commandidcs (list of int): command position in qubit idx's command list.
+            merged_command (Command): the merged command we want to produce.
+            apply_commutation (bool): True/False depending on whether optimizer 
+                is considering commutation rules.   
         """
         merge = True
         # We dont want to examine qubit idx because the optimizer has already
@@ -248,13 +275,23 @@ class LocalOptimizer(BasicEngine):
         return merge
 
     def _check_for_commutable_circuit(self, command_i, next_command, idx, i, x):
-        """ command_i = current command
-            next_command = the next command
-            idx = index of the current qubit in the optimizer
-            i = index of the current command in the optimizer
-            x = number of commutable gates infront of i we have found 
-            (if there is a commutable circuit, we pretend we have found
-            x commutable gates where x is the length of the commutable circuit """
+        """ 
+        Checks if there is a commutable circuit separating two commands.
+        
+        Args:
+            command_i (Command) = current command
+            next_command (Command) = the next command
+            idx (int) = index of the current qubit in the optimizer
+            i (int) = index of the current command in the optimizer
+            x (int) = number of commutable gates infront of i we have found 
+                (if there is a commutable circuit, we pretend we have found
+                x commutable gates where x is the length of the commutable circuit.) 
+        
+        Returns: 
+            x (int): If there is a commutable circuit the function returns the length x.
+                Otherwise, returns 0. 
+                
+                """
         # commutable_circuit_list is a temp variable just used to create relative_commutable_circuits
         commutable_circuit_list = command_i.gate.get_commutable_circuit_list(n=len(command_i._control_qubits), )
         relative_commutable_circuits = []

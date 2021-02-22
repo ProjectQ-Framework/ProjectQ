@@ -127,7 +127,12 @@ class BasicGate(object):
         raise NotMergeable("BasicGate: No get_merged() implemented.")
 
     def get_commutable_circuit_list(self, n=0):
-        """ Returns the list of commutable circuits associated with this gate. """
+        """ Returns the list of commutable circuits associated with this gate. 
+        
+        Args: 
+            n (int): The CNOT gate needs to be able to pass in parameter n in 
+                this method. 
+        """
         return self._commutable_circuit_list
 
     @staticmethod
@@ -247,7 +252,16 @@ class BasicGate(object):
         return False
 
     def is_commutable(self, other):
-        # If gate is commutable with other gate, return 1
+        """Determine whether this gate is commutable with
+        another gate.
+        
+        Args:
+            other (Gate): The other gate. 
+
+        Returns:
+            1, if the gates are commutable.
+            0, if the gates are not commutable.
+             """
         for gate in self._commutable_gates:
             if (other.__class__ == gate):
                 return 1

@@ -155,6 +155,10 @@ class Command(object):
     def is_commutable(self, other):
         """
         Evaluate if this command is commutable with another command.
+
+        Args: 
+            other (Command): The other command. 
+
         Returns:
             True if the other command concerns the same qubits and
             the gates are commutable. 
@@ -339,10 +343,9 @@ class Command(object):
 
 def overlap(tuple1, tuple2):
     """ 
-    Takes two tuples of lists and turns them into, flattens
-    them and counts the number of common elements. Intended
-    to be used to see if two commands have qubits or control
-    qubits in common. 
+    Takes two tuples of lists, flattens them and counts the number
+    of common elements. Used to check if two commands have qubits 
+    or control qubits in common. 
 
     i.e.    command1.all_qubits = [[control_qubits], [qubits]]
             command2.all_qubits = [[control_qubits], [qubits]]  

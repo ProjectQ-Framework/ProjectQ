@@ -87,7 +87,10 @@ class XGate(SelfInverseGate):
 
     def get_commutable_circuit_list(self, n=0):
         """ Sets _commutable_circuit_list for C(NOT, n) where
-        n is the number of controls """
+        n is the number of controls 
+        
+        Args: 
+            n (int): The number of controls on this gate. """
         if (n == 1):
             # i.e. this is a CNOT gate (one control)
             # We define the qubit with the NOT as qb0, the qubit with 

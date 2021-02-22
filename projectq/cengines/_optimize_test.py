@@ -109,9 +109,10 @@ def test_local_optimizer_cancel_inverse():
     assert received_commands[1].control_qubits[0].id == qb0[0].id
 
 def test_local_optimizer_cancel_separated_inverse():
-    # Tests the situation where an inverse of a command is found 
-    # on the next qubit, but another qubit involved is separated 
-    # from the inverse by only commutable gates.
+    """ Tests the situation where the next command on
+    this qubit is an inverse command, but another qubit 
+    involved is separated from the inverse by only commutable 
+    gates. The two commands should cancel. """
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -172,9 +173,11 @@ def test_local_optimizer_mergeable_gates():
     assert received_commands[5].gate == Rzz(1.0)
 
 def test_local_optimizer_separated_mergeable_gates():
-    # Tests the situation where a mergeable command is found 
-    # on the next qubit, and another qubit involved in the command
-    # is separated from the mergeable gate by only commutable gates.
+    """Tests the situation where the next command on this qubit
+    is a mergeable command, but another qubit involved is separated 
+    from the mergeable command by only commutable gates. 
+    The commands should merge.
+    """
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -228,9 +231,10 @@ def test_local_optimizer_identity_gates():
     assert backend.received_commands[1].gate == Rx(0.5)
 
 def test_local_optimizer_commutable_gates():
-    # Test that inverse gates separated by two commutable gates 
-    # cancel successfully and that mergeable gates separated by
-    # two commutable gates cancel successfully.
+    """ Test that inverse gates separated by two commutable gates 
+    cancel successfully and that mergeable gates separated by
+    two commutable gates cancel successfully.
+    """
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -273,6 +277,7 @@ def test_local_optimizer_commutable_gates():
     assert received_commands[4].qubits[0][0].id == qb3[0].id
 
 def test_local_optimizer_commutable_circuit_Rz_example_1():
+    """ Example circuit where the Rzs should merge. """
     # Rzs should merge
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
@@ -295,7 +300,8 @@ def test_local_optimizer_commutable_circuit_Rz_example_1():
     assert len(received_commands) == 4
 
 def test_local_optimizer_commutable_circuit_Rz_example_2():
-    # Rzs shouldn't merge (Although in theory they should, this would require a new update.)
+    """ Rzs shouldn't merge (Although in theory they should, 
+    this would require a new update.) """
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -317,7 +323,7 @@ def test_local_optimizer_commutable_circuit_Rz_example_2():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_3():
-    # Rzs should not merge because they are operating on different qubits
+    """ Rzs should not merge because they are operating on different qubits. """
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -339,7 +345,7 @@ def test_local_optimizer_commutable_circuit_Rz_example_3():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_4():
-    #Rzs shouldn't merge because they are operating on different qubits
+    """Rzs shouldn't merge because they are operating on different qubits."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -361,7 +367,7 @@ def test_local_optimizer_commutable_circuit_Rz_example_4():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_5():
-    # Rzs shouldn't merge because CNOT is the wrong orientation
+    """Rzs shouldn't merge because CNOT is the wrong orientation."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -383,7 +389,8 @@ def test_local_optimizer_commutable_circuit_Rz_example_5():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_6():
-    # Rzs shouldn't merge (Although in theory they should, this would require a new update.)
+    """Rzs shouldn't merge (Although in theory they should, 
+    this would require a new update.)"""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -405,7 +412,7 @@ def test_local_optimizer_commutable_circuit_Rz_example_6():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_7():
-    # Rzs shouldn't merge. Second H on wrong qubit.
+    """Rzs shouldn't merge. Second H on wrong qubit."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -427,7 +434,7 @@ def test_local_optimizer_commutable_circuit_Rz_example_7():
     assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_CNOT_example_1():
-    # This example should commute
+    """This example should commute."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -450,7 +457,7 @@ def test_local_optimizer_commutable_circuit_CNOT_example_1():
     assert received_commands[0].gate == H
 
 def test_local_optimizer_commutable_circuit_CNOT_example_2():
-    # This example should commute
+    """This example should commute."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -473,7 +480,7 @@ def test_local_optimizer_commutable_circuit_CNOT_example_2():
     assert received_commands[0].gate == H
 
 def test_local_optimizer_commutable_circuit_CNOT_example_3():
-    # This example should commute
+    """This example should commute."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -496,8 +503,8 @@ def test_local_optimizer_commutable_circuit_CNOT_example_3():
     assert received_commands[0].gate == H 
 
 def test_local_optimizer_commutable_circuit_CNOT_example_4():
-    # This example shouldn't commute because the CNOT is the
-    # wrong orientation
+    """This example shouldn't commute because the CNOT is the
+    wrong orientation."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -520,8 +527,8 @@ def test_local_optimizer_commutable_circuit_CNOT_example_4():
     assert received_commands[0].gate.__class__ == XGate
 
 def test_local_optimizer_commutable_circuit_CNOT_example_5():
-    # This example shouldn't commute because the CNOT is the
-    # wrong orientation
+    """This example shouldn't commute because the CNOT is the
+    wrong orientation."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -544,8 +551,8 @@ def test_local_optimizer_commutable_circuit_CNOT_example_5():
     assert received_commands[0].gate.__class__ == XGate
 
 def test_local_optimizer_commutable_circuit_CNOT_example_6():
-    # This example shouldn't commute because the CNOT is the
-    # wrong orientation. Same as example_3 with middle CNOT reversed.
+    """This example shouldn't commute because the CNOT is the
+    wrong orientation. Same as example_3 with middle CNOT reversed."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -568,8 +575,8 @@ def test_local_optimizer_commutable_circuit_CNOT_example_6():
     assert received_commands[0].gate.__class__ == XGate
 
 def test_local_optimizer_commutable_circuit_CNOT_example_7():
-    # This example shouldn't commute because the CNOT is the
-    # wrong orientation. Same as example_1 with middle CNOT reversed.
+    """This example shouldn't commute because the CNOT is the
+    wrong orientation. Same as example_1 with middle CNOT reversed."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -592,8 +599,8 @@ def test_local_optimizer_commutable_circuit_CNOT_example_7():
     assert received_commands[0].gate.__class__ == XGate
     
 def test_local_optimizer_commutable_circuit_CNOT_example_8():
-    # This example shouldn't commute because the CNOT is the
-    # wrong orientation. Same as example_2 with middle CNOT reversed.
+    """This example shouldn't commute because the CNOT is the
+    wrong orientation. Same as example_2 with middle CNOT reversed."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -616,9 +623,9 @@ def test_local_optimizer_commutable_circuit_CNOT_example_8():
     assert received_commands[0].gate.__class__ == XGate
 
 def test_local_optimizer_commutable_circuit_CNOT_and_Rz_example_1():
-    # This example is to check everything works as expected when
-    # the commutable circuit is on later commands of qubits
-    # The number of commmands should reduce from 10 to 7
+    """This example is to check everything works as expected when
+    the commutable circuit is on later commands in the optimizer 
+    dictionary. The number of commmands should reduce from 10 to 7. """
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -646,8 +653,8 @@ def test_local_optimizer_commutable_circuit_CNOT_and_Rz_example_1():
     assert received_commands[6].gate == H
 
 def test_local_optimizer_commutable_circuit_CNOT_and_Rz_example_2():
-    # This example is to check everything works as expected when
-    # the commutable circuit is on qubits 3,4,5
+    """ This example is to check everything works as expected when
+    the commutable circuit is on qubits 3, 4, 5. """
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -677,8 +684,8 @@ def test_local_optimizer_commutable_circuit_CNOT_and_Rz_example_2():
     assert received_commands[6].gate == H
 
 def test_local_optimizer_apply_commutation_false():
-    # Test that the local_optimizer behaves as if commutation isn't an option
-    # if you set apply_commutation = False
+    """Test that the local_optimizer behaves as if commutation isn't an option
+    if you set apply_commutation = False. """
     local_optimizer = _optimize.LocalOptimizer(m=10, apply_commutation=False)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])

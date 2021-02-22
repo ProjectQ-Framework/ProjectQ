@@ -25,7 +25,7 @@ from projectq.cengines import DummyEngine
 from projectq.meta import ComputeTag
 from projectq.ops import BasicGate, Rx, NotMergeable, Rxx, Ry, H, Rz, CNOT
 from projectq.types import Qubit, Qureg, WeakQubitRef
-from projectq.ops import _command, _basics, RelativeCommand
+from projectq.ops import _command, _basics
 
 
 @pytest.fixture
@@ -148,6 +148,8 @@ def test_command_is_identity(main_engine):
 
 
 def test_overlap():
+    """ Test the overlap function is working as
+    expected."""
     tuple1 = ([1,2],[3])
     tuple2 = ([2],[3,0])
     tuple3 = ([0,0,0],)
@@ -156,13 +158,13 @@ def test_overlap():
 
 
 def test_command_is_commutable(main_engine):
-    # Check is_commutable function returns 0, 1, 2 
-    # For False, True and Maybe
-    # 'Maybe' refers to the situation where you
-    # might have a commutable circuit
-    # CNOT's commutable circuit wont be recognised at this 
-    # level because CNOT.__gate__ = ControlledGate
-    # whereas in the optimizer CNOT.__gate__ = XGate
+    """Check is_commutable function returns 0, 1, 2 
+    For False, True and Maybe
+    'Maybe' refers to the situation where you
+    might have a commutable circuit
+    CNOT's commutable circuit wont be recognised at this 
+    level because CNOT.__gate__ = ControlledGate
+    whereas in the optimizer CNOT.__gate__ = XGate. """
     qubit1 = Qureg([Qubit(main_engine, 0)])
     qubit2 = Qureg([Qubit(main_engine, 1)])
     cmd1 = _command.Command(main_engine, Rx(0.5), (qubit1,))
