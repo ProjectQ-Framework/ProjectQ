@@ -35,11 +35,15 @@ python:
   - 3.6
   - 3.7
   - 3.8
-  - 3.9
+  # 3.9 is added explicitely below
 
 jobs:
   fast_finish: true
   include:
+  - os: linux
+    arch: amd64
+    python: 3.9
+    env: DO_COVERALLS=1
   - os: osx
     osx_image: xcode11.6
     language: shell
@@ -75,6 +79,9 @@ script:
   - python3 -m pytest projectq --cov projectq -p no:warnings
 
 after_success:
-  - coveralls
+  - |
+    if [[ -n $DO_COVERALLS ]]; then
+      coveralls
+    fi
 
 # ==============================================================================
