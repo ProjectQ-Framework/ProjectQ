@@ -58,8 +58,7 @@ jobs:
 install:
   - env
   - python3 -m pip install -U pip setuptools wheel
-  - python3 -m pip install -U pybind11 dormouse pytest-cov coveralls
-  - python3 -m pip install -U flaky
+  - python3 -m pip install -U pybind11 dormouse revkit flaky pytest-cov coveralls
   - python3 -m pip install -r requirements.txt
   - python3 -m pip install -ve .
 
