@@ -406,7 +406,8 @@ class GateOp:
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
         """
-        self.name = toks[0].lower()
+        # self.name = toks[0].lower()
+        self.name = toks[0]
         if len(toks) == 2:
             self.params = []
             self.qubits = [QubitProxy(qubit) for qubit in toks[1]]
