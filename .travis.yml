@@ -34,23 +34,24 @@ python:
 
 jobs:
   fast_finish: true
-  include:
-  - os: osx
-    osx_image: xcode12.2
-    language: shell
-    name: "Mac OS Python Homebrew"
-    env: CC=clang CXX=clang++
-    before_install:
-      - clang++ --version
-  - os: windows
-    name: "Windows Python 3.8"
-    language: shell
-    before_install:
-      - unset CC CXX
-      - choco install python3 --version 3.8.8
-      - ln -s /c/Python38/python.exe /c/Python38/python3.exe
-      - python3 -m pip install --upgrade pip
-    env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+  # Limit the number of builds to use less credits on Travis-CI
+  # include:
+  # - os: osx
+  #   osx_image: xcode12.2
+  #   language: shell
+  #   name: "Mac OS Python Homebrew"
+  #   env: CC=clang CXX=clang++
+  #   before_install:
+  #     - clang++ --version
+  # - os: windows
+  #   name: "Windows Python 3.8"
+  #   language: shell
+  #   before_install:
+  #     - unset CC CXX
+  #     - choco install python3 --version 3.8.8
+  #     - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+  #     - python3 -m pip install --upgrade pip
+  #   env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 # ==============================================================================
 # Installation and testing
