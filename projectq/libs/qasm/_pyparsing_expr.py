@@ -168,7 +168,7 @@ class ExprParser:
             return int(bool(value & (1 << index)))
 
         # TODO: Properly handle other types...
-        return value
+        return value  # pragma: no cover
 
 
 # map operator symbols to corresponding arithmetic operations
@@ -230,7 +230,6 @@ def evaluate_stack(stack):
         args = reversed([evaluate_stack(stack) for _ in range(num_args)])
         return fn[op](*args)
 
-    # try to evaluate as int first, then as float if int fails
     try:
         return int(op)
     except ValueError:
