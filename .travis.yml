@@ -30,15 +30,11 @@ python:
   - 3.6
   - 3.7
   - 3.8
-  # 3.9 is added explicitely below
+  - 3.9
 
 jobs:
   fast_finish: true
   include:
-  - os: linux
-    arch: amd64
-    python: 3.9
-    env: DO_COVERALLS=1
   - os: osx
     osx_image: xcode12.2
     language: shell
@@ -62,7 +58,7 @@ jobs:
 install:
   - env
   - python3 -m pip install -U pip setuptools wheel
-  - python3 -m pip install -U pybind11 dormouse pytest-cov coveralls[yaml]
+  - python3 -m pip install -U pybind11 dormouse pytest-cov coveralls
   - python3 -m pip install -U flaky
   - python3 -m pip install -r requirements.txt
   - python3 -m pip install -ve .
@@ -74,9 +70,6 @@ script:
   - python3 -m pytest projectq --cov projectq -p no:warnings
 
 after_success:
-  - |
-    if [[ -n $DO_COVERALLS ]]; then
-      coveralls
-    fi
+  - coveralls
 
 # ==============================================================================
