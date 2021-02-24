@@ -19,9 +19,9 @@ Contains the main engine of every compiler engine pipeline, called MainEngine.
 from copy import deepcopy
 import operator as op
 from pyparsing import (Literal, Word, Group, Or, CharsNotIn, Optional,
-                       nestedExpr, Suppress, removeQuotes, Empty,
-                       cppStyleComment, cStyleComment, dblQuotedString, alphas,
-                       alphanums, pyparsing_common)
+                       OneOrMore, ZeroOrMore, nestedExpr, Suppress,
+                       removeQuotes, Empty, cppStyleComment, cStyleComment,
+                       dblQuotedString, alphas, alphanums, pyparsing_common)
 
 from projectq.ops import All, Measure
 
@@ -412,8 +412,8 @@ class GateOp:
             self.qubits = [QubitProxy(qubit) for qubit in toks[1]]
         else:
             param_str = s[loc:s.find(';', loc)]
-            self.params = param_str[param_str.find('(') +
-                                    1:param_str.rfind(')')].split(',')
+            self.params = param_str[param_str.find('(')
+                                    + 1:param_str.rfind(')')].split(',')
             self.qubits = [QubitProxy(qubit) for qubit in toks[2]]
 
     def eval(self, eng):
@@ -567,8 +567,8 @@ class IfOp:
     logical_bin_op = Or(
         [greater, greater_equal, less, less_equal, equal, not_equal])
 
-    cond_expr = (CommonTokens.variable_expr.copy() + logical_bin_op +
-                 CharsNotIn('()'))
+    cond_expr = (CommonTokens.variable_expr.copy() + logical_bin_op
+                 + CharsNotIn('()'))
 
     def __init__(self, if_str, loc, toks):
         """
@@ -763,11 +763,12 @@ class QiskitParser:
         # Variable declarations
 
         # e.g. qubit[10] qr, qs / int[5] i, j
-        variable_decl_const_bits = type_t + Group(cname + (comma + cname)[...])
+        variable_decl_const_bits = type_t + Group(cname
+                                                  + ZeroOrMore(comma + cname))
 
         # e.g. qubit qr[10], qs[2] / int i[5], j[10]
-        variable_decl_var_bits = var_type + Group(variable_expr +
-                                                  (comma + variable_expr)[...])
+        variable_decl_var_bits = var_type + Group(
+            variable_expr + ZeroOrMore(comma + variable_expr))
 
         # e.g. int[10] i = 5;
         variable_decl_assign = type_t + cname + equal_sign + Group(expr)
@@ -781,11 +782,11 @@ class QiskitParser:
         # ----------------------------------------------------------------------
         # Gate operations
 
-        gate_op_no_param = cname + Group(variable_expr +
-                                         (comma + variable_expr)[...])
-        gate_op_w_param = cname + Group(
-            nestedExpr(ignoreExpr=comma)) + Group(variable_expr +
-                                                  (comma + variable_expr)[...])
+        gate_op_no_param = cname + Group(variable_expr
+                                         + ZeroOrMore(comma + variable_expr))
+        gate_op_w_param = cname + Group(nestedExpr(
+            ignoreExpr=comma)) + Group(variable_expr
+                                       + ZeroOrMore(comma + variable_expr))
 
         # ----------------------------------
         # Measure gate operations
@@ -810,7 +811,7 @@ class QiskitParser:
 
         # NB: not exactly 100% OpenQASM 3.0 conformant...
         if_expr_qasm3 = (Literal("if") + nestedExpr(ignoreExpr=comma) +
-                         (lbrace + Group(gate_op + end)[1, ...] + rbrace))
+                         (lbrace + OneOrMore(Group(gate_op + end)) + rbrace))
         if_expr = (if_expr_qasm2 ^ if_expr_qasm3).addParseAction(IfOp)
 
         assign_op = (cname + equal_sign + Group(expr)).addParseAction(AssignOp)
@@ -829,30 +830,31 @@ class QiskitParser:
 
         param_decl = Group(param_decl_qasm2 ^ param_decl_qasm3)
 
-        qargs_list = Group(cname + (comma + cname)[...])
+        qargs_list = Group(cname + ZeroOrMore(comma + cname))
 
-        gate_def_no_args = (lpar + rpar)[...] + Group(Empty()) + qargs_list
-        gate_def_w_args = (lpar + Group(param_decl +
-                                        (comma + param_decl)[...]) + rpar +
-                           qargs_list)
+        gate_def_no_args = ZeroOrMore(lpar + rpar) + Group(
+            Empty()) + qargs_list
+        gate_def_w_args = (lpar
+                           + Group(param_decl + ZeroOrMore(comma + param_decl))
+                           + rpar + qargs_list)
         gate_def_expr = (Literal("gate") + cname +
-                         (gate_def_no_args ^ gate_def_w_args) + lbrace + Group(
-                             (gate_op + end)[...]) +
-                         rbrace).addParseAction(GateDefOp)
+                         (gate_def_no_args ^ gate_def_w_args) + lbrace
+                         + Group(ZeroOrMore(gate_op + end))
+                         + rbrace).addParseAction(GateDefOp)
 
         # ----------------------------------
         # Opaque gate declarations operations
 
         opaque_def_expr = (Literal("opaque") + cname +
-                           (gate_def_no_args ^ gate_def_w_args) +
-                           end).addParseAction(OpaqueDefOp)
+                           (gate_def_no_args ^ gate_def_w_args)
+                           + end).addParseAction(OpaqueDefOp)
 
         # ----------------------------------------------------------------------
         # Control related expressions (OpenQASM 3.0)
 
-        # control_var_type = Or([length_t, stretch_t + int_v[...]])
+        # control_var_type = Or([length_t, stretch_t + ZeroOrMore(int_v)])
 
-        # lengthof_arg = Word(alphanums + '_+-*/%{}[]')[1, ...]
+        # lengthof_arg = OneOrMore(Word(alphanums + '_+-*/%{}[]'))
         # lengthof_op = Literal("lengthof") + lpar + lengthof_arg + rpar
 
         # units = Word(alphas)
@@ -864,16 +866,16 @@ class QiskitParser:
         # control_variable_decl_statement = Group(
         #     Or([control_variable_decl, control_variable_decl_assign]))
 
-        # control_func_arg = Word(alphanums + '_+-*/%')[1, ...]
+        # control_func_arg = OneOrMore(Word(alphanums + '_+-*/%'))
         # control_func_op = Literal("rotary")
 
         # rotary_op = (control_func_op + lpar + control_func_arg + rpar + lbra
         #              + ((float_v + units) ^ control_func_arg) + rbra +
-        #              variable_expr + (comma + variable_expr)[...])
+        #              variable_expr + ZeroOrMore(comma + variable_expr))
 
-        # delay_arg = Word(alphanums + '_+-*/%')[1, ...]
+        # delay_arg = OneOrMore(Word(alphanums + '_+-*/%'))
         # delay_op = Literal("delay") + lbra + delay_arg + rbra + Optional(
-        #     variable_expr + (comma + variable_expr)[...])
+        #     variable_expr + ZeroOrMore(comma + variable_expr))
 
         # control_op = Group(Or([rotary_op, delay_op]))
 
@@ -882,8 +884,8 @@ class QiskitParser:
         header = (Suppress("OPENQASM") +
                   (int_v ^ float_v).addParseAction(QASMVersionOp) + end)
 
-        include = (Suppress("include") + string_v.addParseAction(IncludeOp) +
-                   end)
+        include = (Suppress("include") + string_v.addParseAction(IncludeOp)
+                   + end)
 
         statement = (
             (measure_op + end)
@@ -898,7 +900,7 @@ class QiskitParser:
             # | (control_op + end).addParseAction(lambda toks: [])
         )
 
-        self.parser = header + include[...] + statement[...]
+        self.parser = header + ZeroOrMore(include) + ZeroOrMore(statement)
         self.parser.ignore(cppStyleComment)
         self.parser.ignore(cStyleComment)
 

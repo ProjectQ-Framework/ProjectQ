@@ -20,9 +20,9 @@ import math
 from numbers import Number
 import operator
 
-from pyparsing import (Literal, Word, Group, Forward, alphas, alphanums, Regex,
-                       CaselessKeyword, Suppress, delimitedList,
-                       pyparsing_common)
+from pyparsing import (Literal, Word, Group, Forward, ZeroOrMore, alphas,
+                       alphanums, Regex, CaselessKeyword, Suppress,
+                       delimitedList, pyparsing_common)
 
 # ==============================================================================
 
@@ -103,12 +103,12 @@ class ExprParser:
             num_args = len(toks[0])
             toks.insert(0, (fn_name, num_args))
 
-        var_expr = (cname + (lbra + int_v + rbra)[...]).addParseAction(
+        var_expr = (cname + ZeroOrMore(lbra + int_v + rbra)).addParseAction(
             self._eval_var_expr)
 
-        fn_call = (cname + lpar - Group(expr_list) +
-                   rpar).setParseAction(insert_fn_argcount_tuple)
-        atom = (addop[...] +
+        fn_call = (cname + lpar - Group(expr_list)
+                   + rpar).setParseAction(insert_fn_argcount_tuple)
+        atom = (ZeroOrMore(addop) +
                 ((fn_call | pi_const | e_const | var_expr | fnumber
                   | cname).setParseAction(push_first)
                  | Group(lpar + expr + rpar))).setParseAction(push_unary_minus)
@@ -118,9 +118,11 @@ class ExprParser:
         # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not
         # (2^3)^2.
         factor = Forward()
-        factor <<= atom + (expop + factor).setParseAction(push_first)[...]
-        term = factor + (multop + factor).setParseAction(push_first)[...]
-        expr <<= term + (addop + term).setParseAction(push_first)[...]
+        factor <<= atom + ZeroOrMore(
+            (expop + factor).setParseAction(push_first))
+        term = factor + ZeroOrMore(
+            (multop + factor).setParseAction(push_first))
+        expr <<= term + ZeroOrMore((addop + term).setParseAction(push_first))
         self.bnf = expr
 
     def parse(self, expr):
