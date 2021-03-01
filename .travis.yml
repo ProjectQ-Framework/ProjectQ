@@ -1,52 +1,75 @@
-sudo: false
+# ==============================================================================
+
+addons:
+  apt:
+    sources: ['ubuntu-toolchain-r-test']
+    # update: true
+    packages:
+      - gcc-9
+      - g++-9
+      - build-essential
+      - python3
+      - python3-pip
+
+  homebrew:
+    update: false
+
+# ==============================================================================
+
+env:
+  global:
+    - OMP_NUM_THREADS=1
+    - CC=gcc-9
+    - CXX=g++-9
+
+os: linux
 language: python
-matrix:
-  include:
-  - os: linux
-    python: "2.7"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9', 'gcc-7', 'g++-7']
-    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=2.7
-  - os: linux
-    python: "3.4"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9', 'gcc-7', 'g++-7']
-    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=3.4
-  - os: linux
-    python: "3.5"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9', 'gcc-7', 'g++-7']
-    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=3.5
-  - os: linux
-    python: "3.6"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9', 'gcc-7', 'g++-7']
-    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=3.6
+
+python:
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9
+
+jobs:
+  fast_finish: true
+  # Limit the number of builds to use less credits on Travis-CI
+  # include:
+  # - os: osx
+  #   osx_image: xcode12.2
+  #   language: shell
+  #   name: "Mac OS Python Homebrew"
+  #   env: CC=clang CXX=clang++
+  #   before_install:
+  #     - clang++ --version
+  # - os: windows
+  #   name: "Windows Python 3.8"
+  #   language: shell
+  #   before_install:
+  #     - unset CC CXX
+  #     - choco install python3 --version 3.8.8
+  #     - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+  #     - python3 -m pip install --upgrade pip
+  #   env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+
+# ==============================================================================
+# Installation and testing
 
 install:
-  - if [ "${PYTHON:0:1}" = "3" ]; then export PY=3; fi
-  - pip$PY install --upgrade pip setuptools wheel
-  - pip$PY install --only-binary=numpy,scipy numpy scipy
-  - pip$PY install -r requirements.txt
-  - pip$PY install pytest-cov
-  - pip$PY install coveralls
-  - CC=g++-7 pip$PY install revkit
-  - if [ "${PYTHON:0:1}" = "3" ]; then pip$PY install dormouse; fi
-  - pip$PY install -e .
+  - env
+  - python3 -m pip install -U pip setuptools wheel
+  - python3 -m pip install -U pybind11 dormouse revkit flaky pytest-cov coveralls
+  - python3 -m pip install -r requirements.txt
+  - python3 -m pip install -ve .
 
 before_script:
   - "echo 'backend: Agg' > matplotlibrc"
 
-# command to run tests
-script: export OMP_NUM_THREADS=1 && pytest projectq --cov projectq -p no:warnings
+script:
+  - python3 -m pytest projectq --cov projectq -p no:warnings
 
 after_success:
   - coveralls
+
+# ==============================================================================

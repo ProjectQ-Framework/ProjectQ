@@ -159,7 +159,7 @@ class QubitOperator(BasicGate):
         if term is None:
             return
         elif isinstance(term, tuple):
-            if term is ():
+            if term == ():
                 self.terms[()] = coefficient
             else:
                 # Test that input is a tuple of tuples and correct action
