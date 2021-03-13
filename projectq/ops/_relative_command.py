@@ -107,15 +107,10 @@ class RelativeCommand(object):
         return self.gate.to_string(symbols) + " | " + qstring
 
     def equals(self, other):
-        if other is None:
-            return False
-        if (self.gate.__class__ != other.gate.__class__):
-            return False
-        if (self.relative_qubit_idcs != other.relative_qubit_idcs):
-            return False
-        if (self.relative_ctrl_idcs != other.relative_ctrl_idcs):
-            return False
-        if (self._gate.__class__ != self._gate.__class__):
-            return False
+        if ((type(self.gate) is type(other.gate)) 
+            and (self.relative_qubit_idcs == other.relative_qubit_idcs)
+            and (self.relative_ctrl_idcs == other.relative_ctrl_idcs)
+            and (type(self._gate) is type(self._gate))):
+            return True
         else:
-           return True
+           return False

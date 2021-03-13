@@ -163,16 +163,16 @@ class Command(object):
             True if the other command concerns the same qubits and
             the gates are commutable. 
         """
-        if (overlap(self.all_qubits, other.all_qubits)==0):
+        if not overlap(self.all_qubits, other.all_qubits):
             return 0
         self._commutable_circuit_list = self.gate.get_commutable_circuit_list(len(self.control_qubits))
         # If other gate may be part of a list which is 
         # commutable with gate, return 2
         for circuit in self._commutable_circuit_list:
-            if (other.gate.__class__ == circuit[0]._gate.__class__):
+            if type(other.gate) is type(circuit[0]._gate):
                 return 2
         else:
-            return self.gate.is_commutable(other.gate)
+            return int(self.gate.is_commutable(other.gate))
 
     def get_merged(self, other):
         """

@@ -264,11 +264,11 @@ class BasicGate(object):
              """
         for gate in self._commutable_gates:
             if (other.__class__ == gate):
-                return 1
+                return True
         else:
             # Default is to return False, including if 
             # other gate and gate are identical
-            return 0
+            return False
 
 
 class MatrixGate(BasicGate):

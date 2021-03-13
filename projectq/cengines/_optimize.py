@@ -38,12 +38,13 @@ class LocalOptimizer(BasicEngine):
         Args:
             m (int): Number of gates to cache per qubit, before sending on the
                 first gate.
+            apply_commutation (Boolean): Indicates whether to consider commutation
+                rules during optimization.
         """
         BasicEngine.__init__(self)
         self._l = dict()  # dict of lists containing operations for each qubit
         self._m = m  # wait for m gates before sending on
         self._apply_commutation = apply_commutation
-        self._i_x_com = False
 
     def _send_qubit_pipeline(self, idx, n):
         """
@@ -131,7 +132,7 @@ class LocalOptimizer(BasicEngine):
             try:
                 new_list = (self._l[qubitids[j]][0:commandidcs[j]] +
                             self._l[qubitids[j]][commandidcs[j]+1:])
-            except: 
+            except IndexError: 
                 # If there are no more commands after that being deleted.
                 new_list = (self._l[qubitids[j]][0:commandidcs[j]])
             self._l[qubitids[j]] = new_list
@@ -147,6 +148,9 @@ class LocalOptimizer(BasicEngine):
             new_command (Command): The command to replace the command 
                 at self._l[idx][command_idx]
         """
+        # Check that the new command concerns the same qubits as the original 
+        # command before starting the replacement process
+        assert new_command.all_qubits == self._l[idx][command_idx].all_qubits
         # List of the indices of the qubits that are involved
         # in command
         qubitids = [qb.id for sublist in self._l[idx][command_idx].all_qubits
@@ -159,12 +163,12 @@ class LocalOptimizer(BasicEngine):
                 new_list = (self._l[qubitids[j]][0:commandidcs[j]] 
                             + [new_command]
                             + self._l[qubitids[j]][commandidcs[j]+1:])
-            except: 
+            except IndexError: 
                 # If there are no more commands after that being replaced.
                 new_list = (self._l[qubitids[j]][0:commandidcs[j]] + [new_command])
             self._l[qubitids[j]] = new_list
 
-    def _get_erase_boolean(self, idx, qubitids, commandidcs, inverse_command, apply_commutation):
+    def _can_cancel_by_commutation(self, idx, qubitids, commandidcs, inverse_command, apply_commutation):
         """
         Determines whether inverse commands should be cancelled
         with one another. i.e. the commands between the pair are all
@@ -221,7 +225,7 @@ class LocalOptimizer(BasicEngine):
                     break
         return erase
 
-    def _get_merge_boolean(self, idx, qubitids, commandidcs, merged_command, apply_commutation):
+    def _can_merge_by_commutation(self, idx, qubitids, commandidcs, merged_command, apply_commutation):
         """
         To determine whether mergeable commands should be merged
         with one another. i.e. the commands between them are all
@@ -298,7 +302,7 @@ class LocalOptimizer(BasicEngine):
         # Keep a list of circuits that start with 
         # next_command.
         for relative_circuit in commutable_circuit_list:
-            if (relative_circuit[0].gate.__class__ == next_command.gate.__class__):
+            if type(relative_circuit[0].gate) is type(next_command.gate):
                 relative_commutable_circuits.append(relative_circuit)
         # Create dictionaries { absolute_qubit_idx : relative_qubit_idx }
         # For the purposes of fast lookup, also { relative_qubit_idx : absolute_qubit_idx }
@@ -306,7 +310,7 @@ class LocalOptimizer(BasicEngine):
         rel_to_abs = { 0 : idx }
         # If the current command is a CNOT, we set the target qubit idx
         # to 0
-        if command_i.gate.__class__==XGate:
+        if isinstance(command_i.gate, XGate):
             if len(command_i._control_qubits)==1:
                 # At this point we know we have a CNOT
                 # we reset the dictionaries so that the
@@ -319,7 +323,7 @@ class LocalOptimizer(BasicEngine):
         absolute_circuit = self._l[idx][i+x+1:]
         # If no (more) relative commutable circuits to check against, 
         # break out of this while loop and move on to next command_i.
-        while(len(relative_commutable_circuits)>0):
+        while relative_commutable_circuits:
             # If all the viable relative_circuits have been deleted
             # you want to just move on
             relative_circuit = relative_commutable_circuits[0]
@@ -330,14 +334,14 @@ class LocalOptimizer(BasicEngine):
                     # The absolute circuit is too short to match the relative_circuit
                     # i.e. if the absolute circuit is of len=3, you can't have absolute_circuit[3]
                     # only absolute_circuit[0] - absolute_circuit[2]
-                    if (len(relative_commutable_circuits)!=0):
+                    if relative_commutable_circuits:
                         relative_commutable_circuits.pop(0)
                     break
                 # Check if relative_circuit command
                 # matches the absolute_circuit command
                 next_command = absolute_circuit[y]
-                if not (relative_circuit[y]._gate.__class__==next_command.gate.__class__):
-                    if (len(relative_commutable_circuits)!=0):
+                if not type(relative_circuit[y]._gate) is type(next_command.gate):
+                    if relative_commutable_circuits:
                         relative_commutable_circuits.pop(0)
                     break
 
@@ -350,22 +354,18 @@ class LocalOptimizer(BasicEngine):
                     r=relative_circuit[y].relative_qubit_idcs[0]
                     if a in abs_to_rel.keys():
                         # If a in abs_to_rel, r will be in rel_to_abs
-                        if (abs_to_rel[a] != r):
-                            # Put it in a try block because pop will fail 
-                            # if relative_commutable_circuits already empty.                            
-                            if (len(relative_commutable_circuits)!=0):
+                        if (abs_to_rel[a] != r):                      
+                            if relative_commutable_circuits:
                                 relative_commutable_circuits.pop(0)
                             break
                     if r in rel_to_abs.keys():
                         if (rel_to_abs[r] != a):
-                            # Put it in a try block because pop will fail 
-                            # if relative_commutable_circuits already empty.
-                            if (len(relative_commutable_circuits)!=0):
+                            if relative_commutable_circuits:
                                 relative_commutable_circuits.pop(0)
                             break
                     abs_to_rel[a] = r
                     rel_to_abs[r] = a
-                if(len(relative_commutable_circuits)==0):
+                if not relative_commutable_circuits:
                     break
                 # HERE: we know the qubit idcs don't contradict our dictionaries.
                 for ctrl_qubit in next_command.control_qubits:
@@ -374,22 +374,18 @@ class LocalOptimizer(BasicEngine):
                     r=relative_circuit[y].relative_ctrl_idcs[0]
                     if a in abs_to_rel.keys():
                         # If a in abs_to_rel, r will be in rel_to_abs
-                        if (abs_to_rel[a] != r):
-                            # Put it in a try block because pop will fail 
-                            # if relative_commutable_circuits already empty.                            
-                            if (len(relative_commutable_circuits)!=0):
+                        if (abs_to_rel[a] != r):                       
+                            if relative_commutable_circuits:
                                 relative_commutable_circuits.pop(0)
                             break
                     if r in rel_to_abs.keys():
-                        if (rel_to_abs[r] != a):
-                            # Put it in a try block because pop will fail 
-                            # if relative_commutable_circuits already empty.                            
-                            if (len(relative_commutable_circuits)!=0):
+                        if (rel_to_abs[r] != a):                
+                            if relative_commutable_circuits:
                                 relative_commutable_circuits.pop(0)
                             break
                     abs_to_rel[a] = r
                     rel_to_abs[r] = a
-                if(len(relative_commutable_circuits)==0):
+                if not relative_commutable_circuits:
                     break
                 # HERE: we know all relative/absolute qubits/ctrl qubits do not 
                 # contradict dictionaries and are assigned.
@@ -421,7 +417,6 @@ class LocalOptimizer(BasicEngine):
 
         while i < limit - 1:
             command_i = self._l[idx][i]
-            command_i_plus_1 = self._l[idx][i+1]
 
             # Delete command i if it is equivalent to identity
             if command_i.is_identity():
@@ -431,82 +426,75 @@ class LocalOptimizer(BasicEngine):
                 continue
             
             x = 0
-            self._i_x_com = True # This boolean should be updated to represent whether
-            # the gates following i, up to and including x, are commutable
             while (i+x+1 < limit):
-                if self._i_x_com:
-                    # Gate i is commutable with each gate up to i+x, so 
-                    # check if i and i+x+1 can be cancelled or merged
-                    inv = self._l[idx][i].get_inverse()
-                    if inv == self._l[idx][i+x+1]:
-                        # List of the indices of the qubits that are involved
-                        # in command
-                        qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
-                            for qb in sublist]
-                        # List of the command indices corresponding to the position
-                        # of this command on each qubit id 
-                        commandidcs = self._get_gate_indices(idx, i, qubitids)
-                        erase = True
-                        erase = self._get_erase_boolean(idx, qubitids, commandidcs, inv, self._apply_commutation)
-                        if erase:
-                        # Delete the inverse commands. Delete the later
-                        # one first so the first index doesn't 
-                        # change before you delete it.
-                            self._delete_command(idx, i+x+1)
-                            self._delete_command(idx, i)
-                            i = 0
-                            limit -= 2
-                            break
-                        # Unsuccessful in cancelling inverses, try merging.
-                        pass
-                    try:
-                        merged_command = self._l[idx][i].get_merged(self._l[idx][i+x+1])
-                        # determine index of this gate on all qubits
-                        qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
-                                    for qb in sublist]
-                        commandidcs = self._get_gate_indices(idx, i, qubitids)
-                        merge = True
-                        merge = self._get_merge_boolean(idx, qubitids, commandidcs, 
-                                                                merged_command, self._apply_commutation)
-                        if merge:
-                            # Delete command i+x+1 first because i+x+1
-                            # will not affect index of i
-                            self._delete_command(idx, i+x+1)
-                            self._replace_command(idx, i, merged_command)
-                            i = 0
-                            limit -= 1
-                            break
-                    except NotMergeable:
-                        # Unsuccessful in merging, see if gates are commutable
-                        pass
-
-                    # If apply_commutation=False, then we want the optimizer to 
-                    # ignore commutation when optimizing
-                    if not self._apply_commutation:
+                # At this point:
+                # Gate i is commutable with each gate up to i+x, so 
+                # check if i and i+x+1 can be cancelled or merged
+                inv = self._l[idx][i].get_inverse()
+                if inv == self._l[idx][i+x+1]:
+                    # List of the indices of the qubits that are involved
+                    # in command
+                    qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                        for qb in sublist]
+                    # List of the command indices corresponding to the position
+                    # of this command on each qubit id 
+                    commandidcs = self._get_gate_indices(idx, i, qubitids)
+                    erase = self._can_cancel_by_commutation(idx, qubitids, commandidcs, inv, self._apply_commutation)
+                    if erase:
+                    # Delete the inverse commands. Delete the later
+                    # one first so the first index doesn't 
+                    # change before you delete it.
+                        self._delete_command(idx, i+x+1)
+                        self._delete_command(idx, i)
+                        i = 0
+                        limit -= 2
                         break
-                    command_i = self._l[idx][i]
-                    next_command = self._l[idx][i+x+1]
-                    #----------------------------------------------------------#
-                    # See if next_command is commutable with this_command.     #                      #
-                    #----------------------------------------------------------#
-                    if(command_i.is_commutable(next_command) == 1):
-                        x=x+1
-                        continue
-
-                    #----------------------------------------------------------#
-                    # See if next_command is part of a circuit which is        #
-                    # commutable with this_command.                            #
-                    #----------------------------------------------------------#
-                    new_x = 0
-                    if(command_i.is_commutable(next_command) == 2):
-                        new_x = self._check_for_commutable_circuit(command_i, next_command, idx, i, x)  
-                    if(new_x>x):
-                        x=new_x
-                        self._i_x_com = True
-                        continue
-                    else:
-                        self._i_x_com = False
+                try:
+                    merged_command = self._l[idx][i].get_merged(self._l[idx][i+x+1])
+                    # determine index of this gate on all qubits
+                    qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                                for qb in sublist]
+                    commandidcs = self._get_gate_indices(idx, i, qubitids)
+                    merge = self._can_merge_by_commutation(idx, qubitids, commandidcs, 
+                                                            merged_command, self._apply_commutation)
+                    if merge:
+                        # Delete command i+x+1 first because i+x+1
+                        # will not affect index of i
+                        self._delete_command(idx, i+x+1)
+                        self._replace_command(idx, i, merged_command)
+                        i = 0
+                        limit -= 1
                         break
+                except NotMergeable:
+                    # Unsuccessful in merging, see if gates are commutable
+                    pass
+
+                # If apply_commutation=False, then we want the optimizer to 
+                # ignore commutation when optimizing
+                if not self._apply_commutation:
+                    break
+                command_i = self._l[idx][i]
+                next_command = self._l[idx][i+x+1]
+                #----------------------------------------------------------#
+                # See if next_command is commutable with this_command.     #                      #
+                #----------------------------------------------------------#
+                commutability_check = command_i.is_commutable(next_command)
+                if(commutability_check == 1):
+                    x=x+1
+                    continue
+
+                #----------------------------------------------------------#
+                # See if next_command is part of a circuit which is        #
+                # commutable with this_command.                            #
+                #----------------------------------------------------------#
+                new_x = 0
+                if(commutability_check == 2):
+                    new_x = self._check_for_commutable_circuit(command_i, next_command, idx, i, x)  
+                if(new_x>x):
+                    x=new_x
+                    continue
+                else:
+                    break
             i += 1  # next iteration: look at next gate
         return limit
 
