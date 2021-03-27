@@ -19,20 +19,21 @@ import json
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.types import WeakQubitRef
 from projectq.ops import (R,
-                          Swap,
-                          H,
+                          SwapGate,
+                          HGate,
                           Rx,
                           Ry,
                           Rz,
-                          S,
+                          SGate,
                           Sdag,
-                          T,
+                          TGate,
                           Tdag,
-                          X,
-                          Y,
-                          Z,
-                          SqrtX,
+                          XGate,
+                          YGate,
+                          ZGate,
+                          SqrtXGate,
                           Measure,
                           Allocate,
                           Deallocate,
@@ -65,8 +66,10 @@ class AWSBraketBackend(BasicEngine):
             verbose (bool): If True, statistics are printed, in addition to
                 the measurement result being registered (at the end of the
                 circuit).
-            credentials (list): contains the AWS_ACCESS_KEY and AWS_SECRET_KEY.
-            device (str): name of the device to use. Rigetti Aspen-8 by default
+            credentials (dict): mapping the AWS key credentials as
+                the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+            device (str): name of the device to use. Rigetti Aspen-8 by
+                default. Valid names are "Aspen-8", "IonQ" and "SV1"
             num_retries (int): Number of times to retry to obtain
                 results from AWS Braket. (default is 30)
             interval (float, int): Number of seconds between successive
@@ -74,6 +77,8 @@ class AWSBraketBackend(BasicEngine):
                 (default is 1)
             retrieve_execution (str): TaskArn to retrieve instead of re-
                 running the circuit (e.g., if previous run timed out).
+                The TaskArns have the form
+                "arn:aws:braket:us-east-1:123456789012:quantum-task/5766032b-2b47-4bf9-cg00-f11851g4015b"
         """
         BasicEngine.__init__(self)
         self._reset()
@@ -95,12 +100,12 @@ class AWSBraketBackend(BasicEngine):
         self._retrieve_execution = retrieve_execution
 
         # Dictionary to translate the gates from ProjectQ to AWSBraket
-        self._gationary = {'X': 'x', 'Y': 'y', 'Z': 'z',
-                           'H': 'h', 'R': 'phasesift',
-                           'Rx': 'rx', 'Ry': 'ry', 'Rz': 'rz',
-                           'S': 's', r'S^\dagger': 'si',
-                           'T': 't', r'T^\dagger': 'ti',
-                           'Swap': 'swap', 'SqrtX': 'v'}
+        self._gationary = {XGate: 'x', YGate: 'y', ZGate: 'z',
+                           HGate: 'h', R: 'phaseshift',
+                           Rx: 'rx', Ry: 'ry', Rz: 'rz',
+                           SGate: 's', r'S^\dagger': 'si',
+                           TGate: 't', r'T^\dagger': 'ti',
+                           SwapGate: 'swap', SqrtXGate: 'v'}
 
         # Static head and tail to be added to the circuit
         # to build the "action".
@@ -145,47 +150,49 @@ class AWSBraketBackend(BasicEngine):
             cmd (Command): Command for which to check availability
         """
         g = cmd.gate
+        if g in (Measure, Allocate, Deallocate, Barrier):
+            return True
         if self.device == 'Aspen-8':
-            if isinstance(g, (R)) and get_control_count(cmd) == 1:
+            if isinstance(g, (R, ZGate, XGate,
+                          SwapGate)) and get_control_count(cmd) == 1:
                 return True
-            if g in (Z, X, Swap) and get_control_count(cmd) == 1:
-                return True
-            if g == X and get_control_count(cmd) == 2:
+            if isinstance(g, (XGate)) and get_control_count(cmd) == 2:
                 return True
             if get_control_count(cmd) == 0:
-                if isinstance(g, (R, Rx, Ry, Rz)):
+                if isinstance(g, (R, Rx, Ry, Rz,
+                              XGate, YGate, ZGate, HGate,
+                              SGate, TGate, SwapGate)):
                     return True
-                if g in (X, Y, Z, H, S, T, Sdag, Tdag, Swap):
+                if g in (Sdag, Tdag):
                     return True
-            if g in (Measure, Allocate, Deallocate, Barrier):
-                return True
             return False
         if self.device == 'IonQ':
-            if g == X and get_control_count(cmd) == 1:
+            if isinstance(g, (XGate)) and get_control_count(cmd) == 1:
                 return True
             if get_control_count(cmd) == 0:
-                if g in (X, Y, Z, H, S, T, Sdag, Tdag, SqrtX, Swap):
+                if g in (Sdag, Tdag):
                     return True
-                if isinstance(g, (Rx, Ry, Rz)):
+                if isinstance(g, (Rx, Ry, Rz,
+                              XGate, YGate, ZGate,
+                              HGate, SGate, TGate,
+                              SqrtXGate, SwapGate)):
                     return True
-            if g in (Measure, Allocate, Deallocate, Barrier):
-                return True
             return False
         if self.device == 'SV1':
-            if isinstance(g, (R)) and get_control_count(cmd) == 1:
+            if isinstance(g, (R, ZGate, YGate, XGate,
+                          SwapGate)) and get_control_count(cmd) == 1:
                 return True
-            if g in (Z, Y, X, Swap) and get_control_count(cmd) == 1:
-                return True
-            if g == X and get_control_count(cmd) == 2:
+            if isinstance(g, (XGate)) and get_control_count(cmd) == 2:
                 return True
             if get_control_count(cmd) == 0:
-                if isinstance(g, (R, Rx, Ry, Rz)):
+                if isinstance(g, (R, Rx, Ry, Rz,
+                              XGate, YGate, ZGate,
+                              HGate, SGate, TGate,
+                              SqrtXGate, SwapGate)):
                     # TODO: add MatrixGate to cover the unitary operation
                     return True
-                if g in (X, Y, Z, H, S, T, Sdag, Tdag, SqrtX, Swap):
+                if g in (Sdag, Tdag):
                     return True
-            if g in (Measure, Allocate, Deallocate, Barrier):
-                return True
             return False
         return False
 
@@ -210,20 +217,24 @@ class AWSBraketBackend(BasicEngine):
             self._allocated_qubits = set()
 
         # Previous to store the gate, checks availability against the device
-        available = self.is_available(cmd)
-        if not available:
+        if not self.is_available(cmd):
             raise Exception('Invalid command: ' + str(cmd) +
-                            '. Please check the available commands'
+                            '. Please check the available commands '
                             'for the device ' +
                             self.device + '.')
 
         gate = cmd.gate
+        num_controls = get_control_count(cmd)
+        gate_type = type(gate)
+
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
             return
-        if gate == Deallocate:
+        elif gate == Deallocate:
             return
-        if gate == Measure:
+        elif gate == Barrier:
+            return
+        elif gate == Measure:
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             qb_id = cmd.qubits[0][0].id
             logical_id = None
@@ -237,77 +248,38 @@ class AWSBraketBackend(BasicEngine):
                 self._mapper.append(qb_id)
             self._measured_ids += [logical_id]
             return
+
         # This should work for all the devices
-        if isinstance(gate, (R)) and get_control_count(cmd) == 1:
-            ctrl_pos = cmd.control_qubits[0].id
-            qb_pos = cmd.qubits[0][0].id
-            angle = gate.angle
-            self._circuit += '{"control": ' + str(ctrl_pos) + \
-                             ', "target": ' + str(qb_pos) + \
-                             ', "angle": ' + str(angle) + \
-                             ', "type": "cphaseshift"}, '
-            return
-        if gate in (Z, Y) and get_control_count(cmd) == 1:
-            ctrl_pos = cmd.control_qubits[0].id
-            qb_pos = cmd.qubits[0][0].id
-            gatetxt = self._gationary[gate.__str__()]
-            self._circuit += '{"control": ' + str(ctrl_pos) + \
-                             ', "target": ' + str(qb_pos) + \
-                             ', "type": "c' + gatetxt + '"}, '
-            return
-        if gate == X and get_control_count(cmd) == 1:
-            ctrl_pos = cmd.control_qubits[0].id
-            qb_pos = cmd.qubits[0][0].id
-            self._circuit += '{"control": ' + str(ctrl_pos) + \
-                             ', "target": ' + str(qb_pos) + \
-                             ', "type": "cnot"}, '
-            return
-        if gate == Swap and get_control_count(cmd) == 1:
-            ctrl_pos = cmd.control_qubits[0].id
-            qb_pos0 = cmd.qubits[0][0].id
-            qb_pos1 = cmd.qubits[1][0].id
-            self._circuit += '{"targets": [' + \
-                str(qb_pos0) + ', ' + str(qp_pos1) + \
-                ' ], \
-                "control": ' + str(ctrl_pos) + \
-                '"type": "cswap"}, '
-            return
-        if gate == X and get_control_count(cmd) == 2:
-            ctrl_pos0 = cmd.control_qubits[0].id
-            ctrl_pos1 = cmd.control_qubits[1].id
-            qb_pos = cmd.qubits[0][0].id
-            self._circuit += '{"controls": [ ' + \
-                             str(ctrl_pos0) + ', ' + str(ctrl_pos1) + \
-                             ' ], \
-                                "target": ' + str(qb_pos) + \
-                             ', "type": "ccnot"}, '
-            return
-        if get_control_count(cmd) == 0:
-            if isinstance(gate, (R, Rx, Ry, Rz)):
-                qb_pos = cmd.qubits[0][0].id
-                angle = gate.angle
-                gatetxt = self._gationary[gate.__str__().split('(')[0]]
-                self._circuit += '{"angle": ' + str(angle) + \
-                                 ', "target": ' + str(qb_pos) + \
-                                 ', "type": "' + gatetxt + '"}, '
-                return
-            if gate in (X, Y, Z, H, S, T, Sdag, Tdag, SqrtX):
-                qb_pos = cmd.qubits[0][0].id
-                gatetxt = self._gationary[gate.__str__()]
-                self._circuit += '{"target": ' + str(qb_pos) + \
-                                 ', "type": "' + gatetxt + '"}, '
-                return
-            if gate == Swap:
-                qb_pos0 = cmd.qubits[0][0].id
-                qb_pos1 = cmd.qubits[1][0].id
-                self._circuit += '{"targets": [' + \
-                                 str(qb_pos0) + ', ' + str(qp_pos1) + \
-                                 '], \
-                                 "type": "swap"}, '
-                return
-            # TODO: Add unitary for the SV1 simulator as MatrixGate
-        if gate == Barrier:
-            return
+
+        json_cmd = {}
+
+        if num_controls == 2:
+            json_cmd['controls'] = [
+                cmd.control_qubits[0].id, cmd.control_qubits[1].id]
+        if num_controls == 1:
+            json_cmd['control'] = cmd.control_qubits[0].id
+        if isinstance(gate, (R, Rx, Ry, Rz)):
+            json_cmd['angle'] = gate.angle
+
+        if isinstance(gate, (SwapGate)):
+            json_cmd['targets'] = [
+                qb.id for qureg in cmd.qubits for qb in qureg]
+        else:
+            json_cmd['target'] = cmd.qubits[0][0].id
+
+        if gate in (Sdag, Tdag):
+            json_cmd['type'] = self._gationary[gate.__str__()]
+        elif isinstance(gate, (XGate)) and num_controls > 0:
+            json_cmd['type'] = "c" * (num_controls-1) + 'cnot'
+        else:
+            json_cmd['type'] = "c" * num_controls + self._gationary[gate_type]
+
+        self._circuit += json.dumps(json_cmd) + ", "
+
+        # TODO: Add unitary for the SV1 simulator as MatrixGate
+
+        return
+
         raise Exception('Invalid command: ' + str(cmd) +
                         '. Please check the available commands'
                         'for the device ' +
@@ -414,10 +386,10 @@ class AWSBraketBackend(BasicEngine):
                                verbose=self._verbose)
             else:
                 # Return if no operations are added.
-                if self._circuit == "":
+                if not self._circuit:
                     return
 
-                n_qubit = max(self._allocated_qubits) + 1
+                n_qubit = len(self._allocated_qubits)
                 info = {}
                 info['circuit'] = self._circuithead + \
                     self._circuit.rstrip(', ') + \
@@ -452,15 +424,12 @@ class AWSBraketBackend(BasicEngine):
                     print(state + " with p = " + str(probability) +
                           star)
 
-            class QB():
-                def __init__(self, qubit_id):
-                    self.id = qubit_id
-
             # register measurement result
             for qubit_id in self._measured_ids:
+                qubit_measured = WeakQubitRef(self.main_engine, qubit_id)
                 location = self._logical_to_physical(qubit_id)
                 result = int(measured[location])
-                self.main_engine.set_measurement_result(QB(qubit_id), result)
+                self.main_engine.set_measurement_result(qubit_measured, result)
             self._reset()
         except TypeError:
             raise Exception("Failed to run the circuit. Aborting.")
@@ -479,3 +448,5 @@ class AWSBraketBackend(BasicEngine):
             else:
                 self._run()
                 self._reset()
+            if not self.is_last_engine:
+                self.send([cmd])

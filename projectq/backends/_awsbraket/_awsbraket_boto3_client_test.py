@@ -155,7 +155,10 @@ devicelist_result = {
         }
     }
 
-creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
+creds = {
+    'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
+    'AWS_SECRET_KEY': 'aws_secret_key',
+    }
 
 arntask = 'arn:aws:braket:us-east-1:id:taskuuid'
 

@@ -12,4 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._awsbraket import AWSBraketBackend
+try:
+    from ._awsbraket import AWSBraketBackend
+except ImportError:
+    print("ERROR: failed to import one of the dependencies "
+        "required to use the Amazon Braket Backend.\n"
+        "Did you install ProjectQ using the [braket] extra? "
+        "(python3 -m pip install projectq[braket]")
+    raise

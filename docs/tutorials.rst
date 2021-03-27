@@ -44,6 +44,14 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 .. note::
 	ProjectQ should be installed on each computer individually as the C++ simulator compilation creates binaries which are optimized for the specific hardware on which it is being installed (potentially using our AVX version and `-march=native`). Therefore, sharing the same ProjectQ installation across different hardware may cause some problems.
 
+**Install AWS Braket Backend requirement**
+
+AWS Braket Backend requires the use of the official AWS SDK for Python, Boto3. This is an extra requirement only needed if you plan to use the AWS Braket Backend. To install ProjectQ inluding this requirement you can include it in the installation instruction as
+
+.. code-block:: bash
+
+	python -m pip install --user projectq[braket]
+
 
 Detailed instructions and OS-specific hints
 -------------------------------------------

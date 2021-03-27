@@ -102,7 +102,10 @@ device_value = {
     "deviceCapabilities": device_value_devicecapabilities,
 }
 
-creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
+creds = {
+    'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
+    'AWS_SECRET_KEY': 'aws_secret_key',
+    }
 
 
 @patch('boto3.client')

@@ -430,6 +430,7 @@ def run_setup(with_cext):
           license='Apache 2',
           packages=find_packages(),
           distclass=Distribution,
+          extras_require={'braket': ['boto3', ]},
           **kwargs)
 
 

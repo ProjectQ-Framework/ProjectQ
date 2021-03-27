@@ -24,7 +24,7 @@ targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
 
--  run quantum programs on the IBM Quantum Experience chip
+-  run quantum programs on the IBM Quantum Experience chip, AQT devices or AWS Braket service provided devices
 -  simulate quantum programs on classical computers
 -  emulate quantum programs at a higher level of abstraction (e.g.,
    mimicking the action of large oracles instead of compiling them to
@@ -144,7 +144,11 @@ IonQ from IonQ and the state vector simulator SV1:
 
     from projectq.backends import AWSBraketBackend
     
-    creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
+    creds = {
+        'AWS_ACCESS_KEY_ID': 'your_aws_access_key_id',
+        'AWS_SECRET_KEY': 'your_aws_secret_key',
+        }
+
     s3_folder = ['S3Bucket', 'S3Directory']
     device='IonQ'
     eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,

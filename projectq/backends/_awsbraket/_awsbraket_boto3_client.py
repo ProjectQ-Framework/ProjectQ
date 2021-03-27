@@ -37,19 +37,20 @@ class AWSBraket():
     def __init__(self):
         self.backends = dict()
         self.timeout = 5.0
-        self._credentials = []
+        self._credentials = dict()
         self._s3_folder = []
 
     def _authenticate(self, credentials=None):
         """
         Args:
-            credentials (list): contains the AWS_ACCESS_KEY and AWS_SECRET_KEY.
-                    and aws_secret_access_key
+            credentials (dict): mapping the AWS key credentials as
+                the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         """
         if credentials is None:
-            aws_acess_key = getpass.getpass(prompt="Enter AWS_ACCESS_KEY_ID: ")
-            aws_secret_key = getpass.getpass(prompt="Enter AWS_SECRET_KEY: ")
-            credentials = [aws_acess_key, aws_secret_key]
+            credentials['AWS_ACCESS_KEY_ID'] = getpass.getpass(
+                prompt="Enter AWS_ACCESS_KEY_ID: ")
+            credentials['AWS_SECRET_KEY'] = getpass.getpass(
+                prompt="Enter AWS_SECRET_KEY: ")
 
         self._credentials = credentials
 
@@ -86,8 +87,8 @@ class AWSBraket():
         region_names = ['us-west-1', 'us-east-1']
         for region in region_names:
             client = boto3.client('braket', region_name=region,
-                                  aws_access_key_id=self._credentials[0],
-                                  aws_secret_access_key=self._credentials[1])
+                aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
+                aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
             filters = []
             devicelist = client.search_devices(filters=filters)
             for result in devicelist['devices']:
@@ -119,7 +120,7 @@ class AWSBraket():
                     }
                 # Unfortunatelly the Capabilities schemas are not homogeneus
                 # for real devices and simulators
-                if result['deviceType'] == 'SIMULATOR':
+                elif result['deviceType'] == 'SIMULATOR':
                     deviceCapabilities = json.loads(client.get_device(
                         deviceArn=result['deviceArn'])['deviceCapabilities'])
                     self.backends[result['deviceName']] = {
@@ -213,8 +214,8 @@ class AWSBraket():
         deviceParameters = json.dumps(deviceParameters)
 
         client_braket = boto3.client('braket', region_name=region_name,
-                    aws_access_key_id=self._credentials[0],
-                    aws_secret_access_key=self._credentials[1])
+                    aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
+                    aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
 
         deviceArn = self.backends[device]['deviceArn']
         response = client_braket.create_quantum_task(
@@ -227,32 +228,6 @@ class AWSBraket():
         taskArn = response['quantumTaskArn']
 
         return taskArn
-
-    def _calculate_measurementProbs(measurements):
-        """
-        Calculate the measurement probabilities based on the list
-        of measurements for a job sent to a SV1 Braket simulator
-
-        Args:
-            measurements (list): list of measurements
-
-        Returns:
-            measurementsProbabilities (dict): The measurements
-            with their probabilities
-        """
-        total_mes = len(measurements)
-        unique_mes = [list(x) for x in set(tuple(x) for x in measurements)]
-        total_unique_mes = len(unique_mes)
-        len_qubits = len(unique_mes[0])
-        measurementsProbabilities = {}
-        for i in range(total_unique_mes):
-            strqubits = ''
-            for nq in range(len_qubits):
-                strqubits += str(unique_mes[i][nq])
-            prob = measurements.count(unique_mes[i])/total_mes
-            measurementsProbabilities[strqubits] = prob
-
-        return measurementsProbabilities
 
     def _get_result(self,
                     execution_id,
@@ -270,7 +245,7 @@ class AWSBraket():
                 "Interrupted. The Arn of your submitted job is {}.".format(
                     execution_id))
 
-        def _calculate_measurementProbs(measurements):
+        def _calculate_measurement_probs(measurements):
             """
             Calculate the measurement probabilities based on the
             list of measurements for a job sent to a SV1 Braket simulator
@@ -299,8 +274,8 @@ class AWSBraket():
         # The region_name is obtained from the taskArn itself
         region_name = re.split(':', execution_id)[3]
         client_braket = boto3.client('braket', region_name=region_name,
-                    aws_access_key_id=self._credentials[0],
-                    aws_secret_access_key=self._credentials[1])
+                    aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
+                    aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
@@ -321,8 +296,10 @@ class AWSBraket():
                         deviceArn=deviceArn)['deviceType']
                     # Get the results from S3
                     client_s3 = boto3.client('s3',
-                                aws_access_key_id=self._credentials[0],
-                                aws_secret_access_key=self._credentials[1])
+                        aws_access_key_id=self._credentials[
+                            'AWS_ACCESS_KEY_ID'],
+                        aws_secret_access_key=self._credentials[
+                            'AWS_SECRET_KEY'])
                     s3result = client_s3.get_object(Bucket=bucket,
                                                     Key=resultsojectname)
                     if verbose:
@@ -332,7 +309,7 @@ class AWSBraket():
                     if devicetype_used == 'QPU':
                         return result_content['measurementProbabilities']
                     if devicetype_used == 'SIMULATOR':
-                        measurementProb = _calculate_measurementProbs(
+                        measurementProb = _calculate_measurement_probs(
                             result_content['measurements'])
                         return measurementProb
                 if status == 'FAILED':
@@ -358,8 +335,8 @@ class AWSBraket():
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
         raise Exception("Timeout. "
-"The Arn of your submitted job is {} and the status of the "
-"job is {}.".format(execution_id, status))
+                        "The Arn of your submitted job is {} and the status "
+                        "of the job is {}.".format(execution_id, status))
 
 
 class DeviceTooSmall(Exception):
@@ -376,7 +353,8 @@ def show_devices(credentials=None, verbose=False):
     configuration)
 
     Args:
-        credentials (list): contains the AWS_ACCESS_KEY and AWS_SECRET_KEY.
+        credentials (dict): mapping the AWS key credentials as
+            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         verbose (bool): If True, additional information is printed
 
     Returns:
@@ -398,7 +376,8 @@ def retrieve(credentials,
     Retrieves a job/task by its Arn.
 
     Args:
-        credentials (list): contains the AWS_ACCESS_KEY and AWS_SECRET_KEY.
+        credentials (dict): mapping the AWS key credentials as
+            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         taskArn (str): The Arn of the task to retreive
 
     Returns:
@@ -409,7 +388,9 @@ def retrieve(credentials,
     if verbose:
         print("- Authenticating...")
         if credentials is not None:
-            print("AWS credentials: " + credentials[0] + ", " + credentials[1])
+            print("AWS credentials: "
+                  + credentials['AWS_ACCESS_KEY_ID'] + ", "
+                  + credentials['AWS_SECRET_KEY'])
     awsbraket_session._authenticate(credentials=credentials)
     res = awsbraket_session._get_result(taskArn,
                                         num_retries=num_retries,
@@ -431,7 +412,8 @@ def send(info,
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the AWS Braket device.
-        credentials (list): contains the AWS_ACCESS_KEY and AWS_SECRET_KEY.
+        credentials (dict): mapping the AWS key credentials as
+            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         s3_folder (list): contains the S3 bucket and directory
             to store the results.
         verbose (bool): If True, additional information is printed, such as
@@ -448,15 +430,16 @@ def send(info,
             print("- Authenticating...")
             if credentials is not None:
                 print("AWS credentials: "
-                      + credentials[0] + ", " + credentials[1])
+                      + credentials['AWS_ACCESS_KEY_ID'] + ", "
+                      + credentials['AWS_SECRET_KEY'])
         awsbraket_session._authenticate(credentials=credentials)
         awsbraket_session._get_s3_folder(s3_folder=s3_folder)
 
         # check if the device is online/is available
         awsbraket_session.get_list_devices(verbose)
         online = awsbraket_session.is_online(device)
-        print("The job will be Queued in any case, \
-              plase take this into account")
+        print("The job will be Queued in any case, "
+              "plase take this into account")
         if not online:
             print("The device is not available. Use the "
                   "simulator instead or try another device.")

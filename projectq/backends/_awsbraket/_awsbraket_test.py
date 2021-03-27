@@ -32,7 +32,7 @@ from projectq.cengines import (BasicMapperEngine, DummyEngine)
 
 from projectq.ops import (R, Swap, H, Rx, Ry, Rz, S, Sdag,
                           T, Tdag, X, Y, Z, SqrtX, MatrixGate,
-                          Entangle, Ph,
+                          Entangle, Ph, NOT,
                           C,
                           Measure, Allocate, Deallocate, Barrier,
                           All, Command)
@@ -142,7 +142,7 @@ def test_awsbraket_backend_is_available_control_not_sv1(
 @pytest.mark.parametrize("ctrl_singlequbit_aspen, is_available_aspen",
                          [(X, True), (Y, False), (Z, True), (R(0.5), True),
                           (Rx(0.5), False), (Ry(0.5), False),
-                          (Rz(0.5), False)])
+                          (Rz(0.5), False), (NOT, True)])
 def test_awsbraket_backend_is_available_control_singlequbit_aspen(
                          ctrl_singlequbit_aspen, is_available_aspen):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -255,7 +255,10 @@ def test_awsbraket_invalid_command():
         backend.receive([cmd])
 
 
-creds = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
+creds = {
+    'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
+    'AWS_SECRET_KEY': 'aws_secret_key',
+    }
 
 s3_folder = ['S3Bucket', 'S3Directory']
 
@@ -365,6 +368,7 @@ def test_awsbraket_sent_error(mock_boto3_client):
     with pytest.raises(TypeError) as excinfo:
         eng.flush()
     # atexit sends another FlushGate, therefore we remove the backend:
+    print(excinfo)
     dummy = DummyEngine()
     dummy.is_last_engine = True
     eng.next_engine = dummy
@@ -385,6 +389,7 @@ def test_awsbraket_sent_error_2():
         SqrtX | qubit
         # no setup to decompose SqrtX gate for Aspen-8,
         # so not accepted by the backend
+    print(excinfo)
     dummy = DummyEngine()
     dummy.is_last_engine = True
     eng.next_engine = dummy
@@ -443,14 +448,7 @@ def test_awsbraket_retrieve(mock_boto3_client):
     qureg = eng.allocate_qureg(3)
     del separate_qubit
     eng.flush()
-    '''
-    # Do any permited operation, just to not to fail for compatibility
-    H | qureg[0]
-    # measure; should be all-0 or all-1
-    All(Measure) | qureg
-    # run the circuit
-    eng.flush()
-    '''
+
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[2], qureg[1]])
     assert prob_dict['000'] == 0.04
     assert prob_dict['101'] == 0.2
@@ -496,26 +494,50 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
         res[i] = i
     mapper.current_mapping = res
 
-    eng = MainEngine(backend=backend, engine_list=[mapper])
+    from projectq.setups.default import get_engine_list
+    from projectq.backends import CommandPrinter, ResourceCounter
+
+    rcount = ResourceCounter()
+    eng = MainEngine(backend=backend, engine_list=[rcount])
+
+    #eng = MainEngine(backend=rcount, engine_list=[backend])
 
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(3)
-    # entangle the qureg
+
     H | qureg[0]
-    H | qureg[1]
+    S | qureg[1]
+    T | qureg[2]
+    NOT | qureg[0]
+    Y | qureg[1]
+    Z | qureg[2]
+    Rx(0.1) | qureg[0]
+    Ry(0.2) | qureg[1]
+    Rz(0.3) | qureg[2]
+    R(0.6) | qureg[2]
     C(X) | (qureg[1], qureg[2])
-    C(X) | (qureg[0], qureg[1])
+    C(Swap) | (qureg[0], qureg[1], qureg[2])
     H | qureg[0]
-    C(X) | (qureg[1], qureg[2])
+    C(Z) | (qureg[1], qureg[2])
+    C(R(0.5)) | (qureg[1], qureg[0])
+    C(NOT, 2) | ([qureg[2], qureg[1]], qureg[0])
+    Swap | (qureg[2], qureg[0])
+    Tdag | qureg[1]
+    Sdag | qureg[0]
+
     All(Barrier) | qureg
     del unused_qubit
     # measure; should be all-0 or all-1
     All(Measure) | qureg
     # run the circuit
     eng.flush()
+
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[1]])
+    print(prob_dict)
     assert prob_dict['00'] == 0.84
     assert prob_dict['01'] == 0.06
+
+    print("\n *** Resources **\n",rcount)
 
     # Unknown qubit and no mapper
     # TODO: the last is not a no mapper, needs to be corrected, same for _aqt
@@ -525,3 +547,4 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
 
     with pytest.raises(Exception):
         eng.backend.get_probabilities(eng.allocate_qubit())
+
