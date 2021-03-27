@@ -20,6 +20,11 @@ Please compile the c++ simulator for large-scale simulations.
 
 import random
 import numpy as _np
+import os
+
+_USE_REFCHECK = True
+if 'TRAVIS' in os.environ:
+    _USE_REFCHECK = False
 
 
 class Simulator(object):
@@ -110,7 +115,7 @@ class Simulator(object):
         """
         self._map[ID] = self._num_qubits
         self._num_qubits += 1
-        self._state.resize(1 << self._num_qubits)
+        self._state.resize(1 << self._num_qubits, refcheck=_USE_REFCHECK)
 
     def get_classical_value(self, ID, tol=1.e-10):
         """
