@@ -534,8 +534,8 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
 
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[1]])
     print(prob_dict)
-    assert prob_dict['00'] == 0.84
-    assert prob_dict['01'] == 0.06
+    assert prob_dict['00'] == pytest.approx(0.84)
+    assert prob_dict['01'] == pytest.approx(0.06)
 
     print("\n *** Resources **\n",rcount)
 
