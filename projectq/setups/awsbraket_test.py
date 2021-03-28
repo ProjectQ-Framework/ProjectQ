@@ -109,14 +109,15 @@ creds = {
 
 
 @patch('boto3.client')
-def test_awsbraket_get_engine_list(mock_boto3_client):
+@pytest.mark.parametrize("var_device", ['SV1', 'Aspen-8', 'IonQ'])
+def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
 
     engine_list = projectq.setups.awsbraket.get_engine_list(credentials=creds,
-                    device='Aspen-8')
+                    device=var_device)
     assert len(engine_list) == 13
 
 
