@@ -84,7 +84,7 @@ class Command(object):
         all_qubits: A tuple of control_qubits + qubits
     """
 
-    def __init__(self, engine, gate, qubits, controls=(), tags=()):
+    def __init__(self, engine, gate, qubits, controls=(), tags=(), ctrl_state='-1'):
         """
         Initialize a Command object.
 
@@ -115,7 +115,10 @@ class Command(object):
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
         self.engine = engine  # property
-
+        if ctrl_state == '-1':
+            self.ctrl_state = '1' * len(self.control_qubits)
+        else:
+            self.ctrl_state = ctrl_state
     @property
     def qubits(self):
         return self._qubits
@@ -235,7 +238,7 @@ class Command(object):
         self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits]
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
-    def add_control_qubits(self, qubits):
+    def add_control_qubits(self, qubits, ctrl_state):
         """
         Add (additional) control qubits to this command object.
 
@@ -251,7 +254,7 @@ class Command(object):
         assert isinstance(qubits, list)
         self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
-
+        self.ctrl_state = ctrl_state
     @property
     def all_qubits(self):
         """
