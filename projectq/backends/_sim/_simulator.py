@@ -20,6 +20,7 @@ implementation is used as an alternative.
 
 import math
 import random
+import numpy as np
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (NOT,
@@ -34,11 +35,14 @@ from projectq.ops import (NOT,
 from projectq.types import WeakQubitRef
 
 FALLBACK_TO_PYSIM = False
-try:
-    from ._cppsim import Simulator as SimulatorBackend
-except ImportError:
+if FALLBACK_TO_PYSIM:
     from ._pysim import Simulator as SimulatorBackend
-    FALLBACK_TO_PYSIM = True
+else:
+    try:
+        from ._cppsim import Simulator as SimulatorBackend
+    except ImportError:
+        from ._pysim import Simulator as SimulatorBackend
+        FALLBACK_TO_PYSIM = True
 
 
 class Simulator(BasicEngine):
@@ -362,6 +366,14 @@ class Simulator(BasicEngine):
             Exception: If a non-single-qubit gate needs to be processed
                 (which should never happen due to is_available).
         """
+        #print(cmd.gate)
+        for ctrlid in range(len(cmd.control_qubits)):
+            if cmd.ctrl_state[ctrlid] == '0':
+                Xmatrix = np.matrix([[0, 1], [1, 0]])
+
+                self._simulator.apply_controlled_gate(Xmatrix.tolist(),
+                                                          [cmd.control_qubits[ctrlid].id], [])
+
         if cmd.gate == Measure:
             assert(get_control_count(cmd) == 0)
             ids = [qb.id for qr in cmd.qubits for qb in qr]
@@ -430,6 +442,9 @@ class Simulator(BasicEngine):
                                     str(cmd.gate),
                                     int(math.log(len(cmd.gate.matrix), 2)),
                                     len(ids)))
+            #print(cmd.control_qubits)
+
+
             self._simulator.apply_controlled_gate(matrix.tolist(),
                                                   ids,
                                                   [qb.id for qb in
@@ -440,6 +455,18 @@ class Simulator(BasicEngine):
             raise Exception("This simulator only supports controlled k-qubit"
                             " gates with k < 6!\nPlease add an auto-replacer"
                             " engine to your list of compiler engines.")
+        #if cmd.ctrl_state == 0 :
+        #    Xmat = np.matrix([[0, 1], [1, 0]])
+        #    self._simulator.apply_controlled_gate(Xmat.tolist(),
+        #                                          [qb.id for qb in cmd.control_qubits],
+        #
+        #                                          [])
+        for ctrlid in range(len(cmd.control_qubits)):
+            if cmd.ctrl_state[ctrlid] == '0':
+                Xmatrix = np.matrix([[0, 1], [1, 0]])
+
+                self._simulator.apply_controlled_gate(Xmatrix.tolist(),
+                                                      [cmd.control_qubits[ctrlid].id], [])
 
     def receive(self, command_list):
         """
@@ -451,6 +478,7 @@ class Simulator(BasicEngine):
             command_list (list<Command>): List of commands to execute on the
                 simulator.
         """
+
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)

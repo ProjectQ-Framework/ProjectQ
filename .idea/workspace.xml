@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="fa9df621-4c83-4470-a396-23d563078fa4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.travis.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NOTICE" beforeDir="false" afterPath="$PROJECT_DIR$/NOTICE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.rst" beforeDir="false" afterPath="$PROJECT_DIR$/README.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/examples.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/examples.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/images/bellpair_circuit.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/images/bellpair_circuit.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/images/teleport_circuit.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/images/teleport_circuit.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/make.bat" beforeDir="false" afterPath="$PROJECT_DIR$/docs/make.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/projectq.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/projectq.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/tutorials.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/tutorials.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/bellpair_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/bellpair_circuit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/grover.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/grover.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/ibm.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ibm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/ibm_entangle.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ibm_entangle.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/quantum_random_numbers.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/quantum_random_numbers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/quantum_random_numbers_ibm.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/quantum_random_numbers_ibm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/shor.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/shor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/teleport.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/teleport.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/teleport_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/teleport_circuit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/_version.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_to_latex.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_to_latex.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_to_latex_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_to_latex_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_ibm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_ibm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_http_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_http_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_http_client_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_http_client_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_ibm/_ibm_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_printer.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_printer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_printer_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_printer_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_resource.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_resource.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_resource_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_resource_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_classical_simulator.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_classical_simulator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_classical_simulator_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_classical_simulator_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/fusion.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/fusion.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/alignedallocator.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/alignedallocator.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/cintrin.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/cintrin.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel1.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel1.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel2.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel2.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel3.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel3.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel4.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel4.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel5.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernel5.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernels.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/intrin/kernels.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel1.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel1.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel2.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel2.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel3.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel3.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel4.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel4.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel5.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernel5.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernels.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/nointrin/kernels.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/simulator.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppkernels/simulator.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_cppsim.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_cppsim.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_pysim.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_pysim.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_simulator.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_simulator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/backends/_sim/_simulator_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_sim/_simulator_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_basics.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_basics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_basics_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_basics_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_cmdmodifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_cmdmodifier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_cmdmodifier_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_cmdmodifier_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_ibm5qubitmapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_ibm5qubitmapper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_ibm5qubitmapper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_ibm5qubitmapper_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_main_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_main_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_manualmapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_manualmapper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_manualmapper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_manualmapper_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_optimize.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_optimize.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_optimize_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_optimize_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule_set.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule_set.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/_decomposition_rule_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/_replacer.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/_replacer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_replacer/_replacer_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_replacer/_replacer_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_swapandcnotflipper.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_swapandcnotflipper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_swapandcnotflipper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_swapandcnotflipper_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_tagremover.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_tagremover.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_tagremover_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_tagremover_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_testengine.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_testengine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/cengines/_testengine_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/cengines/_testengine_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/_constantmath.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/_constantmath.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/_constantmath_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/_constantmath_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/_default_rules.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/_default_rules.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/_gates.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/_gates.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/libs/math/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/libs/math/_gates_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_compute.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_compute.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_compute_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_compute_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_control_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_control_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_dagger.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_dagger.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_dagger_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_dagger_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_dirtyqubit.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_dirtyqubit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_dirtyqubit_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_dirtyqubit_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_loop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_loop_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_loop_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/meta/_util_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/meta/_util_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_basics.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_basics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_basics_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_basics_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_command.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_command.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_command_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_command_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_gates.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_gates.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_gates_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_metagates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_metagates_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qaagate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qaagate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qaagate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qaagate_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qftgate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qftgate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qftgate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qftgate_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qpegate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qpegate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_qpegate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_qpegate_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_shortcuts.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_shortcuts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/ops/_shortcuts_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/ops/_shortcuts_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/entangle.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/entangle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/globalphase.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/globalphase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/ph2r.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/ph2r.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/qft2crandhadamard.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/qft2crandhadamard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/r2rzandph.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/r2rzandph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/swap2cnot.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/swap2cnot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/toffoli2cnotandtgate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/toffoli2cnotandtgate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/default.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/default.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/ibm.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/ibm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/tests/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/tests/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/tests/_factoring_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/tests/_factoring_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/types/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/types/_qubit.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/_qubit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/types/_qubit_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/_qubit_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytest.ini" beforeDir="false" afterPath="$PROJECT_DIR$/pytest.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/examples/control_tester.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+              <folding>
+                <element signature="e#0#25#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/backends/_sim/_simulator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="120">
+              <caret line="36" column="25" selection-start-line="36" selection-start-column="25" selection-end-line="36" selection-end-column="25" />
+              <folding>
+                <element signature="e#823#834#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/meta/_control.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="106" column="17" lean-forward="true" selection-start-line="106" selection-start-column="17" selection-end-line="106" selection-end-column="17" />
+              <folding>
+                <element signature="e#820#861#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="148">
+              <caret line="313" column="12" lean-forward="true" selection-start-line="313" selection-start-column="12" selection-end-line="313" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/projectq/meta/_control.py" />
+        <option value="$PROJECT_DIR$/projectq/ops/_command.py" />
+        <option value="$PROJECT_DIR$/examples/control_tester.py" />
+        <option value="$PROJECT_DIR$/projectq/backends/_sim/_simulator.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-11" />
+    <option name="width" value="980" />
+    <option name="height" value="1031" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+              <item name="projectq" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+              <item name="projectq" type="462c0819:PsiDirectoryNode" />
+              <item name="backends" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+              <item name="projectq" type="462c0819:PsiDirectoryNode" />
+              <item name="backends" type="462c0819:PsiDirectoryNode" />
+              <item name="_sim" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+              <item name="projectq" type="462c0819:PsiDirectoryNode" />
+              <item name="meta" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ProjectQ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ProjectQ" type="462c0819:PsiDirectoryNode" />
+              <item name="projectq" type="462c0819:PsiDirectoryNode" />
+              <item name="ops" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.control_tester">
+    <configuration name="_simulator" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projectq/backends/_sim" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/projectq/backends/_sim/_simulator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="control_tester" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/control_tester.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.control_tester" />
+        <item itemvalue="Python._simulator" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fa9df621-4c83-4470-a396-23d563078fa4" name="Default Changelist" comment="" />
+      <created>1617025706587</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1617025706587</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="633" y="0" width="653" height="687" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.5081169" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Version Control" />
+      <window_info anchor="bottom" id="Python Console" />
+      <window_info anchor="bottom" id="Terminal" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32854578" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="148">
+          <caret line="313" column="12" lean-forward="true" selection-start-line="313" selection-start-column="12" selection-end-line="313" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/projectq/meta/_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="106" column="17" lean-forward="true" selection-start-line="106" selection-start-column="17" selection-end-line="106" selection-end-column="17" />
+          <folding>
+            <element signature="e#820#861#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/projectq/backends/_sim/_simulator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="36" column="25" selection-start-line="36" selection-start-column="25" selection-end-line="36" selection-end-column="25" />
+          <folding>
+            <element signature="e#823#834#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/control_tester.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+          <folding>
+            <element signature="e#0#25#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
