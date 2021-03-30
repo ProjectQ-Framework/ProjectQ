@@ -240,7 +240,7 @@ class AWSBraketBackend(BasicEngine):
 
         json_cmd = {}
 
-        if num_controls == 2:
+        if num_controls > 1:
             json_cmd['controls'] = [qb.id for qb in cmd.control_qubits]
         elif num_controls == 1:
             json_cmd['control'] = cmd.control_qubits[0].id
