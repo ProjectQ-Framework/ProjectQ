@@ -48,6 +48,34 @@ has_boto3 = pytest.mark.skipif(not _has_boto3,
 
 # ==============================================================================
 
+@pytest.fixture(params=["mapper", "no_mapper"])
+def mapper(request):
+    """
+    Adds a mapper which changes qubit ids by adding 1
+    """
+    if request.param == "mapper":
+        class TrivialMapper(BasicMapperEngine):
+            def __init__(self):
+                super().__init__()
+                self.current_mapping = dict()
+
+            def receive(self, command_list):
+                for cmd in command_list:
+                    for qureg in cmd.all_qubits:
+                        for qubit in qureg:
+                            if qubit.id == -1:
+                                continue
+                            elif qubit.id not in self.current_mapping:
+                                previous_map = self.current_mapping
+                                previous_map[qubit.id] = qubit.id
+                                self.current_mapping = previous_map
+                    self._send_cmd_with_mapped_ids(cmd)
+        return TrivialMapper()
+    if request.param == "no_mapper":
+        return None
+
+# ==============================================================================
+
 
 '''
 Gate availability Tests
@@ -445,16 +473,20 @@ results_json = json.dumps({
     "measuredQubits": [0, 1, 2],
     }
 )
-body = StreamingBody(StringIO(results_json), len(results_json))
 
-results_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
-                                     'HTTPHeaders': {}, },
-                'Body': body}
+
+@pytest.fixture
+def results_dict():
+    body = StreamingBody(StringIO(results_json), len(results_json))
+
+    return {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
+                                         'HTTPHeaders': {}, },
+                    'Body': body}
 
 
 @has_boto3
 @patch('boto3.client')
-def test_awsbraket_retrieve(mock_boto3_client):
+def test_awsbraket_retrieve(mock_boto3_client, results_dict):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = completed_value
@@ -490,15 +522,18 @@ def test_awsbraket_retrieve(mock_boto3_client):
 
 
 qtarntask = {'quantumTaskArn': arntask}
-body2 = StreamingBody(StringIO(results_json), len(results_json))
-results2_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
-                                      'HTTPHeaders': {}, },
-                'Body': body2}
+
+@pytest.fixture
+def results2_dict():
+    body2 = StreamingBody(StringIO(results_json), len(results_json))
+    return {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
+                                          'HTTPHeaders': {}, },
+                    'Body': body2}
 
 
 @has_boto3
 @patch('boto3.client')
-def test_awsbraket_backend_functional_test(mock_boto3_client):
+def test_awsbraket_backend_functional_test(mock_boto3_client, mapper, results2_dict):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
@@ -522,9 +557,10 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
     from projectq.backends import CommandPrinter, ResourceCounter
 
     rcount = ResourceCounter()
-    eng = MainEngine(backend=backend, engine_list=[rcount])
-
-    #eng = MainEngine(backend=rcount, engine_list=[backend])
+    engine_list = [rcount]
+    if mapper is not None:
+        engine_list.append(mapper)
+    eng = MainEngine(backend=backend, engine_list=engine_list, verbose=True)
 
     unused_qubit = eng.allocate_qubit()
     qureg = eng.allocate_qureg(3)
@@ -559,3 +595,43 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[1]])
     assert prob_dict['00'] == pytest.approx(0.84)
     assert prob_dict['01'] == pytest.approx(0.06)
+
+@has_boto3
+@patch('boto3.client')
+def test_awsbraket_functional_test_as_engine(mock_boto3_client, results2_dict):
+
+    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client.search_devices.return_value = search_value
+    mock_boto3_client.get_device.return_value = device_value
+    mock_boto3_client.create_quantum_task.return_value = qtarntask
+    mock_boto3_client.get_quantum_task.return_value = completed_value
+    mock_boto3_client.get_object.return_value = results2_dict
+
+    backend = _awsbraket.AWSBraketBackend(verbose=True,
+                                          credentials=creds,
+                                          s3_folder=s3_folder,
+                                          use_hardware=True,
+                                          device='Aspen-8',
+                                          num_runs=10,
+                                          num_retries=2)
+    # no circuit has been executed -> raises exception
+    with pytest.raises(RuntimeError):
+        backend.get_probabilities([])
+
+    from projectq.setups.default import get_engine_list
+    from projectq.backends import CommandPrinter, ResourceCounter
+
+    eng = MainEngine(backend=DummyEngine(save_commands=True), engine_list=[backend], verbose=True)
+
+    unused_qubit = eng.allocate_qubit()
+    qureg = eng.allocate_qureg(3)
+
+    H | qureg[0]
+    S | qureg[1]
+    eng.flush()
+
+    assert len(eng.backend.received_commands) == 7
+    assert eng.backend.received_commands[4].gate == H
+    assert eng.backend.received_commands[4].qubits[0][0].id == qureg[0].id
+    assert eng.backend.received_commands[5].gate == S
+    assert eng.backend.received_commands[5].qubits[0][0].id == qureg[1].id

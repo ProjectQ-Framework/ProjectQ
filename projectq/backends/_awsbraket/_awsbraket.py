@@ -263,13 +263,6 @@ class AWSBraketBackend(BasicEngine):
 
         # TODO: Add unitary for the SV1 simulator as MatrixGate
 
-        return
-
-        raise Exception('Invalid command: ' + str(cmd) +
-                        '. Please check the available commands'
-                        'for the device ' +
-                        self.device + '.')
-
     def _logical_to_physical(self, qb_id):
         """
         Return the physical location of the qubit with the given logical id.
@@ -391,7 +384,6 @@ class AWSBraketBackend(BasicEngine):
             P = random.random()
             p_sum = 0.
             measured = ""
-            length = len(self._measured_ids)
             for state in counts:
                 probability = counts[state]
                 p_sum += probability
