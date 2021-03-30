@@ -46,7 +46,7 @@ class AWSBraket():
             credentials (dict): mapping the AWS key credentials as
                 the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         """
-        if credentials is None:
+        if credentials is None:  # pragma: no cover
             credentials['AWS_ACCESS_KEY_ID'] = getpass.getpass(
                 prompt="Enter AWS_ACCESS_KEY_ID: ")
             credentials['AWS_SECRET_KEY'] = getpass.getpass(
@@ -60,7 +60,7 @@ class AWSBraket():
            s3_folder (list): contains the S3 bucket and directory
            to store the results.
         """
-        if s3_folder is None:
+        if s3_folder is None:  # pragma: no cover
             S3Bucket = input("Enter the S3 Bucket configured in Braket: ")
             S3Directory = input(
                 "Enter the Directory created in the S3 Bucket: ")
@@ -445,9 +445,10 @@ def send(info,
         # check if the device is online/is available
         awsbraket_session.get_list_devices(verbose)
         online = awsbraket_session.is_online(device)
-        print("The job will be Queued in any case, "
+        if online:
+            print("The job will be queued in any case, "
               "plase take this into account")
-        if not online:
+        else:
             print("The device is not available. Use the "
                   "simulator instead or try another device.")
             raise DeviceOfflineError("Device is not available.")
@@ -464,8 +465,8 @@ def send(info,
         if verbose:
             print("- Running code: {}".format(info))
         taskArn = awsbraket_session._run(info, device)
-        print("The task Arn is: ", taskArn,
-              ". Please take note for future reference")
+        print("Your task Arn is: {}. Make note of that for future reference".format(taskArn))
+
         if verbose:
             print("- Waiting for results...")
         res = awsbraket_session._get_result(taskArn,

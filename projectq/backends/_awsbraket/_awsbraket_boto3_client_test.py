@@ -78,6 +78,13 @@ search_value = {
                 "deviceStatus": "ONLINE",
                 "providerName": "pname2",
             },
+            {
+                "deviceArn": "invalid",
+                "deviceName": "invalid",
+                "deviceType": "BLABLA",
+                "deviceStatus": "ONLINE",
+                "providerName": "pname3",
+            },
         ]
     }
 
@@ -467,6 +474,13 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error):
                                      s3_folder=s3_folder,
                                      num_retries=2)
 
+    with pytest.raises(_awsbraket_boto3_client.DeviceOfflineError) as exinfo:
+        _awsbraket_boto3_client.send(info,
+                                     device='unknown',
+                                     credentials=creds,
+                                     s3_folder=s3_folder,
+                                     num_retries=2)
+
 @has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
@@ -478,7 +492,7 @@ def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error):
             {"Error": {
                 "Code": var_error,
                 "Message": "Msg error for "+var_error}}, "get_quantum_task")
-    
+
     with pytest.raises(botocore.exceptions.ClientError) as exinfo:
         _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
 
