@@ -15,8 +15,12 @@
 try:
     from ._awsbraket import AWSBraketBackend
 except ImportError:  # pragma: no cover
-    print("ERROR: failed to import one of the dependencies "
-        "required to use the Amazon Braket Backend.\n"
-        "Did you install ProjectQ using the [braket] extra? "
-        "(python3 -m pip install projectq[braket]")
-    raise
+    import warnings
+    warnings.warn("Failed to import one of the dependencies required to use "
+                  "the Amazon Braket Backend.\n"
+                  "Did you install ProjectQ using the [braket] extra? "
+                  "(python3 -m pip install projectq[braket])")
+
+    # Make sure that the symbol is defined
+    class AWSBraketBackend:
+        pass
