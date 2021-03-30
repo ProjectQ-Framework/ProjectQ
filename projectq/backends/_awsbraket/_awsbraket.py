@@ -38,7 +38,8 @@ from projectq.ops import (R,
                           Allocate,
                           Deallocate,
                           Barrier,
-                          FlushGate)
+                          FlushGate,
+                          DaggeredGate)
 # TODO: Add MatrixGate to cover the unitary operation in the SV1 simulator
 
 from ._awsbraket_boto3_client import send, retrieve
@@ -102,8 +103,8 @@ class AWSBraketBackend(BasicEngine):
         self._gationary = {XGate: 'x', YGate: 'y', ZGate: 'z',
                            HGate: 'h', R: 'phaseshift',
                            Rx: 'rx', Ry: 'ry', Rz: 'rz',
-                           SGate: 's', r'S^\dagger': 'si',
-                           TGate: 't', r'T^\dagger': 'ti',
+                           SGate: 's',  # NB: Sdag is 'si'
+                           TGate: 't',  # NB: Tdag is 'ti'
                            SwapGate: 'swap', SqrtXGate: 'v'}
 
         # Static head and tail to be added to the circuit
@@ -157,34 +158,30 @@ class AWSBraketBackend(BasicEngine):
             if get_control_count(cmd) == 1:
                 return isinstance(g, (R, ZGate, XGate, SwapGate))
             if get_control_count(cmd) == 0:
-                if isinstance(g, (R, Rx, Ry, Rz,
+                return isinstance(g, (R, Rx, Ry, Rz,
                               XGate, YGate, ZGate, HGate,
-                              SGate, TGate, SwapGate)) or g in (Sdag, Tdag):
-                    return True
-            return False
+                              SGate, TGate, SwapGate)) or g in (Sdag, Tdag)
+
         if self.device == 'IonQ Device':
             if get_control_count(cmd) == 1:
                 return isinstance(g, XGate)
             if get_control_count(cmd) == 0:
-                if isinstance(g, (Rx, Ry, Rz,
+                return isinstance(g, (Rx, Ry, Rz,
                               XGate, YGate, ZGate,
                               HGate, SGate, TGate,
-                              SqrtXGate, SwapGate)) or g in (Sdag, Tdag):
-                    return True
-            return False
+                              SqrtXGate, SwapGate)) or g in (Sdag, Tdag)
+
         if self.device == 'SV1':
             if get_control_count(cmd) == 2:
                 return isinstance(g, XGate)
             if get_control_count(cmd) == 1:
                 return isinstance(g, (R, ZGate, YGate, XGate, SwapGate))
             if get_control_count(cmd) == 0:
-                if isinstance(g, (R, Rx, Ry, Rz,
+                # TODO: add MatrixGate to cover the unitary operation
+                return isinstance(g, (R, Rx, Ry, Rz,
                               XGate, YGate, ZGate,
                               HGate, SGate, TGate,
-                              SqrtXGate, SwapGate)) or g in (Sdag, Tdag):
-                    # TODO: add MatrixGate to cover the unitary operation
-                    return True
-            return False
+                              SqrtXGate, SwapGate)) or g in (Sdag, Tdag)
         return False
 
     def _reset(self):
@@ -216,7 +213,8 @@ class AWSBraketBackend(BasicEngine):
 
         gate = cmd.gate
         num_controls = get_control_count(cmd)
-        gate_type = type(gate)
+        gate_type = (type(gate) if not isinstance(gate, DaggeredGate)
+                     else type(gate._gate))
 
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
@@ -244,8 +242,6 @@ class AWSBraketBackend(BasicEngine):
             json_cmd['controls'] = [qb.id for qb in cmd.control_qubits]
         elif num_controls == 1:
             json_cmd['control'] = cmd.control_qubits[0].id
-        if isinstance(gate, (R, Rx, Ry, Rz)):
-            json_cmd['angle'] = gate.angle
 
         qubits = [qb.id for qureg in cmd.qubits for qb in qureg]
         if len(qubits) > 1:
@@ -253,12 +249,15 @@ class AWSBraketBackend(BasicEngine):
         else:
             json_cmd['target'] = qubits[0]
 
-        if gate in (Sdag, Tdag):
-            json_cmd['type'] = self._gationary[gate.__str__()]
+        if isinstance(gate, (R, Rx, Ry, Rz)):
+            json_cmd['angle'] = gate.angle
+
+        if isinstance(gate, DaggeredGate):
+            json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type] + 'i'
         elif isinstance(gate, (XGate)) and num_controls > 0:
-            json_cmd['type'] = "c" * (num_controls-1) + 'cnot'
+            json_cmd['type'] = 'c' * (num_controls-1) + 'cnot'
         else:
-            json_cmd['type'] = "c" * num_controls + self._gationary[gate_type]
+            json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type]
 
         self._circuit += json.dumps(json_cmd) + ", "
 
