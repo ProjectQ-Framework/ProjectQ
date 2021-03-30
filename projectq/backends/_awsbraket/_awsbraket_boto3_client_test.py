@@ -42,12 +42,17 @@ results_json = json.dumps({
     "measurementProbabilities": {
         "000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3},
     "measuredQubits": [0, 1, 2],
-    }
-)
-body = StreamingBody(StringIO(results_json), len(results_json))
-results_dict = {
-    'ResponseMetadata': {
-        'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body}
+}
+                          )
+
+@pytest.fixture
+def results_dict():
+    body = StreamingBody(StringIO(results_json), len(results_json))
+    return {
+        'ResponseMetadata': {
+            'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body}
+
+
 res_completed = {"000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3}
 
 search_value = {
@@ -230,7 +235,7 @@ other_value = {
     "var_status, var_result", [(
         'completed', completed_value), ('failed', failed_value), (
             'cancelling', cancelling_value), ('other', other_value)])
-def test_retrieve(mock_boto3_client, var_status, var_result):
+def test_retrieve(mock_boto3_client, var_status, var_result, results_dict):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = var_result
@@ -260,50 +265,58 @@ is arn:aws:braket:us-east-1:id:taskuuid \
 and the status of the job is OTHER."
 
 
-body_qpu = StreamingBody(StringIO(results_json), len(results_json))
-results_dict_qpu = {
-    'ResponseMetadata': {
-        'RequestId': 'CF4CAA48CC18836C',
-        'HTTPHeaders': {}, }, 'Body': body_qpu}
+@pytest.fixture(params=["qpu", "sim"])
+def var(request):
+    if request.param == "qpu":
+        body_qpu = StreamingBody(StringIO(results_json), len(results_json))
+        results_dict = {
+            'ResponseMetadata': {
+                'RequestId': 'CF4CAA48CC18836C',
+                'HTTPHeaders': {}, }, 'Body': body_qpu}
 
-device_value_simulator = {
-    "deviceName": "SV1",
-    "deviceType": "SIMULATOR",
-    "providerName": "providerA",
-    "deviceStatus": "ONLINE",
-    "deviceCapabilities": device_value_devicecapabilities,
-}
+        device_value = {
+            "deviceName": "Aspen-8",
+            "deviceType": "QPU",
+            "providerName": "provider1",
+            "deviceStatus": "OFFLINE",
+            "deviceCapabilities": device_value_devicecapabilities,
+        }
 
-results_json_simulator = json.dumps({
-    "braketSchemaHeader": {
-        "name": "braket.task_result.gate_model_task_result", "version": "1"},
-    "measurements": [[0, 0], [0, 1], [1, 1], [0, 1], [0, 1],
-                     [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
-    "measuredQubits": [0, 1],
-    }
-)
-body_simulator = \
-    StreamingBody(
-        StringIO(results_json_simulator), len(
-            results_json_simulator))
-results_dict_simulator = {
-    'ResponseMetadata': {
-        'RequestId': 'CF4CAA48CC18836C',
-        'HTTPHeaders': {}, }, 'Body': body_simulator}
-res_completed_simulator = {"00": 0.1, "01": 0.3, "11": 0.6}
+        res_completed = {"000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3}
+    else:
+        results_json_simulator = json.dumps({
+            "braketSchemaHeader": {
+                "name": "braket.task_result.gate_model_task_result", "version": "1"},
+            "measurements": [[0, 0], [0, 1], [1, 1], [0, 1], [0, 1],
+                             [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
+            "measuredQubits": [0, 1],
+            }
+        )
+        body_simulator = \
+            StreamingBody(
+                StringIO(results_json_simulator), len(
+                    results_json_simulator))
+        results_dict = {
+            'ResponseMetadata': {
+                'RequestId': 'CF4CAA48CC18836C',
+                'HTTPHeaders': {}, }, 'Body': body_simulator}
+
+        device_value = {
+            "deviceName": "SV1",
+            "deviceType": "SIMULATOR",
+            "providerName": "providerA",
+            "deviceStatus": "ONLINE",
+            "deviceCapabilities": device_value_devicecapabilities,
+        }
+
+        res_completed = {"00": 0.1, "01": 0.3, "11": 0.6}
+    return (device_value, results_dict, res_completed)
 
 
 @has_boto3
 @patch('boto3.client')
-@pytest.mark.parametrize(
-    "var_device_value, var_result_dict, var_res_completed", [
-        (device_value, results_dict_qpu, res_completed), (
-            device_value_simulator, results_dict_simulator,
-            res_completed_simulator)])
-def test_retrieve_devicetypes(mock_boto3_client,
-                              var_device_value,
-                              var_result_dict, var_res_completed):
-
+def test_retrieve_devicetypes(mock_boto3_client, var):
+    var_device_value, var_result_dict, var_res_completed = var
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_device.return_value = var_device_value
@@ -364,10 +377,12 @@ info = {
     }
 }
 
-body2 = StreamingBody(StringIO(results_json), len(results_json))
-results2_dict = {
-    'ResponseMetadata': {
-        'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body2}
+@pytest.fixture
+def results2_dict():
+    body2 = StreamingBody(StringIO(results_json), len(results_json))
+    return {
+        'ResponseMetadata': {
+            'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body2}
 
 
 @has_boto3
@@ -377,7 +392,7 @@ results2_dict = {
         'completed', completed_value), ('failed', failed_value), (
             'cancelling', cancelling_value), ('other', other_value)])
 def test_send_real_device_online_verbose(mock_boto3_client,
-                                         var_status, var_result):
+                                         var_status, var_result, results2_dict):
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
