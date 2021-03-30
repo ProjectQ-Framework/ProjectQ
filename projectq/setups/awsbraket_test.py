@@ -41,7 +41,7 @@ search_value = {
             },
             {
                 "deviceArn": "arn3",
-                "deviceName": "IonQ",
+                "deviceName": "IonQ Device",
                 "deviceType": "QPU",
                 "deviceStatus": "ONLINE",
                 "providerName": "pname2",
@@ -109,7 +109,7 @@ creds = {
 
 
 @patch('boto3.client')
-@pytest.mark.parametrize("var_device", ['SV1', 'Aspen-8', 'IonQ'])
+@pytest.mark.parametrize("var_device", ['SV1', 'Aspen-8', 'IonQ Device'])
 def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
 
     mock_boto3_client.return_value = mock_boto3_client

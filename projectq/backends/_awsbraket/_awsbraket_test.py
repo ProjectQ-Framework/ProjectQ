@@ -72,7 +72,7 @@ def test_awsbraket_backend_is_available_ionq(single_qubit_gate_ionq,
                                              is_available_ionq):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
-    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ')
+    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ Device')
     cmd = Command(eng, single_qubit_gate_ionq, (qubit1, ))
     assert aws_backend.is_available(cmd) == is_available_ionq
 
@@ -122,7 +122,7 @@ def test_awsbraket_backend_is_available_control_not_ionq(
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits_ionq)
-    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ')
+    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ Device')
     cmd = Command(eng, X, (qubit1, ), controls=qureg)
     assert aws_backend.is_available(cmd) == is_available_ionq
 
@@ -163,7 +163,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_ionq(
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(1)
-    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ')
+    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ Device')
     cmd = Command(eng, ctrl_singlequbit_ionq, (qubit1, ), controls=qureg)
     assert aws_backend.is_available(cmd) == is_available_ionq
 
@@ -196,7 +196,7 @@ def test_awsbraket_backend_is_available_swap_ionq():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
-    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ')
+    aws_backend = _awsbraket.AWSBraketBackend(use_hardware=True, device='IonQ Device')
     cmd = Command(eng, Swap, (qubit1, qubit2))
     assert aws_backend.is_available(cmd) == True
 
@@ -368,7 +368,6 @@ def test_awsbraket_sent_error(mock_boto3_client):
     with pytest.raises(TypeError) as excinfo:
         eng.flush()
     # atexit sends another FlushGate, therefore we remove the backend:
-    print(excinfo)
     dummy = DummyEngine()
     dummy.is_last_engine = True
     eng.next_engine = dummy
@@ -389,7 +388,6 @@ def test_awsbraket_sent_error_2():
         SqrtX | qubit
         # no setup to decompose SqrtX gate for Aspen-8,
         # so not accepted by the backend
-    print(excinfo)
     dummy = DummyEngine()
     dummy.is_last_engine = True
     eng.next_engine = dummy
@@ -488,12 +486,6 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
 
-    mapper = BasicMapperEngine()
-    res = dict()
-    for i in range(4):
-        res[i] = i
-    mapper.current_mapping = res
-
     from projectq.setups.default import get_engine_list
     from projectq.backends import CommandPrinter, ResourceCounter
 
@@ -533,18 +525,5 @@ def test_awsbraket_backend_functional_test(mock_boto3_client):
     eng.flush()
 
     prob_dict = eng.backend.get_probabilities([qureg[0], qureg[1]])
-    print(prob_dict)
     assert prob_dict['00'] == pytest.approx(0.84)
     assert prob_dict['01'] == pytest.approx(0.06)
-
-    print("\n *** Resources **\n",rcount)
-
-    # Unknown qubit and no mapper
-    # TODO: the last is not a no mapper, needs to be corrected, same for _aqt
-    invalid_qubit = [Qubit(eng, 10)]
-    with pytest.raises(RuntimeError):
-        eng.backend.get_probabilities(invalid_qubit)
-
-    with pytest.raises(Exception):
-        eng.backend.get_probabilities(eng.allocate_qubit())
-

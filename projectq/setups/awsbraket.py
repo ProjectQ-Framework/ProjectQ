@@ -78,7 +78,7 @@ def get_engine_list(credentials=None, device=None):
                     other_gates=(Barrier, ))
         setup.extend(awsbraket_setup)
         return setup
-    if device == 'IonQ':
+    if device == 'IonQ Device':
         setup = restrictedgateset.get_engine_list(
                     one_qubit_gates=(H, Rx, Ry, Rz, S, Sdag, T,
                                      Tdag, X, Y, Z, SqrtX),

@@ -78,7 +78,7 @@ class AWSBraket():
         Returns:
             (dict) backends dictionary by deviceName, containing the qubit
                    size 'nq', the coupling map 'coupling_map' if applicable
-                   (IonQ device as an ion device is having full connectivity)
+                   (IonQ Device as an ion device is having full connectivity)
                    and the Schema Header version 'version', because it seems
                    that no device version is available by now
         """
@@ -106,7 +106,7 @@ class AWSBraket():
                             deviceCapabilities['braketSchemaHeader'][
                                 'version'],
                         'location':
-                            deviceCapabilities['service']['deviceLocation'],
+                            region, #deviceCapabilities['service']['deviceLocation'],
                         'deviceArn': result['deviceArn'],
                         'deviceParameters':
                             deviceCapabilities['deviceParameters'][
@@ -353,8 +353,8 @@ def show_devices(credentials=None, verbose=False):
     configuration)
 
     Args:
-        credentials (dict): mapping the AWS key credentials as
-            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        credentials (dict): Dictionary storing the AWS credentials with
+            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         verbose (bool): If True, additional information is printed
 
     Returns:
@@ -376,27 +376,34 @@ def retrieve(credentials,
     Retrieves a job/task by its Arn.
 
     Args:
-        credentials (dict): mapping the AWS key credentials as
-            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        credentials (dict): Dictionary storing the AWS credentials with
+            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         taskArn (str): The Arn of the task to retreive
 
     Returns:
         (dict) measurement probabilities from the result
         stored in the S3 folder
     """
-    awsbraket_session = AWSBraket()
-    if verbose:
-        print("- Authenticating...")
-        if credentials is not None:
-            print("AWS credentials: "
-                  + credentials['AWS_ACCESS_KEY_ID'] + ", "
-                  + credentials['AWS_SECRET_KEY'])
-    awsbraket_session._authenticate(credentials=credentials)
-    res = awsbraket_session._get_result(taskArn,
+    try:
+        awsbraket_session = AWSBraket()
+        if verbose:
+            print("- Authenticating...")
+            if credentials is not None:
+                print("AWS credentials: "
+                      + credentials['AWS_ACCESS_KEY_ID'] + ", "
+                      + credentials['AWS_SECRET_KEY'])
+        awsbraket_session._authenticate(credentials=credentials)
+        res = awsbraket_session._get_result(taskArn,
                                         num_retries=num_retries,
                                         interval=interval,
                                         verbose=verbose)
-    return res
+        return res
+    except botocore.exceptions.ClientError as error:
+        error_code = error.response['Error']['Code']
+        if error_code == 'ResourceNotFoundException':
+            print("- Unable to locate the job with Arn ", taskArn)
+        print(error, error_code)
+        raise
 
 
 def send(info,
@@ -412,9 +419,9 @@ def send(info,
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the AWS Braket device.
-        credentials (dict): mapping the AWS key credentials as
-            the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-        s3_folder (list): contains the S3 bucket and directory
+        credentials (dict): Dictionary storing the AWS credentials with
+            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        s3_folder (list): Contains the S3 bucket and directory
             to store the results.
         verbose (bool): If True, additional information is printed, such as
             measurement statistics. Otherwise, the backend simply registers

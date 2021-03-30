@@ -434,3 +434,18 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error):
                                      credentials=creds,
                                      s3_folder=s3_folder,
                                      num_retries=2)
+
+@patch('boto3.client')
+@pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
+def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error):
+
+    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client.get_quantum_task.side_effect = \
+        botocore.exceptions.ClientError(
+            {"Error": {
+                "Code": var_error,
+                "Message": "Msg error for "+var_error}}, "get_quantum_task")
+    
+    with pytest.raises(botocore.exceptions.ClientError) as exinfo:
+        _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
+

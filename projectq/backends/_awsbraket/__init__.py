@@ -14,7 +14,7 @@
 
 try:
     from ._awsbraket import AWSBraketBackend
-except ImportError:
+except ImportError:  # pragma: no cover
     print("ERROR: failed to import one of the dependencies "
         "required to use the Amazon Braket Backend.\n"
         "Did you install ProjectQ using the [braket] extra? "
