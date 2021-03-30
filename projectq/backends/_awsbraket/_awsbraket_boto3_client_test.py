@@ -17,13 +17,24 @@
 import pytest
 from unittest.mock import MagicMock, Mock, patch
 
-from botocore.response import StreamingBody
-import botocore
 from io import StringIO
 
 import json
 
-from projectq.backends._awsbraket import _awsbraket_boto3_client
+# ==============================================================================
+
+_has_boto3 = True
+try:
+    from botocore.response import StreamingBody
+    import botocore
+    from projectq.backends._awsbraket import _awsbraket_boto3_client
+except ImportError:
+    _has_boto3 = False
+
+has_boto3 = pytest.mark.skipif(not _has_boto3,
+                               reason="boto3 package is not installed")
+
+# ==============================================================================
 
 results_json = json.dumps({
     "braketSchemaHeader": {
@@ -165,6 +176,7 @@ arntask = 'arn:aws:braket:us-east-1:id:taskuuid'
 qtarntask = {'quantumTaskArn': arntask}
 
 
+@has_boto3
 @patch('boto3.client')
 def test_show_devices(mock_boto3_client):
 
@@ -212,6 +224,7 @@ other_value = {
 }
 
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize(
     "var_status, var_result", [(
@@ -280,6 +293,7 @@ results_dict_simulator = {
 res_completed_simulator = {"00": 0.1, "01": 0.3, "11": 0.6}
 
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize(
     "var_device_value, var_result_dict, var_res_completed", [
@@ -318,6 +332,7 @@ info_too_much = {
 s3_folder = ['S3Bucket', "S3Directory"]
 
 
+@has_boto3
 @patch('boto3.client')
 def test_send_too_many_qubits(mock_boto3_client):
 
@@ -355,6 +370,7 @@ results2_dict = {
         'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body2}
 
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize(
     "var_status, var_result", [(
@@ -412,6 +428,7 @@ results3_dict = {
         'RequestId': 'CF4CAA48CC18836C',  'HTTPHeaders': {}, }, 'Body': body3}
 
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize(
     "var_error", [('AccessDeniedException'), (
@@ -435,6 +452,7 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error):
                                      s3_folder=s3_folder,
                                      num_retries=2)
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
 def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error):

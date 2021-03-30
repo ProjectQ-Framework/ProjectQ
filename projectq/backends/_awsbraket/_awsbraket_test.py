@@ -16,17 +16,13 @@
 
 import pytest
 from unittest.mock import MagicMock, Mock, patch
-from botocore.response import StreamingBody
-import botocore
 from io import StringIO
 import json
-
 
 import math
 from projectq.setups import restrictedgateset
 from projectq import MainEngine
 
-from projectq.backends._awsbraket import _awsbraket
 from projectq.types import WeakQubitRef, Qubit
 from projectq.cengines import (BasicMapperEngine, DummyEngine)
 
@@ -37,11 +33,27 @@ from projectq.ops import (R, Swap, H, Rx, Ry, Rz, S, Sdag,
                           Measure, Allocate, Deallocate, Barrier,
                           All, Command)
 
+# ==============================================================================
+
+_has_boto3 = True
+try:
+    from botocore.response import StreamingBody
+    import botocore
+    from projectq.backends._awsbraket import _awsbraket
+except ImportError:
+    _has_boto3 = False
+
+has_boto3 = pytest.mark.skipif(not _has_boto3,
+                               reason="boto3 package is not installed")
+
+# ==============================================================================
+
+
 '''
 Gate availability Tests
 '''
 
-
+@has_boto3
 @pytest.mark.parametrize("single_qubit_gate_aspen, is_available_aspen",
                          [(X, True), (Y, True), (Z, True), (H, True),
                           (T, True), (Tdag, True), (S, True), (Sdag, True),
@@ -60,6 +72,7 @@ def test_awsbraket_backend_is_available_aspen(single_qubit_gate_aspen,
     assert aws_backend.is_available(cmd) == is_available_aspen
 
 
+@has_boto3
 @pytest.mark.parametrize("single_qubit_gate_ionq, is_available_ionq",
                          [(X, True), (Y, True), (Z, True), (H, True),
                           (T, True), (Tdag, True), (S, True), (Sdag, True),
@@ -84,6 +97,7 @@ unitary_gate = MatrixGate([[0, 1, 0, 0],
                            [0, 0, 1, 0]])
 
 
+@has_boto3
 @pytest.mark.parametrize("single_qubit_gate_sv1, is_available_sv1",
                          [(X, True), (Y, True), (Z, True), (H, True),
                           (T, True), (Tdag, True), (S, True), (Sdag, True),
@@ -102,6 +116,7 @@ def test_awsbraket_backend_is_available_sv1(single_qubit_gate_sv1,
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+@has_boto3
 @pytest.mark.parametrize("num_ctrl_qubits_aspen, is_available_aspen",
                          [(0, True), (1, True), (2, True), (3, False)])
 def test_awsbraket_backend_is_available_control_not_aspen(
@@ -115,6 +130,7 @@ def test_awsbraket_backend_is_available_control_not_aspen(
     assert aws_backend.is_available(cmd) == is_available_aspen
 
 
+@has_boto3
 @pytest.mark.parametrize("num_ctrl_qubits_ionq, is_available_ionq",
                          [(0, True), (1, True), (2, False), (3, False)])
 def test_awsbraket_backend_is_available_control_not_ionq(
@@ -127,6 +143,7 @@ def test_awsbraket_backend_is_available_control_not_ionq(
     assert aws_backend.is_available(cmd) == is_available_ionq
 
 
+@has_boto3
 @pytest.mark.parametrize("num_ctrl_qubits_sv1, is_available_sv1",
                          [(0, True), (1, True), (2, True), (3, False)])
 def test_awsbraket_backend_is_available_control_not_sv1(
@@ -139,6 +156,7 @@ def test_awsbraket_backend_is_available_control_not_sv1(
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+@has_boto3
 @pytest.mark.parametrize("ctrl_singlequbit_aspen, is_available_aspen",
                          [(X, True), (Y, False), (Z, True), (R(0.5), True),
                           (Rx(0.5), False), (Ry(0.5), False),
@@ -154,6 +172,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_aspen(
     assert aws_backend.is_available(cmd) == is_available_aspen
 
 
+@has_boto3
 @pytest.mark.parametrize("ctrl_singlequbit_ionq, is_available_ionq",
                          [(X, True), (Y, False), (Z, False), (R(0.5), False),
                           (Rx(0.5), False), (Ry(0.5), False),
@@ -168,6 +187,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_ionq(
     assert aws_backend.is_available(cmd) == is_available_ionq
 
 
+@has_boto3
 @pytest.mark.parametrize("ctrl_singlequbit_sv1, is_available_sv1",
                          [(X, True), (Y, True), (Z, True), (R(0.5), True),
                           (Rx(0.5), False), (Ry(0.5), False),
@@ -182,6 +202,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_sv1(
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_swap_aspen():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -192,6 +213,7 @@ def test_awsbraket_backend_is_available_swap_aspen():
     assert aws_backend.is_available(cmd) == True
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_swap_ionq():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -201,6 +223,7 @@ def test_awsbraket_backend_is_available_swap_ionq():
     assert aws_backend.is_available(cmd) == True
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_swap_sv1():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -210,6 +233,7 @@ def test_awsbraket_backend_is_available_swap_sv1():
     assert aws_backend.is_available(cmd) == True
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_control_swap_aspen():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -221,6 +245,7 @@ def test_awsbraket_backend_is_available_control_swap_aspen():
     assert aws_backend.is_available(cmd) == True
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_control_swap_sv1():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
@@ -236,17 +261,20 @@ End of Gate availability Tests
 '''
 
 
+@has_boto3
 def test_awsbraket_backend_init():
     backend = _awsbraket.AWSBraketBackend(verbose=True, use_hardware=True)
     assert len(backend._circuit) == 0
 
 
+@has_boto3
 def test_awsbraket_empty_circuit():
     backend = _awsbraket.AWSBraketBackend(verbose=True)
     eng = MainEngine(backend=backend)
     eng.flush()
 
 
+@has_boto3
 def test_awsbraket_invalid_command():
     backend = _awsbraket.AWSBraketBackend(use_hardware=True, verbose=True)
     qb = WeakQubitRef(None, 1)
@@ -341,6 +369,7 @@ device_value = {
 }
 
 
+@has_boto3
 @patch('boto3.client')
 def test_awsbraket_sent_error(mock_boto3_client):
 
@@ -373,6 +402,7 @@ def test_awsbraket_sent_error(mock_boto3_client):
     eng.next_engine = dummy
 
 
+@has_boto3
 def test_awsbraket_sent_error_2():
     backend = _awsbraket.AWSBraketBackend(use_hardware=True, verbose=True)
     mapper = BasicMapperEngine()
@@ -422,6 +452,7 @@ results_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
                 'Body': body}
 
 
+@has_boto3
 @patch('boto3.client')
 def test_awsbraket_retrieve(mock_boto3_client):
 
@@ -465,6 +496,7 @@ results2_dict = {'ResponseMetadata': {'RequestId': 'CF4CAA48CC18836C',
                 'Body': body2}
 
 
+@has_boto3
 @patch('boto3.client')
 def test_awsbraket_backend_functional_test(mock_boto3_client):
 
