@@ -9,7 +9,7 @@ from projectq.libs.math import (AddConstant, AddConstantModN,
 from projectq.meta import Control
 from projectq.ops import (All, BasicMathGate, get_inverse, H, Measure, QFT, R,
                           Swap, X)
-
+from projectq.meta._control import State
 import time
     # make the compiler and run the circuit on the simulator backend
 eng = MainEngine(verbose=True)
@@ -23,10 +23,10 @@ ctrl_reg = eng.allocate_qureg(m)
 
 #X | ctrl_reg[0]
 X | ctrl_reg[1]
-#X | ctrl_reg[2]
+X | ctrl_reg[2]
 
 #invert = True
-with Control(eng, ctrl_reg, ctrl_state = '010'):
+with Control(eng, ctrl_reg, ctrl_state = State.AllOne):
     X | x[0]
     X | x[1]
     #X | x[2]
