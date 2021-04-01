@@ -16,6 +16,9 @@
 
 import math
 
+import sys
+sys.path.append(r'C:\Users\daisy\Documents\Code\ProjectQ')
+
 import numpy as np
 import pytest
 
@@ -347,10 +350,10 @@ def test_is_commutable():
     gate1 = _basics.BasicRotationGate(math.pi)
     gate2 = _basics.MatrixGate()
     gate3 = _basics.BasicRotationGate(math.pi)
-    assert gate1.is_commutable(gate2) == False
-    assert gate1.is_commutable(gate3) == False
+    assert not gate1.is_commutable(gate2)
+    assert not gate1.is_commutable(gate3)
     gate4 = _gates.Rz(math.pi)
     gate5 = _gates.H
     gate6 = _metagates.C(NOT)
-    assert gate4.is_commutable(gate5) == 0
-    assert gate4.is_commutable(gate6) == 0
+    assert not gate4.is_commutable(gate5)
+    assert not gate4.is_commutable(gate6)

@@ -85,6 +85,10 @@ class XGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, 1], [1, 0]])
 
+    def get_commutable_gates(self):
+        self._commutable_gates = [Rx, Ph, SqrtXGate]
+        return self._commutable_gates
+
     def get_commutable_circuit_list(self, n=0):
         """ Sets _commutable_circuit_list for C(NOT, n) where
         n is the number of controls 
@@ -161,6 +165,11 @@ Tdag = Tdagger = get_inverse(T)
 
 class SqrtXGate(BasicGate):
     """ Square-root X gate class """
+
+    def __init__(self):
+        BasicGate.__init__(self)
+        self._commutable_gates = [XGate,]
+
     @property
     def matrix(self):
         return 0.5 * np.matrix([[1+1j, 1-1j], [1-1j, 1+1j]])
@@ -229,6 +238,10 @@ Entangle = EntangleGate()
 
 class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
+    def __init__(self, angle):
+        BasicPhaseGate.__init__(self, angle)
+        self._commutable_gates = [XGate,]
+
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(1j * self.angle), 0],
@@ -240,7 +253,7 @@ class Rx(BasicRotationGate):
 
     def __init__(self, angle):
         BasicRotationGate.__init__(self, angle)
-        self._commutable_gates = [Rxx,]
+        self._commutable_gates = [Rxx,XGate]
 
     @property
     def matrix(self):

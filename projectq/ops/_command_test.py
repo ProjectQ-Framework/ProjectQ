@@ -23,9 +23,10 @@ import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.meta import ComputeTag
-from projectq.ops import BasicGate, Rx, NotMergeable, Rxx, Ry, H, Rz, CNOT
+from projectq.ops import BasicGate, Rx, NotMergeable, Rxx, Ry, H, Rz, CNOT, X, SqrtX, Ph
 from projectq.types import Qubit, Qureg, WeakQubitRef
 from projectq.ops import _command, _basics
+from projectq.ops._command import Commutability
 
 
 @pytest.fixture
@@ -175,13 +176,22 @@ def test_command_is_commutable(main_engine):
     cmd6 = _command.Command(main_engine, Rz(0.2), (qubit1,))
     cmd7 = _command.Command(main_engine, H, (qubit1,))
     cmd8 = _command.Command(main_engine, CNOT, (qubit2,), qubit1)
+    cmd9 = _command.Command(main_engine, X, (qubit1,))
+    cmd10 = _command.Command(main_engine, SqrtX, (qubit1,))
+    cmd11 = _command.Command(main_engine, Ph(math.pi), (qubit1,))
     assert not cmd1.is_commutable(cmd2) #Identical qubits, identical gate
     assert _command.overlap(cmd1.all_qubits, cmd3.all_qubits) == 0
     assert not cmd1.is_commutable(cmd3) #Different qubits, same gate
     assert cmd3.is_commutable(cmd4)     #Qubits in common, different but commutable gates
     assert not cmd4.is_commutable(cmd5) #Qubits in common, different, non-commutable gates
-    assert cmd6.is_commutable(cmd7) == 2 # Rz has a commutable circuit which starts with H
+    assert cmd6.is_commutable(cmd7) == Commutability.MAYBE_COMMUTABLE.value # Rz has a commutable circuit which starts with H
     assert not cmd7.is_commutable(cmd8) # H does not have a commutable circuit which starts with CNOT
+    assert cmd1.is_commutable(cmd9) # Rx commutes with X
+    assert cmd9.is_commutable(cmd1)
+    assert cmd10.is_commutable(cmd9) # SqrtX commutes with X
+    assert cmd9.is_commutable(cmd10)
+    assert cmd11.is_commutable(cmd9) # Ph commutes with X
+    assert cmd9.is_commutable(cmd11)
 
 
 def test_command_order_qubits(main_engine):

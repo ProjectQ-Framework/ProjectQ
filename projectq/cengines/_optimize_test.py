@@ -19,7 +19,7 @@ import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (CNOT, H, Rx, Ry, Rz, Rxx, Ryy, Rzz, Measure, AllocateQubitGate, X,
-                          FastForwardingGate, ClassicalInstructionGate, XGate)
+                          FastForwardingGate, ClassicalInstructionGate, XGate, Ph, X, SqrtX)
 from projectq.setups import restrictedgateset, trapped_ion_decomposer
 
 from projectq.cengines import _optimize
@@ -252,7 +252,18 @@ def test_local_optimizer_commutable_gates():
     Rx(0.3) | qb2
     Rx(0.2) | qb3
     Rxx(0.2) | (qb3, qb2)
-    assert len(backend.received_commands) == 0
+    X | qb3 
+    Ph(0.2) | qb3
+    X | qb3
+    Ph(0.1) | qb3
+    X | qb3
+    Rx(0.2) | qb3
+    X | qb3
+    X | qb3
+    SqrtX | qb3
+    X | qb3
+    # All the Xs should cancel, because we have 3 pairs of Xs each 
+    # separated by a gate which is commutable with X.
     eng.flush()
     received_commands = []
     # Remove Allocate and Deallocate gates
@@ -260,21 +271,23 @@ def test_local_optimizer_commutable_gates():
         if not (isinstance(cmd.gate, FastForwardingGate) or
                 isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
-    assert len(received_commands) == 5
-    assert received_commands[0].gate == Rx(0.9)
+            print(cmd)
+    assert len(received_commands) == 8
+    assert received_commands[0].gate == Rxx(0.4)
+    # A check that we have the gates we expect.
+    assert received_commands[1].gate == Rx(0.2)
+    assert received_commands[2].gate == Rx(0.9)
+    assert received_commands[3].gate == Rxx(0.8)
+    assert received_commands[4].gate == Rx(0.3)
+    assert received_commands[5].gate == Ph(0.3)
+    assert received_commands[6].gate == Rx(0.2)
+    assert received_commands[7].gate == SqrtX
+    # A check the qubit ids on the final gates in the circuit
+    # are as we expect.
     # If this test doesn't succeed check that the Rxx 
     # interchangeable qubits attribute is working.
-    assert received_commands[1].gate == Rxx(0.8)
-    assert received_commands[2].gate == Rxx(0.4)
-    assert received_commands[3].gate == Rx(0.3)
-    assert received_commands[4].gate == Rx(0.2)
-    assert received_commands[0].qubits[0][0].id == qb0[0].id
-    assert received_commands[1].qubits[0][0].id == qb0[0].id
-    assert received_commands[1].qubits[1][0].id == qb1[0].id
-    assert received_commands[2].qubits[0][0].id == qb2[0].id
-    assert received_commands[2].qubits[1][0].id == qb3[0].id
-    assert received_commands[3].qubits[0][0].id == qb2[0].id
-    assert received_commands[4].qubits[0][0].id == qb3[0].id
+    assert received_commands[0].qubits[0][0].id == qb2[0].id
+    assert received_commands[0].qubits[1][0].id == qb3[0].id
 
 def test_local_optimizer_commutable_circuit_Rz_example_1():
     """ Example circuit where the Rzs should merge. """

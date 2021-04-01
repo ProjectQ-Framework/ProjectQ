@@ -19,6 +19,9 @@ import cmath
 import numpy as np
 import pytest
 
+import sys
+sys.path.append(r'C:\Users\daisy\Documents\Code\ProjectQ')
+
 from projectq import MainEngine
 from projectq.ops import (All, FlipBits, get_inverse, SelfInverseGate,
                           BasicRotationGate, ClassicalInstructionGate,
@@ -46,7 +49,14 @@ def test_x_gate():
     assert np.array_equal(gate1.matrix, np.matrix([[0, 1], [1, 0]]))
     assert isinstance(_gates.X, _gates.XGate)
     assert isinstance(_gates.NOT, _gates.XGate)
-    assert gate1._commutable_circuit_list == []
+    gate3 = _gates.X
+    gate4 = _gates.Rx(math.pi)
+    gate5 = _gates.Ph(math.pi)
+    gate6 = _gates.SqrtX
+    assert gate3.is_commutable(gate4)
+    assert gate3.is_commutable(gate5)
+    assert gate3.is_commutable(gate6)
+    assert gate3._commutable_circuit_list == []
     cmd1=RelativeCommand(H,(0,))
     cmd2=RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,))
     cmd3=RelativeCommand(H,(0,))
@@ -98,7 +108,10 @@ def test_sqrtx_gate():
     assert np.array_equal(gate.matrix * gate.matrix,
                           np.matrix([[0j, 1], [1, 0]]))
     assert isinstance(_gates.SqrtX, _gates.SqrtXGate)
-
+    gate1 = _gates.SqrtX
+    gate2 = _gates.X
+    assert gate1.is_commutable(gate2)
+    assert gate2.is_commutable(gate1)
 
 def test_swap_gate():
     gate = _gates.SwapGate()
@@ -139,6 +152,7 @@ def test_rx(angle1, angle2):
     gate1 = _gates.Rx(angle1)
     gate2 = _gates.Rxx(angle2)
     gate3 = _gates.Ry(angle1)
+    gate4 = _gates.X
     expected_matrix = np.matrix([[math.cos(0.5 * angle1),
                                   -1j * math.sin(0.5 * angle1)],
                                  [-1j * math.sin(0.5 * angle1),
@@ -147,6 +161,8 @@ def test_rx(angle1, angle2):
     assert np.allclose(gate1.matrix, expected_matrix)
     assert gate1.is_commutable(gate2)
     assert not gate1.is_commutable(gate3)
+    assert gate1.is_commutable(gate4)
+    assert gate4.is_commutable(gate1)
 
 
 @pytest.mark.parametrize("angle1", [0, 0.2, 2.1, 4.1, 2 * math.pi,
@@ -253,6 +269,7 @@ def test_rzz(angle1, angle2):
 def test_ph(angle):
     gate = _gates.Ph(angle)
     gate2 = _gates.Ph(angle + 2 * math.pi)
+    gate3 = _gates.X
     expected_matrix = np.matrix([[cmath.exp(1j * angle), 0],
                                  [0, cmath.exp(1j * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
@@ -260,7 +277,8 @@ def test_ph(angle):
     assert gate2.matrix.shape == expected_matrix.shape
     assert np.allclose(gate2.matrix, expected_matrix)
     assert gate == gate2
-
+    assert gate.is_commutable(gate3)
+    assert gate3.is_commutable(gate)
 
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi])
 def test_r(angle):

@@ -36,7 +36,7 @@ from copy import deepcopy
 import numpy as np
 
 from projectq.types import BasicQubit
-from ._command import Command, apply_command
+from ._command import Command, apply_command, Commutability
 
 import unicodedata
 
@@ -126,12 +126,18 @@ class BasicGate(object):
         """
         raise NotMergeable("BasicGate: No get_merged() implemented.")
 
+    def get_commutable_gates(self):
+        return self._commutable_gates
+
     def get_commutable_circuit_list(self, n=0):
-        """ Returns the list of commutable circuits associated with this gate. 
-        
+        """ 
         Args: 
             n (int): The CNOT gate needs to be able to pass in parameter n in 
                 this method. 
+
+        Returns:
+            _commutable_circuit_list (list): the list of commutable circuits 
+            associated with this gate. 
         """
         return self._commutable_circuit_list
 
@@ -259,16 +265,16 @@ class BasicGate(object):
             other (Gate): The other gate. 
 
         Returns:
-            1, if the gates are commutable.
-            0, if the gates are not commutable.
+            commutability (Commutability) : An enum which
+                indicates whether the next gate is commutable,
+                not commutable or maybe commutable. 
              """
-        for gate in self._commutable_gates:
-            if (other.__class__ == gate):
-                return True
+        commutable_gates = self.get_commutable_gates()
+        for gate in commutable_gates:
+            if type(other) is gate:
+                return Commutability.COMMUTABLE.value
         else:
-            # Default is to return False, including if 
-            # other gate and gate are identical
-            return False
+            return Commutability.NOT_COMMUTABLE.value
 
 
 class MatrixGate(BasicGate):
