@@ -227,12 +227,9 @@ class LocalOptimizer(BasicEngine):
 
     def _can_merge_by_commutation(self, idx, qubitids, commandidcs, merged_command, apply_commutation):
         """
-        To determine whether mergeable commands should be merged
-        with one another. i.e. the commands between them are all
-        commutable for each qubit involved in the command. It does
-        not check for the situation where commands are separated by
-        a commutable list. However other parts of the optimizer 
-        should find this situation.
+        Determines whether mergeable commands should be merged
+        with one another. i.e. the commands between the pair are all
+        commutable for each qubit involved in the command.
 
         Args: 
             idx (int): qubit index

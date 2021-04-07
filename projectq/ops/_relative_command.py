@@ -61,12 +61,7 @@ class RelativeCommand(object):
 
     Attributes:
         gate: The gate class.
-        _gate: If RelativeCommand.gate = ControlledGate, _gate will
-            return the gate class on the target qubit. 
-            e.g. if relative_command.gate = CNOT 
-            (class = projectq.ops._metagates.ControlledGate)
-            then relative_command._gate = NOT
-            (class = projectq.ops._gates.XGate)
+        _gate: The true gate class if gate is a metagate.
         relative_qubit_idcs: Tuple of integers, representing the
             relative qubit idcs in a commutable_circuit.
         relative_ctrl_idcs: Tuple of integers, representing the 
@@ -76,9 +71,7 @@ class RelativeCommand(object):
         self.gate = gate
         self.relative_qubit_idcs = relative_qubit_idcs
         self.relative_ctrl_idcs = relative_ctrl_idcs
-        self._gate = gate
-        if (self.gate.__class__ == ControlledGate):
-            self._gate = self.gate._gate
+        self._gate = self.gate._gate if isinstance(self.gate, ControlledGate) else gate
 
     def __str__(self):
         return self.to_string()

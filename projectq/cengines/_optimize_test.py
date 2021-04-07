@@ -19,7 +19,8 @@ import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (CNOT, H, Rx, Ry, Rz, Rxx, Ryy, Rzz, Measure, AllocateQubitGate, X,
-                          FastForwardingGate, ClassicalInstructionGate, XGate, Ph, X, SqrtX)
+                          FastForwardingGate, ClassicalInstructionGate, XGate, Ph, X, 
+                          SqrtX, Y, Z, S, T, R)
 from projectq.setups import restrictedgateset, trapped_ion_decomposer
 
 from projectq.cengines import _optimize
@@ -230,40 +231,36 @@ def test_local_optimizer_identity_gates():
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == Rx(0.5)
 
-def test_local_optimizer_commutable_gates():
-    """ Test that inverse gates separated by two commutable gates 
-    cancel successfully and that mergeable gates separated by
-    two commutable gates cancel successfully.
+@pytest.mark.parametrize(["U", "Ru", "Ruu"], [[X, Rx, Rxx], [Y, Ry, Ryy], [Z, Rz, Rzz]])
+def test_local_optimizer_commutable_gates_parameterized_1(U, Ru, Ruu):
+    """ Iterate through gates of the X, Y, Z type and 
+        check that they correctly commute with eachother and with Ph.
     """
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
-    qb2 = eng.allocate_qubit()
-    qb3 = eng.allocate_qubit()
-    Rx(0.4) | qb0
-    Rx(-math.pi) | qb1
-    Rxx(0.3) | (qb1, qb0)
-    Rxx(0.5) | (qb0, qb1)
-    Rx(math.pi) | qb1
-    Rx(0.5) | qb0
-    Rxx(0.2) | (qb2, qb3)
-    Rx(0.3) | qb2
-    Rx(0.2) | qb3
-    Rxx(0.2) | (qb3, qb2)
-    X | qb3 
-    Ph(0.2) | qb3
-    X | qb3
-    Ph(0.1) | qb3
-    X | qb3
-    Rx(0.2) | qb3
-    X | qb3
-    X | qb3
-    SqrtX | qb3
-    X | qb3
-    # All the Xs should cancel, because we have 3 pairs of Xs each 
-    # separated by a gate which is commutable with X.
+    # Check U and commutes through Ru, Ruu. 
+    # Check Ph commutes through U, Ru, Ruu. 
+    U | qb0
+    Ru(0.4) | qb0
+    Ruu(0.4) | (qb0, qb1)
+    Ph(0.4) | qb0
+    U | qb0
+    # Check Ru commutes through U, Ruu, Ph
+    # (the first two Us should have cancelled already)
+    # We should now have a circuit: Ru(0.4), Ruu(0.4), Ph(0.4), U
+    U | qb0
+    Ru(0.4) | qb0
+    # Check Ruu commutes through U, Ru, Ph
+    # We should now have a circuit: Ru(0.8), Ruu(0.4), Ph(0.4), U
+    Ru(0.4) | qb0
+    Ruu(0.4) | (qb0, qb1)
+    # Check Ph commutes through U, Ru, Ruu
+    # We should now have a circuit: Ru(0.8), Ruu(0.8), Ph(0.4), U, Ru(0.4)
+    Ruu(0.4) | (qb0, qb1)
+    Ph(0.4) | qb0
     eng.flush()
     received_commands = []
     # Remove Allocate and Deallocate gates
@@ -271,23 +268,57 @@ def test_local_optimizer_commutable_gates():
         if not (isinstance(cmd.gate, FastForwardingGate) or
                 isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
-            print(cmd)
-    assert len(received_commands) == 8
-    assert received_commands[0].gate == Rxx(0.4)
-    # A check that we have the gates we expect.
-    assert received_commands[1].gate == Rx(0.2)
-    assert received_commands[2].gate == Rx(0.9)
-    assert received_commands[3].gate == Rxx(0.8)
-    assert received_commands[4].gate == Rx(0.3)
-    assert received_commands[5].gate == Ph(0.3)
-    assert received_commands[6].gate == Rx(0.2)
-    assert received_commands[7].gate == SqrtX
-    # A check the qubit ids on the final gates in the circuit
-    # are as we expect.
-    # If this test doesn't succeed check that the Rxx 
-    # interchangeable qubits attribute is working.
-    assert received_commands[0].qubits[0][0].id == qb2[0].id
-    assert received_commands[0].qubits[1][0].id == qb3[0].id
+    assert len(received_commands) == 4
+
+@pytest.mark.parametrize("U", [Ph, Rz, R])
+@pytest.mark.parametrize("C", [Z, S, T])
+def test_local_optimizer_commutable_gates_parameterized_2(U, C):
+    """ Tests that the Rzz, Ph, Rz, R gates commute through S, T, Z."""
+    local_optimizer = _optimize.LocalOptimizer(m=5)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[local_optimizer])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    Rzz(0.4) | (qb0, qb1)
+    U(0.4) | qb0
+    C | qb0
+    U(0.4) | qb0
+    Rzz(0.4) | (qb0, qb1)
+    eng.flush()
+    received_commands = []
+    # Remove Allocate and Deallocate gates
+    for cmd in backend.received_commands:
+        if not (isinstance(cmd.gate, FastForwardingGate) or
+                isinstance(cmd.gate, ClassicalInstructionGate)):
+            received_commands.append(cmd)
+    assert len(received_commands) == 3
+    #assert received_commands[0].gate == Ph(0.8)
+
+def test_local_optimizer_commutable_gates_SqrtX():
+    """ Tests that the X, Rx, Rxx, Ph gates commute through SqrtX."""
+    local_optimizer = _optimize.LocalOptimizer(m=5)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[local_optimizer])
+    qb0 = eng.allocate_qubit()
+    qb1 = eng.allocate_qubit()
+    X | qb0
+    Rx(0.4) | qb0
+    Rxx(0.4) | (qb0, qb1)
+    SqrtX | qb0
+    X | qb0
+    Rx(0.4) | qb0
+    Rxx(0.4) | (qb0, qb1)
+    Ph(0.4) | qb0
+    SqrtX | qb0
+    Ph(0.4) | qb0
+    eng.flush()
+    received_commands = []
+    # Remove Allocate and Deallocate gates
+    for cmd in backend.received_commands:
+        if not (isinstance(cmd.gate, FastForwardingGate) or
+                isinstance(cmd.gate, ClassicalInstructionGate)):
+            received_commands.append(cmd)
+    assert len(received_commands) == 5
 
 def test_local_optimizer_commutable_circuit_Rz_example_1():
     """ Example circuit where the Rzs should merge. """
@@ -731,3 +762,5 @@ def test_local_optimizer_apply_commutation_false():
     assert received_commands[4].gate == Ry(0.1)
     assert received_commands[7].gate == Ry(0.2)
     assert received_commands[10].gate == Rxx(0.1)
+
+test_local_optimizer_commutable_gates_parameterized_1(X, Rx, Rxx)
