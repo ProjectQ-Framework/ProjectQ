@@ -37,7 +37,7 @@ optimizer to cancel the following two gates
 The command then gets sent to the MainEngine via the
 apply wrapper (apply_command).
 """
-from enum import Enum
+from enum import IntEnum
 from copy import deepcopy
 import projectq
 from projectq.types import WeakQubitRef, Qureg
@@ -164,13 +164,13 @@ class Command(object):
             Commutability value (int) : value of the commutability enum 
         """
         if not overlap(self.all_qubits, other.all_qubits):
-            return Commutability.NOT_COMMUTABLE.value
+            return Commutability.NOT_COMMUTABLE
         self._commutable_circuit_list = self.gate.get_commutable_circuit_list(len(self.control_qubits))
         # If other gate may be part of a list which is 
         # commutable with gate, return enum MAYBE_COMMUTABLE
         for circuit in self._commutable_circuit_list:
             if type(other.gate) is type(circuit[0]._gate):
-                return Commutability.MAYBE_COMMUTABLE.value
+                return Commutability.MAYBE_COMMUTABLE
         else:
             return self.gate.is_commutable(other.gate)
 
@@ -362,7 +362,7 @@ def overlap(tuple1, tuple2):
             n+=1
     return n
 
-class Commutability(Enum):
+class Commutability(IntEnum):
     NOT_COMMUTABLE = 0
     COMMUTABLE = 1
     MAYBE_COMMUTABLE = 2

@@ -272,9 +272,9 @@ class BasicGate(object):
         commutable_gates = self.get_commutable_gates()
         for gate in commutable_gates:
             if type(other) is gate:
-                return Commutability.COMMUTABLE.value
+                return Commutability.COMMUTABLE
         else:
-            return Commutability.NOT_COMMUTABLE.value
+            return Commutability.NOT_COMMUTABLE
 
 
 class MatrixGate(BasicGate):

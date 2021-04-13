@@ -62,6 +62,14 @@ from ._command import Command
 from ._relative_command import RelativeCommand
 from projectq.types import BasicQubit
 
+# For the gates: XGate, YGate, ZGate, SGate, TGate, SqrtXGate, Ph
+# the commutable gates are defined within the get method 
+# (as opposed to the init method) because some of the commutable 
+# gates haven't been defined when the gate is initialised. To change
+# this, we would need to look into defining commutation rules after 
+# all gates are defined.
+
+
 class HGate(SelfInverseGate):
     """ Hadamard gate class """
     def __str__(self):
@@ -253,6 +261,10 @@ Entangle = EntangleGate()
 class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
 
+    def __init__(self, angle):
+        BasicPhaseGate.__init__(self, angle)
+        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
+
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(1j * self.angle), 0],
@@ -363,7 +375,8 @@ class R(BasicPhaseGate):
     def __init__(self, angle):
         BasicPhaseGate.__init__(self, angle)
         self._commutable_gates = [ZGate, Rz, Rzz, Ph, SGate, TGate]
-    
+        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
+
     @property
     def matrix(self):
         return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])

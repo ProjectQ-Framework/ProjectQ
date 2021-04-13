@@ -476,7 +476,7 @@ class LocalOptimizer(BasicEngine):
                 # See if next_command is commutable with this_command.     #                      #
                 #----------------------------------------------------------#
                 commutability_check = command_i.is_commutable(next_command)
-                if(commutability_check == Commutability.COMMUTABLE.value):
+                if(commutability_check == Commutability.COMMUTABLE):
                     x=x+1
                     continue
 
@@ -485,7 +485,7 @@ class LocalOptimizer(BasicEngine):
                 # commutable with this_command.                            #
                 #----------------------------------------------------------#
                 new_x = 0
-                if(commutability_check == Commutability.MAYBE_COMMUTABLE.value):
+                if(commutability_check == Commutability.MAYBE_COMMUTABLE):
                     new_x = self._check_for_commutable_circuit(command_i, next_command, idx, i, x)  
                 if(new_x>x):
                     x=new_x
