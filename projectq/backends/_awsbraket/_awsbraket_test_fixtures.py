@@ -16,6 +16,9 @@
 # This file contains:
 #
 # - Helper fixtures:
+#   * arntask
+#   * creds
+#   * s3_folder
 #   * device_value
 #   * search_value
 #   * completed_value
@@ -39,6 +42,24 @@ except ImportError:
 
 
 # ==============================================================================
+
+
+@pytest.fixture
+def arntask():
+    return 'arn:aws:braket:us-east-1:id:retrieve_execution'
+
+
+@pytest.fixture
+def creds():
+    return {
+        'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
+        'AWS_SECRET_KEY': 'aws_secret_key',
+    }
+
+
+@pytest.fixture
+def s3_folder():
+    return ['S3Bucket', 'S3Directory']
 
 
 @pytest.fixture
@@ -156,24 +177,6 @@ def completed_value():
 
 
 # ==============================================================================
-
-
-@pytest.fixture
-def arntask():
-    return 'arn:aws:braket:us-east-1:id:retrieve_execution'
-
-
-@pytest.fixture
-def creds():
-    return {
-        'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
-        'AWS_SECRET_KEY': 'aws_secret_key',
-    }
-
-
-@pytest.fixture
-def s3_folder():
-    return ['S3Bucket', 'S3Directory']
 
 
 @pytest.fixture
