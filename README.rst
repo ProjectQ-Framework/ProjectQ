@@ -143,7 +143,7 @@ IonQ from IonQ and the state vector simulator SV1:
 .. code-block:: python
 
     from projectq.backends import AWSBraketBackend
-    
+
     creds = {
         'AWS_ACCESS_KEY_ID': 'your_aws_access_key_id',
         'AWS_SECRET_KEY': 'your_aws_secret_key',
@@ -154,6 +154,22 @@ IonQ from IonQ and the state vector simulator SV1:
     eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,
                      num_runs=1024, verbose=False, device=device),
                      engine_list=[])
+
+
+.. note::
+
+   In order to use the AWSBraketBackend, you need to install ProjectQ with the 'braket' extra requirement:
+
+   .. code-block:: bash
+
+       python3 -m pip install projectq[braket]
+
+   or
+
+   .. code-block:: bash
+
+       cd /path/to/projectq/source/code
+       python3 -m pip install -ve .[braket]
 
 
 **Classically simulate a quantum program**
