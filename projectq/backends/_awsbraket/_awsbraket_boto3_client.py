@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Back-end to run quantum program on AWS Braket supported devices.
 
@@ -86,7 +85,9 @@ class AWSBraket():
         self.backends = dict()
         region_names = ['us-west-1', 'us-east-1']
         for region in region_names:
-            client = boto3.client('braket', region_name=region,
+            client = boto3.client(
+                'braket',
+                region_name=region,
                 aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
                 aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
             filters = []
@@ -95,51 +96,52 @@ class AWSBraket():
                 if result['deviceType'] not in ['QPU', 'SIMULATOR']:
                     continue
                 if result['deviceType'] == 'QPU':
-                    deviceCapabilities = json.loads(client.get_device(
-                        deviceArn=result['deviceArn'])['deviceCapabilities'])
+                    deviceCapabilities = json.loads(
+                        client.get_device(deviceArn=result['deviceArn'])
+                        ['deviceCapabilities'])
                     self.backends[result['deviceName']] = {
-                        'nq': deviceCapabilities['paradigm']['qubitCount'],
+                        'nq':
+                        deviceCapabilities['paradigm']['qubitCount'],
                         'coupling_map':
-                            deviceCapabilities['paradigm']['connectivity'][
-                                'connectivityGraph'],
+                        deviceCapabilities['paradigm']['connectivity']
+                        ['connectivityGraph'],
                         'version':
-                            deviceCapabilities['braketSchemaHeader'][
-                                'version'],
+                        deviceCapabilities['braketSchemaHeader']['version'],
                         'location':
-                            region, #deviceCapabilities['service']['deviceLocation'],
-                        'deviceArn': result['deviceArn'],
+                        region,  #deviceCapabilities['service']['deviceLocation'],
+                        'deviceArn':
+                        result['deviceArn'],
                         'deviceParameters':
-                            deviceCapabilities['deviceParameters'][
-                                'properties']['braketSchemaHeader'][
-                                    'const'],
+                        deviceCapabilities['deviceParameters']['properties']
+                        ['braketSchemaHeader']['const'],
                         'deviceModelParameters':
-                            deviceCapabilities['deviceParameters'][
-                                'definitions']['GateModelParameters'][
-                                    'properties']['braketSchemaHeader'][
-                                        'const'],
+                        deviceCapabilities['deviceParameters']['definitions']
+                        ['GateModelParameters']['properties']
+                        ['braketSchemaHeader']['const'],
                     }
                 # Unfortunatelly the Capabilities schemas are not homogeneus
                 # for real devices and simulators
                 elif result['deviceType'] == 'SIMULATOR':
-                    deviceCapabilities = json.loads(client.get_device(
-                        deviceArn=result['deviceArn'])['deviceCapabilities'])
+                    deviceCapabilities = json.loads(
+                        client.get_device(deviceArn=result['deviceArn'])
+                        ['deviceCapabilities'])
                     self.backends[result['deviceName']] = {
-                        'nq': deviceCapabilities['paradigm']['qubitCount'],
+                        'nq':
+                        deviceCapabilities['paradigm']['qubitCount'],
                         'coupling_map': {},
                         'version':
-                            deviceCapabilities['braketSchemaHeader'][
-                                'version'],
-                        'location': 'us-east-1',
-                        'deviceArn': result['deviceArn'],
+                        deviceCapabilities['braketSchemaHeader']['version'],
+                        'location':
+                        'us-east-1',
+                        'deviceArn':
+                        result['deviceArn'],
                         'deviceParameters':
-                            deviceCapabilities['deviceParameters'][
-                                'properties']['braketSchemaHeader'][
-                                    'const'],
+                        deviceCapabilities['deviceParameters']['properties']
+                        ['braketSchemaHeader']['const'],
                         'deviceModelParameters':
-                            deviceCapabilities['deviceParameters'][
-                                'definitions']['GateModelParameters'][
-                                    'properties']['braketSchemaHeader'][
-                                        'const'],
+                        deviceCapabilities['deviceParameters']['definitions']
+                        ['GateModelParameters']['properties']
+                        ['braketSchemaHeader']['const'],
                     }
 
         if verbose:
@@ -206,16 +208,20 @@ class AWSBraket():
             'braketSchemaHeader': self.backends[device]['deviceParameters'],
             'paradigmParameters': {
                 'braketSchemaHeader':
-                    self.backends[device]['deviceModelParameters'],
-                'qubitCount': info['nq'],
-                'disableQubitRewiring': False,
+                self.backends[device]['deviceModelParameters'],
+                'qubitCount':
+                info['nq'],
+                'disableQubitRewiring':
+                False,
             },
         }
         deviceParameters = json.dumps(deviceParameters)
 
-        client_braket = boto3.client('braket', region_name=region_name,
-                    aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
-                    aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
+        client_braket = boto3.client(
+            'braket',
+            region_name=region_name,
+            aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
 
         deviceArn = self.backends[device]['deviceArn']
         response = client_braket.create_quantum_task(
@@ -266,16 +272,18 @@ class AWSBraket():
                 strqubits = ''
                 for nq in range(len_qubits):
                     strqubits += str(unique_mes[i][nq])
-                prob = measurements.count(unique_mes[i])/total_mes
+                prob = measurements.count(unique_mes[i]) / total_mes
                 measurementsProbabilities[strqubits] = prob
 
             return measurementsProbabilities
 
         # The region_name is obtained from the taskArn itself
         region_name = re.split(':', execution_id)[3]
-        client_braket = boto3.client('braket', region_name=region_name,
-                    aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
-                    aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
+        client_braket = boto3.client(
+            'braket',
+            region_name=region_name,
+            aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
@@ -296,10 +304,10 @@ class AWSBraket():
                         deviceArn=deviceArn)['deviceType']
                     # Get the results from S3
                     client_s3 = boto3.client('s3',
-                        aws_access_key_id=self._credentials[
-                            'AWS_ACCESS_KEY_ID'],
-                        aws_secret_access_key=self._credentials[
-                            'AWS_SECRET_KEY'])
+                                             aws_access_key_id=self.
+                                             _credentials['AWS_ACCESS_KEY_ID'],
+                                             aws_secret_access_key=self.
+                                             _credentials['AWS_SECRET_KEY'])
                     s3result = client_s3.get_object(Bucket=bucket,
                                                     Key=resultsojectname)
                     if verbose:
@@ -364,14 +372,11 @@ def show_devices(credentials=None, verbose=False):
     awsbraket_session._authenticate(credentials=credentials)
     return awsbraket_session.get_list_devices(verbose=verbose)
 
+
 # TODO: Create a Show Online properties per device
 
 
-def retrieve(credentials,
-             taskArn,
-             num_retries=30,
-             interval=1,
-             verbose=False):
+def retrieve(credentials, taskArn, num_retries=30, interval=1, verbose=False):
     """
     Retrieves a job/task by its Arn.
 
@@ -389,14 +394,13 @@ def retrieve(credentials,
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: "
-                      + credentials['AWS_ACCESS_KEY_ID'] + ", "
-                      + credentials['AWS_SECRET_KEY'])
+                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID']
+                      + ", " + credentials['AWS_SECRET_KEY'])
         awsbraket_session._authenticate(credentials=credentials)
         res = awsbraket_session._get_result(taskArn,
-                                        num_retries=num_retries,
-                                        interval=interval,
-                                        verbose=verbose)
+                                            num_retries=num_retries,
+                                            interval=interval,
+                                            verbose=verbose)
         return res
     except botocore.exceptions.ClientError as error:
         error_code = error.response['Error']['Code']
@@ -436,9 +440,8 @@ def send(info,
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: "
-                      + credentials['AWS_ACCESS_KEY_ID'] + ", "
-                      + credentials['AWS_SECRET_KEY'])
+                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID']
+                      + ", " + credentials['AWS_SECRET_KEY'])
         awsbraket_session._authenticate(credentials=credentials)
         awsbraket_session._get_s3_folder(s3_folder=s3_folder)
 
@@ -447,7 +450,7 @@ def send(info,
         online = awsbraket_session.is_online(device)
         if online:
             print("The job will be queued in any case, "
-              "plase take this into account")
+                  "plase take this into account")
         else:
             print("The device is not available. Use the "
                   "simulator instead or try another device.")
@@ -465,7 +468,8 @@ def send(info,
         if verbose:
             print("- Running code: {}".format(info))
         taskArn = awsbraket_session._run(info, device)
-        print("Your task Arn is: {}. Make note of that for future reference".format(taskArn))
+        print("Your task Arn is: {}. Make note of that for future reference".
+              format(taskArn))
 
         if verbose:
             print("- Waiting for results...")
