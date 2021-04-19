@@ -42,8 +42,8 @@ class AWSBraket():
     def _authenticate(self, credentials=None):
         """
         Args:
-            credentials (dict): mapping the AWS key credentials as
-                the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+            credentials (dict): mapping the AWS key credentials as the
+                AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         """
         if credentials is None:  # pragma: no cover
             credentials['AWS_ACCESS_KEY_ID'] = getpass.getpass(
@@ -56,8 +56,8 @@ class AWSBraket():
     def _get_s3_folder(self, s3_folder=None):
         """
         Args:
-           s3_folder (list): contains the S3 bucket and directory
-           to store the results.
+           s3_folder (list): contains the S3 bucket and directory to store the
+           results.
         """
         if s3_folder is None:  # pragma: no cover
             S3Bucket = input("Enter the S3 Bucket configured in Braket: ")
@@ -75,11 +75,11 @@ class AWSBraket():
             verbose (bool): print the returned dictionnary if True
 
         Returns:
-            (dict) backends dictionary by deviceName, containing the qubit
-                   size 'nq', the coupling map 'coupling_map' if applicable
-                   (IonQ Device as an ion device is having full connectivity)
-                   and the Schema Header version 'version', because it seems
-                   that no device version is available by now
+            (dict) backends dictionary by deviceName, containing the qubit size
+                   'nq', the coupling map 'coupling_map' if applicable (IonQ
+                   Device as an ion device is having full connectivity) and the
+                   Schema Header version 'version', because it seems that no
+                   device version is available by now
         """
         # TODO: refresh region_names if more regions get devices available
         self.backends = dict()
@@ -108,7 +108,7 @@ class AWSBraket():
                         'version':
                         deviceCapabilities['braketSchemaHeader']['version'],
                         'location':
-                        region,  #deviceCapabilities['service']['deviceLocation'],
+                        region,  # deviceCapabilities['service']['deviceLocation'],
                         'deviceArn':
                         result['deviceArn'],
                         'deviceParameters':
@@ -173,9 +173,9 @@ class AWSBraket():
             device (str): name of the device to use
 
         Returns:
-            (tuple): (bool) True if device is big enough, False otherwise
-                     (int) maximum number of qubit available on the device
-                     (int) number of qubit needed for the circuit
+            (tuple): (bool) True if device is big enough, False otherwise (int)
+                     maximum number of qubit available on the device (int)
+                     number of qubit needed for the circuit
 
         """
         nb_qubit_max = self.backends[device]['nq']
@@ -202,9 +202,8 @@ class AWSBraket():
             'shots': info['shots'],
         }
 
-        credentials = self._credentials
         region_name = self.backends[device]['location']
-        deviceParameters = {
+        device_parameters = {
             'braketSchemaHeader': self.backends[device]['deviceParameters'],
             'paradigmParameters': {
                 'braketSchemaHeader':
@@ -215,7 +214,7 @@ class AWSBraket():
                 False,
             },
         }
-        deviceParameters = json.dumps(deviceParameters)
+        device_parameters = json.dumps(device_parameters)
 
         client_braket = boto3.client(
             'braket',
@@ -223,17 +222,15 @@ class AWSBraket():
             aws_access_key_id=self._credentials['AWS_ACCESS_KEY_ID'],
             aws_secret_access_key=self._credentials['AWS_SECRET_KEY'])
 
-        deviceArn = self.backends[device]['deviceArn']
         response = client_braket.create_quantum_task(
             action=argument['circ'],
-            deviceArn=deviceArn,
-            deviceParameters=deviceParameters,
+            deviceArn=self.backends[device]['deviceArn'],
+            deviceParameters=device_parameters,
             outputS3Bucket=argument['s3_folder'][0],
             outputS3KeyPrefix=argument['s3_folder'][1],
             shots=argument['shots'])
-        taskArn = response['quantumTaskArn']
 
-        return taskArn
+        return response['quantumTaskArn']
 
     def _get_result(self,
                     execution_id,
@@ -267,15 +264,15 @@ class AWSBraket():
             unique_mes = [list(x) for x in set(tuple(x) for x in measurements)]
             total_unique_mes = len(unique_mes)
             len_qubits = len(unique_mes[0])
-            measurementsProbabilities = {}
+            measurements_probabilities = {}
             for i in range(total_unique_mes):
                 strqubits = ''
                 for nq in range(len_qubits):
                     strqubits += str(unique_mes[i][nq])
                 prob = measurements.count(unique_mes[i]) / total_mes
-                measurementsProbabilities[strqubits] = prob
+                measurements_probabilities[strqubits] = prob
 
-            return measurementsProbabilities
+            return measurements_probabilities
 
         # The region_name is obtained from the taskArn itself
         region_name = re.split(':', execution_id)[3]
@@ -288,8 +285,7 @@ class AWSBraket():
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
-            for retries in range(num_retries):
-
+            for _ in range(num_retries):
                 quantum_task = client_braket.get_quantum_task(
                     quantumTaskArn=execution_id)
                 status = quantum_task['status']
@@ -297,11 +293,10 @@ class AWSBraket():
                 directory = quantum_task['outputS3Directory']
                 resultsojectname = directory + '/results.json'
                 if status == 'COMPLETED':
-                    # Get the device type
-                    # to obtian the correct measurement structure
-                    deviceArn = quantum_task['deviceArn']
+                    # Get the device type to obtian the correct measurement
+                    # structure
                     devicetype_used = client_braket.get_device(
-                        deviceArn=deviceArn)['deviceType']
+                        deviceArn=quantum_task['deviceArn'])['deviceType']
                     # Get the results from S3
                     client_s3 = boto3.client('s3',
                                              aws_access_key_id=self.
@@ -317,26 +312,24 @@ class AWSBraket():
                     if devicetype_used == 'QPU':
                         return result_content['measurementProbabilities']
                     if devicetype_used == 'SIMULATOR':
-                        measurementProb = _calculate_measurement_probs(
+                        return _calculate_measurement_probs(
                             result_content['measurements'])
-                        return measurementProb
                 if status == 'FAILED':
-                    failurereason = quantum_task['failureReason']
                     raise Exception("Error while running the code: {}. "
                                     "The failure reason was: {}.".format(
-                                        status, failurereason))
+                                        status, quantum_task['failureReason']))
                 if status == 'CANCELLING':
                     raise Exception("The job received a CANCEL "
                                     "operation: {}.".format(status))
                 time.sleep(interval)
-                # NOTE: Be aware that AWS is billing if a lot of API calls
-                # are executed, therefore the num_repetitions is set to a small
+                # NOTE: Be aware that AWS is billing if a lot of API calls are
+                # executed, therefore the num_repetitions is set to a small
                 # number by default.
-                # For QPU devices the job is always queued and there are
-                # some working hours available.
+                # For QPU devices the job is always queued and there are some
+                # working hours available.
                 # In addition the results and state is writen in the
-                # results.json file in the S3 Bucket and do not depend
-                # on the status of the device
+                # results.json file in the S3 Bucket and does not depend on the
+                # status of the device
 
         finally:
             if original_sigint_handler is not None:
@@ -423,13 +416,13 @@ def send(info,
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the AWS Braket device.
-        credentials (dict): Dictionary storing the AWS credentials with
-            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-        s3_folder (list): Contains the S3 bucket and directory
-            to store the results.
+        credentials (dict): Dictionary storing the AWS credentials with keys
+            AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        s3_folder (list): Contains the S3 bucket and directory to store the
+            results.
         verbose (bool): If True, additional information is printed, such as
-            measurement statistics. Otherwise, the backend simply registers
-            one measurement result (same behavior as the projectq Simulator).
+            measurement statistics. Otherwise, the backend simply registers one
+            measurement result (same behavior as the projectq Simulator).
 
     Returns:
         (list) samples from the AWS Braket device
