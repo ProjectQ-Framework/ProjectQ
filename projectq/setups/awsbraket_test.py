@@ -118,7 +118,7 @@ def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
 
     engine_list = projectq.setups.awsbraket.get_engine_list(credentials=creds,
                     device=var_device)
-    assert len(engine_list) == 13
+    assert len(engine_list) == 12
 
 
 @patch('boto3.client')
