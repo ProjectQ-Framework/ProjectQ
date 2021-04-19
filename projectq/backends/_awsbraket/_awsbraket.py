@@ -200,12 +200,6 @@ class AWSBraketBackend(BasicEngine):
             self._circuit = ""
             self._allocated_qubits = set()
 
-        # Previous to store the gate, checks availability against the device
-        if not self.is_available(cmd):
-            raise Exception('Invalid command: ' + str(cmd)
-                            + '. Please check the available commands '
-                            'for the device ' + self.device + '.')
-
         gate = cmd.gate
         num_controls = get_control_count(cmd)
         gate_type = (type(gate) if not isinstance(gate, DaggeredGate) else

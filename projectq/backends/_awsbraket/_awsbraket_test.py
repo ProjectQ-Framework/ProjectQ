@@ -16,16 +16,19 @@
 import pytest
 from unittest.mock import MagicMock, Mock, patch
 
+import copy
 import math
 from projectq.setups import restrictedgateset
 from projectq import MainEngine
 
 from projectq.types import WeakQubitRef, Qubit
-from projectq.cengines import (BasicMapperEngine, DummyEngine)
+from projectq.cengines import (BasicMapperEngine, DummyEngine, AutoReplacer,
+                               DecompositionRuleSet)
+from projectq.cengines._replacer import NoGateDecompositionError
 
 from projectq.ops import (R, Swap, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z,
-                          SqrtX, MatrixGate, Entangle, Ph, NOT, C, Measure,
-                          Allocate, Deallocate, Barrier, All, Command)
+                          CNOT, SqrtX, MatrixGate, Entangle, Ph, NOT, C,
+                          Measure, Allocate, Deallocate, Barrier, All, Command)
 
 from ._awsbraket_test_fixtures import *
 
@@ -364,17 +367,22 @@ def test_awsbraket_sent_error(mock_boto3_client, sent_error_setup):
 
 @has_boto3
 def test_awsbraket_sent_error_2():
-    backend = _awsbraket.AWSBraketBackend(use_hardware=True, verbose=True)
+    backend = _awsbraket.AWSBraketBackend(verbose=True,
+                                          use_hardware=True,
+                                          device='Aspen-8')
     mapper = BasicMapperEngine()
     res = dict()
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
-    eng = MainEngine(backend=backend, engine_list=[mapper])
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[AutoReplacer(DecompositionRuleSet()), mapper],
+        verbose=True)
     qubit = eng.allocate_qubit()
     Rx(math.pi) | qubit
 
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(NoGateDecompositionError):
         SqrtX | qubit
         # no setup to decompose SqrtX gate for Aspen-8,
         # so not accepted by the backend
@@ -389,7 +397,8 @@ def test_awsbraket_sent_error_2():
 @has_boto3
 @patch('boto3.client')
 def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
-    arntask, creds, completed_value, device_value, results_dict = retrieve_setup
+    (arntask, creds, completed_value, device_value,
+     results_dict) = retrieve_setup
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = completed_value
@@ -509,7 +518,7 @@ def test_awsbraket_functional_test_as_engine(mock_boto3_client,
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = completed_value
-    mock_boto3_client.get_object.return_value = results_dict
+    mock_boto3_client.get_object.return_value = copy.deepcopy(results_dict)
 
     backend = _awsbraket.AWSBraketBackend(verbose=True,
                                           credentials=creds,
@@ -533,11 +542,27 @@ def test_awsbraket_functional_test_as_engine(mock_boto3_client,
     qureg = eng.allocate_qureg(3)
 
     H | qureg[0]
-    S | qureg[1]
+    CNOT | (qureg[0], qureg[1])
     eng.flush()
 
     assert len(eng.backend.received_commands) == 7
     assert eng.backend.received_commands[4].gate == H
     assert eng.backend.received_commands[4].qubits[0][0].id == qureg[0].id
-    assert eng.backend.received_commands[5].gate == S
+    assert eng.backend.received_commands[5].gate == X
+    assert eng.backend.received_commands[5].control_qubits[0].id == qureg[0].id
     assert eng.backend.received_commands[5].qubits[0][0].id == qureg[1].id
+
+    # NB: also test that we can call eng.flush() multiple times
+
+    mock_boto3_client.get_object.return_value = copy.deepcopy(results_dict)
+
+    CNOT | (qureg[1], qureg[0])
+    H | qureg[1]
+    eng.flush()
+
+    assert len(eng.backend.received_commands) == 10
+    assert eng.backend.received_commands[7].gate == X
+    assert eng.backend.received_commands[7].control_qubits[0].id == qureg[1].id
+    assert eng.backend.received_commands[7].qubits[0][0].id == qureg[0].id
+    assert eng.backend.received_commands[8].gate == H
+    assert eng.backend.received_commands[8].qubits[0][0].id == qureg[1].id
