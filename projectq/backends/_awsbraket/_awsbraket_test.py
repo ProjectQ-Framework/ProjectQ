@@ -370,14 +370,9 @@ def test_awsbraket_sent_error_2():
     backend = _awsbraket.AWSBraketBackend(verbose=True,
                                           use_hardware=True,
                                           device='Aspen-8')
-    mapper = BasicMapperEngine()
-    res = dict()
-    for i in range(4):
-        res[i] = i
-    mapper.current_mapping = res
     eng = MainEngine(
         backend=backend,
-        engine_list=[AutoReplacer(DecompositionRuleSet()), mapper],
+        engine_list=[AutoReplacer(DecompositionRuleSet())],
         verbose=True)
     qubit = eng.allocate_qubit()
     Rx(math.pi) | qubit
@@ -428,7 +423,7 @@ def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
     assert prob_dict['101'] == 0.2
     assert prob_dict['010'] == 0.8
 
-    # Unknown qubit and no mapper
+    # Unknown qubit or no mapper
     invalid_qubit = [Qubit(eng, 10)]
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(invalid_qubit)
