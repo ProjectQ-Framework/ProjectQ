@@ -25,6 +25,7 @@ This includes:
   circuit)
 * an interface to the IBM Quantum Experience chip (and simulator).
 * an interface to the AQT trapped ion system (and simulator).
+* an interface to the AWS Braket service decives (and simulators)
 """
 from ._printer import CommandPrinter
 from ._circuits import CircuitDrawer, CircuitDrawerMatplotlib
@@ -32,3 +33,4 @@ from ._sim import Simulator, ClassicalSimulator
 from ._resource import ResourceCounter
 from ._ibm import IBMBackend
 from ._aqt import AQTBackend
+from ._awsbraket import AWSBraketBackend
