@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fa9df621-4c83-4470-a396-23d563078fa4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/ProjectQ.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/control_tester.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ProjectQ.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ProjectQ.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.travis.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NOTICE" beforeDir="false" afterPath="$PROJECT_DIR$/NOTICE" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.rst" beforeDir="false" afterPath="$PROJECT_DIR$/README.rst" afterDir="false" />
@@ -22,6 +21,7 @@
       <change beforePath="$PROJECT_DIR$/docs/projectq.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/projectq.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/tutorials.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/tutorials.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/bellpair_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/bellpair_circuit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/control_tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/control_tester.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/grover.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/grover.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/ibm.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ibm.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/ibm_entangle.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ibm_entangle.ipynb" afterDir="false" />
@@ -31,9 +31,8 @@
       <change beforePath="$PROJECT_DIR$/examples/teleport.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/teleport.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/teleport_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/teleport_circuit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/_version.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket_boto3_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket_boto3_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/_drawer_test.py" afterDir="false" />
@@ -153,12 +152,89 @@
       <change beforePath="$PROJECT_DIR$/projectq/types/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/types/_qubit.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/_qubit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/types/_qubit_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/types/_qubit_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytest.ini" beforeDir="false" afterPath="$PROJECT_DIR$/pytest.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/examples/shor.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="945">
+              <caret line="87" selection-start-line="87" selection-end-line="98" selection-end-column="44" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/ops/_state_prep.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="276">
+              <caret line="57" lean-forward="true" selection-start-line="57" selection-end-line="57" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/setups/decompositions/stateprep2cnot.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-171">
+              <caret line="84" selection-start-line="84" selection-end-line="84" />
+              <folding>
+                <element signature="e#676#688#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/setups/decompositions/rz2rx.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-660" />
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/cengines/_replacer/_replacer.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2940">
+              <caret line="200" selection-start-line="199" selection-start-column="65" selection-end-line="200" />
+              <folding>
+                <element signature="e#920#1059#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/setups/decompositions/cnot2rxx.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="276">
+              <caret line="41" column="73" selection-start-line="41" selection-start-column="73" selection-end-line="41" selection-end-column="73" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4650">
+              <caret line="313" column="12" selection-start-line="313" selection-start-column="12" selection-end-line="313" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -178,7 +254,6 @@
     <option name="width" value="981" />
     <option name="height" value="1032" />
   </component>
-  <component name="ProjectId" id="1tx4UoHGi8yM1ZS5anqm0JVfPXa" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -233,13 +308,17 @@
       <pane id="Scope" />
     </panes>
   </component>
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
   </component>
   <component name="RunManager" selected="Python.control_tester">
     <configuration name="_simulator" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -291,7 +370,6 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -351,17 +429,26 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
-          </value>
-        </entry>
-        <entry key="f3e909bb-223e-4231-be63-765e9d01ae2f">
-          <value>
-            <State />
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">

@@ -353,12 +353,7 @@ class Simulator(BasicEngine):
                 (which should never happen due to is_available).
         """
         #print(cmd.gate)
-        for ctrlid in range(len(cmd.control_qubits)):
-            if cmd.ctrl_state[ctrlid] == '0':
-                Xmatrix = np.matrix([[0, 1], [1, 0]])
 
-                self._simulator.apply_controlled_gate(Xmatrix.tolist(),
-                                                          [cmd.control_qubits[ctrlid].id], [])
 
         if cmd.gate == Measure:
             assert get_control_count(cmd) == 0
@@ -445,12 +440,17 @@ class Simulator(BasicEngine):
                 " engine to your list of compiler engines."
             )
 
-        for ctrlid in range(len(cmd.control_qubits)):
-            if cmd.ctrl_state[ctrlid] == '0':
-                Xmatrix = np.matrix([[0, 1], [1, 0]])
 
-                self._simulator.apply_controlled_gate(Xmatrix.tolist(),
-                                                      [cmd.control_qubits[ctrlid].id], [])
+            raise Exception("This simulator only supports controlled k-qubit"
+                            " gates with k < 6!\nPlease add an auto-replacer"
+                            " engine to your list of compiler engines.")
+        #if cmd.ctrl_state == 0 :
+        #    Xmat = np.matrix([[0, 1], [1, 0]])
+        #    self._simulator.apply_controlled_gate(Xmat.tolist(),
+        #                                          [qb.id for qb in cmd.control_qubits],
+        #
+        #                                          [])
+
 
     def receive(self, command_list):
         """
@@ -462,7 +462,6 @@ class Simulator(BasicEngine):
             command_list (list<Command>): List of commands to execute on the
                 simulator.
         """
-
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)

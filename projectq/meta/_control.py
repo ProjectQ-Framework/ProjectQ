@@ -24,11 +24,16 @@ Example:
 """
 
 from projectq.cengines import BasicEngine
-from projectq.meta import ComputeTag, UncomputeTag
+from projectq.meta import ComputeTag, UncomputeTag, Compute, Uncompute
 from projectq.ops import ClassicalInstructionGate
 from projectq.types import BasicQubit
 from projectq.ops import _command, X
 from ._util import insert_engine, drop_engine_after
+from enum import Enum
+
+class State(Enum):
+    AllZero = 0
+    AllOne = -1
 
 
 class ControlEngine(BasicEngine):
@@ -107,9 +112,14 @@ class Control(object):
         self._qubits = qubits
 
         # If the user inputs a single digit 0 or 1, extend the digit to all ctrl qubits
-        if ctrl_state == 0 or ctrl_state == 1 or ctrl_state == '0' or ctrl_state == '1':
+        if ctrl_state == 0  or ctrl_state == '0':
             self._state = str(ctrl_state)*len(qubits)
+        elif type(ctrl_state) is State:
+            if ctrl_state.value == -1:
 
+                self._state = '1'*len(qubits)
+            else:
+                self._state = '0' * len(qubits)
         # If the user inputs an integer, convert it to binary bit string
         elif type(ctrl_state) is int:
             bit_length = len(self._qubits)
@@ -120,7 +130,7 @@ class Control(object):
             self._state = ctrl_state
 
         else:
-            raise TypeError('Input must be a string or an integer')
+            raise TypeError('Input must be a string, an integer or class State')
         # Raise exceptions for wrong cases: invalid string length and number
         assert len(self._state) == len(self._qubits), 'Control state has different length than control qubits'
         assert set(self._state).issubset({'0','1'}), 'Control state has string other than 1 and 0'
@@ -128,13 +138,22 @@ class Control(object):
 
     def __enter__(self):
         if len(self._qubits) > 0:
+
+            with Compute(self.engine):
+                for i in range(len(self._state)):
+                    if self._state[i]=='0':
+                        X | self._qubits[i]
+
             ce = ControlEngine(self._qubits, self._state)
             insert_engine(self.engine, ce)
+
+
     def __exit__(self, type, value, traceback):
         # remove control handler from engine list (i.e. skip it)
 
         if len(self._qubits) > 0:
             drop_engine_after(self.engine)
+            Uncompute(self.engine)
 
 
 def get_control_count(cmd):
