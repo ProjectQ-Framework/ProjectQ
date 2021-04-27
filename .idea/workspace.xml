@@ -167,8 +167,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/examples/shor.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="945">
               <caret line="87" selection-start-line="87" selection-end-line="98" selection-end-column="44" />
+=======
+            <state relative-caret-position="171">
+              <caret line="28" column="53" selection-start-line="28" selection-start-column="53" selection-end-line="28" selection-end-column="53" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -177,6 +182,7 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+<<<<<<< HEAD
         <entry file="file://$PROJECT_DIR$/projectq/ops/_state_prep.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="276">
@@ -190,6 +196,21 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-171">
               <caret line="84" selection-start-line="84" selection-end-line="84" />
+=======
+        <entry file="file://$PROJECT_DIR$/projectq/meta/_compute.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1227">
+              <caret line="387" column="38" selection-start-line="387" selection-start-column="38" selection-end-line="387" selection-end-column="38" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/projectq/backends/_sim/_simulator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="165">
+              <caret line="43" column="20" lean-forward="true" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="20" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
               <folding>
                 <element signature="e#676#688#0" expanded="true" />
               </folding>
@@ -200,6 +221,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/projectq/setups/decompositions/rz2rx.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="-660" />
           </provider>
         </entry>
@@ -209,6 +231,10 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="2940">
               <caret line="200" selection-start-line="199" selection-start-column="65" selection-end-line="200" />
+=======
+            <state relative-caret-position="210">
+              <caret line="122" column="46" selection-start-line="122" selection-start-column="46" selection-end-line="122" selection-end-column="46" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
               <folding>
                 <element signature="e#920#1059#0" expanded="true" />
               </folding>
@@ -217,18 +243,28 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+<<<<<<< HEAD
         <entry file="file://$PROJECT_DIR$/projectq/setups/decompositions/cnot2rxx.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="276">
               <caret line="41" column="73" selection-start-line="41" selection-start-column="73" selection-end-line="41" selection-end-column="73" />
             </state>
+=======
+        <entry file="file://$PROJECT_DIR$/projectq/cengines/_basics.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2979" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="4650">
+=======
+            <state relative-caret-position="279">
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
               <caret line="313" column="12" selection-start-line="313" selection-start-column="12" selection-end-line="313" selection-end-column="12" />
             </state>
           </provider>
@@ -385,18 +421,30 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+<<<<<<< HEAD
+=======
+    <editor active="true" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24880762" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
+<<<<<<< HEAD
       <window_info anchor="bottom" id="Run" order="2" weight="0.32389382" />
+=======
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32389382" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
+<<<<<<< HEAD
       <window_info active="true" anchor="bottom" id="Version Control" order="7" visible="true" weight="0.32920355" />
+=======
+      <window_info anchor="bottom" id="Version Control" order="7" />
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.32920355" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="10" />
@@ -453,7 +501,11 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/projectq/ops/_command.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
         <state relative-caret-position="4650">
+=======
+        <state relative-caret-position="279">
+>>>>>>> b53c2727b86fda86a64c20be5e2692188b4691b0
           <caret line="313" column="12" selection-start-line="313" selection-start-column="12" selection-end-line="313" selection-end-column="12" />
         </state>
       </provider>
