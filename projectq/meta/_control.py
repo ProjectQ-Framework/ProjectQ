@@ -62,7 +62,6 @@ class ControlEngine(BasicEngine):
         """
         for t in cmd.tags:
             if t in [UncomputeTag(), ComputeTag()]:
-                print('Uncompute')
                 return True
         return False
 
@@ -90,7 +89,7 @@ class Control(object):
                 do_something(otherqubits)
     """
 
-    def __init__(self, engine, qubits, ctrl_state=1):
+    def __init__(self, engine, qubits, ctrl_state=State.AllOne):
         """
         Enter a controlled section.
 
