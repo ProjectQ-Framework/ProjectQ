@@ -24,7 +24,7 @@ targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
 
--  run quantum programs on the IBM Quantum Experience chip, AQT devices or AWS Braket service provided devices
+-  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, or IonQ service provided devices
 -  simulate quantum programs on classical computers
 -  emulate quantum programs at a higher level of abstraction (e.g.,
    mimicking the action of large oracles instead of compiling them to
@@ -170,6 +170,37 @@ IonQ from IonQ and the state vector simulator SV1:
 
        cd /path/to/projectq/source/code
        python3 -m pip install -ve .[braket]
+
+
+**Running a quantum program on IonQ devices**
+
+To run a program on the IonQ trapped ion hardware, use the `IonQBackend` and its corresponding setup.
+
+Currently available devices are:
+
+* `ionq_simulator`: A 29-qubit simulator.
+* `ionq_qpu`: A 11-qubit trapped ion system.
+
+.. code-block:: python
+
+    import projectq.setups.ionq
+    from projectq import MainEngine
+    from projectq.backends import IonQBackend
+
+    token = 'MY_TOKEN'
+    device = 'ionq_qpu'
+    backend = IonQBackend(
+        token=token,
+        use_hardware=True,
+        num_runs=1024,
+        verbose=False,
+        device=device,
+    )
+    compiler_engines = projectq.setups.ionq.get_engine_list(
+        token=token,
+        device=device,
+    )
+    eng = MainEngine(backend, engine_list=compiler_engines)
 
 
 **Classically simulate a quantum program**
