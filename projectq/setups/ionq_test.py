@@ -1,4 +1,4 @@
-#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 import pytest
 
-from projectq.backends._ionq._ionq_exc import DeviceOfflineError, DeviceTooSmall
+from projectq.backends._ionq._ionq_exc import DeviceOfflineError
 from projectq.cengines import BasicMapperEngine
 
 
