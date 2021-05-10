@@ -1,0 +1,248 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - v*
+
+jobs:
+  standard:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        python:
+        - 3.5
+        - 3.6
+        - 3.7
+        - 3.8
+        - 3.9
+
+    name: "🐍 ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Python ${{ matrix.python }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: 'x64'
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        echo "::set-output name=dir::$(pip cache dir)"
+
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+
+    - name: Prepare env
+      run: |
+        python -m pip install -r requirements.txt --prefer-binary
+        python -m pip install -r requirements_tests.txt --prefer-binary
+        python -m pip install coveralls
+
+    - name: Setup annotations on Linux
+      if: runner.os == 'Linux'
+      run: python -m pip install pytest-github-actions-annotate-failures
+
+    - name: Build and install package
+      run: python -m pip install -v .
+
+    - name: Pytest
+      run: python -m pytest -p no:warnings -v --cov=projectq
+
+    - name: Coveralls.io
+      run: coveralls
+
+
+  static_analysis:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: "Static analysis (flake8, pylint)"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prepare env
+      run: python -m pip install flake8 pylint pylint-json2html
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Lint with pylint
+      run: |
+        python3 -m pylint -f json -j 2 --exit-zero --rcfile=.pylintrc projectq | pylint-json2html -o pylint.html
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: PyLint HTML Report
+        path: pylint.html
+
+  clang:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clang:
+          - 3.6
+          - 5
+          - 10
+
+    name: "🐍 3 • Clang ${{ matrix.clang }} • x64"
+    container: "silkeh/clang:${{ matrix.clang }}"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prepare env
+      run: >
+        apt-get update && apt-get install -y python3-dev
+        pybind11-dev
+        python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
+        python3-pytest python3-pytest-cov python3-flaky
+
+    - name: Build and install package
+      run: python -m pip install -v .
+
+    - name: Pytest
+      run: python -m pytest -p no:warnings
+
+
+  # Testing on GCC using the GCC docker images (only recent images supported)
+  gcc:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc:
+          - 7
+          - latest
+
+    name: "🐍 3 • GCC ${{ matrix.gcc }} • x64"
+    container: "gcc:${{ matrix.gcc }}"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prepare env
+      run: >
+        apt-get update && apt-get install -y python3-dev
+        pybind11-dev
+        python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
+        python3-pytest python3-pytest-cov python3-flaky
+
+    - name: Update pip
+      run: python3 -m pip install --upgrade pip
+
+    - name: Build and install package
+      run: python -m pip install -v .
+
+    - name: Pytest
+      run: python -m pytest -p no:warnings
+
+
+  centos:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        centos:
+          - 8
+
+    name: "🐍 3 • CentOS ${{ matrix.centos }} • x64"
+    container: "centos:${{ matrix.centos }}"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add Python 3
+      run: yum update -y && yum install -y python3-devel gcc-c++ make git
+
+    - name: Update pip
+      run: python3 -m pip install --upgrade pip
+
+    - name: Install dependencies
+      run: |
+        python3 -m pip install -r requirements.txt --prefer-binary
+        python3 -m pip install -r requirements_tests.txt --prefer-binary
+
+    - name: Build and install package
+      run: python -m pip install -v .
+
+    - name: Pytest
+      run: python -m pytest -p no:warnings
+
+
+  documentation:
+    name: "Documentation build test"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+
+    - name: Install Doxygen
+      run: sudo apt-get install -y doxygen rsvg-convert
+
+    - name: Install docs & setup requirements
+      run: |
+        python3 -m pip install -r requirements.txt --prefer-binary
+        python3 -m pip install -r docs/requirements.txt --prefer-binary
+        python3 -m pip install .
+
+    - name: Build docs
+      run: python3 -m sphinx -W -b html docs
+
+    - name: Make SDist
+      run: python3 setup.py sdist
+
+
+  win32-msvc2017:
+    name: "🐍 ${{ matrix.python }} • MSVC 2017 • x64"
+    runs-on: windows-2016
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - 3.5
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup 🐍 ${{ matrix.python }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Prepare env
+      run: >
+        python -m pip install -r requirements.txt --prefer-binary
+        python -m pip install -r requirements_tests.txt --prefer-binary
+
+    - name: Build package
+      run: python -m pip install -v .
+
+    - name: Run all checks
+      run: python -m pytest
