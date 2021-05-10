@@ -68,7 +68,7 @@ def get_engine_list(token=None, device=None):
         two_qubit_gates=(Swap, Rxx, Ryy, Rzz),
         other_gates=(Barrier,),
     )
-    return [mapper] + engine_list
+    return engine_list + [mapper]
 
 
 __all__ = ['get_engine_list']
