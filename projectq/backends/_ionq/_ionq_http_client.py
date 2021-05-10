@@ -74,12 +74,18 @@ class IonQ(Session):
         Determine whether or not the desired device has enough allocatable
         qubits to run something.
 
+        This returns a three-element tuple with whether or not the experiment
+        can be run, the max number of qubits possible, and the number of qubits
+        needed to run this experiment.
+
         Args:
             info (dict): A dict containing number of shots, qubits, and
                 a circuit.
             device (str): An IonQ device name.
         Returns:
-            bool: True if device has enough qubits, else False.
+            tuple(bool, int, int): Whether the operation can be run, max
+                number of qubits the device supports, and number of qubits
+                required for the experiment.
         """
         nb_qubit_max = self.backends[device]['nq']
         nb_qubit_needed = info['nq']
