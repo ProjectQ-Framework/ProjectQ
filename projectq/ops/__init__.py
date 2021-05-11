@@ -22,7 +22,7 @@ from ._basics import (NotMergeable,
                       FastForwardingGate,
                       BasicMathGate,
                       BasicPhaseGate)
-from ._command import apply_command, Command
+from ._command import apply_command, Command, CtrlAll
 from ._metagates import (DaggeredGate,
                          get_inverse,
                          is_identity,

@@ -13,18 +13,20 @@
 #   limitations under the License.
 
 """Tests for projectq.meta._control.py"""
+import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import Command, H, Rx
+from projectq.ops import Command, H, Rx, CtrlAll, Measure, All, X
 from projectq.meta import (DirtyQubitTag,
                            ComputeTag,
                            UncomputeTag,
                            Compute,
-                           Uncompute)
+                           Uncompute
+                           )
 
 from projectq.meta import _control
-
+from projectq.backends import Simulator
 
 def test_control_engine_has_compute_tag():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -35,14 +37,14 @@ def test_control_engine_has_compute_tag():
     test_cmd0.tags = [DirtyQubitTag(), ComputeTag(), DirtyQubitTag()]
     test_cmd1.tags = [DirtyQubitTag(), UncomputeTag(), DirtyQubitTag()]
     test_cmd2.tags = [DirtyQubitTag()]
-    control_eng = _control.ControlEngine("MockEng")
+    control_eng = _control.ControlEngine("MockEng", ctrl_state=CtrlAll.One)
     assert control_eng._has_compute_uncompute_tag(test_cmd0)
     assert control_eng._has_compute_uncompute_tag(test_cmd1)
     assert not control_eng._has_compute_uncompute_tag(test_cmd2)
 
 
 def test_control():
-    backend = DummyEngine(save_commands=True)
+    backend =DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     qureg = eng.allocate_qureg(2)
     with _control.Control(eng, qureg):
@@ -66,3 +68,43 @@ def test_control():
     assert backend.received_commands[4].control_qubits[0].id == qureg[0].id
     assert backend.received_commands[4].control_qubits[1].id == qureg[1].id
     assert backend.received_commands[6].control_qubits[0].id == qureg[0].id
+
+
+def test_control_state():
+    backend = Simulator()
+    eng = MainEngine(backend=backend)
+
+    qureg = eng.allocate_qureg(3)
+    xreg = eng.allocate_qureg(3)
+    X | qureg[1]
+    with _control.Control(eng, qureg[0],'0'):
+        with Compute(eng):
+            X | xreg[0]
+
+        X | xreg[1]
+        Uncompute(eng)
+
+    with _control.Control(eng, qureg[1:],'10'):
+        X | xreg[2]
+    All(Measure) | qureg
+    All(Measure) | xreg
+    eng.flush()
+
+    assert int(xreg[0]) == 0
+    assert int(xreg[1]) == 1
+    assert int(xreg[2]) == 1
+    assert int(qureg[0]) == 0
+    assert int(qureg[1]) == 1
+    assert int(qureg[2]) == 0
+
+def test_control_state_contradiction():
+    backend =DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
+    qureg = eng.allocate_qureg(1)
+    with pytest.raises(AssertionError):
+        with _control.Control(eng, qureg[0],'0'):
+            qubit = eng.allocate_qubit()
+            with _control.Control(eng, qureg[0],'1'):
+                H | qubit
+    eng.flush()
+

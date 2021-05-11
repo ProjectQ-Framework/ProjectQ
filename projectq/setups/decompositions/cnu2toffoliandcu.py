@@ -21,7 +21,7 @@ C(U) gate by using (n-1) ancilla qubits and circuit depth of 2n-1.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count, Compute, Control, Uncompute
+from projectq.meta import get_control_count, Compute, Control, Uncompute, has_negative_control
 from projectq.ops import BasicGate, Toffoli, XGate
 
 
@@ -30,12 +30,15 @@ def _recognize_CnU(cmd):
     Recognize an arbitrary gate which has n>=2 control qubits, except a
     Toffoli gate.
     """
-    if get_control_count(cmd) == 2:
-        if not isinstance(cmd.gate, XGate):
+    if has_negative_control(cmd):
+        return False
+    else:
+        if get_control_count(cmd) == 2:
+            if not isinstance(cmd.gate, XGate):
+                return True
+        elif get_control_count(cmd) > 2:
             return True
-    elif get_control_count(cmd) > 2:
-        return True
-    return False
+        return False
 
 
 def _decompose_CnU(cmd):

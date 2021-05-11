@@ -276,3 +276,16 @@ def test_command_to_string():
         assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
         assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"
 
+
+def test_ctrl_state_merge(main_engine):
+    qubit0 = Qureg([Qubit(main_engine, 0)])
+    qubit1 = Qureg([Qubit(main_engine, 1)])
+    qubit2 = Qureg([Qubit(main_engine, 2)])
+    qubit3 = Qureg([Qubit(main_engine, 3)])
+    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
+    cmd.add_control_qubits(qubit2 + qubit1,'1'+'0')
+    cmd.add_control_qubits(qubit3,'1')
+    assert cmd.control_qubits[0].id == 1
+    assert cmd.control_qubits[1].id == 2
+    assert cmd.control_qubits[2].id == 3
+    assert cmd.ctrl_state == '011'

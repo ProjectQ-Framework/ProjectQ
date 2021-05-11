@@ -32,7 +32,7 @@ from ._compute import (Compute,
                        ComputeTag,
                        UncomputeTag)
 from ._control import (Control,
-                       get_control_count)
+                       get_control_count,  has_negative_control)
 from ._dagger import Dagger
 from ._util import insert_engine, drop_engine_after
 from ._logicalqubit import LogicalQubitIDTag

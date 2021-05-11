@@ -17,7 +17,7 @@ import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import (Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate,
                           FlushGate)
 
@@ -108,12 +108,15 @@ class AQTBackend(BasicEngine):
         Args:
             cmd (Command): Command for which to check availability
         """
-        if get_control_count(cmd) == 0:
-            if isinstance(cmd.gate, (Rx, Ry, Rxx)):
+        if has_negative_control(cmd):
+            return False
+        else:
+            if get_control_count(cmd) == 0:
+                if isinstance(cmd.gate, (Rx, Ry, Rxx)):
+                    return True
+            if cmd.gate in (Measure, Allocate, Deallocate, Barrier):
                 return True
-        if cmd.gate in (Measure, Allocate, Deallocate, Barrier):
-            return True
-        return False
+            return False
 
     def _reset(self):
         """ Reset all temporary variables (after flush gate). """

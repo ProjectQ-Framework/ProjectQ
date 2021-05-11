@@ -26,7 +26,7 @@ from projectq.cengines import (BasicEngine,
                                CommandModifier)
 from projectq.ops import (FlushGate,
                           get_inverse)
-
+from projectq.meta import has_negative_control
 
 class NoGateDecompositionError(Exception):
     pass
@@ -137,6 +137,7 @@ class AutoReplacer(BasicEngine):
             # DaggeredGate, BasicGate, object. Hence don't check the last two
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
             rules = self.decompositionRuleSet.decompositions
+
             for level in range(max(len(gate_mro), len(inverse_mro))):
                 # Check for forward rules
                 if level < len(gate_mro):
