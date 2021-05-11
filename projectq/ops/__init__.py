@@ -23,9 +23,9 @@ from ._basics import (
     ClassicalInstructionGate,
     FastForwardingGate,
     BasicMathGate,
-    BasicPhaseGate,
+    BasicPhaseGate
 )
-from ._command import apply_command, Command
+from ._command import apply_command, Command, CtrlAll
 from ._metagates import (
     DaggeredGate,
     get_inverse,
@@ -33,7 +33,7 @@ from ._metagates import (
     ControlledGate,
     C,
     Tensor,
-    All,
+    All
 )
 from ._gates import *
 from ._qftgate import QFT, QFTGate

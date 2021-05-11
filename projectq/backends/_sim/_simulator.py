@@ -22,14 +22,17 @@ import math
 import random
 import numpy as np
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import (
+    NOT,
+    H,
+    R,
     Measure,
     FlushGate,
     Allocate,
     Deallocate,
     BasicMathGate,
-    TimeEvolution,
+    TimeEvolution
 )
 from projectq.types import WeakQubitRef
 
@@ -104,22 +107,25 @@ class Simulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        if (
-            cmd.gate == Measure
-            or cmd.gate == Allocate
-            or cmd.gate == Deallocate
-            or isinstance(cmd.gate, BasicMathGate)
-            or isinstance(cmd.gate, TimeEvolution)
-        ):
-            return True
-        try:
-            m = cmd.gate.matrix
-            # Allow up to 5-qubit gates
-            if len(m) > 2 ** 5:
-                return False
-            return True
-        except AttributeError:
+        if has_negative_control(cmd):
             return False
+        else:
+            if (
+                cmd.gate == Measure
+                or cmd.gate == Allocate
+                or cmd.gate == Deallocate
+                or isinstance(cmd.gate, BasicMathGate)
+                or isinstance(cmd.gate, TimeEvolution)
+            ):
+                return True
+            try:
+                m = cmd.gate.matrix
+                # Allow up to 5-qubit gates
+                if len(m) > 2 ** 5:
+                    return False
+                return True
+            except AttributeError:
+                return False
 
     def _convert_logical_to_mapped_qureg(self, qureg):
         """
@@ -352,7 +358,6 @@ class Simulator(BasicEngine):
             Exception: If a non-single-qubit gate needs to be processed
                 (which should never happen due to is_available).
         """
-        #print(cmd.gate)
 
 
         if cmd.gate == Measure:
@@ -431,6 +436,17 @@ class Simulator(BasicEngine):
                     )
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
+                raise Exception("Simulator: Error applying {} gate: "
+                                "{}-qubit gate applied to {} qubits.".format(
+                                    str(cmd.gate),
+                                    int(math.log(len(cmd.gate.matrix), 2)),
+                                    len(ids)))
+
+
+            self._simulator.apply_controlled_gate(matrix.tolist(),
+                                                  ids,
+                                                  [qb.id for qb in
+                                                   cmd.control_qubits])
             if not self._gate_fusion:
                 self._simulator.run()
         else:
@@ -444,12 +460,6 @@ class Simulator(BasicEngine):
             raise Exception("This simulator only supports controlled k-qubit"
                             " gates with k < 6!\nPlease add an auto-replacer"
                             " engine to your list of compiler engines.")
-        #if cmd.ctrl_state == 0 :
-        #    Xmat = np.matrix([[0, 1], [1, 0]])
-        #    self._simulator.apply_controlled_gate(Xmat.tolist(),
-        #                                          [qb.id for qb in cmd.control_qubits],
-        #
-        #                                          [])
 
 
     def receive(self, command_list):

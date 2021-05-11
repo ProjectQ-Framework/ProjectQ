@@ -21,6 +21,7 @@ from . import (
     cnot2rxx,
     cnot2cz,
     cnu2toffoliandcu,
+    controlstate,
     entangle,
     globalphase,
     h2rx,
@@ -38,7 +39,7 @@ from . import (
     time_evolution,
     uniformlycontrolledr2cnot,
     phaseestimation,
-    amplitudeamplification,
+    amplitudeamplification
 )
 
 all_defined_decomposition_rules = [
@@ -51,6 +52,7 @@ all_defined_decomposition_rules = [
         cnot2rxx,
         cnot2cz,
         cnu2toffoliandcu,
+        controlstate,
         entangle,
         globalphase,
         h2rx,
@@ -68,7 +70,7 @@ all_defined_decomposition_rules = [
         time_evolution,
         uniformlycontrolledr2cnot,
         phaseestimation,
-        amplitudeamplification,
+        amplitudeamplification
     ]
     for rule in module.all_defined_decomposition_rules
 ]

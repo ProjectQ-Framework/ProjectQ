@@ -43,7 +43,12 @@ from copy import deepcopy
 
 import projectq
 from projectq.types import WeakQubitRef, Qureg
+from enum import IntEnum
 
+class CtrlAll(IntEnum):
+    Zero = 0
+    One = 1
+    Init = -1
 
 def apply_command(cmd):
     """
@@ -84,7 +89,7 @@ class Command(object):
         all_qubits: A tuple of control_qubits + qubits
     """
 
-    def __init__(self, engine, gate, qubits, controls=(), tags=(), ctrl_state='-1'):
+    def __init__(self, engine, gate, qubits, controls=(), tags=(), ctrl_state=CtrlAll.Init):
         """
         Initialize a Command object.
 
@@ -115,10 +120,8 @@ class Command(object):
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
         self.engine = engine  # property
-        if ctrl_state == '-1':
-            self.ctrl_state = '1' * len(self.control_qubits)
-        else:
-            self.ctrl_state = ctrl_state
+        self.ctrl_state = ctrl_state
+
     @property
     def qubits(self):
         return self._qubits
@@ -238,7 +241,7 @@ class Command(object):
         self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits]
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
-    def add_control_qubits(self, qubits, ctrl_state):
+    def add_control_qubits(self, qubits, ctrl_state=CtrlAll.One):
         """
         Add (additional) control qubits to this command object.
 
@@ -248,13 +251,33 @@ class Command(object):
 
         Args:
             qubits (list of Qubit objects): List of qubits which control this
+                gate
+
+            ctrl_state (string of bit values): String of bits which control this
                 gate, i.e., the gate is only executed if all qubits are
-                in state 1.
+                in the respective state represented by the bit string.
         """
-        assert isinstance(qubits, list)
-        self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
-        self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
-        self.ctrl_state = ctrl_state
+        assert (isinstance(qubits, list))
+        self._control_qubits.extend(
+            [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
+
+        if self.ctrl_state==CtrlAll.Init:
+            self.ctrl_state = ctrl_state
+        else:
+            self.ctrl_state = self.ctrl_state + ctrl_state
+
+        ctrl_len = len(self.control_qubits)
+        for i in range(ctrl_len):
+            for j in range(ctrl_len):
+                if self.control_qubits[i].id == self.control_qubits[j].id:
+                    assert self.ctrl_state[i] == self.ctrl_state[j]
+
+        zipped = list(zip(self._control_qubits, self.ctrl_state))
+        zipped = sorted(zipped, key = lambda x:x[0].id)
+        unzipped_qubit, unzipped_state = zip(*zipped)
+
+        self._control_qubits, self.ctrl_state = list(unzipped_qubit), ''.join(unzipped_state)
+
     @property
     def all_qubits(self):
         """

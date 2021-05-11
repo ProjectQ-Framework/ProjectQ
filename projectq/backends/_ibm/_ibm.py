@@ -17,9 +17,15 @@ import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import (
     NOT,
+    Y,
+    Z,
+    T,
+    Tdag,
+    S,
+    Sdag,
     H,
     Rx,
     Ry,
@@ -28,7 +34,7 @@ from projectq.ops import (
     Allocate,
     Deallocate,
     Barrier,
-    FlushGate,
+    FlushGate
 )
 
 from ._ibm_http_client import send, retrieve
@@ -100,17 +106,21 @@ class IBMBackend(BasicEngine):
         Args:
             cmd (Command): Command for which to check availability
         """
-        g = cmd.gate
-        if g == NOT and get_control_count(cmd) == 1:
-            return True
-        if get_control_count(cmd) == 0:
-            if g == H:
+        if has_negative_control(cmd):
+            return False
+        else:
+            g = cmd.gate
+
+            if g == NOT and get_control_count(cmd) == 1:
                 return True
-            if isinstance(g, (Rx, Ry, Rz)):
+            if get_control_count(cmd) == 0:
+                if g == H:
+                    return True
+                if isinstance(g, (Rx, Ry, Rz)):
+                    return True
+            if g in (Measure, Allocate, Deallocate, Barrier):
                 return True
-        if g in (Measure, Allocate, Deallocate, Barrier):
-            return True
-        return False
+            return False
 
     def get_qasm(self):
         """Return the QASM representation of the circuit sent to the backend.
