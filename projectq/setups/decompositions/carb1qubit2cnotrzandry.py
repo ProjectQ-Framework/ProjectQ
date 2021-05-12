@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers the decomposition of an controlled arbitary single qubit gate.
 
@@ -32,12 +31,11 @@ from projectq.meta import get_control_count, Control
 from projectq.ops import BasicGate, CNOT, Ph, Ry, Rz, X
 from projectq.setups.decompositions import arb1qubit2rzandry as arb1q
 
-
 TOLERANCE = 1e-12
 
 
 def _recognize_carb1qubit(cmd):
-    """ Recognize single controlled one qubit gates with a matrix."""
+    """Recognize single controlled one qubit gates with a matrix."""
     if get_control_count(cmd) == 1:
         try:
             m = cmd.gate.matrix
@@ -65,11 +63,17 @@ def _test_parameters(matrix, a, b, c_half):
     Returns:
         True if matrix elements of V and `matrix` are TOLERANCE close.
     """
-    V = [[-math.sin(c_half)*cmath.exp(1j*a),
-          cmath.exp(1j*(a-b))*math.cos(c_half)],
-         [cmath.exp(1j*(a+b))*math.cos(c_half),
-          cmath.exp(1j*a) * math.sin(c_half)]]
-    return numpy.allclose(V, matrix, rtol=10*TOLERANCE, atol=TOLERANCE)
+    V = [
+        [
+            -math.sin(c_half) * cmath.exp(1j * a),
+            cmath.exp(1j * (a - b)) * math.cos(c_half),
+        ],
+        [
+            cmath.exp(1j * (a + b)) * math.cos(c_half),
+            cmath.exp(1j * a) * math.sin(c_half),
+        ],
+    ]
+    return numpy.allclose(V, matrix, rtol=10 * TOLERANCE, atol=TOLERANCE)
 
 
 def _recognize_v(matrix):
@@ -85,17 +89,19 @@ def _recognize_v(matrix):
         False if it is not possible otherwise (a, b, c/2)
     """
     if abs(matrix[0][0]) < TOLERANCE:
-        two_a = cmath.phase(matrix[0][1]*matrix[1][0]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(matrix[0][1] * matrix[1][0]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
-        two_b = cmath.phase(matrix[1][0])-cmath.phase(matrix[0][1])
-        possible_b = [(two_b/2.) % (2*math.pi),
-                      (two_b/2.+math.pi) % (2*math.pi)]
+            a = two_a / 2.0
+        two_b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1])
+        possible_b = [
+            (two_b / 2.0) % (2 * math.pi),
+            (two_b / 2.0 + math.pi) % (2 * math.pi),
+        ]
         possible_c_half = [0, math.pi]
         found = False
         for b, c_half in itertools.product(possible_b, possible_c_half):
@@ -106,16 +112,16 @@ def _recognize_v(matrix):
         return (a, b, c_half)
 
     elif abs(matrix[0][1]) < TOLERANCE:
-        two_a = cmath.phase(-matrix[0][0] * matrix[1][1]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(-matrix[0][0] * matrix[1][1]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
+            a = two_a / 2.0
         b = 0
-        possible_c_half = [math.pi/2., 3./2.*math.pi]
+        possible_c_half = [math.pi / 2.0, 3.0 / 2.0 * math.pi]
         found = False
         for c_half in possible_c_half:
             if _test_parameters(matrix, a, b, c_half):
@@ -124,22 +130,26 @@ def _recognize_v(matrix):
         return False
 
     else:
-        two_a = cmath.phase(-1.*matrix[0][0]*matrix[1][1]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(-1.0 * matrix[0][0] * matrix[1][1]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
-        two_b = cmath.phase(matrix[1][0])-cmath.phase(matrix[0][1])
-        possible_b = [(two_b/2.) % (2*math.pi),
-                      (two_b/2.+math.pi) % (2*math.pi)]
+            a = two_a / 2.0
+        two_b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1])
+        possible_b = [
+            (two_b / 2.0) % (2 * math.pi),
+            (two_b / 2.0 + math.pi) % (2 * math.pi),
+        ]
         tmp = math.acos(abs(matrix[1][0]))
+        # yapf: disable
         possible_c_half = [tmp % (2*math.pi),
                            (tmp+math.pi) % (2*math.pi),
                            (-1.*tmp) % (2*math.pi),
                            (-1.*tmp+math.pi) % (2*math.pi)]
+        # yapf: enable
         found = False
         for b, c_half in itertools.product(possible_b, possible_c_half):
             if _test_parameters(matrix, a, b, c_half):
@@ -203,14 +213,14 @@ def _decompose_carb1qubit(cmd):
     # Case 2: General matrix U:
     else:
         a, b_half, c_half, d_half = arb1q._find_parameters(matrix)
-        d = 2*d_half
-        b = 2*b_half
-        if Rz((d-b)/2.) != Rz(0):
-            Rz((d-b)/2.) | qb
+        d = 2 * d_half
+        b = 2 * b_half
+        if Rz((d - b) / 2.0) != Rz(0):
+            Rz((d - b) / 2.0) | qb
         with Control(eng, cmd.control_qubits):
             X | qb
-        if Rz(-(d+b)/2.) != Rz(0):
-            Rz(-(d+b)/2.) | qb
+        if Rz(-(d + b) / 2.0) != Rz(0):
+            Rz(-(d + b) / 2.0) | qb
         if Ry(-c_half) != Ry(0):
             Ry(-c_half) | qb
         with Control(eng, cmd.control_qubits):
@@ -225,6 +235,4 @@ def _decompose_carb1qubit(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(BasicGate, _decompose_carb1qubit, _recognize_carb1qubit)
-]
+all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_carb1qubit, _recognize_carb1qubit)]

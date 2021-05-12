@@ -26,7 +26,7 @@ def run_grover(eng, n, oracle):
     All(H) | x
 
     # number of iterations we have to run:
-    num_it = int(math.pi/4.*math.sqrt(1 << n))
+    num_it = int(math.pi / 4.0 * math.sqrt(1 << n))
 
     # prepare the oracle output qubit (the one that is flipped to indicate the
     # solution. start in state 1/sqrt(2) * (|0> - |1>) s.t. a bit-flip turns

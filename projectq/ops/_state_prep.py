@@ -20,6 +20,7 @@ class StatePreparation(BasicGate):
     """
     Gate for transforming qubits in state |0> to any desired quantum state.
     """
+
     def __init__(self, final_state):
         """
         Initialize StatePreparation gate.

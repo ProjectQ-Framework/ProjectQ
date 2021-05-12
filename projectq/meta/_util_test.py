@@ -13,7 +13,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.meta import insert_engine, drop_engine_after

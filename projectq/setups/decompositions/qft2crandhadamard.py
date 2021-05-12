@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for the quantum Fourier transform.
 
@@ -42,6 +41,4 @@ def _decompose_QFT(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(QFT.__class__, _decompose_QFT)
-]
+all_defined_decomposition_rules = [DecompositionRule(QFT.__class__, _decompose_QFT)]

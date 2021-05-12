@@ -14,14 +14,26 @@
 #   limitations under the License.
 """Tests for projectq.libs.math._gates.py."""
 
-from projectq.libs.math import (AddConstant, AddConstantModN,
-                                MultiplyByConstantModN, SubConstant,
-                                SubConstantModN, AddQuantum, SubtractQuantum,
-                                ComparatorQuantum, DivideQuantum,
-                                MultiplyQuantum)
+from projectq.libs.math import (
+    AddConstant,
+    AddConstantModN,
+    MultiplyByConstantModN,
+    SubConstant,
+    SubConstantModN,
+    AddQuantum,
+    SubtractQuantum,
+    ComparatorQuantum,
+    DivideQuantum,
+    MultiplyQuantum,
+)
 
-from ._gates import (AddQuantumGate, SubtractQuantumGate, MultiplyQuantumGate,
-                     DivideQuantumGate, ComparatorQuantumGate)
+from ._gates import (
+    AddQuantumGate,
+    SubtractQuantumGate,
+    MultiplyQuantumGate,
+    DivideQuantumGate,
+    ComparatorQuantumGate,
+)
 
 
 def test_addconstant():
@@ -89,8 +101,7 @@ def test_hash_function_implemented():
     assert hash(SubConstant(-3)) == hash(str(AddConstant(3)))
     assert hash(AddConstantModN(7, 4)) == hash(str(AddConstantModN(7, 4)))
     assert hash(SubConstantModN(7, 4)) == hash(str(AddConstantModN(-3, 4)))
-    assert hash(MultiplyByConstantModN(3, 5)) == hash(
-        str(MultiplyByConstantModN(3, 5)))
+    assert hash(MultiplyByConstantModN(3, 5)) == hash(str(MultiplyByConstantModN(3, 5)))
     assert hash(AddQuantum) == hash(str(AddQuantum))
     assert hash(SubtractQuantum) == hash(str(SubtractQuantum))
     assert hash(ComparatorQuantum) == hash(str(ComparatorQuantum))

@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for libs.revkit._control_function."""
 
 import pytest
@@ -23,22 +22,20 @@ from projectq.cengines import DummyEngine
 
 from projectq.libs.revkit import ControlFunctionOracle
 
-
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
 
 
 def test_control_function_majority():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
     qubit2 = main_engine.allocate_qubit()
     qubit3 = main_engine.allocate_qubit()
 
-    ControlFunctionOracle(0xe8) | (qubit0, qubit1, qubit2, qubit3)
+    ControlFunctionOracle(0xE8) | (qubit0, qubit1, qubit2, qubit3)
 
     assert len(saving_backend.received_commands) == 7
 
@@ -50,8 +47,7 @@ def test_control_function_majority_from_python():
         return (a and b) or (a and c) or (b and c)  # pragma: no cover
 
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
@@ -62,8 +58,7 @@ def test_control_function_majority_from_python():
 
 
 def test_control_function_invalid_function():
-    main_engine = MainEngine(backend=DummyEngine(),
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
 
     qureg = main_engine.allocate_qureg(3)
 
@@ -71,7 +66,7 @@ def test_control_function_invalid_function():
         ControlFunctionOracle(-42) | qureg
 
     with pytest.raises(AttributeError):
-        ControlFunctionOracle(0x8e) | qureg
+        ControlFunctionOracle(0x8E) | qureg
 
     with pytest.raises(RuntimeError):
         ControlFunctionOracle(0x8, synth=revkit.esopps) | qureg

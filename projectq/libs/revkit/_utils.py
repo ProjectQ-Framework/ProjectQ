@@ -24,4 +24,5 @@ def _exec(code, qs):
                            applied.
     """
     from projectq.ops import C, X, Z, All
+
     exec(code)

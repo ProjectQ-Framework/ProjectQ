@@ -13,15 +13,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._gates import (AddConstant,
-                     SubConstant,
-                     AddConstantModN,
-                     SubConstantModN,
-                     MultiplyByConstantModN,
-                     AddQuantum,
-                     SubtractQuantum,
-                     ComparatorQuantum,
-                     DivideQuantum,
-                     MultiplyQuantum)
+from ._gates import (
+    AddConstant,
+    SubConstant,
+    AddConstantModN,
+    SubConstantModN,
+    MultiplyByConstantModN,
+    AddQuantum,
+    SubtractQuantum,
+    ComparatorQuantum,
+    DivideQuantum,
+    MultiplyQuantum,
+)
 
 from ._default_rules import all_defined_decomposition_rules

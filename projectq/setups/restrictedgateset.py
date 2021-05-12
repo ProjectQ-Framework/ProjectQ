@@ -26,10 +26,23 @@ import inspect
 import projectq
 import projectq.libs.math
 import projectq.setups.decompositions
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               InstructionFilter, LocalOptimizer, TagRemover)
-from projectq.ops import (BasicGate, BasicMathGate, ClassicalInstructionGate,
-                          CNOT, ControlledGate, get_inverse, QFT, Swap)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    InstructionFilter,
+    LocalOptimizer,
+    TagRemover,
+)
+from projectq.ops import (
+    BasicGate,
+    BasicMathGate,
+    ClassicalInstructionGate,
+    CNOT,
+    ControlledGate,
+    get_inverse,
+    QFT,
+    Swap,
+)
 
 
 def high_level_gates(eng, cmd):
@@ -63,10 +76,12 @@ def default_chooser(cmd, decomposition_list):
     return decomposition_list[0]
 
 
-def get_engine_list(one_qubit_gates="any",
-                    two_qubit_gates=(CNOT, ),
-                    other_gates=(),
-                    compiler_chooser=default_chooser):
+def get_engine_list(
+    one_qubit_gates="any",
+    two_qubit_gates=(CNOT,),
+    other_gates=(),
+    compiler_chooser=default_chooser,
+):
     """
     Returns an engine list to compile to a restricted gate set.
 
@@ -117,17 +132,18 @@ def get_engine_list(one_qubit_gates="any",
         A list of suitable compiler engines.
     """
     if two_qubit_gates != "any" and not isinstance(two_qubit_gates, tuple):
-        raise TypeError("two_qubit_gates parameter must be 'any' or a tuple. "
-                        "When supplying only one gate, make sure to correctly "
-                        "create the tuple (don't miss the comma), "
-                        "e.g. two_qubit_gates=(CNOT,)")
+        raise TypeError(
+            "two_qubit_gates parameter must be 'any' or a tuple. "
+            "When supplying only one gate, make sure to correctly "
+            "create the tuple (don't miss the comma), "
+            "e.g. two_qubit_gates=(CNOT,)"
+        )
     if one_qubit_gates != "any" and not isinstance(one_qubit_gates, tuple):
         raise TypeError("one_qubit_gates parameter must be 'any' or a tuple.")
     if not isinstance(other_gates, tuple):
         raise TypeError("other_gates parameter must be a tuple.")
 
-    rule_set = DecompositionRuleSet(
-        modules=[projectq.libs.math, projectq.setups.decompositions])
+    rule_set = DecompositionRuleSet(modules=[projectq.libs.math, projectq.setups.decompositions])
     allowed_gate_classes = []  # n-qubit gates
     allowed_gate_instances = []
     allowed_gate_classes1 = []  # 1-qubit gates
@@ -190,16 +206,13 @@ def get_engine_list(one_qubit_gates="any",
             return True
         elif (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances:
             return True
-        elif (isinstance(cmd.gate, allowed_gate_classes1)
-              and len(all_qubits) == 1):
+        elif isinstance(cmd.gate, allowed_gate_classes1) and len(all_qubits) == 1:
             return True
-        elif (isinstance(cmd.gate, allowed_gate_classes2)
-              and len(all_qubits) == 2):
+        elif isinstance(cmd.gate, allowed_gate_classes2) and len(all_qubits) == 2:
             return True
         elif cmd.gate in allowed_gate_instances1 and len(all_qubits) == 1:
             return True
-        elif ((cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2
-              and len(all_qubits) == 2):
+        elif (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2 and len(all_qubits) == 2:
             return True
         return False
 

@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for the Toffoli gate.
 
@@ -25,7 +24,7 @@ from projectq.ops import NOT, CNOT, T, Tdag, H
 
 
 def _decompose_toffoli(cmd):
-    """ Decompose the Toffoli gate into CNOT, H, T, and Tdagger gates. """
+    """Decompose the Toffoli gate into CNOT, H, T, and Tdagger gates."""
     ctrl = cmd.control_qubits
     eng = cmd.engine
 
@@ -51,11 +50,9 @@ def _decompose_toffoli(cmd):
 
 
 def _recognize_toffoli(cmd):
-    """ Recognize the Toffoli gate. """
+    """Recognize the Toffoli gate."""
     return get_control_count(cmd) == 2
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)
-]
+all_defined_decomposition_rules = [DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)]

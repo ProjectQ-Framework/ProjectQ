@@ -27,7 +27,7 @@ import math
 
 
 def _decompose_cnot2rxx_M(cmd):
-    """ Decompose CNOT gate into Rxx gate. """
+    """Decompose CNOT gate into Rxx gate."""
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     ctrl = cmd.control_qubits
     Ry(math.pi / 2) | ctrl[0]
@@ -39,7 +39,7 @@ def _decompose_cnot2rxx_M(cmd):
 
 
 def _decompose_cnot2rxx_P(cmd):
-    """ Decompose CNOT gate into Rxx gate. """
+    """Decompose CNOT gate into Rxx gate."""
     # Labelled 'P' for 'plus' because decomposition ends with a Ry(+pi/2)
     ctrl = cmd.control_qubits
     Ry(-math.pi / 2) | ctrl[0]
@@ -51,12 +51,12 @@ def _decompose_cnot2rxx_P(cmd):
 
 
 def _recognize_cnot2(cmd):
-    """ Identify that the command is a CNOT gate (control - X gate)"""
+    """Identify that the command is a CNOT gate (control - X gate)"""
     return get_control_count(cmd) == 1
 
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(X.__class__, _decompose_cnot2rxx_M, _recognize_cnot2),
-    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot2)
+    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot2),
 ]

@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine which counts the number of calls for each type of
 gate used in a circuit, in addition to the max. number of active qubits.
@@ -42,6 +41,7 @@ class ResourceCounter(BasicEngine):
         depth_of_dag (int): It is the longest path in the directed
                             acyclic graph (DAG) of the program.
     """
+
     def __init__(self):
         """
         Initialize a resource counter engine.
@@ -105,8 +105,7 @@ class ResourceCounter(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qubit = WeakQubitRef(qubit.engine,
-                                             logical_id_tag.logical_qubit_id)
+                        qubit = WeakQubitRef(qubit.engine, logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
         else:
             qubit_ids = set()
@@ -160,12 +159,15 @@ class ResourceCounter(BasicEngine):
                 gate_name = ctrl_cnt * "C" + str(gate)
                 gate_list.append(gate_name + " : " + str(num))
 
-            return ("Gate class counts:\n    " +
-                    "\n    ".join(list(sorted(gate_class_list))) +
-                    "\n\nGate counts:\n    " +
-                    "\n    ".join(list(sorted(gate_list))) +
-                    "\n\nMax. width (number of qubits) : " +
-                    str(self.max_width) + ".")
+            return (
+                "Gate class counts:\n    "
+                + "\n    ".join(list(sorted(gate_class_list)))
+                + "\n\nGate counts:\n    "
+                + "\n    ".join(list(sorted(gate_list)))
+                + "\n\nMax. width (number of qubits) : "
+                + str(self.max_width)
+                + "."
+            )
         return "(No quantum resources used)"
 
     def receive(self, command_list):

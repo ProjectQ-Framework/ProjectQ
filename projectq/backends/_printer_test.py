@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._printer.py.
 """
@@ -20,9 +19,7 @@ Tests for projectq.backends._printer.py.
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import (DummyEngine,
-                               InstructionFilter,
-                               NotYetMeasuredError)
+from projectq.cengines import DummyEngine, InstructionFilter, NotYetMeasuredError
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import Allocate, Command, H, Measure, NOT, T
 from projectq.types import WeakQubitRef
@@ -36,9 +33,9 @@ def test_command_printer_is_available():
 
     def available_cmd(self, cmd):
         return cmd.gate == H
+
     filter = InstructionFilter(available_cmd)
-    eng = MainEngine(backend=cmd_printer,
-                     engine_list=[inline_cmd_printer, filter])
+    eng = MainEngine(backend=cmd_printer, engine_list=[inline_cmd_printer, filter])
     qubit = eng.allocate_qubit()
     cmd0 = Command(eng, H, (qubit,))
     cmd1 = Command(eng, T, (qubit,))
@@ -76,8 +73,13 @@ def test_command_printer_measure_mapped_qubit():
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
     cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
-    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
-                   tags=[LogicalQubitIDTag(2)])
+    cmd1 = Command(
+        engine=eng,
+        gate=Measure,
+        qubits=([qb1],),
+        controls=[],
+        tags=[LogicalQubitIDTag(2)],
+    )
     with pytest.raises(NotYetMeasuredError):
         int(qb1)
     with pytest.raises(NotYetMeasuredError):

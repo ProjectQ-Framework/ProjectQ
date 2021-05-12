@@ -48,6 +48,7 @@ class TimeEvolution(BasicGate):
         hamiltonian(QubitOperator): hamiltonaian H
 
     """
+
     def __init__(self, time, hamiltonian):
         """
         Initialize time evolution gate.
@@ -76,12 +77,11 @@ class TimeEvolution(BasicGate):
         self.hamiltonian = copy.deepcopy(hamiltonian)
         for term in hamiltonian.terms:
             if self.hamiltonian.terms[term].imag == 0:
-                self.hamiltonian.terms[term] = float(
-                    self.hamiltonian.terms[term].real)
+                self.hamiltonian.terms[term] = float(self.hamiltonian.terms[term].real)
             else:
-                raise NotHermitianOperatorError("hamiltonian must be "
-                                                "hermitian and hence only "
-                                                "have real coefficients.")
+                raise NotHermitianOperatorError(
+                    "hamiltonian must be " "hermitian and hence only " "have real coefficients."
+                )
 
     def get_inverse(self):
         """
@@ -121,18 +121,14 @@ class TimeEvolution(BasicGate):
             New TimeEvolution gate equivalent to the two merged gates.
         """
         rel_tol = 1e-9
-        if (isinstance(other, TimeEvolution) and
-                set(self.hamiltonian.terms) == set(other.hamiltonian.terms)):
+        if isinstance(other, TimeEvolution) and set(self.hamiltonian.terms) == set(other.hamiltonian.terms):
             factor = None
             for term in self.hamiltonian.terms:
                 if factor is None:
-                    factor = (self.hamiltonian.terms[term] /
-                              float(other.hamiltonian.terms[term]))
+                    factor = self.hamiltonian.terms[term] / float(other.hamiltonian.terms[term])
                 else:
-                    tmp = (self.hamiltonian.terms[term] /
-                           float(other.hamiltonian.terms[term]))
-                    if not abs(factor - tmp) <= (
-                            rel_tol * max(abs(factor), abs(tmp))):
+                    tmp = self.hamiltonian.terms[term] / float(other.hamiltonian.terms[term])
+                    if not abs(factor - tmp) <= (rel_tol * max(abs(factor), abs(tmp))):
                         raise NotMergeable("Cannot merge these two gates.")
             # Terms are proportional to each other
             new_time = self.time + other.time / factor
@@ -194,8 +190,7 @@ class TimeEvolution(BasicGate):
             for index, action in term:
                 non_trivial_qubits.add(index)
         if max(non_trivial_qubits) >= num_qubits:
-            raise ValueError("hamiltonian acts on more qubits than the gate "
-                             "is applied to.")
+            raise ValueError("hamiltonian acts on more qubits than the gate " "is applied to.")
         # create new TimeEvolution gate with rescaled qubit indices in
         # self.hamiltonian which are ordered from
         # 0,...,len(non_trivial_qubits) - 1
@@ -206,8 +201,7 @@ class TimeEvolution(BasicGate):
         new_hamiltonian = QubitOperator()
         assert len(new_hamiltonian.terms) == 0
         for term in self.hamiltonian.terms:
-            new_term = tuple([(new_index[index], action)
-                             for index, action in term])
+            new_term = tuple([(new_index[index], action) for index, action in term])
             new_hamiltonian.terms[new_term] = self.hamiltonian.terms[term]
         new_gate = TimeEvolution(time=self.time, hamiltonian=new_hamiltonian)
         new_qubits = [qubits[0][i] for i in non_trivial_qubits]
@@ -216,11 +210,11 @@ class TimeEvolution(BasicGate):
         apply_command(cmd)
 
     def __eq__(self, other):
-        """ Not implemented as this object is a floating point type."""
+        """Not implemented as this object is a floating point type."""
         return NotImplemented
 
     def __ne__(self, other):
-        """ Not implemented as this object is a floating point type."""
+        """Not implemented as this object is a floating point type."""
         return NotImplemented
 
     def __str__(self):

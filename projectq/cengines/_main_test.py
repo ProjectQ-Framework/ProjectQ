@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._main.py."""
 import sys
 import weakref
@@ -22,8 +21,7 @@ import pytest
 import projectq.setups.default
 from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
-from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
-                          H, X)
+from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H, X
 
 from projectq.cengines import _main
 
@@ -70,13 +68,13 @@ def test_main_engine_init_defaults():
         current_engine = current_engine.next_engine
     assert isinstance(eng_list[-1].next_engine, Simulator)
     import projectq.setups.default
+
     default_engines = projectq.setups.default.get_engine_list()
     for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
 
 
 def test_main_engine_init_mapper():
-
     class LinearMapper(BasicMapperEngine):
         pass
 
@@ -175,10 +173,10 @@ def test_exceptions_are_forwarded():
     class ErrorEngine(DummyEngine):
         def receive(self, command_list):
             raise TypeError
+
     eng = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
         eng.allocate_qubit()
-    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[],
-                            verbose=True)
+    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[], verbose=True)
     with pytest.raises(TypeError):
         eng2.allocate_qubit()

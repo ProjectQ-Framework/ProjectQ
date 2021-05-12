@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 The projectq.meta package features meta instructions which help both the user
 and the compiler in writing/producing efficient code. It includes, e.g.,
@@ -23,17 +22,10 @@ and the compiler in writing/producing efficient code. It includes, e.g.,
 * Dagger (with Dagger(eng): ...)
 """
 
-
 from ._dirtyqubit import DirtyQubitTag
-from ._loop import (LoopTag,
-                    Loop)
-from ._compute import (Compute,
-                       Uncompute,
-                       CustomUncompute,
-                       ComputeTag,
-                       UncomputeTag)
-from ._control import (Control,
-                       get_control_count)
+from ._loop import LoopTag, Loop
+from ._compute import Compute, Uncompute, CustomUncompute, ComputeTag, UncomputeTag
+from ._control import Control, get_control_count
 from ._dagger import Dagger
 from ._util import insert_engine, drop_engine_after
 from ._logicalqubit import LogicalQubitIDTag

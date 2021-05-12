@@ -19,11 +19,30 @@ import math
 from projectq.setups import restrictedgateset
 from projectq import MainEngine
 from projectq.backends._ibm import _ibm
-from projectq.cengines import (BasicMapperEngine, DummyEngine)
+from projectq.cengines import BasicMapperEngine, DummyEngine
 
-from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
-                          Entangle, Measure, NOT, Rx, Ry, Rz, S, Sdag, T, Tdag,
-                          X, Y, Z, H, CNOT)
+from projectq.ops import (
+    All,
+    Allocate,
+    Barrier,
+    Command,
+    Deallocate,
+    Entangle,
+    Measure,
+    NOT,
+    Rx,
+    Ry,
+    Rz,
+    S,
+    Sdag,
+    T,
+    Tdag,
+    X,
+    Y,
+    Z,
+    H,
+    CNOT,
+)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -32,29 +51,43 @@ def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
 
-@pytest.mark.parametrize("single_qubit_gate, is_available",
-                         [(X, False), (Y, False), (Z, False), (H, True),
-                          (T, False), (Tdag, False), (S, False), (Sdag, False),
-                          (Allocate, True), (Deallocate, True),
-                          (Measure, True), (NOT, False), (Rx(0.5), True),
-                          (Ry(0.5), True), (Rz(0.5), True), (Barrier, True),
-                          (Entangle, False)])
+@pytest.mark.parametrize(
+    "single_qubit_gate, is_available",
+    [
+        (X, False),
+        (Y, False),
+        (Z, False),
+        (H, True),
+        (T, False),
+        (Tdag, False),
+        (S, False),
+        (Sdag, False),
+        (Allocate, True),
+        (Deallocate, True),
+        (Measure, True),
+        (NOT, False),
+        (Rx(0.5), True),
+        (Ry(0.5), True),
+        (Rz(0.5), True),
+        (Barrier, True),
+        (Entangle, False),
+    ],
+)
 def test_ibm_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     ibm_backend = _ibm.IBMBackend()
-    cmd = Command(eng, single_qubit_gate, (qubit1, ))
+    cmd = Command(eng, single_qubit_gate, (qubit1,))
     assert ibm_backend.is_available(cmd) == is_available
 
 
-@pytest.mark.parametrize("num_ctrl_qubits, is_available",
-                         [(0, False), (1, True), (2, False), (3, False)])
+@pytest.mark.parametrize("num_ctrl_qubits, is_available", [(0, False), (1, True), (2, False), (3, False)])
 def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
     ibm_backend = _ibm.IBMBackend()
-    cmd = Command(eng, NOT, (qubit1, ), controls=qureg)
+    cmd = Command(eng, NOT, (qubit1,), controls=qureg)
     assert ibm_backend.is_available(cmd) == is_available
 
 
@@ -115,44 +148,60 @@ def test_ibm_retrieve(monkeypatch):
     # patch send
     def mock_retrieve(*args, **kwargs):
         return {
-            'data': {
-                'counts': {
-                    '0x0': 504,
-                    '0x2': 8,
-                    '0xc': 6,
-                    '0xe': 482
-                }
-            },
+            'data': {'counts': {'0x0': 504, '0x2': 8, '0xc': 6, '0xe': 482}},
             'header': {
                 'clbit_labels': [['c', 0], ['c', 1], ['c', 2], ['c', 3]],
                 'creg_sizes': [['c', 4]],
-                'memory_slots':
-                4,
-                'n_qubits':
-                32,
-                'name':
-                'circuit0',
+                'memory_slots': 4,
+                'n_qubits': 32,
+                'name': 'circuit0',
                 'qreg_sizes': [['q', 32]],
-                'qubit_labels': [['q', 0], ['q', 1], ['q', 2], ['q', 3],
-                                 ['q', 4], ['q', 5], ['q', 6], ['q', 7],
-                                 ['q', 8], ['q', 9], ['q', 10], ['q', 11],
-                                 ['q', 12], ['q', 13], ['q', 14], ['q', 15],
-                                 ['q', 16], ['q', 17], ['q', 18], ['q', 19],
-                                 ['q', 20], ['q', 21], ['q', 22], ['q', 23],
-                                 ['q', 24], ['q', 25], ['q', 26], ['q', 27],
-                                 ['q', 28], ['q', 29], ['q', 30], ['q', 31]]
+                'qubit_labels': [
+                    ['q', 0],
+                    ['q', 1],
+                    ['q', 2],
+                    ['q', 3],
+                    ['q', 4],
+                    ['q', 5],
+                    ['q', 6],
+                    ['q', 7],
+                    ['q', 8],
+                    ['q', 9],
+                    ['q', 10],
+                    ['q', 11],
+                    ['q', 12],
+                    ['q', 13],
+                    ['q', 14],
+                    ['q', 15],
+                    ['q', 16],
+                    ['q', 17],
+                    ['q', 18],
+                    ['q', 19],
+                    ['q', 20],
+                    ['q', 21],
+                    ['q', 22],
+                    ['q', 23],
+                    ['q', 24],
+                    ['q', 25],
+                    ['q', 26],
+                    ['q', 27],
+                    ['q', 28],
+                    ['q', 29],
+                    ['q', 30],
+                    ['q', 31],
+                ],
             },
             'metadata': {
                 'measure_sampling': True,
                 'method': 'statevector',
                 'parallel_shots': 1,
-                'parallel_state_update': 16
+                'parallel_state_update': 16,
             },
             'seed_simulator': 465435780,
             'shots': 1000,
             'status': 'DONE',
             'success': True,
-            'time_taken': 0.0045786460000000005
+            'time_taken': 0.0045786460000000005,
         }
 
     monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
@@ -163,8 +212,7 @@ def test_ibm_retrieve(monkeypatch):
         res[i] = i
     mapper.current_mapping = res
     ibm_setup = [mapper]
-    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry, Rz, H),
-                                              two_qubit_gates=(CNOT, ))
+    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry, Rz, H), two_qubit_gates=(CNOT,))
     setup.extend(ibm_setup)
     eng = MainEngine(backend=backend, engine_list=setup)
     unused_qubit = eng.allocate_qubit()
@@ -188,111 +236,95 @@ def test_ibm_retrieve(monkeypatch):
 
 def test_ibm_backend_functional_test(monkeypatch):
     correct_info = {
-        'json': [{
-            'qubits': [1],
-            'name': 'u2',
-            'params': [0, 3.141592653589793]
-        }, {
-            'qubits': [1, 2],
-            'name': 'cx'
-        }, {
-            'qubits': [1, 3],
-            'name': 'cx'
-        }, {
-            'qubits': [1],
-            'name': 'u3',
-            'params': [6.28318530718, 0, 0]
-        }, {
-            'qubits': [1],
-            'name': 'u1',
-            'params': [11.780972450962]
-        }, {
-            'qubits': [1],
-            'name': 'u3',
-            'params': [6.28318530718, 0, 0]
-        }, {
-            'qubits': [1],
-            'name': 'u1',
-            'params': [10.995574287564]
-        }, {
-            'qubits': [1, 2, 3],
-            'name': 'barrier'
-        }, {
-            'qubits': [1],
-            'name': 'u3',
-            'params': [0.2, -1.5707963267948966, 1.5707963267948966]
-        }, {
-            'qubits': [1],
-            'name': 'measure',
-            'memory': [1]
-        }, {
-            'qubits': [2],
-            'name': 'measure',
-            'memory': [2]
-        }, {
-            'qubits': [3],
-            'name': 'measure',
-            'memory': [3]
-        }],
-        'nq':
-        4,
-        'shots':
-        1000,
-        'maxCredits':
-        10,
-        'backend': {
-            'name': 'ibmq_qasm_simulator'
-        }
+        'json': [
+            {'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]},
+            {'qubits': [1, 2], 'name': 'cx'},
+            {'qubits': [1, 3], 'name': 'cx'},
+            {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
+            {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]},
+            {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]},
+            {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]},
+            {'qubits': [1, 2, 3], 'name': 'barrier'},
+            {
+                'qubits': [1],
+                'name': 'u3',
+                'params': [0.2, -1.5707963267948966, 1.5707963267948966],
+            },
+            {'qubits': [1], 'name': 'measure', 'memory': [1]},
+            {'qubits': [2], 'name': 'measure', 'memory': [2]},
+            {'qubits': [3], 'name': 'measure', 'memory': [3]},
+        ],
+        'nq': 4,
+        'shots': 1000,
+        'maxCredits': 10,
+        'backend': {'name': 'ibmq_qasm_simulator'},
     }
 
     # {'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}], 'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]}, {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]}, {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]}, {'qubits': [1], 'name': 'measure', 'memory': [1]}, {'qubits': [2], 'name': 'measure', 'memory': [2]}, {'qubits': [3], 'name': 'measure', 'memory': [3]}], 'nq': 4, 'shots': 1000, 'maxCredits': 10, 'backend': {'name': 'ibmq_qasm_simulator'}}
     def mock_send(*args, **kwargs):
         assert args[0] == correct_info
         return {
-            'data': {
-                'counts': {
-                    '0x0': 504,
-                    '0x2': 8,
-                    '0xc': 6,
-                    '0xe': 482
-                }
-            },
+            'data': {'counts': {'0x0': 504, '0x2': 8, '0xc': 6, '0xe': 482}},
             'header': {
                 'clbit_labels': [['c', 0], ['c', 1], ['c', 2], ['c', 3]],
                 'creg_sizes': [['c', 4]],
-                'memory_slots':
-                4,
-                'n_qubits':
-                32,
-                'name':
-                'circuit0',
+                'memory_slots': 4,
+                'n_qubits': 32,
+                'name': 'circuit0',
                 'qreg_sizes': [['q', 32]],
-                'qubit_labels': [['q', 0], ['q', 1], ['q', 2], ['q', 3],
-                                 ['q', 4], ['q', 5], ['q', 6], ['q', 7],
-                                 ['q', 8], ['q', 9], ['q', 10], ['q', 11],
-                                 ['q', 12], ['q', 13], ['q', 14], ['q', 15],
-                                 ['q', 16], ['q', 17], ['q', 18], ['q', 19],
-                                 ['q', 20], ['q', 21], ['q', 22], ['q', 23],
-                                 ['q', 24], ['q', 25], ['q', 26], ['q', 27],
-                                 ['q', 28], ['q', 29], ['q', 30], ['q', 31]]
+                'qubit_labels': [
+                    ['q', 0],
+                    ['q', 1],
+                    ['q', 2],
+                    ['q', 3],
+                    ['q', 4],
+                    ['q', 5],
+                    ['q', 6],
+                    ['q', 7],
+                    ['q', 8],
+                    ['q', 9],
+                    ['q', 10],
+                    ['q', 11],
+                    ['q', 12],
+                    ['q', 13],
+                    ['q', 14],
+                    ['q', 15],
+                    ['q', 16],
+                    ['q', 17],
+                    ['q', 18],
+                    ['q', 19],
+                    ['q', 20],
+                    ['q', 21],
+                    ['q', 22],
+                    ['q', 23],
+                    ['q', 24],
+                    ['q', 25],
+                    ['q', 26],
+                    ['q', 27],
+                    ['q', 28],
+                    ['q', 29],
+                    ['q', 30],
+                    ['q', 31],
+                ],
             },
             'metadata': {
                 'measure_sampling': True,
                 'method': 'statevector',
                 'parallel_shots': 1,
-                'parallel_state_update': 16
+                'parallel_state_update': 16,
             },
             'seed_simulator': 465435780,
             'shots': 1000,
             'status': 'DONE',
             'success': True,
-            'time_taken': 0.0045786460000000005
+            'time_taken': 0.0045786460000000005,
         }
 
     monkeypatch.setattr(_ibm, "send", mock_send)
 
     backend = _ibm.IBMBackend(verbose=True, num_runs=1000)
     import sys
+
     # no circuit has been executed -> raises exception
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
@@ -302,9 +334,9 @@ def test_ibm_backend_functional_test(monkeypatch):
         res[i] = i
     mapper.current_mapping = res
     ibm_setup = [mapper]
-    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry, Rz, H),
-                                              two_qubit_gates=(CNOT, ),
-                                              other_gates=(Barrier, ))
+    setup = restrictedgateset.get_engine_list(
+        one_qubit_gates=(Rx, Ry, Rz, H), two_qubit_gates=(CNOT,), other_gates=(Barrier,)
+    )
     setup.extend(ibm_setup)
     eng = MainEngine(backend=backend, engine_list=setup)
     # 4 qubits circuit is run, but first is unused to test ability for

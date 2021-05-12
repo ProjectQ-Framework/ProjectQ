@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains the main engine of every compiler engine pipeline, called MainEngine.
 """
@@ -55,6 +54,7 @@ class MainEngine(BasicEngine):
         mapper (BasicMapperEngine): Access to the mapper if there is one.
 
     """
+
     def __init__(self, backend=None, engine_list=None, verbose=False):
         """
         Initialize the main compiler engine and all compiler engines.
@@ -115,10 +115,12 @@ class MainEngine(BasicEngine):
                     "i.e. not an instance of BasicEngine.\n"
                     "Did you forget the brackets to create an instance?\n"
                     "E.g. MainEngine(backend=Simulator) instead of \n"
-                    "     MainEngine(backend=Simulator())")
+                    "     MainEngine(backend=Simulator())"
+                )
         # default engine_list is projectq.setups.default.get_engine_list()
         if engine_list is None:
             import projectq.setups.default
+
             engine_list = projectq.setups.default.get_engine_list()
 
         self.mapper = None
@@ -131,16 +133,15 @@ class MainEngine(BasicEngine):
                         "\ni.e. not an instance of BasicEngine.\n"
                         "Did you forget the brackets to create an instance?\n"
                         "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
-                        "of\n     MainEngine(engine_list=[AutoReplacer()])")
+                        "of\n     MainEngine(engine_list=[AutoReplacer()])"
+                    )
                 if isinstance(current_eng, BasicMapperEngine):
                     if self.mapper is None:
                         self.mapper = current_eng
                     else:
-                        raise UnsupportedEngineError(
-                            "More than one mapper engine is not supported.")
+                        raise UnsupportedEngineError("More than one mapper engine is not supported.")
         else:
-            raise UnsupportedEngineError(
-                "The provided list of engines is not a list!")
+            raise UnsupportedEngineError("The provided list of engines is not a list!")
         engine_list = engine_list + [backend]
         self.backend = backend
 
@@ -151,7 +152,8 @@ class MainEngine(BasicEngine):
                 "\nError:\n You supplied twice the same engine as backend"
                 " or item in engine_list. This doesn't work. Create two \n"
                 " separate instances of a compiler engine if it is needed\n"
-                " twice.\n")
+                " twice.\n"
+            )
 
         self._qubit_idx = int(0)
         for i in range(len(engine_list) - 1):
@@ -244,7 +246,8 @@ class MainEngine(BasicEngine):
                 "2. You have not yet called engine.flush() to "
                 "force execution of your code\n\t3. The "
                 "underlying backend failed to register "
-                "the measurement result\n")
+                "the measurement result\n"
+            )
 
     def get_new_qubit_id(self):
         """
@@ -254,7 +257,7 @@ class MainEngine(BasicEngine):
             new_qubit_id (int): New unique qubit id.
         """
         self._qubit_idx += 1
-        return (self._qubit_idx - 1)
+        return self._qubit_idx - 1
 
     def receive(self, command_list):
         """
@@ -281,10 +284,9 @@ class MainEngine(BasicEngine):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 # try:
                 last_line = traceback.format_exc().splitlines()
-                compact_exception = exc_type(str(exc_value) +
-                                             '\n raised in:\n' +
-                                             repr(last_line[-3]) +
-                                             "\n" + repr(last_line[-2]))
+                compact_exception = exc_type(
+                    str(exc_value) + '\n raised in:\n' + repr(last_line[-3]) + "\n" + repr(last_line[-2])
+                )
                 compact_exception.__cause__ = None
                 raise compact_exception  # use verbose=True for more info
 

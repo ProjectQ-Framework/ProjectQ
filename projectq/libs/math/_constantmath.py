@@ -14,6 +14,7 @@
 #   limitations under the License.
 
 import math
+
 try:
     from math import gcd
 except ImportError:  # pragma: no cover
@@ -39,7 +40,7 @@ def add_constant(eng, c, quint):
 
     for i in range(len(quint)):
         for j in range(i, -1, -1):
-            if ((c >> j) & 1):
+            if (c >> j) & 1:
                 R(math.pi / (1 << (i - j))) | quint[i]
 
     Uncompute(eng)
@@ -52,7 +53,7 @@ def add_constant_modN(eng, c, N, quint):
     using Draper addition and the construction from
     https://arxiv.org/abs/quant-ph/0205095.
     """
-    assert (c < N and c >= 0)
+    assert c < N and c >= 0
 
     AddConstant(c) | quint
 
@@ -85,8 +86,8 @@ def mul_by_constant_modN(eng, c, N, quint_in):
     (only works if a and N are relative primes, otherwise the modular inverse
     does not exist).
     """
-    assert (c < N and c >= 0)
-    assert (gcd(c, N) == 1)
+    assert c < N and c >= 0
+    assert gcd(c, N) == 1
 
     n = len(quint_in)
     quint_out = eng.allocate_qureg(n + 1)

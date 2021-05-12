@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines the parent class from which all mappers should be derived.
 
@@ -72,8 +71,7 @@ class BasicMapperEngine(BasicEngine):
 
             # Add LogicalQubitIDTag to MeasureGate
             def add_logical_id(command, old_tags=deepcopy(cmd.tags)):
-                command.tags = (old_tags +
-                                [LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                command.tags = old_tags + [LogicalQubitIDTag(cmd.qubits[0][0].id)]
                 return command
 
             tagger_eng = CommandModifier(add_logical_id)

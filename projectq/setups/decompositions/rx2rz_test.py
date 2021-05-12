@@ -21,8 +21,13 @@ import pytest
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               DummyEngine, InstructionFilter, MainEngine)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+    MainEngine,
+)
 from projectq.meta import Control
 from projectq.ops import Measure, Ph, Rx
 
@@ -51,19 +56,22 @@ def rx_decomp_gates(eng, cmd):
         return True
 
 
-@pytest.mark.parametrize("angle", [0, math.pi, 2*math.pi, 4*math.pi, 0.5])
+@pytest.mark.parametrize("angle", [0, math.pi, 2 * math.pi, 4 * math.pi, 0.5])
 def test_decomposition(angle):
     for basis_state in ([1, 0], [0, 1]):
         correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(),
-                                 engine_list=[correct_dummy_eng])
+        correct_eng = MainEngine(backend=Simulator(), engine_list=[correct_dummy_eng])
 
         rule_set = DecompositionRuleSet(modules=[rx2rz])
         test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(rx_decomp_gates),
-                                           test_dummy_eng])
+        test_eng = MainEngine(
+            backend=Simulator(),
+            engine_list=[
+                AutoReplacer(rule_set),
+                InstructionFilter(rx_decomp_gates),
+                test_dummy_eng,
+            ],
+        )
 
         correct_qb = correct_eng.allocate_qubit()
         Rx(angle) | correct_qb

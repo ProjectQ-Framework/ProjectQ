@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.ops._time_evolution."""
 import cmath
 import copy
@@ -70,7 +69,7 @@ def test_init_not_hermitian():
 
 
 def test_init_cast_complex_to_float():
-    hamiltonian = QubitOperator("Z2", 2+0j)
+    hamiltonian = QubitOperator("Z2", 2 + 0j)
     gate = te.TimeEvolution(1, hamiltonian)
     assert isinstance(gate.hamiltonian.terms[((2, 'Z'),)], float)
     pytest.approx(gate.hamiltonian.terms[((2, 'Z'),)]) == 2.0
@@ -123,7 +122,7 @@ def test_get_merged_not_close_enough():
     hamiltonian += QubitOperator("X3", 1)
     gate = te.TimeEvolution(2, hamiltonian)
     hamiltonian2 = QubitOperator("Z2", 4)
-    hamiltonian2 += QubitOperator("X3", 2+1e-8)
+    hamiltonian2 += QubitOperator("X3", 2 + 1e-8)
     gate2 = te.TimeEvolution(5, hamiltonian2)
     with pytest.raises(NotMergeable):
         merged = gate.get_merged(gate2)
@@ -262,8 +261,7 @@ def test_or_gate_identity():
     cmd = saving_backend.received_commands[4]
     assert isinstance(cmd.gate, Ph)
     assert cmd.gate == Ph(-3.4 * 2.1)
-    correct = numpy.array([[cmath.exp(-1j * 3.4 * 2.1), 0],
-                           [0, cmath.exp(-1j * 3.4 * 2.1)]])
+    correct = numpy.array([[cmath.exp(-1j * 3.4 * 2.1), 0], [0, cmath.exp(-1j * 3.4 * 2.1)]])
     print(correct)
     print(cmd.gate.matrix)
     assert numpy.allclose(cmd.gate.matrix, correct)
@@ -285,5 +283,4 @@ def test_str():
     hamiltonian = QubitOperator("X0 Z1")
     hamiltonian += QubitOperator("Y1", 0.5)
     gate = te.TimeEvolution(2.1, hamiltonian)
-    assert (str(gate) == "exp(-2.1j * (0.5 Y1 +\n1.0 X0 Z1))" or
-            str(gate) == "exp(-2.1j * (1.0 X0 Z1 +\n0.5 Y1))")
+    assert str(gate) == "exp(-2.1j * (0.5 Y1 +\n1.0 X0 Z1))" or str(gate) == "exp(-2.1j * (1.0 X0 Z1 +\n0.5 Y1))"

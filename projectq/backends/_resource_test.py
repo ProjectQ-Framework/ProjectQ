@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._resource.py.
 """
@@ -47,8 +46,13 @@ def test_resource_counter_measurement():
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
     cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
-    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
-                   tags=[LogicalQubitIDTag(2)])
+    cmd1 = Command(
+        engine=eng,
+        gate=Measure,
+        qubits=([qb1],),
+        controls=[],
+        tags=[LogicalQubitIDTag(2)],
+    )
     with pytest.raises(NotYetMeasuredError):
         int(qb1)
     with pytest.raises(NotYetMeasuredError):

@@ -12,8 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
-
 """
 Registers decomposition for the TimeEvolution gates.
 
@@ -42,9 +40,7 @@ def _recognize_time_evolution_commuting_terms(cmd):
             for other in hamiltonian.terms:
                 other_op = QubitOperator(other, hamiltonian.terms[other])
                 commutator = test_op * other_op - other_op * test_op
-                if not commutator.isclose(id_op,
-                                          rel_tol=1e-9,
-                                          abs_tol=1e-9):
+                if not commutator.isclose(id_op, rel_tol=1e-9, abs_tol=1e-9):
                     return False
     return True
 
@@ -100,11 +96,11 @@ def _decompose_time_evolution_individual_terms(cmd):
     if len(term) == 1:
         with Control(eng, cmd.control_qubits):
             if term[0][1] == 'X':
-                Rx(time * coefficient * 2.) | qureg[term[0][0]]
+                Rx(time * coefficient * 2.0) | qureg[term[0][0]]
             elif term[0][1] == 'Y':
-                Ry(time * coefficient * 2.) | qureg[term[0][0]]
+                Ry(time * coefficient * 2.0) | qureg[term[0][0]]
             else:
-                Rz(time * coefficient * 2.) | qureg[term[0][0]]
+                Rz(time * coefficient * 2.0) | qureg[term[0][0]]
     # hamiltonian has more than one local operator
     else:
         with Control(eng, cmd.control_qubits):
@@ -115,13 +111,13 @@ def _decompose_time_evolution_individual_terms(cmd):
                     if action == 'X':
                         H | qureg[index]
                     elif action == 'Y':
-                        Rx(math.pi / 2.) | qureg[index]
+                        Rx(math.pi / 2.0) | qureg[index]
                 # Check that qureg had exactly as many qubits as indices:
                 assert check_indices == set((range(len(qureg))))
                 # Compute parity
-                for i in range(len(qureg)-1):
-                    CNOT | (qureg[i], qureg[i+1])
-            Rz(time * coefficient * 2.) | qureg[-1]
+                for i in range(len(qureg) - 1):
+                    CNOT | (qureg[i], qureg[i + 1])
+            Rz(time * coefficient * 2.0) | qureg[-1]
             # Uncompute parity and basis change
             Uncompute(eng)
 
@@ -129,15 +125,14 @@ def _decompose_time_evolution_individual_terms(cmd):
 rule_commuting_terms = DecompositionRule(
     gate_class=TimeEvolution,
     gate_decomposer=_decompose_time_evolution_commuting_terms,
-    gate_recognizer=_recognize_time_evolution_commuting_terms)
-
+    gate_recognizer=_recognize_time_evolution_commuting_terms,
+)
 
 rule_individual_terms = DecompositionRule(
     gate_class=TimeEvolution,
     gate_decomposer=_decompose_time_evolution_individual_terms,
-    gate_recognizer=_recognize_time_evolution_individual_terms)
-
+    gate_recognizer=_recognize_time_evolution_individual_terms,
+)
 
 #: Decomposition rules
-all_defined_decomposition_rules = [rule_commuting_terms,
-                                   rule_individual_terms]
+all_defined_decomposition_rules = [rule_commuting_terms, rule_individual_terms]
