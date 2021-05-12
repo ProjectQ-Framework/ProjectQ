@@ -1,0 +1,65 @@
+name: Pypi
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+    - master
+    - stable
+    - v*
+  release:
+    types:
+    - published
+
+jobs:
+  packaging:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.11.0
+        env:
+          CIBW_ARCHS: auto64
+          CIBW_SKIP: cp27-* pp*
+          CIBW_BEFORE_BUILD: python -m pip install pybind11
+
+      - name: Build source distribution
+        if: runner.os == 'Linux'
+        run: python3 setup.py sdist -d wheelhouse
+
+      - name: Check metadata
+        run: |
+          python3 -m pip install twine --prefer-binary
+          python3 -m twine check wheelhouse/*
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: packages
+          path: ./wheelhouse/*
+
+  # When a GitHub release is made, upload the artifacts to PyPI
+  upload:
+    name: Upload to PyPI
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    needs: packaging
+
+    steps:
+    - uses: actions/setup-python@v2
+
+    # Downloads all to directories matching the artifact names
+    - uses: actions/download-artifact@v2
+
+    - name: Publish standard package
+      uses: pypa/gh-action-pypi-publish@v1
+      with:
+        username: __token__
+        password: ${{ secrets.pypi_password }}
+        packages_dir: ./wheelhouse/
