@@ -100,7 +100,7 @@ class CommandPrinter(BasicEngine):
                         qubit = WeakQubitRef(qubit.engine, logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, m)
         else:
-            if self._in_place:
+            if self._in_place:  # pragma: no cover
                 sys.stdout.write("\0\r\t\x1b[K" + str(cmd) + "\r")
             else:
                 print(cmd)

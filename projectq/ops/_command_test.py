@@ -214,6 +214,10 @@ def test_command_engine(main_engine):
     assert id(cmd.control_qubits[0].engine) == id(main_engine)
     assert id(cmd.qubits[0][0].engine) == id(main_engine)
 
+    # Avoid raising exception upon Qubit destructions
+    qubit0[0].id = -1
+    qubit1[0].id = -1
+
 
 def test_command_comparison(main_engine):
     qubit = Qureg([Qubit(main_engine, 0)])
