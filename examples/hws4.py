@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from projectq.cengines import MainEngine
 from projectq.ops import All, H, X, Measure
 from projectq.meta import Compute, Uncompute

@@ -6,7 +6,7 @@ Examples
 All of these example codes **and more** can be found on `GitHub <https://github.com/ProjectQ-Framework/ProjectQ/tree/master/examples/>`_.
 
 .. toctree::
-   :maxdepth: 2	
+   :maxdepth: 2
 
 Quantum Random Numbers
 ----------------------
@@ -75,7 +75,7 @@ The resulting LaTeX code can be compiled to produce the circuit diagram:
 
 	$ python examples/bellpair_circuit.py > bellpair_circuit.tex
 	$ pdflatex bellpair_circuit.tex
-	
+
 The output looks as follows:
 
 .. image:: images/bellpair_circuit.png
@@ -143,13 +143,13 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 
 **Implementation**
 	There is an implementation of Shor's algorithm in the examples folder. It uses the implementation by Beauregard, `arxiv:0205095 <https://arxiv.org/abs/quant-ph/0205095>`_ to factor an n-bit number using 2n+3 qubits. In this implementation, the modular exponentiation is carried out using modular multiplication and shift. Furthermore it uses the semi-classical quantum Fourier transform [see `arxiv:9511007 <https://arxiv.org/abs/quant-ph/9511007>`_]: Pulling the final measurement of the `x`-register through the final inverse quantum Fourier transform allows to run the 2n modular multiplications serially, which keeps one from having to store the 2n qubits of x.
-	
+
 	Let's run it using the ProjectQ simulator:
-	
+
 	.. code-block:: text
-	
-		$ python3 examples/shor.py 
-		
+
+		$ python3 examples/shor.py
+
 		projectq
 		--------
 		Implementation of Shor's algorithm.
@@ -158,25 +158,25 @@ As a third example, consider Shor's algorithm for factoring, which for a given (
 		Factoring N = 15: 00000001
 
 		Factors found :-) : 3 * 5 = 15
-	
+
 	Simulating Shor's algorithm at the level of single-qubit gates and CNOTs already takes quite a bit of time for larger numbers than 15. To turn on our **emulation feature**, which does not decompose the modular arithmetic to low-level gates, but carries it out directly instead, we can change the line
-	
+
 	.. literalinclude:: ../examples/shor.py
 		:lineno-start: 86
 		:lines: 86-99
 		:emphasize-lines: 8
 		:linenos:
 		:tab-width: 2
-	
+
 	in examples/shor.py to `return True`. This allows to factor, e.g. :math:`N=4,028,033` in under 3 minutes on a regular laptop!
-	
+
 	The most important part of the code is
-	
+
 	.. literalinclude:: ../examples/shor.py
 		:lines: 50-69
 		:lineno-start: 50
 		:linenos:
 		:dedent: 1
 		:tab-width: 2
-	
+
 	which executes the 2n modular multiplications conditioned on a control qubit `ctrl_qubit` in a uniform superposition of 0 and 1. The control qubit is then measured after performing the semi-classical inverse quantum Fourier transform and the measurement outcome is saved in the list `measurements`, followed by a reset of the control qubit to state 0.

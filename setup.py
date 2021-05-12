@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Some of the setup.py code is inspired or copied from SQLAlchemy
 
 # SQLAlchemy was created by Michael Bayer.

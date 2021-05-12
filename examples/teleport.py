@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from projectq.ops import All, CNOT, H, Measure, Rz, X, Z
 from projectq import MainEngine
 from projectq.meta import Dagger, Control

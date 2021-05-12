@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,7 +127,7 @@ def test_is_identity():
     # Choose gate which is not an identity gate:
     non_identity_gate=Rx(0.5)
     assert not non_identity_gate.is_identity()
-    assert not _metagates.is_identity(non_identity_gate)  
+    assert not _metagates.is_identity(non_identity_gate)
     # Choose gate which is an identity gate:
     identity_gate=Rx(0.)
     assert identity_gate.is_identity()

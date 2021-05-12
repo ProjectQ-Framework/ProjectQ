@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import getpass
 
@@ -48,10 +49,10 @@ if __name__ == "__main__":
     # aqt_simulator (11 qubits)
     # aqt_simulator_noise (11 qubits)
     # aqt_device (4 qubits)
-    # 
+    #
     # To get a subscription, create a profile at :
     # https://gateway-portal.aqt.eu/
-    #  
+    #
     device = None # replace by the AQT device name you want to use
     token = None  # replace by the token given by AQT
     if token is None:

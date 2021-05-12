@@ -150,4 +150,3 @@ void kernel(V &psi, unsigned id3, unsigned id2, unsigned id1, unsigned id0, M co
         }
     }
 }
-

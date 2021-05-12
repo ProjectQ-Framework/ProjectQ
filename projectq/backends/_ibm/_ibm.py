@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -281,7 +282,7 @@ class IBMBackend(BasicEngine):
                            interval=self._interval,
                            verbose=self._verbose)
             else:
-                res = retrieve(device=self.device, 
+                res = retrieve(device=self.device,
                                token=self._token,
                                jobid=self._retrieve_execution,
                                num_retries=self._num_retries,
