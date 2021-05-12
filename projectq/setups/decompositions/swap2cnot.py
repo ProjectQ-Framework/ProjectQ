@@ -20,7 +20,7 @@ features as many control qubits as the Swap gate has control qubits.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Uncompute, Control, get_control_count
+from projectq.meta import Compute, Uncompute, Control
 from projectq.ops import Swap, CNOT
 
 

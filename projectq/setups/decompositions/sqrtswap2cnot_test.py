@@ -16,7 +16,6 @@
 
 import pytest
 
-import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
@@ -26,7 +25,6 @@ from projectq.cengines import (
     InstructionFilter,
 )
 
-from projectq.meta import Compute, Control, Uncompute
 from projectq.ops import All, Measure, SqrtSwap
 
 import projectq.setups.decompositions.sqrtswap2cnot as sqrtswap2cnot

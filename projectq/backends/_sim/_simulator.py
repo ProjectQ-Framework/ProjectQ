@@ -118,7 +118,7 @@ class Simulator(BasicEngine):
             if len(m) > 2 ** 5:
                 return False
             return True
-        except:
+        except AttributeError:
             return False
 
     def _convert_logical_to_mapped_qureg(self, qureg):

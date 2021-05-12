@@ -14,8 +14,6 @@
 #   limitations under the License.
 """Tests for projectq.cengines._basicmapper.py."""
 
-from copy import deepcopy
-
 from projectq.cengines import DummyEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import Allocate, BasicGate, Command, Deallocate, FlushGate, Measure

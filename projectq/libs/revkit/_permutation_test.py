@@ -16,7 +16,6 @@
 
 import pytest
 
-from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
@@ -67,9 +66,10 @@ def test_synthesis_with_adjusted_tbs():
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
 
-    import revkit
+    def synth():
+        import revkit
 
-    synth = lambda: revkit.tbs()
+        return revkit.tbs()
 
     PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 

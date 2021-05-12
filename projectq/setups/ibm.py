@@ -23,8 +23,6 @@ device.  Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be
 translated in the backend in the U1/U2/U3/CX gate set.
 """
 
-import projectq
-import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
 from projectq.ops import Rx, Ry, Rz, H, CNOT, Barrier
 from projectq.cengines import (

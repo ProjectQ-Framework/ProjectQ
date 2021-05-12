@@ -16,7 +16,6 @@
 Contains a compiler engine to add mapping information
 """
 from projectq.cengines import BasicMapperEngine
-from projectq.ops import Measure
 
 
 class ManualMapper(BasicMapperEngine):

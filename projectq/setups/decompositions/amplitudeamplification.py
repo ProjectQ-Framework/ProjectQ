@@ -69,10 +69,9 @@ Attributes:
 """
 
 import math
-import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
+from projectq.meta import Control, Compute, CustomUncompute, Dagger
 from projectq.ops import X, Z, Ph, All
 
 from projectq.ops import QAA

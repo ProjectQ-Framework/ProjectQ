@@ -16,8 +16,7 @@
 Contains a local optimizer engine.
 """
 
-from copy import deepcopy as _deepcopy
-from projectq.cengines import LastEngineException, BasicEngine
+from projectq.cengines import BasicEngine
 from projectq.ops import FlushGate, FastForwardingGate, NotMergeable
 
 
@@ -109,18 +108,16 @@ class LocalOptimizer(BasicEngine):
 
     def _optimize(self, idx, lim=None):
         """
-        Try to remove identity gates using the is_identity function, then merge or even cancel successive gates using the get_merged and
-        get_inverse functions of the gate (see, e.g., BasicRotationGate).
+        Try to remove identity gates using the is_identity function, then merge or even cancel successive gates using
+        the get_merged and get_inverse functions of the gate (see, e.g., BasicRotationGate).
 
         It does so for all qubit command lists.
         """
         # loop over all qubit indices
         i = 0
-        new_gateloc = 0
         limit = len(self._l[idx])
         if lim is not None:
             limit = lim
-            new_gateloc = limit
 
         while i < limit - 1:
             # can be dropped if the gate is equivalent to an identity gate
@@ -129,7 +126,10 @@ class LocalOptimizer(BasicEngine):
                 qubitids = [qb.id for sublist in self._l[idx][i].all_qubits for qb in sublist]
                 gid = self._get_gate_indices(idx, i, qubitids)
                 for j in range(len(qubitids)):
-                    new_list = self._l[qubitids[j]][0 : gid[j]] + self._l[qubitids[j]][gid[j] + 1 :]
+                    new_list = (
+                        self._l[qubitids[j]][0 : gid[j]]  # noqa: E203
+                        + self._l[qubitids[j]][gid[j] + 1 :]  # noqa: E203
+                    )
                 self._l[qubitids[j]] = new_list
                 i = 0
                 limit -= 1
@@ -151,7 +151,10 @@ class LocalOptimizer(BasicEngine):
                 # drop these two gates if possible and goto next iteration
                 if erase:
                     for j in range(len(qubitids)):
-                        new_list = self._l[qubitids[j]][0 : gid[j]] + self._l[qubitids[j]][gid[j] + 2 :]
+                        new_list = (
+                            self._l[qubitids[j]][0 : gid[j]]  # noqa: E203
+                            + self._l[qubitids[j]][gid[j] + 2 :]  # noqa: E203
+                        )
                         self._l[qubitids[j]] = new_list
                     i = 0
                     limit -= 2
@@ -173,7 +176,10 @@ class LocalOptimizer(BasicEngine):
                 if merge:
                     for j in range(len(qubitids)):
                         self._l[qubitids[j]][gid[j]] = merged_command
-                        new_list = self._l[qubitids[j]][0 : gid[j] + 1] + self._l[qubitids[j]][gid[j] + 2 :]
+                        new_list = (
+                            self._l[qubitids[j]][0 : gid[j] + 1]  # noqa: E203
+                            + self._l[qubitids[j]][gid[j] + 2 :]  # noqa: E203
+                        )  # noqa: E203
                         self._l[qubitids[j]] = new_list
                     i = 0
                     limit -= 1

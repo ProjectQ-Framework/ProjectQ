@@ -16,7 +16,6 @@
 
 import pytest
 
-from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
@@ -41,7 +40,7 @@ def test_control_function_majority():
 
 
 def test_control_function_majority_from_python():
-    dormouse = pytest.importorskip('dormouse')
+    dormouse = pytest.importorskip('dormouse')  # noqa: F841
 
     def maj(a, b, c):
         return (a and b) or (a and c) or (b and c)  # pragma: no cover

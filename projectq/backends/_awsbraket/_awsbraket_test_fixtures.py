@@ -38,7 +38,7 @@ try:
 except ImportError:
 
     class StreamingBody:
-        def __init__(self, d, l):
+        def __init__(self, raw_stream, content_length):
             pass
 
 

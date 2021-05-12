@@ -15,18 +15,13 @@
 """Tests for projectq.setup.awsbraket."""
 
 import pytest
-from unittest.mock import MagicMock, Mock, patch
-from io import StringIO
+from unittest.mock import patch
 import json
 
 # ==============================================================================
 
 _has_boto3 = True
 try:
-    from botocore.response import StreamingBody
-    import botocore
-    from projectq.backends._awsbraket import _awsbraket
-
     import projectq.setups.awsbraket
 
 except ImportError:

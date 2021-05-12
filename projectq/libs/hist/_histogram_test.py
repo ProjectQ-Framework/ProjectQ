@@ -15,7 +15,7 @@
 
 import pytest
 import matplotlib
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # noqa: F401
 
 from projectq import MainEngine
 from projectq.ops import H, C, X, Measure, All, AllocateQubitGate, FlushGate

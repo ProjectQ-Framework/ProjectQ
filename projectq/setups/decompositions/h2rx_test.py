@@ -15,8 +15,6 @@
 
 "Tests for projectq.setups.decompositions.h2rx.py"
 
-import numpy as np
-
 import pytest
 
 from projectq import MainEngine
@@ -28,7 +26,7 @@ from projectq.cengines import (
     InstructionFilter,
 )
 from projectq.meta import Control
-from projectq.ops import Measure, X, H, HGate
+from projectq.ops import Measure, H, HGate
 
 from . import h2rx
 

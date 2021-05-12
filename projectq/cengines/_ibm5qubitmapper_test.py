@@ -139,10 +139,10 @@ def test_ibm5qubitmapper_optimizeifpossible():
             SwapAndCNOTFlipper(connectivity),
         ],
     )
-    qb0 = eng.allocate_qubit()
+    qb0 = eng.allocate_qubit()  # noqa: F841
     qb1 = eng.allocate_qubit()
     qb2 = eng.allocate_qubit()
-    qb3 = eng.allocate_qubit()
+    qb3 = eng.allocate_qubit()  # noqa: F841
     CNOT | (qb1, qb2)
     CNOT | (qb2, qb1)
     CNOT | (qb1, qb2)

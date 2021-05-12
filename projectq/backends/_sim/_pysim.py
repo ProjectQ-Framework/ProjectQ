@@ -23,7 +23,7 @@ import numpy as _np
 import os
 
 _USE_REFCHECK = True
-if 'TRAVIS' in os.environ:
+if 'TRAVIS' in os.environ:  # pragma: no cover
     _USE_REFCHECK = False
 
 
@@ -168,7 +168,7 @@ class Simulator(object):
         newstate = _np.zeros((1 << (self._num_qubits - 1)), dtype=_np.complex128)
         k = 0
         for i in range((1 << pos) * int(cv), len(self._state), (1 << (pos + 1))):
-            newstate[k : k + (1 << pos)] = self._state[i : i + (1 << pos)]
+            newstate[k : k + (1 << pos)] = self._state[i : i + (1 << pos)]  # noqa: E203
             k += 1 << pos
 
         newmap = dict()

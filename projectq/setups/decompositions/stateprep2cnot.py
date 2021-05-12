@@ -23,8 +23,6 @@ from projectq.cengines import DecompositionRule
 from projectq.meta import Control, Dagger
 from projectq.ops import (
     StatePreparation,
-    Ry,
-    Rz,
     UniformlyControlledRy,
     UniformlyControlledRz,
     Ph,
@@ -63,7 +61,7 @@ def _decompose_state_preparation(cmd):
                     angles.append(phase0 - phase1)
                     phase_of_next_blocks.append((phase0 + phase1) / 2.0)
                 UniformlyControlledRz(angles) | (
-                    qureg[(target_qubit + 1) :],
+                    qureg[(target_qubit + 1) :],  # noqa: E203
                     qureg[target_qubit],
                 )
                 phase_of_blocks = phase_of_next_blocks
@@ -85,7 +83,7 @@ def _decompose_state_preparation(cmd):
                         angles.append(-2.0 * math.acos(a0 / math.sqrt(a0 ** 2 + a1 ** 2)))
                     abs_of_next_blocks.append(math.sqrt(a0 ** 2 + a1 ** 2))
                 UniformlyControlledRy(angles) | (
-                    qureg[(target_qubit + 1) :],
+                    qureg[(target_qubit + 1) :],  # noqa: E203
                     qureg[target_qubit],
                 )
                 abs_of_blocks = abs_of_next_blocks

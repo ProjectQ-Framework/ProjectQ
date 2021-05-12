@@ -296,8 +296,6 @@ class _InverseAddQuantumGate(BasicMathGate):
         return "_InverseAddQuantum"
 
     def get_math_function(self, qubits):
-        n = len(qubits[1])
-
         def math_fun(a):
             if len(a) == 3:
                 # Flip the last bit of the carry register
