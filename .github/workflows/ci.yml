@@ -47,11 +47,12 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/pyproject.toml') }}
         restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
 
     - name: Prepare env
       run: |
+        python setup.py gen_reqfile
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install -r requirements_tests.txt --prefer-binary
         python -m pip install coveralls
@@ -214,11 +215,12 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-centos-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-centos-pip-${{ hashFiles('**/pyproject.toml') }}
         restore-keys: ${{ runner.os }}-centos-pip-
 
     - name: Install dependencies
       run: |
+        python3 setup.py gen_reqfile
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r requirements_tests.txt --prefer-binary
 
@@ -247,6 +249,7 @@ jobs:
 
     - name: Install docs & setup requirements
       run: |
+        python3 setup.py gen_reqfile
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r docs/requirements.txt --prefer-binary
         python3 -m pip install .
@@ -287,7 +290,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/pyproject.toml') }}
         restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
 
     - name: Setup 🐍 ${{ matrix.python }}
@@ -297,6 +300,7 @@ jobs:
 
     - name: Prepare env
       run: |
+        python setup.py gen_reqfile
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install -r requirements_tests.txt --prefer-binary
 
