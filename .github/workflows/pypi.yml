@@ -44,6 +44,36 @@ jobs:
           name: packages
           path: ./wheelhouse/*
 
+
+  # When a GitHub release is made, upload the artifacts to PyPI
+  test_upload:
+    name: Upload to PyPI
+    runs-on: ubuntu-latest
+    if: !github.event_name == 'release'
+
+    steps:
+    - uses: actions/setup-python@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Build source distribution
+      if: runner.os == 'Linux'
+      run: python3 setup.py sdist -d wheelhouse
+
+    # Downloads all to directories matching the artifact names
+    - uses: actions/download-artifact@v2
+
+    - name: Publish standard package
+      uses: pypa/gh-action-pypi-publish@v1
+      with:
+        username: __token__
+        password: ${{ secrets.test_pypi_api_token }}
+        packages_dir: ./wheelhouse/
+        repository_url: https://test.pypi.org/legacy/
+
   # When a GitHub release is made, upload the artifacts to PyPI
   upload:
     name: Upload to PyPI
