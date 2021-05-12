@@ -268,21 +268,21 @@ public:
         std::swap(tmpBuff1_, newvec);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_addConstant(int a, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {
       emulate_math([a](std::vector<int> &res){for(auto& x: res) x = x + a;}, quregs, ctrl, true);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_addConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {
       emulate_math([a,N](std::vector<int> &res){for(auto& x: res) x = (x + a) % N;}, quregs, ctrl, true);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_multiplyByConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {

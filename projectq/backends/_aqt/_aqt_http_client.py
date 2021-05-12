@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -150,7 +151,7 @@ class AQT(Session):
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.update_devices_list()
-                    
+
                     # TODO: update once the API for getting online devices is
                     #       available
                     if not self.is_online(device):  # pragma: no cover

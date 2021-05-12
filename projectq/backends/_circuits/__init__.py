@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,4 +18,3 @@ from ._plot import to_draw
 
 from ._drawer import CircuitDrawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib
-
