@@ -29,7 +29,6 @@ As well as the meta functions
 """
 
 from ._basics import BasicGate, NotInvertible
-from ._command import Command, apply_command
 
 
 class ControlQubitError(Exception):

@@ -120,6 +120,7 @@ def test_command_get_merged(main_engine):
     expected_cmd = _command.Command(main_engine, Rx(1.0), (qubit,))
     expected_cmd.add_control_qubits(ctrl_qubit)
     expected_cmd.tags = ["TestTag"]
+    assert merged_cmd == expected_cmd
     # Don't merge commands as different control qubits
     cmd3 = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd3.tags = ["TestTag"]
@@ -247,7 +248,7 @@ def test_command_comparison(main_engine):
     assert cmd6 != cmd1
 
 
-def test_command_str():
+def test_command_str(main_engine):
     qubit = Qureg([Qubit(main_engine, 0)])
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
@@ -262,7 +263,7 @@ def test_command_str():
         assert str(cmd2) == "Rx(1.5707963268) | Qureg[0]"
 
 
-def test_command_to_string():
+def test_command_to_string(main_engine):
     qubit = Qureg([Qubit(main_engine, 0)])
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))

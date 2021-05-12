@@ -21,7 +21,6 @@ import weakref
 from projectq import MainEngine
 from projectq.cengines import DummyEngine, CompareEngine
 from projectq.ops import H, Rx, Ry, Deallocate, Allocate, CNOT, NOT, FlushGate
-from projectq.types import WeakQubitRef
 from projectq.meta import DirtyQubitTag
 
 from projectq.meta import _compute
@@ -371,7 +370,7 @@ def test_exception_if_no_compute_but_uncompute2():
 def test_qubit_management_error():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with _compute.Compute(eng):
-        ancilla = eng.allocate_qubit()
+        ancilla = eng.allocate_qubit()  # noqa: F841
     eng.active_qubits = weakref.WeakSet()
     with pytest.raises(_compute.QubitManagementError):
         _compute.Uncompute(eng)
@@ -380,7 +379,7 @@ def test_qubit_management_error():
 def test_qubit_management_error2():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with _compute.Compute(eng):
-        ancilla = eng.allocate_qubit()
+        ancilla = eng.allocate_qubit()  # noqa: F841
         local_ancilla = eng.allocate_qubit()
         local_ancilla[0].__del__()
     eng.active_qubits = weakref.WeakSet()
@@ -391,7 +390,7 @@ def test_qubit_management_error2():
 def test_only_single_error_in_costum_uncompute():
     eng = MainEngine(backend=DummyEngine(), engine_list=[])
     with _compute.Compute(eng):
-        qb = eng.allocate_qubit()
+        eng.allocate_qubit()
     # Tests that QubitManagementError is not sent in addition
     with pytest.raises(RuntimeError):
         with _compute.CustomUncompute(eng):

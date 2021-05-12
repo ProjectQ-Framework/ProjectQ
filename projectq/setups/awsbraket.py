@@ -23,8 +23,6 @@ device.  Decompose the circuit into the available gate set for each device
 that will be used in the backend.
 """
 
-import projectq
-import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
 from projectq.ops import (
     R,
@@ -42,13 +40,6 @@ from projectq.ops import (
     Z,
     SqrtX,
     Barrier,
-)
-from projectq.cengines import (
-    LocalOptimizer,
-    IBM5QubitMapper,
-    SwapAndCNOTFlipper,
-    BasicMapperEngine,
-    GridMapper,
 )
 from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 

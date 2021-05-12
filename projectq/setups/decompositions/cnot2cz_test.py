@@ -17,7 +17,6 @@
 
 import pytest
 
-import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
@@ -55,7 +54,6 @@ def test_recognize_gates():
 
 
 def _decomp_gates(eng, cmd):
-    g = cmd.gate
     if len(cmd.control_qubits) == 1 and isinstance(cmd.gate, X.__class__):
         return False
     return True

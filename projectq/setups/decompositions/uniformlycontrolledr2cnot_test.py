@@ -16,7 +16,6 @@
 
 import pytest
 
-import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (

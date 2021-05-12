@@ -15,9 +15,6 @@
 """QubitOperator stores a sum of Pauli operators acting on qubits."""
 import cmath
 import copy
-import itertools
-
-import numpy
 
 from ._basics import BasicGate, NotInvertible, NotMergeable
 from ._command import apply_command

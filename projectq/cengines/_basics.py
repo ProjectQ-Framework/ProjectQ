@@ -16,7 +16,6 @@
 from projectq.ops import Allocate, Deallocate
 from projectq.types import Qubit, Qureg
 from projectq.ops import Command
-import projectq.cengines
 
 
 class LastEngineException(Exception):
@@ -182,16 +181,14 @@ class BasicEngine(object):
             returns True.
         """
         engine = self
-        try:
-            while True:
-                try:
-                    if engine.is_meta_tag_handler(meta_tag):
-                        return True
-                except AttributeError:
-                    pass
-                engine = engine.next_engine
-        except:
-            return False
+        while engine is not None:
+            try:
+                if engine.is_meta_tag_handler(meta_tag):
+                    return True
+            except AttributeError:
+                pass
+            engine = engine.next_engine
+        return False
 
     def send(self, command_list):
         """

@@ -15,19 +15,14 @@
 """ Test for projectq.backends._awsbraket._awsbraket_boto3_client.py """
 
 import pytest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
-from io import StringIO
-
-import json
-
-from ._awsbraket_boto3_client_test_fixtures import *
+from ._awsbraket_boto3_client_test_fixtures import *  # noqa: F401,F403
 
 # ==============================================================================
 
 _has_boto3 = True
 try:
-    from botocore.response import StreamingBody
     import botocore
     from projectq.backends._awsbraket import _awsbraket_boto3_client
 except ImportError:
@@ -270,10 +265,10 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error, send_that_err
         "create_quantum_task",
     )
 
-    with pytest.raises(botocore.exceptions.ClientError) as exinfo:
+    with pytest.raises(botocore.exceptions.ClientError):
         _awsbraket_boto3_client.send(info, device='name2', credentials=creds, s3_folder=s3_folder, num_retries=2)
 
-    with pytest.raises(_awsbraket_boto3_client.DeviceOfflineError) as exinfo:
+    with pytest.raises(_awsbraket_boto3_client.DeviceOfflineError):
         _awsbraket_boto3_client.send(
             info,
             device='unknown',
@@ -297,7 +292,7 @@ def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error, arntask, cre
         "get_quantum_task",
     )
 
-    with pytest.raises(botocore.exceptions.ClientError) as exinfo:
+    with pytest.raises(botocore.exceptions.ClientError):
         _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
 
 

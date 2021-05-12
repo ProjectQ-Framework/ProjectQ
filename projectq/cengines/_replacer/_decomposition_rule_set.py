@@ -57,7 +57,7 @@ class DecompositionRuleSet:
         self.decompositions[cls].append(decomp_obj)
 
 
-class ModuleWithDecompositionRuleSet:
+class ModuleWithDecompositionRuleSet:  # pragma: no cover
     """
     Interface type for explaining one of the parameters that can be given to
     DecompositionRuleSet.

@@ -14,15 +14,12 @@
 #   limitations under the License.
 """Tests for projectq.cengines._manualmapper.py."""
 
-import pytest
-
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, Allocate, Measure, All
+from projectq.ops import H, Measure, All
 from projectq.meta import LogicalQubitIDTag
 
 from projectq.cengines import ManualMapper
-from projectq.backends import IBMBackend
 
 
 def test_manualmapper_mapping():

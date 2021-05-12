@@ -84,7 +84,6 @@ def test_send_real_device_online_verbose(monkeypatch):
     }
     token = "access"
     shots = 1
-    device = "aqt_simulator"
     execution_id = '3'
     result_ready = [False]
     result = "my_result"
@@ -232,7 +231,6 @@ def test_send_that_errors_are_caught4(monkeypatch):
     info = {'circuit': '[]', 'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
     token = "access"
     shots = 1
-    device = "aqt_simulator"
     execution_id = '123e'
 
     def mocked_requests_put(*args, **kwargs):
@@ -291,7 +289,6 @@ def test_timeout_exception(monkeypatch):
     }
     token = "access"
     shots = 1
-    device = "aqt_simulator"
     execution_id = '123e'
     tries = [0]
 
@@ -350,7 +347,6 @@ def test_timeout_exception(monkeypatch):
 
 def test_retrieve(monkeypatch):
     token = "access"
-    device = "aqt_simulator"
     execution_id = '123e'
     result_ready = [False]
     result = "my_result"
@@ -410,7 +406,6 @@ def test_retrieve(monkeypatch):
 
 def test_retrieve_that_errors_are_caught(monkeypatch):
     token = "access"
-    device = "aqt_simulator"
     execution_id = '123e'
     result_ready = [False]
     request_num = [0]  # To assert correct order of calls

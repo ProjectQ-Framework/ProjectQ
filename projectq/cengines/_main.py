@@ -21,7 +21,6 @@ import sys
 import traceback
 import weakref
 
-import projectq
 from projectq.cengines import BasicEngine, BasicMapperEngine
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
@@ -196,7 +195,7 @@ class MainEngine(BasicEngine):
             self.flush(deallocate_qubits=True)
         try:
             atexit.unregister(self._delfun)  # only available in Python3
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass
 
     def set_measurement_result(self, qubit, value):
@@ -277,7 +276,7 @@ class MainEngine(BasicEngine):
         """
         try:
             self.next_engine.receive(command_list)
-        except:
+        except Exception:
             if self.verbose:
                 raise
             else:

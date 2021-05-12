@@ -70,7 +70,7 @@ def test_is_cpp_simulator_present():
 def get_available_simulators():
     result = ["py_simulator"]
     try:
-        import projectq.backends._sim._cppsim as _
+        import projectq.backends._sim._cppsim  # noqa: F401
 
         result.append("cpp_simulator")
     except ImportError:
@@ -383,7 +383,7 @@ def test_simulator_amplitude(sim, mapper):
     # doesn't just check for length:
     with pytest.raises(RuntimeError):
         eng.backend.get_amplitude(bits, qubits[:-1] + [qubits[0]])
-    extra_qubit = eng.allocate_qubit()
+    extra_qubit = eng.allocate_qubit()  # noqa: F841
     eng.flush()
     # there is a new qubit now!
     with pytest.raises(RuntimeError):

@@ -24,11 +24,6 @@ from projectq.ops import (
     All,
     FlipBits,
     get_inverse,
-    SelfInverseGate,
-    BasicRotationGate,
-    ClassicalInstructionGate,
-    FastForwardingGate,
-    BasicGate,
     Measure,
 )
 

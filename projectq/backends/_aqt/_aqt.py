@@ -163,7 +163,7 @@ class AQTBackend(BasicEngine):
             angle = gate.angle / math.pi
             instruction = []
             u_name = {'Rx': "X", 'Ry': "Y", 'Rxx': "MS"}
-            instruction.append(u_name[str(gate)[0 : int(len(cmd.qubits) + 1)]])
+            instruction.append(u_name[str(gate)[0 : int(len(cmd.qubits) + 1)]])  # noqa: E203
             instruction.append(round(angle, 2))
             instruction.append(qubits)
             self._circuit.append(instruction)

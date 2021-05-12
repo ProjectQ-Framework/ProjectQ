@@ -14,8 +14,6 @@
 #   limitations under the License.
 """Tests for projectq.ops._state_prep."""
 
-import projectq
-
 from projectq.ops import _state_prep, X
 
 

@@ -20,7 +20,7 @@ import math
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Control, get_control_count, Uncompute
-from projectq.ops import Rx, Ry, Rz, H
+from projectq.ops import Rx, Ry, Rz
 
 
 def _decompose_ry(cmd):

@@ -19,7 +19,7 @@ import math
 import numpy as np
 import pytest
 
-from projectq.types import Qubit, Qureg
+from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (

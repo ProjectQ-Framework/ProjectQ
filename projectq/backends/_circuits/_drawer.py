@@ -247,8 +247,8 @@ class CircuitDrawer(BasicEngine):
         lines = [qb.id for qr in cmd.qubits for qb in qr]
         ctrl_lines = [qb.id for qb in cmd.control_qubits]
         item = CircuitItem(gate, lines, ctrl_lines)
-        for l in all_lines:
-            self._qubit_lines[l].append(item)
+        for line in all_lines:
+            self._qubit_lines[line].append(item)
 
         self._drawing_order.append(all_lines[0])
 

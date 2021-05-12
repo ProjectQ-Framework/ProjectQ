@@ -84,10 +84,8 @@ Attributes:
 
 """
 
-import numpy as np
-
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Loop, get_control_count
+from projectq.meta import Control, Loop
 from projectq.ops import H, Tensor, get_inverse, QFT
 
 from projectq.ops import QPE

@@ -19,7 +19,6 @@ import math
 
 import pytest
 
-from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
     AutoReplacer,
@@ -29,7 +28,7 @@ from projectq.cengines import (
     MainEngine,
 )
 from projectq.meta import Control
-from projectq.ops import Measure, Ph, Rx
+from projectq.ops import Measure, Rx
 
 from . import rx2rz
 

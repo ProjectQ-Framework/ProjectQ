@@ -28,7 +28,6 @@ from projectq.cengines import (
     DummyEngine,
     AutoReplacer,
     InstructionFilter,
-    InstructionFilter,
     DecompositionRuleSet,
 )
 from projectq.meta import Control
@@ -39,7 +38,6 @@ from projectq.ops import (
     Ph,
     Rx,
     Ry,
-    Rz,
     All,
     Measure,
 )

@@ -19,7 +19,7 @@ import types
 
 from copy import deepcopy
 from projectq import MainEngine
-from projectq.meta import ComputeTag, DirtyQubitTag
+from projectq.meta import ComputeTag
 from projectq.cengines import DummyEngine
 from projectq.ops import H, CNOT, X, FlushGate, Allocate, Deallocate
 
@@ -41,14 +41,14 @@ def test_loop_tag():
 
 def test_loop_wrong_input_type():
     eng = MainEngine(backend=DummyEngine(), engine_list=[])
-    qubit = eng.allocate_qubit()
+    eng.allocate_qubit()
     with pytest.raises(TypeError):
         _loop.Loop(eng, 1.1)
 
 
 def test_loop_negative_iteration_number():
     eng = MainEngine(backend=DummyEngine(), engine_list=[])
-    qubit = eng.allocate_qubit()
+    eng.allocate_qubit()
     with pytest.raises(ValueError):
         _loop.Loop(eng, -1)
 
@@ -239,7 +239,7 @@ def test_qubit_management_error():
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     with pytest.raises(_loop.QubitManagementError):
         with _loop.Loop(eng, 3):
-            qb = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
 
 
 def test_qubit_management_error_when_loop_tag_supported():
@@ -252,4 +252,4 @@ def test_qubit_management_error_when_loop_tag_supported():
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     with pytest.raises(_loop.QubitManagementError):
         with _loop.Loop(eng, 3):
-            qb = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
