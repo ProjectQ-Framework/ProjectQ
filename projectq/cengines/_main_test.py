@@ -175,7 +175,13 @@ def test_exceptions_are_forwarded():
 
     eng = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
-        eng.allocate_qubit()
-    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[], verbose=True)
+        qb = eng.allocate_qubit()  # noqa: F841
+    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
-        eng2.allocate_qubit()
+        qb = eng2.allocate_qubit()  # noqa: F841
+
+    # NB: avoid throwing exceptions when destroying the MainEngine
+    eng.next_engine = DummyEngine()
+    eng.next_engine.is_last_engine = True
+    eng2.next_engine = DummyEngine()
+    eng2.next_engine.is_last_engine = True

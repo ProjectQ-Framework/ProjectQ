@@ -435,6 +435,8 @@ def test_simulator_expectation(sim, mapper):
     expectation = sim.get_expectation_value(op_id, qureg)
     assert 0.4 == pytest.approx(expectation)
 
+    All(Measure) | qureg
+
 
 def test_simulator_expectation_exception(sim):
     eng = MainEngine(sim, [])
@@ -466,7 +468,7 @@ def test_simulator_applyqubitoperator(sim, mapper):
     engine_list = []
     if mapper is not None:
         engine_list.append(mapper)
-    eng = MainEngine(sim, engine_list=engine_list)
+    eng = MainEngine(sim, engine_list=engine_list, verbose=True)
     qureg = eng.allocate_qureg(3)
     op = QubitOperator('X0 Y1 Z2')
     sim.apply_qubit_operator(op, qureg)

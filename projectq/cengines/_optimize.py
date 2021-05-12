@@ -70,7 +70,7 @@ class LocalOptimizer(BasicEngine):
                     # delete the n-qubit gate, we're taking care of it
                     # and don't want the other qubit to do so
                     self._l[Id] = self._l[Id][1:]
-                except IndexError:
+                except IndexError:  # pragma: no cover
                     print("Invalid qubit pipeline encountered (in the" " process of shutting down?).")
 
             # all qubits that need to be flushed have been flushed

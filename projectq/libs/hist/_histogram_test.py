@@ -61,6 +61,10 @@ def test_backend_get_probabilities_method(matplotlib_setup):
     assert prob['000'] == 0.5
     assert prob['111'] == 0.5
 
+    # NB: avoid throwing exceptions when destroying the MainEngine
+    eng.next_engine = DummyEngine()
+    eng.next_engine.is_last_engine = True
+
 
 def test_qubit(matplotlib_setup):
     sim = Simulator()
