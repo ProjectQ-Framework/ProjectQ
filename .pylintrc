@@ -1,0 +1,11 @@
+[MASTER]
+
+ignore-patterns=.*test.py,__init__.py
+
+[FORMAT]
+
+max-line-length: 127
+
+[REPORTS]
+
+msg-template={path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})
