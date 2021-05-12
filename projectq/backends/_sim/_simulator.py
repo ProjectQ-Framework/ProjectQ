@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains the projectq interface to a C++-based simulator, which has to be
 built first. If the c++ simulator is not exported to python, a (slow) python
@@ -22,15 +22,14 @@ import math
 import random
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (NOT,
-                          H,
-                          R,
-                          Measure,
-                          FlushGate,
-                          Allocate,
-                          Deallocate,
-                          BasicMathGate,
-                          TimeEvolution)
+from projectq.ops import (
+    Measure,
+    FlushGate,
+    Allocate,
+    Deallocate,
+    BasicMathGate,
+    TimeEvolution,
+)
 from projectq.types import WeakQubitRef
 
 FALLBACK_TO_PYSIM = False
@@ -38,6 +37,7 @@ try:
     from ._cppsim import Simulator as SimulatorBackend
 except ImportError:
     from ._pysim import Simulator as SimulatorBackend
+
     FALLBACK_TO_PYSIM = True
 
 
@@ -54,6 +54,7 @@ class Simulator(BasicEngine):
         export OMP_NUM_THREADS=4 # use 4 threads
         export OMP_PROC_BIND=spread # bind threads to processors by spreading
     """
+
     def __init__(self, gate_fusion=False, rnd_seed=None):
         """
         Construct the C++/Python-simulator object and initialize it with a
@@ -103,10 +104,13 @@ class Simulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
-        if (cmd.gate == Measure or cmd.gate == Allocate or
-                cmd.gate == Deallocate or
-                isinstance(cmd.gate, BasicMathGate) or
-                isinstance(cmd.gate, TimeEvolution)):
+        if (
+            cmd.gate == Measure
+            or cmd.gate == Allocate
+            or cmd.gate == Deallocate
+            or isinstance(cmd.gate, BasicMathGate)
+            or isinstance(cmd.gate, TimeEvolution)
+        ):
             return True
         try:
             m = cmd.gate.matrix
@@ -129,11 +133,8 @@ class Simulator(BasicEngine):
             mapped_qureg = []
             for qubit in qureg:
                 if qubit.id not in mapper.current_mapping:
-                    raise RuntimeError("Unknown qubit id. "
-                                       "Please make sure you have called "
-                                       "eng.flush().")
-                new_qubit = WeakQubitRef(qubit.engine,
-                                         mapper.current_mapping[qubit.id])
+                    raise RuntimeError("Unknown qubit id. " "Please make sure you have called " "eng.flush().")
+                new_qubit = WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
                 mapped_qureg.append(new_qubit)
             return mapped_qureg
         else:
@@ -169,12 +170,9 @@ class Simulator(BasicEngine):
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
-                raise Exception("qubit_operator acts on more qubits than "
-                                "contained in the qureg.")
-        operator = [(list(term), coeff) for (term, coeff)
-                    in qubit_operator.terms.items()]
-        return self._simulator.get_expectation_value(operator,
-                                                     [qb.id for qb in qureg])
+                raise Exception("qubit_operator acts on more qubits than " "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff) in qubit_operator.terms.items()]
+        return self._simulator.get_expectation_value(operator, [qb.id for qb in qureg])
 
     def apply_qubit_operator(self, qubit_operator, qureg):
         """
@@ -209,12 +207,9 @@ class Simulator(BasicEngine):
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
-                raise Exception("qubit_operator acts on more qubits than "
-                                "contained in the qureg.")
-        operator = [(list(term), coeff) for (term, coeff)
-                    in qubit_operator.terms.items()]
-        return self._simulator.apply_qubit_operator(operator,
-                                                    [qb.id for qb in qureg])
+                raise Exception("qubit_operator acts on more qubits than " "contained in the qureg.")
+        operator = [(list(term), coeff) for (term, coeff) in qubit_operator.terms.items()]
+        return self._simulator.apply_qubit_operator(operator, [qb.id for qb in qureg])
 
     def get_probability(self, bit_string, qureg):
         """
@@ -240,8 +235,7 @@ class Simulator(BasicEngine):
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
-        return self._simulator.get_probability(bit_string,
-                                               [qb.id for qb in qureg])
+        return self._simulator.get_probability(bit_string, [qb.id for qb in qureg])
 
     def get_amplitude(self, bit_string, qureg):
         """
@@ -269,8 +263,7 @@ class Simulator(BasicEngine):
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
-        return self._simulator.get_amplitude(bit_string,
-                                             [qb.id for qb in qureg])
+        return self._simulator.get_amplitude(bit_string, [qb.id for qb in qureg])
 
     def set_wavefunction(self, wavefunction, qureg):
         """
@@ -296,8 +289,7 @@ class Simulator(BasicEngine):
             the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
-        self._simulator.set_wavefunction(wavefunction,
-                                         [qb.id for qb in qureg])
+        self._simulator.set_wavefunction(wavefunction, [qb.id for qb in qureg])
 
     def collapse_wavefunction(self, qureg, values):
         """
@@ -322,9 +314,7 @@ class Simulator(BasicEngine):
             the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
-        return self._simulator.collapse_wavefunction([qb.id for qb in qureg],
-                                                     [bool(int(v)) for v in
-                                                      values])
+        return self._simulator.collapse_wavefunction([qb.id for qb in qureg], [bool(int(v)) for v in values])
 
     def cheat(self):
         """
@@ -363,7 +353,7 @@ class Simulator(BasicEngine):
                 (which should never happen due to is_available).
         """
         if cmd.gate == Measure:
-            assert(get_control_count(cmd) == 0)
+            assert get_control_count(cmd) == 0
             ids = [qb.id for qr in cmd.qubits for qb in qr]
             out = self._simulator.measure_qubits(ids)
             i = 0
@@ -375,8 +365,7 @@ class Simulator(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qb = WeakQubitRef(qb.engine,
-                                          logical_id_tag.logical_qubit_id)
+                        qb = WeakQubitRef(qb.engine, logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qb, out[i])
                     i += 1
         elif cmd.gate == Allocate:
@@ -387,9 +376,12 @@ class Simulator(BasicEngine):
             self._simulator.deallocate_qubit(ID)
         elif isinstance(cmd.gate, BasicMathGate):
             # improve performance by using C++ code for some commomn gates
-            from projectq.libs.math import (AddConstant,
-                                            AddConstantModN,
-                                            MultiplyByConstantModN)
+            from projectq.libs.math import (
+                AddConstant,
+                AddConstantModN,
+                MultiplyByConstantModN,
+            )
+
             qubitids = []
             for qr in cmd.qubits:
                 qubitids.append([])
@@ -397,26 +389,32 @@ class Simulator(BasicEngine):
                     qubitids[-1].append(qb.id)
             if FALLBACK_TO_PYSIM:
                 math_fun = cmd.gate.get_math_function(cmd.qubits)
-                self._simulator.emulate_math(math_fun, qubitids,
-                                             [qb.id for qb in cmd.control_qubits])
+                self._simulator.emulate_math(math_fun, qubitids, [qb.id for qb in cmd.control_qubits])
             else:
                 # individual code for different standard gates to make it faster!
                 if isinstance(cmd.gate, AddConstant):
-                    self._simulator.emulate_math_addConstant(cmd.gate.a, qubitids,
-                                                             [qb.id for qb in cmd.control_qubits])
+                    self._simulator.emulate_math_addConstant(
+                        cmd.gate.a, qubitids, [qb.id for qb in cmd.control_qubits]
+                    )
                 elif isinstance(cmd.gate, AddConstantModN):
-                    self._simulator.emulate_math_addConstantModN(cmd.gate.a, cmd.gate.N, qubitids,
-                                                                 [qb.id for qb in cmd.control_qubits])
+                    self._simulator.emulate_math_addConstantModN(
+                        cmd.gate.a,
+                        cmd.gate.N,
+                        qubitids,
+                        [qb.id for qb in cmd.control_qubits],
+                    )
                 elif isinstance(cmd.gate, MultiplyByConstantModN):
-                    self._simulator.emulate_math_multiplyByConstantModN(cmd.gate.a, cmd.gate.N, qubitids,
-                                                                        [qb.id for qb in cmd.control_qubits])
+                    self._simulator.emulate_math_multiplyByConstantModN(
+                        cmd.gate.a,
+                        cmd.gate.N,
+                        qubitids,
+                        [qb.id for qb in cmd.control_qubits],
+                    )
                 else:
                     math_fun = cmd.gate.get_math_function(cmd.qubits)
-                    self._simulator.emulate_math(math_fun, qubitids,
-                                                 [qb.id for qb in cmd.control_qubits])
+                    self._simulator.emulate_math(math_fun, qubitids, [qb.id for qb in cmd.control_qubits])
         elif isinstance(cmd.gate, TimeEvolution):
-            op = [(list(term), coeff) for (term, coeff)
-                  in cmd.gate.hamiltonian.terms.items()]
+            op = [(list(term), coeff) for (term, coeff) in cmd.gate.hamiltonian.terms.items()]
             t = cmd.gate.time
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
@@ -425,21 +423,21 @@ class Simulator(BasicEngine):
             matrix = cmd.gate.matrix
             ids = [qb.id for qr in cmd.qubits for qb in qr]
             if not 2 ** len(ids) == len(cmd.gate.matrix):
-                raise Exception("Simulator: Error applying {} gate: "
-                                "{}-qubit gate applied to {} qubits.".format(
-                                    str(cmd.gate),
-                                    int(math.log(len(cmd.gate.matrix), 2)),
-                                    len(ids)))
-            self._simulator.apply_controlled_gate(matrix.tolist(),
-                                                  ids,
-                                                  [qb.id for qb in
-                                                   cmd.control_qubits])
+                raise Exception(
+                    "Simulator: Error applying {} gate: "
+                    "{}-qubit gate applied to {} qubits.".format(
+                        str(cmd.gate), int(math.log(len(cmd.gate.matrix), 2)), len(ids)
+                    )
+                )
+            self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
             if not self._gate_fusion:
                 self._simulator.run()
         else:
-            raise Exception("This simulator only supports controlled k-qubit"
-                            " gates with k < 6!\nPlease add an auto-replacer"
-                            " engine to your list of compiler engines.")
+            raise Exception(
+                "This simulator only supports controlled k-qubit"
+                " gates with k < 6!\nPlease add an auto-replacer"
+                " engine to your list of compiler engines."
+            )
 
     def receive(self, command_list):
         """

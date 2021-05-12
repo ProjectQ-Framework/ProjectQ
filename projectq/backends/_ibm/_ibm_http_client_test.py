@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 #   limitations under the License.
 """Tests for projectq.backends._ibm_http_client._ibm.py."""
 
-import json
 import pytest
 import requests
 from requests.compat import urljoin
@@ -33,24 +33,16 @@ _AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken
 
 def test_send_real_device_online_verbose(monkeypatch):
     json_qasm = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
-    name = 'projectq_test'
     token = '12345'
     access_token = "access"
     user_id = 2016
-    code_id = 11
-    name_item = '"name":"{name}", "jsonQASM":'.format(name=name)
-    json_body = ''.join([name_item, json.dumps(json_qasm)])
-    json_data = ''.join(['{', json_body, '}'])
     shots = 1
-    device = "ibmqx4"
     execution_id = '3'
     result_ready = [False]
     result = "my_result"
@@ -74,56 +66,82 @@ def test_send_real_device_online_verbose(monkeypatch):
 
             def raise_for_status(self):
                 pass
+
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
-        if (args[1] == urljoin(_API_URL, status_url)
-                and (request_num[0] == 1 or request_num[0] == 6)):
+        if args[1] == urljoin(_API_URL, status_url) and (request_num[0] == 1 or request_num[0] == 6):
             request_num[0] += 1
-            connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                               (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{
-                'backend_name': 'ibmqx4',
-                'coupling_map': connections,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
-        #STEP2
-        elif (args[1] == "/"+execution_id+"/jobUploadUrl"
-              and request_num[0] == 3):
+            connections = set(
+                [
+                    (0, 1),
+                    (1, 0),
+                    (1, 2),
+                    (1, 3),
+                    (1, 4),
+                    (2, 1),
+                    (2, 3),
+                    (2, 4),
+                    (3, 1),
+                    (3, 4),
+                    (4, 3),
+                ]
+            )
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx4',
+                        'coupling_map': connections,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
+        # STEP2
+        elif args[1] == "/" + execution_id + "/jobUploadUrl" and request_num[0] == 3:
             request_num[0] += 1
             return MockResponse({"url": "s3_url"}, 200)
-        #STEP5
-        elif (args[1] == urljoin(
+        # STEP5
+        elif (
+            args[1]
+            == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".
-                format(execution_id=execution_id)) and not result_ready[0]
-              and request_num[0] == 5):
+                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            )
+            and not result_ready[0]
+            and request_num[0] == 5
+        ):
             result_ready[0] = True
             request_num[0] += 1
             return MockResponse({"status": "RUNNING"}, 200)
-        elif (args[1] == urljoin(
+        elif (
+            args[1]
+            == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".
-                format(execution_id=execution_id)) and result_ready[0]
-              and request_num[0] == 7):
+                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            )
+            and result_ready[0]
+            and request_num[0] == 7
+        ):
             request_num[0] += 1
-            return MockResponse(
-                {"status": "COMPLETED"}, 200)
-        #STEP6
-        elif (args[1] == urljoin(
+            return MockResponse({"status": "COMPLETED"}, 200)
+        # STEP6
+        elif (
+            args[1]
+            == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".
-                format(execution_id=execution_id))
-               and request_num[0] == 8):
+                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".format(
+                    execution_id=execution_id
+                ),
+            )
+            and request_num[0] == 8
+        ):
             request_num[0] += 1
-            return MockResponse(
-                {"url": "result_download_url"}, 200)
-        #STEP7
-        elif (args[1] == "result_download_url"
-              and request_num[0] == 9):
+            return MockResponse({"url": "result_download_url"}, 200)
+        # STEP7
+        elif args[1] == "result_download_url" and request_num[0] == 9:
             request_num[0] += 1
-            return MockResponse(
-                {"results": [result]}, 200)
+            return MockResponse({"results": [result]}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -145,37 +163,40 @@ def test_send_real_device_online_verbose(monkeypatch):
 
         jobs_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs'
         # Authentication
-        if (args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token
-                and request_num[0] == 0):
+        if args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token and request_num[0] == 0:
             request_num[0] += 1
             return MockPostResponse({"userId": user_id, "id": access_token})
         # STEP1
-        elif (args[1] == urljoin(_API_URL, jobs_url) 
-              and request_num[0] == 2):
+        elif args[1] == urljoin(_API_URL, jobs_url) and request_num[0] == 2:
             request_num[0] += 1
-            answer1={'objectStorageInfo':{
-                'downloadQObjectUrlEndpoint':'url_dld_endpoint',
-                'uploadQobjectUrlEndpoint':'/'+execution_id+'/jobUploadUrl',
-                'uploadUrl':'url_upld'},
-                'id': execution_id
+            answer1 = {
+                'objectStorageInfo': {
+                    'downloadQObjectUrlEndpoint': 'url_dld_endpoint',
+                    'uploadQobjectUrlEndpoint': '/' + execution_id + '/jobUploadUrl',
+                    'uploadUrl': 'url_upld',
+                },
+                'id': execution_id,
             }
-            return MockPostResponse(answer1,200)
+            return MockPostResponse(answer1, 200)
 
         # STEP4
-        elif (args[1] == urljoin(_API_URL, jobs_url + "/"+execution_id+"/jobDataUploaded")
-              and request_num[0] == 4):
+        elif args[1] == urljoin(_API_URL, jobs_url + "/" + execution_id + "/jobDataUploaded") and request_num[0] == 4:
             request_num[0] += 1
             return MockPostResponse({}, 200)
 
-        #STEP8
-        elif (args[1] == urljoin(
+        # STEP8
+        elif (
+            args[1]
+            == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".
-                format(execution_id=execution_id))
-              and request_num[0] == 10):
+                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".format(
+                    execution_id=execution_id
+                ),
+            )
+            and request_num[0] == 10
+        ):
             request_num[0] += 1
-            return MockPostResponse(
-                {}, 200)
+            return MockPostResponse({}, 200)
 
     def mocked_requests_put(*args, **kwargs):
         class MockRequest:
@@ -196,11 +217,9 @@ def test_send_real_device_online_verbose(monkeypatch):
                 pass
 
         # STEP3
-        if (args[1] == "url_upld"
-              and request_num[0] == 3):
+        if args[1] == "url_upld" and request_num[0] == 3:
             request_num[0] += 1
             return MockResponse({}, 200)
-
 
     monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
     monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
@@ -213,21 +232,13 @@ def test_send_real_device_online_verbose(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
 
     # Code to test:
-    res = _ibm_http_client.send(json_qasm,
-                                device="ibmqx4",
-                                token=None,
-                                shots=shots,
-                                verbose=True)
+    res = _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
     assert res == result
     json_qasm['nq'] = 40
     request_num[0] = 0
     with pytest.raises(_ibm_http_client.DeviceTooSmall):
-        res = _ibm_http_client.send(json_qasm,
-                                    device="ibmqx4",
-                                    token=None,
-                                    shots=shots,
-                                    verbose=True)
+        res = _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
 
 def test_no_password_given(monkeypatch):
@@ -241,11 +252,7 @@ def test_no_password_given(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
 
     with pytest.raises(Exception):
-        res = _ibm_http_client.send(json_qasm,
-                                    device="ibmqx4",
-                                    token=None,
-                                    shots=1,
-                                    verbose=True)
+        _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=1, verbose=True)
 
 
 def test_send_real_device_offline(monkeypatch):
@@ -289,7 +296,7 @@ def test_send_real_device_offline(monkeypatch):
                 pass
 
         # Authentication
-        if (args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token):
+        if args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token:
             return MockPostResponse({"userId": user_id, "id": access_token})
 
     monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
@@ -298,21 +305,14 @@ def test_send_real_device_offline(monkeypatch):
     shots = 1
     token = '12345'
     json_qasm = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
-    name = 'projectq_test'
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
-        _ibm_http_client.send(json_qasm,
-                              device="ibmqx4",
-                              token=token,
-                              shots=shots,
-                              verbose=True)
+        _ibm_http_client.send(json_qasm, device="ibmqx4", token=token, shots=shots, verbose=True)
 
 
 def test_show_device(monkeypatch):
@@ -334,14 +334,32 @@ def test_show_device(monkeypatch):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
-            connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                               (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{
-                'backend_name': 'ibmqx4',
-                'coupling_map': connections,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
+            connections = set(
+                [
+                    (0, 1),
+                    (1, 0),
+                    (1, 2),
+                    (1, 3),
+                    (1, 4),
+                    (2, 1),
+                    (2, 3),
+                    (2, 4),
+                    (3, 1),
+                    (3, 4),
+                    (4, 3),
+                ]
+            )
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx4',
+                        'coupling_map': connections,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -362,7 +380,7 @@ def test_show_device(monkeypatch):
                 pass
 
         # Authentication
-        if (args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token):
+        if args[1] == _AUTH_API_URL and kwargs["json"]["apiToken"] == token:
             return MockPostResponse({"userId": user_id, "id": access_token})
 
     monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
@@ -377,10 +395,21 @@ def test_show_device(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
     assert _ibm_http_client.show_devices() == {
         'ibmqx4': {
-            'coupling_map': {(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                             (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)},
+            'coupling_map': {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            },
             'version': '0.1.547',
-            'nq': 32
+            'nq': 32,
         }
     }
 
@@ -405,28 +434,17 @@ def test_send_that_errors_are_caught(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
     json_qasm = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
-    name = 'projectq_test'
-    _ibm_http_client.send(json_qasm,
-                          device="ibmqx4",
-                          token=None,
-                          shots=shots,
-                          verbose=True)
+    _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
     token = ''
     with pytest.raises(Exception):
-        _ibm_http_client.send(json_qasm,
-                              device="ibmqx4",
-                              token=None,
-                              shots=shots,
-                              verbose=True)
+        _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
 
 def test_send_that_errors_are_caught2(monkeypatch):
@@ -449,20 +467,13 @@ def test_send_that_errors_are_caught2(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
     json_qasm = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
-    name = 'projectq_test'
-    _ibm_http_client.send(json_qasm,
-                          device="ibmqx4",
-                          token=None,
-                          shots=shots,
-                          verbose=True)
+    _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
 
 def test_send_that_errors_are_caught3(monkeypatch):
@@ -485,31 +496,22 @@ def test_send_that_errors_are_caught3(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
     shots = 1
     json_qasm = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
-    name = 'projectq_test'
-    _ibm_http_client.send(json_qasm,
-                          device="ibmqx4",
-                          token=None,
-                          shots=shots,
-                          verbose=True)
+    _ibm_http_client.send(json_qasm, device="ibmqx4", token=None, shots=shots, verbose=True)
 
 
 def test_timeout_exception(monkeypatch):
     qasms = {
-        'qasms': [{
-            'qasm': 'my qasm'
-        }],
+        'qasms': [{'qasm': 'my qasm'}],
         'shots': 1,
         'json': 'instructions',
         'maxCredits': 10,
-        'nq': 1
+        'nq': 1,
     }
     json_qasm = qasms
     tries = [0]
@@ -530,28 +532,45 @@ def test_timeout_exception(monkeypatch):
         # Accessing status of device. Return device info.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
-            connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                               (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-            return MockResponse([{
-                'backend_name': 'ibmqx4',
-                'coupling_map': connections,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
-            execution_id)
+            connections = set(
+                [
+                    (0, 1),
+                    (1, 0),
+                    (1, 2),
+                    (1, 3),
+                    (1, 4),
+                    (2, 1),
+                    (2, 3),
+                    (2, 4),
+                    (3, 1),
+                    (3, 4),
+                    (4, 3),
+                ]
+            )
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx4',
+                        'coupling_map': connections,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
+        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(execution_id)
         if args[1] == urljoin(_API_URL, job_url):
             tries[0] += 1
             return MockResponse({"status": "RUNNING"}, 200)
 
-        #STEP2
-        elif (args[1] == "/"+execution_id+"/jobUploadUrl"):
+        # STEP2
+        elif args[1] == "/" + execution_id + "/jobUploadUrl":
             return MockResponse({"url": "s3_url"}, 200)
-        #STEP5
-        elif (args[1] == urljoin(
-                _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".
-                format(execution_id=execution_id))):
+        # STEP5
+        elif args[1] == urljoin(
+            _API_URL,
+            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+        ):
             return MockResponse({"status": "RUNNING"}, 200)
 
     def mocked_requests_post(*args, **kwargs):
@@ -576,17 +595,19 @@ def test_timeout_exception(monkeypatch):
             return MockPostResponse({"userId": "1", "id": "12"})
 
         # STEP1
-        elif (args[1] == urljoin(_API_URL, jobs_url)):
-            answer1={'objectStorageInfo':{
-                'downloadQObjectUrlEndpoint':'url_dld_endpoint',
-                'uploadQobjectUrlEndpoint':'/'+execution_id+'/jobUploadUrl',
-                'uploadUrl':'url_upld'},
-                     'id': execution_id,
+        elif args[1] == urljoin(_API_URL, jobs_url):
+            answer1 = {
+                'objectStorageInfo': {
+                    'downloadQObjectUrlEndpoint': 'url_dld_endpoint',
+                    'uploadQobjectUrlEndpoint': '/' + execution_id + '/jobUploadUrl',
+                    'uploadUrl': 'url_upld',
+                },
+                'id': execution_id,
             }
-            return MockPostResponse(answer1,200)
+            return MockPostResponse(answer1, 200)
 
         # STEP4
-        elif (args[1] == urljoin(_API_URL, jobs_url + "/"+execution_id+"/jobDataUploaded")):
+        elif args[1] == urljoin(_API_URL, jobs_url + "/" + execution_id + "/jobDataUploaded"):
             return MockPostResponse({}, 200)
 
     def mocked_requests_put(*args, **kwargs):
@@ -608,7 +629,7 @@ def test_timeout_exception(monkeypatch):
                 pass
 
         # STEP3
-        if (args[1] == "url_upld"):
+        if args[1] == "url_upld":
             return MockResponse({}, 200)
 
     monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
@@ -617,12 +638,14 @@ def test_timeout_exception(monkeypatch):
 
     _ibm_http_client.time.sleep = lambda x: x
     with pytest.raises(Exception) as excinfo:
-        _ibm_http_client.send(json_qasm,
-                              device="ibmqx4",
-                              token="test",
-                              shots=1,
-                              num_retries=10,
-                              verbose=False)
+        _ibm_http_client.send(
+            json_qasm,
+            device="ibmqx4",
+            token="test",
+            shots=1,
+            num_retries=10,
+            verbose=False,
+        )
     assert execution_id in str(excinfo.value)  # check that job id is in exception
     assert tries[0] > 0
 
@@ -645,39 +668,37 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url) and request_num[0] < 2:
-            return MockResponse([{
-                'backend_name': 'ibmqx4',
-                'coupling_map': None,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
-        elif args[1] == urljoin(
-                _API_URL,
-                status_url):  # ibmqx4 gets disconnected, replaced by ibmqx5
-            return MockResponse([{
-                'backend_name': 'ibmqx5',
-                'coupling_map': None,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
-            "123e")
-        err_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(
-            "123ee")
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx4',
+                        'coupling_map': None,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
+        elif args[1] == urljoin(_API_URL, status_url):  # ibmqx4 gets disconnected, replaced by ibmqx5
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx5',
+                        'coupling_map': None,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
+        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123e")
+        err_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123ee")
         if args[1] == urljoin(_API_URL, job_url):
             request_num[0] += 1
-            return MockResponse(
-                {
-                    "status": "RUNNING",
-                    'iteration': request_num[0]
-                }, 200)
+            return MockResponse({"status": "RUNNING", 'iteration': request_num[0]}, 200)
         if args[1] == urljoin(_API_URL, err_url):
             request_num[0] += 1
-            return MockResponse(
-                {
-                    "status": "TERMINATED",
-                    'iteration': request_num[0]
-                }, 400)
+            return MockResponse({"status": "TERMINATED", 'iteration': request_num[0]}, 400)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -704,20 +725,14 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
 
     _ibm_http_client.time.sleep = lambda x: x
     with pytest.raises(_ibm_http_client.DeviceOfflineError):
-        _ibm_http_client.retrieve(device="ibmqx4",
-                                  token="test",
-                                  jobid="123e",
-                                  num_retries=200)
+        _ibm_http_client.retrieve(device="ibmqx4", token="test", jobid="123e", num_retries=200)
     with pytest.raises(Exception):
-        _ibm_http_client.retrieve(device="ibmqx4",
-                                  token="test",
-                                  jobid="123ee",
-                                  num_retries=200)
+        _ibm_http_client.retrieve(device="ibmqx4", token="test", jobid="123ee", num_retries=200)
 
 
 def test_retrieve(monkeypatch):
     request_num = [0]
-    execution_id='3'
+    execution_id = '3'
 
     def mocked_requests_get(*args, **kwargs):
         class MockResponse:
@@ -734,37 +749,45 @@ def test_retrieve(monkeypatch):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
-            return MockResponse([{
-                'backend_name': 'ibmqx4',
-                'coupling_map': None,
-                'backend_version': '0.1.547',
-                'n_qubits': 32
-            }], 200)
-        
-        #STEP5
-        elif (args[1] == urljoin(
+            return MockResponse(
+                [
+                    {
+                        'backend_name': 'ibmqx4',
+                        'coupling_map': None,
+                        'backend_version': '0.1.547',
+                        'n_qubits': 32,
+                    }
+                ],
+                200,
+            )
+
+        # STEP5
+        elif (
+            args[1]
+            == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".
-                format(execution_id=execution_id))and request_num[0] < 1):
+                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            )
+            and request_num[0] < 1
+        ):
             request_num[0] += 1
             return MockResponse({"status": "RUNNING"}, 200)
-        elif (args[1] == urljoin(
-                _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".
-                format(execution_id=execution_id))):
-            return MockResponse(
-                {"status": "COMPLETED"}, 200)
-        #STEP6
-        elif (args[1] == urljoin(
-                _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".
-                format(execution_id=execution_id))):
-            return MockResponse(
-                {"url": "result_download_url"}, 200)
-        #STEP7
-        elif (args[1] == "result_download_url"):
-            return MockResponse(
-                {"results": ['correct']}, 200)
+        elif args[1] == urljoin(
+            _API_URL,
+            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+        ):
+            return MockResponse({"status": "COMPLETED"}, 200)
+        # STEP6
+        elif args[1] == urljoin(
+            _API_URL,
+            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".format(
+                execution_id=execution_id
+            ),
+        ):
+            return MockResponse({"url": "result_download_url"}, 200)
+        # STEP7
+        elif args[1] == "result_download_url":
+            return MockResponse({"results": ['correct']}, 200)
 
     def mocked_requests_post(*args, **kwargs):
         class MockRequest:
@@ -786,19 +809,18 @@ def test_retrieve(monkeypatch):
         if args[1] == _AUTH_API_URL:
             return MockPostResponse({"userId": "1", "id": "12"})
 
-        #STEP8
-        elif (args[1] == urljoin(
-                _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".
-                format(execution_id=execution_id))):
-            return MockPostResponse(
-                {}, 200)
+        # STEP8
+        elif args[1] == urljoin(
+            _API_URL,
+            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".format(
+                execution_id=execution_id
+            ),
+        ):
+            return MockPostResponse({}, 200)
 
     monkeypatch.setattr("requests.sessions.Session.get", mocked_requests_get)
     monkeypatch.setattr("requests.sessions.Session.post", mocked_requests_post)
 
     _ibm_http_client.time.sleep = lambda x: x
-    res = _ibm_http_client.retrieve(device="ibmqx4",
-                                    token="test",
-                                    jobid=execution_id)
+    res = _ibm_http_client.retrieve(device="ibmqx4", token="test", jobid=execution_id)
     assert res == 'correct'

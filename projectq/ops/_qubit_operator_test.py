@@ -78,42 +78,42 @@ def test_init_str_identity():
 
 def test_init_bad_term():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator(list())
+        qo.QubitOperator(list())
 
 
 def test_init_bad_coefficient():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator('X0', "0.5")
+        qo.QubitOperator('X0', "0.5")
 
 
 def test_init_bad_action():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator('Q0')
+        qo.QubitOperator('Q0')
 
 
 def test_init_bad_action_in_tuple():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator(((1, 'Q'),))
+        qo.QubitOperator(((1, 'Q'),))
 
 
 def test_init_bad_qubit_num_in_tuple():
     with pytest.raises(qo.QubitOperatorError):
-        qubit_op = qo.QubitOperator((("1", 'X'),))
+        qo.QubitOperator((("1", 'X'),))
 
 
 def test_init_bad_tuple():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator(((0, 1, 'X'),))
+        qo.QubitOperator(((0, 1, 'X'),))
 
 
 def test_init_bad_str():
     with pytest.raises(ValueError):
-        qubit_op = qo.QubitOperator('X')
+        qo.QubitOperator('X')
 
 
 def test_init_bad_qubit_num():
     with pytest.raises(qo.QubitOperatorError):
-        qubit_op = qo.QubitOperator('X-1')
+        qo.QubitOperator('X-1')
 
 
 def test_isclose_abs_tol():
@@ -205,7 +205,6 @@ def test_get_inverse():
 def test_get_merged():
     qo0 = qo.QubitOperator("X1 Z2", 1j)
     qo1 = qo.QubitOperator("Y3", 1j)
-    merged = qo0.get_merged(qo1)
     assert qo0.isclose(qo.QubitOperator("X1 Z2", 1j))
     assert qo1.isclose(qo.QubitOperator("Y3", 1j))
     assert qo0.get_merged(qo1).isclose(qo.QubitOperator("X1 Z2 Y3", -1))
@@ -307,6 +306,7 @@ def test_imul_qubit_op():
     correct_term = ((0, 'Y'), (1, 'X'), (3, 'Z'), (11, 'X'))
     assert len(op1.terms) == 1
     assert correct_term in op1.terms
+    assert op1.terms[correct_term] == correct_coefficient
 
 
 def test_imul_qubit_op_2():
