@@ -59,6 +59,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
     def __init__(self, accept_input=False, default_measure=0):
         """
         Initialize a circuit drawing engine(mpl)
+
         Args:
             accept_input (bool): If accept_input is true, the printer queries
                 the user to input measurement results if the CircuitDrawerMPL
