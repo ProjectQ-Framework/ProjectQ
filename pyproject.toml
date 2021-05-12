@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=31", "wheel", "pybind11>=2"]
+build-backend = "setuptools.build_meta"
+
+# ==============================================================================
+
+[tool.black]
+
+line-length = 118
+target-version = ['py36','py37','py38']
+skip-string-normalization = true
+
+
+[tool.coverage]
+    [tool.coverage.run]
+        omit = [
+            '*_test.py',
+            '*_fixtures.py'
+        ]
+
+
+[tool.pylint]
+    [tools.pylint.master]
+    ignore-patterns = [
+        '__init__.py'
+    ]
+
+    [tools.pylint.format]
+    max-line-length = 120
+
+    [tools.pylint.reports]
+    msg-template = '{path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})'
+
+    [tools.pylint.messages_control]
+    disable = [
+         'invalid-name',
+         'expression-not-assigned',
+         'pointless-statemen',
+    ]
+
+
+[tool.pytest.ini_options]
+
+minversion = '6.0'
+addopts = '-pno:warnings'
+testpaths = ['projectq']
+
+
+[tool.yapf]
+
+column_limit = 118
