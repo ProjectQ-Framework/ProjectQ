@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=31", "wheel", "pybind11>=2"]
+requires = ["setuptools>=31", "wheel", "pybind11>=2", "setuptools_scm[toml]>=6.0"]
 build-backend = "setuptools.build_meta"
 
 # ==============================================================================
@@ -45,6 +45,11 @@ minversion = '6.0'
 addopts = '-pno:warnings'
 testpaths = ['projectq']
 
+[tool.setuptools_scm]
+
+write_to = 'VERSION'
+write_to_template = '{version}'
+local_scheme = 'no-local-version'
 
 [tool.yapf]
 

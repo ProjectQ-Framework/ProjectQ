@@ -537,6 +537,8 @@ def run_setup(with_cext):
         kwargs['ext_modules'] = []
 
     setup(
+        use_scm_version={'local_scheme': 'no-local-version'},
+        setup_requires=['setuptools_scm'],
         cmdclass={
             'build_ext': BuildExt,
             'clang_tidy': ClangTidy,
