@@ -15,13 +15,27 @@
 
 import pytest
 from unittest.mock import MagicMock, Mock, patch
-from botocore.response import StreamingBody
-import botocore
 from io import StringIO
 import json
 
-import projectq.setups.awsbraket
 
+# ==============================================================================
+
+_has_boto3 = True
+try:
+    from botocore.response import StreamingBody
+    import botocore
+    from projectq.backends._awsbraket import _awsbraket
+
+    import projectq.setups.awsbraket
+
+except ImportError:
+    _has_boto3 = False
+
+has_boto3 = pytest.mark.skipif(not _has_boto3,
+                               reason="boto3 package is not installed")
+
+# ==============================================================================
 
 search_value = {
         "devices": [
@@ -108,6 +122,7 @@ creds = {
     }
 
 
+@has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize("var_device", ['SV1', 'Aspen-8', 'IonQ Device'])
 def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
@@ -121,6 +136,7 @@ def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
     assert len(engine_list) == 12
 
 
+@has_boto3
 @patch('boto3.client')
 def test_awsbraket_error(mock_boto3_client):
 
