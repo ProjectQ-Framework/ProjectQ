@@ -65,63 +65,62 @@ def s3_folder():
 
 @pytest.fixture
 def device_value():
-    device_value_devicecapabilities = json.dumps({
-        "braketSchemaHeader": {
-            "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
-            "version": "1",
-        },
-        "service": {
-            "executionWindows": [{
-                "executionDay": "Everyday",
-                "windowStartHour": "11:00",
-                "windowEndHour": "12:00",
-            }],
-            "shotsRange": [1, 10],
-            "deviceLocation":
-            "us-east-1",
-        },
-        "action": {
-            "braket.ir.jaqcd.program": {
-                "actionType": "braket.ir.jaqcd.program",
-                "version": ["1"],
-                "supportedOperations": ["H"],
-            }
-        },
-        "paradigm": {
-            "qubitCount": 30,
-            "nativeGateSet": ["ccnot", "cy"],
-            "connectivity": {
-                "fullyConnected": False,
-                "connectivityGraph": {
-                    "1": ["2", "3"]
-                }
+    device_value_devicecapabilities = json.dumps(
+        {
+            "braketSchemaHeader": {
+                "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
+                "version": "1",
             },
-        },
-        "deviceParameters": {
-            "properties": {
-                "braketSchemaHeader": {
-                    "const": {
-                        "name":
-                        "braket.device_schema.rigetti.rigetti_device_parameters",
-                        "version": "1"
+            "service": {
+                "executionWindows": [
+                    {
+                        "executionDay": "Everyday",
+                        "windowStartHour": "11:00",
+                        "windowEndHour": "12:00",
                     }
+                ],
+                "shotsRange": [1, 10],
+                "deviceLocation": "us-east-1",
+            },
+            "action": {
+                "braket.ir.jaqcd.program": {
+                    "actionType": "braket.ir.jaqcd.program",
+                    "version": ["1"],
+                    "supportedOperations": ["H"],
                 }
             },
-            "definitions": {
-                "GateModelParameters": {
-                    "properties": {
-                        "braketSchemaHeader": {
-                            "const": {
-                                "name":
-                                "braket.device_schema.gate_model_parameters",
-                                "version": "1"
+            "paradigm": {
+                "qubitCount": 30,
+                "nativeGateSet": ["ccnot", "cy"],
+                "connectivity": {
+                    "fullyConnected": False,
+                    "connectivityGraph": {"1": ["2", "3"]},
+                },
+            },
+            "deviceParameters": {
+                "properties": {
+                    "braketSchemaHeader": {
+                        "const": {
+                            "name": "braket.device_schema.rigetti.rigetti_device_parameters",
+                            "version": "1",
+                        }
+                    }
+                },
+                "definitions": {
+                    "GateModelParameters": {
+                        "properties": {
+                            "braketSchemaHeader": {
+                                "const": {
+                                    "name": "braket.device_schema.gate_model_parameters",
+                                    "version": "1",
+                                }
                             }
                         }
                     }
-                }
+                },
             },
-        },
-    })
+        }
+    )
 
     return {
         "deviceName": "Aspen-8",
@@ -171,9 +170,7 @@ def completed_value():
         'quantumTaskArn': 'arntask',
         'shots': 123,
         'status': 'COMPLETED',
-        'tags': {
-            'tagkey': 'tagvalue'
-        }
+        'tags': {'tagkey': 'tagvalue'},
     }
 
 
@@ -188,25 +185,26 @@ def sent_error_setup(creds, s3_folder, device_value, search_value):
 
 @pytest.fixture
 def results_json():
-    return json.dumps({
-        "braketSchemaHeader": {
-            "name": "braket.task_result.gate_model_task_result",
-            "version": "1"
-        },
-        "measurementProbabilities": {
-            "0000": 0.04,
-            "0010": 0.06,
-            "0110": 0.2,
-            "0001": 0.3,
-            "1001": 0.5
-        },
-        "measuredQubits": [0, 1, 2],
-    })
+    return json.dumps(
+        {
+            "braketSchemaHeader": {
+                "name": "braket.task_result.gate_model_task_result",
+                "version": "1",
+            },
+            "measurementProbabilities": {
+                "0000": 0.04,
+                "0010": 0.06,
+                "0110": 0.2,
+                "0001": 0.3,
+                "1001": 0.5,
+            },
+            "measuredQubits": [0, 1, 2],
+        }
+    )
 
 
 @pytest.fixture
-def retrieve_setup(arntask, creds, device_value, completed_value,
-                   results_json):
+def retrieve_setup(arntask, creds, device_value, completed_value, results_json):
 
     body = StreamingBody(StringIO(results_json), len(results_json))
 
@@ -215,15 +213,14 @@ def retrieve_setup(arntask, creds, device_value, completed_value,
             'RequestId': 'CF4CAA48CC18836C',
             'HTTPHeaders': {},
         },
-        'Body': body
+        'Body': body,
     }
 
     return arntask, creds, completed_value, device_value, results_dict
 
 
 @pytest.fixture
-def functional_setup(arntask, creds, s3_folder, search_value, device_value,
-                     completed_value, results_json):
+def functional_setup(arntask, creds, s3_folder, search_value, device_value, completed_value, results_json):
     qtarntask = {'quantumTaskArn': arntask}
     body2 = StreamingBody(StringIO(results_json), len(results_json))
     results_dict = {
@@ -231,11 +228,18 @@ def functional_setup(arntask, creds, s3_folder, search_value, device_value,
             'RequestId': 'CF4CAA48CC18836C',
             'HTTPHeaders': {},
         },
-        'Body': body2
+        'Body': body2,
     }
 
-    return (creds, s3_folder, search_value, device_value, qtarntask,
-            completed_value, results_dict)
+    return (
+        creds,
+        s3_folder,
+        search_value,
+        device_value,
+        qtarntask,
+        completed_value,
+        results_dict,
+    )
 
 
 # ==============================================================================

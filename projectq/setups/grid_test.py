@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.setups.squaregrid."""
 
 import pytest
@@ -38,9 +37,7 @@ def test_mapper_present_and_correct_params():
 
 
 def test_parameter_any():
-    engine_list = grid_setup.get_engine_list(num_rows=3, num_columns=2,
-                                             one_qubit_gates="any",
-                                             two_qubit_gates="any")
+    engine_list = grid_setup.get_engine_list(num_rows=3, num_columns=2, one_qubit_gates="any", two_qubit_gates="any")
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list)
     qubit1 = eng.allocate_qubit()
@@ -55,10 +52,12 @@ def test_parameter_any():
 
 
 def test_restriction():
-    engine_list = grid_setup.get_engine_list(num_rows=3, num_columns=2,
-                                             one_qubit_gates=(Rz, H),
-                                             two_qubit_gates=(CNOT,
-                                                              AddConstant))
+    engine_list = grid_setup.get_engine_list(
+        num_rows=3,
+        num_columns=2,
+        one_qubit_gates=(Rz, H),
+        two_qubit_gates=(CNOT, AddConstant),
+    )
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list)
     qubit1 = eng.allocate_qubit()
@@ -86,12 +85,10 @@ def test_restriction():
 
 def test_wrong_init():
     with pytest.raises(TypeError):
-        engine_list = grid_setup.get_engine_list(num_rows=3,
-                                                 num_columns=2,
-                                                 one_qubit_gates="any",
-                                                 two_qubit_gates=(CNOT))
+        engine_list = grid_setup.get_engine_list(
+            num_rows=3, num_columns=2, one_qubit_gates="any", two_qubit_gates=(CNOT)
+        )
     with pytest.raises(TypeError):
-        engine_list = grid_setup.get_engine_list(num_rows=3,
-                                                 num_columns=2,
-                                                 one_qubit_gates="Any",
-                                                 two_qubit_gates=(CNOT,))
+        engine_list = grid_setup.get_engine_list(
+            num_rows=3, num_columns=2, one_qubit_gates="Any", two_qubit_gates=(CNOT,)
+        )

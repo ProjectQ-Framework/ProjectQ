@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition for controlled z-rotation gates.
 
@@ -25,7 +24,7 @@ from projectq.ops import NOT, Rz, C
 
 
 def _decompose_CRz(cmd):
-    """ Decompose the controlled Rz gate (into CNOT and Rz). """
+    """Decompose the controlled Rz gate (into CNOT and Rz)."""
     qubit = cmd.qubits[0]
     ctrl = cmd.control_qubits
     gate = cmd.gate
@@ -38,11 +37,9 @@ def _decompose_CRz(cmd):
 
 
 def _recognize_CRz(cmd):
-    """ Recognize the controlled Rz gate. """
+    """Recognize the controlled Rz gate."""
     return get_control_count(cmd) >= 1
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)
-]
+all_defined_decomposition_rules = [DecompositionRule(Rz, _decompose_CRz, _recognize_CRz)]

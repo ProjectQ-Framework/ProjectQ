@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.meta._loop.py"""
 
 import pytest
@@ -59,7 +58,7 @@ def test_loop_with_supported_loop_tag_and_local_qubits():
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
 
     def allow_loop_tags(self, meta_tag):
-            return meta_tag == _loop.LoopTag
+        return meta_tag == _loop.LoopTag
 
     backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
     qubit = eng.allocate_qubit()
@@ -136,7 +135,7 @@ def test_empty_loop_when_loop_tag_supported_by_backend():
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
 
     def allow_loop_tags(self, meta_tag):
-            return meta_tag == _loop.LoopTag
+        return meta_tag == _loop.LoopTag
 
     backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
     qubit = eng.allocate_qubit()
@@ -153,7 +152,7 @@ def test_loop_with_supported_loop_tag_depending_on_num():
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
 
     def allow_loop_tags(self, meta_tag):
-            return meta_tag == _loop.LoopTag
+        return meta_tag == _loop.LoopTag
 
     backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
     qubit = eng.allocate_qubit()
@@ -194,29 +193,31 @@ def test_loop_unrolling_with_ancillas():
         assert backend.received_commands[ii * 4 + 3].gate == X
         assert backend.received_commands[ii * 4 + 4].gate == Deallocate
         # Check qubit ids
-        assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-                backend.received_commands[ii * 4 + 2].qubits[0][0].id)
-        assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-                backend.received_commands[ii * 4 + 3].control_qubits[0].id)
-        assert (backend.received_commands[ii * 4 + 3].qubits[0][0].id ==
-                qubit_id)
-        assert (backend.received_commands[ii * 4 + 1].qubits[0][0].id ==
-                backend.received_commands[ii * 4 + 4].qubits[0][0].id)
+        assert (
+            backend.received_commands[ii * 4 + 1].qubits[0][0].id
+            == backend.received_commands[ii * 4 + 2].qubits[0][0].id
+        )
+        assert (
+            backend.received_commands[ii * 4 + 1].qubits[0][0].id
+            == backend.received_commands[ii * 4 + 3].control_qubits[0].id
+        )
+        assert backend.received_commands[ii * 4 + 3].qubits[0][0].id == qubit_id
+        assert (
+            backend.received_commands[ii * 4 + 1].qubits[0][0].id
+            == backend.received_commands[ii * 4 + 4].qubits[0][0].id
+        )
     assert backend.received_commands[13].gate == Deallocate
     assert backend.received_commands[14].gate == FlushGate()
-    assert (backend.received_commands[1].qubits[0][0].id !=
-            backend.received_commands[5].qubits[0][0].id)
-    assert (backend.received_commands[1].qubits[0][0].id !=
-            backend.received_commands[9].qubits[0][0].id)
-    assert (backend.received_commands[5].qubits[0][0].id !=
-            backend.received_commands[9].qubits[0][0].id)
+    assert backend.received_commands[1].qubits[0][0].id != backend.received_commands[5].qubits[0][0].id
+    assert backend.received_commands[1].qubits[0][0].id != backend.received_commands[9].qubits[0][0].id
+    assert backend.received_commands[5].qubits[0][0].id != backend.received_commands[9].qubits[0][0].id
 
 
 def test_nested_loop():
     backend = DummyEngine(save_commands=True)
 
     def allow_loop_tags(self, meta_tag):
-            return meta_tag == _loop.LoopTag
+        return meta_tag == _loop.LoopTag
 
     backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
@@ -230,8 +231,7 @@ def test_nested_loop():
     assert len(backend.received_commands[1].tags) == 2
     assert backend.received_commands[1].tags[0].num == 4
     assert backend.received_commands[1].tags[1].num == 3
-    assert (backend.received_commands[1].tags[0].id !=
-            backend.received_commands[1].tags[1].id)
+    assert backend.received_commands[1].tags[0].id != backend.received_commands[1].tags[1].id
 
 
 def test_qubit_management_error():
@@ -246,7 +246,7 @@ def test_qubit_management_error_when_loop_tag_supported():
     backend = DummyEngine(save_commands=True)
 
     def allow_loop_tags(self, meta_tag):
-            return meta_tag == _loop.LoopTag
+        return meta_tag == _loop.LoopTag
 
     backend.is_meta_tag_handler = types.MethodType(allow_loop_tags, backend)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])

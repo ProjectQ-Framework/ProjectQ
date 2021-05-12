@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition for the Rx gate into an Rz gate and Hadamard.
 """
@@ -23,7 +22,7 @@ from projectq.ops import Rx, Rz, H
 
 
 def _decompose_rx(cmd):
-    """ Decompose the Rx gate."""
+    """Decompose the Rx gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
@@ -36,11 +35,9 @@ def _decompose_rx(cmd):
 
 
 def _recognize_RxNoCtrl(cmd):
-    """ For efficiency reasons only if no control qubits."""
+    """For efficiency reasons only if no control qubits."""
     return get_control_count(cmd) == 0
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)
-]
+all_defined_decomposition_rules = [DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)]

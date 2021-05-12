@@ -21,8 +21,12 @@ import pytest
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
-                               InstructionFilter)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+)
 from projectq.meta import Control
 from projectq.ops import Measure, Rz
 
@@ -30,7 +34,7 @@ from . import rz2rx
 
 
 def test_recognize_correct_gates():
-    """ Test that recognize_RzNoCtrl recognizes ctrl qubits """
+    """Test that recognize_RzNoCtrl recognizes ctrl qubits"""
     saving_backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=saving_backend)
     qubit = eng.allocate_qubit()
@@ -45,7 +49,7 @@ def test_recognize_correct_gates():
 
 
 def rz_decomp_gates(eng, cmd):
-    """ Test that cmd.gate is the gate Rz """
+    """Test that cmd.gate is the gate Rz"""
     g = cmd.gate
     if isinstance(g, Rz):
         return False
@@ -80,17 +84,18 @@ def test_decomposition(angle):
     for rule in decomposition_rule_list:
         for basis_state in ([1, 0], [0, 1]):
             correct_dummy_eng = DummyEngine(save_commands=True)
-            correct_eng = MainEngine(backend=Simulator(),
-                                     engine_list=[correct_dummy_eng])
+            correct_eng = MainEngine(backend=Simulator(), engine_list=[correct_dummy_eng])
 
             rule_set = DecompositionRuleSet(rules=[rule])
             test_dummy_eng = DummyEngine(save_commands=True)
-            test_eng = MainEngine(backend=Simulator(),
-                                  engine_list=[
-                                      AutoReplacer(rule_set),
-                                      InstructionFilter(rz_decomp_gates),
-                                      test_dummy_eng
-                                  ])
+            test_eng = MainEngine(
+                backend=Simulator(),
+                engine_list=[
+                    AutoReplacer(rule_set),
+                    InstructionFilter(rz_decomp_gates),
+                    test_dummy_eng,
+                ],
+            )
 
             correct_qb = correct_eng.allocate_qubit()
             Rz(angle) | correct_qb
@@ -118,9 +123,7 @@ def test_decomposition(angle):
             # Remember that transposed vector should come first in product
             vector_dot_product = np.dot(test_vector, correct_vector)
 
-            assert np.absolute(vector_dot_product) == pytest.approx(1,
-                                                                    rel=1e-12,
-                                                                    abs=1e-12)
+            assert np.absolute(vector_dot_product) == pytest.approx(1, rel=1e-12, abs=1e-12)
 
             Measure | test_qb
             Measure | correct_qb

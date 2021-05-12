@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a TagRemover engine, which removes temporary command tags (such as
 Compute/Uncompute), thus enabling optimization across meta statements (loops
@@ -31,6 +30,7 @@ class TagRemover(BasicEngine):
     order to enable optimizations across meta-function boundaries (compute/
     action/uncompute or loops after unrolling)
     """
+
     def __init__(self, tags=[ComputeTag, UncomputeTag]):
         """
         Construct the TagRemover.

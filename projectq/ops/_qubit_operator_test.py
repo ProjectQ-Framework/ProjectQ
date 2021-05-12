@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for _qubit_operator.py."""
 import cmath
 import copy
@@ -30,22 +29,24 @@ from projectq.ops import _qubit_operator as qo
 
 
 def test_pauli_operator_product_unchanged():
-    correct = {('I', 'I'): (1., 'I'),
-               ('I', 'X'): (1., 'X'),
-               ('X', 'I'): (1., 'X'),
-               ('I', 'Y'): (1., 'Y'),
-               ('Y', 'I'): (1., 'Y'),
-               ('I', 'Z'): (1., 'Z'),
-               ('Z', 'I'): (1., 'Z'),
-               ('X', 'X'): (1., 'I'),
-               ('Y', 'Y'): (1., 'I'),
-               ('Z', 'Z'): (1., 'I'),
-               ('X', 'Y'): (1.j, 'Z'),
-               ('X', 'Z'): (-1.j, 'Y'),
-               ('Y', 'X'): (-1.j, 'Z'),
-               ('Y', 'Z'): (1.j, 'X'),
-               ('Z', 'X'): (1.j, 'Y'),
-               ('Z', 'Y'): (-1.j, 'X')}
+    correct = {
+        ('I', 'I'): (1.0, 'I'),
+        ('I', 'X'): (1.0, 'X'),
+        ('X', 'I'): (1.0, 'X'),
+        ('I', 'Y'): (1.0, 'Y'),
+        ('Y', 'I'): (1.0, 'Y'),
+        ('I', 'Z'): (1.0, 'Z'),
+        ('Z', 'I'): (1.0, 'Z'),
+        ('X', 'X'): (1.0, 'I'),
+        ('Y', 'Y'): (1.0, 'I'),
+        ('Z', 'Z'): (1.0, 'I'),
+        ('X', 'Y'): (1.0j, 'Z'),
+        ('X', 'Z'): (-1.0j, 'Y'),
+        ('Y', 'X'): (-1.0j, 'Z'),
+        ('Y', 'Z'): (1.0j, 'X'),
+        ('Z', 'X'): (1.0j, 'Y'),
+        ('Z', 'Y'): (-1.0j, 'X'),
+    }
     assert qo._PAULI_OPERATOR_PRODUCTS == correct
 
 
@@ -54,8 +55,7 @@ def test_init_defaults():
     assert len(loc_op.terms) == 0
 
 
-@pytest.mark.parametrize("coefficient", [0.5, 0.6j, numpy.float64(2.303),
-                         numpy.complex128(-1j)])
+@pytest.mark.parametrize("coefficient", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j)])
 def test_init_tuple(coefficient):
     loc_op = ((0, 'X'), (5, 'Y'), (6, 'Z'))
     qubit_op = qo.QubitOperator(loc_op, coefficient)
@@ -64,17 +64,17 @@ def test_init_tuple(coefficient):
 
 
 def test_init_str():
-    qubit_op = qo.QubitOperator('X0 Y5 Z12', -1.)
+    qubit_op = qo.QubitOperator('X0 Y5 Z12', -1.0)
     correct = ((0, 'X'), (5, 'Y'), (12, 'Z'))
     assert correct in qubit_op.terms
     assert qubit_op.terms[correct] == -1.0
 
 
 def test_init_str_identity():
-    qubit_op = qo.QubitOperator('', 2.)
+    qubit_op = qo.QubitOperator('', 2.0)
     assert len(qubit_op.terms) == 1
     assert () in qubit_op.terms
-    assert qubit_op.terms[()] == pytest.approx(2.)
+    assert qubit_op.terms[()] == pytest.approx(2.0)
 
 
 def test_init_bad_term():
@@ -118,7 +118,7 @@ def test_init_bad_qubit_num():
 
 
 def test_isclose_abs_tol():
-    a = qo.QubitOperator('X0', -1.)
+    a = qo.QubitOperator('X0', -1.0)
     b = qo.QubitOperator('X0', -1.05)
     c = qo.QubitOperator('X0', -1.11)
     assert a.isclose(b, rel_tol=1e-14, abs_tol=0.1)
@@ -131,30 +131,30 @@ def test_isclose_abs_tol():
 
 
 def test_compress():
-    a = qo.QubitOperator('X0', .9e-12)
+    a = qo.QubitOperator('X0', 0.9e-12)
     assert len(a.terms) == 1
     a.compress()
     assert len(a.terms) == 0
-    a = qo.QubitOperator('X0', 1. + 1j)
-    a.compress(.5)
+    a = qo.QubitOperator('X0', 1.0 + 1j)
+    a.compress(0.5)
     assert len(a.terms) == 1
     for term in a.terms:
-        assert a.terms[term] == 1. + 1j
+        assert a.terms[term] == 1.0 + 1j
     a = qo.QubitOperator('X0', 1.1 + 1j)
-    a.compress(1.)
+    a.compress(1.0)
     assert len(a.terms) == 1
     for term in a.terms:
         assert a.terms[term] == 1.1
-    a = qo.QubitOperator('X0', 1.1 + 1j) + qo.QubitOperator('X1', 1.e-6j)
+    a = qo.QubitOperator('X0', 1.1 + 1j) + qo.QubitOperator('X1', 1.0e-6j)
     a.compress()
     assert len(a.terms) == 2
     for term in a.terms:
         assert isinstance(a.terms[term], complex)
-    a.compress(1.e-5)
+    a.compress(1.0e-5)
     assert len(a.terms) == 1
     for term in a.terms:
         assert isinstance(a.terms[term], complex)
-    a.compress(1.)
+    a.compress(1.0)
     assert len(a.terms) == 1
     for term in a.terms:
         assert isinstance(a.terms[term], float)
@@ -195,8 +195,7 @@ def test_isclose_different_num_terms():
 def test_get_inverse():
     qo0 = qo.QubitOperator("X1 Z2", cmath.exp(0.6j))
     qo1 = qo.QubitOperator("", 1j)
-    assert qo0.get_inverse().isclose(
-        qo.QubitOperator("X1 Z2", cmath.exp(-0.6j)))
+    assert qo0.get_inverse().isclose(qo.QubitOperator("X1 Z2", cmath.exp(-0.6j)))
     assert qo1.get_inverse().isclose(qo.QubitOperator("", -1j))
     qo0 += qo1
     with pytest.raises(NotInvertible):
@@ -235,7 +234,7 @@ def test_or_one_qubit():
     eng.flush()
     z | qureg
     eng.flush()
-    assert saving_backend.received_commands[4].gate == Ph(math.pi/2.)
+    assert saving_backend.received_commands[4].gate == Ph(math.pi / 2.0)
 
     assert saving_backend.received_commands[6].gate == X
     assert saving_backend.received_commands[6].qubits == ([qureg[1]],)
@@ -277,8 +276,7 @@ def test_rescaling_of_indices():
     op = qo.QubitOperator("X0 Y1 Z3", 1j)
     op | qureg
     eng.flush()
-    assert saving_backend.received_commands[5].gate.isclose(
-        qo.QubitOperator("X0 Y1 Z2", 1j))
+    assert saving_backend.received_commands[5].gate.isclose(qo.QubitOperator("X0 Y1 Z2", 1j))
     # test that gate creates a new QubitOperator
     assert op.isclose(qo.QubitOperator("X0 Y1 Z3", 1j))
 
@@ -286,12 +284,11 @@ def test_rescaling_of_indices():
 def test_imul_inplace():
     qubit_op = qo.QubitOperator("X1")
     prev_id = id(qubit_op)
-    qubit_op *= 3.
+    qubit_op *= 3.0
     assert id(qubit_op) == prev_id
 
 
-@pytest.mark.parametrize("multiplier", [0.5, 0.6j, numpy.float64(2.303),
-                         numpy.complex128(-1j)])
+@pytest.mark.parametrize("multiplier", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j)])
 def test_imul_scalar(multiplier):
     loc_op = ((1, 'X'), (2, 'Y'))
     qubit_op = qo.QubitOperator(loc_op)
@@ -300,10 +297,10 @@ def test_imul_scalar(multiplier):
 
 
 def test_imul_qubit_op():
-    op1 = qo.QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.j)
+    op1 = qo.QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.0j)
     op2 = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op1 *= op2
-    correct_coefficient = 1.j * 3.0j * 0.5
+    correct_coefficient = 1.0j * 3.0j * 0.5
     correct_term = ((0, 'Y'), (1, 'X'), (3, 'Z'), (11, 'X'))
     assert len(op1.terms) == 1
     assert correct_term in op1.terms
@@ -349,13 +346,12 @@ def test_mul_bad_multiplier():
 
 
 def test_mul_out_of_place():
-    op1 = qo.QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.j)
+    op1 = qo.QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.0j)
     op2 = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op3 = op1 * op2
-    correct_coefficient = 1.j * 3.0j * 0.5
+    correct_coefficient = 1.0j * 3.0j * 0.5
     correct_term = ((0, 'Y'), (1, 'X'), (3, 'Z'), (11, 'X'))
-    assert op1.isclose(qo.QubitOperator(
-        ((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.j))
+    assert op1.isclose(qo.QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.0j))
     assert op2.isclose(qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5))
     assert op3.isclose(qo.QubitOperator(correct_term, correct_coefficient))
 
@@ -371,14 +367,12 @@ def test_mul_multiple_terms():
     op += qo.QubitOperator(((1, 'Z'), (3, 'X'), (8, 'Z')), 1.2)
     op += qo.QubitOperator(((1, 'Z'), (3, 'Y'), (9, 'Z')), 1.4j)
     res = op * op
-    correct = qo.QubitOperator((), 0.5**2 + 1.2**2 + 1.4j**2)
-    correct += qo.QubitOperator(((1, 'Y'), (3, 'Z')),
-                                2j * 1j * 0.5 * 1.2)
+    correct = qo.QubitOperator((), 0.5 ** 2 + 1.2 ** 2 + 1.4j ** 2)
+    correct += qo.QubitOperator(((1, 'Y'), (3, 'Z')), 2j * 1j * 0.5 * 1.2)
     assert res.isclose(correct)
 
 
-@pytest.mark.parametrize("multiplier", [0.5, 0.6j, numpy.float64(2.303),
-                         numpy.complex128(-1j)])
+@pytest.mark.parametrize("multiplier", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j)])
 def test_rmul_scalar(multiplier):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     res1 = op * multiplier
@@ -392,15 +386,14 @@ def test_rmul_bad_multiplier():
         op = "0.5" * op
 
 
-@pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303),
-                         numpy.complex128(-1j), 2])
+@pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j), 2])
 def test_truediv_and_div(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
     res = op / divisor
     res2 = op2.__div__(divisor)  # To test python 2 version as well
-    correct = op * (1. / divisor)
+    correct = op * (1.0 / divisor)
     assert res.isclose(correct)
     assert res2.isclose(correct)
     # Test if done out of place
@@ -414,13 +407,12 @@ def test_truediv_bad_divisor():
         op = op / "0.5"
 
 
-@pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303),
-                         numpy.complex128(-1j), 2])
+@pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j), 2])
 def test_itruediv_and_idiv(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
-    correct = op * (1. / divisor)
+    correct = op * (1.0 / divisor)
     op /= divisor
     op2.__idiv__(divisor)  # To test python 2 version as well
     assert op.isclose(correct)
@@ -557,8 +549,7 @@ def test_str_empty():
 def test_str_multiple_terms():
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
     op += qo.QubitOperator(((1, 'Y'), (3, 'Y'), (8, 'Z')), 0.6)
-    assert (str(op) == "0.5 X1 Y3 Z8 +\n0.6 Y1 Y3 Z8" or
-            str(op) == "0.6 Y1 Y3 Z8 +\n0.5 X1 Y3 Z8")
+    assert str(op) == "0.5 X1 Y3 Z8 +\n0.6 Y1 Y3 Z8" or str(op) == "0.6 Y1 Y3 Z8 +\n0.5 X1 Y3 Z8"
     op2 = qo.QubitOperator((), 2)
     assert str(op2) == "2 I"
 

@@ -28,12 +28,17 @@ class LastEngineException(Exception):
     whether the command is available. An engine which legally may be the last
     engine, this behavior needs to be adapted (see BasicEngine.isAvailable).
     """
+
     def __init__(self, engine):
-        Exception.__init__(self, ("\nERROR: Sending to next engine failed. "
-                                  "{} as last engine?\nIf this is legal, "
-                                  "please override 'isAvailable' to adapt its"
-                                  " behavior."
-                                  ).format(engine.__class__.__name__))
+        Exception.__init__(
+            self,
+            (
+                "\nERROR: Sending to next engine failed. "
+                "{} as last engine?\nIf this is legal, "
+                "please override 'isAvailable' to adapt its"
+                " behavior."
+            ).format(engine.__class__.__name__),
+        )
 
 
 class BasicEngine(object):
@@ -51,6 +56,7 @@ class BasicEngine(object):
         main_engine (MainEngine): Reference to the main compiler engine.
         is_last_engine (bool): True for the last engine, which is the back-end.
     """
+
     def __init__(self):
         """
         Initialize the basic engine.
@@ -113,6 +119,7 @@ class BasicEngine(object):
         cmd = Command(self, Allocate, (qb,))
         if dirty:
             from projectq.meta import DirtyQubitTag
+
             if self.is_meta_tag_supported(DirtyQubitTag):
                 cmd.tags += [DirtyQubitTag()]
                 self.main_engine.dirty_qubits.add(qb[0].id)
@@ -147,11 +154,18 @@ class BasicEngine(object):
             raise ValueError("Already deallocated.")
 
         from projectq.meta import DirtyQubitTag
+
         is_dirty = qubit.id in self.main_engine.dirty_qubits
-        self.send([Command(self,
-                           Deallocate,
-                           (Qureg([qubit]),),
-                           tags=[DirtyQubitTag()] if is_dirty else [])])
+        self.send(
+            [
+                Command(
+                    self,
+                    Deallocate,
+                    (Qureg([qubit]),),
+                    tags=[DirtyQubitTag()] if is_dirty else [],
+                )
+            ]
+        )
 
     def is_meta_tag_supported(self, meta_tag):
         """
@@ -194,6 +208,7 @@ class ForwarderEngine(BasicEngine):
     It is mainly used as a substitute for the MainEngine at lower levels such
     that meta operations still work (e.g., with Compute).
     """
+
     def __init__(self, engine, cmd_mod_fun=None):
         """
         Initialize a ForwarderEngine.
@@ -208,12 +223,13 @@ class ForwarderEngine(BasicEngine):
         self.main_engine = engine.main_engine
         self.next_engine = engine
         if cmd_mod_fun is None:
+
             def cmd_mod_fun(cmd):
                 return cmd
 
         self._cmd_mod_fun = cmd_mod_fun
 
     def receive(self, command_list):
-        """ Forward all commands to the next engine. """
+        """Forward all commands to the next engine."""
         new_command_list = [self._cmd_mod_fun(cmd) for cmd in command_list]
         self.send(new_command_list)

@@ -20,6 +20,7 @@ class QFTGate(BasicGate):
     """
     Quantum Fourier Transform gate.
     """
+
     def __str__(self):
         return "QFT"
 

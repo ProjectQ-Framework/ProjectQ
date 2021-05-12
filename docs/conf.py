@@ -21,9 +21,11 @@
 #
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('..'))
 
 import projectq
+
 # Also import all the modules that are not automatically imported
 import projectq.libs.math
 import projectq.libs.revkit
@@ -268,15 +270,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -337,8 +336,15 @@ man_pages = [(master_doc, 'projectq', 'projectq Documentation', [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'projectq', 'projectq Documentation', author, 'projectq',
-     'One line description of project.', 'Miscellaneous'),
+    (
+        master_doc,
+        'projectq',
+        'projectq Documentation',
+        author,
+        'projectq',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -388,8 +394,7 @@ def linkcode_resolve(domain, info):
         return None
     else:
         try:
-            if ('module' in info and 'fullname' in info
-                and info['module'] and info['fullname']):
+            if 'module' in info and 'fullname' in info and info['module'] and info['fullname']:
                 obj = eval(info['module'] + '.' + info['fullname'])
             else:
                 return None
@@ -411,8 +416,7 @@ def linkcode_resolve(domain, info):
                 if len(new_higher_name) <= 1:
                     obj = eval(info['module'])
                 else:
-                    obj = eval(info['module'] + '.'
-                               + '.'.join(new_higher_name[:-1]))
+                    obj = eval(info['module'] + '.' + '.'.join(new_higher_name[:-1]))
                 filepath = inspect.getsourcefile(obj)
                 line_number = inspect.getsourcelines(obj)[1]
             except:
@@ -420,14 +424,14 @@ def linkcode_resolve(domain, info):
         # Only require relative path projectq/relative_path
         projectq_path = inspect.getsourcefile(projectq)[:-11]
         relative_path = os.path.relpath(filepath, projectq_path)
-        url = (github_url + github_tag + "/projectq/" + relative_path + "#L"
-               + str(line_number))
+        url = github_url + github_tag + "/projectq/" + relative_path + "#L" + str(line_number)
         return url
 
 
 # ------------------------------------------------------------------------------
 
 import importlib
+
 sys.path.append(os.path.abspath('.'))
 desc = importlib.import_module('package_description')
 
@@ -448,16 +452,21 @@ PackageDescription = desc.PackageDescription
 
 descriptions = [
     PackageDescription('backends'),
-    PackageDescription('cengines',
-                       desc='''
+    PackageDescription(
+        'cengines',
+        desc='''
 The ProjectQ compiler engines package.
-'''),
-    PackageDescription('libs.math',
-                       desc='''
+''',
+    ),
+    PackageDescription(
+        'libs.math',
+        desc='''
 A tiny math library which will be extended thoughout the next weeks. Right now, it only contains the math functions necessary to run Beauregard's implementation of Shor's algorithm.
-'''),
-    PackageDescription('libs.revkit',
-                       desc='''
+''',
+    ),
+    PackageDescription(
+        'libs.revkit',
+        desc='''
 This library integrates `RevKit <https://msoeken.github.io/revkit.html>`_ into
 ProjectQ to allow some automatic synthesis routines for reversible logic.  The
 library adds the following operations that can be used to construct quantum
@@ -482,27 +491,37 @@ The integration of RevKit into ProjectQ and other quantum programming languages 
 
     * Mathias Soeken, Thomas Haener, and Martin Roetteler "Programming Quantum Computers Using Design Automation," in: Design Automation and Test in Europe (2018) [`arXiv:1803.01022 <https://arxiv.org/abs/1803.01022>`_]
 ''',
-                       module_special_members='__init__,__or__'),
-    PackageDescription('libs',
-                       desc='''
+        module_special_members='__init__,__or__',
+    ),
+    PackageDescription(
+        'libs',
+        desc='''
 The library collection of ProjectQ which, for now, consists of a tiny math library and an interface library to RevKit. Soon, more libraries will be added.
-'''),
-    PackageDescription('meta',
-                       desc='''
+''',
+    ),
+    PackageDescription(
+        'meta',
+        desc='''
 Contains meta statements which allow more optimal code while making it easier for users to write their code.
 Examples are `with Compute`, followed by an automatic uncompute or `with Control`, which allows the user to condition an entire code block upon the state of a qubit.
-'''),
-    PackageDescription('ops',
-                       desc='''
+''',
+    ),
+    PackageDescription(
+        'ops',
+        desc='''
 The operations collection consists of various default gates and is a work-in-progress, as users start to work with ProjectQ.
 ''',
-                       module_special_members='__init__,__or__'),
-    PackageDescription('setups.decompositions',
-                       desc='''
+        module_special_members='__init__,__or__',
+    ),
+    PackageDescription(
+        'setups.decompositions',
+        desc='''
 The decomposition package is a collection of gate decomposition / replacement rules which can be used by, e.g., the AutoReplacer engine.
-'''),
-    PackageDescription('setups',
-                       desc='''
+''',
+    ),
+    PackageDescription(
+        'setups',
+        desc='''
 The setups package contains a collection of setups which can be loaded by the `MainEngine`. Each setup contains a `get_engine_list` function which returns a list of compiler engines:
 
 Example:
@@ -516,20 +535,22 @@ Example:
 The subpackage decompositions contains all the individual decomposition rules
 which can be given to, e.g., an `AutoReplacer`.
 ''',
-                       submodules_desc='''
+        submodules_desc='''
 Each of the submodules contains a setup which can be used to specify the
 `engine_list` used by the `MainEngine` :''',
-                       submodule_special_members='__init__'),
+        submodule_special_members='__init__',
+    ),
     PackageDescription(
-        'types', '''
+        'types',
+        '''
 The types package contains quantum types such as Qubit, Qureg, and WeakQubitRef. With further development of the math library, also quantum integers, quantum fixed point numbers etc. will be added.
-'''),
+''',
+    ),
 ]
 # ------------------------------------------------------------------------------
 # Automatically generate ReST files for each package of ProjectQ
 
-docgen_path = os.path.join(os.path.dirname(os.path.abspath('__file__')),
-                           '_doc_gen')
+docgen_path = os.path.join(os.path.dirname(os.path.abspath('__file__')), '_doc_gen')
 if not os.path.isdir(docgen_path):
     os.mkdir(docgen_path)
 

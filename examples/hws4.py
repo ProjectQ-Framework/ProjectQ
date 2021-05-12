@@ -4,9 +4,11 @@ from projectq.ops import All, H, X, Measure
 from projectq.meta import Compute, Uncompute
 from projectq.libs.revkit import PhaseOracle
 
+
 # phase function
 def f(a, b, c, d):
     return (a and b) ^ (c and d)
+
 
 eng = MainEngine()
 x1, x2, x3, x4 = qubits = eng.allocate_qureg(4)

@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tools to easily invert a sequence of gates.
 
@@ -49,18 +48,19 @@ class DaggerEngine(BasicEngine):
         have been deallocated.
         """
         if self._deallocated_qubit_ids != self._allocated_qubit_ids:
-                raise QubitManagementError(
-                    "\n Error. Qubits have been allocated in 'with " +
-                    "Dagger(eng)' context,\n which have not explicitely " +
-                    "been deallocated.\n" +
-                    "Correct usage:\n" +
-                    "with Dagger(eng):\n" +
-                    "    qubit = eng.allocate_qubit()\n" +
-                    "    ...\n" +
-                    "    del qubit[0]\n")
+            raise QubitManagementError(
+                "\n Error. Qubits have been allocated in 'with "
+                + "Dagger(eng)' context,\n which have not explicitely "
+                + "been deallocated.\n"
+                + "Correct usage:\n"
+                + "with Dagger(eng):\n"
+                + "    qubit = eng.allocate_qubit()\n"
+                + "    ...\n"
+                + "    del qubit[0]\n"
+            )
 
         for cmd in reversed(self._commands):
-                self.send([cmd.get_inverse()])
+            self.send([cmd.get_inverse()])
 
     def receive(self, command_list):
         """
