@@ -50,11 +50,6 @@ def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
             using, e.g., pdflatex.
     """
     try:
-        FileNotFoundError
-    except NameError:
-        FileNotFoundError = IOError  # for Python2 compatibility
-
-    try:
         with open('settings.json') as settings_file:
             settings = json.load(settings_file)
     except FileNotFoundError:
