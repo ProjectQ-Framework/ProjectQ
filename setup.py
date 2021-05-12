@@ -37,6 +37,9 @@
 
 from __future__ import print_function
 from setuptools import setup, Extension, find_packages
+import distutils.log
+from distutils.cmd import Command
+from distutils.spawn import find_executable, spawn
 from distutils.errors import (CompileError, LinkError, CCompilerError,
                               DistutilsExecError, DistutilsPlatformError)
 from setuptools import Distribution as _Distribution
@@ -51,11 +54,12 @@ import platform
 
 
 class get_pybind_include(object):
-    '''Helper class to determine the pybind11 include path
+    """Helper class to determine the pybind11 include path
 
     The purpose of this class is to postpone importing pybind11
     until it is actually installed, so that the ``get_include()``
-    method can be invoked. '''
+    method can be invoked."""
+
     def __init__(self, user=False):
         self.user = user
 
@@ -78,16 +82,11 @@ def status_msgs(*msgs):
     print('-' * 75)
 
 
-def compiler_test(compiler,
-                  flagname=None,
-                  link=False,
-                  include='',
-                  body='',
-                  postargs=None):
-    '''
+def compiler_test(compiler, flagname=None, link=False, include='', body='', postargs=None):
+    """
     Return a boolean indicating whether a flag name is supported on the
     specified compiler.
-    '''
+    """
     import tempfile
     f = tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False)
     f.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(
@@ -211,6 +210,26 @@ class BuildExt(build_ext):
         'unix': [],
     }
 
+    user_options = build_ext.user_options + [
+        (
+            'gen-compiledb',
+            None,
+            'Generate a compile_commands.json alongside the compilation '
+            'implies (-n/--dry-run)',
+        ),
+    ]
+
+    boolean_options = build_ext.boolean_options + ['gen-compiledb']
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.gen_compiledb = None
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+        if self.gen_compiledb:
+            self.dry_run = True
+
     def run(self):
         try:
             build_ext.run(self)
@@ -219,9 +238,29 @@ class BuildExt(build_ext):
 
     def build_extensions(self):
         self._configure_compiler()
+
         for ext in self.extensions:
             ext.extra_compile_args = self.opts
             ext.extra_link_args = self.link_opts
+
+        if self.compiler.compiler_type == 'unix' and self.gen_compiledb:
+            compile_commands = []
+            for ext in self.extensions:
+                commands = self._get_compilation_commands(ext)
+                for cmd, src in commands:
+                    compile_commands.append(
+                        {
+                            'directory': os.path.dirname(os.path.abspath(__file__)),
+                            'command': cmd,
+                            'file': os.path.abspath(src),
+                        }
+                    )
+
+            import json
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   'compile_commands.json'),'w') as fd:
+                json.dump(compile_commands, fd, sort_keys=True, indent=4)
+
         try:
             build_ext.build_extensions(self)
         except ext_errors:
@@ -232,7 +271,48 @@ class BuildExt(build_ext):
                 raise BuildFailed()
             raise
 
+    def _get_compilation_commands(self, ext):
+        (macros,
+         objects,
+         extra_postargs,
+         pp_opts,
+         build) = self.compiler._setup_compile(outdir=self.build_temp,
+                                               sources=ext.sources,
+                                               macros=ext.define_macros,
+                                               incdirs=ext.include_dirs,
+                                               extra=ext.extra_compile_args,
+                                               depends=ext.depends)
+
+        cc_args = self.compiler._get_cc_args(pp_opts=pp_opts,
+                                             debug=self.debug,
+                                             before=None)
+        compiler_so = self.compiler.compiler_so
+        compiler_so[0] = find_executable(compiler_so[0])
+
+        commands = []
+        for obj in objects:
+            try:
+                src, ext = build[obj]
+            except KeyError:
+                continue
+
+            commands.append(
+                (
+                    ' '.join(
+                        compiler_so
+                        + cc_args
+                        + [os.path.abspath(src), "-o", os.path.abspath(obj)]
+                        + extra_postargs),
+                    src,
+                )
+            )
+        return commands
+
     def _configure_compiler(self):
+        # Force dry_run = False to allow for compiler feature testing
+        dry_run_old = self.compiler.dry_run
+        self.compiler.dry_run = False
+
         if sys.platform == 'darwin':
             _fix_macosx_header_paths(self.compiler.compiler,
                                      self.compiler.compiler_so)
@@ -263,15 +343,12 @@ class BuildExt(build_ext):
         # Other compiler tests
 
         status_msgs('Other compiler tests')
-        if ct == 'unix':
-            if compiler_test(self.compiler, '-fvisibility=hidden'):
-                self.opts.append('-fvisibility=hidden')
-            self.opts.append("-DVERSION_INFO=\"{}\"".format(
-                self.distribution.get_version()))
-        elif ct == 'msvc':
-            self.opts.append("/DVERSION_INFO=\\'{}\\'".format(
-                self.distribution.get_version()))
+        self.compiler.define_macro(
+            'VERSION_INFO', '"{}"'.format(self.distribution.get_version()))
+        if ct == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
+            self.opts.append('-fvisibility=hidden')
 
+        self.compiler.dry_run = dry_run_old
         status_msgs('Finished configuring compiler!')
 
     def _configure_openmp(self):
@@ -323,15 +400,17 @@ class BuildExt(build_ext):
                 # Only add the flag if the compiler we are using is the one
                 # from MacPorts
                 if macports_root in compiler_root:
-                    c_arg = '-I{}/include/libomp'.format(macports_root)
-                    l_arg = '-L{}/lib/libomp'.format(macports_root)
+                    inc_dir = '{}/include/libomp'.format(macports_root)
+                    lib_dir = '{}/lib/libomp'.format(macports_root)
+                    c_arg = '-I' + inc_dir
+                    l_arg = '-L' + lib_dir
 
                     if compiler_test(self.compiler,
                                      flag,
                                      postargs=[c_arg, l_arg],
                                      **kwargs):
-                        self.opts.extend((c_arg, flag))
-                        self.link_opts.extend((l_arg, flag))
+                        self.compiler.add_include_dir(inc_dir)
+                        self.compiler.add_library_dir(lib_dir)
                         return
             except subprocess.CalledProcessError:
                 pass
@@ -349,11 +428,8 @@ class BuildExt(build_ext):
                     link=False,
                     include='#include <immintrin.h>',
                     body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
-
-                if sys.platform == 'win32':
-                    self.opts.extend(('/DINTRIN', flag))
-                else:
-                    self.opts.extend(('-DINTRIN', flag))
+                self.opts.append(flag)
+                self.compiler.define_macro("INTRIN")
                 break
 
         for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
@@ -387,6 +463,76 @@ class BuildExt(build_ext):
 
         important_msgs('ERROR: compiler needs to have at least C++11 support!')
         raise BuildFailed()
+
+# ------------------------------------------------------------------------------
+
+class ClangTidy(Command):
+    """A custom command to run Clang-Tidy on all C/C++ source files"""
+
+    description = 'run Clang-Tidy on all C/C++ source files'
+    user_options = [('warning-as-errors', None, 'Warning as errors')]
+    boolean_options = ['warning-as-errors']
+
+    sub_commands = [('build_ext', None)]
+
+    def initialize_options(self):
+        self.warning_as_errors = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Ideally we would use self.run_command(command) but we need to ensure
+        # that --dry-run --gen-compiledb are passed to build_ext regardless of
+        # other arguments
+        command = 'build_ext'
+        distutils.log.info("running %s --dry-run --gen-compiledb", command)
+        cmd_obj = self.get_finalized_command(command)
+        cmd_obj.dry_run = True
+        cmd_obj.gen_compiledb = True
+        try:
+            cmd_obj.run()
+            self.distribution.have_run[command] = 1
+            assert self.distribution.ext_modules
+        except BuildFailed:
+            distutils.log.error(
+                'build_ext --dry-run --gen-compiledb command failed!')
+            raise RuntimeError(
+                'build_ext --dry-run --gen-compiledb command failed!')
+
+        command = ['clang-tidy']
+        if self.warning_as_errors:
+            command.append('--warnings-as-errors=*')
+        for ext in self.distribution.ext_modules:
+            command.extend(os.path.abspath(p) for p in ext.sources)
+        spawn(command, dry_run=self.dry_run)
+
+# ------------------------------------------------------------------------------
+
+
+class GenerateRequirementFile(Command):
+    """A custom command to list the dependencies of the current"""
+
+    description = 'List the dependencies of the current package'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        with open('requirements.txt', 'w') as fd:
+            try:
+                for pkg in self.distribution.install_requires:
+                    fd.write('{}\n'.format(pkg))
+            except TypeError:  # Mostly for old setuptools (< 30.x)
+                for pkg in self.distribution.command_options['options']['install_requires']:
+                    fd.write('{}\n'.format(pkg))
+
+
+# ------------------------------------------------------------------------------
 
 
 class Distribution(_Distribution):
@@ -425,7 +571,11 @@ def run_setup(with_cext):
               'An open source software framework for quantum computing'),
           long_description=long_description,
           install_requires=requirements,
-          cmdclass={'build_ext': BuildExt},
+          cmdclass={
+              'build_ext': BuildExt,
+              'clang_tidy': ClangTidy,
+              'gen_reqfile': GenerateRequirementFile
+          },
           zip_safe=False,
           license='Apache 2',
           packages=find_packages(),
