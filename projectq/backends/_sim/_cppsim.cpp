@@ -34,13 +34,14 @@ template <class QR>
 void emulate_math_wrapper(Simulator &sim, py::function const& pyfunc, QR const& qr, std::vector<unsigned> const& ctrls){
     auto f = [&](std::vector<int>& x) {
         pybind11::gil_scoped_acquire acquire;
-        x = std::move(pyfunc(x).cast<std::vector<int>>());
+        x = pyfunc(x).cast<std::vector<int>>();
     };
     pybind11::gil_scoped_release release;
     sim.emulate_math(f, qr, ctrls);
 }
-PYBIND11_PLUGIN(_cppsim) {
-    py::module m("_cppsim", "_cppsim");
+
+PYBIND11_MODULE(_cppsim, m)
+{
     py::class_<Simulator>(m, "Simulator")
         .def(py::init<unsigned>())
         .def("allocate_qubit", &Simulator::allocate_qubit)
@@ -63,5 +64,4 @@ PYBIND11_PLUGIN(_cppsim) {
         .def("run", &Simulator::run)
         .def("cheat", &Simulator::cheat)
         ;
-    return m.ptr();
 }
