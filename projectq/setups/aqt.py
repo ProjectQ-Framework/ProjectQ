@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +23,10 @@ device.  Decompose the circuit into a Rx/Ry/Rxx gate set that will be
 translated in the backend in the Rx/Ry/MS gate set.
 """
 
-import projectq
-import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rx, Ry, Rxx, Barrier)
-from projectq.cengines import (LocalOptimizer, IBM5QubitMapper,
-                               SwapAndCNOTFlipper, BasicMapperEngine,
-                               GridMapper)
+from projectq.ops import Rx, Ry, Rxx, Barrier
+from projectq.cengines import BasicMapperEngine
+
 from projectq.backends._aqt._aqt_http_client import show_devices
 
 
@@ -39,8 +37,7 @@ def get_engine_list(token=None, device=None):
     devices = show_devices(token)
     aqt_setup = []
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device '
-                                 'requested for Backend not connected')
+        raise DeviceOfflineError('Error when configuring engine list: device ' 'requested for Backend not connected')
     if device == 'aqt_simulator':
         # The 11 qubit online simulator doesn't need a specific mapping for
         # gates. Can also run wider gateset but this setup keep the
@@ -62,9 +59,9 @@ def get_engine_list(token=None, device=None):
 
     # Most gates need to be decomposed into a subset that is manually converted
     # in the backend (until the implementation of the U1,U2,U3)
-    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry),
-                                              two_qubit_gates=(Rxx,),
-                                              other_gates=(Barrier, ))
+    setup = restrictedgateset.get_engine_list(
+        one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,), other_gates=(Barrier,)
+    )
     setup.extend(aqt_setup)
     return setup
 
@@ -75,5 +72,3 @@ class DeviceOfflineError(Exception):
 
 class DeviceNotHandledError(Exception):
     pass
-
-

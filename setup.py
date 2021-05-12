@@ -557,7 +557,7 @@ def run_setup(with_cext):
         kwargs['ext_modules'] = []
 
     setup(name='projectq',
-          version=__version__,
+          version=__version__,  # noqa: F821
           author='ProjectQ',
           author_email='info@projectq.ch',
           url='http://www.projectq.ch',
