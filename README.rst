@@ -13,7 +13,7 @@ ProjectQ - An open source software framework for quantum computing
 
 .. image:: https://badge.fury.io/py/projectq.svg
     :target: https://badge.fury.io/py/projectq
-    
+
 .. image:: https://img.shields.io/badge/python-2.7%2C%203.4%2C%203.5%2C%203.6-brightgreen.svg
 
 
@@ -108,7 +108,7 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
 
     import projectq.setups.ibm
     from projectq.backends import IBMBackend
-    
+
     token='MY_TOKEN'
     device='ibmq_16_melbourne'
     compiler_engines = projectq.setups.ibm.get_engine_list(token=token,device=device)
@@ -125,7 +125,7 @@ To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend
 
     import projectq.setups.aqt
     from projectq.backends import AQTBackend
-    
+ 
     token='MY_TOKEN'
     device='aqt_device'
     compiler_engines = projectq.setups.aqt.get_engine_list(token=token,device=device)
@@ -180,7 +180,7 @@ ProjectQ has a high-performance simulator which allows simulating up to about 30
 The advanced features of the simulator are also particularly useful to investigate algorithms for the simulation of quantum systems. For example, the simulator can evolve a quantum system in time (without Trotter errors) and it gives direct access to expectation values of Hamiltonians leading to extremely fast simulations of VQE type algorithms:
 
 .. code-block:: python
-    
+
     from projectq import MainEngine
     from projectq.ops import All, Measure, QubitOperator, TimeEvolution
 
@@ -220,19 +220,19 @@ Please cite
 
 When using ProjectQ for research projects, please cite
 
--  Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An
+-  Damian S. Steiger, Thomas Haener, and Matthias Troyer "ProjectQ: An
    Open Source Software Framework for Quantum Computing"
    `Quantum 2, 49 (2018) <https://doi.org/10.22331/q-2018-01-31-49>`__
    (published on `arXiv <https://arxiv.org/abs/1612.08091>`__ on 23 Dec 2016)
--  Thomas Häner, Damian S. Steiger, Krysta M. Svore, and Matthias Troyer
-   "A Software Methodology for Compiling Quantum Programs" `Quantum Sci. Technol. 3 (2018) 020501 <https://doi.org/10.1088/2058-9565/aaa5cc>`__ 
+-  Thomas Haener, Damian S. Steiger, Krysta M. Svore, and Matthias Troyer
+   "A Software Methodology for Compiling Quantum Programs" `Quantum Sci. Technol. 3 (2018) 020501 <https://doi.org/10.1088/2058-9565/aaa5cc>`__
    (published on `arXiv <http://arxiv.org/abs/1604.01401>`__ on 5 Apr 2016)
 
 Authors
 -------
 
 The first release of ProjectQ (v0.1) was developed by `Thomas
-Häner <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=179208>`__
+Haener <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=179208>`__
 and `Damian S.
 Steiger <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=165677>`__
 in the group of `Prof. Dr. Matthias

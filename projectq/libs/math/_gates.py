@@ -498,6 +498,7 @@ class MultiplyQuantumGate(BasicMathGate):
 
     Example:
         .. code-block:: python
+
         qunum_a = eng.allocate_qureg(4)
         qunum_b = eng.allocate_qureg(4)
         qunum_c = eng.allocate_qureg(9)

@@ -226,9 +226,9 @@ class ComputeEngine(BasicEngine):
 
     def receive(self, command_list):
         """
-        If in compute-mode: Receive commands and store deepcopy of each cmd.
-                            Add ComputeTag to received cmd and send it on.
-        Otherwise: send all received commands directly to next_engine.
+        If in compute-mode, receive commands and store deepcopy of each cmd.
+        Add ComputeTag to received cmd and send it on. Otherwise, send all
+        received commands directly to next_engine.
 
         Args:
             command_list (list<Command>): List of commands to receive.
