@@ -47,7 +47,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
         restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
 
     - name: Prepare env
@@ -222,7 +222,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg') }}
         restore-keys: ${{ runner.os }}-centos-pip-
 
     - name: Update pip
@@ -308,7 +308,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
         restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
 
     - name: Setup 🐍 ${{ matrix.python }}

@@ -37,7 +37,7 @@
 # IN THE SOFTWARE.
 
 from __future__ import print_function
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, Extension
 import distutils.log
 from distutils.cmd import Command
 from distutils.spawn import find_executable, spawn
@@ -175,19 +175,6 @@ if sys.platform == 'win32':
     ext_errors += (IOError,)
 
 # ==============================================================================
-
-# This reads the __version__ variable from projectq/_version.py
-exec(open('projectq/_version.py').read())
-
-# Readme file as long_description:
-long_description = open('README.rst').read()
-
-# Read in requirements.txt
-with open('requirements.txt', 'r') as f_requirements:
-    requirements = f_requirements.readlines()
-requirements = [r.strip() for r in requirements]
-
-# ------------------------------------------------------------------------------
 # ProjectQ C++ extensions
 
 ext_modules = [
@@ -550,32 +537,12 @@ def run_setup(with_cext):
         kwargs['ext_modules'] = []
 
     setup(
-        name='projectq',
-        version=__version__,  # noqa: F821
-        author='ProjectQ',
-        author_email='info@projectq.ch',
-        url='http://www.projectq.ch',
-        project_urls={
-            'Documentation': 'https://projectq.readthedocs.io/en/latest/',
-            'Issue Tracker': 'https://github.com/ProjectQ-Framework/ProjectQ/',
-        },
-        description=('ProjectQ - ' 'An open source software framework for quantum computing'),
-        long_description=long_description,
-        install_requires=requirements,
         cmdclass={
             'build_ext': BuildExt,
             'clang_tidy': ClangTidy,
             'gen_reqfile': GenerateRequirementFile,
         },
-        zip_safe=False,
-        license='Apache 2',
-        packages=find_packages(),
         distclass=Distribution,
-        extras_require={
-            'braket': [
-                'boto3',
-            ]
-        },
         **kwargs,
     )
 
