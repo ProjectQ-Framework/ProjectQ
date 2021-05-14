@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import projectq.setups.ibm
 from projectq.ops import H, Measure
 from projectq import MainEngine

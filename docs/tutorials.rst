@@ -4,7 +4,7 @@ Tutorial
 ========
 
 .. toctree::
-   :maxdepth: 2	
+   :maxdepth: 2
 
 Getting started
 ---------------
@@ -31,9 +31,9 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 
 .. note::
 	If building the C++-Simulator does not work out of the box, consider specifying a different compiler. For example:
-	
+
 	.. code-block:: bash
-	
+
 			env CC=g++-5 python -m pip install --user projectq
 
 	Please note that the compiler you specify must support at leaste **C++11**!
@@ -61,21 +61,21 @@ Detailed instructions and OS-specific hints
 	After having installed the build tools (for g++):
 
 	.. code-block:: bash
-	
+
 		sudo apt-get install build-essential
-	
+
 	You only need to install Python (and the package manager). For version 3, run
-	
+
 	.. code-block:: bash
-	
+
 		sudo apt-get install python3 python3-pip
-	
+
 	When you then run
-	
+
 	.. code-block:: bash
-		
+
 		sudo python3 -m pip install --user projectq
-	
+
 	all dependencies (such as numpy and pybind11) should be installed automatically.
 
 
@@ -84,21 +84,21 @@ Detailed instructions and OS-specific hints
         Make sure that you have a C/C++ compiler installed:
 
 	.. code-block:: bash
-	
+
 		sudo pacman -Syu gcc
-	
+
 	You only need to install Python (and the package manager). For version 3, run
-	
+
 	.. code-block:: bash
-	
+
 		sudo pacman -Syu python python-pip
-	
+
 	When you then run
-	
+
 	.. code-block:: bash
-		
+
 		sudo python3 -m pip install --user projectq
-	
+
 	all dependencies (such as numpy and pybind11) should be installed automatically.
 
 
@@ -109,9 +109,9 @@ Detailed instructions and OS-specific hints
 	If the Python executable is added to your PATH (option normally suggested at the end of the Python installation procedure), you can then open a cmdline window (WIN + R, type "cmd" and click *OK*) and enter the following in order to install ProjectQ:
 
 	.. code-block:: batch
-		
+
 		python -m pip install --user projectq
-	
+
 
 	Should you want to run multi-threaded simulations, you can install a compiler which supports newer OpenMP versions, such as MinGW GCC and then manually build the C++ simulator with OpenMP enabled.
 
@@ -124,7 +124,7 @@ Detailed instructions and OS-specific hints
 
 		python3 -m pip install --user projectq
 
-	
+
 	In order to install the fast C++ simulator, we require that a C++ compiler is installed on your system. There are essentially three options you can choose from:
 
 	1. Using the compiler provided by Apple through the XCode command line tools.
@@ -141,7 +141,7 @@ Detailed instructions and OS-specific hints
 	.. code-block:: bash
 
 		xcode-select --install
-	
+
 	Next, you will need to install Python and pip. See options 2 and 3 for information on how to install a newer python version with either Homebrew or MacPorts. Here, we are using the standard python which is preinstalled with macOS. Pip can be installed by:
 
 	.. code-block:: bash
@@ -169,7 +169,7 @@ Detailed instructions and OS-specific hints
 	.. code-block:: bash
 
 		brew install python llvm
-        
+
 	You should now be able to install ProjectQ with the C++ simulator using the following command:
 
 	.. code-block:: bash
@@ -238,13 +238,13 @@ To check out the ProjectQ syntax in action and to see whether the installation w
 
 	from projectq import MainEngine  # import the main compiler engine
 	from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
-	
+
 	eng = MainEngine()  # create a default compiler (the back-end is a simulator)
 	qubit = eng.allocate_qubit()  # allocate 1 qubit
-	
+
 	H | qubit  # apply a Hadamard gate
 	Measure | qubit  # measure the qubit
-	
+
 	eng.flush()  # flush all gates (and execute measurements)
 	print("Measured {}".format(int(qubit)))  # output measurement result
 

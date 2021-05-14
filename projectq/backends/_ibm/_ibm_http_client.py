@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -215,7 +216,7 @@ class IBMQ(Session):
             'json': None,
             'timeout': (self.timeout, None)
         }
-        
+
         upload_data_url = urljoin(_API_URL,
                           'Network/ibm-q/Groups/open/Projects/main/Jobs/'+str(execution_id)
                                   +'/jobDataUploaded')

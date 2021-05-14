@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +82,7 @@ class BasicMapperEngine(BasicEngine):
             drop_engine_after(self)
         else:
             self.send([new_cmd])
-    
+
     def receive(self, command_list):
         for cmd in command_list:
             self._send_cmd_with_mapped_ids(cmd)

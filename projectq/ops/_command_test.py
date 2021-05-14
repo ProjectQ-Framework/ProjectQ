@@ -275,4 +275,3 @@ def test_command_to_string():
     else:
         assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
         assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"
-

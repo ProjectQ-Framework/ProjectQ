@@ -125,7 +125,7 @@ To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend
 
     import projectq.setups.aqt
     from projectq.backends import AQTBackend
- 
+
     token='MY_TOKEN'
     device='aqt_device'
     compiler_engines = projectq.setups.aqt.get_engine_list(token=token,device=device)
