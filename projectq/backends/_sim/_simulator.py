@@ -35,7 +35,7 @@ from projectq.types import WeakQubitRef
 FALLBACK_TO_PYSIM = False
 try:
     from ._cppsim import Simulator as SimulatorBackend
-except ImportError:
+except ImportError:  # pragma: no cover
     from ._pysim import Simulator as SimulatorBackend
 
     FALLBACK_TO_PYSIM = True
