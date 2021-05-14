@@ -1,5 +1,4 @@
 include LICENSE
-include VERSION
 include MANIFEST.in
 include NOTICE
 include README.rst
