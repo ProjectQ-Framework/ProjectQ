@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,18 +12,15 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._swapandcnotflipper.py."""
 
 import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, CNOT, X, Measure, Swap
-from projectq.meta import (Control, Compute, Uncompute, ComputeTag,
-                           UncomputeTag)
+from projectq.ops import All, H, CNOT, X, Swap
+from projectq.meta import Control, Compute, Uncompute, ComputeTag, UncomputeTag
 from projectq.cengines import _swapandcnotflipper
-from projectq.backends import IBMBackend
 
 
 def test_swapandcnotflipper_missing_connection():
