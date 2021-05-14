@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a (slow) Python simulator.
 
@@ -36,6 +35,7 @@ class Simulator(object):
     not an option (for some reason). It has the same features but is much
     slower, so please consider building the c++ version for larger experiments.
     """
+
     def __init__(self, rnd_seed, *args, **kwargs):
         """
         Initialize the simulator.
@@ -79,7 +79,7 @@ class Simulator(object):
             List of measurement results (containing either True or False).
         """
         P = random.random()
-        val = 0.
+        val = 0.0
         i_picked = 0
         while val < P and i_picked < len(self._state):
             val += _np.abs(self._state[i_picked]) ** 2
@@ -93,18 +93,18 @@ class Simulator(object):
         mask = 0
         val = 0
         for i in range(len(pos)):
-            res[i] = (((i_picked >> pos[i]) & 1) == 1)
-            mask |= (1 << pos[i])
-            val |= ((res[i] & 1) << pos[i])
+            res[i] = ((i_picked >> pos[i]) & 1) == 1
+            mask |= 1 << pos[i]
+            val |= (res[i] & 1) << pos[i]
 
-        nrm = 0.
+        nrm = 0.0
         for i in range(len(self._state)):
             if (mask & i) != val:
-                self._state[i] = 0.
+                self._state[i] = 0.0
             else:
                 nrm += _np.abs(self._state[i]) ** 2
 
-        self._state *= 1. / _np.sqrt(nrm)
+        self._state *= 1.0 / _np.sqrt(nrm)
         return res
 
     def allocate_qubit(self, ID):
@@ -118,7 +118,7 @@ class Simulator(object):
         self._num_qubits += 1
         self._state.resize(1 << self._num_qubits, refcheck=_USE_REFCHECK)
 
-    def get_classical_value(self, ID, tol=1.e-10):
+    def get_classical_value(self, ID, tol=1.0e-10):
         """
         Return the classical value of a classical bit (i.e., a qubit which has
         been measured / uncomputed).
@@ -142,10 +142,12 @@ class Simulator(object):
                 if _np.abs(self._state[i + j + (1 << pos)]) > tol:
                     down = True
                 if up and down:
-                    raise RuntimeError("Qubit has not been measured / "
-                                       "uncomputed. Cannot access its "
-                                       "classical value and/or deallocate a "
-                                       "qubit in superposition!")
+                    raise RuntimeError(
+                        "Qubit has not been measured / "
+                        "uncomputed. Cannot access its "
+                        "classical value and/or deallocate a "
+                        "qubit in superposition!"
+                    )
         return down
 
     def deallocate_qubit(self, ID):
@@ -163,13 +165,11 @@ class Simulator(object):
 
         cv = self.get_classical_value(ID)
 
-        newstate = _np.zeros((1 << (self._num_qubits - 1)),
-                             dtype=_np.complex128)
+        newstate = _np.zeros((1 << (self._num_qubits - 1)), dtype=_np.complex128)
         k = 0
-        for i in range((1 << pos) * int(cv), len(self._state),
-                       (1 << (pos + 1))):
-            newstate[k:k + (1 << pos)] = self._state[i:i + (1 << pos)]
-            k += (1 << pos)
+        for i in range((1 << pos) * int(cv), len(self._state), (1 << (pos + 1))):
+            newstate[k : k + (1 << pos)] = self._state[i : i + (1 << pos)]
+            k += 1 << pos
 
         newmap = dict()
         for key, value in self._map.items():
@@ -191,7 +191,7 @@ class Simulator(object):
         mask = 0
         for ctrlid in ctrlids:
             ctrlpos = self._map[ctrlid]
-            mask |= (1 << ctrlpos)
+            mask |= 1 << ctrlpos
         return mask
 
     def emulate_math(self, f, qubit_ids, ctrlqubit_ids):
@@ -219,16 +219,14 @@ class Simulator(object):
                 arg_list = [0] * len(qb_locs)
                 for qr_i in range(len(qb_locs)):
                     for qb_i in range(len(qb_locs[qr_i])):
-                        arg_list[qr_i] |= (((i >> qb_locs[qr_i][qb_i]) & 1) <<
-                                           qb_i)
+                        arg_list[qr_i] |= ((i >> qb_locs[qr_i][qb_i]) & 1) << qb_i
 
                 res = f(arg_list)
                 new_i = i
                 for qr_i in range(len(qb_locs)):
                     for qb_i in range(len(qb_locs[qr_i])):
-                        if not (((new_i >> qb_locs[qr_i][qb_i]) & 1) ==
-                                ((res[qr_i] >> qb_i) & 1)):
-                            new_i ^= (1 << qb_locs[qr_i][qb_i])
+                        if not (((new_i >> qb_locs[qr_i][qb_i]) & 1) == ((res[qr_i] >> qb_i) & 1)):
+                            new_i ^= 1 << qb_locs[qr_i][qb_i]
                 newstate[new_i] = self._state[i]
             else:
                 newstate[i] = self._state[i]
@@ -246,7 +244,7 @@ class Simulator(object):
         Returns:
             Expectation value
         """
-        expectation = 0.
+        expectation = 0.0
         current_state = _np.copy(self._state)
         for (term, coefficient) in terms_dict:
             self._apply_term(term, ids)
@@ -289,19 +287,19 @@ class Simulator(object):
         """
         for i in range(len(ids)):
             if ids[i] not in self._map:
-                raise RuntimeError("get_probability(): Unknown qubit id. "
-                                   "Please make sure you have called "
-                                   "eng.flush().")
+                raise RuntimeError(
+                    "get_probability(): Unknown qubit id. " "Please make sure you have called " "eng.flush()."
+                )
         mask = 0
         bit_str = 0
         for i in range(len(ids)):
-            mask |= (1 << self._map[ids[i]])
-            bit_str |= (bit_string[i] << self._map[ids[i]])
-        probability = 0.
+            mask |= 1 << self._map[ids[i]]
+            bit_str |= bit_string[i] << self._map[ids[i]]
+        probability = 0.0
         for i in range(len(self._state)):
             if (i & mask) == bit_str:
                 e = self._state[i]
-                probability += e.real**2 + e.imag**2
+                probability += e.real ** 2 + e.imag ** 2
         return probability
 
     def get_amplitude(self, bit_string, ids):
@@ -322,13 +320,15 @@ class Simulator(object):
             allocated qubits.
         """
         if not set(ids) == set(self._map):
-            raise RuntimeError("The second argument to get_amplitude() must"
-                               " be a permutation of all allocated qubits. "
-                               "Please make sure you have called "
-                               "eng.flush().")
+            raise RuntimeError(
+                "The second argument to get_amplitude() must"
+                " be a permutation of all allocated qubits. "
+                "Please make sure you have called "
+                "eng.flush()."
+            )
         index = 0
         for i in range(len(ids)):
-            index |= (bit_string[i] << self._map[ids[i]])
+            index |= bit_string[i] << self._map[ids[i]]
         return self._state[index]
 
     def emulate_time_evolution(self, terms_dict, time, ids, ctrlids):
@@ -354,14 +354,14 @@ class Simulator(object):
         terms_dict = [(t, c) for (t, c) in terms_dict if len(t) > 0]
         op_nrm = abs(time) * sum([abs(c) for (_, c) in terms_dict])
         # rescale the operator by s:
-        s = int(op_nrm + 1.)
+        s = int(op_nrm + 1.0)
         correction = _np.exp(-1j * time * tr / float(s))
         output_state = _np.copy(self._state)
         mask = self._get_control_mask(ctrlids)
         for i in range(s):
             j = 0
-            nrm_change = 1.
-            while nrm_change > 1.e-12:
+            nrm_change = 1.0
+            while nrm_change > 1.0e-12:
                 coeff = (-time * 1j) / float(s * (j + 1))
                 current_state = _np.copy(self._state)
                 update = 0j
@@ -414,6 +414,7 @@ class Simulator(object):
             pos (int): Bit-position of the qubit.
             mask (int): Bit-mask where set bits indicate control qubits.
         """
+
         def kernel(u, d, m):
             return u * m[0][0] + d * m[0][1], u * m[1][0] + d * m[1][1]
 
@@ -422,10 +423,7 @@ class Simulator(object):
                 if ((i + j) & mask) == mask:
                     id1 = i + j
                     id2 = id1 + (1 << pos)
-                    self._state[id1], self._state[id2] = kernel(
-                        self._state[id1],
-                        self._state[id2],
-                        m)
+                    self._state[id1], self._state[id2] = kernel(self._state[id1], self._state[id2], m)
 
     def _multi_qubit_gate(self, m, pos, mask):
         """
@@ -475,11 +473,12 @@ class Simulator(object):
         # wavefunction contains 2^n values for n qubits
         assert len(wavefunction) == (1 << len(ordering))
         # all qubits must have been allocated before
-        if (not all([Id in self._map for Id in ordering]) or
-                len(self._map) != len(ordering)):
-            raise RuntimeError("set_wavefunction(): Invalid mapping provided."
-                               " Please make sure all qubits have been "
-                               "allocated previously (call eng.flush()).")
+        if not all([Id in self._map for Id in ordering]) or len(self._map) != len(ordering):
+            raise RuntimeError(
+                "set_wavefunction(): Invalid mapping provided."
+                " Please make sure all qubits have been "
+                "allocated previously (call eng.flush())."
+            )
 
         self._state = _np.array(wavefunction, dtype=_np.complex128)
         self._map = {ordering[i]: i for i in range(len(ordering))}
@@ -499,26 +498,27 @@ class Simulator(object):
         assert len(ids) == len(values)
         # all qubits must have been allocated before
         if not all([Id in self._map for Id in ids]):
-            raise RuntimeError("collapse_wavefunction(): Unknown qubit id(s)"
-                               " provided. Try calling eng.flush() before "
-                               "invoking this function.")
+            raise RuntimeError(
+                "collapse_wavefunction(): Unknown qubit id(s)"
+                " provided. Try calling eng.flush() before "
+                "invoking this function."
+            )
         mask = 0
         val = 0
         for i in range(len(ids)):
             pos = self._map[ids[i]]
-            mask |= (1 << pos)
-            val |= (int(values[i]) << pos)
-        nrm = 0.
+            mask |= 1 << pos
+            val |= int(values[i]) << pos
+        nrm = 0.0
         for i in range(len(self._state)):
             if (mask & i) == val:
                 nrm += _np.abs(self._state[i]) ** 2
-        if nrm < 1.e-12:
-            raise RuntimeError("collapse_wavefunction(): Invalid collapse! "
-                               "Probability is ~0.")
-        inv_nrm = 1. / _np.sqrt(nrm)
+        if nrm < 1.0e-12:
+            raise RuntimeError("collapse_wavefunction(): Invalid collapse! " "Probability is ~0.")
+        inv_nrm = 1.0 / _np.sqrt(nrm)
         for i in range(len(self._state)):
             if (mask & i) != val:
-                self._state[i] = 0.
+                self._state[i] = 0.0
             else:
                 self._state[i] *= inv_nrm
 
@@ -538,11 +538,10 @@ class Simulator(object):
             ids (list[int]): Term index to Qubit ID mapping
             ctrlids (list[int]): Control qubit IDs
         """
-        X = [[0., 1.], [1., 0.]]
-        Y = [[0., -1j], [1j, 0.]]
-        Z = [[1., 0.], [0., -1.]]
+        X = [[0.0, 1.0], [1.0, 0.0]]
+        Y = [[0.0, -1j], [1j, 0.0]]
+        Z = [[1.0, 0.0], [0.0, -1.0]]
         gates = [X, Y, Z]
         for local_op in term:
             qb_id = ids[local_op[0]]
-            self.apply_controlled_gate(gates[ord(local_op[1]) - ord('X')],
-                                       [qb_id], ctrlids)
+            self.apply_controlled_gate(gates[ord(local_op[1]) - ord('X')], [qb_id], ctrlids)

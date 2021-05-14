@@ -83,6 +83,7 @@ class Command(object):
           and hence adds its LoopTag to the end.
         all_qubits: A tuple of control_qubits + qubits
     """
+
     def __init__(self, engine, gate, qubits, controls=(), tags=()):
         """
         Initialize a Command object.
@@ -107,9 +108,7 @@ class Command(object):
                 Tags associated with the command.
         """
 
-        qubits = tuple(
-            [WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg]
-            for qreg in qubits)
+        qubits = tuple([WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg] for qreg in qubits)
 
         self.gate = gate
         self.tags = list(tags)
@@ -126,9 +125,14 @@ class Command(object):
         self._qubits = self._order_qubits(qubits)
 
     def __deepcopy__(self, memo):
-        """ Deepcopy implementation. Engine should stay a reference."""
-        return Command(self.engine, deepcopy(self.gate), self.qubits,
-                       list(self.control_qubits), deepcopy(self.tags))
+        """Deepcopy implementation. Engine should stay a reference."""
+        return Command(
+            self.engine,
+            deepcopy(self.gate),
+            self.qubits,
+            list(self.control_qubits),
+            deepcopy(self.tags),
+        )
 
     def get_inverse(self):
         """
@@ -141,9 +145,13 @@ class Command(object):
             NotInvertible: If the gate does not provide an inverse (see
                 BasicGate.get_inverse)
         """
-        return Command(self._engine, projectq.ops.get_inverse(self.gate),
-                       self.qubits, list(self.control_qubits),
-                       deepcopy(self.tags))
+        return Command(
+            self._engine,
+            projectq.ops.get_inverse(self.gate),
+            self.qubits,
+            list(self.control_qubits),
+            deepcopy(self.tags),
+        )
 
     def is_identity(self):
         """
@@ -166,11 +174,14 @@ class Command(object):
             NotMergeable: if the gates don't supply a get_merged()-function
                 or can't be merged for other reasons.
         """
-        if (self.tags == other.tags and self.all_qubits == other.all_qubits
-                and self.engine == other.engine):
-            return Command(self.engine, self.gate.get_merged(other.gate),
-                           self.qubits, self.control_qubits,
-                           deepcopy(self.tags))
+        if self.tags == other.tags and self.all_qubits == other.all_qubits and self.engine == other.engine:
+            return Command(
+                self.engine,
+                self.gate.get_merged(other.gate),
+                self.qubits,
+                self.control_qubits,
+                deepcopy(self.tags),
+            )
         raise projectq.ops.NotMergeable("Commands not mergeable.")
 
     def _order_qubits(self, qubits):
@@ -187,8 +198,7 @@ class Command(object):
         # e.g. [[0,4],[1,2,3]]
         interchangeable_qubit_indices = self.interchangeable_qubit_indices
         for old_positions in interchangeable_qubit_indices:
-            new_positions = sorted(old_positions,
-                                   key=lambda x: ordered_qubits[x][0].id)
+            new_positions = sorted(old_positions, key=lambda x: ordered_qubits[x][0].id)
             qubits_new_order = [ordered_qubits[i] for i in new_positions]
             for i in range(len(old_positions)):
                 ordered_qubits[old_positions[i]] = qubits_new_order[i]
@@ -211,7 +221,7 @@ class Command(object):
 
     @property
     def control_qubits(self):
-        """ Returns Qureg of control qubits."""
+        """Returns Qureg of control qubits."""
         return self._control_qubits
 
     @control_qubits.setter
@@ -222,9 +232,7 @@ class Command(object):
         Args:
             control_qubits (Qureg): quantum register
         """
-        self._control_qubits = ([
-            WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits
-        ])
+        self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits]
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
     def add_control_qubits(self, qubits):
@@ -240,9 +248,8 @@ class Command(object):
                 gate, i.e., the gate is only executed if all qubits are
                 in state 1.
         """
-        assert (isinstance(qubits, list))
-        self._control_qubits.extend(
-            [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
+        assert isinstance(qubits, list)
+        self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
     @property
@@ -254,7 +261,7 @@ class Command(object):
         WeakQubitRef objects) containing the control qubits and T[1:] contains
         the quantum registers to which the gate is applied.
         """
-        return (self.control_qubits, ) + self.qubits
+        return (self.control_qubits,) + self.qubits
 
     @property
     def engine(self):
@@ -289,9 +296,13 @@ class Command(object):
         Returns: True if Command objects are equal (same gate, applied to same
         qubits; ordered modulo interchangeability; and same tags)
         """
-        if (isinstance(other, self.__class__) and self.gate == other.gate
-                and self.tags == other.tags and self.engine == other.engine
-                and self.all_qubits == other.all_qubits):
+        if (
+            isinstance(other, self.__class__)
+            and self.gate == other.gate
+            and self.tags == other.tags
+            and self.engine == other.engine
+            and self.all_qubits == other.all_qubits
+        ):
             return True
         return False
 
@@ -308,7 +319,7 @@ class Command(object):
         qubits = self.qubits
         ctrlqubits = self.control_qubits
         if len(ctrlqubits) > 0:
-            qubits = (self.control_qubits, ) + qubits
+            qubits = (self.control_qubits,) + qubits
         qstring = ""
         if len(qubits) == 1:
             qstring = str(Qureg(qubits[0]))

@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines the DirtyQubitTag meta tag.
 """
@@ -22,6 +21,7 @@ class DirtyQubitTag(object):
     """
     Dirty qubit meta tag
     """
+
     def __eq__(self, other):
         return isinstance(other, DirtyQubitTag)
 

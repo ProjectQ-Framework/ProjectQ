@@ -98,10 +98,13 @@ def test_qureg(matplotlib_setup):
     All(Measure) | qureg
     eng.flush()
     _, _, prob = histogram(sim, qureg)
-    assert prob["000"] == pytest.approx(1) or prob["001"] == pytest.approx(1) \
-        or prob["110"] == pytest.approx(1) or prob["111"] == pytest.approx(1)
-    assert prob["000"] + prob["001"] + prob["110"] + prob[
-        "111"] == pytest.approx(1)
+    assert (
+        prob["000"] == pytest.approx(1)
+        or prob["001"] == pytest.approx(1)
+        or prob["110"] == pytest.approx(1)
+        or prob["111"] == pytest.approx(1)
+    )
+    assert prob["000"] + prob["001"] + prob["110"] + prob["111"] == pytest.approx(1)
 
 
 def test_combination(matplotlib_setup):
@@ -118,8 +121,9 @@ def test_combination(matplotlib_setup):
     Measure | qureg[0]
     eng.flush()
     _, _, prob = histogram(sim, [qureg, qubit])
-    assert (prob["000"] == pytest.approx(0.5) and prob["001"] == pytest.approx(0.5)) \
-        or (prob["110"] == pytest.approx(0.5) and prob["111"] == pytest.approx(0.5))
+    assert (prob["000"] == pytest.approx(0.5) and prob["001"] == pytest.approx(0.5)) or (
+        prob["110"] == pytest.approx(0.5) and prob["111"] == pytest.approx(0.5)
+    )
     assert prob["100"] == pytest.approx(0)
     Measure | qubit
 

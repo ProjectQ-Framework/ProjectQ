@@ -22,6 +22,7 @@ class QPE(BasicGate):
 
     See setups.decompositions for the complete implementation
     """
+
     def __init__(self, unitary):
         BasicGate.__init__(self)
         self.unitary = unitary

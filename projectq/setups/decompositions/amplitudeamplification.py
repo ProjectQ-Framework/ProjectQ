@@ -79,7 +79,7 @@ from projectq.ops import QAA
 
 
 def _decompose_QAA(cmd):
-    """ Decompose the Quantum Amplitude Apmplification algorithm as a gate. """
+    """Decompose the Quantum Amplitude Apmplification algorithm as a gate."""
     eng = cmd.engine
 
     # System-qubit is the first qubit/qureg. Ancilla qubit is the second qubit

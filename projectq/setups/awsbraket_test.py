@@ -19,7 +19,6 @@ from unittest.mock import MagicMock, Mock, patch
 from io import StringIO
 import json
 
-
 # ==============================================================================
 
 _has_boto3 = True
@@ -33,78 +32,89 @@ try:
 except ImportError:
     _has_boto3 = False
 
-has_boto3 = pytest.mark.skipif(not _has_boto3,
-                               reason="boto3 package is not installed")
+has_boto3 = pytest.mark.skipif(not _has_boto3, reason="boto3 package is not installed")
 
 # ==============================================================================
 
 search_value = {
-        "devices": [
-            {
-                "deviceArn": "arn1",
-                "deviceName": "SV1",
-                "deviceType": "SIMULATOR",
-                "deviceStatus": "ONLINE",
-                "providerName": "pname1",
-            },
-            {
-                "deviceArn": "arn2",
-                "deviceName": "Aspen-8",
-                "deviceType": "QPU",
-                "deviceStatus": "OFFLINE",
-                "providerName": "pname1",
-            },
-            {
-                "deviceArn": "arn3",
-                "deviceName": "IonQ Device",
-                "deviceType": "QPU",
-                "deviceStatus": "ONLINE",
-                "providerName": "pname2",
-            },
-        ]
-    }
-
+    "devices": [
+        {
+            "deviceArn": "arn1",
+            "deviceName": "SV1",
+            "deviceType": "SIMULATOR",
+            "deviceStatus": "ONLINE",
+            "providerName": "pname1",
+        },
+        {
+            "deviceArn": "arn2",
+            "deviceName": "Aspen-8",
+            "deviceType": "QPU",
+            "deviceStatus": "OFFLINE",
+            "providerName": "pname1",
+        },
+        {
+            "deviceArn": "arn3",
+            "deviceName": "IonQ Device",
+            "deviceType": "QPU",
+            "deviceStatus": "ONLINE",
+            "providerName": "pname2",
+        },
+    ]
+}
 
 device_value_devicecapabilities = json.dumps(
     {
-    "braketSchemaHeader": {
-        "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
-        "version": "1",
-    },
-    "service": {
-        "executionWindows": [
-            {
-                "executionDay": "Everyday",
-                "windowStartHour": "11:00",
-                "windowEndHour": "12:00",
+        "braketSchemaHeader": {
+            "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
+            "version": "1",
+        },
+        "service": {
+            "executionWindows": [
+                {
+                    "executionDay": "Everyday",
+                    "windowStartHour": "11:00",
+                    "windowEndHour": "12:00",
+                }
+            ],
+            "shotsRange": [1, 10],
+            "deviceLocation": "us-east-1",
+        },
+        "action": {
+            "braket.ir.jaqcd.program": {
+                "actionType": "braket.ir.jaqcd.program",
+                "version": ["1"],
+                "supportedOperations": ["H"],
             }
-        ],
-        "shotsRange": [1, 10],
-        "deviceLocation": "us-east-1",
-    },
-    "action": {
-        "braket.ir.jaqcd.program": {
-            "actionType": "braket.ir.jaqcd.program",
-            "version": ["1"],
-            "supportedOperations": ["H"],
-        }
-    },
-    "paradigm": {
-        "qubitCount": 30,
-        "nativeGateSet": ["ccnot", "cy"],
-        "connectivity": {"fullyConnected": False,
-                         "connectivityGraph": {"1": ["2", "3"]}},
-    },
-    "deviceParameters": {
-        "properties": {"braketSchemaHeader": {"const":
-            {"name": "braket.device_schema.rigetti.rigetti_device_parameters",
-             "version": "1"}
-            }},
-        "definitions": {"GateModelParameters": {"properties":
-            {"braketSchemaHeader": {"const":
-                {"name": "braket.device_schema.gate_model_parameters",
-                 "version": "1"}
-            }}}},
+        },
+        "paradigm": {
+            "qubitCount": 30,
+            "nativeGateSet": ["ccnot", "cy"],
+            "connectivity": {
+                "fullyConnected": False,
+                "connectivityGraph": {"1": ["2", "3"]},
+            },
+        },
+        "deviceParameters": {
+            "properties": {
+                "braketSchemaHeader": {
+                    "const": {
+                        "name": "braket.device_schema.rigetti.rigetti_device_parameters",
+                        "version": "1",
+                    }
+                }
+            },
+            "definitions": {
+                "GateModelParameters": {
+                    "properties": {
+                        "braketSchemaHeader": {
+                            "const": {
+                                "name": "braket.device_schema.gate_model_parameters",
+                                "version": "1",
+                            }
+                        }
+                    }
+                }
+            },
         },
     }
 )
@@ -120,7 +130,7 @@ device_value = {
 creds = {
     'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
     'AWS_SECRET_KEY': 'aws_secret_key',
-    }
+}
 
 
 @has_boto3
@@ -132,8 +142,7 @@ def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
 
-    engine_list = projectq.setups.awsbraket.get_engine_list(credentials=creds,
-                    device=var_device)
+    engine_list = projectq.setups.awsbraket.get_engine_list(credentials=creds, device=var_device)
     assert len(engine_list) == 12
 
 
@@ -146,5 +155,4 @@ def test_awsbraket_error(mock_boto3_client):
     mock_boto3_client.get_device.return_value = device_value
 
     with pytest.raises(projectq.setups.awsbraket.DeviceOfflineError):
-        projectq.setups.awsbraket.get_engine_list(credentials=creds,
-                                                  device='Imaginary')
+        projectq.setups.awsbraket.get_engine_list(credentials=creds, device='Imaginary')

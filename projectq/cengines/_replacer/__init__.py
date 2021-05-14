@@ -15,6 +15,4 @@
 
 from ._decomposition_rule import DecompositionRule, ThisIsNotAGateClassError
 from ._decomposition_rule_set import DecompositionRuleSet
-from ._replacer import (AutoReplacer,
-                        InstructionFilter,
-                        NoGateDecompositionError)
+from ._replacer import AutoReplacer, InstructionFilter, NoGateDecompositionError

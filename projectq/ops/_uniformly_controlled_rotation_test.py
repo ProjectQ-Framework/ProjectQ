@@ -12,8 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
-
 """Tests for projectq.ops._uniformly_controlled_rotation."""
 import math
 
@@ -25,23 +23,20 @@ from ._basics import NotMergeable
 from projectq.ops import _uniformly_controlled_rotation as ucr
 
 
-@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy,
-                                        ucr.UniformlyControlledRz])
+@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy, ucr.UniformlyControlledRz])
 def test_init_rounding(gate_class):
     gate = gate_class([0.1 + 4 * math.pi, -1e-14])
-    assert gate.angles == [0.1, 0.]
+    assert gate.angles == [0.1, 0.0]
 
 
-@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy,
-                                        ucr.UniformlyControlledRz])
+@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy, ucr.UniformlyControlledRz])
 def test_get_inverse(gate_class):
     gate = gate_class([0.1, 0.2, 0.3, 0.4])
     inverse = gate.get_inverse()
     assert inverse == gate_class([-0.1, -0.2, -0.3, -0.4])
 
 
-@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy,
-                                        ucr.UniformlyControlledRz])
+@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy, ucr.UniformlyControlledRz])
 def test_get_merged(gate_class):
     gate1 = gate_class([0.1, 0.2, 0.3, 0.4])
     gate2 = gate_class([0.1, 0.2, 0.3, 0.4])
@@ -60,8 +55,7 @@ def test_str_and_hash():
     assert hash(gate2) == hash("UniformlyControlledRz([0.1, 0.2, 0.3, 0.4])")
 
 
-@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy,
-                                        ucr.UniformlyControlledRz])
+@pytest.mark.parametrize("gate_class", [ucr.UniformlyControlledRy, ucr.UniformlyControlledRz])
 def test_equality(gate_class):
     gate1 = gate_class([0.1, 0.2])
     gate2 = gate_class([0.1, 0.2 + 1e-14])

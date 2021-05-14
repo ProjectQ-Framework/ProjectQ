@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines a few shortcuts for certain gates such as
 * CNOT = C(NOT)
@@ -33,8 +32,6 @@ def CRz(angle):
 
 CNOT = CX = C(NOT)
 
-
 CZ = C(Z)
-
 
 Toffoli = C(CNOT)

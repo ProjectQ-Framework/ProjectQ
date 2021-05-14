@@ -18,18 +18,29 @@ import pytest
 
 import projectq
 from projectq.cengines import DummyEngine
-from projectq.libs.math import (AddConstant, AddConstantModN,
-                                MultiplyByConstantModN)
-from projectq.ops import (BasicGate, CNOT, CRz, H, Measure, QFT, QubitOperator,
-                          Rx, Rz, Swap, TimeEvolution, Toffoli, X)
+from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
+from projectq.ops import (
+    BasicGate,
+    CNOT,
+    CRz,
+    H,
+    Measure,
+    QFT,
+    QubitOperator,
+    Rx,
+    Rz,
+    Swap,
+    TimeEvolution,
+    Toffoli,
+    X,
+)
 from projectq.meta import Control
 
 import projectq.setups.restrictedgateset as restrictedgateset
 
 
 def test_parameter_any():
-    engine_list = restrictedgateset.get_engine_list(one_qubit_gates="any",
-                                                    two_qubit_gates="any")
+    engine_list = restrictedgateset.get_engine_list(one_qubit_gates="any", two_qubit_gates="any")
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list)
     qubit1 = eng.allocate_qubit()
@@ -47,7 +58,8 @@ def test_restriction():
     engine_list = restrictedgateset.get_engine_list(
         one_qubit_gates=(Rz, H),
         two_qubit_gates=(CNOT, AddConstant, Swap),
-        other_gates=(Toffoli, AddConstantModN, MultiplyByConstantModN(2, 8)))
+        other_gates=(Toffoli, AddConstantModN, MultiplyByConstantModN(2, 8)),
+    )
     backend = DummyEngine(save_commands=True)
     eng = projectq.MainEngine(backend, engine_list, verbose=True)
     qubit1 = eng.allocate_qubit()
@@ -95,8 +107,8 @@ def test_wrong_init():
     with pytest.raises(TypeError):
         restrictedgateset.get_engine_list(other_gates="any")
     with pytest.raises(TypeError):
-        restrictedgateset.get_engine_list(one_qubit_gates=(CRz, ))
+        restrictedgateset.get_engine_list(one_qubit_gates=(CRz,))
     with pytest.raises(TypeError):
-        restrictedgateset.get_engine_list(two_qubit_gates=(CRz, ))
+        restrictedgateset.get_engine_list(two_qubit_gates=(CRz,))
     with pytest.raises(TypeError):
-        restrictedgateset.get_engine_list(other_gates=(CRz, ))
+        restrictedgateset.get_engine_list(other_gates=(CRz,))

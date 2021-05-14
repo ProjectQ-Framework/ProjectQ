@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for the phase-shift gate.
 
@@ -26,17 +25,15 @@ from projectq.ops import Ph, Rz, R
 
 
 def _decompose_R(cmd):
-    """ Decompose the (controlled) phase-shift gate, denoted by R(phase). """
+    """Decompose the (controlled) phase-shift gate, denoted by R(phase)."""
     ctrl = cmd.control_qubits
     eng = cmd.engine
     gate = cmd.gate
 
     with Control(eng, ctrl):
-        Ph(.5 * gate.angle) | cmd.qubits
+        Ph(0.5 * gate.angle) | cmd.qubits
         Rz(gate.angle) | cmd.qubits
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(R, _decompose_R)
-]
+all_defined_decomposition_rules = [DecompositionRule(R, _decompose_R)]

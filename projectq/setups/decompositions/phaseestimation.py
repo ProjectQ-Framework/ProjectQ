@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition for phase estimation.
 
@@ -95,7 +94,7 @@ from projectq.ops import QPE
 
 
 def _decompose_QPE(cmd):
-    """ Decompose the Quantum Phase Estimation gate. """
+    """Decompose the Quantum Phase Estimation gate."""
     eng = cmd.engine
 
     # Ancillas is the first qubit/qureg. System-qubit is the second qubit/qureg
@@ -109,14 +108,14 @@ def _decompose_QPE(cmd):
     U = cmd.gate.unitary
 
     # Control U on the system_qubits
-    if (callable(U)):
+    if callable(U):
         # If U is a function
         for i in range(len(qpe_ancillas)):
             with Control(eng, qpe_ancillas[i]):
-                U(system_qubits, time=2**i)
+                U(system_qubits, time=2 ** i)
     else:
         for i in range(len(qpe_ancillas)):
-            ipower = int(2**i)
+            ipower = int(2 ** i)
             with Loop(eng, ipower):
                 with Control(eng, qpe_ancillas[i]):
                     U | system_qubits
@@ -124,7 +123,6 @@ def _decompose_QPE(cmd):
     # Inverse QFT on the ancillas
     get_inverse(QFT) | qpe_ancillas
 
+
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(QPE, _decompose_QPE)
-]
+all_defined_decomposition_rules = [DecompositionRule(QPE, _decompose_QPE)]

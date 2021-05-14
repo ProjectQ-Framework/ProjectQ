@@ -26,10 +26,14 @@ translated in the backend in the U1/U2/U3/CX gate set.
 import projectq
 import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rx, Ry, Rz, H, CNOT, Barrier)
-from projectq.cengines import (LocalOptimizer, IBM5QubitMapper,
-                               SwapAndCNOTFlipper, BasicMapperEngine,
-                               GridMapper)
+from projectq.ops import Rx, Ry, Rz, H, CNOT, Barrier
+from projectq.cengines import (
+    LocalOptimizer,
+    IBM5QubitMapper,
+    SwapAndCNOTFlipper,
+    BasicMapperEngine,
+    GridMapper,
+)
 from projectq.backends._ibm._ibm_http_client import show_devices
 
 
@@ -40,19 +44,14 @@ def get_engine_list(token=None, device=None):
     devices = show_devices(token)
     ibm_setup = []
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device '
-                                 'requested for Backend not connected')
+        raise DeviceOfflineError('Error when configuring engine list: device ' 'requested for Backend not connected')
     if devices[device]['nq'] == 5:
         # The requested device is a 5 qubit processor
         # Obtain the coupling map specific to the device
         coupling_map = devices[device]['coupling_map']
         coupling_map = list2set(coupling_map)
         mapper = IBM5QubitMapper(coupling_map)
-        ibm_setup = [
-            mapper,
-            SwapAndCNOTFlipper(coupling_map),
-            LocalOptimizer(10)
-        ]
+        ibm_setup = [mapper, SwapAndCNOTFlipper(coupling_map), LocalOptimizer(10)]
     elif device == 'ibmq_qasm_simulator':
         # The 32 qubit online simulator doesn't need a specific mapping for
         # gates. Can also run wider gateset but this setup keep the
@@ -85,7 +84,7 @@ def get_engine_list(token=None, device=None):
             12: 10,
             13: 9,
             14: 8,
-            15: 7
+            15: 7,
         }
         coupling_map = devices[device]['coupling_map']
         coupling_map = list2set(coupling_map)
@@ -93,7 +92,7 @@ def get_engine_list(token=None, device=None):
             GridMapper(2, 8, grid_to_physical),
             LocalOptimizer(5),
             SwapAndCNOTFlipper(coupling_map),
-            LocalOptimizer(5)
+            LocalOptimizer(5),
         ]
     else:
         # If there is an online device not handled into ProjectQ it's not too
@@ -105,9 +104,9 @@ def get_engine_list(token=None, device=None):
     # Most gates need to be decomposed into a subset that is manually converted
     # in the backend (until the implementation of the U1,U2,U3)
     # available gates decomposable now for U1,U2,U3: Rx,Ry,Rz and H
-    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry, Rz, H),
-                                              two_qubit_gates=(CNOT, ),
-                                              other_gates=(Barrier, ))
+    setup = restrictedgateset.get_engine_list(
+        one_qubit_gates=(Rx, Ry, Rz, H), two_qubit_gates=(CNOT,), other_gates=(Barrier,)
+    )
     setup.extend(ibm_setup)
     return setup
 

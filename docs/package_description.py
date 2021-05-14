@@ -7,13 +7,15 @@ import os
 class PackageDescription(object):
     package_list = []
 
-    def __init__(self,
-                 pkg_name,
-                 desc='',
-                 module_special_members='__init__',
-                 submodule_special_members='',
-                 submodules_desc='',
-                 helper_submodules=None):
+    def __init__(
+        self,
+        pkg_name,
+        desc='',
+        module_special_members='__init__',
+        submodule_special_members='',
+        submodules_desc='',
+        helper_submodules=None,
+    ):
         """
         Args:
             name (str): Name of ProjectQ module
@@ -44,16 +46,19 @@ class PackageDescription(object):
         self.helper_submodules = helper_submodules
 
         module_root = os.path.dirname(self.module.__file__)
-        sub = [(name, obj) for name, obj in inspect.getmembers(
-            self.module, lambda obj: inspect.ismodule(obj) and hasattr(
-                obj, '__file__') and module_root in obj.__file__)
-               if pkg_name[0] != '_']
+        sub = [
+            (name, obj)
+            for name, obj in inspect.getmembers(
+                self.module,
+                lambda obj: inspect.ismodule(obj) and hasattr(obj, '__file__') and module_root in obj.__file__,
+            )
+            if pkg_name[0] != '_'
+        ]
 
         self.subpackages = []
         self.submodules = []
         for name, obj in sub:
-            if '{}.{}'.format(self.name,
-                              name) in PackageDescription.package_list:
+            if '{}.{}'.format(self.name, name) in PackageDescription.package_list:
                 self.subpackages.append((name, obj))
             else:
                 self.submodules.append((name, obj))
@@ -61,11 +66,18 @@ class PackageDescription(object):
         self.subpackages.sort(key=lambda x: x[0].lower())
         self.submodules.sort(key=lambda x: x[0].lower())
 
-        self.members = [(name, obj) for name, obj in inspect.getmembers(
-            self.module, lambda obj:
-            (inspect.isclass(obj) or inspect.isfunction(obj) or isinstance(
-                obj, (int, float, tuple, list, dict, set, frozenset, str))))
-                        if name[0] != '_']
+        self.members = [
+            (name, obj)
+            for name, obj in inspect.getmembers(
+                self.module,
+                lambda obj: (
+                    inspect.isclass(obj)
+                    or inspect.isfunction(obj)
+                    or isinstance(obj, (int, float, tuple, list, dict, set, frozenset, str))
+                ),
+            )
+            if name[0] != '_'
+        ]
         self.members.sort(key=lambda x: x[0].lower())
 
     def get_ReST(self):
@@ -96,13 +108,11 @@ class PackageDescription(object):
             new_lines.append('')
             if self.submodules:
                 for name, _ in self.submodules:
-                    new_lines.append('\tprojectq.{}.{}'.format(
-                        self.name, name))
+                    new_lines.append('\tprojectq.{}.{}'.format(self.name, name))
                 new_lines.append('')
             if self.members:
                 for name, _ in self.members:
-                    new_lines.append('\tprojectq.{}.{}'.format(
-                        self.name, name))
+                    new_lines.append('\tprojectq.{}.{}'.format(self.name, name))
                 new_lines.append('')
 
         if self.submodules:
@@ -117,20 +127,17 @@ class PackageDescription(object):
                 new_lines.append('.. autosummary::')
                 new_lines.append('')
                 for name, _ in self.submodules:
-                    new_lines.append('    projectq.{}.{}'.format(
-                        self.name, name))
+                    new_lines.append('    projectq.{}.{}'.format(self.name, name))
                 new_lines.append('')
 
             for name, _ in self.submodules:
                 new_lines.append(name)
                 new_lines.append('^' * len(new_lines[-1]))
                 new_lines.append('')
-                new_lines.append('.. automodule:: projectq.{}.{}'.format(
-                    self.name, name))
+                new_lines.append('.. automodule:: projectq.{}.{}'.format(self.name, name))
                 new_lines.append('    :members:')
                 if self.submodule_special_members:
-                    new_lines.append('    :special-members: {}'.format(
-                        self.submodule_special_members))
+                    new_lines.append('    :special-members: {}'.format(self.submodule_special_members))
                 new_lines.append('    :undoc-members:')
                 new_lines.append('')
 
@@ -140,8 +147,7 @@ class PackageDescription(object):
         new_lines.append('.. automodule:: projectq.{}'.format(self.name))
         new_lines.append('    :members:')
         new_lines.append('    :undoc-members:')
-        new_lines.append('    :special-members: {}'.format(
-            self.module_special_members))
+        new_lines.append('    :special-members: {}'.format(self.module_special_members))
         new_lines.append('    :imported-members:')
         new_lines.append('')
 
@@ -153,8 +159,7 @@ class PackageDescription(object):
                 new_lines.append(title)
                 new_lines.append('^' * len(title))
                 new_lines.append('')
-                new_lines.append('.. automodule:: projectq.{}.{}'.format(
-                    self.name, name))
+                new_lines.append('.. automodule:: projectq.{}.{}'.format(self.name, name))
                 for param in params:
                     new_lines.append('    {}'.format(param))
                 new_lines.append('')

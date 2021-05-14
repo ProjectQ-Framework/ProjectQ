@@ -25,10 +25,7 @@ class DecompositionRule:
     A rule for breaking down specific gates into sequences of simpler gates.
     """
 
-    def __init__(self,
-                 gate_class,
-                 gate_decomposer,
-                 gate_recognizer=lambda cmd: True):
+    def __init__(self, gate_class, gate_decomposer, gate_recognizer=lambda cmd: True):
         """
         Args:
             gate_class (type): The type of gate that this rule decomposes.
@@ -61,11 +58,13 @@ class DecompositionRule:
         if isinstance(gate_class, BasicGate):
             raise ThisIsNotAGateClassError(
                 "gate_class is a gate instance instead of a type of BasicGate."
-                "\nDid you pass in someGate instead of someGate.__class__?")
+                "\nDid you pass in someGate instead of someGate.__class__?"
+            )
         if gate_class == type.__class__:
             raise ThisIsNotAGateClassError(
                 "gate_class is type.__class__ instead of a type of BasicGate."
-                "\nDid you pass in GateType.__class__ instead of GateType?")
+                "\nDid you pass in GateType.__class__ instead of GateType?"
+            )
 
         self.gate_class = gate_class
         self.gate_decomposer = gate_decomposer

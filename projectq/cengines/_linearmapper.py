@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Mapper for a quantum circuit to a linear chain of qubits.
 
@@ -29,9 +28,16 @@ from copy import deepcopy
 
 from projectq.cengines import BasicMapperEngine
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import (Allocate, AllocateQubitGate, Deallocate,
-                          DeallocateQubitGate, Command, FlushGate,
-                          MeasureGate, Swap)
+from projectq.ops import (
+    Allocate,
+    AllocateQubitGate,
+    Deallocate,
+    DeallocateQubitGate,
+    Command,
+    FlushGate,
+    MeasureGate,
+    Swap,
+)
 from projectq.types import WeakQubitRef
 
 
@@ -123,8 +129,7 @@ class LinearMapper(BasicMapperEngine):
             return False
 
     @staticmethod
-    def return_new_mapping(num_qubits, cyclic, currently_allocated_ids,
-                           stored_commands, current_mapping):
+    def return_new_mapping(num_qubits, cyclic, currently_allocated_ids, stored_commands, current_mapping):
         """
         Builds a mapping of qubits to a linear chain.
 
@@ -169,8 +174,7 @@ class LinearMapper(BasicMapperEngine):
             neighbour_ids[qubit_id] = set()
 
         for cmd in stored_commands:
-            if (len(allocated_qubits) == num_qubits and
-                    len(active_qubits) == 0):
+            if len(allocated_qubits) == num_qubits and len(active_qubits) == 0:
                 break
 
             qubit_ids = []
@@ -179,8 +183,7 @@ class LinearMapper(BasicMapperEngine):
                     qubit_ids.append(qubit.id)
 
             if len(qubit_ids) > 2 or len(qubit_ids) == 0:
-                raise Exception("Invalid command (number of qubits): " +
-                                str(cmd))
+                raise Exception("Invalid command (number of qubits): " + str(cmd))
 
             elif isinstance(cmd.gate, AllocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id
@@ -209,17 +212,18 @@ class LinearMapper(BasicMapperEngine):
                     qubit1=qubit_ids[1],
                     active_qubits=active_qubits,
                     segments=segments,
-                    neighbour_ids=neighbour_ids)
+                    neighbour_ids=neighbour_ids,
+                )
 
         return LinearMapper._return_new_mapping_from_segments(
             num_qubits=num_qubits,
             segments=segments,
             allocated_qubits=allocated_qubits,
-            current_mapping=current_mapping)
+            current_mapping=current_mapping,
+        )
 
     @staticmethod
-    def _process_two_qubit_gate(num_qubits, cyclic, qubit0, qubit1,
-                                active_qubits, segments, neighbour_ids):
+    def _process_two_qubit_gate(num_qubits, cyclic, qubit0, qubit1, active_qubits, segments, neighbour_ids):
         """
         Processes a two qubit gate.
 
@@ -305,21 +309,17 @@ class LinearMapper(BasicMapperEngine):
             # both qubits are at the end of different segments -> combine them
             else:
                 if not qb0_is_left_end and qb1_is_left_end:
-                    segments[segment_index_qb0].extend(
-                        segments[segment_index_qb1])
+                    segments[segment_index_qb0].extend(segments[segment_index_qb1])
                     segments.pop(segment_index_qb1)
                 elif not qb0_is_left_end and not qb1_is_left_end:
-                    segments[segment_index_qb0].extend(
-                        reversed(segments[segment_index_qb1]))
+                    segments[segment_index_qb0].extend(reversed(segments[segment_index_qb1]))
                     segments.pop(segment_index_qb1)
                 elif qb0_is_left_end and qb1_is_left_end:
                     segments[segment_index_qb0].reverse()
-                    segments[segment_index_qb0].extend(
-                        segments[segment_index_qb1])
+                    segments[segment_index_qb0].extend(segments[segment_index_qb1])
                     segments.pop(segment_index_qb1)
                 else:
-                    segments[segment_index_qb1].extend(
-                        segments[segment_index_qb0])
+                    segments[segment_index_qb1].extend(segments[segment_index_qb0])
                     segments.pop(segment_index_qb0)
                 # Add new neighbour ids and make sure to check cyclic
                 neighbour_ids[qubit0].add(qubit1)
@@ -330,8 +330,7 @@ class LinearMapper(BasicMapperEngine):
         return
 
     @staticmethod
-    def _return_new_mapping_from_segments(num_qubits, segments,
-                                          allocated_qubits, current_mapping):
+    def _return_new_mapping_from_segments(num_qubits, segments, allocated_qubits, current_mapping):
         """
         Combines the individual segments into a new mapping.
 
@@ -391,24 +390,27 @@ class LinearMapper(BasicMapperEngine):
                     segment_ids = set(segment)
                     segment_ids.discard(None)
 
-                    overlap = len(previous_chain_ids.intersection(
-                        segment_ids)) + previous_chain[idx0:idx1].count(None)
+                    overlap = len(previous_chain_ids.intersection(segment_ids)) + previous_chain[idx0:idx1].count(
+                        None
+                    )
                     if overlap == 0:
                         overlap_fraction = 0
                     elif overlap == len(segment):
                         overlap_fraction = 1
                     else:
                         overlap_fraction = overlap / float(len(segment))
-                    if ((overlap_fraction == 1 and padding < best_padding) or
-                            overlap_fraction > highest_overlap_fraction or
-                            highest_overlap_fraction == 0):
+                    if (
+                        (overlap_fraction == 1 and padding < best_padding)
+                        or overlap_fraction > highest_overlap_fraction
+                        or highest_overlap_fraction == 0
+                    ):
                         best_segment = segment
                         best_padding = padding
                         highest_overlap_fraction = overlap_fraction
             # Add best segment and padding to new_chain
-            new_chain[current_position_to_fill+best_padding:
-                      current_position_to_fill+best_padding +
-                      len(best_segment)] = best_segment
+            new_chain[
+                current_position_to_fill + best_padding : current_position_to_fill + best_padding + len(best_segment)
+            ] = best_segment
             remaining_segments.remove(best_segment)
             current_position_to_fill += best_padding + len(best_segment)
             num_unused_qubits -= best_padding
@@ -438,8 +440,7 @@ class LinearMapper(BasicMapperEngine):
         # move qubits which are in both mappings
         for logical_id in old_mapping:
             if logical_id in new_mapping:
-                final_positions[old_mapping[logical_id]] = new_mapping[
-                                                                   logical_id]
+                final_positions[old_mapping[logical_id]] = new_mapping[logical_id]
         # exchange all remaining None with the not yet used mapped ids
         used_mapped_ids = set(final_positions)
         used_mapped_ids.discard(None)
@@ -455,19 +456,19 @@ class LinearMapper(BasicMapperEngine):
         finished_sorting = False
         while not finished_sorting:
             finished_sorting = True
-            for i in range(1, len(final_positions)-1, 2):
-                if final_positions[i] > final_positions[i+1]:
-                    swap_operations.append((i, i+1))
+            for i in range(1, len(final_positions) - 1, 2):
+                if final_positions[i] > final_positions[i + 1]:
+                    swap_operations.append((i, i + 1))
                     tmp = final_positions[i]
-                    final_positions[i] = final_positions[i+1]
-                    final_positions[i+1] = tmp
+                    final_positions[i] = final_positions[i + 1]
+                    final_positions[i + 1] = tmp
                     finished_sorting = False
-            for i in range(0, len(final_positions)-1, 2):
-                if final_positions[i] > final_positions[i+1]:
-                    swap_operations.append((i, i+1))
+            for i in range(0, len(final_positions) - 1, 2):
+                if final_positions[i] > final_positions[i + 1]:
+                    swap_operations.append((i, i + 1))
                     tmp = final_positions[i]
-                    final_positions[i] = final_positions[i+1]
-                    final_positions[i+1] = tmp
+                    final_positions[i] = final_positions[i + 1]
+                    final_positions[i + 1] = tmp
                     finished_sorting = False
         return swap_operations
 
@@ -490,27 +491,25 @@ class LinearMapper(BasicMapperEngine):
             if isinstance(cmd.gate, AllocateQubitGate):
                 if cmd.qubits[0][0].id in self.current_mapping:
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
-                    qb = WeakQubitRef(
-                        engine=self,
-                        idx=self.current_mapping[cmd.qubits[0][0].id])
+                    qb = WeakQubitRef(engine=self, idx=self.current_mapping[cmd.qubits[0][0].id])
                     new_cmd = Command(
                         engine=self,
                         gate=AllocateQubitGate(),
                         qubits=([qb],),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)],
+                    )
                     self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 if cmd.qubits[0][0].id in active_ids:
-                    qb = WeakQubitRef(
-                        engine=self,
-                        idx=self.current_mapping[cmd.qubits[0][0].id])
+                    qb = WeakQubitRef(engine=self, idx=self.current_mapping[cmd.qubits[0][0].id])
                     new_cmd = Command(
                         engine=self,
                         gate=DeallocateQubitGate(),
                         qubits=([qb],),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)],
+                    )
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
                     self._current_mapping.pop(cmd.qubits[0][0].id)
@@ -529,9 +528,9 @@ class LinearMapper(BasicMapperEngine):
                 # Check that mapped ids are nearest neighbour
                 if len(mapped_ids) == 2:
                     mapped_ids = list(mapped_ids)
-                    diff = abs(mapped_ids[0]-mapped_ids[1])
+                    diff = abs(mapped_ids[0] - mapped_ids[1])
                     if self.cyclic:
-                        if diff != 1 and diff != self.num_qubits-1:
+                        if diff != 1 and diff != self.num_qubits - 1:
                             send_gate = False
                     else:
                         if diff != 1:
@@ -562,21 +561,21 @@ class LinearMapper(BasicMapperEngine):
             self._send_possible_commands()
             if len(self._stored_commands) == 0:
                 return
-        new_mapping = self.return_new_mapping(self.num_qubits,
-                                              self.cyclic,
-                                              self._currently_allocated_ids,
-                                              self._stored_commands,
-                                              self.current_mapping)
-        swaps = self._odd_even_transposition_sort_swaps(
-                old_mapping=self.current_mapping, new_mapping=new_mapping)
+        new_mapping = self.return_new_mapping(
+            self.num_qubits,
+            self.cyclic,
+            self._currently_allocated_ids,
+            self._stored_commands,
+            self.current_mapping,
+        )
+        swaps = self._odd_even_transposition_sort_swaps(old_mapping=self.current_mapping, new_mapping=new_mapping)
         if swaps:  # first mapping requires no swaps
             # Allocate all mapped qubit ids (which are not already allocated,
             # i.e., contained in self._currently_allocated_ids)
             mapped_ids_used = set()
             for logical_id in self._currently_allocated_ids:
                 mapped_ids_used.add(self.current_mapping[logical_id])
-            not_allocated_ids = set(range(self.num_qubits)).difference(
-                mapped_ids_used)
+            not_allocated_ids = set(range(self.num_qubits)).difference(mapped_ids_used)
             for mapped_id in not_allocated_ids:
                 qb = WeakQubitRef(engine=self, idx=mapped_id)
                 cmd = Command(engine=self, gate=Allocate, qubits=([qb],))
@@ -603,12 +602,10 @@ class LinearMapper(BasicMapperEngine):
             mapped_ids_used = set()
             for logical_id in self._currently_allocated_ids:
                 mapped_ids_used.add(new_mapping[logical_id])
-            not_needed_anymore = set(range(self.num_qubits)).difference(
-                mapped_ids_used)
+            not_needed_anymore = set(range(self.num_qubits)).difference(mapped_ids_used)
             for mapped_id in not_needed_anymore:
                 qb = WeakQubitRef(engine=self, idx=mapped_id)
-                cmd = Command(engine=self, gate=Deallocate,
-                              qubits=([qb],))
+                cmd = Command(engine=self, gate=Deallocate, qubits=([qb],))
                 self.send([cmd])
         # Change to new map:
         self.current_mapping = new_mapping
@@ -616,10 +613,12 @@ class LinearMapper(BasicMapperEngine):
         self._send_possible_commands()
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
-            raise RuntimeError("Mapper is potentially in an infinite loop. "
-                               "It is likely that the algorithm requires "
-                               "too many qubits. Increase the number of "
-                               "qubits for this mapper.")
+            raise RuntimeError(
+                "Mapper is potentially in an infinite loop. "
+                "It is likely that the algorithm requires "
+                "too many qubits. Increase the number of "
+                "qubits for this mapper."
+            )
 
     def receive(self, command_list):
         """
@@ -632,7 +631,7 @@ class LinearMapper(BasicMapperEngine):
         """
         for cmd in command_list:
             if isinstance(cmd.gate, FlushGate):
-                while(len(self._stored_commands)):
+                while len(self._stored_commands):
                     self._run()
                 self.send([cmd])
             else:

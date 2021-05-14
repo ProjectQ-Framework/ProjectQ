@@ -16,10 +16,25 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import (All, Allocate, BasicMathGate, C, Command, Deallocate,
-                          FlushGate, Measure, NOT, X, Y)
-from projectq.cengines import (AutoReplacer, BasicMapperEngine,
-                               DecompositionRuleSet, DummyEngine)
+from projectq.ops import (
+    All,
+    Allocate,
+    BasicMathGate,
+    C,
+    Command,
+    Deallocate,
+    FlushGate,
+    Measure,
+    NOT,
+    X,
+    Y,
+)
+from projectq.cengines import (
+    AutoReplacer,
+    BasicMapperEngine,
+    DecompositionRuleSet,
+    DummyEngine,
+)
 from ._simulator_test import mapper
 from projectq.types import WeakQubitRef
 
@@ -90,11 +105,11 @@ def test_simulator_bit_repositioning(mapper):
 def test_simulator_arithmetic(mapper):
     class Offset(BasicMathGate):
         def __init__(self, amount):
-            BasicMathGate.__init__(self, lambda x: (x+amount,))
+            BasicMathGate.__init__(self, lambda x: (x + amount,))
 
     class Sub(BasicMathGate):
         def __init__(self):
-            BasicMathGate.__init__(self, lambda x, y: (x, y-x))
+            BasicMathGate.__init__(self, lambda x, y: (x, y - x))
 
     engine_list = []
     if mapper is not None:

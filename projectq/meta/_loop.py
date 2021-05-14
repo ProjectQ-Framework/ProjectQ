@@ -12,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tools to implement loops.
 
@@ -39,14 +38,14 @@ class LoopTag(object):
     """
     Loop meta tag
     """
+
     def __init__(self, num):
         self.num = num
         self.id = LoopTag.loop_tag_id
         LoopTag.loop_tag_id += 1
 
     def __eq__(self, other):
-        return (isinstance(other, LoopTag) and self.id == other.id and
-                self.num == other.num)
+        return isinstance(other, LoopTag) and self.id == other.id and self.num == other.num
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -91,13 +90,15 @@ class LoopEngine(BasicEngine):
 
             is_meta_tag_supported(next_engine, LoopTag) == False
         """
-        error_message = ("\n Error. Qubits have been allocated in with "
-                         "Loop(eng, num) context,\n which have not "
-                         "explicitely been deallocated in the Loop context.\n"
-                         "Correct usage:\nwith Loop(eng, 5):\n"
-                         "    qubit = eng.allocate_qubit()\n"
-                         "    ...\n"
-                         "    del qubit[0]\n")
+        error_message = (
+            "\n Error. Qubits have been allocated in with "
+            "Loop(eng, num) context,\n which have not "
+            "explicitely been deallocated in the Loop context.\n"
+            "Correct usage:\nwith Loop(eng, 5):\n"
+            "    qubit = eng.allocate_qubit()\n"
+            "    ...\n"
+            "    del qubit[0]\n"
+        )
         if not self._next_engines_support_loop_tag:
             # Unroll the loop
             # Check that local qubits have been deallocated:
@@ -146,8 +147,7 @@ class LoopEngine(BasicEngine):
                 unroll or, if there is a LoopTag-handling engine, add the
                 LoopTag.
         """
-        if (self._next_engines_support_loop_tag or
-           self.next_engine.is_meta_tag_supported(LoopTag)):
+        if self._next_engines_support_loop_tag or self.next_engine.is_meta_tag_supported(LoopTag):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
@@ -168,25 +168,21 @@ class LoopEngine(BasicEngine):
                 if cmd.gate == Allocate:
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
-                    self._refs_to_local_qb[cmd.qubits[0][0].id] = (
-                        [cmd.qubits[0][0]])
+                    self._refs_to_local_qb[cmd.qubits[0][0].id] = [cmd.qubits[0][0]]
                 elif cmd.gate == Deallocate:
                     self._deallocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
-                    self._refs_to_local_qb[cmd.qubits[0][0].id].append(
-                        cmd.qubits[0][0])
+                    self._refs_to_local_qb[cmd.qubits[0][0].id].append(cmd.qubits[0][0])
                 else:
                     # Add a reference to each place a local qubit id is
                     # used as within either control_qubit or qubits
                     for control_qubit in cmd.control_qubits:
                         if control_qubit.id in self._allocated_qubit_ids:
-                            self._refs_to_local_qb[control_qubit.id].append(
-                                control_qubit)
+                            self._refs_to_local_qb[control_qubit.id].append(control_qubit)
                     for qureg in cmd.qubits:
                         for qubit in qureg:
                             if qubit.id in self._allocated_qubit_ids:
-                                self._refs_to_local_qb[qubit.id].append(
-                                    qubit)
+                                self._refs_to_local_qb[qubit.id].append(qubit)
 
 
 class Loop(object):
