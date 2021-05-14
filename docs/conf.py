@@ -529,7 +529,9 @@ The types package contains quantum types such as Qubit, Qureg, and WeakQubitRef.
 
 docgen_path = os.path.join(os.path.dirname(os.path.abspath('__file__')),
                            '_doc_gen')
-os.mkdir(docgen_path)
+if not os.path.isdir(docgen_path):
+    os.mkdir(docgen_path)
+
 for desc in descriptions:
     fname = os.path.join(docgen_path, 'projectq.{}.rst'.format(desc.name))
     lines = None

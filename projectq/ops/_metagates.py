@@ -17,14 +17,14 @@ Contains meta gates, i.e.,
 * DaggeredGate (Represents the inverse of an arbitrary gate)
 * ControlledGate (Represents a controlled version of an arbitrary gate)
 * Tensor/All (Applies a single qubit gate to all supplied qubits), e.g.,
-    Example:
+  Example:
         .. code-block:: python
 
           Tensor(H) | (qubit1, qubit2) # apply H to qubit #1 and #2
 
 As well as the meta functions
 * get_inverse (Tries to access the get_inverse member function of a gate
-               and upon failure returns a DaggeredGate)
+  and upon failure returns a DaggeredGate)
 * C (Creates an n-ary controlled version of an arbitrary gate)
 """
 
