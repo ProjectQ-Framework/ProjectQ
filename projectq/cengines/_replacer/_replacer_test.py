@@ -25,8 +25,6 @@ from projectq.ops import (
     H,
     NotInvertible,
     Rx,
-    Ry,
-    S,
     X,
 )
 from projectq.cengines._replacer import _replacer

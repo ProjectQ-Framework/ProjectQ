@@ -18,12 +18,8 @@ import pytest
 from projectq import MainEngine
 from projectq.ops import (
     All,
-    Allocate,
     BasicMathGate,
     C,
-    Command,
-    Deallocate,
-    FlushGate,
     Measure,
     NOT,
     X,
@@ -35,13 +31,13 @@ from projectq.cengines import (
     DecompositionRuleSet,
     DummyEngine,
 )
-from ._simulator_test import mapper
+from ._simulator_test import mapper  # noqa: F401
 from projectq.types import WeakQubitRef
 
 from ._classical_simulator import ClassicalSimulator
 
 
-def test_simulator_read_write(mapper):
+def test_simulator_read_write(mapper):  # noqa: F811
     engine_list = []
     if mapper is not None:
         engine_list.append(mapper)
@@ -69,7 +65,7 @@ def test_simulator_read_write(mapper):
     assert sim.read_bit(b[0]) == 1
 
 
-def test_simulator_triangle_increment_cycle(mapper):
+def test_simulator_triangle_increment_cycle(mapper):  # noqa: F811
     engine_list = []
     if mapper is not None:
         engine_list.append(mapper)
@@ -84,7 +80,7 @@ def test_simulator_triangle_increment_cycle(mapper):
     assert sim.read_register(a) == 0
 
 
-def test_simulator_bit_repositioning(mapper):
+def test_simulator_bit_repositioning(mapper):  # noqa: F811
     engine_list = []
     if mapper is not None:
         engine_list.append(mapper)
@@ -102,7 +98,7 @@ def test_simulator_bit_repositioning(mapper):
     assert sim.read_register(c) == 33
 
 
-def test_simulator_arithmetic(mapper):
+def test_simulator_arithmetic(mapper):  # noqa: F811
     class Offset(BasicMathGate):
         def __init__(self, amount):
             BasicMathGate.__init__(self, lambda x: (x + amount,))
@@ -152,7 +148,7 @@ def test_simulator_arithmetic(mapper):
         assert int(b[i]) == ((24 >> i) & 1)
 
 
-def test_write_register_value_error_exception(mapper):
+def test_write_register_value_error_exception(mapper):  # noqa: F811
     engine_list = []
     if mapper is not None:
         engine_list.append(mapper)
@@ -196,7 +192,7 @@ def test_wrong_gate():
 
 def test_runtime_error():
     sim = ClassicalSimulator()
-    mapper = BasicMapperEngine()
+    mapper = BasicMapperEngine()  # noqa: F811
     mapper.current_mapping = {}
     eng = MainEngine(sim, [mapper])
     with pytest.raises(RuntimeError):

@@ -17,7 +17,7 @@ Registers decomposition for UnformlyControlledRy and UnformlyControlledRz.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, Uncompute, CustomUncompute
+from projectq.meta import Compute, Control, CustomUncompute
 from projectq.ops import CNOT, Ry, Rz, UniformlyControlledRy, UniformlyControlledRz
 
 

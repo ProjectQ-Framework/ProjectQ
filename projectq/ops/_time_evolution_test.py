@@ -54,18 +54,18 @@ def test_init_makes_copy():
 def test_init_bad_time():
     hamiltonian = QubitOperator("Z2", 0.5)
     with pytest.raises(TypeError):
-        gate = te.TimeEvolution(1.5j, hamiltonian)
+        te.TimeEvolution(1.5j, hamiltonian)
 
 
 def test_init_bad_hamiltonian():
     with pytest.raises(TypeError):
-        gate = te.TimeEvolution(2, "something else")
+        te.TimeEvolution(2, "something else")
 
 
 def test_init_not_hermitian():
     hamiltonian = QubitOperator("Z2", 1e-12j)
     with pytest.raises(te.NotHermitianOperatorError):
-        gate = te.TimeEvolution(1, hamiltonian)
+        te.TimeEvolution(1, hamiltonian)
 
 
 def test_init_cast_complex_to_float():
@@ -125,7 +125,7 @@ def test_get_merged_not_close_enough():
     hamiltonian2 += QubitOperator("X3", 2 + 1e-8)
     gate2 = te.TimeEvolution(5, hamiltonian2)
     with pytest.raises(NotMergeable):
-        merged = gate.get_merged(gate2)
+        gate.get_merged(gate2)
 
 
 def test_get_merged_bad_gate():
@@ -254,7 +254,7 @@ def test_or_gate_identity():
     eng = MainEngine(backend=saving_backend, engine_list=[])
     qureg = eng.allocate_qureg(4)
     hamiltonian = QubitOperator((), 3.4)
-    correct_h = copy.deepcopy(hamiltonian)
+    correct_h = copy.deepcopy(hamiltonian)  # noqa: F841
     gate = te.TimeEvolution(2.1, hamiltonian)
     gate | qureg
     eng.flush()

@@ -18,7 +18,6 @@
 import math
 import pytest
 
-from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import AutoReplacer, DecompositionRuleSet, MainEngine
 
@@ -88,8 +87,6 @@ def test_simple_grover():
     All(Measure) | system_qubits
     H | control
     Measure | control
-    result = [int(q) for q in system_qubits]
-    control_result = int(control)
 
     eng.flush()
 
@@ -172,8 +169,6 @@ def test_complex_aa():
     All(Measure) | system_qubits
     H | control
     Measure | control
-    result = [int(q) for q in system_qubits]
-    control_result = int(control)
 
     eng.flush()
 

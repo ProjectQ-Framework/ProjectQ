@@ -23,7 +23,6 @@ Output: Quantum circuit in which qubits are placed in 1-D chain in which only
         Swap gates in order to move qubits next to each other.
 """
 
-from collections import deque
 from copy import deepcopy
 
 from projectq.cengines import BasicMapperEngine
@@ -35,7 +34,6 @@ from projectq.ops import (
     DeallocateQubitGate,
     Command,
     FlushGate,
-    MeasureGate,
     Swap,
 )
 from projectq.types import WeakQubitRef
@@ -409,7 +407,10 @@ class LinearMapper(BasicMapperEngine):
                         highest_overlap_fraction = overlap_fraction
             # Add best segment and padding to new_chain
             new_chain[
-                current_position_to_fill + best_padding : current_position_to_fill + best_padding + len(best_segment)
+                current_position_to_fill
+                + best_padding : current_position_to_fill  # noqa: E203
+                + best_padding
+                + len(best_segment)
             ] = best_segment
             remaining_segments.remove(best_segment)
             current_position_to_fill += best_padding + len(best_segment)

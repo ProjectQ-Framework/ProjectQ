@@ -26,7 +26,6 @@ from projectq.ops import (
     Command,
     Deallocate,
     FlushGate,
-    Measure,
     QFT,
     X,
 )
@@ -110,7 +109,7 @@ def test_return_new_mapping_allocate_qubits():
 def test_return_new_mapping_allocate_only_once():
     mapper = lm.LinearMapper(num_qubits=1, cyclic=False)
     qb0 = WeakQubitRef(engine=None, idx=0)
-    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb1 = WeakQubitRef(engine=None, idx=1)  # noqa: F841
     mapper._currently_allocated_ids = set()
     cmd0 = Command(None, Allocate, ([qb0],))
     cmd1 = Command(None, Deallocate, ([qb0],))
@@ -118,7 +117,7 @@ def test_return_new_mapping_allocate_only_once():
     # This would otherwise trigger an error (test by num_qubits=2)
     cmd2 = None
     mapper._stored_commands = [cmd0, cmd1, cmd2]
-    new_mapping = mapper.return_new_mapping(
+    mapper.return_new_mapping(
         num_qubits=mapper.num_qubits,
         cyclic=mapper.cyclic,
         currently_allocated_ids=mapper._currently_allocated_ids,
@@ -161,7 +160,7 @@ def test_return_new_mapping_previous_error():
     cmd3 = Command(None, Allocate, ([qb3],))
     cmd4 = Command(None, CNOT, qubits=([qb2],), controls=[qb3])
     mapper._stored_commands = [cmd0, cmd1, cmd2, cmd3, cmd4]
-    new_mapping = mapper.return_new_mapping(
+    mapper.return_new_mapping(
         num_qubits=mapper.num_qubits,
         cyclic=mapper.cyclic,
         currently_allocated_ids=mapper._currently_allocated_ids,

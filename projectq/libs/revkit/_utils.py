@@ -23,6 +23,4 @@ def _exec(code, qs):
         qs (tuple<Qureg>): Qubits to which the permutation is being
                            applied.
     """
-    from projectq.ops import C, X, Z, All
-
     exec(code)

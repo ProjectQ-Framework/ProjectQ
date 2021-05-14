@@ -85,10 +85,6 @@ def test_restriction():
 
 def test_wrong_init():
     with pytest.raises(TypeError):
-        engine_list = grid_setup.get_engine_list(
-            num_rows=3, num_columns=2, one_qubit_gates="any", two_qubit_gates=(CNOT)
-        )
+        grid_setup.get_engine_list(num_rows=3, num_columns=2, one_qubit_gates="any", two_qubit_gates=(CNOT))
     with pytest.raises(TypeError):
-        engine_list = grid_setup.get_engine_list(
-            num_rows=3, num_columns=2, one_qubit_gates="Any", two_qubit_gates=(CNOT,)
-        )
+        grid_setup.get_engine_list(num_rows=3, num_columns=2, one_qubit_gates="Any", two_qubit_gates=(CNOT,))

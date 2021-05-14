@@ -16,12 +16,9 @@
 Tests for projectq.backends._circuits._to_latex.py.
 """
 
-import pytest
-import builtins
 import copy
 
 from projectq import MainEngine
-from projectq.cengines import LastEngineException
 from projectq.ops import (
     BasicGate,
     H,
@@ -36,7 +33,6 @@ from projectq.ops import (
     get_inverse,
 )
 from projectq.meta import Control
-from projectq.backends import CircuitDrawer
 
 import projectq.backends._circuits._to_latex as _to_latex
 import projectq.backends._circuits._drawer as _drawer
@@ -278,9 +274,6 @@ def test_body_without_drawing_order_and_gates_not_parallel():
     H | qubit2
     H | qubit3
     CNOT | (qubit1, qubit3)
-
-    # replicates the above order
-    order = [0, 1, 2, 0, 1, 2, 0]  # initializations  # H1, H3, H2  # CNOT
 
     del qubit1
     eng.flush()

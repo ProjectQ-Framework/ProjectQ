@@ -14,8 +14,6 @@
 #   limitations under the License.
 """Tests for projectq.cengines._optimize.py."""
 
-import pytest
-
 import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine

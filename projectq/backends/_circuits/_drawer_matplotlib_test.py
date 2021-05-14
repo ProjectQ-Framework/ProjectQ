@@ -16,7 +16,6 @@
 Tests for projectq.backends.circuits._drawer.py.
 """
 
-import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import H, X, Rx, CNOT, Swap, Measure, Command, BasicGate

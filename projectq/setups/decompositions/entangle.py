@@ -20,7 +20,7 @@ qubit, CNOT gates to all others.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, get_control_count
+from projectq.meta import Control
 from projectq.ops import X, H, Entangle, All
 
 

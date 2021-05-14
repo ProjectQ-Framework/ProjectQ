@@ -59,7 +59,7 @@ def test_dagger_qubit_management_error():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with pytest.raises(_dagger.QubitManagementError):
         with _dagger.Dagger(eng):
-            ancilla = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
 
 
 def test_dagger_raises_only_single_error():
@@ -67,5 +67,5 @@ def test_dagger_raises_only_single_error():
     # Tests that QubitManagementError is not sent in addition
     with pytest.raises(RuntimeError):
         with _dagger.Dagger(eng):
-            ancilla = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
             raise RuntimeError

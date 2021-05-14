@@ -113,7 +113,7 @@ class ComputeEngine(BasicEngine):
         ids_local_to_compute = self._allocated_qubit_ids.intersection(self._deallocated_qubit_ids)
         # qubit ids which were allocated but not yet deallocated in
         # Compute section
-        ids_still_alive = self._allocated_qubit_ids.difference(self._deallocated_qubit_ids)
+        # ids_still_alive = self._allocated_qubit_ids.difference(self._deallocated_qubit_ids)
 
         # No qubits allocated and already deallocated during compute.
         # Don't inspect each command as below -> faster uncompute

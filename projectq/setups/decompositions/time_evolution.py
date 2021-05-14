@@ -23,7 +23,7 @@ import math
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import TimeEvolution, QubitOperator, H, Y, CNOT, Rz, Rx, Ry
+from projectq.ops import TimeEvolution, QubitOperator, H, CNOT, Rz, Rx, Ry
 
 
 def _recognize_time_evolution_commuting_terms(cmd):

@@ -260,7 +260,38 @@ def test_ibm_backend_functional_test(monkeypatch):
         'backend': {'name': 'ibmq_qasm_simulator'},
     }
 
-    # {'qasms': [{'qasm': '\ninclude "qelib1.inc";\nqreg q[4];\ncreg c[4];\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];'}], 'json': [{'qubits': [1], 'name': 'u2', 'params': [0, 3.141592653589793]}, {'qubits': [1, 2], 'name': 'cx'}, {'qubits': [1, 3], 'name': 'cx'}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [11.780972450962]}, {'qubits': [1], 'name': 'u3', 'params': [6.28318530718, 0, 0]}, {'qubits': [1], 'name': 'u1', 'params': [10.995574287564]}, {'qubits': [1], 'name': 'u3', 'params': [0.2, -1.5707963267948966, 1.5707963267948966]}, {'qubits': [1], 'name': 'measure', 'memory': [1]}, {'qubits': [2], 'name': 'measure', 'memory': [2]}, {'qubits': [3], 'name': 'measure', 'memory': [3]}], 'nq': 4, 'shots': 1000, 'maxCredits': 10, 'backend': {'name': 'ibmq_qasm_simulator'}}
+    # {'backend': {'name': 'ibmq_qasm_simulator'},
+    #  'json': [{'name': 'u2', 'params': [0, 3.141592653589793], 'qubits': [1]},
+    #           {'name': 'cx', 'qubits': [1, 2]},
+    #           {'name': 'cx', 'qubits': [1, 3]},
+    #           {'name': 'u3', 'params': [6.28318530718, 0, 0], 'qubits': [1]},
+    #           {'name': 'u1', 'params': [11.780972450962], 'qubits': [1]},
+    #           {'name': 'u3', 'params': [6.28318530718, 0, 0], 'qubits': [1]},
+    #           {'name': 'u1', 'params': [10.995574287564], 'qubits': [1]},
+    #           {'name': 'u3',
+    #            'params': [0.2, -1.5707963267948966, 1.5707963267948966],
+    #            'qubits': [1]},
+    #           {'memory': [1], 'name': 'measure', 'qubits': [1]},
+    #           {'memory': [2], 'name': 'measure', 'qubits': [2]},
+    #           {'memory': [3], 'name': 'measure', 'qubits': [3]}],
+    #  'maxCredits': 10,
+    #  'nq': 4,
+    #  'qasms': [{'qasm': '\n'
+    #                     'include "qelib1.inc";\n'
+    #                     'qreg q[4];\n'
+    #                     'creg c[4];\n'
+    #                     'u2(0,pi/2) q[1];\n'
+    #                     'cx q[1], q[2];\n'
+    #                     'cx q[1], q[3];\n'
+    #                     'u3(6.28318530718, 0, 0) q[1];\n'
+    #                     'u1(11.780972450962) q[1];\n'
+    #                     'u3(6.28318530718, 0, 0) q[1];\n'
+    #                     'u1(10.995574287564) q[1];\n'
+    #                     'u3(0.2, -pi/2, pi/2) q[1];\n'
+    #                     'measure q[1] -> c[1];\n'
+    #                     'measure q[2] -> c[2];\n'
+    #                     'measure q[3] -> c[3];'}],
+    #  'shots': 1000}
     def mock_send(*args, **kwargs):
         assert args[0] == correct_info
         return {

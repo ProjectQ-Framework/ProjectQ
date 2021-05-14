@@ -26,7 +26,6 @@ from projectq.ops import NOT, CNOT, T, Tdag, H
 def _decompose_toffoli(cmd):
     """Decompose the Toffoli gate into CNOT, H, T, and Tdagger gates."""
     ctrl = cmd.control_qubits
-    eng = cmd.engine
 
     target = cmd.qubits[0]
     c1 = ctrl[0]

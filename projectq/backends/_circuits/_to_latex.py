@@ -302,24 +302,24 @@ class _Circ2Tikz(object):
 
             all_lines = lines + ctrl_lines
             all_lines.remove(line)  # remove current line
-            for l in all_lines:
+            for ll in all_lines:
                 gate_idx = 0
-                while not (circuit[l][gate_idx] == cmds[i]):
+                while not (circuit[ll][gate_idx] == cmds[i]):
                     gate_idx += 1
 
-                tikz_code.append(self.to_tikz(l, circuit, gate_idx))
+                tikz_code.append(self.to_tikz(ll, circuit, gate_idx))
 
                 # we are taking care of gate 0 (the current one)
-                circuit[l] = circuit[l][1:]
+                circuit[ll] = circuit[ll][1:]
 
             all_lines = lines + ctrl_lines
-            pos = max([self.pos[l] for l in range(min(all_lines), max(all_lines) + 1)])
-            for l in range(min(all_lines), max(all_lines) + 1):
-                self.pos[l] = pos + self._gate_pre_offset(gate)
+            pos = max([self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1)])
+            for ll in range(min(all_lines), max(all_lines) + 1):
+                self.pos[ll] = pos + self._gate_pre_offset(gate)
 
             connections = ""
-            for l in all_lines:
-                connections += self._line(self.op_count[l] - 1, self.op_count[l], line=l)
+            for ll in all_lines:
+                connections += self._line(self.op_count[ll] - 1, self.op_count[ll], line=ll)
             add_str = ""
             if gate == X:
                 # draw NOT-gate with controls
@@ -338,8 +338,8 @@ class _Circ2Tikz(object):
                 add_str = self._sqrtswap_gate(lines, ctrl_lines, daggered=True)
             elif gate == Measure:
                 # draw measurement gate
-                for l in lines:
-                    op = self._op(l)
+                for ll in lines:
+                    op = self._op(ll)
                     width = self._gate_width(Measure)
                     height = self._gate_height(Measure)
                     shift0 = 0.07 * height
@@ -357,15 +357,15 @@ class _Circ2Tikz(object):
                         "{shift1}cm]{op}.north east);"
                     ).format(
                         op=op,
-                        pos=self.pos[l],
-                        line=l,
+                        pos=self.pos[ll],
+                        line=ll,
                         shift0=shift0,
                         shift1=shift1,
                         shift2=shift2,
                     )
-                    self.op_count[l] += 1
-                    self.pos[l] += self._gate_width(gate) + self._gate_offset(gate)
-                    self.is_quantum[l] = False
+                    self.op_count[ll] += 1
+                    self.pos[ll] += self._gate_width(gate) + self._gate_offset(gate)
+                    self.is_quantum[ll] = False
             elif gate == Allocate:
                 # draw 'begin line'
                 add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
@@ -401,17 +401,17 @@ class _Circ2Tikz(object):
                 # regular gate must draw the lines it does not act upon
                 # if it spans multiple qubits
                 add_str = self._regular_gate(gate, lines, ctrl_lines)
-                for l in lines:
-                    self.is_quantum[l] = True
+                for ll in lines:
+                    self.is_quantum[ll] = True
 
             tikz_code.append(add_str)
             if not gate == Allocate:
                 tikz_code.append(connections)
 
             if not draw_gates_in_parallel:
-                for l in range(len(self.pos)):
-                    if l != line:
-                        self.pos[l] = self.pos[line]
+                for ll in range(len(self.pos)):
+                    if ll != line:
+                        self.pos[ll] = self.pos[line]
 
         circuit[line] = circuit[line][end:]
         return "".join(tikz_code)
@@ -800,15 +800,15 @@ class _Circ2Tikz(object):
         pos = self.pos[lines[0]]
 
         node_str = "\n\\node[none] ({}) at ({},-{}) {{}};"
-        for l in lines:
-            node1 = node_str.format(self._op(l), pos, l)
+        for line in lines:
+            node1 = node_str.format(self._op(line), pos, line)
             node2 = ("\n\\node[none,minimum height={}cm,outer sep=0] ({}) at" " ({},-{}) {{}};").format(
-                gate_height, self._op(l, offset=1), pos + gate_width / 2.0, l
+                gate_height, self._op(line, offset=1), pos + gate_width / 2.0, line
             )
-            node3 = node_str.format(self._op(l, offset=2), pos + gate_width, l)
+            node3 = node_str.format(self._op(line, offset=2), pos + gate_width, line)
             tex_str += node1 + node2 + node3
-            if l not in gate_lines:
-                tex_str += self._line(self.op_count[l] - 1, self.op_count[l], line=l)
+            if line not in gate_lines:
+                tex_str += self._line(self.op_count[line] - 1, self.op_count[line], line=line)
 
         tex_str += (
             "\n\\draw[operator,edgestyle,outer sep={width}cm] (["
@@ -822,9 +822,9 @@ class _Circ2Tikz(object):
             name=name,
         )
 
-        for l in lines:
-            self.pos[l] = pos + gate_width / 2.0
-            self.op_count[l] += 1
+        for line in lines:
+            self.pos[line] = pos + gate_width / 2.0
+            self.op_count[line] += 1
 
         for ctrl in ctrl_lines:
             if ctrl not in lines:
@@ -836,9 +836,9 @@ class _Circ2Tikz(object):
                 self.pos[ctrl] = pos + delta_pos + gate_width
                 self.op_count[ctrl] += 1
 
-        for l in lines:
-            self.op_count[l] += 2
+        for line in lines:
+            self.op_count[line] += 2
 
-        for l in range(min(ctrl_lines + lines), max(ctrl_lines + lines) + 1):
-            self.pos[l] = pos + delta_pos + gate_width
+        for line in range(min(ctrl_lines + lines), max(ctrl_lines + lines) + 1):
+            self.pos[line] = pos + delta_pos + gate_width
         return tex_str

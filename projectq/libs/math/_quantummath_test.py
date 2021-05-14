@@ -40,9 +40,9 @@ def print_all_probabilities(eng, qureg):
     while i < (2 ** y):
         qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
         qubit_list = qubit_list[::-1]
-        l = eng.backend.get_probability(qubit_list, qureg)
-        if l != 0.0:
-            print(l, qubit_list, i)
+        prob = eng.backend.get_probability(qubit_list, qureg)
+        if prob != 0.0:
+            print(prob, qubit_list, i)
         i += 1
 
 

@@ -99,9 +99,9 @@ def test_compare_engine():
     CNOT | (qb20, qb21)
     eng2.flush()
     # test other branch to fail
-    qb30 = eng3.allocate_qubit()
-    qb31 = eng3.allocate_qubit()
-    qb32 = eng3.allocate_qubit()
+    qb30 = eng3.allocate_qubit()  # noqa: F841
+    qb31 = eng3.allocate_qubit()  # noqa: F841
+    qb32 = eng3.allocate_qubit()  # noqa: F841
     eng3.flush()
     assert compare_engine0 == compare_engine1
     assert compare_engine1 != compare_engine2

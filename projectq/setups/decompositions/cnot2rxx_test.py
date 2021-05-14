@@ -16,7 +16,6 @@
 "Tests for projectq.setups.decompositions.cnot2rxx.py."
 
 import pytest
-import numpy as np
 
 from projectq import MainEngine
 from projectq.backends import Simulator

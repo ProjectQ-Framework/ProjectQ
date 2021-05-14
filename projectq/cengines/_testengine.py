@@ -16,7 +16,7 @@
 
 from copy import deepcopy
 from projectq.cengines import BasicEngine
-from projectq.ops import FlushGate, Allocate, Deallocate
+from projectq.ops import FlushGate
 
 
 class CompareEngine(BasicEngine):

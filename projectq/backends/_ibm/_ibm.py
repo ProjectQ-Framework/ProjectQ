@@ -15,18 +15,11 @@
 """ Back-end to run quantum program on IBM's Quantum Experience."""
 import math
 import random
-import json
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import (
     NOT,
-    Y,
-    Z,
-    T,
-    Tdag,
-    S,
-    Sdag,
     H,
     Rx,
     Ry,
@@ -155,7 +148,6 @@ class IBMBackend(BasicEngine):
 
         if gate == Measure:
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
-            qb_id = cmd.qubits[0][0].id
             logical_id = None
             for t in cmd.tags:
                 if isinstance(t, LogicalQubitIDTag):
@@ -275,7 +267,6 @@ class IBMBackend(BasicEngine):
         if self.qasm == "":
             return
         max_qubit_id = max(self._allocated_qubits) + 1
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" + self.qasm).format(nq=max_qubit_id)
         info = {}
         info['json'] = self._json
         info['nq'] = max_qubit_id
@@ -307,7 +298,6 @@ class IBMBackend(BasicEngine):
             P = random.random()
             p_sum = 0.0
             measured = ""
-            length = len(self._measured_ids)
             for state in counts:
                 probability = counts[state] * 1.0 / self._num_runs
                 state = "{0:b}".format(int(state, 0))

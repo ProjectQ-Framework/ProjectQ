@@ -28,7 +28,7 @@ import numpy
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count, Control
-from projectq.ops import BasicGate, CNOT, Ph, Ry, Rz, X
+from projectq.ops import BasicGate, Ph, Ry, Rz, X
 from projectq.setups.decompositions import arb1qubit2rzandry as arb1q
 
 TOLERANCE = 1e-12
@@ -41,7 +41,7 @@ def _recognize_carb1qubit(cmd):
             m = cmd.gate.matrix
             if len(m) == 2:
                 return True
-        except:
+        except AttributeError:
             return False
     return False
 

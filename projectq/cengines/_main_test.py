@@ -18,10 +18,9 @@ import weakref
 
 import pytest
 
-import projectq.setups.default
 from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
-from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H, X
+from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H
 
 from projectq.cengines import _main
 
@@ -49,14 +48,14 @@ def test_main_engine_init():
 
 def test_main_engine_init_failure():
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(backend=DummyEngine)
+        _main.MainEngine(backend=DummyEngine)
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(engine_list=DummyEngine)
+        _main.MainEngine(engine_list=DummyEngine)
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(engine_list=[DummyEngine(), DummyEngine])
+        _main.MainEngine(engine_list=[DummyEngine(), DummyEngine])
     with pytest.raises(_main.UnsupportedEngineError):
         engine = DummyEngine()
-        eng = _main.MainEngine(backend=engine, engine_list=[engine])
+        _main.MainEngine(backend=engine, engine_list=[engine])
 
 
 def test_main_engine_init_defaults():
@@ -88,7 +87,7 @@ def test_main_engine_init_mapper():
     assert eng2.mapper == mapper2
     engine_list3 = [mapper1, mapper2]
     with pytest.raises(_main.UnsupportedEngineError):
-        eng3 = _main.MainEngine(engine_list=engine_list3)
+        _main.MainEngine(engine_list=engine_list3)
 
 
 def test_main_engine_del():
@@ -151,7 +150,7 @@ def test_main_engine_atexit_no_error():
     del sys.last_type
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[])
-    qb = eng.allocate_qubit()
+    qb = eng.allocate_qubit()  # noqa: F841
     eng._delfun(weakref.ref(eng))
     assert len(backend.received_commands) == 3
     assert backend.received_commands[0].gate == AllocateQubitGate()
@@ -163,7 +162,7 @@ def test_main_engine_atexit_with_error():
     sys.last_type = "Something"
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[])
-    qb = eng.allocate_qubit()
+    qb = eng.allocate_qubit()  # noqa: F841
     eng._delfun(weakref.ref(eng))
     assert len(backend.received_commands) == 1
     assert backend.received_commands[0].gate == AllocateQubitGate()
