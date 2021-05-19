@@ -9,13 +9,12 @@ def _decompose_controlstate(cmd):
     qubits with state '0' instead of '1')
     """
     with Compute(cmd.engine):
-
-        for state, ctrl in zip(cmd.ctrl_state, cmd.control_qubits):
+        for state, ctrl in zip(cmd.control_state, cmd.control_qubits):
             if state == '0':
                 X | ctrl
 
-    # Resend the command with the `ctrl_state` cleared
-    cmd.ctrl_state = '1' * len(cmd.ctrl_state)
+    # Resend the command with the `control_state` cleared
+    cmd.ctrl_state = '1' * len(cmd.control_state)
     orig_engine = cmd.engine
     cmd.engine.receive([cmd])
     Uncompute(orig_engine)
