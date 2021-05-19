@@ -108,9 +108,6 @@ class ControlEngine(BasicEngine):
         self.send([cmd])
 
     def receive(self, command_list):
-
-
-
         for cmd in command_list:
             self._handle_command(cmd)
 
@@ -169,4 +166,7 @@ def get_control_count(cmd):
 
 
 def has_negative_control(cmd):
-    return get_control_count(cmd) > 0 and '0' in str(cmd.control_state)
+    """
+    Returns whether a command has negatively controlled qubits
+    """
+    return get_control_count(cmd) > 0 and '0' in cmd.control_state
