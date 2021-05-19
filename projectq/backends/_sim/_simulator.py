@@ -106,20 +106,20 @@ class Simulator(BasicEngine):
         """
         if has_negative_control(cmd):
             return False
-        else:
-            if (cmd.gate == Measure or cmd.gate == Allocate or
-                    cmd.gate == Deallocate or
-                    isinstance(cmd.gate, BasicMathGate) or
-                    isinstance(cmd.gate, TimeEvolution)):
-                return True
-            try:
-                m = cmd.gate.matrix
-                # Allow up to 5-qubit gates
-                if len(m) > 2 ** 5:
-                    return False
-                return True
-            except:
+
+        if (cmd.gate == Measure or cmd.gate == Allocate or
+                cmd.gate == Deallocate or
+                isinstance(cmd.gate, BasicMathGate) or
+                isinstance(cmd.gate, TimeEvolution)):
+            return True
+        try:
+            m = cmd.gate.matrix
+            # Allow up to 5-qubit gates
+            if len(m) > 2 ** 5:
                 return False
+            return True
+        except:
+            return False
 
     def _convert_logical_to_mapped_qureg(self, qureg):
         """
