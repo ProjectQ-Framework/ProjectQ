@@ -8,7 +8,7 @@ from projectq.libs.math import (AddConstant, AddConstantModN,
                                 MultiplyByConstantModN)
 from projectq.meta import Control
 from projectq.ops import (All, BasicMathGate, get_inverse, H, Measure, QFT, R,
-                          Swap, X, CtrlAll, _command)
+                          Swap, X, CtrlAll)
 from projectq.setups import default
 import time
     # make the compiler and run the circuit on the simulator backend
