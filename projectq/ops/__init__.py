@@ -25,7 +25,7 @@ from ._basics import (
     BasicMathGate,
     BasicPhaseGate
 )
-from ._command import apply_command, Command, CtrlAll
+from ._command import apply_command, Command, CtrlAll, IncompatibleControlState
 from ._metagates import (
     DaggeredGate,
     get_inverse,

@@ -17,11 +17,30 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import Command, H, Rx, CtrlAll, Measure, All, X
+from projectq.ops import Command, H, Rx, CtrlAll, Measure, All, X, IncompatibleControlState
 from projectq.meta import DirtyQubitTag, ComputeTag, UncomputeTag, Compute, Uncompute
 
 from projectq.meta import _control
 from projectq.backends import Simulator
+
+def test_canonical_representation():
+    assert _control.canonical_ctrl_state(0, 0) == ''
+    for num_qubits in range(4):
+        assert _control.canonical_ctrl_state(0, num_qubits) == '0' * num_qubits
+
+    num_qubits = 4
+    for i in range(2**num_qubits):
+        state = '{0:0b}'.format(i).zfill(num_qubits)
+        assert _control.canonical_ctrl_state(i, num_qubits) == state[::-1]
+        assert _control.canonical_ctrl_state(state, num_qubits) == state
+
+    for num_qubits in range(10):
+        assert _control.canonical_ctrl_state(CtrlAll.Zero, num_qubits) == '0' * num_qubits
+        assert _control.canonical_ctrl_state(CtrlAll.One, num_qubits) == '1' * num_qubits
+
+    with pytest.raises(TypeError):
+        _control.canonical_ctrl_state(1.1, 2)
+
 
 def test_control_engine_has_compute_tag():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -66,8 +85,8 @@ def test_control():
 
 
 def test_control_state():
-    backend = Simulator()
-    eng = MainEngine(backend=backend)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
 
     qureg = eng.allocate_qureg(3)
     xreg = eng.allocate_qureg(3)
@@ -79,24 +98,41 @@ def test_control_state():
         X | xreg[1]
         Uncompute(eng)
 
-    with _control.Control(eng, qureg[1:],'10'):
+    with _control.Control(eng, qureg[1:], 2):
         X | xreg[2]
-    All(Measure) | qureg
-    All(Measure) | xreg
     eng.flush()
 
-    assert int(xreg[0]) == 0
-    assert int(xreg[1]) == 1
-    assert int(xreg[2]) == 1
-    assert int(qureg[0]) == 0
-    assert int(qureg[1]) == 1
-    assert int(qureg[2]) == 0
+    assert len(backend.received_commands) == 6 + 5 + 1
+    assert len(backend.received_commands[0].control_qubits) == 0
+    assert len(backend.received_commands[1].control_qubits) == 0
+    assert len(backend.received_commands[2].control_qubits) == 0
+    assert len(backend.received_commands[3].control_qubits) == 0
+    assert len(backend.received_commands[4].control_qubits) == 0
+    assert len(backend.received_commands[5].control_qubits) == 0
+
+    assert len(backend.received_commands[6].control_qubits) == 0
+    assert len(backend.received_commands[7].control_qubits) == 0
+    assert len(backend.received_commands[8].control_qubits) == 1
+    assert len(backend.received_commands[9].control_qubits) == 0
+    assert len(backend.received_commands[10].control_qubits) == 2
+
+    assert len(backend.received_commands[11].control_qubits) == 0
+
+    assert backend.received_commands[8].control_qubits[0].id == qureg[0].id
+    assert backend.received_commands[8].control_state == '0'
+    assert backend.received_commands[10].control_qubits[0].id == qureg[1].id
+    assert backend.received_commands[10].control_qubits[1].id == qureg[2].id
+    assert backend.received_commands[10].control_state == '01'
+
+    assert _control.has_negative_control(backend.received_commands[8])
+    assert _control.has_negative_control(backend.received_commands[10])
+
 
 def test_control_state_contradiction():
     backend =DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     qureg = eng.allocate_qureg(1)
-    with pytest.raises(AssertionError):
+    with pytest.raises(IncompatibleControlState):
         with _control.Control(eng, qureg[0],'0'):
             qubit = eng.allocate_qubit()
             with _control.Control(eng, qureg[0],'1'):

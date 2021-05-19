@@ -436,7 +436,7 @@ class Simulator(BasicEngine):
                     )
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
-                raise Exception("Simulator: Error applying {} gate: "
+            raise Exception("Simulator: Error applying {} gate: "
                                 "{}-qubit gate applied to {} qubits.".format(
                                     str(cmd.gate),
                                     int(math.log(len(cmd.gate.matrix), 2)),

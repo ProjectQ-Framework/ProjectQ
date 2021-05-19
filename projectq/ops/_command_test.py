@@ -21,8 +21,8 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.meta import ComputeTag
-from projectq.ops import BasicGate, Rx, NotMergeable
+from projectq.meta import ComputeTag, canonical_ctrl_state
+from projectq.ops import BasicGate, Rx, NotMergeable, CtrlAll
 from projectq.types import Qubit, Qureg, WeakQubitRef
 
 from projectq.ops import _command
@@ -183,14 +183,28 @@ def test_command_interchangeable_qubit_indices(main_engine):
     )
 
 
-def test_commmand_add_control_qubits(main_engine):
+@pytest.mark.parametrize('state', [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
+                         ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'])
+def test_commmand_add_control_qubits_one(main_engine, state):
+    qubit0 = Qureg([Qubit(main_engine, 0)])
+    qubit1 = Qureg([Qubit(main_engine, 1)])
+    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
+    cmd.add_control_qubits(qubit1, state=state)
+    assert cmd.control_qubits[0].id == 1
+    assert cmd.control_state == canonical_ctrl_state(state, 1)
+
+@pytest.mark.parametrize('state', [0, 1, 2, 3, '00', '01', '10', '11', CtrlAll.One, CtrlAll.Zero],
+                         ids=['int(0)', 'int(1)', 'int(2)', 'int(3)', 'str(00)', 'str(01)', 'str(10)', 'str(1)',
+                              'CtrlAll.One', 'CtrlAll.Zero'])
+def test_commmand_add_control_qubits_two(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])
-    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit2 + qubit1)
+    qubit3 = Qureg([Qubit(main_engine, 3)])
+    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,), qubit1)
+    cmd.add_control_qubits(qubit2 + qubit3, state)
     assert cmd.control_qubits[0].id == 1
-    assert cmd.control_qubits[1].id == 2
+    assert cmd.control_state == '1' + canonical_ctrl_state(state, 2)
 
 
 def test_command_all_qubits(main_engine):
@@ -283,17 +297,3 @@ def test_command_to_string(main_engine):
     else:
         assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
         assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"
-
-
-def test_ctrl_state_merge(main_engine):
-    qubit0 = Qureg([Qubit(main_engine, 0)])
-    qubit1 = Qureg([Qubit(main_engine, 1)])
-    qubit2 = Qureg([Qubit(main_engine, 2)])
-    qubit3 = Qureg([Qubit(main_engine, 3)])
-    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit2 + qubit1,'1'+'0')
-    cmd.add_control_qubits(qubit3,'1')
-    assert cmd.control_qubits[0].id == 1
-    assert cmd.control_qubits[1].id == 2
-    assert cmd.control_qubits[2].id == 3
-    assert cmd.ctrl_state == '011'

@@ -40,15 +40,24 @@ apply wrapper (apply_command).
 """
 
 from copy import deepcopy
+import itertools
 
 import projectq
 from projectq.types import WeakQubitRef, Qureg
 from enum import IntEnum
 
+
+class IncompatibleControlState(Exception):
+    """
+    Exception thrown when trying to set two incompatible states for a control qubit.
+    """
+    pass
+
+
 class CtrlAll(IntEnum):
     Zero = 0
     One = 1
-    Init = -1
+
 
 def apply_command(cmd):
     """
@@ -89,7 +98,7 @@ class Command(object):
         all_qubits: A tuple of control_qubits + qubits
     """
 
-    def __init__(self, engine, gate, qubits, controls=(), tags=(), ctrl_state=CtrlAll.Init):
+    def __init__(self, engine, gate, qubits, controls=(), tags=(), control_state=CtrlAll.One):
         """
         Initialize a Command object.
 
@@ -111,6 +120,8 @@ class Command(object):
                 Qubits that condition the command.
             tags (list[object]):
                 Tags associated with the command.
+            control_state(int,str,projectq.meta.CtrlAll)
+                Control state for any control qubits
         """
 
         qubits = tuple([WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg] for qreg in qubits)
@@ -120,7 +131,7 @@ class Command(object):
         self.qubits = qubits  # property
         self.control_qubits = controls  # property
         self.engine = engine  # property
-        self.ctrl_state = ctrl_state
+        self.control_state = control_state  # property
 
     @property
     def qubits(self):
@@ -241,7 +252,24 @@ class Command(object):
         self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits]
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
 
-    def add_control_qubits(self, qubits, ctrl_state=CtrlAll.One):
+    @property
+    def control_state(self):
+        return self._control_state
+
+    @control_state.setter
+    def control_state(self, state):
+        """
+        Set control_state to state
+
+        Args:
+            state (int,str,projectq.meta.CtrtAll): state of control qubit (ie. positive or negative)
+        """
+        # NB: avoid circular imports
+        from projectq.meta import canonical_ctrl_state
+
+        self._control_state = canonical_ctrl_state(state, len(self._control_qubits))
+
+    def add_control_qubits(self, qubits, state=CtrlAll.One):
         """
         Add (additional) control qubits to this command object.
 
@@ -250,33 +278,30 @@ class Command(object):
         thus early deallocation of qubits.
 
         Args:
-            qubits (list of Qubit objects): List of qubits which control this
-                gate
-
-            ctrl_state (string of bit values): String of bits which control this
-                gate, i.e., the gate is only executed if all qubits are
-                in the respective state represented by the bit string.
+            qubits (list of Qubit objects): List of qubits which control this gate
+            state (int,str,CtrlAll): Control state (ie. positive or negative) for the qubits being added as
+                control qubits.
         """
+        # NB: avoid circular imports
+        from projectq.meta import canonical_ctrl_state
+
         assert (isinstance(qubits, list))
         self._control_qubits.extend(
             [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
+        self._control_state += canonical_ctrl_state(state, len(qubits))
 
-        if self.ctrl_state==CtrlAll.Init:
-            self.ctrl_state = ctrl_state
-        else:
-            self.ctrl_state = self.ctrl_state + ctrl_state
-
-        ctrl_len = len(self.control_qubits)
-        for i in range(ctrl_len):
-            for j in range(ctrl_len):
-                if self.control_qubits[i].id == self.control_qubits[j].id:
-                    assert self.ctrl_state[i] == self.ctrl_state[j]
-
-        zipped = list(zip(self._control_qubits, self.ctrl_state))
-        zipped = sorted(zipped, key = lambda x:x[0].id)
+        zipped = sorted(zip(self._control_qubits, self._control_state), key = lambda x:x[0].id)
         unzipped_qubit, unzipped_state = zip(*zipped)
+        self._control_qubits, self._control_state = list(unzipped_qubit), ''.join(unzipped_state)
 
-        self._control_qubits, self.ctrl_state = list(unzipped_qubit), ''.join(unzipped_state)
+        # Make sure that we do not have contradicting control states for any control qubits
+        for _, data in itertools.groupby(zipped, key = lambda x:x[0].id):
+            qubits, states = list(zip(*data))
+            assert len(set(qubits)) == 1  # This should be by design...
+            if len(set(states)) != 1:
+                raise IncompatibleControlState(
+                    'Control qubits {} cannot have conflicting control states: {}'.format(list(qubits), states))
+
 
     @property
     def all_qubits(self):

@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3eb17bc2-aa60-46f6-99ab-6e33c6faa4ca" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ProjectQ.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ProjectQ.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ProjectQ.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.travis.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NOTICE" beforeDir="false" afterPath="$PROJECT_DIR$/NOTICE" afterDir="false" />
@@ -23,7 +22,6 @@
       <change beforePath="$PROJECT_DIR$/docs/make.bat" beforeDir="false" afterPath="$PROJECT_DIR$/docs/make.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/projectq.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/projectq.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/tutorials.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/tutorials.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/err.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/bellpair_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/bellpair_circuit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/control_tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/control_tester.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/grover.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/grover.py" afterDir="false" />
@@ -36,7 +34,6 @@
       <change beforePath="$PROJECT_DIR$/examples/teleport_circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/teleport_circuit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projectq/backends/_aqt/_aqt.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_aqt/_aqt.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket_boto3_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_awsbraket/_awsbraket_boto3_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/backends/_circuits/__init__.py" afterDir="false" />
@@ -143,7 +140,8 @@
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/entangle.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/entangle.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/globalphase.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/globalphase.py" afterDir="false" />
