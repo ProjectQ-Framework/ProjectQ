@@ -110,13 +110,12 @@ class AQTBackend(BasicEngine):
         """
         if has_negative_control(cmd):
             return False
-        else:
-            if get_control_count(cmd) == 0:
-                if isinstance(cmd.gate, (Rx, Ry, Rxx)):
-                    return True
-            if cmd.gate in (Measure, Allocate, Deallocate, Barrier):
+        if get_control_count(cmd) == 0:
+            if isinstance(cmd.gate, (Rx, Ry, Rxx)):
                 return True
-            return False
+        if cmd.gate in (Measure, Allocate, Deallocate, Barrier):
+            return True
+        return False
 
     def _reset(self):
         """ Reset all temporary variables (after flush gate). """
