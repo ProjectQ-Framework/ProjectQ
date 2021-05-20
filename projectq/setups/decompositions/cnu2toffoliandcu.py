@@ -21,7 +21,7 @@ C(U) gate by using (n-1) ancilla qubits and circuit depth of 2n-1.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count, Compute, Control, Uncompute, has_negative_control
+from projectq.meta import get_control_count, Compute, Control, Uncompute
 from projectq.ops import BasicGate, Toffoli, XGate
 
 
