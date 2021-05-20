@@ -45,3 +45,4 @@ def test_recognize_gates():
     assert controlstate._recognize_offctrl(saving_backend.received_commands[3])
     for cmd in saving_backend.received_commands[5:]:
         assert not controlstate._recognize_offctrl(cmd)
+

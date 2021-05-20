@@ -30,15 +30,13 @@ def _recognize_CnU(cmd):
     Recognize an arbitrary gate which has n>=2 control qubits, except a
     Toffoli gate.
     """
-    if has_negative_control(cmd):
-        return False
-    else:
-        if get_control_count(cmd) == 2:
-            if not isinstance(cmd.gate, XGate):
-                return True
-        elif get_control_count(cmd) > 2:
+
+    if get_control_count(cmd) == 2:
+        if not isinstance(cmd.gate, XGate):
             return True
-        return False
+    elif get_control_count(cmd) > 2:
+        return True
+    return False
 
 
 def _decompose_CnU(cmd):

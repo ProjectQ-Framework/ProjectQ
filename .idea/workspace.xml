@@ -140,6 +140,7 @@
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" afterDir="false" />
