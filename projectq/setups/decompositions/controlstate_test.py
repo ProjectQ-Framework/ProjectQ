@@ -17,19 +17,22 @@ Tests for the controlstate decomposition rule.
 """
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
+from projectq.cengines import DummyEngine, AutoReplacer, InstructionFilter, DecompositionRuleSet
 from projectq.meta import Control, has_negative_control
 from projectq.ops import X
-from projectq.setups.decompositions import controlstate
+from projectq.setups.decompositions import controlstate, cnot2cz
 
 
 def filter_func(eng, cmd):
-    return not has_negative_control(cmd)
+    if has_negative_control(cmd):
+        return False
+    return True
 
 
-def test_recognize_gates():
+def test_controlstate_priority():
     saving_backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=saving_backend, engine_list=[])
+    rule_set = DecompositionRuleSet(modules=[cnot2cz, controlstate])
+    eng = MainEngine(backend=saving_backend, engine_list=[AutoReplacer(rule_set), InstructionFilter(filter_func)])
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
     qubit3 = eng.allocate_qubit()
@@ -37,12 +40,8 @@ def test_recognize_gates():
         X | qubit1
     with Control(eng, qubit3, ctrl_state='1'):
         X | qubit1
-    eng.flush()  # To make sure gates arrive before deallocate gates
-    eng.flush(deallocate_qubits=True)
+    eng.flush()
 
-    for cmd in saving_backend.received_commands[:3]:
-        assert not controlstate._recognize_offctrl(cmd)
-    assert controlstate._recognize_offctrl(saving_backend.received_commands[3])
-    for cmd in saving_backend.received_commands[5:]:
-        assert not controlstate._recognize_offctrl(cmd)
-
+    assert len(saving_backend.received_commands) == 8
+    for cmd in saving_backend.received_commands:
+        assert not has_negative_control(cmd)

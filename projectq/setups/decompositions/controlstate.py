@@ -36,13 +36,9 @@ def _decompose_controlstate(cmd):
     # Resend the command with the `control_state` cleared
     cmd.ctrl_state = '1' * len(cmd.control_state)
     orig_engine = cmd.engine
-    cmd.engine.receive([deepcopy(cmd)])
+    cmd.engine.receive([deepcopy(cmd)])  # NB: deepcopy required here to workaround infinite recursion detection
     Uncompute(orig_engine)
 
 
-def _recognize_offctrl(cmd):
-    return has_negative_control(cmd)
-
-
 #: Decomposition rules
-all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_controlstate, _recognize_offctrl)]
+all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_controlstate, has_negative_control)]
