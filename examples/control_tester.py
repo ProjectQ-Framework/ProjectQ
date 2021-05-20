@@ -31,11 +31,9 @@ X | ctrl_reg[0]
 # X | ctrl_reg[1]
 X | ctrl_reg[2]
 # invert = True
-with Control(eng, ctrl_reg[1], ctrl_state='0'):
-    with Control(eng, ctrl_reg[0], ctrl_state='1'):
-        with Control(eng, ctrl_reg[0], ctrl_state='1'):
-            X | x[0]
-            X | x[1]
+with Control(eng, ctrl_reg, ctrl_state='101'):
+    X | x[0]
+    X | x[1]
     # X | x[2]
 
 All(Measure) | x
@@ -48,3 +46,4 @@ for i in range(n):
     print('X_reg :', int(x[i]))
 for j in range(m):
     print('Ctrl :', int(ctrl_reg[j]))
+

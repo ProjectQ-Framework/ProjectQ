@@ -25,23 +25,11 @@ from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                DecompositionRuleSet)
-from projectq.setups.decompositions.controlstate import all_defined_decomposition_rules as ctrl_rule
 
-def ctrl_chooser(cmd,decomp_list):
-    if has_negative_control(cmd):
-
-        rule_set = DecompositionRuleSet(rules=ctrl_rule).decompositions
-        decomps = []
-        for gatetype in rule_set:
-            decomps.append(rule_set[gatetype])
-
-        return decomps[0][0]
-    else:
-        return decomp_list[0]
 def get_engine_list():
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(),
             LocalOptimizer(10),
-            AutoReplacer(rule_set,ctrl_chooser),
+            AutoReplacer(rule_set),
             TagRemover(),
             LocalOptimizer(10)]

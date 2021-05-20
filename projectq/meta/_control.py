@@ -62,7 +62,9 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
 
     if isinstance(ctrl_state, int):
         # If the user inputs an integer, convert it to binary bit string
-        return '{0:b}'.format(ctrl_state).zfill(num_qubits)[::-1]
+        converted_str = '{0:b}'.format(ctrl_state).zfill(num_qubits)[::-1]
+        assert len(converted_str) == num_qubits, 'Control state has different length than control qubits'
+        return converted_str
 
     if isinstance(ctrl_state, str):
         # If the user inputs bit string, directly use it
