@@ -30,7 +30,6 @@ def _recognize_CnU(cmd):
     Recognize an arbitrary gate which has n>=2 control qubits, except a
     Toffoli gate.
     """
-
     if get_control_count(cmd) == 2:
         if not isinstance(cmd.gate, XGate):
             return True
