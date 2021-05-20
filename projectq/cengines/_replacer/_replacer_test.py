@@ -244,7 +244,7 @@ def test_auto_replacer_priorize_controlstate_rule():
             return False
         return True
 
-    rule_set.add_decomposition_rule(DecompositionRule(ControlGate,
+    rule_set.add_decomposition_rule(DecompositionRule(BasicGate,
                                                       _decompose_random))
 
     backend = DummyEngine(save_commands=True)

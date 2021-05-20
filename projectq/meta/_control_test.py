@@ -27,6 +27,7 @@ from projectq.meta import (DirtyQubitTag,
 
 from projectq.meta import _control
 from projectq.backends import Simulator
+from projectq.types import WeakQubitRef
 
 def test_canonical_representation():
     assert _control.canonical_ctrl_state(0, 0) == ''
@@ -45,6 +46,33 @@ def test_canonical_representation():
 
     with pytest.raises(TypeError):
         _control.canonical_ctrl_state(1.1, 2)
+
+    with pytest.raises(ValueError):
+        _control.canonical_ctrl_state('1', 2)
+
+    with pytest.raises(ValueError):
+        _control.canonical_ctrl_state('11111', 2)
+
+    with pytest.raises(ValueError):
+        _control.canonical_ctrl_state('1a', 2)
+
+    with pytest.raises(ValueError):
+        _control.canonical_ctrl_state(4, 2)
+
+
+def test_has_negative_control():
+    qubit0 = WeakQubitRef(None, 0)
+    qubit1 = WeakQubitRef(None, 0)
+    qubit2 = WeakQubitRef(None, 0)
+    qubit3 = WeakQubitRef(None, 0)
+    assert not _control.has_negative_control(Command(None, H,  ([qubit0],)))
+    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1]))
+    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1], control_state=CtrlAll.One))
+    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1], control_state=CtrlAll.Zero))
+    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3],
+                                                 control_state=CtrlAll.Zero))
+    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3], control_state='111'))
+    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3], control_state='101'))
 
 
 def test_control_engine_has_compute_tag():
