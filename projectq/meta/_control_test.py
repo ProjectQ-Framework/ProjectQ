@@ -18,16 +18,12 @@ import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import Command, H, Rx, CtrlAll, Measure, All, X, IncompatibleControlState
-from projectq.meta import (DirtyQubitTag,
-                           ComputeTag,
-                           UncomputeTag,
-                           Compute,
-                           Uncompute
-                           )
+from projectq.meta import DirtyQubitTag, ComputeTag, UncomputeTag, Compute, Uncompute
 
 from projectq.meta import _control
 from projectq.backends import Simulator
 from projectq.types import WeakQubitRef
+
 
 def test_canonical_representation():
     assert _control.canonical_ctrl_state(0, 0) == ''
@@ -35,7 +31,7 @@ def test_canonical_representation():
         assert _control.canonical_ctrl_state(0, num_qubits) == '0' * num_qubits
 
     num_qubits = 4
-    for i in range(2**num_qubits):
+    for i in range(2 ** num_qubits):
         state = '{0:0b}'.format(i).zfill(num_qubits)
         assert _control.canonical_ctrl_state(i, num_qubits) == state[::-1]
         assert _control.canonical_ctrl_state(state, num_qubits) == state
@@ -65,14 +61,17 @@ def test_has_negative_control():
     qubit1 = WeakQubitRef(None, 0)
     qubit2 = WeakQubitRef(None, 0)
     qubit3 = WeakQubitRef(None, 0)
-    assert not _control.has_negative_control(Command(None, H,  ([qubit0],)))
-    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1]))
-    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1], control_state=CtrlAll.One))
-    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1], control_state=CtrlAll.Zero))
-    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3],
-                                                 control_state=CtrlAll.Zero))
-    assert not _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3], control_state='111'))
-    assert _control.has_negative_control(Command(None, H,  ([qubit0],), [qubit1, qubit2, qubit3], control_state='101'))
+    assert not _control.has_negative_control(Command(None, H, ([qubit0],)))
+    assert not _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1]))
+    assert not _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1], control_state=CtrlAll.One))
+    assert _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1], control_state=CtrlAll.Zero))
+    assert _control.has_negative_control(
+        Command(None, H, ([qubit0],), [qubit1, qubit2, qubit3], control_state=CtrlAll.Zero)
+    )
+    assert not _control.has_negative_control(
+        Command(None, H, ([qubit0],), [qubit1, qubit2, qubit3], control_state='111')
+    )
+    assert _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1, qubit2, qubit3], control_state='101'))
 
 
 def test_control_engine_has_compute_tag():
@@ -124,7 +123,7 @@ def test_control_state():
     qureg = eng.allocate_qureg(3)
     xreg = eng.allocate_qureg(3)
     X | qureg[1]
-    with _control.Control(eng, qureg[0],'0'):
+    with _control.Control(eng, qureg[0], '0'):
         with Compute(eng):
             X | xreg[0]
 
@@ -162,13 +161,12 @@ def test_control_state():
 
 
 def test_control_state_contradiction():
-    backend =DummyEngine(save_commands=True)
+    backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     qureg = eng.allocate_qureg(1)
     with pytest.raises(IncompatibleControlState):
-        with _control.Control(eng, qureg[0],'0'):
+        with _control.Control(eng, qureg[0], '0'):
             qubit = eng.allocate_qubit()
-            with _control.Control(eng, qureg[0],'1'):
+            with _control.Control(eng, qureg[0], '1'):
                 H | qubit
     eng.flush()
-
