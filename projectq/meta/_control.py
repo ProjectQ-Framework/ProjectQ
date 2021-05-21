@@ -64,15 +64,21 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         # If the user inputs an integer, convert it to binary bit string
         converted_str = '{0:b}'.format(ctrl_state).zfill(num_qubits)[::-1]
         if len(converted_str) != num_qubits:
-            raise ValueError('Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
-                ctrl_state, converted_str, num_qubits, 2**num_qubits - 1))
+            raise ValueError(
+                'Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
+                    ctrl_state, converted_str, num_qubits, 2 ** num_qubits - 1
+                )
+            )
         return converted_str
 
     if isinstance(ctrl_state, str):
         # If the user inputs bit string, directly use it
         if len(ctrl_state) != num_qubits:
-            raise ValueError('Control state {} has different length than the number of control qubits {}'.format(
-                ctrl_state, num_qubits))
+            raise ValueError(
+                'Control state {} has different length than the number of control qubits {}'.format(
+                    ctrl_state, num_qubits
+                )
+            )
         if not set(ctrl_state).issubset({'0', '1'}):
             raise ValueError('Control state {} has string other than 1 and 0'.format(ctrl_state))
         return ctrl_state
