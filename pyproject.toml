@@ -47,7 +47,7 @@ testpaths = ['projectq']
 
 [tool.setuptools_scm]
 
-write_to = 'VERSION'
+write_to = 'VERSION.txt'
 write_to_template = '{version}'
 local_scheme = 'no-local-version'
 
