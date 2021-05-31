@@ -61,4 +61,4 @@ repos:
   rev: "0.46"
   hooks:
   - id: check-manifest
-    args: ['--ignore', 'VERSION,.editorconfig,*.yml,*.yaml,docs/*,docs/images/*,examples/*']
+    additional_dependencies: ['setuptools-scm', 'pybind11>=2.6']

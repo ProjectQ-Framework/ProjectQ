@@ -6,9 +6,38 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 
-line-length = 118
-target-version = ['py36','py37','py38']
-skip-string-normalization = true
+    line-length = 118
+    target-version = ['py36','py37','py38']
+    skip-string-normalization = true
+
+
+[tool.check-manifest]
+    ignore = [
+    'PKG-INFO',
+    '*.egg-info',
+    '*.egg-info/*',
+    'setup.cfg',
+    '.hgtags',
+    '.hgsigs',
+    '.hgignore',
+    '.gitignore',
+    '.bzrignore',
+    '.gitattributes',
+    '.github/*',
+    '.travis.yml',
+    'Jenkinsfile',
+    '*.mo',
+    '.clang-format',
+    '.gitmodules',
+    'VERSION.txt',
+    '.editorconfig',
+    '*.yml',
+    '*.yaml',
+    'docs/*',
+    'docs/images/*',
+    'examples/*',
+    ]
+
 
 
 [tool.coverage]
