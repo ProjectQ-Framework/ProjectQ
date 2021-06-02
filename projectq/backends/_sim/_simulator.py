@@ -17,9 +17,12 @@ Contains the projectq interface to a C++-based simulator, which has to be
 built first. If the c++ simulator is not exported to python, a (slow) python
 implementation is used as an alternative.
 """
-
+import itertools
 import math
 import random
+import warnings
+
+import numpy as np
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import Measure, FlushGate, Allocate, Deallocate, BasicMathGate, TimeEvolution
@@ -82,6 +85,7 @@ class Simulator(BasicEngine):
         BasicEngine.__init__(self)
         self._simulator = SimulatorBackend(rnd_seed)
         self._gate_fusion = gate_fusion
+        self._command_hist = []
 
     def is_available(self, cmd):
         """
@@ -104,13 +108,14 @@ class Simulator(BasicEngine):
             cmd.gate == Measure
             or cmd.gate == Allocate
             or cmd.gate == Deallocate
-            or isinstance(cmd.gate, (BasicMathGate, TimeEvolution))
+            or isinstance(cmd.gate, BasicMathGate)
+            or isinstance(cmd.gate, TimeEvolution)
         ):
             return True
         try:
-            matrix = cmd.gate.matrix
+            m = cmd.gate.matrix
             # Allow up to 5-qubit gates
-            if len(matrix) > 2 ** 5:
+            if len(m) > 2 ** 5:
                 return False
             return True
         except AttributeError:
@@ -132,7 +137,8 @@ class Simulator(BasicEngine):
                 new_qubit = WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
                 mapped_qureg.append(new_qubit)
             return mapped_qureg
-        return qureg
+        else:
+            return qureg
 
     def get_expectation_value(self, qubit_operator, qureg):
         """
@@ -333,7 +339,86 @@ class Simulator(BasicEngine):
         """
         return self._simulator.cheat()
 
-    def _handle(self, cmd):  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+    def _qidmask(self,cids, cstate, qids, n):
+        mask_list = []
+        perms = np.array([x[::-1] for x in itertools.product('01',repeat=n)]).astype(int)
+        all_ids = np.array(range(n))
+        irel_ids = np.delete(all_ids, cids+qids)
+        m = len(irel_ids)
+
+        if len(cids)>0:
+            cstate = np.array(list(cstate)).astype(int)
+            cmask = np.where(np.all(perms[:,cids]==cstate,axis=1))
+        else:
+            cmask = np.array(range(perms.shape[0]))
+
+        if m > 0:
+            irel_perms = np.array([x[::-1] for x in itertools.product('01',repeat=m)]).astype(int)
+            for i in range(2**m):
+                irel_mask = np.where(np.all(perms[:,irel_ids]==irel_perms[i],axis=1))
+                common = np.intersect1d(irel_mask,cmask)
+                if len(common)>0:
+                    mask_list.append(common)
+        else:
+            irel_mask = np.array(range(perms.shape[0]))
+            mask_list.append(np.intersect1d(irel_mask,cmask))
+        return(mask_list)
+
+    def matout(self):
+        """
+        Access the ordering of the qubits and the state vector directly.
+
+        This is a cheat function which enables, e.g., more efficient
+        evaluation of expectation values and debugging.
+
+        Returns:
+            A tuple where the first entry is a dictionary mapping qubit
+            indices to bit-locations and the second entry is the corresponding
+            state vector.
+
+        Note:
+            Make sure all previous commands have passed through the
+            compilation chain (call main_engine.flush() to make sure).
+
+        Note:
+            The order of the qubit follows self.cheat() i.e. the least significant
+        """
+        mapper, state = self.cheat()
+        assert len(state) > 1, 'Empty state, please ensure main_egnine.flush() is called ' \
+                               'or qubits are measured'
+
+        n = int(np.log2(len(state)))
+        final_mat = np.diag([1]*(2**n)).astype(complex)
+
+        for cmd in self._command_hist:
+            if cmd.gate == Measure or cmd.gate == Allocate or cmd.gate == Deallocate \
+                    or cmd.gate== FlushGate():
+                final_mat = final_mat
+            elif isinstance(cmd.gate,BasicMathGate):
+                warnings.warn('Basic math gate '+str(cmd.gate)+' is not supported in matrix computation. It will be skipped')
+            elif isinstance(cmd.gate,TimeEvolution):
+                warnings.warn('Time evolution '+str(cmd.gate)+' is not supported in matrix computation. It will be skipped.')
+
+            elif len(cmd.gate.matrix) <= 2 ** 5:
+                cmd_mat = cmd.gate.matrix
+                ids = [mapper[qb.id] for qr in cmd.qubits for qb in qr]
+                c_ids = [mapper[qb.id] for qb in
+                         cmd.control_qubits]
+                c_state = cmd.control_state
+                mask_list = self._qidmask(c_ids,c_state,ids,n)
+                for mask in mask_list:
+                    cache = np.diag([1]*(2**n)).astype(complex)
+                    cache[np.ix_(mask,mask)] = cmd_mat
+
+                    final_mat = np.matmul(cache,final_mat)
+
+            else:
+                raise Exception("This simulator only supports controlled k-qubit"
+                                " gates with k < 6!\nPlease add an auto-replacer"
+                                " engine to your list of compiler engines.")
+        return final_mat
+
+    def _handle(self, cmd):
         """
         Handle all commands, i.e., call the member functions of the C++-
         simulator object corresponding to measurement, allocation/
@@ -348,13 +433,12 @@ class Simulator(BasicEngine):
         """
 
         if cmd.gate == Measure:
-            if get_control_count(cmd) != 0:
-                raise ValueError('Cannot have control qubits with a measurement gate!')
+            assert get_control_count(cmd) == 0
             ids = [qb.id for qr in cmd.qubits for qb in qr]
             out = self._simulator.measure_qubits(ids)
             i = 0
-            for qureg in cmd.qubits:
-                for qb in qureg:
+            for qr in cmd.qubits:
+                for qb in qr:
                     # Check if a mapper assigned a different logical id
                     logical_id_tag = None
                     for tag in cmd.tags:
@@ -365,23 +449,23 @@ class Simulator(BasicEngine):
                     self.main_engine.set_measurement_result(qb, out[i])
                     i += 1
         elif cmd.gate == Allocate:
-            qubit_id = cmd.qubits[0][0].id
-            self._simulator.allocate_qubit(qubit_id)
+            ID = cmd.qubits[0][0].id
+            self._simulator.allocate_qubit(ID)
         elif cmd.gate == Deallocate:
-            qubit_id = cmd.qubits[0][0].id
-            self._simulator.deallocate_qubit(qubit_id)
+            ID = cmd.qubits[0][0].id
+            self._simulator.deallocate_qubit(ID)
         elif isinstance(cmd.gate, BasicMathGate):
             # improve performance by using C++ code for some commomn gates
-            from projectq.libs.math import (  # pylint: disable=import-outside-toplevel
+            from projectq.libs.math import (
                 AddConstant,
                 AddConstantModN,
                 MultiplyByConstantModN,
             )
 
             qubitids = []
-            for qureg in cmd.qubits:
+            for qr in cmd.qubits:
                 qubitids.append([])
-                for qb in qureg:
+                for qb in qr:
                     qubitids[-1].append(qb.id)
             if FALLBACK_TO_PYSIM:
                 math_fun = cmd.gate.get_math_function(cmd.qubits)
@@ -409,13 +493,13 @@ class Simulator(BasicEngine):
                     self._simulator.emulate_math(math_fun, qubitids, [qb.id for qb in cmd.control_qubits])
         elif isinstance(cmd.gate, TimeEvolution):
             op = [(list(term), coeff) for (term, coeff) in cmd.gate.hamiltonian.terms.items()]
-            time = cmd.gate.time
+            t = cmd.gate.time
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
-            self._simulator.emulate_time_evolution(op, time, qubitids, ctrlids)
+            self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
         elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
-            ids = [qb.id for qureg in cmd.qubits for qb in qureg]
+            ids = [qb.id for qr in cmd.qubits for qb in qr]
             if not 2 ** len(ids) == len(cmd.gate.matrix):
                 raise Exception(
                     "Simulator: Error applying {} gate: "
@@ -444,6 +528,7 @@ class Simulator(BasicEngine):
             command_list (list<Command>): List of commands to execute on the
                 simulator.
         """
+        self._command_hist.extend(command_list)
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)
