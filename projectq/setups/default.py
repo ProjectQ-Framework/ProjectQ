@@ -20,7 +20,7 @@ decompositions rules defined in projectq.setups.decompositions
 """
 
 import projectq
-from projectq.meta import has_negative_control
+import projectq.setups.decompositions
 from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,

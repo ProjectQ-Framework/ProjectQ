@@ -46,4 +46,3 @@ for i in range(n):
     print('X_reg :', int(x[i]))
 for j in range(m):
     print('Ctrl :', int(ctrl_reg[j]))
-

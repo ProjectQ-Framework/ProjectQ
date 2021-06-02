@@ -24,7 +24,7 @@ replace/keep.
 from projectq.cengines import (BasicEngine,
                                ForwarderEngine,
                                CommandModifier)
-from projectq.ops import (FlushGate,
+from projectq.ops import (BasicGate, FlushGate,
                           get_inverse)
 
 class NoGateDecompositionError(Exception):
@@ -124,10 +124,6 @@ class AutoReplacer(BasicEngine):
         if self.is_available(cmd):
             self.send([cmd])
         else:
-            # check for decomposition rules
-            decomp_list = []
-            potential_decomps = []
-
             # First check for a decomposition rules of the gate class, then
             # the gate class of the inverse gate. If nothing is found, do the
             # same for the first parent class, etc.
@@ -137,19 +133,17 @@ class AutoReplacer(BasicEngine):
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
             rules = self.decompositionRuleSet.decompositions
 
-            ruledict = {}
-            chosen = False
-            for class_name in rules:
-                for rule in rules[class_name]:
-                    rulename = rule.decompose.__name__
-                    ruledict[rulename] = rule
-            if '_decompose_controlstate' in ruledict.keys():
-                ctrl_rule = ruledict['_decompose_controlstate']
-                if ctrl_rule.check(cmd):
-                    chosen_decomp = ctrl_rule
-                    chosen = True
+            # If the decomposition rule to remove negatively controlled qubits is present in the list of potential
+            # decompositions, we process it immediately, before any other decompositions.
+            controlstate_rule = [rule for rule in rules.get('BasicGate', [])
+                                 if rule.decompose.__name__ == '_decompose_controlstate']
+            if controlstate_rule and controlstate_rule[0].check(cmd):
+                chosen_decomp = controlstate_rule[0]
+            else:
+                # check for decomposition rules
+                decomp_list = []
+                potential_decomps = []
 
-            if not chosen:
                 for level in range(max(len(gate_mro), len(inverse_mro))):
                     # Check for forward rules
                     if level < len(gate_mro):
