@@ -25,6 +25,7 @@ from projectq.cengines import (TagRemover,
                                LocalOptimizer,
                                AutoReplacer,
                                DecompositionRuleSet)
+import projectq.setups.decompositions
 
 def get_engine_list():
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])

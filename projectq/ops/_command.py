@@ -41,6 +41,8 @@ apply wrapper (apply_command).
 from copy import deepcopy
 import itertools
 
+import numpy
+
 import projectq
 from projectq.types import WeakQubitRef, Qureg
 from enum import IntEnum
@@ -274,6 +276,11 @@ class Command(object):
         """
         # NB: avoid circular imports
         from projectq.meta import canonical_ctrl_state
+        qids = [qb.id for qr in self.qubits for qb in qr]
+        cids = [qb.id for qb in qubits]
+
+        assert len(numpy.intersect1d(qids,cids)) == 0, \
+            'Control qubit should not control an operation on itself'
 
         assert (isinstance(qubits, list))
         self._control_qubits.extend(
