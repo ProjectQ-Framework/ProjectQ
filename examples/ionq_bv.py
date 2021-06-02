@@ -61,7 +61,7 @@ if __name__ == '__main__':
     if device is None:
         device = input('IonQ device > ')
 
-    # create main compiler engine for the AQT back-end
+    # create main compiler engine for the IonQ back-end
     backend = IonQBackend(
         use_hardware=True,
         token=token,
