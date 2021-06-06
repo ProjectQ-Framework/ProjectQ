@@ -44,10 +44,7 @@ def run_entangle(eng, num_qubits=3):
     plt.show()
 
     # return one (random) measurement outcome.
-    # return a random answer from our results
-    probabilities = eng.backend.get_probabilities(qureg)
-    random_answer = random.choice(list(probabilities.keys()))
-    return [int(s) for s in random_answer]
+    return [int(q) for q in qureg]
 
 
 if __name__ == '__main__':

@@ -50,17 +50,6 @@ def get_engine_list(token=None, device=None):
         )
 
     #
-    # Qubit mapper
-    #
-
-    # IonQ backends determine qubit mapping algorithmically so python runtime
-    #   mapping is arbitrary.
-    # Take a look at: projectq.backends._ionq._ionq.py::_format_counts to see
-    #   how mappings are converted from IonQ API results.
-    mapper = BasicMapperEngine()
-    mapper.current_mapping = dict((i, i) for i in range(devices[device]['nq']))
-
-    #
     # Basis Gates
     #
 
@@ -70,7 +59,7 @@ def get_engine_list(token=None, device=None):
         two_qubit_gates=(Swap, Rxx, Ryy, Rzz),
         other_gates=(Barrier,),
     )
-    return engine_list + [mapper]
+    return engine_list
 
 
 __all__ = ['get_engine_list']

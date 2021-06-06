@@ -15,6 +15,7 @@
 """ HTTP Client for the IonQ API. """
 
 import getpass
+import json
 import signal
 import time
 
@@ -123,7 +124,10 @@ class IonQ(Session):
         """
         argument = {
             'target': self.backends[device]['target'],
-            'metadata': {'sdk': 'ProjectQ'},
+            'metadata': {
+                'sdk': 'ProjectQ',
+                'meas_mapped': json.dumps(info['meas_mapped']),
+            },
             'shots': info['shots'],
             'registers': {'meas_mapped': info['meas_mapped']},
             'lang': 'json',
@@ -208,9 +212,11 @@ class IonQ(Session):
                 # Check if job is completed.
                 if status == 'completed':
                     data = r_json['data']
+                    metadata = r_json['metadata']
                     return {
                         'nq': r_json['qubits'],
                         'output_probs': data['registers']['meas_mapped'],
+                        'meas_mapped': json.loads(metadata['meas_mapped']),
                     }
 
                 # Otherwise, make sure it is in a known healthy state.
@@ -369,8 +375,22 @@ def send(
         return res
     except requests.exceptions.HTTPError as err:
         # Re-raise auth errors, as literally nothing else will work.
-        if err.response and err.response.status_code == 401:
-            raise err
+        if err.response is not None:
+            status_code = err.response.status_code
+            if status_code in (401, 403):
+                raise err
+
+            # Try to parse client errors
+            if status_code == 400:
+                err_json = err.response.json()
+                raise JobSubmissionError(
+                    '{}: {}'.format(
+                        err_json['error'],
+                        err_json['message'],
+                    )
+                )
+
+        # Else, just print:
         print("- There was an error running your code:")
         print(err)
     except requests.exceptions.RequestException as err:

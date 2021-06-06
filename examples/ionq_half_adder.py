@@ -17,6 +17,7 @@ def run_half_adder(eng):
     # allocate the quantum register to entangle
     circuit = eng.allocate_qureg(4)
     qubit1, qubit2, qubit3, qubit4 = circuit
+    result_qubits = [qubit3, qubit4]
 
     # X gates on the first two qubits
     All(X) | [qubit1, qubit2]
@@ -35,17 +36,17 @@ def run_half_adder(eng):
     Barrier | circuit
 
     # Measure result qubits
-    All(Measure) | [qubit3, qubit4]
+    All(Measure) | result_qubits
 
     # Flush the circuit (this submits a job to the IonQ API)
     eng.flush()
 
     # Show the histogram
-    histogram(eng.backend, circuit)
+    histogram(eng.backend, result_qubits)
     plt.show()
 
     # return a random answer from our results
-    probabilities = eng.backend.get_probabilities(circuit)
+    probabilities = eng.backend.get_probabilities(result_qubits)
     random_answer = random.choice(list(probabilities.keys()))
     return [int(s) for s in random_answer]
 

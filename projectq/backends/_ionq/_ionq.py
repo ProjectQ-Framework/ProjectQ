@@ -115,7 +115,6 @@ class IonQBackend(BasicEngine):
                 If provided, a job with this ID will be fetched. Defaults to None.
         """
         BasicEngine.__init__(self)
-        self._reset()
         self.device = device if use_hardware else 'ionq_simulator'
         self._num_runs = num_runs
         self._verbose = verbose
@@ -160,14 +159,34 @@ class IonQBackend(BasicEngine):
     def _reset(self):
         """Reset this backend.
 
+        This also resets the main_engine's qubit allocation index and all
+        allocated qubits.
+
         .. NOTE::
 
             This sets ``_clear = True``, which will trigger state cleanup
             on the next call to ``_store``.
+
+        .. NOTE::
+
+            Because qubit IDs increment without bound and the actual the number
+            of qubits is limited on a per-device basis, the main engine's qubits
+            must be deallocated and the index reset to avoid any key errors or
+            dirty qubit state when the process exits.
         """
-        self._clear = True
-        self._measured_ids = []
+        # Deallocate all previously allocated qubits (this will invoke
+        #   "receive" for each allocated qubit):
+        allocated_qubits = list(self._allocated_qubits)
+        for q in allocated_qubits:
+            self.main_engine.deallocate_qubit(WeakQubitRef(self.main_engine, q))
+        self._allocated_qubits = set()
+
+        # Reset allocation index so we don't end up going past device sizes:
+        self.main_engine._qubit_idx = int(0)
+
+        # Lastly, reset internal state for measured IDs and circuit body.
         self._circuit = []
+        self._clear = True
 
     def _store(self, cmd):
         """Interpret the ProjectQ command as a circuit instruction and store it.
@@ -181,8 +200,7 @@ class IonQBackend(BasicEngine):
                 mid-circuit qubit measurement.
         """
         if self._clear:
-            self._circuit = []
-            self._allocated_qubits = set()
+            self._measured_ids = []
             self._probabilities = dict()
             self._clear = False
 
@@ -257,33 +275,6 @@ class IonQBackend(BasicEngine):
 
         self._circuit.append(gate_dict)
 
-    def _logical_to_physical(self, qb_id):
-        """Convert the provided logical qubit ID to a "physical" qubit ID.
-
-        Args:
-            qb_id (int): A logical qubit ID, probably from a Qureg object.
-
-        Raises:
-            RuntimeError: If the engine's mapper does know about the qubit.
-
-        Returns:
-            int: A "physical" ID of the qubit.
-        """
-
-        # Can't do anything meaningful without a mapper.
-        assert self.main_engine.mapper is not None
-
-        # Get the mapping
-        mapping = self.main_engine.mapper.current_mapping
-        mapped_id = mapping.get(qb_id)
-        if mapped_id is None:
-            raise RuntimeError(
-                "Unknown qubit id {} in current mapping. Please make sure "
-                "eng.flush() was called and that the qubit "
-                "was eliminated during optimization.".format(qb_id)
-            )
-        return mapped_id
-
     def get_probability(self, state, qureg):
         """Shortcut to get a specific state's probability.
 
@@ -294,7 +285,8 @@ class IonQBackend(BasicEngine):
         Returns:
             float: The probability for the provided state.
         """
-        return self.get_probabilities(qureg)[state]
+        probs = self.get_probabilities(qureg[: len(state)])
+        return probs[state]
 
     def get_probabilities(self, qureg):
         """Given the provided qubit register, determine the probability of
@@ -321,7 +313,16 @@ class IonQBackend(BasicEngine):
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
-                mapped_state[i] = state[self._logical_to_physical(qubit.id)]
+                qubit_id = qubit.id
+                try:
+                    meas_idx = self._measured_ids.index(qubit_id)
+                except ValueError:
+                    raise RuntimeError(
+                        "Unknown qubit id {} in current mapping. Please make sure "
+                        "eng.flush() was called and that the qubit "
+                        "was eliminated during optimization.".format(qubit_id)
+                    )
+                mapped_state[i] = state[meas_idx]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             probability_dict[mapped_state] = (
@@ -350,6 +351,8 @@ class IonQBackend(BasicEngine):
                 interval=self._interval,
                 verbose=self._verbose,
             )
+            if res is None:
+                raise RuntimeError('Failed to submit job to the server!')
         else:
             res = http_client.retrieve(
                 device=self.device,
@@ -359,14 +362,22 @@ class IonQBackend(BasicEngine):
                 interval=self._interval,
                 verbose=self._verbose,
             )
+            if res is None:
+                raise RuntimeError(
+                    "Failed to retrieve job with id: '{}'!".format(
+                        self._retrieve_execution
+                    )
+                )
+            self._measured_ids = res['meas_mapped']
 
         # Determine random outcome from probable states.
         P = random.random()
         p_sum = 0.0
         star = measured = ""
-        num_qubits = res['nq']
-        for int_state, probability in res['output_probs'].items():
-            state = _rearrange_result(int(int_state), num_qubits)
+        num_measured = len(self._measured_ids)
+        self._probabilities = {}
+        for state, probability in res['output_probs'].items():
+            state = _rearrange_result(int(state), num_measured)
             p_sum += probability
             if p_sum >= P and measured == "":
                 measured = state
@@ -376,14 +387,10 @@ class IonQBackend(BasicEngine):
                 print(state + " with p = " + str(probability) + star)
 
         # register measurement result
-        for qubit_id in self._measured_ids:
-            location = self._logical_to_physical(qubit_id)
-            result = int(measured[location])
+        for idx, result in enumerate(measured):
+            qubit_id = self._measured_ids[idx]
             qubit_ref = WeakQubitRef(self.main_engine, qubit_id)
-            self.main_engine.set_measurement_result(qubit_ref, result)
-
-        # Finally, reset engine state so this can be used again.
-        self._reset()
+            self.main_engine.set_measurement_result(qubit_ref, int(result))
 
     def receive(self, command_list):
         """Receive a command list from the ProjectQ engine pipeline.
@@ -398,8 +405,13 @@ class IonQBackend(BasicEngine):
             if not isinstance(cmd.gate, FlushGate):
                 self._store(cmd)
             else:
-                self._run()
-                self._reset()
+                # After that, the circuit is ready to be submitted.
+                try:
+                    self._run()
+                finally:
+                    # Make sure we always reset engine state so as not to leave
+                    #    anything dirty atexit.
+                    self._reset()
 
 
 __all__ = ['IonQBackend']

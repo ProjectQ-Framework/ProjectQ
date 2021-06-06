@@ -25,31 +25,28 @@ def run_bv_circuit(eng, input_size, s_int):
     print("Secret string: ", s)
     print("Number of qubits: ", str(input_size + 1))
     circuit = eng.allocate_qureg(input_size + 1)
-    qubits = circuit[:-1]
-    output = circuit[input_size]
+    All(H) | circuit
+    Z | circuit[input_size]
 
-    H | output
-    Z | output
-    All(H) | qubits
-
-    Barrier | (*qubits, output)
+    Barrier | circuit
 
     oracle(circuit, input_size, s)
 
-    Barrier | (*qubits, output)
+    Barrier | circuit
 
+    qubits = circuit[:input_size]
     All(H) | qubits
     All(Measure) | qubits
     eng.flush()
 
     # return a random answer from our results
-    histogram(eng.backend, circuit)
+    histogram(eng.backend, qubits)
     plt.show()
 
     # return a random answer from our results
-    probabilities = eng.backend.get_probabilities(circuit)
+    probabilities = eng.backend.get_probabilities(qubits)
     random_answer = random.choice(list(probabilities.keys()))
-    print("Probability of getting correct string: ", probabilities[s[::-1] + '0'])
+    print("Probability of getting correct string: ", probabilities[s[::-1]])
     return [int(s) for s in random_answer]
 
 

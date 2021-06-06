@@ -27,11 +27,7 @@ def test_basic_ionq_mapper(monkeypatch):
 
     monkeypatch.setattr(projectq.setups.ionq, 'show_devices', mock_show_devices)
     engine_list = projectq.setups.ionq.get_engine_list(device='dummy')
-    assert len(engine_list) > 1
-    mapper = engine_list[0]
-    assert isinstance(mapper, BasicMapperEngine)
-    # to match nq in the backend
-    assert mapper.current_mapping == dict((i, i) for i in range(3))
+    assert len(engine_list) > 0
 
 
 def test_ionq_errors(monkeypatch):

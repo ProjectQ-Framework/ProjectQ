@@ -113,7 +113,10 @@ def test_send_real_device_online_verbose(monkeypatch):
     # What the IonQ JSON API request should look like.
     expected_request = {
         'target': 'dummy',
-        'metadata': {'sdk': 'ProjectQ'},
+        'metadata': {
+            'sdk': 'ProjectQ',
+            'meas_mapped': '[2, 3]',
+        },
         'shots': 1,
         'registers': {'meas_mapped': [2, 3]},
         'lang': 'json',
@@ -151,6 +154,7 @@ def test_send_real_device_online_verbose(monkeypatch):
                 'id': 'new-job-id',
                 'status': 'completed',
                 'qubits': 4,
+                'metadata': {'meas_mapped': '[2, 3]'},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
                 },
@@ -183,6 +187,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     expected = {
         'nq': 4,
         'output_probs': {'2': 1},
+        'meas_mapped': [2, 3],
     }
     actual = _ionq_http_client.send(info, device='dummy')
     assert expected == actual
@@ -259,6 +264,48 @@ def test_send_auth_errors_reraise(monkeypatch):
         _ionq_http_client.send(info, device='dummy')
     mock_post.assert_called_once()
     assert auth_error is excinfo.value
+
+
+def test_send_bad_requests_reraise(monkeypatch):
+    # Patch the method to give back dummy devices
+    def _dummy_update(_self):
+        _self.backends = {'dummy': {'nq': 4, 'target': 'dummy'}}
+
+    monkeypatch.setattr(
+        _ionq_http_client.IonQ,
+        'update_devices_list',
+        _dummy_update.__get__(None, _ionq_http_client.IonQ),
+    )
+
+    mock_response = mock.MagicMock()
+    mock_response.status_code = 400
+    mock_response.json = mock.MagicMock(
+        return_value={
+            'error': 'Bad Request',
+            'message': 'Invalid request body',
+        }
+    )
+    auth_error = requests.exceptions.HTTPError(response=mock_response)
+    mock_post = mock.MagicMock(side_effect=auth_error)
+    monkeypatch.setattr('requests.sessions.Session.post', mock_post)
+
+    def user_password_input(prompt):
+        if prompt == 'IonQ apiKey > ':
+            return 'NotNone'
+
+    monkeypatch.setattr('getpass.getpass', user_password_input)
+
+    # Code to test:
+    info = {
+        'nq': 1,
+        'shots': 1,
+        'meas_mapped': [],
+        'circuit': [],
+    }
+    with pytest.raises(JobSubmissionError) as excinfo:
+        _ionq_http_client.send(info, device='dummy')
+    mock_post.assert_called_once()
+    assert str(excinfo.value) == "Bad Request: Invalid request body"
 
 
 def test_send_auth_token_required(monkeypatch):
@@ -433,6 +480,7 @@ def test_retrieve(monkeypatch, token):
                 'id': 'old-job-id',
                 'status': 'completed',
                 'qubits': 4,
+                'metadata': {'meas_mapped': '[2, 3]'},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
                 },
@@ -453,6 +501,7 @@ def test_retrieve(monkeypatch, token):
     expected = {
         'nq': 4,
         'output_probs': {'2': 1},
+        'meas_mapped': [2, 3],
     }
 
     # Code to test:

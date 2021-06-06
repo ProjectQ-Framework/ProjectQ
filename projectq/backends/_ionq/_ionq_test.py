@@ -159,7 +159,8 @@ def test_ionq_get_probability(monkeypatch, mapper_factory):
         return {
             'nq': 3,
             'shots': 10,
-            'output_probs': {'111': 0.4, '000': 0.6},
+            'output_probs': {'3': 0.4, '0': 0.6},
+            'meas_mapped': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
@@ -224,6 +225,28 @@ def test_ionq_sent_error(monkeypatch):
     eng.next_engine = dummy
 
 
+def test_ionq_send_nonetype_response_error(monkeypatch):
+    """Test that no return value from "send" will raise a runtime error."""
+    # patch send
+    mock_send = mock.MagicMock(return_value=None)
+    monkeypatch.setattr(_ionq_http_client, "send", mock_send)
+
+    backend = _ionq.IonQBackend()
+    eng = MainEngine(backend=backend, verbose=True)
+    qubit = eng.allocate_qubit()
+    Rx(0.5) | qubit
+    with pytest.raises(RuntimeError) as excinfo:
+        eng.flush()
+
+    # verbose=True on the engine re-raises errors instead of compacting them.
+    assert str(excinfo.value) == "Failed to submit job to the server!"
+
+    # atexit sends another FlushGate, therefore we remove the backend:
+    dummy = DummyEngine()
+    dummy.is_last_engine = True
+    eng.next_engine = dummy
+
+
 def test_ionq_retrieve(monkeypatch, mapper_factory):
     """Test that initializing a backend with a jobid will fetch that job's results to use as its own"""
 
@@ -231,7 +254,8 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
         return {
             'nq': 3,
             'shots': 10,
-            'output_probs': {'111': 0.4, '000': 0.6},
+            'output_probs': {'3': 0.4, '0': 0.6},
+            'meas_mapped': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
@@ -267,6 +291,48 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
         eng.backend.get_probabilities(invalid_qubit)
 
 
+def test_ionq_retrieve_nonetype_response_error(monkeypatch, mapper_factory):
+    """Test that initializing a backend with a jobid will fetch that job's results to use as its own"""
+
+    def mock_retrieve(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
+    backend = _ionq.IonQBackend(
+        retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968",
+        verbose=True,
+    )
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[mapper_factory()],
+        verbose=True,
+    )
+
+    unused_qubit = eng.allocate_qubit()
+    qureg = eng.allocate_qureg(2)
+    # entangle the qureg
+    Ry(math.pi / 2) | qureg[0]
+    Rx(math.pi / 2) | qureg[0]
+    Rx(math.pi / 2) | qureg[0]
+    Ry(math.pi / 2) | qureg[0]
+    Rxx(math.pi / 2) | (qureg[0], qureg[1])
+    Rx(7 * math.pi / 2) | qureg[0]
+    Ry(7 * math.pi / 2) | qureg[0]
+    Rx(7 * math.pi / 2) | qureg[1]
+    del unused_qubit
+    # measure; should be all-0 or all-1
+    All(Measure) | qureg
+    # run the circuit
+    with pytest.raises(RuntimeError) as excinfo:
+        eng.flush()
+
+    exc = excinfo.value
+    expected_err = (
+        "Failed to retrieve job with id: 'a3877d18-314f-46c9-86e7-316bc4dbe968'!"
+    )
+    assert str(exc) == expected_err
+
+
 def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
     """Test that the backend can handle a valid circuit with valid results."""
     expected = {
@@ -290,7 +356,8 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
         return {
             'nq': 3,
             'shots': 10,
-            'output_probs': {'111': 0.4, '000': 0.6},
+            'output_probs': {'3': 0.4, '0': 0.6},
+            'meas_mapped': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "send", mock_send)
@@ -346,7 +413,8 @@ def test_ionq_backend_functional_aliases_test(monkeypatch, mapper_factory):
         return {
             'nq': 4,
             'shots': 10,
-            'output_probs': {'0100': 0.9},
+            'output_probs': {'1': 0.9},
+            'meas_mapped': [2, 3],
         }
 
     monkeypatch.setattr(_ionq_http_client, "send", mock_send)
