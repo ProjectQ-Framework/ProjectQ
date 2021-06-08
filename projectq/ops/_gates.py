@@ -283,6 +283,10 @@ class Rz(BasicRotationGate):
 class Rxx(BasicRotationGate):
     """ RotationXX gate class """
 
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
+        
     @property
     def matrix(self):
         return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, -1j*cmath.sin(.5 * self.angle)],
@@ -293,6 +297,10 @@ class Rxx(BasicRotationGate):
 
 class Ryy(BasicRotationGate):
     """ RotationYY gate class """
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
 
     @property
     def matrix(self):
@@ -305,6 +313,10 @@ class Ryy(BasicRotationGate):
 class Rzz(BasicRotationGate):
     """ RotationZZ gate class """
 
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
+        
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0, 0, 0],

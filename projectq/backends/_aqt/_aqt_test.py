@@ -36,13 +36,23 @@ def no_requests(monkeypatch):
                           (Tdag, False), (S, False), (Sdag, False),
                           (Allocate, True), (Deallocate, True),
                           (Measure, True), (NOT, False), (Rx(0.5), True),
-                          (Ry(0.5), True), (Rz(0.5), False), (Rxx(0.5), True),
+                          (Ry(0.5), True), (Rz(0.5), False),
                           (Barrier, True), (Entangle, False)])
 def test_aqt_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     aqt_backend = _aqt.AQTBackend()
     cmd = Command(eng, single_qubit_gate, (qubit1, ))
+    assert aqt_backend.is_available(cmd) == is_available
+
+
+@pytest.mark.parametrize("two_qubit_gate, is_available",
+                         [(Rxx(0.5), True)])
+def test_aqt_backend_is_available2(two_qubit_gate, is_available):
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qubits = eng.allocate_qureg(2)
+    aqt_backend = _aqt.AQTBackend()
+    cmd = Command(eng, two_qubit_gate, (qubits, ))
     assert aqt_backend.is_available(cmd) == is_available
 
 
@@ -53,11 +63,12 @@ def test_aqt_backend_is_available(single_qubit_gate, is_available):
 def test_aqt_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
     aqt_backend = _aqt.AQTBackend()
     cmd = Command(eng, Rx(0.5), (qubit1, ), controls=qureg)
     assert aqt_backend.is_available(cmd) == is_available
-    cmd = Command(eng, Rxx(0.5), (qubit1, ), controls=qureg)
+    cmd = Command(eng, Rxx(0.5), (qubit1, qubit2), controls=qureg)
     assert aqt_backend.is_available(cmd) == is_available
 
 
