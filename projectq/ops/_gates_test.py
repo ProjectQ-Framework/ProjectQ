@@ -19,9 +19,6 @@ import cmath
 import numpy as np
 import pytest
 
-import sys
-
-sys.path.append(r"C:\Users\daisy\Documents\Code\ProjectQ")
 
 from projectq import MainEngine
 from projectq.ops import (
