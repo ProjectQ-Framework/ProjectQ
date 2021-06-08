@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from projectq.ops import BasicGate
+from projectq.ops._basics import BasicGate, BasicGateMeta
 
 
 class ThisIsNotAGateClassError(TypeError):
@@ -61,7 +61,7 @@ class DecompositionRule:
             raise ThisIsNotAGateClassError(
                 "gate_class is a gate instance instead of a type of BasicGate."
                 "\nDid you pass in someGate instead of someGate.__class__?")
-        if gate_class == type.__class__:
+        if gate_class in (type.__class__, BasicGateMeta):
             raise ThisIsNotAGateClassError(
                 "gate_class is type.__class__ instead of a type of BasicGate."
                 "\nDid you pass in GateType.__class__ instead of GateType?")
