@@ -62,13 +62,6 @@ from ._command import Command
 from ._relative_command import RelativeCommand
 from projectq.types import BasicQubit
 
-# For the gates: XGate, YGate, ZGate, SGate, TGate, SqrtXGate, Ph
-# the commutable gates are defined within the get method 
-# (as opposed to the init method) because some of the commutable 
-# gates haven't been defined when the gate is initialised. To change
-# this, we would need to look into defining commutation rules after 
-# all gates are defined.
-
 
 class HGate(SelfInverseGate):
     """ Hadamard gate class """
@@ -93,10 +86,6 @@ class XGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, 1], [1, 0]])
 
-    def get_commutable_gates(self):
-        self._commutable_gates = [Rx, Rxx, Ph, SqrtXGate]
-        return self._commutable_gates
-
     def get_commutable_circuit_list(self, n=0):
         """ Sets _commutable_circuit_list for C(NOT, n) where
         n is the number of controls 
@@ -107,8 +96,7 @@ class XGate(SelfInverseGate):
             # i.e. this is a CNOT gate (one control)
             # We define the qubit with the NOT as qb0, the qubit with 
             # the control as qb1, then all next qbs are labelled 2,3 etc.
-            commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,)), RelativeCommand(H,(0,))]]
-            return commutable_circuit_list
+            return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,)), RelativeCommand(H,(0,))]]
         else:
             return [] # don't change _commutable_circuit_list
 
@@ -125,10 +113,6 @@ class YGate(SelfInverseGate):
     def matrix(self):
         return np.matrix([[0, -1j], [1j, 0]])
 
-    def get_commutable_gates(self):
-        self._commutable_gates = [Ry, Ryy, Ph]
-        return self._commutable_gates
-
 #: Shortcut (instance of) :class:`projectq.ops.YGate`
 Y = YGate()
 
@@ -141,10 +125,6 @@ class ZGate(SelfInverseGate):
     @property
     def matrix(self):
         return np.matrix([[1, 0], [0, -1]])
-    
-    def get_commutable_gates(self):
-        self._commutable_gates = [Rz, Rzz, Ph, R]
-        return self._commutable_gates
 
 #: Shortcut (instance of) :class:`projectq.ops.ZGate`
 Z = ZGate()
@@ -159,9 +139,7 @@ class SGate(BasicGate):
     def __str__(self):
         return "S"
 
-    def get_commutable_gates(self):
-        self._commutable_gates = [Rz, Rzz, Ph, R]
-        return self._commutable_gates
+
 #: Shortcut (instance of) :class:`projectq.ops.SGate`
 S = SGate()
 #: Inverse (and shortcut) of :class:`projectq.ops.SGate`
@@ -175,10 +153,8 @@ class TGate(BasicGate):
 
     def __str__(self):
         return "T"
-    
-    def get_commutable_gates(self):
-        self._commutable_gates = [Rz, Rzz, Ph, R]
-        return self._commutable_gates
+
+
 #: Shortcut (instance of) :class:`projectq.ops.TGate`
 T = TGate()
 #: Inverse (and shortcut) of :class:`projectq.ops.TGate`
@@ -198,9 +174,6 @@ class SqrtXGate(BasicGate):
     def __str__(self):
         return "SqrtX"
 
-    def get_commutable_gates(self):
-        self._commutable_gates = [XGate, Rx, Rxx, Ph]
-        return self._commutable_gates
 
 #: Shortcut (instance of) :class:`projectq.ops.SqrtXGate`
 SqrtX = SqrtXGate()
@@ -261,27 +234,14 @@ Entangle = EntangleGate()
 class Ph(BasicPhaseGate):
     """ Phase gate (global phase) """
 
-    def __init__(self, angle):
-        BasicPhaseGate.__init__(self, angle)
-        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
-
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(1j * self.angle), 0],
                           [0, cmath.exp(1j * self.angle)]])
 
-    def get_commutable_gates(self):
-        self._commutable_gates = [XGate, YGate, ZGate, Rx, Ry, Rz,
-                                    Rxx, Ryy, Rzz, SqrtXGate, SGate, TGate, R]
-        return self._commutable_gates
-
 
 class Rx(BasicRotationGate):
     """ RotationX gate class """
-
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self._commutable_gates = [XGate, Rxx, Ph, SqrtXGate]
 
     @property
     def matrix(self):
@@ -294,10 +254,6 @@ class Rx(BasicRotationGate):
 class Ry(BasicRotationGate):
     """ RotationY gate class """
 
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self._commutable_gates = [YGate, Ryy, Ph]
-
     @property
     def matrix(self):
         return np.matrix([[math.cos(0.5 * self.angle),
@@ -309,10 +265,14 @@ class Ry(BasicRotationGate):
 class Rz(BasicRotationGate):
     """ RotationZ gate class """
 
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self._commutable_gates = [ZGate, Rzz, Ph, TGate, SGate, R]
-        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls 
+        
+        Args: 
+            n (int): The number of controls on this gate. """
+        
+        return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
         
     @property
     def matrix(self):
@@ -322,11 +282,6 @@ class Rz(BasicRotationGate):
 
 class Rxx(BasicRotationGate):
     """ RotationXX gate class """
-
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self.interchangeable_qubit_indices = [[0, 1]]
-        self._commutable_gates = [XGate, Rx, Ph, SqrtXGate]
 
     @property
     def matrix(self):
@@ -339,12 +294,6 @@ class Rxx(BasicRotationGate):
 class Ryy(BasicRotationGate):
     """ RotationYY gate class """
 
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self.interchangeable_qubit_indices = [[0, 1]]
-        self._commutable_gates = [YGate, Ry, Ph]
-
-
     @property
     def matrix(self):
         return np.matrix([[cmath.cos(.5 * self.angle), 0, 0, 1j*cmath.sin(.5 * self.angle)],
@@ -356,11 +305,6 @@ class Ryy(BasicRotationGate):
 class Rzz(BasicRotationGate):
     """ RotationZZ gate class """
 
-    def __init__(self, angle):
-        BasicRotationGate.__init__(self, angle)
-        self.interchangeable_qubit_indices = [[0, 1]]
-        self._commutable_gates = [ZGate, Rz, TGate, SGate, Ph, R]
-        
     @property
     def matrix(self):
         return np.matrix([[cmath.exp(-.5 * 1j * self.angle), 0, 0, 0],
@@ -372,10 +316,13 @@ class Rzz(BasicRotationGate):
 class R(BasicPhaseGate):
     """ Phase-shift gate (equivalent to Rz up to a global phase) """
     
-    def __init__(self, angle):
-        BasicPhaseGate.__init__(self, angle)
-        self._commutable_gates = [ZGate, Rz, Rzz, Ph, SGate, TGate]
-        self._commutable_circuit_list = [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls 
+        
+        Args: 
+            n (int): The number of controls on this gate. """
+        return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
 
     @property
     def matrix(self):
@@ -532,3 +479,15 @@ class FlipBits(SelfInverseGate):
 
     def __hash__(self):
         return hash(self.__str__())
+
+# ==============================================================================
+# Define commutation relations
+
+def set_commutation_relations(commuting_gates):
+    for klass in commuting_gates:
+        klass._commutable_gates.update(commuting_gates)
+        klass._commutable_gates.discard(klass)
+
+set_commutation_relations([XGate, SqrtXGate, Rx, Rxx, Ph])
+set_commutation_relations([YGate, Ry, Ryy, Ph])
+set_commutation_relations([ZGate, SGate, TGate, Rz, Rzz, Ph, R])

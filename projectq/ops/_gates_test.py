@@ -56,7 +56,7 @@ def test_x_gate():
     assert gate3.is_commutable(gate4)
     assert gate3.is_commutable(gate5)
     assert gate3.is_commutable(gate6)
-    assert gate3._commutable_circuit_list == []
+    assert gate3.get_commutable_circuit_list() == []
     cmd1=RelativeCommand(H,(0,))
     cmd2=RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,))
     cmd3=RelativeCommand(H,(0,))

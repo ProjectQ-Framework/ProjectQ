@@ -62,7 +62,25 @@ class NotInvertible(Exception):
     pass
 
 
-class BasicGate(object):
+class BasicGateMeta(type):
+    """
+    Meta class for all gates; mainly used to ensure that all gate classes have some basic class variable defined.
+    """
+    def __new__(cls, name, bases, attrs):
+
+        def get_commutable_gates(self):
+            return self._commutable_gates
+        
+        return super(BasicGateMeta, cls).__new__(cls, name, bases, {**attrs,
+                                                                    get_commutable_gates.__name__: get_commutable_gates,
+                                                                    '_commutable_gates': set()})
+
+
+class BasicGate(metaclass=BasicGateMeta):
+    """
+    A list of gates that commute with this gate class
+    """
+
     """
     Base class of all gates. (Don't use it directly but derive from it)
     """
@@ -101,8 +119,6 @@ class BasicGate(object):
                 self.set_interchangeable_qubit_indices([[0,1],[2,3,4]])
         """
         self.interchangeable_qubit_indices = []
-        self._commutable_gates = []
-        self._commutable_circuit_list = []
 
     def get_inverse(self):
         """
@@ -127,19 +143,19 @@ class BasicGate(object):
         raise NotMergeable("BasicGate: No get_merged() implemented.")
 
     def get_commutable_gates(self):
-        return self._commutable_gates
+        return []
 
     def get_commutable_circuit_list(self, n=0):
-        """ 
-        Args: 
-            n (int): The CNOT gate needs to be able to pass in parameter n in 
-                this method. 
+        """
+        Args:
+            n (int): The CNOT gate needs to be able to pass in parameter n in
+                this method.
 
         Returns:
-            _commutable_circuit_list (list): the list of commutable circuits 
-            associated with this gate. 
+            _commutable_circuit_list (list): the list of commutable circuits
+            associated with this gate.
         """
-        return self._commutable_circuit_list
+        return []
 
     @staticmethod
     def make_tuple_of_qureg(qubits):
@@ -269,8 +285,7 @@ class BasicGate(object):
                 indicates whether the next gate is commutable,
                 not commutable or maybe commutable. 
              """
-        commutable_gates = self.get_commutable_gates()
-        for gate in commutable_gates:
+        for gate in self.get_commutable_gates():
             if type(other) is gate:
                 return Commutability.COMMUTABLE
         else:
