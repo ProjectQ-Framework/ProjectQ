@@ -159,6 +159,7 @@ def test_engangle_gate():
     assert isinstance(_gates.Entangle, _gates.EntangleGate)
 
 
+@pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
 def test_rx(angle):
     gate = _gates.Rx(angle)
     expected_matrix = np.matrix(
@@ -283,7 +284,6 @@ def test_ryy_commutation(angle1, angle2):
     assert gate1.is_commutable(gate2)
     assert not gate1.is_commutable(gate3)
     assert gate4.is_identity()
-    assert gate1.interchangeable_qubit_indices == [[0, 1]]
 
 
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
@@ -311,7 +311,6 @@ def test_rzz_commutation(angle1, angle2):
     assert gate1.is_commutable(gate2)
     assert not gate1.is_commutable(gate3)
     assert gate4.is_identity()
-    assert gate1.interchangeable_qubit_indices == [[0, 1]]
 
 
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi])
