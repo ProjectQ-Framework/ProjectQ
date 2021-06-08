@@ -503,3 +503,6 @@ def set_commutation_relations(commuting_gates):
 set_commutation_relations([XGate, SqrtXGate, Rx, Rxx, Ph])
 set_commutation_relations([YGate, Ry, Ryy, Ph])
 set_commutation_relations([ZGate, SGate, TGate, Rz, Rzz, Ph, R])
+
+for klass in [HGate, EntangleGate, SwapGate]:
+    set_commutation_relations([klass, Ph])
