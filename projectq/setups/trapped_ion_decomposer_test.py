@@ -129,13 +129,14 @@ def test_chooser_Ry_reducer():
     # Including the Allocate, Measure and Flush commands, this would result in
     # 13 commands.
     #
-    # Using the chooser_Rx_reducer you get 10 commands, since you now have 4
-    # single qubit gates and 1 two qubit gate.
+    # Using the chooser_Rx_reducer you get 9 commands, since you now have 4
+    # single qubit gates and 1 two qubit gate (plus the new optimiser can merge
+    # commuting gates)
 
     for engine_list, count in [(restrictedgateset.get_engine_list(
                                    one_qubit_gates=(Rx, Ry),
                                    two_qubit_gates=(Rxx, )), 13),
-                               (get_engine_list(), 11)]:
+                               (get_engine_list(), 10)]:
 
         backend = DummyEngine(save_commands=True)
         eng = projectq.MainEngine(backend, engine_list, verbose=True)
