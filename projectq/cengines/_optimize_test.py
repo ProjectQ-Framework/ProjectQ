@@ -414,7 +414,7 @@ def test_local_optimizer_commutable_circuit_U_example_4(U):
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
 
-@pytest.mark.parametrize("U", [Ph, Rz, R])
+@pytest.mark.parametrize("U", [Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_5(U):
     """Us shouldn't merge because CNOT is the wrong orientation."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
@@ -465,7 +465,7 @@ def test_local_optimizer_commutable_circuit_U_example_6(U):
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
 
-@pytest.mark.parametrize("U", [Ph, Rz, R])
+@pytest.mark.parametrize("U", [Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_7(U):
     """Us shouldn't merge. Second H on wrong qubit."""
     local_optimizer = _optimize.LocalOptimizer(m=10)

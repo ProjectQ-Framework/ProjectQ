@@ -50,9 +50,10 @@ def test_aqt_backend_is_available(single_qubit_gate, is_available):
                          [(Rxx(0.5), True)])
 def test_aqt_backend_is_available2(two_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
-    qubits = eng.allocate_qureg(2)
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
     aqt_backend = _aqt.AQTBackend()
-    cmd = Command(eng, two_qubit_gate, (qubits, ))
+    cmd = Command(eng, two_qubit_gate, (qubit1, qubit2))
     assert aqt_backend.is_available(cmd) == is_available
 
 
