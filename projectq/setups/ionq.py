@@ -19,6 +19,7 @@ Defines a setup allowing to compile code for IonQ trapped ion devices:
 """
 from projectq.backends._ionq._ionq_exc import DeviceOfflineError
 from projectq.backends._ionq._ionq_http_client import show_devices
+from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
 from projectq.cengines import BasicMapperEngine
 from projectq.ops import (
     Barrier,
@@ -50,6 +51,11 @@ def get_engine_list(token=None, device=None):
         )
 
     #
+    # Qubit mapper
+    #
+    mapper = BoundedQubitMapper(devices[device]['nq'])
+
+    #
     # Basis Gates
     #
 
@@ -59,7 +65,7 @@ def get_engine_list(token=None, device=None):
         two_qubit_gates=(Swap, Rxx, Ryy, Rzz),
         other_gates=(Barrier,),
     )
-    return engine_list
+    return engine_list + [mapper]
 
 
 __all__ = ['get_engine_list']

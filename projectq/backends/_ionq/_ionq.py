@@ -123,7 +123,6 @@ class IonQBackend(BasicEngine):
         self._interval = interval
         self._circuit = []
         self._measured_ids = []
-        self._allocated_qubits = set()
         self._probabilities = dict()
         self._retrieve_execution = retrieve_execution
         self._clear = True
@@ -159,30 +158,11 @@ class IonQBackend(BasicEngine):
     def _reset(self):
         """Reset this backend.
 
-        This also resets the main_engine's qubit allocation index and all
-        allocated qubits.
-
         .. NOTE::
 
             This sets ``_clear = True``, which will trigger state cleanup
             on the next call to ``_store``.
-
-        .. NOTE::
-
-            Because qubit IDs increment without bound and the actual the number
-            of qubits is limited on a per-device basis, the main engine's qubits
-            must be deallocated and the index reset to avoid any key errors or
-            dirty qubit state when the process exits.
         """
-        # Deallocate all previously allocated qubits (this will invoke
-        #   "receive" for each allocated qubit):
-        allocated_qubits = list(self._allocated_qubits)
-        for q in allocated_qubits:
-            self.main_engine.deallocate_qubit(WeakQubitRef(self.main_engine, q))
-        self._allocated_qubits = set()
-
-        # Reset allocation index so we don't end up going past device sizes:
-        self.main_engine._qubit_idx = int(0)
 
         # Lastly, reset internal state for measured IDs and circuit body.
         self._circuit = []
@@ -205,14 +185,9 @@ class IonQBackend(BasicEngine):
             self._clear = False
 
         # No-op/Meta gates.
+        # NOTE: self.main_engine.mapper takes care qubit allocation/mapping.
         gate = cmd.gate
-        if gate in (Deallocate, Barrier):
-            return
-
-        # Allocate a qubit.
-        if gate == Allocate:
-            allocated_id = cmd.qubits[0][0].id
-            self._allocated_qubits.add(allocated_id)
+        if gate in (Allocate, Deallocate, Barrier):
             return
 
         # Create a measurement.
@@ -223,6 +198,7 @@ class IonQBackend(BasicEngine):
                 if isinstance(tag, LogicalQubitIDTag):
                     logical_id = tag.logical_qubit_id
                     break
+            # Add the qubit id
             self._measured_ids.append(logical_id)
             return
 
@@ -300,9 +276,6 @@ class IonQBackend(BasicEngine):
         Args:
             qureg (Qureg): A ProjectQ Qureg object.
 
-        Raises:
-            RuntimeError: If this backend has no probabilities to map.
-
         Returns:
             dict: A dict mapping of states -> probability.
         """
@@ -313,15 +286,10 @@ class IonQBackend(BasicEngine):
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
-                qubit_id = qubit.id
                 try:
-                    meas_idx = self._measured_ids.index(qubit_id)
+                    meas_idx = self._measured_ids.index(qubit.id)
                 except ValueError:
-                    raise RuntimeError(
-                        "Unknown qubit id {} in current mapping. Please make sure "
-                        "eng.flush() was called and that the qubit "
-                        "was eliminated during optimization.".format(qubit_id)
-                    )
+                    continue
                 mapped_state[i] = state[meas_idx]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
@@ -336,12 +304,14 @@ class IonQBackend(BasicEngine):
         if len(self._circuit) == 0:
             return
 
+        measured_ids = self._measured_ids[:]
+        current_mapping = self.main_engine.mapper.current_mapping
         if self._retrieve_execution is None:
             info = {
                 'circuit': self._circuit,
-                'nq': len(self._allocated_qubits),
+                'nq': len(current_mapping.keys()),
                 'shots': self._num_runs,
-                'meas_mapped': self._measured_ids,
+                'meas_mapped': [current_mapping[qubit_id] for qubit_id in measured_ids],
             }
             res = http_client.send(
                 info,
@@ -368,16 +338,21 @@ class IonQBackend(BasicEngine):
                         self._retrieve_execution
                     )
                 )
-            self._measured_ids = res['meas_mapped']
+            # This is back
+            self._measured_ids = measured_ids = res['meas_mapped']
 
         # Determine random outcome from probable states.
         P = random.random()
         p_sum = 0.0
-        star = measured = ""
-        num_measured = len(self._measured_ids)
+        measured = ""
+        star = ""
+        num_measured = len(measured_ids)
+        probable_outcomes = res['output_probs']
+        states = probable_outcomes.keys()
         self._probabilities = {}
-        for state, probability in res['output_probs'].items():
-            state = _rearrange_result(int(state), num_measured)
+        for idx, state_int in enumerate(states):
+            state = _rearrange_result(int(state_int), num_measured)
+            probability = probable_outcomes[state_int]
             p_sum += probability
             if p_sum >= P and measured == "":
                 measured = state
@@ -386,11 +361,11 @@ class IonQBackend(BasicEngine):
             if self._verbose and probability > 0:  # pragma: no cover
                 print(state + " with p = " + str(probability) + star)
 
-        # register measurement result
-        for idx, result in enumerate(measured):
-            qubit_id = self._measured_ids[idx]
+        # Register measurement results
+        for idx, qubit_id in enumerate(measured_ids):
+            result = int(measured[idx])
             qubit_ref = WeakQubitRef(self.main_engine, qubit_id)
-            self.main_engine.set_measurement_result(qubit_ref, int(result))
+            self.main_engine.set_measurement_result(qubit_ref, result)
 
     def receive(self, command_list):
         """Receive a command list from the ProjectQ engine pipeline.

@@ -14,6 +14,7 @@
 
 """Tests for projectq.backends._ionq._ionq.py."""
 
+import functools
 import math
 from unittest import mock
 
@@ -25,6 +26,7 @@ from projectq.backends._ionq._ionq_exc import (
     InvalidCommandError,
     MidCircuitMeasurementError,
 )
+from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
 from projectq.cengines import BasicMapperEngine, DummyEngine
 from projectq.ops import (
     CNOT,
@@ -57,10 +59,8 @@ from projectq.types import Qubit, WeakQubitRef
 
 @pytest.fixture(scope='function')
 def mapper_factory():
-    def _factory(nq=4):
-        m = BasicMapperEngine()
-        m.current_mapping = dict((i, i) for i in range(nq))
-        return m
+    def _factory(n=4):
+        return BoundedQubitMapper(n)
 
     return _factory
 
@@ -181,13 +181,43 @@ def test_ionq_get_probability(monkeypatch, mapper_factory):
     Rx(7 * math.pi / 2) | qureg[0]
     Ry(7 * math.pi / 2) | qureg[0]
     Rx(7 * math.pi / 2) | qureg[1]
-    del unused_qubit
+
     # measure; should be all-0 or all-1
     All(Measure) | qureg
     # run the circuit
     eng.flush()
     assert eng.backend.get_probability('11', qureg) == pytest.approx(0.4)
     assert eng.backend.get_probability('00', qureg) == pytest.approx(0.6)
+
+
+def test_ionq_get_probabilities(monkeypatch, mapper_factory):
+    """Test a shortcut for getting a specific state's probability"""
+
+    def mock_retrieve(*args, **kwargs):
+        return {
+            'nq': 3,
+            'shots': 10,
+            'output_probs': {'1': 0.4, '0': 0.6},
+            'meas_mapped': [1, 2],
+        }
+
+    monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
+    backend = _ionq.IonQBackend(
+        retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968",
+        verbose=True,
+    )
+    eng = MainEngine(backend=backend, engine_list=[mapper_factory()])
+    qureg = eng.allocate_qureg(2)
+    q0, q1 = qureg
+    H | q0
+    CNOT | (q0, q1)
+    Measure | q1
+    # run the circuit
+    eng.flush()
+    assert eng.backend.get_probability('01', qureg) == pytest.approx(0.4)
+    assert eng.backend.get_probability('00', qureg) == pytest.approx(0.6)
+    assert eng.backend.get_probability('1', [qureg[1]]) == pytest.approx(0.4)
+    assert eng.backend.get_probability('0', [qureg[1]]) == pytest.approx(0.6)
 
 
 def test_ionq_invalid_command():
@@ -201,7 +231,7 @@ def test_ionq_invalid_command():
         backend.receive([cmd])
 
 
-def test_ionq_sent_error(monkeypatch):
+def test_ionq_sent_error(monkeypatch, mapper_factory):
     """Test that errors on "send" will raise back out."""
     # patch send
     type_error = TypeError()
@@ -209,7 +239,11 @@ def test_ionq_sent_error(monkeypatch):
     monkeypatch.setattr(_ionq_http_client, "send", mock_send)
 
     backend = _ionq.IonQBackend()
-    eng = MainEngine(backend=backend, verbose=True)
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[mapper_factory()],
+        verbose=True,
+    )
     qubit = eng.allocate_qubit()
     Rx(0.5) | qubit
     with pytest.raises(Exception) as excinfo:
@@ -225,14 +259,18 @@ def test_ionq_sent_error(monkeypatch):
     eng.next_engine = dummy
 
 
-def test_ionq_send_nonetype_response_error(monkeypatch):
+def test_ionq_send_nonetype_response_error(monkeypatch, mapper_factory):
     """Test that no return value from "send" will raise a runtime error."""
     # patch send
     mock_send = mock.MagicMock(return_value=None)
     monkeypatch.setattr(_ionq_http_client, "send", mock_send)
 
     backend = _ionq.IonQBackend()
-    eng = MainEngine(backend=backend, verbose=True)
+    eng = MainEngine(
+        backend=backend,
+        engine_list=[mapper_factory()],
+        verbose=True,
+    )
     qubit = eng.allocate_qubit()
     Rx(0.5) | qubit
     with pytest.raises(RuntimeError) as excinfo:
@@ -287,8 +325,8 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
 
     # Unknown qubit
     invalid_qubit = [Qubit(eng, 10)]
-    with pytest.raises(RuntimeError):
-        eng.backend.get_probabilities(invalid_qubit)
+    probs = eng.backend.get_probabilities(invalid_qubit)
+    assert {'0': 1} == probs
 
 
 def test_ionq_retrieve_nonetype_response_error(monkeypatch, mapper_factory):
@@ -380,7 +418,6 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
     Ry(3.5) | qureg[0]
     Rx(3.5) | qureg[1]
     All(Barrier) | qureg
-    del unused_qubit
     # measure; should be all-0 or all-1
     All(Measure) | qureg
     # run the circuit

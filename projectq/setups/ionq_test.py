@@ -16,7 +16,7 @@
 import pytest
 
 from projectq.backends._ionq._ionq_exc import DeviceOfflineError
-from projectq.cengines import BasicMapperEngine
+from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
 
 
 def test_basic_ionq_mapper(monkeypatch):
@@ -27,7 +27,11 @@ def test_basic_ionq_mapper(monkeypatch):
 
     monkeypatch.setattr(projectq.setups.ionq, 'show_devices', mock_show_devices)
     engine_list = projectq.setups.ionq.get_engine_list(device='dummy')
-    assert len(engine_list) > 0
+    assert len(engine_list) > 1
+    mapper = engine_list[-1]
+    assert isinstance(mapper, BoundedQubitMapper)
+    # to match nq in the backend
+    assert mapper.max_qubits == 3
 
 
 def test_ionq_errors(monkeypatch):
