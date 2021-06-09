@@ -113,10 +113,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     # What the IonQ JSON API request should look like.
     expected_request = {
         'target': 'dummy',
-        'metadata': {
-            'sdk': 'ProjectQ',
-            'meas_mapped': '[2, 3]',
-        },
+        'metadata': {'sdk': 'ProjectQ'},
         'shots': 1,
         'registers': {'meas_mapped': [2, 3]},
         'lang': 'json',
@@ -154,7 +151,7 @@ def test_send_real_device_online_verbose(monkeypatch):
                 'id': 'new-job-id',
                 'status': 'completed',
                 'qubits': 4,
-                'metadata': {'meas_mapped': '[2, 3]'},
+                'registers': {'meas_mapped': [2, 3]},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
                 },
@@ -480,7 +477,7 @@ def test_retrieve(monkeypatch, token):
                 'id': 'old-job-id',
                 'status': 'completed',
                 'qubits': 4,
-                'metadata': {'meas_mapped': '[2, 3]'},
+                'registers': {'meas_mapped': [2, 3]},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
                 },

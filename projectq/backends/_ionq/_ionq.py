@@ -304,14 +304,14 @@ class IonQBackend(BasicEngine):
         if len(self._circuit) == 0:
             return
 
-        measured_ids = self._measured_ids[:]
-        current_mapping = self.main_engine.mapper.current_mapping
         if self._retrieve_execution is None:
+            qubit_mapping = self.main_engine.mapper.current_mapping
+            measured_ids = self._measured_ids[:]
             info = {
                 'circuit': self._circuit,
-                'nq': len(current_mapping.keys()),
+                'nq': len(qubit_mapping.keys()),
                 'shots': self._num_runs,
-                'meas_mapped': [current_mapping[qubit_id] for qubit_id in measured_ids],
+                'meas_mapped': [qubit_mapping[qubit_id] for qubit_id in measured_ids],
             }
             res = http_client.send(
                 info,
@@ -338,7 +338,6 @@ class IonQBackend(BasicEngine):
                         self._retrieve_execution
                     )
                 )
-            # This is back
             self._measured_ids = measured_ids = res['meas_mapped']
 
         # Determine random outcome from probable states.

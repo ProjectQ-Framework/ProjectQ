@@ -15,7 +15,6 @@
 """ HTTP Client for the IonQ API. """
 
 import getpass
-import json
 import signal
 import time
 
@@ -124,10 +123,7 @@ class IonQ(Session):
         """
         argument = {
             'target': self.backends[device]['target'],
-            'metadata': {
-                'sdk': 'ProjectQ',
-                'meas_mapped': json.dumps(info['meas_mapped']),
-            },
+            'metadata': {'sdk': 'ProjectQ'},
             'shots': info['shots'],
             'registers': {'meas_mapped': info['meas_mapped']},
             'lang': 'json',
@@ -211,12 +207,12 @@ class IonQ(Session):
 
                 # Check if job is completed.
                 if status == 'completed':
-                    data = r_json['data']
-                    metadata = r_json['metadata']
+                    meas_mapped = r_json['registers']['meas_mapped']
+                    output_probs = r_json['data']['registers']['meas_mapped']
                     return {
                         'nq': r_json['qubits'],
-                        'output_probs': data['registers']['meas_mapped'],
-                        'meas_mapped': json.loads(metadata['meas_mapped']),
+                        'output_probs': output_probs,
+                        'meas_mapped': meas_mapped,
                     }
 
                 # Otherwise, make sure it is in a known healthy state.
