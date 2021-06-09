@@ -189,6 +189,10 @@ def test_ionq_get_probability(monkeypatch, mapper_factory):
     assert eng.backend.get_probability('11', qureg) == pytest.approx(0.4)
     assert eng.backend.get_probability('00', qureg) == pytest.approx(0.6)
 
+    with pytest.raises(ValueError) as excinfo:
+        eng.backend.get_probability('111', qureg)
+    assert str(excinfo.value) == 'Desired state and register must be the same length!'
+
 
 def test_ionq_get_probabilities(monkeypatch, mapper_factory):
     """Test a shortcut for getting a specific state's probability"""

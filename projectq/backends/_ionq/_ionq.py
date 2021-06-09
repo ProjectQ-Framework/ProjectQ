@@ -261,7 +261,10 @@ class IonQBackend(BasicEngine):
         Returns:
             float: The probability for the provided state.
         """
-        probs = self.get_probabilities(qureg[: len(state)])
+        if len(state) != len(qureg):
+            raise ValueError('Desired state and register must be the same length!')
+
+        probs = self.get_probabilities(qureg)
         return probs[state]
 
     def get_probabilities(self, qureg):
