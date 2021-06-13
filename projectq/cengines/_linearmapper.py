@@ -388,9 +388,7 @@ class LinearMapper(BasicMapperEngine):
                     segment_ids = set(segment)
                     segment_ids.discard(None)
 
-                    overlap = len(previous_chain_ids.intersection(segment_ids)) + previous_chain[idx0:idx1].count(
-                        None
-                    )
+                    overlap = len(previous_chain_ids.intersection(segment_ids)) + previous_chain[idx0:idx1].count(None)
                     if overlap == 0:
                         overlap_fraction = 0
                     elif overlap == len(segment):

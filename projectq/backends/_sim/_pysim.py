@@ -287,9 +287,7 @@ class Simulator(object):
         """
         for i in range(len(ids)):
             if ids[i] not in self._map:
-                raise RuntimeError(
-                    "get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."
-                )
+                raise RuntimeError("get_probability(): Unknown qubit id. Please make sure you have called eng.flush().")
         mask = 0
         bit_str = 0
         for i in range(len(ids)):

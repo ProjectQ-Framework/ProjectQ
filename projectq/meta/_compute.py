@@ -425,8 +425,6 @@ def Uncompute(engine):
     """
     compute_eng = engine.next_engine
     if not isinstance(compute_eng, ComputeEngine):
-        raise NoComputeSectionError(
-            "Invalid call to Uncompute: No corresponding 'with Compute' statement found."
-        )
+        raise NoComputeSectionError("Invalid call to Uncompute: No corresponding 'with Compute' statement found.")
     compute_eng.run_uncompute()
     drop_engine_after(engine)

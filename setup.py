@@ -134,9 +134,7 @@ def compiler_test(compiler, flagname=None, link=False, include='', body='', post
 
 def _fix_macosx_header_paths(*args):
     # Fix path to SDK headers if necessary
-    _MACOSX_XCODE_REF_PATH = (
-        '/Applications/Xcode.app/Contents/' + 'Developer/Platforms/MacOSX.platform/' + 'Developer'
-    )
+    _MACOSX_XCODE_REF_PATH = '/Applications/Xcode.app/Contents/' + 'Developer/Platforms/MacOSX.platform/' + 'Developer'
     _MACOSX_DEVTOOLS_REF_PATH = '/Library/Developer/CommandLineTools/'
     _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
     _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)

@@ -186,9 +186,7 @@ class QubitOperator(BasicGate):
                 if not isinstance(action, str) or action not in 'XYZ':
                     raise ValueError("Invalid action provided: must be string 'X', 'Y', or 'Z'.")
                 if not (isinstance(qubit_num, int) and qubit_num >= 0):
-                    raise QubitOperatorError(
-                        "Invalid qubit number provided to QubitTerm: must be a non-negative int."
-                    )
+                    raise QubitOperatorError("Invalid qubit number provided to QubitTerm: must be a non-negative int.")
             # Sort and add to self.terms:
             list_ops.sort(key=lambda loc_operator: loc_operator[0])
             self.terms[tuple(list_ops)] = coefficient

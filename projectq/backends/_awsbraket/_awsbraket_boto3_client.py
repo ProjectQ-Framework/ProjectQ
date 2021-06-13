@@ -105,9 +105,9 @@ class AWSBraket:
                         'version': deviceCapabilities['braketSchemaHeader']['version'],
                         'location': region,  # deviceCapabilities['service']['deviceLocation'],
                         'deviceArn': result['deviceArn'],
-                        'deviceParameters': deviceCapabilities['deviceParameters']['properties'][
-                            'braketSchemaHeader'
-                        ]['const'],
+                        'deviceParameters': deviceCapabilities['deviceParameters']['properties']['braketSchemaHeader'][
+                            'const'
+                        ],
                         'deviceModelParameters': deviceCapabilities['deviceParameters']['definitions'][
                             'GateModelParameters'
                         ]['properties']['braketSchemaHeader']['const'],
@@ -124,9 +124,9 @@ class AWSBraket:
                         'version': deviceCapabilities['braketSchemaHeader']['version'],
                         'location': 'us-east-1',
                         'deviceArn': result['deviceArn'],
-                        'deviceParameters': deviceCapabilities['deviceParameters']['properties'][
-                            'braketSchemaHeader'
-                        ]['const'],
+                        'deviceParameters': deviceCapabilities['deviceParameters']['properties']['braketSchemaHeader'][
+                            'const'
+                        ],
                         'deviceModelParameters': deviceCapabilities['deviceParameters']['definitions'][
                             'GateModelParameters'
                         ]['properties']['braketSchemaHeader']['const'],

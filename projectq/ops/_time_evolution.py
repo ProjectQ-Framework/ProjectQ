@@ -79,9 +79,7 @@ class TimeEvolution(BasicGate):
             if self.hamiltonian.terms[term].imag == 0:
                 self.hamiltonian.terms[term] = float(self.hamiltonian.terms[term].real)
             else:
-                raise NotHermitianOperatorError(
-                    "hamiltonian must be hermitian and hence only have real coefficients."
-                )
+                raise NotHermitianOperatorError("hamiltonian must be hermitian and hence only have real coefficients.")
 
     def get_inverse(self):
         """

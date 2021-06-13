@@ -59,9 +59,7 @@ def get_engine_list(token=None, device=None):
 
     # Most gates need to be decomposed into a subset that is manually converted
     # in the backend (until the implementation of the U1,U2,U3)
-    setup = restrictedgateset.get_engine_list(
-        one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,), other_gates=(Barrier,)
-    )
+    setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,), other_gates=(Barrier,))
     setup.extend(aqt_setup)
     return setup
 

@@ -91,9 +91,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         control = cmd.control_qubits[0].id
         is_possible = (control, target) in self.connectivity
         if not is_possible and (target, control) not in self.connectivity:
-            raise RuntimeError(
-                "The provided connectivity does not allow to execute the CNOT gate {}.".format(str(cmd))
-            )
+            raise RuntimeError("The provided connectivity does not allow to execute the CNOT gate {}.".format(str(cmd)))
         return not is_possible
 
     def _send_cnot(self, cmd, control, target, flip=False):

@@ -290,9 +290,7 @@ class MatrixGate(BasicGate):
         if not hasattr(other, 'matrix'):
             return False
         if not isinstance(self.matrix, np.matrix) or not isinstance(other.matrix, np.matrix):
-            raise TypeError(
-                "One of the gates doesn't have the correct type (numpy.matrix) for the matrix attribute."
-            )
+            raise TypeError("One of the gates doesn't have the correct type (numpy.matrix) for the matrix attribute.")
         if self.matrix.shape == other.matrix.shape and np.allclose(
             self.matrix, other.matrix, rtol=RTOL, atol=ATOL, equal_nan=False
         ):

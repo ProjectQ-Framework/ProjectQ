@@ -393,9 +393,7 @@ class Simulator(BasicEngine):
             else:
                 # individual code for different standard gates to make it faster!
                 if isinstance(cmd.gate, AddConstant):
-                    self._simulator.emulate_math_addConstant(
-                        cmd.gate.a, qubitids, [qb.id for qb in cmd.control_qubits]
-                    )
+                    self._simulator.emulate_math_addConstant(cmd.gate.a, qubitids, [qb.id for qb in cmd.control_qubits])
                 elif isinstance(cmd.gate, AddConstantModN):
                     self._simulator.emulate_math_addConstantModN(
                         cmd.gate.a,
