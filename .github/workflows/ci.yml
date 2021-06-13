@@ -52,7 +52,7 @@ jobs:
 
     - name: Prepare env
       run: |
-        python setup.py gen_reqfile
+        python setup.py gen_reqfile --include-extras
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install -r requirements_tests.txt --prefer-binary
         python -m pip install coveralls
@@ -62,7 +62,7 @@ jobs:
       run: python -m pip install pytest-github-actions-annotate-failures
 
     - name: Build and install package
-      run: python -m pip install -e .[braket]
+      run: python -m pip install -ve .[braket]
 
     - name: Pytest
       run: |
@@ -123,11 +123,17 @@ jobs:
         python3-pytest python3-pytest-cov python3-flaky
         --no-install-recommends
 
+    - name: Prepare Python env
+      run: |
+        python3 setup.py gen_reqfile --include-extras
+        python3 -m pip install -r requirements.txt --prefer-binary
+        python3 -m pip install -r requirements_tests.txt --prefer-binary
+
     - name: Upgrade pybind11
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -e .[braket]
+      run: python3 -m pip install -ve .[braket]
 
     - name: Pytest
       run: |
@@ -162,11 +168,17 @@ jobs:
         python3-pytest python3-pytest-cov python3-flaky
         --no-install-recommends
 
+    - name: Prepare Python env
+      run: |
+        python3 setup.py gen_reqfile --include-extras
+        python3 -m pip install -r requirements.txt --prefer-binary
+        python3 -m pip install -r requirements_tests.txt --prefer-binary
+
     - name: Upgrade pybind11
       run: python3 -m pip install --upgrade pybind11 --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -e .[braket]
+      run: python3 -m pip install -ve .[braket]
 
     - name: Pytest
       run: |
@@ -232,12 +244,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 setup.py gen_reqfile
+        python3 setup.py gen_reqfile --include-extras
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -e .[braket]
+      run: python3 -m pip install -ve .[braket]
 
     - name: Pytest
       run: |
@@ -271,7 +283,7 @@ jobs:
 
     - name: Install docs & setup requirements
       run: |
-        python3 setup.py gen_reqfile
+        python3 setup.py gen_reqfile --include-extras
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r docs/requirements.txt --prefer-binary
         python3 -m pip install .
@@ -322,12 +334,12 @@ jobs:
 
     - name: Prepare env
       run: |
-        python setup.py gen_reqfile
+        python setup.py gen_reqfile --include-extras
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Build and install package
-      run: python -m pip install -e .[braket]
+      run: python -m pip install -ve .[braket]
 
     - name: Run all checks
       run: |

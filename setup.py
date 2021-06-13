@@ -523,10 +523,11 @@ class GenerateRequirementFile(Command):
     """A custom command to list the dependencies of the current"""
 
     description = 'List the dependencies of the current package'
-    user_options = []
+    user_options = [('include-extras', None, 'Include "extras_require" into the list')]
+    boolean_options = ['include-extras']
 
     def initialize_options(self):
-        pass
+        self.include_extras = None
 
     def finalize_options(self):
         pass
@@ -536,9 +537,19 @@ class GenerateRequirementFile(Command):
             try:
                 for pkg in self.distribution.install_requires:
                     fd.write('{}\n'.format(pkg))
+                if self.include_extras:
+                    for name, pkgs in self.distribution.extras_require.items():
+                        for pkg in pkgs:
+                            fd.write('{}\n'.format(pkg))
+
             except TypeError:  # Mostly for old setuptools (< 30.x)
                 for pkg in self.distribution.command_options['options']['install_requires']:
                     fd.write('{}\n'.format(pkg))
+                if self.include_extras:
+                    for name, pkgs in self.distribution.command_options['options.extras_require'].items():
+                        location, pkgs = pkgs
+                        for pkg in pkgs.split():
+                            fd.write('{}\n'.format(pkg))
 
 
 # ------------------------------------------------------------------------------
