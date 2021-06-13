@@ -129,7 +129,7 @@ jobs:
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r requirements_tests.txt --prefer-binary
 
-    - name: Upgrade pybind11
+    - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
@@ -174,8 +174,8 @@ jobs:
         python3 -m pip install -r requirements.txt --prefer-binary
         python3 -m pip install -r requirements_tests.txt --prefer-binary
 
-    - name: Upgrade pybind11
-      run: python3 -m pip install --upgrade pybind11 --prefer-binary
+    - name: Upgrade pybind11 and flaky
+      run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
       run: python3 -m pip install -ve .[braket]
