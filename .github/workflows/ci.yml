@@ -97,12 +97,13 @@ jobs:
       matrix:
         clang:
           - 3.5  # version for full C++14 support (3.4 fails because of -fstack-protector-strong)
-          - 5  # earliest version for reasonable C++17 support
-          - 9  # version for full C++17 support (with patches)
+          - 5    # earliest version for reasonable C++17 support
+          - 10   # version for full C++17 support (with patches)
           - latest
     env:
       CC: clang
       CXX: clang++
+      PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang < 10) && 1 || 0 }}
 
     name: "🐍 3 • Clang ${{ matrix.clang }} • x64"
     container: "silkeh/clang:${{ matrix.clang }}"
@@ -123,7 +124,7 @@ jobs:
         --no-install-recommends
 
     - name: Upgrade pybind11
-      run: python3 -m pip install --upgrade pybind11 --prefer-binary
+      run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
       run: python3 -m pip install -e .[braket]

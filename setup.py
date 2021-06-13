@@ -298,6 +298,13 @@ class BuildExt(build_ext):
         dry_run_old = self.compiler.dry_run
         self.compiler.dry_run = False
 
+        if (
+            int(os.environ.get('PROJECTQ_CLEANUP_COMPILER_FLAGS', 0))
+            and self.compiler.compiler_type == 'unix'
+            and sys.platform != 'darwin'
+        ):
+            self._cleanup_compiler_flags()
+
         if sys.platform == 'darwin':
             _fix_macosx_header_paths(self.compiler.compiler, self.compiler.compiler_so)
 
@@ -440,6 +447,30 @@ class BuildExt(build_ext):
 
         important_msgs('ERROR: compiler needs to have at least C++11 support!')
         raise BuildFailed()
+
+    def _cleanup_compiler_flags(self):
+        compiler = self.compiler.compiler[0]
+        compiler_so = self.compiler.compiler_so[0]
+        linker_so = self.compiler.linker_so[0]
+        compiler_flags = set(self.compiler.compiler[1:])
+        compiler_so_flags = set(self.compiler.compiler_so[1:])
+        linker_so_flags = set(self.compiler.linker_so[1:])
+        common_flags = compiler_flags & compiler_so_flags & linker_so_flags
+
+        self.compiler.compiler = [compiler] + list(compiler_flags - common_flags)
+        self.compiler.compiler_so = [compiler_so] + list(compiler_so_flags - common_flags)
+        self.compiler.linker_so = [linker_so] + list(linker_so_flags - common_flags)
+
+        flags = []
+        for flag in common_flags:
+            if compiler_test(self.compiler, flag):
+                flags.append(flag)
+            else:
+                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+
+        self.compiler.compiler.extend(flags)
+        self.compiler.compiler_so.extend(flags)
+        self.compiler.linker_so.extend(flags)
 
 
 # ------------------------------------------------------------------------------
