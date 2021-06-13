@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 from projectq.ops import Allocate, Deallocate
-from projectq.types import Qubit, Qureg
+from projectq.types import Qubit, Qureg, WeakQubitRef
 from projectq.ops import Command
 
 
@@ -160,11 +160,13 @@ class BasicEngine(object):
                 Command(
                     self,
                     Deallocate,
-                    (Qureg([qubit]),),
+                    ([WeakQubitRef(engine=qubit.engine, idx=qubit.id)],),
                     tags=[DirtyQubitTag()] if is_dirty else [],
                 )
             ]
         )
+        # Mark qubit as deallocated
+        qubit.id = -1
 
     def is_meta_tag_supported(self, meta_tag):
         """

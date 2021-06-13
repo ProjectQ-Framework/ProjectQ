@@ -94,6 +94,8 @@ def test_simulator_bit_repositioning(mapper):  # noqa: F811
     sim.write_register(c, 33)
     for q in b:
         eng.deallocate_qubit(q)
+        # Make sure that the qubit are marked as deleted
+        assert q.id == -1
     assert sim.read_register(a) == 9
     assert sim.read_register(c) == 33
 

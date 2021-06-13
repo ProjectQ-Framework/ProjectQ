@@ -211,13 +211,10 @@ class ClassicalSimulator(BasicEngine):
         if cmd.gate == Deallocate:
             old_id = cmd.qubits[0][0].id
             pos = self._bit_positions[old_id]
-            if pos > 0:
-                low = (1 << pos) - 1
-            else:
-                low = (1 >> -pos) - 1
+            low = (1 << pos) - 1
 
             self._state = (self._state & low) | ((self._state >> 1) & ~low)
-            self._bit_positions = {k: b - (0 if b < pos else 1) for k, b in self._bit_positions.items()}
+            self._bit_positions = {k: b - (0 if b < pos else 1) for k, b in self._bit_positions.items() if k != old_id}
             return
 
         controls_mask = self._mask(cmd.control_qubits)
