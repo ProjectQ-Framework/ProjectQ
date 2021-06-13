@@ -389,16 +389,12 @@ def test_rmul_bad_multiplier():
 @pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j), 2])
 def test_truediv_and_div(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
-    op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
     res = op / divisor
-    res2 = op2.__div__(divisor)  # To test python 2 version as well
     correct = op * (1.0 / divisor)
     assert res.isclose(correct)
-    assert res2.isclose(correct)
     # Test if done out of place
     assert op.isclose(original)
-    assert op2.isclose(original)
 
 
 def test_truediv_bad_divisor():
@@ -410,16 +406,12 @@ def test_truediv_bad_divisor():
 @pytest.mark.parametrize("divisor", [0.5, 0.6j, numpy.float64(2.303), numpy.complex128(-1j), 2])
 def test_itruediv_and_idiv(divisor):
     op = qo.QubitOperator(((1, 'X'), (3, 'Y'), (8, 'Z')), 0.5)
-    op2 = copy.deepcopy(op)
     original = copy.deepcopy(op)
     correct = op * (1.0 / divisor)
     op /= divisor
-    op2.__idiv__(divisor)  # To test python 2 version as well
     assert op.isclose(correct)
-    assert op2.isclose(correct)
     # Test if done in-place
     assert not op.isclose(original)
-    assert not op2.isclose(original)
 
 
 def test_itruediv_bad_divisor():
