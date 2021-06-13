@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 
-    line-length = 118
+    line-length = 120
     target-version = ['py36','py37','py38']
     skip-string-normalization = true
 
@@ -82,4 +82,4 @@ local_scheme = 'no-local-version'
 
 [tool.yapf]
 
-column_limit = 118
+column_limit = 120

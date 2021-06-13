@@ -107,7 +107,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
         qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}
     else:
         if list(qubit_labels) != list(qubit_lines):
-            raise RuntimeError('Qubit IDs in qubit_labels do not match ' + 'qubit IDs in qubit_lines!')
+            raise RuntimeError('Qubit IDs in qubit_labels do not match qubit IDs in qubit_lines!')
 
     if drawing_order is None:
         n_qubits = len(qubit_lines)
@@ -117,7 +117,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
             raise RuntimeError('Qubit IDs in drawing_order do not match ' + 'qubit IDs in qubit_lines!')
         if list(sorted(drawing_order.values())) != list(range(len(drawing_order))):
             raise RuntimeError(
-                'Indices of qubit wires in drawing_order ' + 'must be between 0 and {}!'.format(len(drawing_order))
+                'Indices of qubit wires in drawing_order must be between 0 and {}!'.format(len(drawing_order))
             )
 
     plot_params = deepcopy(_DEFAULT_PLOT_PARAMS)

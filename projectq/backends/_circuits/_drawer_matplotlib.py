@@ -126,7 +126,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
                     if self._accept_input:
                         measurement = None
                         while measurement not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for " "qubit " + str(qubit) + ": "
+                            prompt = "Input measurement result (0 or 1) for qubit {}: ".format(qubit)
                             measurement = input(prompt)
                     else:
                         measurement = self._default_measure

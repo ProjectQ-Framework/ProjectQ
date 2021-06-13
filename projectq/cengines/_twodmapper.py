@@ -126,7 +126,7 @@ class GridMapper(BasicMapperEngine):
             self._mapped_ids_to_backend_ids = dict()
             for i in range(self.num_qubits):
                 self._mapped_ids_to_backend_ids[i] = i
-        if not (set(self._mapped_ids_to_backend_ids.keys()) == set(list(range(self.num_qubits)))) or not (
+        if not (set(self._mapped_ids_to_backend_ids.keys()) == set(range(self.num_qubits))) or not (
             len(set(self._mapped_ids_to_backend_ids.values())) == self.num_qubits
         ):
             raise RuntimeError("Incorrect mapped_ids_to_backend_ids parameter")

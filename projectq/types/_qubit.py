@@ -190,7 +190,7 @@ class Qureg(list):
             return bool(self[0])
         else:
             raise Exception(
-                "__bool__(qureg): Quantum register contains more " "than 1 qubit. Use __bool__(qureg[idx]) instead."
+                "__bool__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
             )
 
     def __int__(self):
@@ -205,7 +205,7 @@ class Qureg(list):
             return int(self[0])
         else:
             raise Exception(
-                "__int__(qureg): Quantum register contains more " "than 1 qubit. Use __bool__(qureg[idx]) instead."
+                "__int__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
             )
 
     def __nonzero__(self):

@@ -165,10 +165,10 @@ class QubitOperator(BasicGate):
                         raise ValueError("term specified incorrectly.")
                     qubit_num, action = local_operator
                     if not isinstance(action, str) or action not in 'XYZ':
-                        raise ValueError("Invalid action provided: must be " "string 'X', 'Y', or 'Z'.")
+                        raise ValueError("Invalid action provided: must be string 'X', 'Y', or 'Z'.")
                     if not (isinstance(qubit_num, int) and qubit_num >= 0):
                         raise QubitOperatorError(
-                            "Invalid qubit number " "provided to QubitTerm: " "must be a non-negative " "int."
+                            "Invalid qubit number provided to QubitTerm: must be a non-negative int."
                         )
                 # Sort and add to self.terms:
                 term = list(term)
@@ -184,10 +184,10 @@ class QubitOperator(BasicGate):
             for local_operator in list_ops:
                 qubit_num, action = local_operator
                 if not isinstance(action, str) or action not in 'XYZ':
-                    raise ValueError("Invalid action provided: must be " "string 'X', 'Y', or 'Z'.")
+                    raise ValueError("Invalid action provided: must be string 'X', 'Y', or 'Z'.")
                 if not (isinstance(qubit_num, int) and qubit_num >= 0):
                     raise QubitOperatorError(
-                        "Invalid qubit number " "provided to QubitTerm: " "must be a non-negative " "int."
+                        "Invalid qubit number provided to QubitTerm: must be a non-negative int."
                     )
             # Sort and add to self.terms:
             list_ops.sort(key=lambda loc_operator: loc_operator[0])
@@ -322,7 +322,7 @@ class QubitOperator(BasicGate):
         for index, action in term:
             non_trivial_qubits.add(index)
         if max(non_trivial_qubits) >= num_qubits:
-            raise ValueError("QubitOperator acts on more qubits than the gate " "is applied to.")
+            raise ValueError("QubitOperator acts on more qubits than the gate is applied to.")
         # Apply X, Y, Z, if QubitOperator acts only on one qubit
         if len(term) == 1:
             if term[0][1] == "X":
@@ -508,19 +508,11 @@ class QubitOperator(BasicGate):
             raise TypeError('Cannot divide QubitOperator by non-scalar type.')
         return self * (1.0 / divisor)
 
-    def __div__(self, divisor):
-        """For compatibility with Python 2."""
-        return self.__truediv__(divisor)
-
     def __itruediv__(self, divisor):
         if not isinstance(divisor, (int, float, complex)):
             raise TypeError('Cannot divide QubitOperator by non-scalar type.')
         self *= 1.0 / divisor
         return self
-
-    def __idiv__(self, divisor):
-        """For compatibility with Python 2."""
-        return self.__itruediv__(divisor)
 
     def __iadd__(self, addend):
         """

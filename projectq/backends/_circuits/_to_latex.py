@@ -393,7 +393,7 @@ class _Circ2Tikz(object):
                 add_str = add_str.format(op, self.pos[line], line)
                 yshift = str(self._gate_height(gate)) + "cm]"
                 add_str += (
-                    "\n\\draw ([yshift={yshift}{op}.center) edge " "[edgestyle] ([yshift=-{yshift}{op}.center);"
+                    "\n\\draw ([yshift={yshift}{op}.center) edge [edgestyle] ([yshift=-{yshift}{op}.center);"
                 ).format(op=op, yshift=yshift)
                 self.op_count[line] += 1
                 self.pos[line] += self._gate_width(gate) + self._gate_offset(gate)
@@ -762,7 +762,7 @@ class _Circ2Tikz(object):
         else:
             if p2 > p1:
                 loc1, loc2 = loc2, loc1
-            edge_str = "\n\\draw ([{shift}]{op1}.{loc1}) edge[edgestyle] " "([{shift}]{op2}.{loc2});"
+            edge_str = "\n\\draw ([{shift}]{op1}.{loc1}) edge[edgestyle] ([{shift}]{op2}.{loc2});"
             line_sep = self.settings['lines']['double_lines_sep']
             shift1 = shift.format(line_sep / 2.0)
             shift2 = shift.format(-line_sep / 2.0)
@@ -802,7 +802,7 @@ class _Circ2Tikz(object):
         node_str = "\n\\node[none] ({}) at ({},-{}) {{}};"
         for line in lines:
             node1 = node_str.format(self._op(line), pos, line)
-            node2 = ("\n\\node[none,minimum height={}cm,outer sep=0] ({}) at" " ({},-{}) {{}};").format(
+            node2 = ("\n\\node[none,minimum height={}cm,outer sep=0] ({}) at ({},-{}) {{}};").format(
                 gate_height, self._op(line, offset=1), pos + gate_width / 2.0, line
             )
             node3 = node_str.format(self._op(line, offset=2), pos + gate_width, line)

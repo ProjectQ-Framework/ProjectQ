@@ -42,7 +42,7 @@ def get_engine_list(token=None, device=None):
     devices = show_devices(token)
     ibm_setup = []
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device ' 'requested for Backend not connected')
+        raise DeviceOfflineError('Error when configuring engine list: device requested for Backend not connected')
     if devices[device]['nq'] == 5:
         # The requested device is a 5 qubit processor
         # Obtain the coupling map specific to the device

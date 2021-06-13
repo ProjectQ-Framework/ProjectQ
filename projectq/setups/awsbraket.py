@@ -50,7 +50,7 @@ def get_engine_list(credentials=None, device=None):
     # gate, etc..
     devices = show_devices(credentials)
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device ' 'requested for Backend not available')
+        raise DeviceOfflineError('Error when configuring engine list: device requested for Backend not available')
 
     # We left the real device to manage the mapping and optimizacion: "The IonQ
     # and Rigetti devices compile the provided circuit into their respective

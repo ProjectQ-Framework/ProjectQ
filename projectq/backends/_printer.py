@@ -86,7 +86,7 @@ class CommandPrinter(BasicEngine):
                     if self._accept_input:
                         m = None
                         while m != '0' and m != '1' and m != 1 and m != 0:
-                            prompt = "Input measurement result (0 or 1) for" " qubit " + str(qubit) + ": "
+                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
                             m = input(prompt)
                     else:
                         m = self._default_measure

@@ -111,9 +111,6 @@ class ComputeEngine(BasicEngine):
 
         # qubits ids which were allocated and deallocated in Compute section
         ids_local_to_compute = self._allocated_qubit_ids.intersection(self._deallocated_qubit_ids)
-        # qubit ids which were allocated but not yet deallocated in
-        # Compute section
-        # ids_still_alive = self._allocated_qubit_ids.difference(self._deallocated_qubit_ids)
 
         # No qubits allocated and already deallocated during compute.
         # Don't inspect each command as below -> faster uncompute
@@ -382,7 +379,7 @@ class CustomUncompute(object):
         compute_eng = self.engine.next_engine
         if not isinstance(compute_eng, ComputeEngine):
             raise NoComputeSectionError(
-                "Invalid call to CustomUncompute: No corresponding" "'with Compute' statement found."
+                "Invalid call to CustomUncompute: No corresponding'with Compute' statement found."
             )
         # Make copy so there is not reference to compute_eng anymore
         # after __enter__
@@ -429,7 +426,7 @@ def Uncompute(engine):
     compute_eng = engine.next_engine
     if not isinstance(compute_eng, ComputeEngine):
         raise NoComputeSectionError(
-            "Invalid call to Uncompute: No " "corresponding 'with Compute' statement " "found."
+            "Invalid call to Uncompute: No corresponding 'with Compute' statement found."
         )
     compute_eng.run_uncompute()
     drop_engine_after(engine)

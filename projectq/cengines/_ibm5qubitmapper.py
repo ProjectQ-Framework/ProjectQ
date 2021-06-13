@@ -142,7 +142,7 @@ class IBM5QubitMapper(BasicMapperEngine):
                         best_cost = new_cost
                         best_mapping = mapping
             if best_cost is None:
-                raise RuntimeError("Circuit cannot be mapped without using " "Swaps. Mapping failed.")
+                raise RuntimeError("Circuit cannot be mapped without using Swaps. Mapping failed.")
             self._interactions = dict()
             self.current_mapping = best_mapping
 

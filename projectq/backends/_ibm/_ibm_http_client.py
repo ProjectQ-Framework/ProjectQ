@@ -26,7 +26,7 @@ import requests
 from requests.compat import urljoin
 from requests import Session
 
-_AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/' 'loginWithToken'
+_AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken'
 _API_URL = 'https://api.quantum-computing.ibm.com/api/'
 
 # TODO: call to get the API version automatically
@@ -274,7 +274,7 @@ class IBMQ(Session):
                     self.get_list_devices()
                     if not self.is_online(device):
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of " "your submitted job is {}.".format(execution_id)
+                            "Device went offline. The ID of your submitted job is {}.".format(execution_id)
                         )
 
         finally:
@@ -368,7 +368,7 @@ def send(
         ibmq_session.get_list_devices(verbose)
         online = ibmq_session.is_online(device)
         if not online:
-            print("The device is offline (for maintenance?). Use the " "simulator instead or try again later.")
+            print("The device is offline (for maintenance?). Use the simulator instead or try again later.")
             raise DeviceOfflineError("Device is offline.")
 
         # check if the device has enough qubit to run the code

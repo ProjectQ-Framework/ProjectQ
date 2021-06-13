@@ -71,7 +71,7 @@ class LocalOptimizer(BasicEngine):
                     # and don't want the other qubit to do so
                     self._l[Id] = self._l[Id][1:]
                 except IndexError:  # pragma: no cover
-                    print("Invalid qubit pipeline encountered (in the" " process of shutting down?).")
+                    print("Invalid qubit pipeline encountered (in the process of shutting down?).")
 
             # all qubits that need to be flushed have been flushed
             # --> send on the n-qubit gate
@@ -179,7 +179,7 @@ class LocalOptimizer(BasicEngine):
                         new_list = (
                             self._l[qubitids[j]][0 : gid[j] + 1]  # noqa: E203
                             + self._l[qubitids[j]][gid[j] + 2 :]  # noqa: E203
-                        )  # noqa: E203
+                        )
                         self._l[qubitids[j]] = new_list
                     i = 0
                     limit -= 1

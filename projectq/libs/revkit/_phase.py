@@ -109,7 +109,7 @@ class PhaseOracle:
 
         # check whether circuit has correct signature
         if revkit.ps(mct=True, silent=True)['qubits'] != len(qs):
-            raise RuntimeError("Generated circuit lines does not match " "provided qubits")
+            raise RuntimeError("Generated circuit lines does not match provided qubits")
 
         # convert reversible circuit to ProjectQ code and execute it
         _exec(revkit.to_projectq(mct=True), qs)

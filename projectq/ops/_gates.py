@@ -183,7 +183,12 @@ class SwapGate(SelfInverseGate):
 
     @property
     def matrix(self):
-        return np.matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+        # fmt: off
+        return np.matrix([[1, 0, 0, 0],
+                          [0, 0, 1, 0],
+                          [0, 1, 0, 0],
+                          [0, 0, 0, 1]])
+        # fmt: on
 
 
 #: Shortcut (instance of) :class:`projectq.ops.SwapGate`

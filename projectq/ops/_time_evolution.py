@@ -80,7 +80,7 @@ class TimeEvolution(BasicGate):
                 self.hamiltonian.terms[term] = float(self.hamiltonian.terms[term].real)
             else:
                 raise NotHermitianOperatorError(
-                    "hamiltonian must be " "hermitian and hence only " "have real coefficients."
+                    "hamiltonian must be hermitian and hence only have real coefficients."
                 )
 
     def get_inverse(self):
@@ -190,7 +190,7 @@ class TimeEvolution(BasicGate):
             for index, action in term:
                 non_trivial_qubits.add(index)
         if max(non_trivial_qubits) >= num_qubits:
-            raise ValueError("hamiltonian acts on more qubits than the gate " "is applied to.")
+            raise ValueError("hamiltonian acts on more qubits than the gate is applied to.")
         # create new TimeEvolution gate with rescaled qubit indices in
         # self.hamiltonian which are ordered from
         # 0,...,len(non_trivial_qubits) - 1

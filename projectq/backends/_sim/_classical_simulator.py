@@ -46,7 +46,7 @@ class ClassicalSimulator(BasicEngine):
         mapper = self.main_engine.mapper
         if mapper is not None:
             if qubit.id not in mapper.current_mapping:
-                raise RuntimeError("Unknown qubit id. " "Please make sure you have called " "eng.flush().")
+                raise RuntimeError("Unknown qubit id. Please make sure you have called eng.flush().")
             return WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
         else:
             return qubit

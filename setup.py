@@ -141,7 +141,7 @@ def _fix_macosx_header_paths(*args):
     _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
     _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)
     if not _has_xcode and not _has_devtools:
-        important_msgs('ERROR: Must install either Xcode or ' + 'CommandLineTools!')
+        important_msgs('ERROR: Must install either Xcode or CommandLineTools!')
         raise BuildFailed()
 
     def _do_replace(idx, item):
@@ -312,7 +312,7 @@ class BuildExt(build_ext):
 
         if not compiler_test(self.compiler):
             important_msgs(
-                'ERROR: something is wrong with your C++ compiler.\n' 'Failed to compile a simple test program!'
+                'ERROR: something is wrong with your C++ compiler.\nFailed to compile a simple test program!'
             )
             raise BuildFailed()
 
@@ -554,13 +554,13 @@ def run_setup(with_cext):
 if not cpython:
     run_setup(False)
     important_msgs(
-        'WARNING: C/C++ extensions are not supported on ' + 'some features are disabled (e.g. C++ simulator).',
+        'WARNING: C/C++ extensions are not supported on some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
 elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
     run_setup(False)
     important_msgs(
-        'DISABLE_PROJECTQ_CEXT is set; ' + 'not attempting to build C/C++ extensions.',
+        'DISABLE_PROJECTQ_CEXT is set; not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
     )
 

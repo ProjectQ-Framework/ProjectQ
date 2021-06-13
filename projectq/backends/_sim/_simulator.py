@@ -133,7 +133,7 @@ class Simulator(BasicEngine):
             mapped_qureg = []
             for qubit in qureg:
                 if qubit.id not in mapper.current_mapping:
-                    raise RuntimeError("Unknown qubit id. " "Please make sure you have called " "eng.flush().")
+                    raise RuntimeError("Unknown qubit id. Please make sure you have called eng.flush().")
                 new_qubit = WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
                 mapped_qureg.append(new_qubit)
             return mapped_qureg
@@ -170,7 +170,7 @@ class Simulator(BasicEngine):
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
-                raise Exception("qubit_operator acts on more qubits than " "contained in the qureg.")
+                raise Exception("qubit_operator acts on more qubits than contained in the qureg.")
         operator = [(list(term), coeff) for (term, coeff) in qubit_operator.terms.items()]
         return self._simulator.get_expectation_value(operator, [qb.id for qb in qureg])
 
@@ -207,7 +207,7 @@ class Simulator(BasicEngine):
         num_qubits = len(qureg)
         for term, _ in qubit_operator.terms.items():
             if not term == () and term[-1][0] >= num_qubits:
-                raise Exception("qubit_operator acts on more qubits than " "contained in the qureg.")
+                raise Exception("qubit_operator acts on more qubits than contained in the qureg.")
         operator = [(list(term), coeff) for (term, coeff) in qubit_operator.terms.items()]
         return self._simulator.apply_qubit_operator(operator, [qb.id for qb in qureg])
 

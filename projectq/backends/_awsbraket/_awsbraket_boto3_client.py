@@ -298,7 +298,7 @@ class AWSBraket:
                         "The failure reason was: {}.".format(status, quantum_task['failureReason'])
                     )
                 if status == 'CANCELLING':
-                    raise Exception("The job received a CANCEL " "operation: {}.".format(status))
+                    raise Exception("The job received a CANCEL operation: {}.".format(status))
                 time.sleep(interval)
                 # NOTE: Be aware that AWS is billing if a lot of API calls are
                 # executed, therefore the num_repetitions is set to a small
@@ -411,9 +411,9 @@ def send(info, device, credentials, s3_folder, num_retries=30, interval=1, verbo
         awsbraket_session.get_list_devices(verbose)
         online = awsbraket_session.is_online(device)
         if online:
-            print("The job will be queued in any case, " "plase take this into account")
+            print("The job will be queued in any case, plase take this into account")
         else:
-            print("The device is not available. Use the " "simulator instead or try another device.")
+            print("The device is not available. Use the simulator instead or try another device.")
             raise DeviceOfflineError("Device is not available.")
 
         # check if the device has enough qubit to run the code

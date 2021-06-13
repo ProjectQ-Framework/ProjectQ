@@ -198,8 +198,8 @@ def test_body_with_drawing_order_and_gates_parallel():
     H | qubit3
     CNOT | (qubit1, qubit3)
 
-    # replicates the above order
-    order = [0, 1, 2, 0, 1, 2, 0]  # initializations  # H1, H3, H2  # CNOT
+    # replicates the above order: first the 3 allocations, then the 3 Hadamard and 1 CNOT gates
+    order = [0, 1, 2, 0, 1, 2, 0]
 
     del qubit1
     eng.flush()
@@ -241,8 +241,8 @@ def test_body_with_drawing_order_and_gates_not_parallel():
     H | qubit3
     CNOT | (qubit1, qubit3)
 
-    # replicates the above order
-    order = [0, 1, 2, 0, 1, 2, 0]  # initializations  # H1, H3, H2  # CNOT
+    # replicates the above order: first the 3 allocations, then the 3 Hadamard and 1 CNOT gates
+    order = [0, 1, 2, 0, 1, 2, 0]
 
     del qubit1
     eng.flush()

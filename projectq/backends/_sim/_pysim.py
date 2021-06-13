@@ -288,7 +288,7 @@ class Simulator(object):
         for i in range(len(ids)):
             if ids[i] not in self._map:
                 raise RuntimeError(
-                    "get_probability(): Unknown qubit id. " "Please make sure you have called " "eng.flush()."
+                    "get_probability(): Unknown qubit id. Please make sure you have called eng.flush()."
                 )
         mask = 0
         bit_str = 0
@@ -514,7 +514,7 @@ class Simulator(object):
             if (mask & i) == val:
                 nrm += _np.abs(self._state[i]) ** 2
         if nrm < 1.0e-12:
-            raise RuntimeError("collapse_wavefunction(): Invalid collapse! " "Probability is ~0.")
+            raise RuntimeError("collapse_wavefunction(): Invalid collapse! Probability is ~0.")
         inv_nrm = 1.0 / _np.sqrt(nrm)
         for i in range(len(self._state)):
             if (mask & i) != val:

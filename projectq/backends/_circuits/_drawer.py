@@ -192,7 +192,7 @@ class CircuitDrawer(BasicEngine):
                 needs be called before any gates have been received).
         """
         if len(self._map) > 0:
-            raise RuntimeError("set_qubit_locations() has to be called before" " applying gates!")
+            raise RuntimeError("set_qubit_locations() has to be called before applying gates!")
 
         for k in range(min(id_to_loc), max(id_to_loc) + 1):
             if k not in id_to_loc:
@@ -234,7 +234,7 @@ class CircuitDrawer(BasicEngine):
                     if self._accept_input:
                         m = None
                         while m not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for " "qubit " + str(qubit) + ": "
+                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
                             m = input(prompt)
                     else:
                         m = self._default_measure

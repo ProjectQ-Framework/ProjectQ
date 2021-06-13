@@ -484,7 +484,7 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
         AddQuantum | (
             quint_a[0 : (n - 1)],  # noqa: E203
             product[1:n],
-            [product[n + 1], product[n + 2]],  # noqa: E203
+            [product[n + 1], product[n + 2]],
         )
 
     for j in range(2, n):

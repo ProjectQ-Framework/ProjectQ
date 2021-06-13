@@ -37,7 +37,7 @@ def get_engine_list(token=None, device=None):
     devices = show_devices(token)
     aqt_setup = []
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device ' 'requested for Backend not connected')
+        raise DeviceOfflineError('Error when configuring engine list: device requested for Backend not connected')
     if device == 'aqt_simulator':
         # The 11 qubit online simulator doesn't need a specific mapping for
         # gates. Can also run wider gateset but this setup keep the
