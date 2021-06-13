@@ -379,7 +379,7 @@ class CustomUncompute(object):
         compute_eng = self.engine.next_engine
         if not isinstance(compute_eng, ComputeEngine):
             raise NoComputeSectionError(
-                "Invalid call to CustomUncompute: No corresponding'with Compute' statement found."
+                "Invalid call to CustomUncompute: No corresponding 'with Compute' statement found."
             )
         # Make copy so there is not reference to compute_eng anymore
         # after __enter__
