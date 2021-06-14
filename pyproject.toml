@@ -52,11 +52,11 @@ braket = [
 ]
 
 qiskit = [
-       'qiskit'
+       'qiskit>=0.14'
 ]
 
 qasm = [
-       'qiskit'
+       'qiskit>=0.14'
 ]
 
 pyparsing = [
