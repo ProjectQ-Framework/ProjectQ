@@ -350,7 +350,7 @@ class IonQBackend(BasicEngine):
             state = _rearrange_result(int(state_int), num_measured)
             probability = probable_outcomes[state_int]
             p_sum += probability
-            if p_sum >= P and measured == "":
+            if p_sum >= P and measured == "" or (idx == len(states) - 1):
                 measured = state
                 star = "*"
             self._probabilities[state] = probability
