@@ -283,9 +283,6 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Create pip cache dir
-        run: mkdir -p ~/.cache/pip
-
       - name: Cache wheels
         uses: actions/cache@v3
         with:
