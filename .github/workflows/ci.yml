@@ -69,11 +69,11 @@ jobs:
 
       - name: Build and install package (Unix)
         if: runner.os != 'Windows'
-        run: python -m pip install -ve .[azure-quantum,braket,revkit,test]
+        run: python -m pip install -ve .[azure-quantum,braket,revkit,test,qiskit,pyparsing]
 
       - name: Build and install package (Windows)
         if: runner.os == 'Windows'
-        run: python -m pip install -ve .[azure-quantum,braket,test]
+        run: python -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
 
       - name: Pytest
         run: |
@@ -155,7 +155,7 @@ jobs:
         run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install -ve .[azure-quantum,braket,test]
+        run: python3 -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
 
       - name: Pytest
         run: |
@@ -206,7 +206,7 @@ jobs:
         run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install -ve .[azure-quantum,braket,test]
+        run: python3 -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
 
       - name: Pytest
         run: |
@@ -296,7 +296,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
           cat requirements.txt
           python3 -m pip install -r requirements.txt --prefer-binary
 
