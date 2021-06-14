@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -229,9 +230,7 @@ class IonQBackend(BasicEngine):
             if len(already_measured) > 0:
                 err = (
                     'Mid-circuit measurement is not supported. '
-                    'The following qubits have already been measured: {}.'.format(
-                        list(already_measured)
-                    )
+                    'The following qubits have already been measured: {}.'.format(list(already_measured))
                 )
                 raise MidCircuitMeasurementError(err)
 
@@ -296,9 +295,7 @@ class IonQBackend(BasicEngine):
                 mapped_state[i] = state[meas_idx]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
-            probability_dict[mapped_state] = (
-                probability_dict.get(mapped_state, 0) + probability
-            )
+            probability_dict[mapped_state] = probability_dict.get(mapped_state, 0) + probability
         return probability_dict
 
     def _run(self):
@@ -337,11 +334,7 @@ class IonQBackend(BasicEngine):
                 verbose=self._verbose,
             )
             if res is None:
-                raise RuntimeError(
-                    "Failed to retrieve job with id: '{}'!".format(
-                        self._retrieve_execution
-                    )
-                )
+                raise RuntimeError("Failed to retrieve job with id: '{}'!".format(self._retrieve_execution))
             self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.

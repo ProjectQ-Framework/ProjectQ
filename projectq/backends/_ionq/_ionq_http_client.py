@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -196,9 +197,7 @@ class IonQ(Session):
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception(
-                "Interrupted. The ID of your submitted job is {}.".format(execution_id)
-            )
+            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
 
         signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
@@ -232,16 +231,13 @@ class IonQ(Session):
                     self.update_devices_list()
                     if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of "
-                            "your submitted job is {}.".format(execution_id)
+                            "Device went offline. The ID of " "your submitted job is {}.".format(execution_id)
                         )
         finally:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise RequestTimeoutError(
-            "Timeout. The ID of your submitted job is {}.".format(execution_id)
-        )
+        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
 
 def show_devices(verbose=False):
@@ -346,10 +342,7 @@ def send(
 
         # useless for the moment
         if not online:  # pragma: no cover
-            print(
-                "The device is offline (for maintenance?). Use the "
-                "simulator instead or try again later."
-            )
+            print("The device is offline (for maintenance?). Use the " "simulator instead or try again later.")
             raise DeviceOfflineError("Device is offline.")
 
         # check if the device has enough qubit to run the code

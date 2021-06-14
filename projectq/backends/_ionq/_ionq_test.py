@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,6 @@
 
 """Tests for projectq.backends._ionq._ionq.py."""
 
-import functools
 import math
 from unittest import mock
 
@@ -27,7 +27,7 @@ from projectq.backends._ionq._ionq_exc import (
     MidCircuitMeasurementError,
 )
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
-from projectq.cengines import BasicMapperEngine, DummyEngine
+from projectq.cengines import DummyEngine
 from projectq.ops import (
     CNOT,
     All,
@@ -171,7 +171,7 @@ def test_ionq_get_probability(monkeypatch, mapper_factory):
     )
     eng = MainEngine(backend=backend, engine_list=[mapper_factory()])
 
-    unused_qubit = eng.allocate_qubit()
+    unused_qubit = eng.allocate_qubit()  # noqa: F841
     qureg = eng.allocate_qureg(2)
     # entangle the qureg
     Ry(math.pi / 2) | qureg[0]
@@ -372,9 +372,7 @@ def test_ionq_retrieve_nonetype_response_error(monkeypatch, mapper_factory):
         eng.flush()
 
     exc = excinfo.value
-    expected_err = (
-        "Failed to retrieve job with id: 'a3877d18-314f-46c9-86e7-316bc4dbe968'!"
-    )
+    expected_err = "Failed to retrieve job with id: 'a3877d18-314f-46c9-86e7-316bc4dbe968'!"
     assert str(exc) == expected_err
 
 
@@ -414,7 +412,7 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
         engine_list=[mapper_factory()],
         verbose=True,
     )
-    unused_qubit = eng.allocate_qubit()
+    unused_qubit = eng.allocate_qubit()  # noqa: F841
     qureg = eng.allocate_qureg(2)
 
     # entangle the qureg

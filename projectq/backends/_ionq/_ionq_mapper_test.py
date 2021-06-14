@@ -1,5 +1,3 @@
-from unittest import mock
-
 import pytest
 
 from projectq import MainEngine
@@ -59,9 +57,7 @@ def test_cannot_deallocate_unknown_qubit():
             tags=[LogicalQubitIDTag(1)],
         )
         engine.send([deallocate_cmd])
-    assert (
-        str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
-    )
+    assert str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
 
     # but we can still deallocate an already allocated one
     qubit_id = qureg[0].id
@@ -93,9 +89,7 @@ def test_cannot_deallocate_same_qubit():
         )
         engine.send([deallocate_cmd])
 
-    assert (
-        str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
-    )
+    assert str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
 
 
 def test_flush_deallocates_all_qubits(monkeypatch):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +21,6 @@ Defines a setup allowing to compile code for IonQ trapped ion devices:
 from projectq.backends._ionq._ionq_exc import DeviceOfflineError
 from projectq.backends._ionq._ionq_http_client import show_devices
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
-from projectq.cengines import BasicMapperEngine
 from projectq.ops import (
     Barrier,
     H,
@@ -46,9 +46,7 @@ from projectq.setups import restrictedgateset
 def get_engine_list(token=None, device=None):
     devices = show_devices(token)
     if not device or device not in devices:
-        raise DeviceOfflineError(
-            "Error checking engine list: no '{}' devices available".format(device)
-        )
+        raise DeviceOfflineError("Error checking engine list: no '{}' devices available".format(device))
 
     #
     # Qubit mapper
