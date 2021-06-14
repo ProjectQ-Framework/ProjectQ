@@ -160,7 +160,8 @@ def test_ionq_get_probability(monkeypatch, mapper_factory):
             'nq': 3,
             'shots': 10,
             'output_probs': {'3': 0.4, '0': 0.6},
-            'meas_mapped': [1, 2],
+            'meas_mapped': [0, 1],
+            'meas_qubit_ids': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
@@ -202,7 +203,8 @@ def test_ionq_get_probabilities(monkeypatch, mapper_factory):
             'nq': 3,
             'shots': 10,
             'output_probs': {'1': 0.4, '0': 0.6},
-            'meas_mapped': [1, 2],
+            'meas_mapped': [1],
+            'meas_qubit_ids': [1],
         }
 
     monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
@@ -297,7 +299,8 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
             'nq': 3,
             'shots': 10,
             'output_probs': {'3': 0.4, '0': 0.6},
-            'meas_mapped': [1, 2],
+            'meas_mapped': [0, 1],
+            'meas_qubit_ids': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "retrieve", mock_retrieve)
@@ -381,6 +384,7 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
         'nq': 3,
         'shots': 10,
         'meas_mapped': [1, 2],
+        'meas_qubit_ids': [1, 2],
         'circuit': [
             {'gate': 'ry', 'rotation': 0.5, 'targets': [1]},
             {'gate': 'rx', 'rotation': 0.5, 'targets': [1]},
@@ -400,6 +404,7 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
             'shots': 10,
             'output_probs': {'3': 0.4, '0': 0.6},
             'meas_mapped': [1, 2],
+            'meas_qubit_ids': [1, 2],
         }
 
     monkeypatch.setattr(_ionq_http_client, "send", mock_send)
@@ -438,6 +443,7 @@ def test_ionq_backend_functional_aliases_test(monkeypatch, mapper_factory):
         'nq': 4,
         'shots': 10,
         'meas_mapped': [2, 3],
+        'meas_qubit_ids': [2, 3],
         'circuit': [
             {'gate': 'x', 'targets': [0]},
             {'gate': 'x', 'targets': [1]},

@@ -1,3 +1,4 @@
+"""Mapper that has a max number of allocatable qubits."""
 from projectq.cengines import BasicMapperEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, Command, DeallocateQubitGate, FlushGate

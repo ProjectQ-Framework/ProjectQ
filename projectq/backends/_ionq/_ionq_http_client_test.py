@@ -49,7 +49,7 @@ def test_authenticate_prompt_requires_token(monkeypatch):
     ionq_session = _ionq_http_client.IonQ()
     with pytest.raises(RuntimeError) as excinfo:
         ionq_session._authenticate()
-    assert 'An authentication token is required!' == str(excinfo.value)
+    assert str(excinfo.value) == 'An authentication token is required!'
 
 
 def test_is_online():
@@ -113,7 +113,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     # What the IonQ JSON API request should look like.
     expected_request = {
         'target': 'dummy',
-        'metadata': {'sdk': 'ProjectQ'},
+        'metadata': {'sdk': 'ProjectQ', 'meas_qubit_ids': '[2, 3]'},
         'shots': 1,
         'registers': {'meas_mapped': [2, 3]},
         'lang': 'json',
@@ -151,6 +151,7 @@ def test_send_real_device_online_verbose(monkeypatch):
                 'id': 'new-job-id',
                 'status': 'completed',
                 'qubits': 4,
+                'metadata': {'meas_qubit_ids': '[2, 3]'},
                 'registers': {'meas_mapped': [2, 3]},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
@@ -173,6 +174,7 @@ def test_send_real_device_online_verbose(monkeypatch):
         'nq': 4,
         'shots': 1,
         'meas_mapped': [2, 3],
+        'meas_qubit_ids': [2, 3],
         'circuit': [
             {'gate': 'x', 'targets': [0]},
             {'gate': 'x', 'targets': [1]},
@@ -185,6 +187,7 @@ def test_send_real_device_online_verbose(monkeypatch):
         'nq': 4,
         'output_probs': {'2': 1},
         'meas_mapped': [2, 3],
+        'meas_qubit_ids': [2, 3],
     }
     actual = _ionq_http_client.send(info, device='dummy')
     assert expected == actual
@@ -221,6 +224,7 @@ def test_send_requests_errors_are_caught(monkeypatch, error_type):
         'nq': 1,
         'shots': 1,
         'meas_mapped': [],
+        'meas_qubit_ids': [],
         'circuit': [],
     }
     _ionq_http_client.send(info, device='dummy')
@@ -255,6 +259,7 @@ def test_send_auth_errors_reraise(monkeypatch):
         'nq': 1,
         'shots': 1,
         'meas_mapped': [],
+        'meas_qubit_ids': [],
         'circuit': [],
     }
     with pytest.raises(requests.exceptions.HTTPError) as excinfo:
@@ -297,6 +302,7 @@ def test_send_bad_requests_reraise(monkeypatch):
         'nq': 1,
         'shots': 1,
         'meas_mapped': [],
+        'meas_qubit_ids': [],
         'circuit': [],
     }
     with pytest.raises(JobSubmissionError) as excinfo:
@@ -330,6 +336,7 @@ def test_send_auth_token_required(monkeypatch):
         'nq': 1,
         'shots': 1,
         'meas_mapped': [],
+        'meas_qubit_ids': [],
         'circuit': [],
     }
     with pytest.raises(RuntimeError) as excinfo:
@@ -387,6 +394,7 @@ def test_send_api_errors_are_raised(monkeypatch, expected_err, err_data):
         'nq': 1,
         'shots': 1,
         'meas_mapped': [],
+        'meas_qubit_ids': [],
         'circuit': [],
     }
     with pytest.raises(JobSubmissionError) as excinfo:
@@ -447,6 +455,7 @@ def test_timeout_exception(monkeypatch):
             'nq': 1,
             'shots': 1,
             'meas_mapped': [],
+            'meas_qubit_ids': [],
             'circuit': [],
         }
         _ionq_http_client.send(info, device='dummy', num_retries=1)
@@ -478,6 +487,7 @@ def test_retrieve(monkeypatch, token):
                 'status': 'completed',
                 'qubits': 4,
                 'registers': {'meas_mapped': [2, 3]},
+                'metadata': {'meas_qubit_ids': '[2, 3]'},
                 'data': {
                     'registers': {'meas_mapped': {'2': 1}},
                 },
@@ -498,6 +508,7 @@ def test_retrieve(monkeypatch, token):
     expected = {
         'nq': 4,
         'output_probs': {'2': 1},
+        'meas_qubit_ids': [2, 3],
         'meas_mapped': [2, 3],
     }
 

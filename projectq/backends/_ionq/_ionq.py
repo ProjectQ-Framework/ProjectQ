@@ -315,6 +315,7 @@ class IonQBackend(BasicEngine):
                 'nq': len(qubit_mapping.keys()),
                 'shots': self._num_runs,
                 'meas_mapped': [qubit_mapping[qubit_id] for qubit_id in measured_ids],
+                'meas_qubit_ids': measured_ids,
             }
             res = http_client.send(
                 info,
@@ -341,7 +342,7 @@ class IonQBackend(BasicEngine):
                         self._retrieve_execution
                     )
                 )
-            self._measured_ids = measured_ids = res['meas_mapped']
+            self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.
         P = random.random()
