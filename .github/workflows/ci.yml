@@ -252,14 +252,13 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Create pip cache dir
-        run: mkdir -p ~/.cache/pip
-
       - name: Cache wheels
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg') }}
+          key: >
+            ${{ runner.os }}-centos${{ matrix.centos }}-pip-
+            ${{ hashFiles('setup.cfg', 'pyproject.toml', 'requirements_tests.txt') }}
           restore-keys: ${{ runner.os }}-centos-pip-
 
       - name: Update pip
@@ -295,7 +294,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-doc-pip-${{ hashFiles('**/setup.cfg') }}
+          key: ${{ runner.os }}-doc-pip-${{ hashFiles('setup.cfg', 'pyproject.toml', 'requirements_tests.txt') }}
           restore-keys: ${{ runner.os }}-doc-pip-
 
       - name: Get history and tags for SCM versioning to work
