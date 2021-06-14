@@ -51,6 +51,18 @@ braket = [
       'boto3'
 ]
 
+qiskit = [
+       'qiskit'
+]
+
+qasm = [
+       'qiskit'
+]
+
+pyparsing = [
+       'pyparsing'
+]
+
 revkit = [
      'revkit == 3.0a2.dev2',
       'dormouse'
