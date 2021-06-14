@@ -433,17 +433,7 @@ class Simulator(BasicEngine):
                     )
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
-            raise Exception("Simulator: Error applying {} gate: "
-                                "{}-qubit gate applied to {} qubits.".format(
-                                    str(cmd.gate),
-                                    int(math.log(len(cmd.gate.matrix), 2)),
-                                    len(ids)))
 
-
-            self._simulator.apply_controlled_gate(matrix.tolist(),
-                                                  ids,
-                                                  [qb.id for qb in
-                                                   cmd.control_qubits])
             if not self._gate_fusion:
                 self._simulator.run()
         else:
@@ -452,11 +442,6 @@ class Simulator(BasicEngine):
                 " gates with k < 6!\nPlease add an auto-replacer"
                 " engine to your list of compiler engines."
             )
-
-
-            raise Exception("This simulator only supports controlled k-qubit"
-                            " gates with k < 6!\nPlease add an auto-replacer"
-                            " engine to your list of compiler engines.")
 
 
     def receive(self, command_list):

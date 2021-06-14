@@ -23,6 +23,7 @@ from projectq.ops import (
     ClassicalInstructionGate,
     Command,
     H,
+    S,
     NotInvertible,
     Rx,
     X,

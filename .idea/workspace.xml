@@ -140,7 +140,6 @@
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/_gates_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/barrier_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/cnu2toffoliandcu.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/controlstate_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectq/setups/decompositions/crz2cxandrz.py" afterDir="false" />
@@ -165,8 +164,18 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Unit Test" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/projectq/backends/_sim/_simulator.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="1tx6z9rhhB3Dkf4pXsgOgvKNas9" />
   <component name="ProjectViewState">
@@ -176,6 +185,118 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.project" />
+  </component>
+  <component name="RunManager" selected="Python tests.pytest in projectq">
+    <configuration name="_control_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\xinya\Desktop\Uni\ETHZ\0_sem4\master\ProjectQ\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projectq/meta" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/projectq/meta/_control_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="_replacer_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projectq/cengines/_replacer" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/projectq/cengines/_replacer/_replacer_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="control_tester" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\xinya\Desktop\Uni\ETHZ\0_sem4\master\ProjectQ\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/control_tester.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Unittests in dfg.py" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projectq/meta" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/projectq/meta/dfg.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest in projectq" type="tests" factoryName="py.test" nameIsGenerated="true">
+      <module name="ProjectQ" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="C:\Users\xinya\AppData\Local\Programs\Python\Python39\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/projectq/&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.control_tester" />
+      <item itemvalue="Python._control_test" />
+      <item itemvalue="Python._replacer_test" />
+      <item itemvalue="Python tests.pytest in projectq" />
+      <item itemvalue="Python tests.Unittests in dfg.py" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python._replacer_test" />
+        <item itemvalue="Python._control_test" />
+        <item itemvalue="Python tests.Unittests in dfg.py" />
+        <item itemvalue="Python.control_tester" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -188,9 +309,24 @@
     </task>
     <servers />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
+  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
         <entry key="ba0d906f-2236-4d8b-92b6-6d517dee035a">
           <value>
             <State>

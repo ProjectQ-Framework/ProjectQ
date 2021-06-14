@@ -24,8 +24,7 @@ m = 3
 x = eng.allocate_qureg(n)
 
 ctrl_reg = eng.allocate_qureg(m)
-# X | x[1]
-# X | x[1]
+
 
 X | ctrl_reg[0]
 # X | ctrl_reg[1]
