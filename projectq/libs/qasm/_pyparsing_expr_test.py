@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 <Huawei Technologies Co., Ltd>
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +24,7 @@ from ._pyparsing_expr import eval_expr
 def test_eval():
     assert eval_expr('1 + 2') == 3
     assert eval_expr('1 + 2^3') == 9
-    assert eval_expr('(2.2 + 1) - (2*4 + -1)') == pytest.approx((2.2 + 1)
-                                                                - (2 * 4 + -1))
+    assert eval_expr('(2.2 + 1) - (2*4 + -1)') == pytest.approx((2.2 + 1) - (2 * 4 + -1))
     assert eval_expr('-1 + PI') == pytest.approx(-1 + math.pi)
     assert eval_expr('-1 + E') == pytest.approx(-1 + math.e)
     assert eval_expr('-1 + 2') == 1

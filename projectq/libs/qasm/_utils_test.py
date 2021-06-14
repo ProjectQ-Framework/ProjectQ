@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +18,7 @@ import pytest
 
 from projectq.types import WeakQubitRef
 from projectq.cengines import DummyEngine
-from projectq.ops import (X, Y, Z, T, Tdagger, S, Sdagger, H, Ph, R, Rx, Ry, Rz,
-                          U2, U3, Swap, Toffoli, Barrier, C)
+from projectq.ops import X, Y, Z, T, Tdagger, S, Sdagger, H, Ph, R, Rx, Ry, Rz, U2, U3, Swap, Toffoli, Barrier, C
 from ._utils import apply_gate, OpaqueGate
 
 # ==============================================================================
@@ -41,23 +41,37 @@ def test_opaque_gate():
 
 
 @pytest.mark.parametrize(
-    'gate, n_qubits', (list(
-        map(lambda x:
-            (x, 1), [
-                X, Y, Z, S, Sdagger, T, Tdagger, H, Barrier,
-                Ph(1.12),
-                Rx(1.12),
-                Ry(1.12),
-                Rz(1.12),
-                R(1.12),
-                U2(1.12, 1.12),
-                U3(1.12, 1.12, 1.12),
-            ])) + list(map(lambda x:
-                           (x, 2), [C(X), C(Y), C(Z), Swap, Barrier])) +
-                       list(map(lambda x:
-                                (x, 3), [Toffoli, C(Swap), Barrier])) +
-                       list(map(lambda x: (x, 10), [Barrier]))),
-    ids=str)
+    'gate, n_qubits',
+    (
+        list(
+            map(
+                lambda x: (x, 1),
+                [
+                    X,
+                    Y,
+                    Z,
+                    S,
+                    Sdagger,
+                    T,
+                    Tdagger,
+                    H,
+                    Barrier,
+                    Ph(1.12),
+                    Rx(1.12),
+                    Ry(1.12),
+                    Rz(1.12),
+                    R(1.12),
+                    U2(1.12, 1.12),
+                    U3(1.12, 1.12, 1.12),
+                ],
+            )
+        )
+        + list(map(lambda x: (x, 2), [C(X), C(Y), C(Z), Swap, Barrier]))
+        + list(map(lambda x: (x, 3), [Toffoli, C(Swap), Barrier]))
+        + list(map(lambda x: (x, 10), [Barrier]))
+    ),
+    ids=str,
+)
 def test_apply_gate(gate, n_qubits):
     backend = DummyEngine()
     backend.is_last_engine = True

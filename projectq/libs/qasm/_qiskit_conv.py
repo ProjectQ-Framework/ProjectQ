@@ -1,5 +1,5 @@
-from projectq.ops import (Barrier, H, S, Sdagger, T, Tdagger, X, Y, Z, Rx, Ry,
-                          Rz, H, Swap, Toffoli, C, CNOT, U2, U3)
+# -*- coding: utf-8 -*-
+from projectq.ops import Barrier, H, S, Sdagger, T, Tdagger, X, Y, Z, Rx, Ry, Rz, Swap, Toffoli, C, CNOT, U2, U3
 
 # ==============================================================================
 # Conversion map between Qiskit gate names and ProjectQ gates
@@ -22,7 +22,6 @@ gates_conv_table = {
     'u2': lambda p, l: U2(p, l),
     'u3': lambda t, p, l: U3(t, p, l),
     'phase': lambda a: Rz(a),
-
     # Controlled gates
     'ch': C(H),
     'cx': CNOT,
@@ -33,7 +32,6 @@ gates_conv_table = {
     'cu1': lambda a: C(Rz(a)),
     'cu2': lambda p, l: C(U2(p, l)),
     'cu3': lambda t, p, l: C(U3(t, p, l)),
-
     # Doubly-controlled gates
     "ccx": Toffoli,
 }

@@ -20,9 +20,20 @@ import math
 from numbers import Number
 import operator
 
-from pyparsing import (Literal, Word, Group, Forward, ZeroOrMore, alphas,
-                       alphanums, Regex, CaselessKeyword, Suppress,
-                       delimitedList, pyparsing_common)
+from pyparsing import (
+    Literal,
+    Word,
+    Group,
+    Forward,
+    ZeroOrMore,
+    alphas,
+    alphanums,
+    Regex,
+    CaselessKeyword,
+    Suppress,
+    delimitedList,
+    pyparsing_common,
+)
 
 # ==============================================================================
 
@@ -67,6 +78,7 @@ class ExprParser:
         term    :: factor [ multop factor ]*
         expr    :: term [ addop term ]*
     """
+
     def __init__(self):
         # pylint: disable = too-many-locals
         self.var_dict = dict()
@@ -75,8 +87,7 @@ class ExprParser:
         # functions that start with 'e' or 'pi' (such as 'exp'); Keyword
         # and CaselessKeyword only match whole words
         e_const = CaselessKeyword("E").addParseAction(lambda: math.e)
-        pi_const = (CaselessKeyword("PI")
-                    | CaselessKeyword("π")).addParseAction(lambda: math.pi)
+        pi_const = (CaselessKeyword("PI") | CaselessKeyword("π")).addParseAction(lambda: math.pi)
         # fnumber = Combine(Word("+-"+nums, nums) +
         #                    Optional("." + Optional(Word(nums))) +
         #                    Optional(e + Word("+-"+nums, nums)))
@@ -103,25 +114,24 @@ class ExprParser:
             num_args = len(toks[0])
             toks.insert(0, (fn_name, num_args))
 
-        var_expr = (cname + ZeroOrMore(lbra + int_v + rbra)).addParseAction(
-            self._eval_var_expr)
+        var_expr = (cname + ZeroOrMore(lbra + int_v + rbra)).addParseAction(self._eval_var_expr)
 
-        fn_call = (cname + lpar - Group(expr_list)
-                   + rpar).setParseAction(insert_fn_argcount_tuple)
-        atom = (ZeroOrMore(addop) +
-                ((fn_call | pi_const | e_const | var_expr | fnumber
-                  | cname).setParseAction(push_first)
-                 | Group(lpar + expr + rpar))).setParseAction(push_unary_minus)
+        fn_call = (cname + lpar - Group(expr_list) + rpar).setParseAction(insert_fn_argcount_tuple)
+        atom = (
+            ZeroOrMore(addop)
+            + (
+                (fn_call | pi_const | e_const | var_expr | fnumber | cname).setParseAction(push_first)
+                | Group(lpar + expr + rpar)
+            )
+        ).setParseAction(push_unary_minus)
 
         # by defining exponentiation as "atom [ ^ factor ]..." instead of
         # "atom [ ^ atom ]...", we get right-to-left
         # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not
         # (2^3)^2.
         factor = Forward()
-        factor <<= atom + ZeroOrMore(
-            (expop + factor).setParseAction(push_first))
-        term = factor + ZeroOrMore(
-            (multop + factor).setParseAction(push_first))
+        factor <<= atom + ZeroOrMore((expop + factor).setParseAction(push_first))
+        term = factor + ZeroOrMore((multop + factor).setParseAction(push_first))
         expr <<= term + ZeroOrMore((addop + term).setParseAction(push_first))
         self.bnf = expr
 
