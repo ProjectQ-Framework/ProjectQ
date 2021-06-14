@@ -19,13 +19,13 @@ import tempfile
 from projectq.ops import AllocateQubitGate, XGate, MeasureGate, HGate, SGate, TGate
 from projectq.cengines import MainEngine, DummyEngine
 from projectq.backends import CommandPrinter
-from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str, _CUSTOM_GATES
 
 # ==============================================================================
 
 _has_pyparsing = True
 try:
     import pyparsing  # noqa: F401
+    from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str, _CUSTOM_GATES
 except ImportError:
     _has_pyparsing = False
 
