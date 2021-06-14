@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Compatibility with Python 2.7
 
+### Repository
+
+- Updated cibuildwheels to 1.11.1
+
 ## [0.5.1] - 2019-02-15
 
 ### Added
