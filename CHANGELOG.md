@@ -10,7 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Python context manager `with flushing(MainEngine()) as eng:`
+-   Added OpenQASMBackend to output QASM from ProjectQ circuits
+-   Added projectq.libs.qasm to convert QASM to ProjectQ circuits
 
+### Changed
+### Deprecated
+### Fixed
+### Removed
 ### Repository
 
 -   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`
@@ -223,19 +229,11 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-<<<<<<< HEAD
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...HEAD
-
-[v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
-||||||| 41e608d
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...HEAD
-=======
 [Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.8.0...HEAD
 
 [v0.8.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...v0.8.0
 
 [v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
->>>>>>> master
 
 [v0.7.2]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...v0.7.2
 
