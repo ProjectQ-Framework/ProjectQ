@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,31 +12,30 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains meta gates, i.e.,
 * DaggeredGate (Represents the inverse of an arbitrary gate)
 * ControlledGate (Represents a controlled version of an arbitrary gate)
 * Tensor/All (Applies a single qubit gate to all supplied qubits), e.g.,
-    Example:
+  Example:
         .. code-block:: python
 
           Tensor(H) | (qubit1, qubit2) # apply H to qubit #1 and #2
 
 As well as the meta functions
 * get_inverse (Tries to access the get_inverse member function of a gate
-               and upon failure returns a DaggeredGate)
+  and upon failure returns a DaggeredGate)
 * C (Creates an n-ary controlled version of an arbitrary gate)
 """
 
 from ._basics import BasicGate, NotInvertible
-from ._command import Command, apply_command
 
 
 class ControlQubitError(Exception):
     """
     Exception thrown when wrong number of control qubits are supplied.
     """
+
     pass
 
 
@@ -132,6 +132,7 @@ def get_inverse(gate):
     except NotInvertible:
         return DaggeredGate(gate)
 
+
 def is_identity(gate):
     """
     Return True if the gate is an identity gate.
@@ -148,6 +149,7 @@ def is_identity(gate):
             get_inverse(Rx(math.pi)) # returns False
     """
     return gate.is_identity()
+
 
 class ControlledGate(BasicGate):
     """
@@ -193,7 +195,7 @@ class ControlledGate(BasicGate):
             self._n = n
 
     def __str__(self):
-        """ Return string representation, i.e., CC...C(gate). """
+        """Return string representation, i.e., CC...C(gate)."""
         return "C" * self._n + str(self._gate)
 
     def get_inverse(self):
@@ -230,18 +232,20 @@ class ControlledGate(BasicGate):
         # Test that there were enough control quregs and that that
         # the last control qubit was the last qubit in a qureg.
         if len(ctrl) != self._n:
-            raise ControlQubitError("Wrong number of control qubits. "
-                                    "First qureg(s) need to contain exactly "
-                                    "the required number of control quregs.")
+            raise ControlQubitError(
+                "Wrong number of control qubits. "
+                "First qureg(s) need to contain exactly "
+                "the required number of control quregs."
+            )
 
         import projectq.meta
+
         with projectq.meta.Control(gate_quregs[0][0].engine, ctrl):
             self._gate | tuple(gate_quregs)
 
     def __eq__(self, other):
-        """ Compare two ControlledGate objects (return True if equal). """
-        return (isinstance(other, self.__class__) and
-                self._gate == other._gate and self._n == other._n)
+        """Compare two ControlledGate objects (return True if equal)."""
+        return isinstance(other, self.__class__) and self._gate == other._gate and self._n == other._n
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -277,12 +281,12 @@ class Tensor(BasicGate):
     """
 
     def __init__(self, gate):
-        """ Initialize a Tensor object for the gate. """
+        """Initialize a Tensor object for the gate."""
         BasicGate.__init__(self)
         self._gate = gate
 
     def __str__(self):
-        """ Return string representation. """
+        """Return string representation."""
         return "Tensor(" + str(self._gate) + ")"
 
     def get_inverse(self):
@@ -299,13 +303,14 @@ class Tensor(BasicGate):
         return not self.__eq__(other)
 
     def __or__(self, qubits):
-        """ Applies the gate to every qubit in the quantum register qubits. """
+        """Applies the gate to every qubit in the quantum register qubits."""
         if isinstance(qubits, tuple):
             assert len(qubits) == 1
             qubits = qubits[0]
         assert isinstance(qubits, list)
         for qubit in qubits:
             self._gate | qubit
+
 
 #: Shortcut (instance of) :class:`projectq.ops.Tensor`
 All = Tensor

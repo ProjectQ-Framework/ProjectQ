@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,13 +46,14 @@ class UniformlyControlledRy(BasicGate):
                              conditioned on the control qubits being in state
                              k.
     """
+
     def __init__(self, angles):
         BasicGate.__init__(self)
         rounded_angles = []
         for angle in angles:
-            new_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+            new_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
             if new_angle > 4 * math.pi - ANGLE_TOLERANCE:
-                new_angle = 0.
+                new_angle = 0.0
             rounded_angles.append(new_angle)
         self.angles = rounded_angles
 
@@ -60,8 +62,7 @@ class UniformlyControlledRy(BasicGate):
 
     def get_merged(self, other):
         if isinstance(other, self.__class__):
-            new_angles = [angle1 + angle2 for (angle1, angle2) in
-                          zip(self.angles, other.angles)]
+            new_angles = [angle1 + angle2 for (angle1, angle2) in zip(self.angles, other.angles)]
             return self.__class__(new_angles)
         raise NotMergeable()
 
@@ -69,7 +70,7 @@ class UniformlyControlledRy(BasicGate):
         return "UniformlyControlledRy(" + str(self.angles) + ")"
 
     def __eq__(self, other):
-        """ Return True if same class, same rotation angles."""
+        """Return True if same class, same rotation angles."""
         if isinstance(other, self.__class__):
             return self.angles == other.angles
         else:
@@ -110,13 +111,14 @@ class UniformlyControlledRz(BasicGate):
                              conditioned on the control qubits being in state
                              k.
     """
+
     def __init__(self, angles):
         BasicGate.__init__(self)
         rounded_angles = []
         for angle in angles:
-            new_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+            new_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
             if new_angle > 4 * math.pi - ANGLE_TOLERANCE:
-                new_angle = 0.
+                new_angle = 0.0
             rounded_angles.append(new_angle)
         self.angles = rounded_angles
 
@@ -125,8 +127,7 @@ class UniformlyControlledRz(BasicGate):
 
     def get_merged(self, other):
         if isinstance(other, self.__class__):
-            new_angles = [angle1 + angle2 for (angle1, angle2) in
-                          zip(self.angles, other.angles)]
+            new_angles = [angle1 + angle2 for (angle1, angle2) in zip(self.angles, other.angles)]
             return self.__class__(new_angles)
         raise NotMergeable()
 
@@ -134,7 +135,7 @@ class UniformlyControlledRz(BasicGate):
         return "UniformlyControlledRz(" + str(self.angles) + ")"
 
     def __eq__(self, other):
-        """ Return True if same class, same rotation angles."""
+        """Return True if same class, same rotation angles."""
         if isinstance(other, self.__class__):
             return self.angles == other.angles
         else:

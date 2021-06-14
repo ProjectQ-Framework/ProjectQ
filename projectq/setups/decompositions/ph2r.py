@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition for the controlled global phase gate.
 
@@ -25,7 +25,7 @@ from projectq.ops import Ph, R
 
 
 def _decompose_Ph(cmd):
-    """ Decompose the controlled phase gate (C^nPh(phase)). """
+    """Decompose the controlled phase gate (C^nPh(phase))."""
     ctrl = cmd.control_qubits
     gate = cmd.gate
     eng = cmd.engine
@@ -35,11 +35,9 @@ def _decompose_Ph(cmd):
 
 
 def _recognize_Ph(cmd):
-    """ Recognize the controlled phase gate. """
+    """Recognize the controlled phase gate."""
     return get_control_count(cmd) >= 1
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)
-]
+all_defined_decomposition_rules = [DecompositionRule(Ph, _decompose_Ph, _recognize_Ph)]

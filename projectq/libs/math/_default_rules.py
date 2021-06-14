@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +20,22 @@ Registers a few default replacement rules for Shor's algorithm to work
 from projectq.meta import Control
 from projectq.cengines import DecompositionRule
 
-from ._gates import (AddConstant, AddConstantModN, MultiplyByConstantModN,
-                     AddQuantum, SubtractQuantum, ComparatorQuantum,
-                     DivideQuantum, MultiplyQuantum)
+from ._gates import (
+    AddConstant,
+    AddConstantModN,
+    MultiplyByConstantModN,
+    AddQuantum,
+    SubtractQuantum,
+    ComparatorQuantum,
+    DivideQuantum,
+    MultiplyQuantum,
+)
 
-from ._gates import (_InverseAddQuantumGate, _InverseDivideQuantumGate,
-                     _InverseMultiplyQuantumGate)
+from ._gates import (
+    _InverseAddQuantumGate,
+    _InverseDivideQuantumGate,
+    _InverseMultiplyQuantumGate,
+)
 
 from ._constantmath import (
     add_constant,
@@ -33,10 +44,17 @@ from ._constantmath import (
 )
 
 from ._quantummath import (
-    add_quantum, subtract_quantum, inverse_add_quantum_carry, comparator,
-    quantum_conditional_add, quantum_division, inverse_quantum_division,
-    quantum_conditional_add_carry, quantum_multiplication,
-    inverse_quantum_multiplication)
+    add_quantum,
+    subtract_quantum,
+    inverse_add_quantum_carry,
+    comparator,
+    quantum_conditional_add,
+    quantum_division,
+    inverse_quantum_division,
+    quantum_conditional_add_carry,
+    quantum_multiplication,
+    inverse_quantum_multiplication,
+)
 
 
 def _replace_addconstant(cmd):
@@ -84,12 +102,10 @@ def _replace_addquantum(cmd):
         if len(cmd.qubits) == 3:
             c = cmd.qubits[2]
             with Control(eng, cmd.control_qubits):
-                quantum_conditional_add_carry(eng, quint_a, quint_b,
-                                              cmd.control_qubits, c)
+                quantum_conditional_add_carry(eng, quint_a, quint_b, cmd.control_qubits, c)
         else:
             with Control(eng, cmd.control_qubits):
-                quantum_conditional_add(eng, quint_a, quint_b,
-                                        cmd.control_qubits)
+                quantum_conditional_add(eng, quint_a, quint_b, cmd.control_qubits)
 
 
 def _replace_inverse_add_quantum(cmd):
@@ -165,10 +181,7 @@ all_defined_decomposition_rules = [
     DecompositionRule(SubtractQuantum.__class__, _replace_inverse_add_quantum),
     DecompositionRule(ComparatorQuantum.__class__, _replace_comparator),
     DecompositionRule(DivideQuantum.__class__, _replace_quantumdivision),
-    DecompositionRule(_InverseDivideQuantumGate,
-                      _replace_inversequantumdivision),
-    DecompositionRule(MultiplyQuantum.__class__,
-                      _replace_quantummultiplication),
-    DecompositionRule(_InverseMultiplyQuantumGate,
-                      _replace_inversequantummultiplication),
+    DecompositionRule(_InverseDivideQuantumGate, _replace_inversequantumdivision),
+    DecompositionRule(MultiplyQuantum.__class__, _replace_quantummultiplication),
+    DecompositionRule(_InverseMultiplyQuantumGate, _replace_inversequantummultiplication),
 ]

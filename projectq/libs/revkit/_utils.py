@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,5 +23,4 @@ def _exec(code, qs):
         qs (tuple<Qureg>): Qubits to which the permutation is being
                            applied.
     """
-    from projectq.ops import C, X, Z, All
     exec(code)

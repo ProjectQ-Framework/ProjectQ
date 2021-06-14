@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,7 @@ class QPE(BasicGate):
 
     See setups.decompositions for the complete implementation
     """
+
     def __init__(self, unitary):
         BasicGate.__init__(self)
         self.unitary = unitary

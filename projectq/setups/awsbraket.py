@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +23,24 @@ device.  Decompose the circuit into the available gate set for each device
 that will be used in the backend.
 """
 
-import projectq
-import projectq.setups.decompositions
 from projectq.setups import restrictedgateset
-from projectq.ops import (R, Swap, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z,
-                          SqrtX, Barrier)
-from projectq.cengines import (LocalOptimizer, IBM5QubitMapper,
-                               SwapAndCNOTFlipper, BasicMapperEngine,
-                               GridMapper)
+from projectq.ops import (
+    R,
+    Swap,
+    H,
+    Rx,
+    Ry,
+    Rz,
+    S,
+    Sdag,
+    T,
+    Tdag,
+    X,
+    Y,
+    Z,
+    SqrtX,
+    Barrier,
+)
 from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 
 
@@ -39,8 +50,7 @@ def get_engine_list(credentials=None, device=None):
     # gate, etc..
     devices = show_devices(credentials)
     if device not in devices:
-        raise DeviceOfflineError('Error when configuring engine list: device '
-                                 'requested for Backend not available')
+        raise DeviceOfflineError('Error when configuring engine list: device requested for Backend not available')
 
     # We left the real device to manage the mapping and optimizacion: "The IonQ
     # and Rigetti devices compile the provided circuit into their respective
@@ -52,22 +62,24 @@ def get_engine_list(credentials=None, device=None):
 
     if device == 'SV1':
         setup = restrictedgateset.get_engine_list(
-            one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z,
-                             SqrtX),
-            two_qubit_gates=(Swap, ),
-            other_gates=(Barrier, ))
+            one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z, SqrtX),
+            two_qubit_gates=(Swap,),
+            other_gates=(Barrier,),
+        )
         return setup
     if device == 'Aspen-8':
         setup = restrictedgateset.get_engine_list(
             one_qubit_gates=(R, H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z),
-            two_qubit_gates=(Swap, ),
-            other_gates=(Barrier, ))
+            two_qubit_gates=(Swap,),
+            other_gates=(Barrier,),
+        )
         return setup
     if device == 'IonQ Device':
         setup = restrictedgateset.get_engine_list(
             one_qubit_gates=(H, Rx, Ry, Rz, S, Sdag, T, Tdag, X, Y, Z, SqrtX),
-            two_qubit_gates=(Swap, ),
-            other_gates=(Barrier, ))
+            two_qubit_gates=(Swap,),
+            other_gates=(Barrier,),
+        )
         return setup
 
 

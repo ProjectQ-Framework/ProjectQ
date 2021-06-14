@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +34,7 @@ ion trapped gates the decomposed circuit will not be optimal.
 """
 
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rxx, Rx, Ry)
+from projectq.ops import Rxx, Rx, Ry
 from projectq.meta import get_control_count
 
 # ------------------chooser_Ry_reducer-------------------#
@@ -144,5 +145,6 @@ def get_engine_list():
     """
     return restrictedgateset.get_engine_list(
         one_qubit_gates=(Rx, Ry),
-        two_qubit_gates=(Rxx, ),
-        compiler_chooser=chooser_Ry_reducer)
+        two_qubit_gates=(Rxx,),
+        compiler_chooser=chooser_Ry_reducer,
+    )

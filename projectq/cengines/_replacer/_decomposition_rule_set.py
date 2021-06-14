@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@ class DecompositionRuleSet:
     """
     A collection of indexed decomposition rules.
     """
+
     def __init__(self, rules=None, modules=None):
         """
         Args:
@@ -33,10 +35,9 @@ class DecompositionRuleSet:
             self.add_decomposition_rules(rules)
 
         if modules:
-            self.add_decomposition_rules([
-                rule
-                for module in modules
-                for rule in module.all_defined_decomposition_rules])
+            self.add_decomposition_rules(
+                [rule for module in modules for rule in module.all_defined_decomposition_rules]
+            )
 
     def add_decomposition_rules(self, rules):
         for rule in rules:
@@ -56,11 +57,12 @@ class DecompositionRuleSet:
         self.decompositions[cls].append(decomp_obj)
 
 
-class ModuleWithDecompositionRuleSet:
+class ModuleWithDecompositionRuleSet:  # pragma: no cover
     """
     Interface type for explaining one of the parameters that can be given to
     DecompositionRuleSet.
     """
+
     def __init__(self, all_defined_decomposition_rules):
         """
         Args:
@@ -75,6 +77,7 @@ class _Decomposition(object):
     The Decomposition class can be used to register a decomposition rule (by
     calling register_decomposition)
     """
+
     def __init__(self, replacement_fun, recogn_fun):
         """
         Construct the Decomposition object.
@@ -132,6 +135,7 @@ class _Decomposition(object):
         Returns:
             Decomposition handling the inverse of the original command.
         """
+
         def decomp(cmd):
             with Dagger(cmd.engine):
                 self.decompose(cmd.get_inverse())

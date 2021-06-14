@@ -1,4 +1,5 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers the Z-Y decomposition for an arbitrary one qubit gate.
 
@@ -30,13 +30,11 @@ import cmath
 import itertools
 import math
 
-
 import numpy
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, get_control_count
 from projectq.ops import BasicGate, Ph, Ry, Rz
-
 
 TOLERANCE = 1e-12
 
@@ -55,7 +53,7 @@ def _recognize_arb1qubit(cmd):
             return True
         else:
             return False
-    except:
+    except AttributeError:
         return False
 
 
@@ -77,11 +75,17 @@ def _test_parameters(matrix, a, b_half, c_half, d_half):
     Returns:
         True if matrix elements of U and `matrix` are TOLERANCE close.
     """
-    U = [[cmath.exp(1j*(a-b_half-d_half))*math.cos(c_half),
-          -cmath.exp(1j*(a-b_half+d_half))*math.sin(c_half)],
-         [cmath.exp(1j*(a+b_half-d_half))*math.sin(c_half),
-          cmath.exp(1j*(a+b_half+d_half))*math.cos(c_half)]]
-    return numpy.allclose(U, matrix, rtol=10*TOLERANCE, atol=TOLERANCE)
+    U = [
+        [
+            cmath.exp(1j * (a - b_half - d_half)) * math.cos(c_half),
+            -cmath.exp(1j * (a - b_half + d_half)) * math.sin(c_half),
+        ],
+        [
+            cmath.exp(1j * (a + b_half - d_half)) * math.sin(c_half),
+            cmath.exp(1j * (a + b_half + d_half)) * math.cos(c_half),
+        ],
+    ]
+    return numpy.allclose(U, matrix, rtol=10 * TOLERANCE, atol=TOLERANCE)
 
 
 def _find_parameters(matrix):
@@ -105,70 +109,79 @@ def _find_parameters(matrix):
     # Note: everything is modulo 2pi.
     # Case 1: sin(c/2) == 0:
     if abs(matrix[0][1]) < TOLERANCE:
-        two_a = cmath.phase(matrix[0][0]*matrix[1][1]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(matrix[0][0] * matrix[1][1]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
+            a = two_a / 2.0
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][1])-cmath.phase(matrix[0][0])
-        possible_b_half = [(b/2.) % (2*math.pi), (b/2.+math.pi) % (2*math.pi)]
+        b = cmath.phase(matrix[1][1]) - cmath.phase(matrix[0][0])
+        possible_b_half = [
+            (b / 2.0) % (2 * math.pi),
+            (b / 2.0 + math.pi) % (2 * math.pi),
+        ]
         # As we have fixed a, we need to find correct sign for cos(c/2)
         possible_c_half = [0.0, math.pi]
         found = False
-        for b_half, c_half in itertools.product(possible_b_half,
-                                                possible_c_half):
+        for b_half, c_half in itertools.product(possible_b_half, possible_c_half):
             if _test_parameters(matrix, a, b_half, c_half, d_half):
                 found = True
                 break
         if not found:
-            raise Exception("Couldn't find parameters for matrix ", matrix,
-                            "This shouldn't happen. Maybe the matrix is " +
-                            "not unitary?")
+            raise Exception(
+                "Couldn't find parameters for matrix ",
+                matrix,
+                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+            )
     # Case 2: cos(c/2) == 0:
     elif abs(matrix[0][0]) < TOLERANCE:
-        two_a = cmath.phase(-matrix[0][1]*matrix[1][0]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(-matrix[0][1] * matrix[1][0]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
+            a = two_a / 2.0
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][0])-cmath.phase(matrix[0][1]) + math.pi
-        possible_b_half = [(b/2.) % (2*math.pi), (b/2.+math.pi) % (2*math.pi)]
+        b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1]) + math.pi
+        possible_b_half = [
+            (b / 2.0) % (2 * math.pi),
+            (b / 2.0 + math.pi) % (2 * math.pi),
+        ]
         # As we have fixed a, we need to find correct sign for sin(c/2)
-        possible_c_half = [math.pi/2., 3./2.*math.pi]
+        possible_c_half = [math.pi / 2.0, 3.0 / 2.0 * math.pi]
         found = False
-        for b_half, c_half in itertools.product(possible_b_half,
-                                                possible_c_half):
+        for b_half, c_half in itertools.product(possible_b_half, possible_c_half):
             if _test_parameters(matrix, a, b_half, c_half, d_half):
                 found = True
                 break
         if not found:
-            raise Exception("Couldn't find parameters for matrix ", matrix,
-                            "This shouldn't happen. Maybe the matrix is " +
-                            "not unitary?")
+            raise Exception(
+                "Couldn't find parameters for matrix ",
+                matrix,
+                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+            )
     # Case 3: sin(c/2) != 0 and cos(c/2) !=0:
     else:
-        two_a = cmath.phase(matrix[0][0]*matrix[1][1]) % (2*math.pi)
-        if abs(two_a) < TOLERANCE or abs(two_a) > 2*math.pi-TOLERANCE:
+        two_a = cmath.phase(matrix[0][0] * matrix[1][1]) % (2 * math.pi)
+        if abs(two_a) < TOLERANCE or abs(two_a) > 2 * math.pi - TOLERANCE:
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
             a = 0
         else:
-            a = two_a/2.
-        two_d = 2.*cmath.phase(matrix[0][1])-2.*cmath.phase(matrix[0][0])
+            a = two_a / 2.0
+        two_d = 2.0 * cmath.phase(matrix[0][1]) - 2.0 * cmath.phase(matrix[0][0])
+        # yapf: disable
         possible_d_half = [two_d/4. % (2*math.pi),
                            (two_d/4.+math.pi/2.) % (2*math.pi),
                            (two_d/4.+math.pi) % (2*math.pi),
                            (two_d/4.+3./2.*math.pi) % (2*math.pi)]
-        two_b = 2.*cmath.phase(matrix[1][0])-2.*cmath.phase(matrix[0][0])
+        two_b = 2. * cmath.phase(matrix[1][0]) - 2. * cmath.phase(matrix[0][0])
         possible_b_half = [two_b/4. % (2*math.pi),
                            (two_b/4.+math.pi/2.) % (2*math.pi),
                            (two_b/4.+math.pi) % (2*math.pi),
@@ -178,17 +191,18 @@ def _find_parameters(matrix):
                            (tmp+math.pi) % (2*math.pi),
                            (-1.*tmp) % (2*math.pi),
                            (-1.*tmp+math.pi) % (2*math.pi)]
+        # yapf: enable
         found = False
-        for b_half, c_half, d_half in itertools.product(possible_b_half,
-                                                        possible_c_half,
-                                                        possible_d_half):
+        for b_half, c_half, d_half in itertools.product(possible_b_half, possible_c_half, possible_d_half):
             if _test_parameters(matrix, a, b_half, c_half, d_half):
                 found = True
                 break
         if not found:
-            raise Exception("Couldn't find parameters for matrix ", matrix,
-                            "This shouldn't happen. Maybe the matrix is " +
-                            "not unitary?")
+            raise Exception(
+                "Couldn't find parameters for matrix ",
+                matrix,
+                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+            )
     return (a, b_half, c_half, d_half)
 
 
@@ -209,17 +223,15 @@ def _decompose_arb1qubit(cmd):
     qb = cmd.qubits
     eng = cmd.engine
     with Control(eng, cmd.control_qubits):
-        if Rz(2*d_half) != Rz(0):
-            Rz(2*d_half) | qb
-        if Ry(2*c_half) != Ry(0):
-            Ry(2*c_half) | qb
-        if Rz(2*b_half) != Rz(0):
-            Rz(2*b_half) | qb
+        if Rz(2 * d_half) != Rz(0):
+            Rz(2 * d_half) | qb
+        if Ry(2 * c_half) != Ry(0):
+            Ry(2 * c_half) | qb
+        if Rz(2 * b_half) != Rz(0):
+            Rz(2 * b_half) | qb
         if a != 0:
             Ph(a) | qb
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(BasicGate, _decompose_arb1qubit, _recognize_arb1qubit)
-]
+all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_arb1qubit, _recognize_arb1qubit)]

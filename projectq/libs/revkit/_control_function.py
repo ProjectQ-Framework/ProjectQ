@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +58,7 @@ class ControlFunctionOracle:
         else:
             try:
                 import dormouse
+
                 self.function = dormouse.to_truth_table(function)
             except ImportError:  # pragma: no cover
                 raise RuntimeError(
@@ -83,7 +85,8 @@ class ControlFunctionOracle:
         except ImportError:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
-                "PYTHONPATH in order to call this function")
+                "PYTHONPATH in order to call this function"
+            )
 
         # convert qubits to tuple
         qs = []
@@ -92,12 +95,11 @@ class ControlFunctionOracle:
 
         # function truth table cannot be larger than number of control qubits
         # allow
-        if 2**(2**(len(qs) - 1)) <= self.function:
-            raise AttributeError(
-                "Function truth table exceeds number of control qubits")
+        if 2 ** (2 ** (len(qs) - 1)) <= self.function:
+            raise AttributeError("Function truth table exceeds number of control qubits")
 
         # create truth table from function integer
-        hex_length = max(2**(len(qs) - 1) // 4, 1)
+        hex_length = max(2 ** (len(qs) - 1) // 4, 1)
         revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
 
         # create reversible circuit from truth table
@@ -105,8 +107,7 @@ class ControlFunctionOracle:
 
         # check whether circuit has correct signature
         if revkit.ps(mct=True, silent=True)['qubits'] != len(qs):
-            raise RuntimeError("Generated circuit lines does not match "
-                               "provided qubits")
+            raise RuntimeError("Generated circuit lines does not match provided qubits")
 
         # convert reversible circuit to ProjectQ code and execute it
         _exec(revkit.to_projectq(mct=True), qs)

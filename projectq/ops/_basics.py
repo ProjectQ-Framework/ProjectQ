@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +42,7 @@ from ._command import Command, apply_command
 import unicodedata
 
 ANGLE_PRECISION = 12
-ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
+ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
 RTOL = 1e-10
 ATOL = 1e-12
 
@@ -51,6 +52,7 @@ class NotMergeable(Exception):
     Exception thrown when trying to merge two gates which are not mergeable (or
     where it is not    implemented (yet)).
     """
+
     pass
 
 
@@ -59,6 +61,7 @@ class NotInvertible(Exception):
     Exception thrown when trying to invert a gate which is not invertable (or
     where the inverse is not  implemented (yet)).
     """
+
     pass
 
 
@@ -66,6 +69,7 @@ class BasicGate(object):
     """
     Base class of all gates. (Don't use it directly but derive from it)
     """
+
     def __init__(self):
         """
         Initialize a basic gate.
@@ -157,7 +161,7 @@ class BasicGate(object):
             (or list of Qubits) objects.
         """
         if not isinstance(qubits, tuple):
-            qubits = (qubits, )
+            qubits = (qubits,)
 
         qubits = list(qubits)
 
@@ -257,6 +261,7 @@ class MatrixGate(BasicGate):
             gate = MatrixGate([[0, 1], [1, 0]])
             gate | qubit
     """
+
     def __init__(self, matrix=None):
         """
         Initialize MatrixGate
@@ -284,19 +289,16 @@ class MatrixGate(BasicGate):
         """
         if not hasattr(other, 'matrix'):
             return False
-        if (not isinstance(self.matrix, np.matrix)
-                or not isinstance(other.matrix, np.matrix)):
-            raise TypeError("One of the gates doesn't have the correct "
-                            "type (numpy.matrix) for the matrix "
-                            "attribute.")
-        if (self.matrix.shape == other.matrix.shape and np.allclose(
-                self.matrix, other.matrix, rtol=RTOL, atol=ATOL,
-                equal_nan=False)):
+        if not isinstance(self.matrix, np.matrix) or not isinstance(other.matrix, np.matrix):
+            raise TypeError("One of the gates doesn't have the correct type (numpy.matrix) for the matrix attribute.")
+        if self.matrix.shape == other.matrix.shape and np.allclose(
+            self.matrix, other.matrix, rtol=RTOL, atol=ATOL, equal_nan=False
+        ):
             return True
         return False
 
     def __str__(self):
-        return ("MatrixGate(" + str(self.matrix.tolist()) + ")")
+        return "MatrixGate(" + str(self.matrix.tolist()) + ")"
 
     def __hash__(self):
         return hash(str(self))
@@ -318,6 +320,7 @@ class SelfInverseGate(BasicGate):
             # get_inverse(H) == H, it is a self-inverse gate:
             get_inverse(H) | qubit
     """
+
     def get_inverse(self):
         return deepcopy(self)
 
@@ -332,6 +335,7 @@ class BasicRotationGate(BasicGate):
     The continuous parameter is modulo 4 * pi, self.angle is in the interval
     [0, 4 * pi).
     """
+
     def __init__(self, angle):
         """
         Initialize a basic rotation gate.
@@ -340,9 +344,9 @@ class BasicRotationGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         BasicGate.__init__(self)
-        rounded_angle = round(float(angle) % (4. * math.pi), ANGLE_PRECISION)
+        rounded_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
         if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
-            rounded_angle = 0.
+            rounded_angle = 0.0
         self.angle = rounded_angle
 
     def __str__(self):
@@ -367,8 +371,7 @@ class BasicRotationGate(BasicGate):
                             written in radian otherwise.
         """
         if symbols:
-            angle = ("(" + str(round(self.angle / math.pi, 3))
-                     + unicodedata.lookup("GREEK SMALL LETTER PI") + ")")
+            angle = "(" + str(round(self.angle / math.pi, 3)) + unicodedata.lookup("GREEK SMALL LETTER PI") + ")"
         else:
             angle = "(" + str(self.angle) + ")"
         return str(self.__class__.__name__) + angle
@@ -383,8 +386,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return (str(self.__class__.__name__) + "$_{"
-                + str(round(self.angle / math.pi, 3)) + "\\pi}$")
+        return str(self.__class__.__name__) + "$_{" + str(round(self.angle / math.pi, 3)) + "\\pi}$"
 
     def get_inverse(self):
         """
@@ -418,7 +420,7 @@ class BasicRotationGate(BasicGate):
         raise NotMergeable("Can't merge different types of rotation gates.")
 
     def __eq__(self, other):
-        """ Return True if same class and same rotation angle. """
+        """Return True if same class and same rotation angle."""
         if isinstance(other, self.__class__):
             return self.angle == other.angle
         else:
@@ -434,7 +436,7 @@ class BasicRotationGate(BasicGate):
         """
         Return True if the gate is equivalent to an Identity gate
         """
-        return self.angle == 0. or self.angle == 4 * math.pi
+        return self.angle == 0.0 or self.angle == 4 * math.pi
 
 
 class BasicPhaseGate(BasicGate):
@@ -447,6 +449,7 @@ class BasicPhaseGate(BasicGate):
     The continuous parameter is modulo 2 * pi, self.angle is in the interval
     [0, 2 * pi).
     """
+
     def __init__(self, angle):
         """
         Initialize a basic rotation gate.
@@ -455,9 +458,9 @@ class BasicPhaseGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         BasicGate.__init__(self)
-        rounded_angle = round(float(angle) % (2. * math.pi), ANGLE_PRECISION)
+        rounded_angle = round(float(angle) % (2.0 * math.pi), ANGLE_PRECISION)
         if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
-            rounded_angle = 0.
+            rounded_angle = 0.0
         self.angle = rounded_angle
 
     def __str__(self):
@@ -516,7 +519,7 @@ class BasicPhaseGate(BasicGate):
         raise NotMergeable("Can't merge different types of rotation gates.")
 
     def __eq__(self, other):
-        """ Return True if same class and same rotation angle. """
+        """Return True if same class and same rotation angle."""
         if isinstance(other, self.__class__):
             return self.angle == other.angle
         else:
@@ -537,6 +540,7 @@ class ClassicalInstructionGate(BasicGate):
     Base class for all gates which are not quantum gates in the typical sense,
     e.g., measurement, allocation/deallocation, ...
     """
+
     pass
 
 
@@ -562,6 +566,7 @@ class FastForwardingGate(ClassicalInstructionGate):
 
         is required before the circuit gets sent through the API.
     """
+
     pass
 
 
@@ -589,6 +594,7 @@ class BasicMathGate(BasicGate):
         def multiply(a,b,c)
             return (a,b,c+a*b)
     """
+
     def __init__(self, math_fun):
         """
         Initialize a BasicMathGate by providing the mathematical function that

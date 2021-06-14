@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@ class StatePreparation(BasicGate):
     """
     Gate for transforming qubits in state |0> to any desired quantum state.
     """
+
     def __init__(self, final_state):
         """
         Initialize StatePreparation gate.

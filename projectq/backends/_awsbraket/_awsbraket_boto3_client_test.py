@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,26 +15,20 @@
 """ Test for projectq.backends._awsbraket._awsbraket_boto3_client.py """
 
 import pytest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
-from io import StringIO
-
-import json
-
-from ._awsbraket_boto3_client_test_fixtures import *
+from ._awsbraket_boto3_client_test_fixtures import *  # noqa: F401,F403
 
 # ==============================================================================
 
 _has_boto3 = True
 try:
-    from botocore.response import StreamingBody
     import botocore
     from projectq.backends._awsbraket import _awsbraket_boto3_client
 except ImportError:
     _has_boto3 = False
 
-has_boto3 = pytest.mark.skipif(not _has_boto3,
-                               reason="boto3 package is not installed")
+has_boto3 = pytest.mark.skipif(not _has_boto3, reason="boto3 package is not installed")
 
 # ==============================================================================
 
@@ -62,9 +57,7 @@ completed_value = {
     'quantumTaskArn': 'arntask',
     'shots': 123,
     'status': 'COMPLETED',
-    'tags': {
-        'tagkey': 'tagvalue'
-    }
+    'tags': {'tagkey': 'tagvalue'},
 }
 
 failed_value = {
@@ -93,11 +86,15 @@ other_value = {
 
 @has_boto3
 @patch('boto3.client')
-@pytest.mark.parametrize("var_status, var_result",
-                         [('completed', completed_value),
-                          ('failed', failed_value),
-                          ('cancelling', cancelling_value),
-                          ('other', other_value)])
+@pytest.mark.parametrize(
+    "var_status, var_result",
+    [
+        ('completed', completed_value),
+        ('failed', failed_value),
+        ('cancelling', cancelling_value),
+        ('other', other_value),
+    ],
+)
 def test_retrieve(mock_boto3_client, var_status, var_result, retrieve_setup):
     arntask, creds, device_value, res_completed, results_dict = retrieve_setup
 
@@ -107,28 +104,28 @@ def test_retrieve(mock_boto3_client, var_status, var_result, retrieve_setup):
     mock_boto3_client.get_object.return_value = results_dict
 
     if var_status == 'completed':
-        res = _awsbraket_boto3_client.retrieve(credentials=creds,
-                                               taskArn=arntask)
+        res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
         assert res == res_completed
     else:
         with pytest.raises(Exception) as exinfo:
-            _awsbraket_boto3_client.retrieve(credentials=creds,
-                                             taskArn=arntask,
-                                             num_retries=2)
+            _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask, num_retries=2)
         print(exinfo.value)
         if var_status == 'failed':
-            assert str(exinfo.value) == \
-                "Error while running the code: FAILED. \
+            assert (
+                str(exinfo.value)
+                == "Error while running the code: FAILED. \
 The failure reason was: This is a failure reason."
+            )
 
         if var_status == 'cancelling':
-            assert str(exinfo.value) == \
-                "The job received a CANCEL operation: CANCELLING."
+            assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert str(exinfo.value) == \
-                "Timeout. The Arn of your submitted job \
+            assert (
+                str(exinfo.value)
+                == "Timeout. The Arn of your submitted job \
 is arn:aws:braket:us-east-1:id:taskuuid \
 and the status of the job is OTHER."
+            )
 
 
 # ==============================================================================
@@ -137,8 +134,13 @@ and the status of the job is OTHER."
 @has_boto3
 @patch('boto3.client')
 def test_retrieve_devicetypes(mock_boto3_client, retrieve_devicetypes_setup):
-    (arntask, creds, device_value, results_dict,
-     res_completed) = retrieve_devicetypes_setup
+    (
+        arntask,
+        creds,
+        device_value,
+        results_dict,
+        res_completed,
+    ) = retrieve_devicetypes_setup
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.get_quantum_task.return_value = completed_value
@@ -155,18 +157,14 @@ def test_retrieve_devicetypes(mock_boto3_client, retrieve_devicetypes_setup):
 @has_boto3
 @patch('boto3.client')
 def test_send_too_many_qubits(mock_boto3_client, send_too_many_setup):
-    (creds, s3_folder, search_value, device_value,
-     info_too_much) = send_too_many_setup
+    (creds, s3_folder, search_value, device_value, info_too_much) = send_too_many_setup
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
 
     with pytest.raises(_awsbraket_boto3_client.DeviceTooSmall):
-        _awsbraket_boto3_client.send(info_too_much,
-                                     device='name2',
-                                     credentials=creds,
-                                     s3_folder=s3_folder)
+        _awsbraket_boto3_client.send(info_too_much, device='name2', credentials=creds, s3_folder=s3_folder)
 
 
 # ==============================================================================
@@ -174,16 +172,27 @@ def test_send_too_many_qubits(mock_boto3_client, send_too_many_setup):
 
 @has_boto3
 @patch('boto3.client')
-@pytest.mark.parametrize("var_status, var_result",
-                         [('completed', completed_value),
-                          ('failed', failed_value),
-                          ('cancelling', cancelling_value),
-                          ('other', other_value)])
-def test_send_real_device_online_verbose(mock_boto3_client, var_status,
-                                         var_result, real_device_online_setup):
+@pytest.mark.parametrize(
+    "var_status, var_result",
+    [
+        ('completed', completed_value),
+        ('failed', failed_value),
+        ('cancelling', cancelling_value),
+        ('other', other_value),
+    ],
+)
+def test_send_real_device_online_verbose(mock_boto3_client, var_status, var_result, real_device_online_setup):
 
-    (qtarntask, creds, s3_folder, info, search_value, device_value,
-     res_completed, results_dict) = real_device_online_setup
+    (
+        qtarntask,
+        creds,
+        s3_folder,
+        info,
+        search_value,
+        device_value,
+        res_completed,
+        results_dict,
+    ) = real_device_online_setup
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
@@ -199,34 +208,35 @@ def test_send_real_device_online_verbose(mock_boto3_client, var_status,
     # statuses in var_status for the tests
 
     if var_status == 'completed':
-        res = _awsbraket_boto3_client.send(info,
-                                           device='name2',
-                                           credentials=creds,
-                                           s3_folder=s3_folder,
-                                           verbose=True)
+        res = _awsbraket_boto3_client.send(info, device='name2', credentials=creds, s3_folder=s3_folder, verbose=True)
         assert res == res_completed
     else:
         with pytest.raises(Exception) as exinfo:
-            _awsbraket_boto3_client.send(info,
-                                         device='name2',
-                                         credentials=creds,
-                                         s3_folder=s3_folder,
-                                         verbose=True,
-                                         num_retries=2)
+            _awsbraket_boto3_client.send(
+                info,
+                device='name2',
+                credentials=creds,
+                s3_folder=s3_folder,
+                verbose=True,
+                num_retries=2,
+            )
         print(exinfo.value)
         if var_status == 'failed':
-            assert str(exinfo.value) == \
-                "Error while running the code: FAILED. The failure \
+            assert (
+                str(exinfo.value)
+                == "Error while running the code: FAILED. The failure \
 reason was: This is a failure reason."
+            )
 
         if var_status == 'cancelling':
-            assert str(exinfo.value) == \
-                "The job received a CANCEL operation: CANCELLING."
+            assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert str(exinfo.value) == \
-                "Timeout. The Arn of your submitted job \
+            assert (
+                str(exinfo.value)
+                == "Timeout. The Arn of your submitted job \
 is arn:aws:braket:us-east-1:id:taskuuid \
 and the status of the job is OTHER."
+            )
 
 
 # ==============================================================================
@@ -234,37 +244,38 @@ and the status of the job is OTHER."
 
 @has_boto3
 @patch('boto3.client')
-@pytest.mark.parametrize("var_error", [('AccessDeniedException'),
-                                       ('DeviceOfflineException'),
-                                       ('InternalServiceException'),
-                                       ('ServiceQuotaExceededException'),
-                                       ('ValidationException')])
-def test_send_that_errors_are_caught(mock_boto3_client, var_error,
-                                     send_that_error_setup):
+@pytest.mark.parametrize(
+    "var_error",
+    [
+        ('AccessDeniedException'),
+        ('DeviceOfflineException'),
+        ('InternalServiceException'),
+        ('ServiceQuotaExceededException'),
+        ('ValidationException'),
+    ],
+)
+def test_send_that_errors_are_caught(mock_boto3_client, var_error, send_that_error_setup):
     creds, s3_folder, info, search_value, device_value = send_that_error_setup
 
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
-    mock_boto3_client.create_quantum_task.side_effect = \
-        botocore.exceptions.ClientError(
-            {"Error": {
-                "Code": var_error,
-                "Message": "Msg error for "+var_error}}, "create_quantum_task")
+    mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
+        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        "create_quantum_task",
+    )
 
-    with pytest.raises(botocore.exceptions.ClientError) as exinfo:
-        _awsbraket_boto3_client.send(info,
-                                     device='name2',
-                                     credentials=creds,
-                                     s3_folder=s3_folder,
-                                     num_retries=2)
+    with pytest.raises(botocore.exceptions.ClientError):
+        _awsbraket_boto3_client.send(info, device='name2', credentials=creds, s3_folder=s3_folder, num_retries=2)
 
-    with pytest.raises(_awsbraket_boto3_client.DeviceOfflineError) as exinfo:
-        _awsbraket_boto3_client.send(info,
-                                     device='unknown',
-                                     credentials=creds,
-                                     s3_folder=s3_folder,
-                                     num_retries=2)
+    with pytest.raises(_awsbraket_boto3_client.DeviceOfflineError):
+        _awsbraket_boto3_client.send(
+            info,
+            device='unknown',
+            credentials=creds,
+            s3_folder=s3_folder,
+            num_retries=2,
+        )
 
 
 # ==============================================================================
@@ -273,17 +284,15 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error,
 @has_boto3
 @patch('boto3.client')
 @pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
-def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error, arntask,
-                                      creds):
+def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error, arntask, creds):
 
     mock_boto3_client.return_value = mock_boto3_client
-    mock_boto3_client.get_quantum_task.side_effect = \
-        botocore.exceptions.ClientError(
-            {"Error": {
-                "Code": var_error,
-                "Message": "Msg error for "+var_error}}, "get_quantum_task")
+    mock_boto3_client.get_quantum_task.side_effect = botocore.exceptions.ClientError(
+        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        "get_quantum_task",
+    )
 
-    with pytest.raises(botocore.exceptions.ClientError) as exinfo:
+    with pytest.raises(botocore.exceptions.ClientError):
         _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
 
 

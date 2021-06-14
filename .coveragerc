@@ -1,4 +1,0 @@
-[run]
-
-omit = *_test.py
-       *_fixtures.py

@@ -254,4 +254,3 @@ void kernel(V &psi, unsigned id4, unsigned id3, unsigned id2, unsigned id1, unsi
         }
     }
 }
-

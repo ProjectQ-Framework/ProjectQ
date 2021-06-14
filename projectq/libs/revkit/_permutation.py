@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,16 +64,16 @@ class PermutationOracle:
         except ImportError:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
-                "PYTHONPATH in order to call this function")
+                "PYTHONPATH in order to call this function"
+            )
 
         # convert qubits to flattened list
         qs = BasicGate.make_tuple_of_qureg(qubits)
         qs = sum(qs, [])
 
         # permutation must have 2*q elements, where q is the number of qubits
-        if 2**(len(qs)) != len(self.permutation):
-            raise AttributeError(
-                "Number of qubits does not fit to the size of the permutation")
+        if 2 ** (len(qs)) != len(self.permutation):
+            raise AttributeError("Number of qubits does not fit to the size of the permutation")
 
         # create reversible truth table from permutation
         revkit.perm(permutation=" ".join(map(str, self.permutation)))
@@ -89,6 +90,5 @@ class PermutationOracle:
         """
         # permutation must start from 0, has no duplicates and all elements are
         # consecutive
-        if (sorted(list(set(self.permutation))) !=
-                list(range(len(self.permutation)))):
+        if sorted(list(set(self.permutation))) != list(range(len(self.permutation))):
             raise AttributeError("Invalid permutation (does it start from 0?)")

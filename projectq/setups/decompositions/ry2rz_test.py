@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +19,16 @@ import math
 
 import pytest
 
-from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet,
-                               DummyEngine, InstructionFilter, MainEngine)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+    MainEngine,
+)
 from projectq.meta import Control
-from projectq.ops import Measure, Ph, Ry
+from projectq.ops import Measure, Ry
 
 from . import ry2rz
 
@@ -50,19 +55,22 @@ def ry_decomp_gates(eng, cmd):
         return True
 
 
-@pytest.mark.parametrize("angle", [0, math.pi, 2*math.pi, 4*math.pi, 0.5])
+@pytest.mark.parametrize("angle", [0, math.pi, 2 * math.pi, 4 * math.pi, 0.5])
 def test_decomposition(angle):
     for basis_state in ([1, 0], [0, 1]):
         correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(),
-                                 engine_list=[correct_dummy_eng])
+        correct_eng = MainEngine(backend=Simulator(), engine_list=[correct_dummy_eng])
 
         rule_set = DecompositionRuleSet(modules=[ry2rz])
         test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(ry_decomp_gates),
-                                           test_dummy_eng])
+        test_eng = MainEngine(
+            backend=Simulator(),
+            engine_list=[
+                AutoReplacer(rule_set),
+                InstructionFilter(ry_decomp_gates),
+                test_dummy_eng,
+            ],
+        )
 
         correct_qb = correct_eng.allocate_qubit()
         Ry(angle) | correct_qb

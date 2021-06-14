@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.types._qubits."""
 
 from copy import copy, deepcopy
@@ -75,8 +75,7 @@ def test_basic_qubit_hash():
     assert a == c and hash(a) == hash(c)
 
     # For performance reasons, low ids should not collide.
-    assert len(set(hash(_qubit.BasicQubit(fake_engine, e))
-                   for e in range(100))) == 100
+    assert len(set(hash(_qubit.BasicQubit(fake_engine, e)) for e in range(100))) == 100
 
     # Important that weakref.WeakSet in projectq.cengines._main.py works.
     # When id is -1, expect reference equality.

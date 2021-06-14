@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +19,14 @@ import pytest
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
-                               InstructionFilter)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+)
 from projectq.meta import Control
 from projectq.ops import All, Measure, Ph, QubitOperator, X, Y, Z
-
 
 import projectq.setups.decompositions.qubitop2onequbit as qubitop2onequbit
 
@@ -52,25 +56,23 @@ def _decomp_gates(eng, cmd):
 
 def test_qubitop2singlequbit():
     num_qubits = 4
-    random_initial_state = [0.2+0.1*x*cmath.exp(0.1j+0.2j*x)
-                            for x in range(2**(num_qubits+1))]
+    random_initial_state = [0.2 + 0.1 * x * cmath.exp(0.1j + 0.2j * x) for x in range(2 ** (num_qubits + 1))]
     rule_set = DecompositionRuleSet(modules=[qubitop2onequbit])
-    test_eng = MainEngine(backend=Simulator(),
-                          engine_list=[AutoReplacer(rule_set),
-                                       InstructionFilter(_decomp_gates)])
+    test_eng = MainEngine(
+        backend=Simulator(),
+        engine_list=[AutoReplacer(rule_set), InstructionFilter(_decomp_gates)],
+    )
     test_qureg = test_eng.allocate_qureg(num_qubits)
     test_ctrl_qb = test_eng.allocate_qubit()
     test_eng.flush()
-    test_eng.backend.set_wavefunction(random_initial_state,
-                                      test_qureg + test_ctrl_qb)
+    test_eng.backend.set_wavefunction(random_initial_state, test_qureg + test_ctrl_qb)
     correct_eng = MainEngine()
     correct_qureg = correct_eng.allocate_qureg(num_qubits)
     correct_ctrl_qb = correct_eng.allocate_qubit()
     correct_eng.flush()
-    correct_eng.backend.set_wavefunction(random_initial_state,
-                                         correct_qureg + correct_ctrl_qb)
+    correct_eng.backend.set_wavefunction(random_initial_state, correct_qureg + correct_ctrl_qb)
 
-    qubit_op_0 = QubitOperator("X0 Y1 Z3", -1.j)
+    qubit_op_0 = QubitOperator("X0 Y1 Z3", -1.0j)
     qubit_op_1 = QubitOperator("Z0 Y1 X3", cmath.exp(0.6j))
 
     qubit_op_0 | test_qureg
@@ -86,12 +88,10 @@ def test_qubitop2singlequbit():
         X | correct_qureg[3]
     correct_eng.flush()
 
-    for fstate in range(2**(num_qubits+1)):
-        binary_state = format(fstate, '0' + str(num_qubits+1) + 'b')
-        test = test_eng.backend.get_amplitude(binary_state,
-                                              test_qureg + test_ctrl_qb)
-        correct = correct_eng.backend.get_amplitude(
-            binary_state, correct_qureg + correct_ctrl_qb)
+    for fstate in range(2 ** (num_qubits + 1)):
+        binary_state = format(fstate, '0' + str(num_qubits + 1) + 'b')
+        test = test_eng.backend.get_amplitude(binary_state, test_qureg + test_ctrl_qb)
+        correct = correct_eng.backend.get_amplitude(binary_state, correct_qureg + correct_ctrl_qb)
         assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)
 
     All(Measure) | correct_qureg + correct_ctrl_qb

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers decomposition for StatePreparation.
 """
@@ -21,8 +21,12 @@ import math
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, Dagger
-from projectq.ops import (StatePreparation, Ry, Rz, UniformlyControlledRy,
-                          UniformlyControlledRz, Ph)
+from projectq.ops import (
+    StatePreparation,
+    UniformlyControlledRy,
+    UniformlyControlledRz,
+    Ph,
+)
 
 
 def _decompose_state_preparation(cmd):
@@ -34,11 +38,11 @@ def _decompose_state_preparation(cmd):
     num_qubits = len(cmd.qubits[0])
     qureg = cmd.qubits[0]
     final_state = cmd.gate.final_state
-    if len(final_state) != 2**num_qubits:
+    if len(final_state) != 2 ** num_qubits:
         raise ValueError("Length of final_state is invalid.")
-    norm = 0.
+    norm = 0.0
     for amplitude in final_state:
-        norm += abs(amplitude)**2
+        norm += abs(amplitude) ** 2
     if norm < 1 - 1e-10 or norm > 1 + 1e-10:
         raise ValueError("final_state is not normalized.")
     with Control(eng, cmd.control_qubits):
@@ -51,13 +55,15 @@ def _decompose_state_preparation(cmd):
             for target_qubit in range(len(qureg)):
                 angles = []
                 phase_of_next_blocks = []
-                for block in range(2**(len(qureg)-target_qubit-1)):
-                    phase0 = phase_of_blocks[2*block]
-                    phase1 = phase_of_blocks[2*block+1]
+                for block in range(2 ** (len(qureg) - target_qubit - 1)):
+                    phase0 = phase_of_blocks[2 * block]
+                    phase1 = phase_of_blocks[2 * block + 1]
                     angles.append(phase0 - phase1)
-                    phase_of_next_blocks.append((phase0 + phase1)/2.)
-                UniformlyControlledRz(angles) | (qureg[(target_qubit+1):],
-                                                 qureg[target_qubit])
+                    phase_of_next_blocks.append((phase0 + phase1) / 2.0)
+                UniformlyControlledRz(angles) | (
+                    qureg[(target_qubit + 1) :],  # noqa: E203
+                    qureg[target_qubit],
+                )
                 phase_of_blocks = phase_of_next_blocks
             # Cancel global phase
             Ph(-phase_of_blocks[0]) | qureg[-1]
@@ -68,21 +74,20 @@ def _decompose_state_preparation(cmd):
             for target_qubit in range(len(qureg)):
                 angles = []
                 abs_of_next_blocks = []
-                for block in range(2**(len(qureg)-target_qubit-1)):
-                    a0 = abs_of_blocks[2*block]
-                    a1 = abs_of_blocks[2*block+1]
+                for block in range(2 ** (len(qureg) - target_qubit - 1)):
+                    a0 = abs_of_blocks[2 * block]
+                    a1 = abs_of_blocks[2 * block + 1]
                     if a0 == 0 and a1 == 0:
                         angles.append(0)
                     else:
-                        angles.append(
-                            -2. * math.acos(a0 / math.sqrt(a0**2 + a1**2)))
-                    abs_of_next_blocks.append(math.sqrt(a0**2 + a1**2))
-                UniformlyControlledRy(angles) | (qureg[(target_qubit+1):],
-                                                 qureg[target_qubit])
+                        angles.append(-2.0 * math.acos(a0 / math.sqrt(a0 ** 2 + a1 ** 2)))
+                    abs_of_next_blocks.append(math.sqrt(a0 ** 2 + a1 ** 2))
+                UniformlyControlledRy(angles) | (
+                    qureg[(target_qubit + 1) :],  # noqa: E203
+                    qureg[target_qubit],
+                )
                 abs_of_blocks = abs_of_next_blocks
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(StatePreparation, _decompose_state_preparation)
-]
+all_defined_decomposition_rules = [DecompositionRule(StatePreparation, _decompose_state_preparation)]

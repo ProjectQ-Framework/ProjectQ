@@ -1,4 +1,5 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,9 +19,7 @@ Tests for projectq.backends.circuits._drawer.py.
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import LastEngineException
-from projectq.ops import (H, X, CNOT, Measure)
-from projectq.meta import Control
+from projectq.ops import H, X, CNOT, Measure
 
 import projectq.backends._circuits._drawer as _drawer
 from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
@@ -98,7 +97,7 @@ def test_drawer_qubitmapping():
             drawer.set_qubit_locations(invalid_mapping)
 
     eng = MainEngine(drawer, [])
-    qubit = eng.allocate_qubit()
+    qubit = eng.allocate_qubit()  # noqa: F841
     # mapping has begun --> can't assign it anymore
     with pytest.raises(RuntimeError):
         drawer.set_qubit_locations({0: 1, 1: 0})

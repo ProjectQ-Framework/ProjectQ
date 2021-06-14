@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +20,29 @@ import json
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
-from projectq.ops import (R, SwapGate, HGate, Rx, Ry, Rz, SGate, Sdag, TGate,
-                          Tdag, XGate, YGate, ZGate, SqrtXGate, Measure,
-                          Allocate, Deallocate, Barrier, FlushGate,
-                          DaggeredGate)
+from projectq.ops import (
+    R,
+    SwapGate,
+    HGate,
+    Rx,
+    Ry,
+    Rz,
+    SGate,
+    Sdag,
+    TGate,
+    Tdag,
+    XGate,
+    YGate,
+    ZGate,
+    SqrtXGate,
+    Measure,
+    Allocate,
+    Deallocate,
+    Barrier,
+    FlushGate,
+    DaggeredGate,
+)
+
 # TODO: Add MatrixGate to cover the unitary operation in the SV1 simulator
 
 from ._awsbraket_boto3_client import send, retrieve
@@ -34,16 +54,19 @@ class AWSBraketBackend(BasicEngine):
     transforms it to Braket compatible,
     and sends the circuit through the Boto3 and Amazon Braket SDK.
     """
-    def __init__(self,
-                 use_hardware=False,
-                 num_runs=1000,
-                 verbose=False,
-                 credentials=None,
-                 s3_folder=None,
-                 device='Aspen-8',
-                 num_retries=30,
-                 interval=1,
-                 retrieve_execution=None):
+
+    def __init__(
+        self,
+        use_hardware=False,
+        num_runs=1000,
+        verbose=False,
+        credentials=None,
+        s3_folder=None,
+        device='Aspen-8',
+        num_retries=30,
+        interval=1,
+        retrieve_execution=None,
+    ):
         """
         Initialize the Backend object.
 
@@ -101,7 +124,7 @@ class AWSBraketBackend(BasicEngine):
             SGate: 's',  # NB: Sdag is 'si'
             TGate: 't',  # NB: Tdag is 'ti'
             SwapGate: 'swap',
-            SqrtXGate: 'v'
+            SqrtXGate: 'v',
         }
 
         # Static head and tail to be added to the circuit
@@ -159,17 +182,49 @@ class AWSBraketBackend(BasicEngine):
             if get_control_count(cmd) == 1:
                 return isinstance(gate, (R, ZGate, XGate, SwapGate))
             if get_control_count(cmd) == 0:
-                return isinstance(
-                    gate, (R, Rx, Ry, Rz, XGate, YGate, ZGate, HGate, SGate,
-                           TGate, SwapGate)) or gate in (Sdag, Tdag)
+                return (
+                    isinstance(
+                        gate,
+                        (
+                            R,
+                            Rx,
+                            Ry,
+                            Rz,
+                            XGate,
+                            YGate,
+                            ZGate,
+                            HGate,
+                            SGate,
+                            TGate,
+                            SwapGate,
+                        ),
+                    )
+                    or gate in (Sdag, Tdag)
+                )
 
         if self.device == 'IonQ Device':
             if get_control_count(cmd) == 1:
                 return isinstance(gate, XGate)
             if get_control_count(cmd) == 0:
-                return isinstance(
-                    gate, (Rx, Ry, Rz, XGate, YGate, ZGate, HGate, SGate,
-                           TGate, SqrtXGate, SwapGate)) or gate in (Sdag, Tdag)
+                return (
+                    isinstance(
+                        gate,
+                        (
+                            Rx,
+                            Ry,
+                            Rz,
+                            XGate,
+                            YGate,
+                            ZGate,
+                            HGate,
+                            SGate,
+                            TGate,
+                            SqrtXGate,
+                            SwapGate,
+                        ),
+                    )
+                    or gate in (Sdag, Tdag)
+                )
 
         if self.device == 'SV1':
             if get_control_count(cmd) == 2:
@@ -179,13 +234,30 @@ class AWSBraketBackend(BasicEngine):
             if get_control_count(cmd) == 0:
                 # TODO: add MatrixGate to cover the unitary operation
                 # TODO: Missing XY gate in ProjectQ
-                return isinstance(
-                    gate, (R, Rx, Ry, Rz, XGate, YGate, ZGate, HGate, SGate,
-                           TGate, SqrtXGate, SwapGate)) or gate in (Sdag, Tdag)
+                return (
+                    isinstance(
+                        gate,
+                        (
+                            R,
+                            Rx,
+                            Ry,
+                            Rz,
+                            XGate,
+                            YGate,
+                            ZGate,
+                            HGate,
+                            SGate,
+                            TGate,
+                            SqrtXGate,
+                            SwapGate,
+                        ),
+                    )
+                    or gate in (Sdag, Tdag)
+                )
         return False
 
     def _reset(self):
-        """ Reset all temporary variables (after flush gate). """
+        """Reset all temporary variables (after flush gate)."""
         self._clear = True
         self._measured_ids = []
 
@@ -207,8 +279,7 @@ class AWSBraketBackend(BasicEngine):
 
         gate = cmd.gate
         num_controls = get_control_count(cmd)
-        gate_type = (type(gate) if not isinstance(gate, DaggeredGate) else
-                     type(gate._gate))
+        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
 
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
@@ -223,8 +294,7 @@ class AWSBraketBackend(BasicEngine):
                 if isinstance(tag, LogicalQubitIDTag):
                     logical_id = tag.logical_qubit_id
                     break
-            self._measured_ids.append(
-                logical_id if logical_id is not None else qb_id)
+            self._measured_ids.append(logical_id if logical_id is not None else qb_id)
             return
 
         # All other supported gate types
@@ -245,8 +315,7 @@ class AWSBraketBackend(BasicEngine):
             json_cmd['angle'] = gate.angle
 
         if isinstance(gate, DaggeredGate):
-            json_cmd['type'] = ('c' * num_controls + self._gationary[gate_type]
-                                + 'i')
+            json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type] + 'i'
         elif isinstance(gate, (XGate)) and num_controls > 0:
             json_cmd['type'] = 'c' * (num_controls - 1) + 'cnot'
         else:
@@ -270,7 +339,8 @@ class AWSBraketBackend(BasicEngine):
                 raise RuntimeError(
                     "Unknown qubit id {} in current mapping. Please make sure "
                     "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id))
+                    "was eliminated during optimization.".format(qb_id)
+                )
             return mapping[qb_id]
         return qb_id
 
@@ -346,11 +416,13 @@ class AWSBraketBackend(BasicEngine):
         # You can recover the results from previous jobs using the TaskArn
         # (self._retrieve_execution).
         if self._retrieve_execution is not None:
-            res = retrieve(credentials=self._credentials,
-                           taskArn=self._retrieve_execution,
-                           num_retries=self._num_retries,
-                           interval=self._interval,
-                           verbose=self._verbose)
+            res = retrieve(
+                credentials=self._credentials,
+                taskArn=self._retrieve_execution,
+                num_retries=self._num_retries,
+                interval=self._interval,
+                verbose=self._verbose,
+            )
         else:
             # Return if no operations have been added.
             if not self._circuit:
@@ -358,25 +430,25 @@ class AWSBraketBackend(BasicEngine):
 
             n_qubit = len(self._allocated_qubits)
             info = {}
-            info['circuit'] = self._circuithead + \
-                self._circuit.rstrip(', ') + \
-                self._circuittail
+            info['circuit'] = self._circuithead + self._circuit.rstrip(', ') + self._circuittail
             info['nq'] = n_qubit
             info['shots'] = self._num_runs
             info['backend'] = {'name': self.device}
-            res = send(info,
-                       device=self.device,
-                       credentials=self._credentials,
-                       s3_folder=self._s3_folder,
-                       num_retries=self._num_retries,
-                       interval=self._interval,
-                       verbose=self._verbose)
+            res = send(
+                info,
+                device=self.device,
+                credentials=self._credentials,
+                s3_folder=self._s3_folder,
+                num_retries=self._num_retries,
+                interval=self._interval,
+                verbose=self._verbose,
+            )
 
         counts = res
 
         # Determine random outcome
         P = random.random()
-        p_sum = 0.
+        p_sum = 0.0
         measured = ""
         for state in counts:
             probability = counts[state]
@@ -392,8 +464,7 @@ class AWSBraketBackend(BasicEngine):
         # register measurement result
         for qubit_id in self._measured_ids:
             result = int(measured[self._logical_to_physical(qubit_id)])
-            self.main_engine.set_measurement_result(
-                WeakQubitRef(self.main_engine, qubit_id), result)
+            self.main_engine.set_measurement_result(WeakQubitRef(self.main_engine, qubit_id), result)
         self._reset()
 
     def receive(self, command_list):

@@ -10,7 +10,7 @@ For a detailed documentation of a subpackage or module, click on its name below:
 .. toctree::
     :maxdepth: 1
     :titlesonly:
-    
+
     _doc_gen/projectq.backends
     _doc_gen/projectq.cengines
     _doc_gen/projectq.libs
@@ -18,5 +18,3 @@ For a detailed documentation of a subpackage or module, click on its name below:
     _doc_gen/projectq.ops
     _doc_gen/projectq.setups
     _doc_gen/projectq.types
-
-

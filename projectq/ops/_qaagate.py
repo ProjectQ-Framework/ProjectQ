@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,11 +72,11 @@ class QAA(BasicGate):
                      "good" states
 
     """
+
     def __init__(self, algorithm, oracle):
         BasicGate.__init__(self)
         self.algorithm = algorithm
         self.oracle = oracle
 
     def __str__(self):
-        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(
-                str(self.algorithm.__name__), str(self.oracle.__name__))
+        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(str(self.algorithm.__name__), str(self.oracle.__name__))

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,11 +107,9 @@ def axes():
 def test_gate_width(axes, gate_str, plot_params):
     width = _plot.gate_width(axes, gate_str, plot_params)
     if gate_str == 'X':
-        assert width == 2 * plot_params['not_radius'] / plot_params[
-            'units_per_inch']
+        assert width == 2 * plot_params['not_radius'] / plot_params['units_per_inch']
     elif gate_str == 'Swap':
-        assert width == 2 * plot_params['swap_delta'] / plot_params[
-            'units_per_inch']
+        assert width == 2 * plot_params['swap_delta'] / plot_params['units_per_inch']
     elif gate_str == 'Measure':
         assert width == plot_params['mgate_width']
     else:
@@ -118,9 +117,7 @@ def test_gate_width(axes, gate_str, plot_params):
 
 
 def test_calculate_gate_grid(axes, plot_params):
-    qubit_lines = {
-        0: [('X', [0], []), ('X', [0], []), ('X', [0], []), ('X', [0], [])]
-    }
+    qubit_lines = {0: [('X', [0], []), ('X', [0], []), ('X', [0], []), ('X', [0], [])]}
 
     gate_grid = _plot.calculate_gate_grid(axes, qubit_lines, plot_params)
     assert len(gate_grid) == 5
@@ -145,16 +142,20 @@ def test_create_figure(plot_params):
 
 def test_draw_single_gate(axes, plot_params):
     with pytest.raises(RuntimeError):
-        _plot.draw_gate(axes, 'MyGate', 2, [0, 0, 0], [0, 1, 3], [],
-                        plot_params)
+        _plot.draw_gate(axes, 'MyGate', 2, [0, 0, 0], [0, 1, 3], [], plot_params)
     _plot.draw_gate(axes, 'MyGate', 2, [0, 0, 0], [0, 1, 2], [], plot_params)
 
 
 def test_draw_simple(plot_params):
     qubit_lines = {
-        0: [('X', [0], []), ('Z', [0], []), ('Z', [0], [1]),
-            ('Swap', [0, 1], []), ('Measure', [0], [])],
-        1: [None, None, None, None, None]
+        0: [
+            ('X', [0], []),
+            ('Z', [0], []),
+            ('Z', [0], [1]),
+            ('Swap', [0, 1], []),
+            ('Measure', [0], []),
+        ],
+        1: [None, None, None, None, None],
     }
     fig, axes = _plot.to_draw(qubit_lines)
 
@@ -176,25 +177,19 @@ def test_draw_simple(plot_params):
         else:
             text_gates.append(text)
 
-    assert all(
-        label.get_position()[0] == pytest.approx(plot_params['x_offset'])
-        for label in labels)
-    assert (abs(labels[1].get_position()[1]
-                - labels[0].get_position()[1]) == pytest.approx(wire_height))
+    assert all(label.get_position()[0] == pytest.approx(plot_params['x_offset']) for label in labels)
+    assert abs(labels[1].get_position()[1] - labels[0].get_position()[1]) == pytest.approx(wire_height)
 
     # X gate
     x_gate = [obj for obj in axes.collections if obj.get_label() == 'NOT'][0]
     #   find the filled circles
-    assert (x_gate.get_paths()[0].get_extents().width == pytest.approx(
-        2 * not_radius))
-    assert (x_gate.get_paths()[0].get_extents().height == pytest.approx(
-        2 * not_radius))
+    assert x_gate.get_paths()[0].get_extents().width == pytest.approx(2 * not_radius)
+    assert x_gate.get_paths()[0].get_extents().height == pytest.approx(2 * not_radius)
     #   find the vertical bar
     x_vertical = x_gate.get_paths()[1]
     assert len(x_vertical) == 2
-    assert x_vertical.get_extents().width == 0.
-    assert (x_vertical.get_extents().height == pytest.approx(
-        2 * plot_params['not_radius']))
+    assert x_vertical.get_extents().width == 0.0
+    assert x_vertical.get_extents().height == pytest.approx(2 * plot_params['not_radius'])
 
     # Z gate
     assert len(text_gates) == 1
@@ -206,17 +201,15 @@ def test_draw_simple(plot_params):
     #   find the filled circles
     for control in cz_gate.get_paths()[:-1]:
         assert control.get_extents().width == pytest.approx(2 * control_radius)
-        assert control.get_extents().height == pytest.approx(2
-                                                             * control_radius)
+        assert control.get_extents().height == pytest.approx(2 * control_radius)
     #   find the vertical bar
     cz_vertical = cz_gate.get_paths()[-1]
     assert len(cz_vertical) == 2
-    assert cz_vertical.get_extents().width == 0.
-    assert (cz_vertical.get_extents().height == pytest.approx(wire_height))
+    assert cz_vertical.get_extents().width == 0.0
+    assert cz_vertical.get_extents().height == pytest.approx(wire_height)
 
     # Swap gate
-    swap_gate = [obj for obj in axes.collections
-                 if obj.get_label() == 'SWAP'][0]
+    swap_gate = [obj for obj in axes.collections if obj.get_label() == 'SWAP'][0]
     #   find the filled circles
     for qubit in swap_gate.get_paths()[:-1]:
         assert qubit.get_extents().width == pytest.approx(2 * swap_delta)
@@ -224,18 +217,14 @@ def test_draw_simple(plot_params):
     #   find the vertical bar
     swap_vertical = swap_gate.get_paths()[-1]
     assert len(swap_vertical) == 2
-    assert swap_vertical.get_extents().width == 0.
-    assert (swap_vertical.get_extents().height == pytest.approx(wire_height))
+    assert swap_vertical.get_extents().width == 0.0
+    assert swap_vertical.get_extents().height == pytest.approx(wire_height)
 
     # Measure gate
-    measure_gate = [
-        obj for obj in axes.collections if obj.get_label() == 'Measure'
-    ][0]
+    measure_gate = [obj for obj in axes.collections if obj.get_label() == 'Measure'][0]
 
-    assert (measure_gate.get_paths()[0].get_extents().width == pytest.approx(
-        mgate_width))
-    assert (measure_gate.get_paths()[0].get_extents().height == pytest.approx(
-        0.9 * mgate_width))
+    assert measure_gate.get_paths()[0].get_extents().width == pytest.approx(mgate_width)
+    assert measure_gate.get_paths()[0].get_extents().height == pytest.approx(0.9 * mgate_width)
 
 
 def test_draw_advanced(plot_params):
@@ -257,33 +246,15 @@ def test_draw_advanced(plot_params):
         assert text.get_text() == r'$|0\rangle$'
 
     # NB numbering of wire starts from bottom.
-    _, axes = _plot.to_draw(qubit_lines,
-                            qubit_labels={
-                                0: 'qb0',
-                                1: 'qb1'
-                            },
-                            drawing_order={
-                                0: 0,
-                                1: 1
-                            })
-    assert ([axes.texts[qubit_id].get_text()
-             for qubit_id in range(2)] == ['qb0', 'qb1'])
+    _, axes = _plot.to_draw(qubit_lines, qubit_labels={0: 'qb0', 1: 'qb1'}, drawing_order={0: 0, 1: 1})
+    assert [axes.texts[qubit_id].get_text() for qubit_id in range(2)] == ['qb0', 'qb1']
 
     positions = [axes.texts[qubit_id].get_position() for qubit_id in range(2)]
     assert positions[1][1] > positions[0][1]
 
-    _, axes = _plot.to_draw(qubit_lines,
-                            qubit_labels={
-                                0: 'qb2',
-                                1: 'qb3'
-                            },
-                            drawing_order={
-                                0: 1,
-                                1: 0
-                            })
+    _, axes = _plot.to_draw(qubit_lines, qubit_labels={0: 'qb2', 1: 'qb3'}, drawing_order={0: 1, 1: 0})
 
-    assert ([axes.texts[qubit_id].get_text()
-             for qubit_id in range(2)] == ['qb2', 'qb3'])
+    assert [axes.texts[qubit_id].get_text() for qubit_id in range(2)] == ['qb2', 'qb3']
 
     positions = [axes.texts[qubit_id].get_position() for qubit_id in range(2)]
     assert positions[1][1] < positions[0][1]

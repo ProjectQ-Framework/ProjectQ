@@ -1,4 +1,5 @@
-#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2020, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,9 +21,27 @@ from projectq import MainEngine
 from projectq.backends._aqt import _aqt
 from projectq.types import WeakQubitRef, Qubit
 from projectq.cengines import DummyEngine, BasicMapperEngine
-from projectq.ops import (All, Allocate, Barrier, Command, Deallocate,
-                          Entangle, Measure, NOT, Rx, Ry, Rz, Rxx, S, Sdag, T,
-                          Tdag, X, Y, Z)
+from projectq.ops import (
+    All,
+    Allocate,
+    Barrier,
+    Command,
+    Deallocate,
+    Entangle,
+    Measure,
+    NOT,
+    Rx,
+    Ry,
+    Rz,
+    Rxx,
+    S,
+    Sdag,
+    T,
+    Tdag,
+    X,
+    Y,
+    Z,
+)
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -31,33 +50,45 @@ def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
 
-@pytest.mark.parametrize("single_qubit_gate, is_available",
-                         [(X, False), (Y, False), (Z, False), (T, False),
-                          (Tdag, False), (S, False), (Sdag, False),
-                          (Allocate, True), (Deallocate, True),
-                          (Measure, True), (NOT, False), (Rx(0.5), True),
-                          (Ry(0.5), True), (Rz(0.5), False), (Rxx(0.5), True),
-                          (Barrier, True), (Entangle, False)])
+@pytest.mark.parametrize(
+    "single_qubit_gate, is_available",
+    [
+        (X, False),
+        (Y, False),
+        (Z, False),
+        (T, False),
+        (Tdag, False),
+        (S, False),
+        (Sdag, False),
+        (Allocate, True),
+        (Deallocate, True),
+        (Measure, True),
+        (NOT, False),
+        (Rx(0.5), True),
+        (Ry(0.5), True),
+        (Rz(0.5), False),
+        (Rxx(0.5), True),
+        (Barrier, True),
+        (Entangle, False),
+    ],
+)
 def test_aqt_backend_is_available(single_qubit_gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     aqt_backend = _aqt.AQTBackend()
-    cmd = Command(eng, single_qubit_gate, (qubit1, ))
+    cmd = Command(eng, single_qubit_gate, (qubit1,))
     assert aqt_backend.is_available(cmd) == is_available
 
 
-@pytest.mark.parametrize("num_ctrl_qubits, is_available", [(0, True),
-                                                           (1, False),
-                                                           (2, False),
-                                                           (3, False)])
+@pytest.mark.parametrize("num_ctrl_qubits, is_available", [(0, True), (1, False), (2, False), (3, False)])
 def test_aqt_backend_is_available_control_not(num_ctrl_qubits, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qureg = eng.allocate_qureg(num_ctrl_qubits)
     aqt_backend = _aqt.AQTBackend()
-    cmd = Command(eng, Rx(0.5), (qubit1, ), controls=qureg)
+    cmd = Command(eng, Rx(0.5), (qubit1,), controls=qureg)
     assert aqt_backend.is_available(cmd) == is_available
-    cmd = Command(eng, Rxx(0.5), (qubit1, ), controls=qureg)
+    cmd = Command(eng, Rxx(0.5), (qubit1,), controls=qureg)
     assert aqt_backend.is_available(cmd) == is_available
 
 
@@ -76,7 +107,7 @@ def test_aqt_invalid_command():
     backend = _aqt.AQTBackend(verbose=True)
 
     qb = WeakQubitRef(None, 1)
-    cmd = Command(None, gate=S, qubits=[(qb, )])
+    cmd = Command(None, gate=S, qubits=[(qb,)])
     with pytest.raises(Exception):
         backend.receive([cmd])
 
@@ -116,9 +147,7 @@ def test_aqt_retrieve(monkeypatch):
         return [0, 6, 0, 6, 0, 0, 0, 6, 0, 6]
 
     monkeypatch.setattr(_aqt, "retrieve", mock_retrieve)
-    backend = _aqt.AQTBackend(
-        retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968",
-        verbose=True)
+    backend = _aqt.AQTBackend(retrieve_execution="a3877d18-314f-46c9-86e7-316bc4dbe968", verbose=True)
 
     eng = MainEngine(backend=backend, engine_list=[])
     unused_qubit = eng.allocate_qubit()
@@ -149,17 +178,12 @@ def test_aqt_retrieve(monkeypatch):
 
 def test_aqt_backend_functional_test(monkeypatch):
     correct_info = {
-        'circuit':
-        '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
+        'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
         '["Y", 3.5, [1]], ["X", 3.5, [2]]]',
-        'nq':
-        3,
-        'shots':
-        10,
-        'backend': {
-            'name': 'simulator'
-        }
+        'nq': 3,
+        'shots': 10,
+        'backend': {'name': 'simulator'},
     }
 
     def mock_send(*args, **kwargs):

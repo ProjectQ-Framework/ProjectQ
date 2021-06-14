@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 This file defines BasicQubit, Qubit, WeakQubit and Qureg.
 
@@ -41,6 +41,7 @@ class BasicQubit(object):
 
     They have an id and a reference to the owning engine.
     """
+
     def __init__(self, engine, idx):
         """
         Initialize a BasicQubit object.
@@ -87,9 +88,7 @@ class BasicQubit(object):
         """
         if self.id == -1:
             return self is other
-        return (isinstance(other, BasicQubit) and
-                self.id == other.id and
-                self.engine == other.engine)
+        return isinstance(other, BasicQubit) and self.id == other.id and self.engine == other.engine
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -118,6 +117,7 @@ class Qubit(BasicQubit):
     Thus the qubit is not copyable; only returns a reference to the same
     object.
     """
+
     def __del__(self):
         """
         Destroy the qubit and deallocate it (automatically).
@@ -165,6 +165,7 @@ class WeakQubitRef(BasicQubit):
     garbage-collected (and, thus, cleaned up early). Otherwise there is no
     difference between a WeakQubitRef and a Qubit object.
     """
+
     pass
 
 
@@ -176,6 +177,7 @@ class Qureg(list):
     access necessary) and enables pretty-printing of general quantum registers
     (call Qureg.__str__(qureg)).
     """
+
     def __bool__(self):
         """
         Return measured value if Qureg consists of 1 qubit only.
@@ -187,8 +189,9 @@ class Qureg(list):
         if len(self) == 1:
             return bool(self[0])
         else:
-            raise Exception("__bool__(qureg): Quantum register contains more "
-                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
+            raise Exception(
+                "__bool__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
+            )
 
     def __int__(self):
         """
@@ -201,8 +204,9 @@ class Qureg(list):
         if len(self) == 1:
             return int(self[0])
         else:
-            raise Exception("__int__(qureg): Quantum register contains more "
-                            "than 1 qubit. Use __bool__(qureg[idx]) instead.")
+            raise Exception(
+                "__int__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
+            )
 
     def __nonzero__(self):
         """
@@ -232,9 +236,7 @@ class Qureg(list):
                 count += 1
                 continue
 
-            out_list.append('{}-{}'.format(start_id, start_id + count - 1)
-                            if count > 1
-                            else '{}'.format(start_id))
+            out_list.append('{}-{}'.format(start_id, start_id + count - 1) if count > 1 else '{}'.format(start_id))
             start_id = qubit_id
             count = 1
 

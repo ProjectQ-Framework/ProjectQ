@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +17,13 @@ try:
     from ._awsbraket import AWSBraketBackend
 except ImportError:  # pragma: no cover
     import warnings
-    warnings.warn("Failed to import one of the dependencies required to use "
-                  "the Amazon Braket Backend.\n"
-                  "Did you install ProjectQ using the [braket] extra? "
-                  "(python3 -m pip install projectq[braket])")
+
+    warnings.warn(
+        "Failed to import one of the dependencies required to use "
+        "the Amazon Braket Backend.\n"
+        "Did you install ProjectQ using the [braket] extra? "
+        "(python3 -m pip install projectq[braket])"
+    )
 
     # Make sure that the symbol is defined
     class AWSBraketBackend:

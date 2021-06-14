@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,30 +12,24 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """ Back-end to run quantum program on IBM's Quantum Experience."""
 import math
 import random
-import json
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (NOT,
-                          Y,
-                          Z,
-                          T,
-                          Tdag,
-                          S,
-                          Sdag,
-                          H,
-                          Rx,
-                          Ry,
-                          Rz,
-                          Measure,
-                          Allocate,
-                          Deallocate,
-                          Barrier,
-                          FlushGate)
+from projectq.ops import (
+    NOT,
+    H,
+    Rx,
+    Ry,
+    Rz,
+    Measure,
+    Allocate,
+    Deallocate,
+    Barrier,
+    FlushGate,
+)
 
 from ._ibm_http_client import send, retrieve
 
@@ -44,10 +39,18 @@ class IBMBackend(BasicEngine):
     The IBM Backend class, which stores the circuit, transforms it to JSON,
     and sends the circuit through the IBM API.
     """
-    def __init__(self, use_hardware=False, num_runs=1024, verbose=False,
-                 token='', device='ibmq_essex',
-                 num_retries=3000, interval=1,
-                 retrieve_execution=None):
+
+    def __init__(
+        self,
+        use_hardware=False,
+        num_runs=1024,
+        verbose=False,
+        token='',
+        device='ibmq_essex',
+        num_retries=3000,
+        interval=1,
+        retrieve_execution=None,
+    ):
         """
         Initialize the Backend object.
 
@@ -77,12 +80,12 @@ class IBMBackend(BasicEngine):
             self.device = 'ibmq_qasm_simulator'
         self._num_runs = num_runs
         self._verbose = verbose
-        self._token=token
+        self._token = token
         self._num_retries = num_retries
         self._interval = interval
         self._probabilities = dict()
         self.qasm = ""
-        self._json=[]
+        self._json = []
         self._measured_ids = []
         self._allocated_qubits = set()
         self._retrieve_execution = retrieve_execution
@@ -110,12 +113,12 @@ class IBMBackend(BasicEngine):
         return False
 
     def get_qasm(self):
-        """ Return the QASM representation of the circuit sent to the backend.
-        Should be called AFTER calling the ibm device """
+        """Return the QASM representation of the circuit sent to the backend.
+        Should be called AFTER calling the ibm device"""
         return self.qasm
 
     def _reset(self):
-        """ Reset all temporary variables (after flush gate). """
+        """Reset all temporary variables (after flush gate)."""
         self._clear = True
         self._measured_ids = []
 
@@ -132,7 +135,7 @@ class IBMBackend(BasicEngine):
             self._probabilities = dict()
             self._clear = False
             self.qasm = ""
-            self._json=[]
+            self._json = []
             self._allocated_qubits = set()
 
         gate = cmd.gate
@@ -145,7 +148,6 @@ class IBMBackend(BasicEngine):
 
         if gate == Measure:
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
-            qb_id = cmd.qubits[0][0].id
             logical_id = None
             for t in cmd.tags:
                 if isinstance(t, LogicalQubitIDTag):
@@ -157,7 +159,7 @@ class IBMBackend(BasicEngine):
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
             self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
-            self._json.append({'qubits': [ctrl_pos,  qb_pos], 'name': 'cx'})
+            self._json.append({'qubits': [ctrl_pos, qb_pos], 'name': 'cx'})
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
             self.qasm += "\nbarrier "
@@ -169,22 +171,23 @@ class IBMBackend(BasicEngine):
         elif isinstance(gate, (Rx, Ry, Rz)):
             assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
-            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)',
-                      'Rz': 'u1({})'}
-            u_name = {'Rx': 'u3', 'Ry': 'u3',
-                      'Rz': 'u1'}
-            u_angle = {'Rx': [gate.angle, -math.pi/2, math.pi/2], 'Ry': [gate.angle, 0, 0],
-                      'Rz': [gate.angle]}
+            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
+            u_name = {'Rx': 'u3', 'Ry': 'u3', 'Rz': 'u1'}
+            u_angle = {
+                'Rx': [gate.angle, -math.pi / 2, math.pi / 2],
+                'Ry': [gate.angle, 0, 0],
+                'Rz': [gate.angle],
+            }
             gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
-            gate_name=u_name[str(gate)[0:2]]
-            params= u_angle[str(gate)[0:2]]
+            gate_name = u_name[str(gate)[0:2]]
+            params = u_angle[str(gate)[0:2]]
             self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
-            self._json.append({'qubits': [qb_pos], 'name': gate_name,'params': params})
+            self._json.append({'qubits': [qb_pos], 'name': gate_name, 'params': params})
         elif gate == H:
             assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
             self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
-            self._json.append({'qubits': [qb_pos], 'name': 'u2','params': [0, 3.141592653589793]})
+            self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
         else:
             raise Exception('Command not authorized. You should run the circuit with the appropriate ibm setup.')
 
@@ -199,10 +202,11 @@ class IBMBackend(BasicEngine):
         assert self.main_engine.mapper is not None
         mapping = self.main_engine.mapper.current_mapping
         if qb_id not in mapping:
-            raise RuntimeError("Unknown qubit id {}. Please make sure "
-                               "eng.flush() was called and that the qubit "
-                               "was eliminated during optimization."
-                               .format(qb_id))
+            raise RuntimeError(
+                "Unknown qubit id {}. Please make sure "
+                "eng.flush() was called and that the qubit "
+                "was eliminated during optimization.".format(qb_id)
+            )
         return mapping[qb_id]
 
     def get_probabilities(self, qureg):
@@ -257,48 +261,49 @@ class IBMBackend(BasicEngine):
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc,
-                                                            qb_loc)
-            self._json.append({'qubits': [qb_loc], 'name': 'measure','memory':[qb_loc]})
+            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc, qb_loc)
+            self._json.append({'qubits': [qb_loc], 'name': 'measure', 'memory': [qb_loc]})
         # return if no operations / measurements have been performed.
         if self.qasm == "":
             return
         max_qubit_id = max(self._allocated_qubits) + 1
-        qasm = ("\ninclude \"qelib1.inc\";\nqreg q[{nq}];\ncreg c[{nq}];" +
-                self.qasm).format(nq=max_qubit_id)
         info = {}
-        info['json']=self._json
-        info['nq']=max_qubit_id
+        info['json'] = self._json
+        info['nq'] = max_qubit_id
 
         info['shots'] = self._num_runs
         info['maxCredits'] = 10
         info['backend'] = {'name': self.device}
         try:
             if self._retrieve_execution is None:
-                res = send(info, device=self.device,
-                           token=self._token,
-                           num_retries=self._num_retries,
-                           interval=self._interval,
-                           verbose=self._verbose)
+                res = send(
+                    info,
+                    device=self.device,
+                    token=self._token,
+                    num_retries=self._num_retries,
+                    interval=self._interval,
+                    verbose=self._verbose,
+                )
             else:
-                res = retrieve(device=self.device, 
-                               token=self._token,
-                               jobid=self._retrieve_execution,
-                               num_retries=self._num_retries,
-                               interval=self._interval,
-                               verbose=self._verbose)
+                res = retrieve(
+                    device=self.device,
+                    token=self._token,
+                    jobid=self._retrieve_execution,
+                    num_retries=self._num_retries,
+                    interval=self._interval,
+                    verbose=self._verbose,
+                )
             counts = res['data']['counts']
             # Determine random outcome
             P = random.random()
-            p_sum = 0.
+            p_sum = 0.0
             measured = ""
-            length=len(self._measured_ids)
             for state in counts:
-                probability = counts[state] * 1. / self._num_runs
-                state="{0:b}".format(int(state,0))
-                state=state.zfill(max_qubit_id)
-                #states in ibmq are right-ordered, so need to reverse state string
-                state=state[::-1]
+                probability = counts[state] * 1.0 / self._num_runs
+                state = "{0:b}".format(int(state, 0))
+                state = state.zfill(max_qubit_id)
+                # states in ibmq are right-ordered, so need to reverse state string
+                state = state[::-1]
                 p_sum += probability
                 star = ""
                 if p_sum >= P and measured == "":
@@ -306,10 +311,9 @@ class IBMBackend(BasicEngine):
                     star = "*"
                 self._probabilities[state] = probability
                 if self._verbose and probability > 0:
-                    print(str(state) + " with p = " + str(probability) +
-                          star)
+                    print(str(state) + " with p = " + str(probability) + star)
 
-            class QB():
+            class QB:
                 def __init__(self, ID):
                     self.id = ID
 

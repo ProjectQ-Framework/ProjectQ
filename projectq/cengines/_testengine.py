@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,13 +12,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """TestEngine and DummyEngine."""
-
 
 from copy import deepcopy
 from projectq.cengines import BasicEngine
-from projectq.ops import FlushGate, Allocate, Deallocate
+from projectq.ops import FlushGate
 
 
 class CompareEngine(BasicEngine):
@@ -26,6 +25,7 @@ class CompareEngine(BasicEngine):
     for testing purposes. Two CompareEngine backends can be compared and
     return True if they contain the same commmands.
     """
+
     def __init__(self):
         BasicEngine.__init__(self)
         self._l = [[]]
@@ -35,14 +35,13 @@ class CompareEngine(BasicEngine):
 
     def cache_cmd(self, cmd):
         # are there qubit ids that haven't been added to the list?
-        all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits
-                             for qubit in qureg]
+        all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits for qubit in qureg]
         maxidx = int(0)
         for qubit_id in all_qubit_id_list:
             maxidx = max(maxidx, qubit_id)
 
         # if so, increase size of list to account for these qubits
-        add = maxidx+1-len(self._l)
+        add = maxidx + 1 - len(self._l)
         if add > 0:
             for i in range(add):
                 self._l += [[]]
@@ -64,8 +63,7 @@ class CompareEngine(BasicEngine):
         return c1 == c2
 
     def __eq__(self, other):
-        if (not isinstance(other, CompareEngine) or
-           len(self._l) != len(other._l)):
+        if not isinstance(other, CompareEngine) or len(self._l) != len(other._l):
             return False
         for i in range(len(self._l)):
             if len(self._l[i]) != len(other._l[i]):
@@ -98,6 +96,7 @@ class DummyEngine(BasicEngine):
     list in self.received_commands. Elements are appended to this
     list so they are ordered according to when they are received.
     """
+
     def __init__(self, save_commands=False):
         """
         Initialize DummyEngine

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines the parent class from which all mappers should be derived.
 
@@ -71,8 +71,7 @@ class BasicMapperEngine(BasicEngine):
 
             # Add LogicalQubitIDTag to MeasureGate
             def add_logical_id(command, old_tags=deepcopy(cmd.tags)):
-                command.tags = (old_tags +
-                                [LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                command.tags = old_tags + [LogicalQubitIDTag(cmd.qubits[0][0].id)]
                 return command
 
             tagger_eng = CommandModifier(add_logical_id)
@@ -81,7 +80,7 @@ class BasicMapperEngine(BasicEngine):
             drop_engine_after(self)
         else:
             self.send([new_cmd])
-    
+
     def receive(self, command_list):
         for cmd in command_list:
             self._send_cmd_with_mapped_ids(cmd)

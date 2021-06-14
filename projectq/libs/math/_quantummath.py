@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 
 from projectq.ops import All, X, CNOT
 from projectq.meta import Control
-from ._gates import (AddQuantum, SubtractQuantum)
+from ._gates import AddQuantum, SubtractQuantum
 
 
 def add_quantum(eng, quint_a, quint_b, carry=None):
@@ -64,7 +65,7 @@ def add_quantum(eng, quint_a, quint_b, carry=None):
         with Control(eng, [quint_a[n - 2], quint_b[n - 2]]):
             X | carry
 
-    for l in range(n - 2, 0, -1):
+    for l in range(n - 2, 0, -1):  # noqa: E741
         CNOT | (quint_a[l], quint_b[l])
         with Control(eng, [quint_a[l - 1], quint_b[l - 1]]):
             X | quint_a[l]
@@ -121,7 +122,7 @@ def subtract_quantum(eng, quint_a, quint_b):
         with Control(eng, [quint_a[k], quint_b[k]]):
             X | (quint_a[k + 1])
 
-    for l in range(n - 2, 0, -1):
+    for l in range(n - 2, 0, -1):  # noqa: E741
         CNOT | (quint_a[l], quint_b[l])
         with Control(eng, [quint_a[l - 1], quint_b[l - 1]]):
             X | quint_a[l]
@@ -147,7 +148,7 @@ def inverse_add_quantum_carry(eng, quint_a, quint_b):
     # pylint: disable = pointless-statement, expression-not-assigned
     # pylint: disable = unused-argument
 
-    assert (len(quint_a) == len(quint_b[0]))
+    assert len(quint_a) == len(quint_b[0])
 
     All(X) | quint_b[0]
     X | quint_b[1][0]
@@ -266,7 +267,7 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     with Control(eng, [quint_a[n - 2], conditional[0]]):
         X | quint_b[n - 2]
 
-    for l in range(n - 2, 0, -1):
+    for l in range(n - 2, 0, -1):  # noqa: E741
         with Control(eng, [quint_a[l - 1], quint_b[l - 1]]):
             X | quint_a[l]
         with Control(eng, [quint_a[l - 1], conditional[0]]):
@@ -349,7 +350,7 @@ def inverse_quantum_division(eng, remainder, quotient, divisor):
     """
     # pylint: disable = pointless-statement, expression-not-assigned
 
-    assert (len(remainder) == len(quotient) == len(divisor))
+    assert len(remainder) == len(quotient) == len(divisor)
 
     j = 0
     n = len(quotient)
@@ -428,7 +429,7 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):
     with Control(eng, [quint_b[n - 1], quint_a[n - 1]]):
         X | z[1]
 
-    for l in range(n - 1, 0, -1):
+    for l in range(n - 1, 0, -1):  # noqa: E741
         with Control(eng, [ctrl[0], quint_a[l]]):
             X | quint_b[l]
         with Control(eng, [quint_a[l - 1], quint_b[l - 1]]):
@@ -471,22 +472,28 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
     """
     # pylint: disable = pointless-statement, expression-not-assigned
 
-    assert (len(quint_a) == len(quint_b))
+    assert len(quint_a) == len(quint_b)
     n = len(quint_a)
-    assert (len(product) == ((2 * n) + 1))
+    assert len(product) == ((2 * n) + 1)
 
     for i in range(0, n):
         with Control(eng, [quint_a[i], quint_b[0]]):
             X | product[i]
 
     with Control(eng, quint_b[1]):
-        AddQuantum | (quint_a[0:(n - 1)], product[1:n],
-                      [product[n + 1], product[n + 2]])
+        AddQuantum | (
+            quint_a[0 : (n - 1)],  # noqa: E203
+            product[1:n],
+            [product[n + 1], product[n + 2]],
+        )
 
     for j in range(2, n):
         with Control(eng, quint_b[j]):
-            AddQuantum | (quint_a[0:(n - 1)], product[(0 + j):(n - 1 + j)],
-                          [product[n + j], product[n + j + 1]])
+            AddQuantum | (
+                quint_a[0 : (n - 1)],  # noqa: E203
+                product[(0 + j) : (n - 1 + j)],  # noqa: E203
+                [product[n + j], product[n + j + 1]],
+            )
 
 
 def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
@@ -514,12 +521,18 @@ def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
 
     for j in range(2, n):
         with Control(eng, quint_b[j]):
-            SubtractQuantum | (quint_a[0:(n - 1)], product[(0 + j):(
-                n - 1 + j)], [product[n + j], product[n + j + 1]])
+            SubtractQuantum | (
+                quint_a[0 : (n - 1)],  # noqa: E203
+                product[(0 + j) : (n - 1 + j)],  # noqa: E203
+                [product[n + j], product[n + j + 1]],
+            )
     for i in range(0, n):
         with Control(eng, [quint_a[i], quint_b[0]]):
             X | product[i]
 
     with Control(eng, quint_b[1]):
-        SubtractQuantum | (quint_a[0:(n - 1)], product[1:n],
-                           [product[n + 1], product[n + 2]])
+        SubtractQuantum | (
+            quint_a[0 : (n - 1)],  # noqa: E203
+            product[1:n],
+            [product[n + 1], product[n + 2]],
+        )

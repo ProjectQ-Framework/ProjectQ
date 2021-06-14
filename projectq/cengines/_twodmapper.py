@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Mapper for a quantum circuit to a 2D square grid.
 
@@ -29,11 +29,15 @@ import random
 
 import networkx as nx
 
-from projectq.cengines import (BasicMapperEngine, LinearMapper,
-                               return_swap_depth)
+from projectq.cengines import BasicMapperEngine, LinearMapper, return_swap_depth
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import (AllocateQubitGate, Command, DeallocateQubitGate,
-                          FlushGate, Swap)
+from projectq.ops import (
+    AllocateQubitGate,
+    Command,
+    DeallocateQubitGate,
+    FlushGate,
+    Swap,
+)
 from projectq.types import WeakQubitRef
 
 
@@ -75,10 +79,16 @@ class GridMapper(BasicMapperEngine):
                                          mappings which have been applied
 
     """
-    def __init__(self, num_rows, num_columns, mapped_ids_to_backend_ids=None,
-                 storage=1000,
-                 optimization_function=lambda x: return_swap_depth(x),
-                 num_optimization_steps=50):
+
+    def __init__(
+        self,
+        num_rows,
+        num_columns,
+        mapped_ids_to_backend_ids=None,
+        storage=1000,
+        optimization_function=lambda x: return_swap_depth(x),
+        num_optimization_steps=50,
+    ):
         """
         Initialize a GridMapper compiler engine.
 
@@ -116,10 +126,9 @@ class GridMapper(BasicMapperEngine):
             self._mapped_ids_to_backend_ids = dict()
             for i in range(self.num_qubits):
                 self._mapped_ids_to_backend_ids[i] = i
-        if (not (set(self._mapped_ids_to_backend_ids.keys()) ==
-                 set(list(range(self.num_qubits)))) or not (
-                 len(set(self._mapped_ids_to_backend_ids.values())) ==
-                 self.num_qubits)):
+        if not (set(self._mapped_ids_to_backend_ids.keys()) == set(range(self.num_qubits))) or not (
+            len(set(self._mapped_ids_to_backend_ids.values())) == self.num_qubits
+        ):
             raise RuntimeError("Incorrect mapped_ids_to_backend_ids parameter")
         self._backend_ids_to_mapped_ids = dict()
         for mapped_id, backend_id in self._mapped_ids_to_backend_ids.items():
@@ -155,8 +164,7 @@ class GridMapper(BasicMapperEngine):
                     self._map_1d_to_2d[mapped_id] = mapped_id
                 else:
                     mapped_id_2d = row_index * self.num_columns + column_index
-                    mapped_id_1d = ((row_index + 1) * self.num_columns -
-                                    column_index - 1)
+                    mapped_id_1d = (row_index + 1) * self.num_columns - column_index - 1
                     self._map_2d_to_1d[mapped_id_2d] = mapped_id_1d
                     self._map_1d_to_2d[mapped_id_1d] = mapped_id_2d
         # Statistics:
@@ -176,8 +184,7 @@ class GridMapper(BasicMapperEngine):
         else:
             self._current_row_major_mapping = dict()
             for logical_id, backend_id in current_mapping.items():
-                self._current_row_major_mapping[logical_id] = (
-                    self._backend_ids_to_mapped_ids[backend_id])
+                self._current_row_major_mapping[logical_id] = self._backend_ids_to_mapped_ids[backend_id]
 
     def is_available(self, cmd):
         """
@@ -209,8 +216,7 @@ class GridMapper(BasicMapperEngine):
         # Change old mapping to 1D in order to use LinearChain heuristic
         if self._current_row_major_mapping:
             old_mapping_1d = dict()
-            for logical_id, mapped_id in (
-                    self._current_row_major_mapping.items()):
+            for logical_id, mapped_id in self._current_row_major_mapping.items():
                 old_mapping_1d[logical_id] = self._map_2d_to_1d[mapped_id]
         else:
             old_mapping_1d = self._current_row_major_mapping
@@ -220,7 +226,8 @@ class GridMapper(BasicMapperEngine):
             cyclic=False,
             currently_allocated_ids=self._currently_allocated_ids,
             stored_commands=self._stored_commands,
-            current_mapping=old_mapping_1d)
+            current_mapping=old_mapping_1d,
+        )
 
         new_mapping_2d = dict()
         for logical_id, mapped_id in new_mapping_1d.items():
@@ -233,10 +240,8 @@ class GridMapper(BasicMapperEngine):
         so that key(element0) < key(element1)
         """
         if key(element0) > key(element1):
-            mapped_id0 = (element0.current_column +
-                          element0.current_row * self.num_columns)
-            mapped_id1 = (element1.current_column +
-                          element1.current_row * self.num_columns)
+            mapped_id0 = element0.current_column + element0.current_row * self.num_columns
+            mapped_id1 = element1.current_column + element1.current_row * self.num_columns
             swap_operation = (mapped_id0, mapped_id1)
             # swap elements but update also current position:
             tmp_0 = element0.final_row
@@ -258,16 +263,16 @@ class GridMapper(BasicMapperEngine):
             finished_sorting = False
             while not finished_sorting:
                 finished_sorting = True
-                for column in range(1, self.num_columns-1, 2):
+                for column in range(1, self.num_columns - 1, 2):
                     element0 = final_positions[row][column]
-                    element1 = final_positions[row][column+1]
+                    element1 = final_positions[row][column + 1]
                     swap = self._compare_and_swap(element0, element1, key=key)
                     if swap is not None:
                         finished_sorting = False
                         swap_operations.append(swap)
-                for column in range(0, self.num_columns-1, 2):
+                for column in range(0, self.num_columns - 1, 2):
                     element0 = final_positions[row][column]
-                    element1 = final_positions[row][column+1]
+                    element1 = final_positions[row][column + 1]
                     swap = self._compare_and_swap(element0, element1, key=key)
                     if swap is not None:
                         finished_sorting = False
@@ -280,16 +285,16 @@ class GridMapper(BasicMapperEngine):
             finished_sorting = False
             while not finished_sorting:
                 finished_sorting = True
-                for row in range(1, self.num_rows-1, 2):
+                for row in range(1, self.num_rows - 1, 2):
                     element0 = final_positions[row][column]
-                    element1 = final_positions[row+1][column]
+                    element1 = final_positions[row + 1][column]
                     swap = self._compare_and_swap(element0, element1, key=key)
                     if swap is not None:
                         finished_sorting = False
                         swap_operations.append(swap)
-                for row in range(0, self.num_rows-1, 2):
+                for row in range(0, self.num_rows - 1, 2):
                     element0 = final_positions[row][column]
-                    element1 = final_positions[row+1][column]
+                    element1 = final_positions[row + 1][column]
                     swap = self._compare_and_swap(element0, element1, key=key)
                     if swap is not None:
                         finished_sorting = False
@@ -317,9 +322,16 @@ class GridMapper(BasicMapperEngine):
         swap_operations = []
 
         class Position(object):
-            """ Custom Container."""
-            def __init__(self, current_row, current_column, final_row,
-                         final_column, row_after_step_1=None):
+            """Custom Container."""
+
+            def __init__(
+                self,
+                current_row,
+                current_column,
+                final_row,
+                final_column,
+                row_after_step_1=None,
+            ):
                 self.current_row = current_row
                 self.current_column = current_column
                 self.final_row = final_row
@@ -329,8 +341,7 @@ class GridMapper(BasicMapperEngine):
         # final_positions contains info containers
         # final_position[i][j] contains info container with
         # current_row == i and current_column == j
-        final_positions = [[None for i in range(self.num_columns)]
-                           for j in range(self.num_rows)]
+        final_positions = [[None for i in range(self.num_columns)] for j in range(self.num_rows)]
         # move qubits which are in both mappings
         used_mapped_ids = set()
         for logical_id in old_mapping:
@@ -340,10 +351,12 @@ class GridMapper(BasicMapperEngine):
                 old_row = old_mapping[logical_id] // self.num_columns
                 new_column = new_mapping[logical_id] % self.num_columns
                 new_row = new_mapping[logical_id] // self.num_columns
-                info_container = Position(current_row=old_row,
-                                          current_column=old_column,
-                                          final_row=new_row,
-                                          final_column=new_column)
+                info_container = Position(
+                    current_row=old_row,
+                    current_column=old_column,
+                    final_row=new_row,
+                    final_column=new_column,
+                )
                 final_positions[old_row][old_column] = info_container
         # exchange all remaining None with the not yet used mapped ids
         all_ids = set(range(self.num_qubits))
@@ -355,10 +368,12 @@ class GridMapper(BasicMapperEngine):
                     mapped_id = not_used_mapped_ids.pop()
                     new_column = mapped_id % self.num_columns
                     new_row = mapped_id // self.num_columns
-                    info_container = Position(current_row=row,
-                                              current_column=column,
-                                              final_row=new_row,
-                                              final_column=new_column)
+                    info_container = Position(
+                        current_row=row,
+                        current_column=column,
+                        final_row=new_row,
+                        final_column=new_column,
+                    )
                     final_positions[row][column] = info_container
         assert len(not_used_mapped_ids) == 0
         # 1. Assign column_after_step_1 for each element
@@ -370,8 +385,7 @@ class GridMapper(BasicMapperEngine):
         graph = nx.Graph()
         offset = self.num_columns
         graph.add_nodes_from(range(self.num_columns), bipartite=0)
-        graph.add_nodes_from(range(offset, offset + self.num_columns),
-                             bipartite=1)
+        graph.add_nodes_from(range(offset, offset + self.num_columns), bipartite=1)
         # Add an edge to the graph from (i, j+offset) for every element
         # currently in column i which should go to column j for the new
         # mapping
@@ -416,16 +430,13 @@ class GridMapper(BasicMapperEngine):
                             best_element = element
                 best_element.row_after_step_1 = row_after_step_1
         # 2. Sort inside all the rows
-        swaps = self._sort_within_columns(final_positions=final_positions,
-                                          key=lambda x: x.row_after_step_1)
+        swaps = self._sort_within_columns(final_positions=final_positions, key=lambda x: x.row_after_step_1)
         swap_operations += swaps
         # 3. Sort inside all the columns
-        swaps = self._sort_within_rows(final_positions=final_positions,
-                                       key=lambda x: x.final_column)
+        swaps = self._sort_within_rows(final_positions=final_positions, key=lambda x: x.final_column)
         swap_operations += swaps
         # 4. Sort inside all the rows
-        swaps = self._sort_within_columns(final_positions=final_positions,
-                                          key=lambda x: x.final_row)
+        swaps = self._sort_within_columns(final_positions=final_positions, key=lambda x: x.final_row)
         swap_operations += swaps
         return swap_operations
 
@@ -451,31 +462,27 @@ class GridMapper(BasicMapperEngine):
                 if cmd.qubits[0][0].id in self._current_row_major_mapping:
                     self._currently_allocated_ids.add(cmd.qubits[0][0].id)
 
-                    mapped_id = self._current_row_major_mapping[
-                        cmd.qubits[0][0].id]
-                    qb = WeakQubitRef(
-                        engine=self,
-                        idx=self._mapped_ids_to_backend_ids[mapped_id])
+                    mapped_id = self._current_row_major_mapping[cmd.qubits[0][0].id]
+                    qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
                     new_cmd = Command(
                         engine=self,
                         gate=AllocateQubitGate(),
                         qubits=([qb],),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)],
+                    )
                     self.send([new_cmd])
                 else:
                     new_stored_commands.append(cmd)
             elif isinstance(cmd.gate, DeallocateQubitGate):
                 if cmd.qubits[0][0].id in active_ids:
-                    mapped_id = self._current_row_major_mapping[
-                        cmd.qubits[0][0].id]
-                    qb = WeakQubitRef(
-                        engine=self,
-                        idx=self._mapped_ids_to_backend_ids[mapped_id])
+                    mapped_id = self._current_row_major_mapping[cmd.qubits[0][0].id]
+                    qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
                     new_cmd = Command(
                         engine=self,
                         gate=DeallocateQubitGate(),
                         qubits=([qb],),
-                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)])
+                        tags=[LogicalQubitIDTag(cmd.qubits[0][0].id)],
+                    )
                     self._currently_allocated_ids.remove(cmd.qubits[0][0].id)
                     active_ids.remove(cmd.qubits[0][0].id)
                     self._current_row_major_mapping.pop(cmd.qubits[0][0].id)
@@ -491,8 +498,7 @@ class GridMapper(BasicMapperEngine):
                         if qubit.id not in active_ids:
                             send_gate = False
                             break
-                        mapped_ids.add(
-                            self._current_row_major_mapping[qubit.id])
+                        mapped_ids.add(self._current_row_major_mapping[qubit.id])
                 # Check that mapped ids are nearest neighbour on 2D grid
                 if len(mapped_ids) == 2:
                     qb0, qb1 = sorted(list(mapped_ids))
@@ -537,18 +543,17 @@ class GridMapper(BasicMapperEngine):
         lowest_cost = None
         matchings_numbers = list(range(self.num_rows))
         if self.num_optimization_steps <= math.factorial(self.num_rows):
-            permutations = itertools.permutations(matchings_numbers,
-                                                  self.num_rows)
+            permutations = itertools.permutations(matchings_numbers, self.num_rows)
         else:
             permutations = []
             for _ in range(self.num_optimization_steps):
-                permutations.append(self._rng.sample(matchings_numbers,
-                                                     self.num_rows))
+                permutations.append(self._rng.sample(matchings_numbers, self.num_rows))
         for permutation in permutations:
             trial_swaps = self.return_swaps(
                 old_mapping=self._current_row_major_mapping,
                 new_mapping=new_row_major_mapping,
-                permutation=permutation)
+                permutation=permutation,
+            )
             if swaps is None:
                 swaps = trial_swaps
                 lowest_cost = self.optimization_function(trial_swaps)
@@ -560,25 +565,16 @@ class GridMapper(BasicMapperEngine):
             # i.e., contained in self._currently_allocated_ids)
             mapped_ids_used = set()
             for logical_id in self._currently_allocated_ids:
-                mapped_ids_used.add(
-                    self._current_row_major_mapping[logical_id])
-            not_allocated_ids = set(range(self.num_qubits)).difference(
-                mapped_ids_used)
+                mapped_ids_used.add(self._current_row_major_mapping[logical_id])
+            not_allocated_ids = set(range(self.num_qubits)).difference(mapped_ids_used)
             for mapped_id in not_allocated_ids:
-                qb = WeakQubitRef(
-                    engine=self,
-                    idx=self._mapped_ids_to_backend_ids[mapped_id])
-                cmd = Command(engine=self, gate=AllocateQubitGate(),
-                              qubits=([qb],))
+                qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
+                cmd = Command(engine=self, gate=AllocateQubitGate(), qubits=([qb],))
                 self.send([cmd])
             # Send swap operations to arrive at new_mapping:
             for qubit_id0, qubit_id1 in swaps:
-                q0 = WeakQubitRef(
-                    engine=self,
-                    idx=self._mapped_ids_to_backend_ids[qubit_id0])
-                q1 = WeakQubitRef(
-                    engine=self,
-                    idx=self._mapped_ids_to_backend_ids[qubit_id1])
+                q0 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id0])
+                q1 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id1])
                 cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
                 self.send([cmd])
             # Register statistics:
@@ -597,30 +593,27 @@ class GridMapper(BasicMapperEngine):
             mapped_ids_used = set()
             for logical_id in self._currently_allocated_ids:
                 mapped_ids_used.add(new_row_major_mapping[logical_id])
-            not_needed_anymore = set(range(self.num_qubits)).difference(
-                mapped_ids_used)
+            not_needed_anymore = set(range(self.num_qubits)).difference(mapped_ids_used)
             for mapped_id in not_needed_anymore:
-                qb = WeakQubitRef(
-                    engine=self,
-                    idx=self._mapped_ids_to_backend_ids[mapped_id])
-                cmd = Command(engine=self, gate=DeallocateQubitGate(),
-                              qubits=([qb],))
+                qb = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[mapped_id])
+                cmd = Command(engine=self, gate=DeallocateQubitGate(), qubits=([qb],))
                 self.send([cmd])
         # Change to new map:
         self._current_row_major_mapping = new_row_major_mapping
         new_mapping = dict()
         for logical_id, mapped_id in new_row_major_mapping.items():
-            new_mapping[logical_id] = (
-                self._mapped_ids_to_backend_ids[mapped_id])
+            new_mapping[logical_id] = self._mapped_ids_to_backend_ids[mapped_id]
         self.current_mapping = new_mapping
         # Send possible gates:
         self._send_possible_commands()
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
-            raise RuntimeError("Mapper is potentially in an infinite loop. " +
-                               "It is likely that the algorithm requires " +
-                               "too many qubits. Increase the number of " +
-                               "qubits for this mapper.")
+            raise RuntimeError(
+                "Mapper is potentially in an infinite loop. "
+                + "It is likely that the algorithm requires "
+                + "too many qubits. Increase the number of "
+                + "qubits for this mapper."
+            )
 
     def receive(self, command_list):
         """
@@ -633,7 +626,7 @@ class GridMapper(BasicMapperEngine):
         """
         for cmd in command_list:
             if isinstance(cmd.gate, FlushGate):
-                while(len(self._stored_commands)):
+                while len(self._stored_commands):
                     self._run()
                 self.send([cmd])
             else:

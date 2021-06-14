@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "pybind11>=2", "setuptools_scm[toml]>=3.4"]
+build-backend = "setuptools.build_meta"
+
+# ==============================================================================
+
+[tool.black]
+
+    line-length = 120
+    target-version = ['py36','py37','py38']
+    skip-string-normalization = true
+
+
+[tool.check-manifest]
+    ignore = [
+    'PKG-INFO',
+    '*.egg-info',
+    '*.egg-info/*',
+    'setup.cfg',
+    '.hgtags',
+    '.hgsigs',
+    '.hgignore',
+    '.gitignore',
+    '.bzrignore',
+    '.gitattributes',
+    '.github/*',
+    '.travis.yml',
+    'Jenkinsfile',
+    '*.mo',
+    '.clang-format',
+    '.gitmodules',
+    'VERSION.txt',
+    '.editorconfig',
+    '*.yml',
+    '*.yaml',
+    'docs/*',
+    'docs/images/*',
+    'examples/*',
+    ]
+
+
+
+[tool.coverage]
+    [tool.coverage.run]
+        omit = [
+            '*_test.py',
+            '*_fixtures.py'
+        ]
+
+
+[tool.pylint]
+    [tools.pylint.master]
+    ignore-patterns = [
+        '__init__.py'
+    ]
+
+    [tools.pylint.format]
+    max-line-length = 120
+
+    [tools.pylint.reports]
+    msg-template = '{path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})'
+
+    [tools.pylint.messages_control]
+    disable = [
+         'invalid-name',
+         'expression-not-assigned',
+         'pointless-statemen',
+    ]
+
+
+[tool.pytest.ini_options]
+
+minversion = '6.0'
+addopts = '-pno:warnings'
+testpaths = ['projectq']
+
+[tool.setuptools_scm]
+
+write_to = 'VERSION.txt'
+write_to_template = '{version}'
+local_scheme = 'no-local-version'
+
+[tool.yapf]
+
+column_limit = 120

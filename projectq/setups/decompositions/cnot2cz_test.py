@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +17,14 @@
 
 import pytest
 
-import projectq
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet, DummyEngine,
-                               InstructionFilter)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+)
 from projectq.meta import Control
 from projectq.ops import All, CNOT, CZ, Measure, X, Z
 
@@ -50,7 +54,6 @@ def test_recognize_gates():
 
 
 def _decomp_gates(eng, cmd):
-    g = cmd.gate
     if len(cmd.control_qubits) == 1 and isinstance(cmd.gate, X.__class__):
         return False
     return True
@@ -59,16 +62,19 @@ def _decomp_gates(eng, cmd):
 def test_cnot_decomposition():
     for basis_state_index in range(0, 4):
         basis_state = [0] * 4
-        basis_state[basis_state_index] = 1.
+        basis_state[basis_state_index] = 1.0
         correct_dummy_eng = DummyEngine(save_commands=True)
-        correct_eng = MainEngine(backend=Simulator(),
-                                 engine_list=[correct_dummy_eng])
+        correct_eng = MainEngine(backend=Simulator(), engine_list=[correct_dummy_eng])
         rule_set = DecompositionRuleSet(modules=[cnot2cz])
         test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine(backend=Simulator(),
-                              engine_list=[AutoReplacer(rule_set),
-                                           InstructionFilter(_decomp_gates),
-                                           test_dummy_eng])
+        test_eng = MainEngine(
+            backend=Simulator(),
+            engine_list=[
+                AutoReplacer(rule_set),
+                InstructionFilter(_decomp_gates),
+                test_dummy_eng,
+            ],
+        )
         test_sim = test_eng.backend
         correct_sim = correct_eng.backend
         correct_qb = correct_eng.allocate_qubit()
@@ -78,8 +84,7 @@ def test_cnot_decomposition():
         test_ctrl_qb = test_eng.allocate_qubit()
         test_eng.flush()
 
-        correct_sim.set_wavefunction(basis_state, correct_qb +
-                                     correct_ctrl_qb)
+        correct_sim.set_wavefunction(basis_state, correct_qb + correct_ctrl_qb)
         test_sim.set_wavefunction(basis_state, test_qb + test_ctrl_qb)
         CNOT | (test_ctrl_qb, test_qb)
         CNOT | (correct_ctrl_qb, correct_qb)
@@ -92,10 +97,8 @@ def test_cnot_decomposition():
 
         for fstate in range(4):
             binary_state = format(fstate, '02b')
-            test = test_sim.get_amplitude(binary_state,
-                                          test_qb + test_ctrl_qb)
-            correct = correct_sim.get_amplitude(binary_state, correct_qb +
-                                                correct_ctrl_qb)
+            test = test_sim.get_amplitude(binary_state, test_qb + test_ctrl_qb)
+            correct = correct_sim.get_amplitude(binary_state, correct_qb + correct_ctrl_qb)
             assert correct == pytest.approx(test, rel=1e-12, abs=1e-12)
 
         All(Measure) | test_qb + test_ctrl_qb

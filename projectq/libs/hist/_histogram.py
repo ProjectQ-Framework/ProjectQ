@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,8 +46,7 @@ def histogram(backend, qureg):
             qubit_list.append(q)
 
     if len(qubit_list) > 5:
-        print('Warning: For {0} qubits there are 2^{0} different outcomes'.
-              format(len(qubit_list)))
+        print('Warning: For {0} qubits there are 2^{0} different outcomes'.format(len(qubit_list)))
         print("The resulting histogram may look bad and/or take too long.")
         print("Consider calling histogram() with a sublist of the qubits.")
 
@@ -54,7 +54,7 @@ def histogram(backend, qureg):
         probabilities = backend.get_probabilities(qureg)
     elif isinstance(backend, Simulator):
         outcome = [0] * len(qubit_list)
-        n_outcomes = (1 << len(qubit_list))
+        n_outcomes = 1 << len(qubit_list)
         probabilities = {}
         for i in range(n_outcomes):
             for pos in range(len(qubit_list)):
@@ -62,15 +62,12 @@ def histogram(backend, qureg):
                     outcome[pos] = 1
                 else:
                     outcome[pos] = 0
-            probabilities[''.join([str(bit) for bit in outcome
-                                   ])] = backend.get_probability(
-                                       outcome, qubit_list)
+            probabilities[''.join([str(bit) for bit in outcome])] = backend.get_probability(outcome, qubit_list)
     else:
         raise RuntimeError('Unable to retrieve probabilities from backend')
 
     # Empirical figure size for up to 5 qubits
-    fig, axes = plt.subplots(figsize=(min(21.2, 2
-                                          + 0.6 * (1 << len(qubit_list))), 7))
+    fig, axes = plt.subplots(figsize=(min(21.2, 2 + 0.6 * (1 << len(qubit_list))), 7))
     names = list(probabilities.keys())
     values = list(probabilities.values())
     axes.bar(names, values)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +44,7 @@ try:
 except ImportError:
 
     class StreamingBody:
-        def __init__(self, d, l):
+        def __init__(self, raw_stream, content_length):
             pass
 
 
@@ -71,39 +72,36 @@ def s3_folder():
 @pytest.fixture
 def info():
     return {
-        'circuit':
-        '{"braketSchemaHeader":'
+        'circuit': '{"braketSchemaHeader":'
         '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
         '"results": [], "basis_rotation_instructions": [], '
         '"instructions": [{"target": 0, "type": "h"}, {\
             "target": 1, "type": "h"}, {\
                 "control": 1, "target": 2, "type": "cnot"}]}',
-        'nq':
-        10,
-        'shots':
-        1,
-        'backend': {
-            'name': 'name2'
-        }
+        'nq': 10,
+        'shots': 1,
+        'backend': {'name': 'name2'},
     }
 
 
 @pytest.fixture
 def results_json():
-    return json.dumps({
-        "braketSchemaHeader": {
-            "name": "braket.task_result.gate_model_task_result",
-            "version": "1"
-        },
-        "measurementProbabilities": {
-            "000": 0.1,
-            "010": 0.4,
-            "110": 0.1,
-            "001": 0.1,
-            "111": 0.3
-        },
-        "measuredQubits": [0, 1, 2],
-    })
+    return json.dumps(
+        {
+            "braketSchemaHeader": {
+                "name": "braket.task_result.gate_model_task_result",
+                "version": "1",
+            },
+            "measurementProbabilities": {
+                "000": 0.1,
+                "010": 0.4,
+                "110": 0.1,
+                "001": 0.1,
+                "111": 0.3,
+            },
+            "measuredQubits": [0, 1, 2],
+        }
+    )
 
 
 @pytest.fixture
@@ -114,7 +112,7 @@ def results_dict(results_json):
             'RequestId': 'CF4CAA48CC18836C',
             'HTTPHeaders': {},
         },
-        'Body': body
+        'Body': body,
     }
 
 
@@ -161,63 +159,62 @@ def search_value():
 
 @pytest.fixture
 def device_value_devicecapabilities():
-    return json.dumps({
-        "braketSchemaHeader": {
-            "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
-            "version": "1",
-        },
-        "service": {
-            "executionWindows": [{
-                "executionDay": "Everyday",
-                "windowStartHour": "11:00",
-                "windowEndHour": "12:00",
-            }],
-            "shotsRange": [1, 10],
-            "deviceLocation":
-            "us-east-1",
-        },
-        "action": {
-            "braket.ir.jaqcd.program": {
-                "actionType": "braket.ir.jaqcd.program",
-                "version": ["1"],
-                "supportedOperations": ["H"],
-            }
-        },
-        "paradigm": {
-            "qubitCount": 30,
-            "nativeGateSet": ["ccnot", "cy"],
-            "connectivity": {
-                "fullyConnected": False,
-                "connectivityGraph": {
-                    "1": ["2", "3"]
-                }
+    return json.dumps(
+        {
+            "braketSchemaHeader": {
+                "name": "braket.device_schema.rigetti.rigetti_device_capabilities",
+                "version": "1",
             },
-        },
-        "deviceParameters": {
-            "properties": {
-                "braketSchemaHeader": {
-                    "const": {
-                        "name":
-                        "braket.device_schema.rigetti.rigetti_device_parameters",
-                        "version": "1"
+            "service": {
+                "executionWindows": [
+                    {
+                        "executionDay": "Everyday",
+                        "windowStartHour": "11:00",
+                        "windowEndHour": "12:00",
                     }
+                ],
+                "shotsRange": [1, 10],
+                "deviceLocation": "us-east-1",
+            },
+            "action": {
+                "braket.ir.jaqcd.program": {
+                    "actionType": "braket.ir.jaqcd.program",
+                    "version": ["1"],
+                    "supportedOperations": ["H"],
                 }
             },
-            "definitions": {
-                "GateModelParameters": {
-                    "properties": {
-                        "braketSchemaHeader": {
-                            "const": {
-                                "name":
-                                "braket.device_schema.gate_model_parameters",
-                                "version": "1"
+            "paradigm": {
+                "qubitCount": 30,
+                "nativeGateSet": ["ccnot", "cy"],
+                "connectivity": {
+                    "fullyConnected": False,
+                    "connectivityGraph": {"1": ["2", "3"]},
+                },
+            },
+            "deviceParameters": {
+                "properties": {
+                    "braketSchemaHeader": {
+                        "const": {
+                            "name": "braket.device_schema.rigetti.rigetti_device_parameters",
+                            "version": "1",
+                        }
+                    }
+                },
+                "definitions": {
+                    "GateModelParameters": {
+                        "properties": {
+                            "braketSchemaHeader": {
+                                "const": {
+                                    "name": "braket.device_schema.gate_model_parameters",
+                                    "version": "1",
+                                }
                             }
                         }
                     }
-                }
+                },
             },
-        },
-    })
+        }
+    )
 
 
 @pytest.fixture
@@ -241,51 +238,44 @@ def devicelist_result():
             'nq': 30,
             'version': '1',
             'deviceParameters': {
-                'name':
-                'braket.device_schema.rigetti.rigetti_device_parameters',
-                'version': '1'
+                'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
+                'version': '1',
             },
             'deviceModelParameters': {
                 'name': 'braket.device_schema.gate_model_parameters',
-                'version': '1'
-            }
+                'version': '1',
+            },
         },
         'name2': {
-            'coupling_map': {
-                '1': ['2', '3']
-            },
+            'coupling_map': {'1': ['2', '3']},
             'deviceArn': 'arn2',
             'location': 'us-east-1',
             'nq': 30,
             'version': '1',
             'deviceParameters': {
-                'name':
-                'braket.device_schema.rigetti.rigetti_device_parameters',
-                'version': '1'
+                'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
+                'version': '1',
             },
             'deviceModelParameters': {
                 'name': 'braket.device_schema.gate_model_parameters',
-                'version': '1'
-            }
+                'version': '1',
+            },
         },
         'name3': {
-            'coupling_map': {
-                '1': ['2', '3']
-            },
+            'coupling_map': {'1': ['2', '3']},
             'deviceArn': 'arn3',
             'location': 'us-east-1',
             'nq': 30,
             'version': '1',
             'deviceParameters': {
-                'name':
-                'braket.device_schema.rigetti.rigetti_device_parameters',
-                'version': '1'
+                'name': 'braket.device_schema.rigetti.rigetti_device_parameters',
+                'version': '1',
             },
             'deviceModelParameters': {
                 'name': 'braket.device_schema.gate_model_parameters',
-                'version': '1'
-            }
-        }
+                'version': '1',
+            },
+        },
     }
 
 
@@ -303,8 +293,7 @@ def retrieve_setup(arntask, creds, device_value, res_completed, results_dict):
 
 
 @pytest.fixture(params=["qpu", "sim"])
-def retrieve_devicetypes_setup(request, arntask, creds, results_json,
-                               device_value_devicecapabilities):
+def retrieve_devicetypes_setup(request, arntask, creds, results_json, device_value_devicecapabilities):
     if request.param == "qpu":
         body_qpu = StreamingBody(StringIO(results_json), len(results_json))
         results_dict = {
@@ -312,7 +301,7 @@ def retrieve_devicetypes_setup(request, arntask, creds, results_json,
                 'RequestId': 'CF4CAA48CC18836C',
                 'HTTPHeaders': {},
             },
-            'Body': body_qpu
+            'Body': body_qpu,
         }
 
         device_value = {
@@ -323,33 +312,36 @@ def retrieve_devicetypes_setup(request, arntask, creds, results_json,
             "deviceCapabilities": device_value_devicecapabilities,
         }
 
-        res_completed = {
-            "000": 0.1,
-            "010": 0.4,
-            "110": 0.1,
-            "001": 0.1,
-            "111": 0.3
-        }
+        res_completed = {"000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3}
     else:
-        results_json_simulator = json.dumps({
-            "braketSchemaHeader": {
-                "name": "braket.task_result.gate_model_task_result",
-                "version": "1"
-            },
-            "measurements": [[0, 0], [0, 1], [1, 1], [0, 1], [0, 1], [1, 1],
-                             [1, 1], [1, 1], [1, 1], [1, 1]],
-            "measuredQubits": [0, 1],
-        })
-        body_simulator = \
-            StreamingBody(
-                StringIO(results_json_simulator), len(
-                    results_json_simulator))
+        results_json_simulator = json.dumps(
+            {
+                "braketSchemaHeader": {
+                    "name": "braket.task_result.gate_model_task_result",
+                    "version": "1",
+                },
+                "measurements": [
+                    [0, 0],
+                    [0, 1],
+                    [1, 1],
+                    [0, 1],
+                    [0, 1],
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
+                    [1, 1],
+                ],
+                "measuredQubits": [0, 1],
+            }
+        )
+        body_simulator = StreamingBody(StringIO(results_json_simulator), len(results_json_simulator))
         results_dict = {
             'ResponseMetadata': {
                 'RequestId': 'CF4CAA48CC18836C',
                 'HTTPHeaders': {},
             },
-            'Body': body_simulator
+            'Body': body_simulator,
         }
 
         device_value = {
@@ -367,27 +359,30 @@ def retrieve_devicetypes_setup(request, arntask, creds, results_json,
 @pytest.fixture
 def send_too_many_setup(creds, s3_folder, search_value, device_value):
     info_too_much = {
-        'circuit':
-        '{"braketSchemaHeader":'
+        'circuit': '{"braketSchemaHeader":'
         '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
         '"results": [], "basis_rotation_instructions": [], '
         '"instructions": [{"target": 0, "type": "h"}, {\
             "target": 1, "type": "h"}, {\
                 "control": 1, "target": 2, "type": "cnot"}]}',
-        'nq':
-        100,
-        'shots':
-        1,
-        'backend': {
-            'name': 'name2'
-        }
+        'nq': 100,
+        'shots': 1,
+        'backend': {'name': 'name2'},
     }
     return creds, s3_folder, search_value, device_value, info_too_much
 
 
 @pytest.fixture
-def real_device_online_setup(arntask, creds, s3_folder, info, search_value,
-                             device_value, res_completed, results_json):
+def real_device_online_setup(
+    arntask,
+    creds,
+    s3_folder,
+    info,
+    search_value,
+    device_value,
+    res_completed,
+    results_json,
+):
     qtarntask = {'quantumTaskArn': arntask}
     body = StreamingBody(StringIO(results_json), len(results_json))
     results_dict = {
@@ -395,11 +390,19 @@ def real_device_online_setup(arntask, creds, s3_folder, info, search_value,
             'RequestId': 'CF4CAA48CC18836C',
             'HTTPHeaders': {},
         },
-        'Body': body
+        'Body': body,
     }
 
-    return (qtarntask, creds, s3_folder, info, search_value, device_value,
-            res_completed, results_dict)
+    return (
+        qtarntask,
+        creds,
+        s3_folder,
+        info,
+        search_value,
+        device_value,
+        res_completed,
+        results_dict,
+    )
 
 
 @pytest.fixture

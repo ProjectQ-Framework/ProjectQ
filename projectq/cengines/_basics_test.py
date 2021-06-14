@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,11 +12,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._basics.py."""
 
 import types
 import pytest
+
 # try:
 #     import mock
 # except ImportError:
@@ -25,10 +26,13 @@ from projectq import MainEngine
 from projectq.types import Qubit
 from projectq.cengines import DummyEngine, InstructionFilter
 from projectq.meta import DirtyQubitTag
-from projectq.ops import (AllocateQubitGate,
-                          DeallocateQubitGate,
-                          H, FastForwardingGate,
-                          ClassicalInstructionGate)
+from projectq.ops import (
+    AllocateQubitGate,
+    DeallocateQubitGate,
+    H,
+    FastForwardingGate,
+    ClassicalInstructionGate,
+)
 
 from projectq.cengines import _basics
 
@@ -64,13 +68,13 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     # any allocate or deallocate gates
     cmd_sent_by_main_engine = []
 
-    def receive(self, cmd_list): cmd_sent_by_main_engine.append(cmd_list)
+    def receive(self, cmd_list):
+        cmd_sent_by_main_engine.append(cmd_list)
 
     eng.receive = types.MethodType(receive, eng)
     # Create test engines:
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[eng, DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[eng, DummyEngine()])
     # Allocate and deallocate qubits
     qubit = eng.allocate_qubit()
     # Try to allocate dirty qubit but it should give a non dirty qubit
@@ -80,8 +84,7 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     def allow_dirty_qubits(self, meta_tag):
         return meta_tag == DirtyQubitTag
 
-    saving_backend.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
-                                                          saving_backend)
+    saving_backend.is_meta_tag_handler = types.MethodType(allow_dirty_qubits, saving_backend)
     dirty_qubit = eng.allocate_qubit(dirty=True)
     qureg = eng.allocate_qureg(2)
     # Test qubit allocation
@@ -107,8 +110,20 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
         assert tmp_qubit in main_engine.active_qubits
         assert id(tmp_qubit.engine) == id(eng)
     # Test uniqueness of ids
-    assert len(set([qubit[0].id, not_dirty_qubit[0].id, dirty_qubit[0].id,
-                    qureg[0].id, qureg[1].id])) == 5
+    assert (
+        len(
+            set(
+                [
+                    qubit[0].id,
+                    not_dirty_qubit[0].id,
+                    dirty_qubit[0].id,
+                    qureg[0].id,
+                    qureg[1].id,
+                ]
+            )
+        )
+        == 5
+    )
     # Test allocate gates were sent
     assert len(cmd_sent_by_main_engine) == 0
     assert len(saving_backend.received_commands) == 5
@@ -137,9 +152,11 @@ def test_deallocate_qubit_exception():
 
 def test_basic_engine_is_meta_tag_supported():
     eng = _basics.BasicEngine()
+
     # BasicEngine needs receive function to function so let's add it:
 
-    def receive(self, cmd_list): self.send(cmd_list)
+    def receive(self, cmd_list):
+        self.send(cmd_list)
 
     eng.receive = types.MethodType(receive, eng)
     backend = DummyEngine()
@@ -152,10 +169,8 @@ def test_basic_engine_is_meta_tag_supported():
             return True
         return False
 
-    engine2.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
-                                                   engine2)
-    main_engine = MainEngine(backend=backend,
-                             engine_list=[engine0, engine1, engine2])
+    engine2.is_meta_tag_handler = types.MethodType(allow_dirty_qubits, engine2)
+    main_engine = MainEngine(backend=backend, engine_list=[engine0, engine1, engine2])
     assert not main_engine.is_meta_tag_supported("NotSupported")
     assert main_engine.is_meta_tag_supported(DirtyQubitTag)
 
@@ -163,8 +178,7 @@ def test_basic_engine_is_meta_tag_supported():
 def test_forwarder_engine():
     backend = DummyEngine(save_commands=True)
     engine0 = DummyEngine()
-    main_engine = MainEngine(backend=backend,
-                             engine_list=[engine0])
+    main_engine = MainEngine(backend=backend, engine_list=[engine0])
 
     def cmd_mod_fun(cmd):
         cmd.tags = "NewTag"
@@ -180,8 +194,7 @@ def test_forwarder_engine():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     for cmd in received_commands:
         print(cmd)

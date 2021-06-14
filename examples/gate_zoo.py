@@ -1,10 +1,37 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 
-import projectq.setups.default
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
-from projectq.ops import *
+from projectq.ops import (
+    X,
+    Y,
+    Z,
+    Rx,
+    Ry,
+    Rz,
+    Ph,
+    S,
+    T,
+    H,
+    Toffoli,
+    Barrier,
+    Swap,
+    SqrtSwap,
+    SqrtX,
+    C,
+    CNOT,
+    Entangle,
+    QFT,
+    TimeEvolution,
+    QubitOperator,
+    BasicMathGate,
+    Measure,
+    All,
+    Tensor,
+    get_inverse,
+)
 
 
 def zoo_profile():
@@ -23,14 +50,32 @@ def zoo_profile():
 
     def add(x, y):
         return x, y + 1
+
     zoo = [
-        (X, 3), (Y, 2), (Z, 0), (Rx(0.5), 2), (Ry(0.5), 1),
-        (Rz(0.5), 1), (Ph(0.5), 0), (S, 3), (T, 2), (H, 1),
-        (Toffoli, (0, 1, 2)), (Barrier, None), (Swap, (0, 3)),
-        (SqrtSwap, (0, 1)), (get_inverse(SqrtSwap), (2, 3)),
-        (SqrtX, 2), (C(get_inverse(SqrtX)), (0, 2)), (C(Ry(0.5)), (2, 3)),
-        (CNOT, (2, 1)), (Entangle, None), (te_gate, None), (QFT, None),
-        (Tensor(H), None), (BasicMathGate(add), (2, 3)),
+        (X, 3),
+        (Y, 2),
+        (Z, 0),
+        (Rx(0.5), 2),
+        (Ry(0.5), 1),
+        (Rz(0.5), 1),
+        (Ph(0.5), 0),
+        (S, 3),
+        (T, 2),
+        (H, 1),
+        (Toffoli, (0, 1, 2)),
+        (Barrier, None),
+        (Swap, (0, 3)),
+        (SqrtSwap, (0, 1)),
+        (get_inverse(SqrtSwap), (2, 3)),
+        (SqrtX, 2),
+        (C(get_inverse(SqrtX)), (0, 2)),
+        (C(Ry(0.5)), (2, 3)),
+        (CNOT, (2, 1)),
+        (Entangle, None),
+        (te_gate, None),
+        (QFT, None),
+        (Tensor(H), None),
+        (BasicMathGate(add), (2, 3)),
         (All(Measure), None),
     ]
 

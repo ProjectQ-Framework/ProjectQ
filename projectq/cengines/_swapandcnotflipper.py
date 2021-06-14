@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine which flips the directionality of CNOTs according
 to the given connectivity graph. It also translates Swap gates to CNOTs if
@@ -19,15 +19,9 @@ necessary.
 """
 from copy import deepcopy
 
-from projectq.cengines import (BasicEngine,
-                               ForwarderEngine,
-                               CommandModifier)
+from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
 from projectq.meta import get_control_count
-from projectq.ops import (All,
-                          NOT,
-                          CNOT,
-                          H,
-                          Swap)
+from projectq.ops import All, NOT, CNOT, H, Swap
 
 
 class SwapAndCNOTFlipper(BasicEngine):
@@ -72,8 +66,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         Args:
             cmd (Command): Command to check
         """
-        return (isinstance(cmd.gate, NOT.__class__) and
-                get_control_count(cmd) == 1)
+        return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1
 
     def _is_swap(self, cmd):
         """
@@ -82,7 +75,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         Args:
             cmd (Command): Command to check
         """
-        return (get_control_count(cmd) == 0 and cmd.gate == Swap)
+        return get_control_count(cmd) == 0 and cmd.gate == Swap
 
     def _needs_flipping(self, cmd):
         """
@@ -98,9 +91,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         control = cmd.control_qubits[0].id
         is_possible = (control, target) in self.connectivity
         if not is_possible and (target, control) not in self.connectivity:
-            raise RuntimeError("The provided connectivity does not "
-                               "allow to execute the CNOT gate {}."
-                               .format(str(cmd)))
+            raise RuntimeError("The provided connectivity does not allow to execute the CNOT gate {}.".format(str(cmd)))
         return not is_possible
 
     def _send_cnot(self, cmd, control, target, flip=False):
@@ -108,6 +99,7 @@ class SwapAndCNOTFlipper(BasicEngine):
             command.tags = deepcopy(cmd.tags) + command.tags
             command.engine = self.main_engine
             return command
+
         # We'll have to add all meta tags before sending on
         cmd_mod_eng = CommandModifier(cmd_mod)
         cmd_mod_eng.next_engine = self.next_engine
@@ -149,9 +141,9 @@ class SwapAndCNOTFlipper(BasicEngine):
                     control = [qubits[1]]
                     target = [qubits[0]]
                 else:
-                    raise RuntimeError("The provided connectivity does not "
-                                       "allow to execute the Swap gate {}."
-                                       .format(str(cmd)))
+                    raise RuntimeError(
+                        "The provided connectivity does not allow to execute the Swap gate {}.".format(str(cmd))
+                    )
                 self._send_cnot(cmd, control, target)
                 self._send_cnot(cmd, target, control, True)
                 self._send_cnot(cmd, control, target)

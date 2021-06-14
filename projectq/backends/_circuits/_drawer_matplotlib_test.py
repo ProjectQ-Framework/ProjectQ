@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +16,9 @@
 Tests for projectq.backends.circuits._drawer.py.
 """
 
-import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import (H, X, Rx, CNOT, Swap, Measure, Command, BasicGate)
+from projectq.ops import H, X, Rx, CNOT, Swap, Measure, Command, BasicGate
 from projectq.types import WeakQubitRef
 
 from . import _drawer_matplotlib as _drawer
@@ -67,12 +67,12 @@ def test_drawer_isavailable():
     qb3 = WeakQubitRef(None, 3)
 
     for gate in (X, Rx(1.0)):
-        for qubits in (([qb0], ), ([qb0, qb1], ), ([qb0, qb1, qb2], )):
+        for qubits in (([qb0],), ([qb0, qb1],), ([qb0, qb1, qb2],)):
             print(qubits)
             cmd = Command(None, gate, qubits)
             assert drawer.is_available(cmd)
 
-    cmd0 = Command(None, X, ([qb0], ))
+    cmd0 = Command(None, X, ([qb0],))
     cmd1 = Command(None, Swap, ([qb0], [qb1]))
     cmd2 = Command(None, Swap, ([qb0], [qb1]), [qb2])
     cmd3 = Command(None, Swap, ([qb0], [qb1]), [qb2, qb3])
@@ -136,13 +136,15 @@ def test_drawer_draw():
     qubit_lines = drawer.draw()
 
     assert qubit_lines == {
-        0: [('H', [0], []), ('X', [0], []), None, ('Swap', [0, 1], []),
-            ('X', [0], [])],
-        1: [('H', [1], []), ('Rx(1.00)', [1], []), ('X', [1], [0]), None,
-            None],
-        2: [('MyGate(1.20)', [2], []), ('MyGate(1.23)', [2], []),
+        0: [('H', [0], []), ('X', [0], []), None, ('Swap', [0, 1], []), ('X', [0], [])],
+        1: [('H', [1], []), ('Rx(1.00)', [1], []), ('X', [1], [0]), None, None],
+        2: [
+            ('MyGate(1.20)', [2], []),
+            ('MyGate(1.23)', [2], []),
             ('MyGate(1.23,2.35)', [2], []),
-            ('MyGate(1.23,aaaaa...,bbb,2.34)', [2], []), None]
+            ('MyGate(1.23,aaaaa...,bbb,2.34)', [2], []),
+            None,
+        ],
     }
 
     _drawer.to_draw = old_draw

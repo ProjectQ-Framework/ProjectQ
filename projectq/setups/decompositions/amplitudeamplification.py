@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,17 +69,16 @@ Attributes:
 """
 
 import math
-import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
+from projectq.meta import Control, Compute, CustomUncompute, Dagger
 from projectq.ops import X, Z, Ph, All
 
 from projectq.ops import QAA
 
 
 def _decompose_QAA(cmd):
-    """ Decompose the Quantum Amplitude Apmplification algorithm as a gate. """
+    """Decompose the Quantum Amplitude Apmplification algorithm as a gate."""
     eng = cmd.engine
 
     # System-qubit is the first qubit/qureg. Ancilla qubit is the second qubit

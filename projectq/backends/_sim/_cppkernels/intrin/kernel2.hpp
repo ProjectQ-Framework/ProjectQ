@@ -69,4 +69,3 @@ void kernel(V &psi, unsigned id1, unsigned id0, M const& m, std::size_t ctrlmask
         }
     }
 }
-

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
 

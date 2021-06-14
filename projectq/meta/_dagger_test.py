@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.meta._dagger.py"""
 
 import pytest
@@ -59,7 +59,7 @@ def test_dagger_qubit_management_error():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with pytest.raises(_dagger.QubitManagementError):
         with _dagger.Dagger(eng):
-            ancilla = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
 
 
 def test_dagger_raises_only_single_error():
@@ -67,5 +67,5 @@ def test_dagger_raises_only_single_error():
     # Tests that QubitManagementError is not sent in addition
     with pytest.raises(RuntimeError):
         with _dagger.Dagger(eng):
-            ancilla = eng.allocate_qubit()
+            ancilla = eng.allocate_qubit()  # noqa: F841
             raise RuntimeError

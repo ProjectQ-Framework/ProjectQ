@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a compiler engine which prints commands to stdout prior to sending
 them on to the next engines (see CommandPrinter).
@@ -31,8 +31,8 @@ class CommandPrinter(BasicEngine):
     CommandPrinter is a compiler engine which prints commands to stdout prior
     to sending them on to the next compiler engine.
     """
-    def __init__(self, accept_input=True, default_measure=False,
-                 in_place=False):
+
+    def __init__(self, accept_input=True, default_measure=False, in_place=False):
         """
         Initialize a CommandPrinter.
 
@@ -79,15 +79,14 @@ class CommandPrinter(BasicEngine):
             cmd (Command): Command to print.
         """
         if self.is_last_engine and cmd.gate == Measure:
-            assert(get_control_count(cmd) == 0)
+            assert get_control_count(cmd) == 0
             print(cmd)
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
                         m = None
                         while m != '0' and m != '1' and m != 1 and m != 0:
-                            prompt = ("Input measurement result (0 or 1) for"
-                                      " qubit " + str(qubit) + ": ")
+                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
                             m = input(prompt)
                     else:
                         m = self._default_measure
@@ -98,11 +97,10 @@ class CommandPrinter(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qubit = WeakQubitRef(qubit.engine,
-                                             logical_id_tag.logical_qubit_id)
+                        qubit = WeakQubitRef(qubit.engine, logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, m)
         else:
-            if self._in_place:
+            if self._in_place:  # pragma: no cover
                 sys.stdout.write("\0\r\t\x1b[K" + str(cmd) + "\r")
             else:
                 print(cmd)

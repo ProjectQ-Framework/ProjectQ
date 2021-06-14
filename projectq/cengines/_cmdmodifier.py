@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains a CommandModifier engine, which can be used to, e.g., modify the tags
 of all commands which pass by (see the AutoReplacer for an example).
@@ -25,6 +25,7 @@ class CommandModifier(BasicEngine):
     incoming commands, sending on the resulting command instead of the
     original one.
     """
+
     def __init__(self, cmd_mod_fun):
         """
         Initialize the CommandModifier.

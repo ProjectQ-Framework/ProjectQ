@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Some of the setup.py code is inspired or copied from SQLAlchemy
 
 # SQLAlchemy was created by Michael Bayer.
@@ -36,9 +37,17 @@
 # IN THE SOFTWARE.
 
 from __future__ import print_function
-from setuptools import setup, Extension, find_packages
-from distutils.errors import (CompileError, LinkError, CCompilerError,
-                              DistutilsExecError, DistutilsPlatformError)
+from setuptools import setup, Extension
+import distutils.log
+from distutils.cmd import Command
+from distutils.spawn import find_executable, spawn
+from distutils.errors import (
+    CompileError,
+    LinkError,
+    CCompilerError,
+    DistutilsExecError,
+    DistutilsPlatformError,
+)
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_ext import build_ext
 import sys
@@ -51,16 +60,18 @@ import platform
 
 
 class get_pybind_include(object):
-    '''Helper class to determine the pybind11 include path
+    """Helper class to determine the pybind11 include path
 
     The purpose of this class is to postpone importing pybind11
     until it is actually installed, so that the ``get_include()``
-    method can be invoked. '''
+    method can be invoked."""
+
     def __init__(self, user=False):
         self.user = user
 
     def __str__(self):
         import pybind11
+
         return pybind11.get_include(self.user)
 
 
@@ -78,20 +89,15 @@ def status_msgs(*msgs):
     print('-' * 75)
 
 
-def compiler_test(compiler,
-                  flagname=None,
-                  link=False,
-                  include='',
-                  body='',
-                  postargs=None):
-    '''
+def compiler_test(compiler, flagname=None, link=False, include='', body='', postargs=None):
+    """
     Return a boolean indicating whether a flag name is supported on the
     specified compiler.
-    '''
+    """
     import tempfile
+
     f = tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False)
-    f.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(
-        include, body))
+    f.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
     f.close()
     ret = True
 
@@ -112,9 +118,7 @@ def compiler_test(compiler,
         if not os.path.exists(obj_file[0]):
             raise RuntimeError('')
         if link:
-            compiler.link_executable(obj_file,
-                                     exec_name,
-                                     extra_postargs=postargs)
+            compiler.link_executable(obj_file, exec_name, extra_postargs=postargs)
 
         if compiler.compiler_type == 'msvc':
             err.close()
@@ -130,25 +134,20 @@ def compiler_test(compiler,
 
 def _fix_macosx_header_paths(*args):
     # Fix path to SDK headers if necessary
-    _MACOSX_XCODE_REF_PATH = ('/Applications/Xcode.app/Contents/'
-                              + 'Developer/Platforms/MacOSX.platform/'
-                              + 'Developer')
+    _MACOSX_XCODE_REF_PATH = '/Applications/Xcode.app/Contents/' + 'Developer/Platforms/MacOSX.platform/' + 'Developer'
     _MACOSX_DEVTOOLS_REF_PATH = '/Library/Developer/CommandLineTools/'
     _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
     _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)
     if not _has_xcode and not _has_devtools:
-        important_msgs('ERROR: Must install either Xcode or '
-                       + 'CommandLineTools!')
+        important_msgs('ERROR: Must install either Xcode or CommandLineTools!')
         raise BuildFailed()
 
     def _do_replace(idx, item):
         if not _has_xcode and _MACOSX_XCODE_REF_PATH in item:
-            compiler_args[idx] = item.replace(_MACOSX_XCODE_REF_PATH,
-                                              _MACOSX_DEVTOOLS_REF_PATH)
+            compiler_args[idx] = item.replace(_MACOSX_XCODE_REF_PATH, _MACOSX_DEVTOOLS_REF_PATH)
 
         if not _has_devtools and _MACOSX_DEVTOOLS_REF_PATH in item:
-            compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH,
-                                              _MACOSX_XCODE_REF_PATH)
+            compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH, _MACOSX_XCODE_REF_PATH)
 
     for compiler_args in args:
         for idx, item in enumerate(compiler_args):
@@ -171,22 +170,9 @@ ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
 if sys.platform == 'win32':
     # 2.6's distutils.msvc9compiler can raise an IOError when failing to
     # find the compiler
-    ext_errors += (IOError, )
+    ext_errors += (IOError,)
 
 # ==============================================================================
-
-# This reads the __version__ variable from projectq/_version.py
-exec(open('projectq/_version.py').read())
-
-# Readme file as long_description:
-long_description = open('README.rst').read()
-
-# Read in requirements.txt
-with open('requirements.txt', 'r') as f_requirements:
-    requirements = f_requirements.readlines()
-requirements = [r.strip() for r in requirements]
-
-# ------------------------------------------------------------------------------
 # ProjectQ C++ extensions
 
 ext_modules = [
@@ -196,9 +182,10 @@ ext_modules = [
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
-            get_pybind_include(user=True)
+            get_pybind_include(user=True),
         ],
-        language='c++'),
+        language='c++',
+    ),
 ]
 
 # ==============================================================================
@@ -206,10 +193,30 @@ ext_modules = [
 
 class BuildExt(build_ext):
     '''A custom build extension for adding compiler-specific options.'''
+
     c_opts = {
         'msvc': ['/EHsc'],
         'unix': [],
     }
+
+    user_options = build_ext.user_options + [
+        (
+            'gen-compiledb',
+            None,
+            'Generate a compile_commands.json alongside the compilation ' 'implies (-n/--dry-run)',
+        ),
+    ]
+
+    boolean_options = build_ext.boolean_options + ['gen-compiledb']
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.gen_compiledb = None
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+        if self.gen_compiledb:
+            self.dry_run = True
 
     def run(self):
         try:
@@ -219,9 +226,32 @@ class BuildExt(build_ext):
 
     def build_extensions(self):
         self._configure_compiler()
+
         for ext in self.extensions:
             ext.extra_compile_args = self.opts
             ext.extra_link_args = self.link_opts
+
+        if self.compiler.compiler_type == 'unix' and self.gen_compiledb:
+            compile_commands = []
+            for ext in self.extensions:
+                commands = self._get_compilation_commands(ext)
+                for cmd, src in commands:
+                    compile_commands.append(
+                        {
+                            'directory': os.path.dirname(os.path.abspath(__file__)),
+                            'command': cmd,
+                            'file': os.path.abspath(src),
+                        }
+                    )
+
+            import json
+
+            with open(
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'compile_commands.json'),
+                'w',
+            ) as fd:
+                json.dump(compile_commands, fd, sort_keys=True, indent=4)
+
         try:
             build_ext.build_extensions(self)
         except ext_errors:
@@ -232,10 +262,51 @@ class BuildExt(build_ext):
                 raise BuildFailed()
             raise
 
+    def _get_compilation_commands(self, ext):
+        (macros, objects, extra_postargs, pp_opts, build,) = self.compiler._setup_compile(
+            outdir=self.build_temp,
+            sources=ext.sources,
+            macros=ext.define_macros,
+            incdirs=ext.include_dirs,
+            extra=ext.extra_compile_args,
+            depends=ext.depends,
+        )
+
+        cc_args = self.compiler._get_cc_args(pp_opts=pp_opts, debug=self.debug, before=None)
+        compiler_so = self.compiler.compiler_so
+        compiler_so[0] = find_executable(compiler_so[0])
+
+        commands = []
+        for obj in objects:
+            try:
+                src, ext = build[obj]
+            except KeyError:
+                continue
+
+            commands.append(
+                (
+                    ' '.join(
+                        compiler_so + cc_args + [os.path.abspath(src), "-o", os.path.abspath(obj)] + extra_postargs
+                    ),
+                    src,
+                )
+            )
+        return commands
+
     def _configure_compiler(self):
+        # Force dry_run = False to allow for compiler feature testing
+        dry_run_old = self.compiler.dry_run
+        self.compiler.dry_run = False
+
+        if (
+            int(os.environ.get('PROJECTQ_CLEANUP_COMPILER_FLAGS', 0))
+            and self.compiler.compiler_type == 'unix'
+            and sys.platform != 'darwin'
+        ):
+            self._cleanup_compiler_flags()
+
         if sys.platform == 'darwin':
-            _fix_macosx_header_paths(self.compiler.compiler,
-                                     self.compiler.compiler_so)
+            _fix_macosx_header_paths(self.compiler.compiler, self.compiler.compiler_so)
 
             if compiler_test(self.compiler, '-stdlib=libc++'):
                 self.c_opts['unix'] += ['-stdlib=libc++']
@@ -246,8 +317,8 @@ class BuildExt(build_ext):
 
         if not compiler_test(self.compiler):
             important_msgs(
-                'ERROR: something is wrong with your C++ compiler.\n'
-                'Failed to compile a simple test program!')
+                'ERROR: something is wrong with your C++ compiler.\nFailed to compile a simple test program!'
+            )
             raise BuildFailed()
 
         # ------------------------------
@@ -263,15 +334,11 @@ class BuildExt(build_ext):
         # Other compiler tests
 
         status_msgs('Other compiler tests')
-        if ct == 'unix':
-            if compiler_test(self.compiler, '-fvisibility=hidden'):
-                self.opts.append('-fvisibility=hidden')
-            self.opts.append("-DVERSION_INFO=\"{}\"".format(
-                self.distribution.get_version()))
-        elif ct == 'msvc':
-            self.opts.append("/DVERSION_INFO=\\'{}\\'".format(
-                self.distribution.get_version()))
+        self.compiler.define_macro('VERSION_INFO', '"{}"'.format(self.distribution.get_version()))
+        if ct == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
+            self.opts.append('-fvisibility=hidden')
 
+        self.compiler.dry_run = dry_run_old
         status_msgs('Finished configuring compiler!')
 
     def _configure_openmp(self):
@@ -281,7 +348,7 @@ class BuildExt(build_ext):
         kwargs = {
             'link': True,
             'include': '#include <omp.h>',
-            'body': 'int a = omp_get_num_threads(); ++a;'
+            'body': 'int a = omp_get_num_threads(); ++a;',
         }
 
         for flag in ['-openmp', '-fopenmp', '-qopenmp', '/Qopenmp']:
@@ -291,21 +358,16 @@ class BuildExt(build_ext):
                 return
 
         flag = '-fopenmp'
-        if (sys.platform == 'darwin' and compiler_test(self.compiler, flag)):
+        if sys.platform == 'darwin' and compiler_test(self.compiler, flag):
             try:
-                llvm_root = subprocess.check_output(
-                    ['brew', '--prefix', 'llvm']).decode('utf-8')[:-1]
-                compiler_root = subprocess.check_output(
-                    ['which', self.compiler.compiler[0]]).decode('utf-8')[:-1]
+                llvm_root = subprocess.check_output(['brew', '--prefix', 'llvm']).decode('utf-8')[:-1]
+                compiler_root = subprocess.check_output(['which', self.compiler.compiler[0]]).decode('utf-8')[:-1]
 
                 # Only add the flag if the compiler we are using is the one
                 # from HomeBrew
                 if llvm_root in compiler_root:
                     l_arg = '-L{}/lib'.format(llvm_root)
-                    if compiler_test(self.compiler,
-                                     flag,
-                                     postargs=[l_arg],
-                                     **kwargs):
+                    if compiler_test(self.compiler, flag, postargs=[l_arg], **kwargs):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
                         return
@@ -314,24 +376,21 @@ class BuildExt(build_ext):
 
             try:
                 # Only relevant for MacPorts users with clang-3.7
-                port_path = subprocess.check_output(['which', 'port'
-                                                     ]).decode('utf-8')[:-1]
+                port_path = subprocess.check_output(['which', 'port']).decode('utf-8')[:-1]
                 macports_root = os.path.dirname(os.path.dirname(port_path))
-                compiler_root = subprocess.check_output(
-                    ['which', self.compiler.compiler[0]]).decode('utf-8')[:-1]
+                compiler_root = subprocess.check_output(['which', self.compiler.compiler[0]]).decode('utf-8')[:-1]
 
                 # Only add the flag if the compiler we are using is the one
                 # from MacPorts
                 if macports_root in compiler_root:
-                    c_arg = '-I{}/include/libomp'.format(macports_root)
-                    l_arg = '-L{}/lib/libomp'.format(macports_root)
+                    inc_dir = '{}/include/libomp'.format(macports_root)
+                    lib_dir = '{}/lib/libomp'.format(macports_root)
+                    c_arg = '-I' + inc_dir
+                    l_arg = '-L' + lib_dir
 
-                    if compiler_test(self.compiler,
-                                     flag,
-                                     postargs=[c_arg, l_arg],
-                                     **kwargs):
-                        self.opts.extend((c_arg, flag))
-                        self.link_opts.extend((l_arg, flag))
+                    if compiler_test(self.compiler, flag, postargs=[c_arg, l_arg], **kwargs):
+                        self.compiler.add_include_dir(inc_dir)
+                        self.compiler.add_library_dir(lib_dir)
                         return
             except subprocess.CalledProcessError:
                 pass
@@ -340,20 +399,21 @@ class BuildExt(build_ext):
 
     def _configure_intrinsics(self):
         for flag in [
-                '-march=native', '-mavx2', '/arch:AVX2', '/arch:CORE-AVX2',
-                '/arch:AVX'
+            '-march=native',
+            '-mavx2',
+            '/arch:AVX2',
+            '/arch:CORE-AVX2',
+            '/arch:AVX',
         ]:
             if compiler_test(
-                    self.compiler,
-                    flagname=flag,
-                    link=False,
-                    include='#include <immintrin.h>',
-                    body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;'):
-
-                if sys.platform == 'win32':
-                    self.opts.extend(('/DINTRIN', flag))
-                else:
-                    self.opts.extend(('-DINTRIN', flag))
+                self.compiler,
+                flagname=flag,
+                link=False,
+                include='#include <immintrin.h>',
+                body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;',
+            ):
+                self.opts.append(flag)
+                self.compiler.define_macro("INTRIN")
                 break
 
         for flag in ['-ffast-math', '-fast', '/fast', '/fp:precise']:
@@ -388,6 +448,112 @@ class BuildExt(build_ext):
         important_msgs('ERROR: compiler needs to have at least C++11 support!')
         raise BuildFailed()
 
+    def _cleanup_compiler_flags(self):
+        compiler = self.compiler.compiler[0]
+        compiler_so = self.compiler.compiler_so[0]
+        linker_so = self.compiler.linker_so[0]
+        compiler_flags = set(self.compiler.compiler[1:])
+        compiler_so_flags = set(self.compiler.compiler_so[1:])
+        linker_so_flags = set(self.compiler.linker_so[1:])
+        common_flags = compiler_flags & compiler_so_flags & linker_so_flags
+
+        self.compiler.compiler = [compiler] + list(compiler_flags - common_flags)
+        self.compiler.compiler_so = [compiler_so] + list(compiler_so_flags - common_flags)
+        self.compiler.linker_so = [linker_so] + list(linker_so_flags - common_flags)
+
+        flags = []
+        for flag in common_flags:
+            if compiler_test(self.compiler, flag):
+                flags.append(flag)
+            else:
+                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+
+        self.compiler.compiler.extend(flags)
+        self.compiler.compiler_so.extend(flags)
+        self.compiler.linker_so.extend(flags)
+
+
+# ------------------------------------------------------------------------------
+
+
+class ClangTidy(Command):
+    """A custom command to run Clang-Tidy on all C/C++ source files"""
+
+    description = 'run Clang-Tidy on all C/C++ source files'
+    user_options = [('warning-as-errors', None, 'Warning as errors')]
+    boolean_options = ['warning-as-errors']
+
+    sub_commands = [('build_ext', None)]
+
+    def initialize_options(self):
+        self.warning_as_errors = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Ideally we would use self.run_command(command) but we need to ensure
+        # that --dry-run --gen-compiledb are passed to build_ext regardless of
+        # other arguments
+        command = 'build_ext'
+        distutils.log.info("running %s --dry-run --gen-compiledb", command)
+        cmd_obj = self.get_finalized_command(command)
+        cmd_obj.dry_run = True
+        cmd_obj.gen_compiledb = True
+        try:
+            cmd_obj.run()
+            self.distribution.have_run[command] = 1
+            assert self.distribution.ext_modules
+        except BuildFailed:
+            distutils.log.error('build_ext --dry-run --gen-compiledb command failed!')
+            raise RuntimeError('build_ext --dry-run --gen-compiledb command failed!')
+
+        command = ['clang-tidy']
+        if self.warning_as_errors:
+            command.append('--warnings-as-errors=*')
+        for ext in self.distribution.ext_modules:
+            command.extend(os.path.abspath(p) for p in ext.sources)
+        spawn(command, dry_run=self.dry_run)
+
+
+# ------------------------------------------------------------------------------
+
+
+class GenerateRequirementFile(Command):
+    """A custom command to list the dependencies of the current"""
+
+    description = 'List the dependencies of the current package'
+    user_options = [('include-extras', None, 'Include "extras_require" into the list')]
+    boolean_options = ['include-extras']
+
+    def initialize_options(self):
+        self.include_extras = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        with open('requirements.txt', 'w') as fd:
+            try:
+                for pkg in self.distribution.install_requires:
+                    fd.write('{}\n'.format(pkg))
+                if self.include_extras:
+                    for name, pkgs in self.distribution.extras_require.items():
+                        for pkg in pkgs:
+                            fd.write('{}\n'.format(pkg))
+
+            except TypeError:  # Mostly for old setuptools (< 30.x)
+                for pkg in self.distribution.command_options['options']['install_requires']:
+                    fd.write('{}\n'.format(pkg))
+                if self.include_extras:
+                    for name, pkgs in self.distribution.command_options['options.extras_require'].items():
+                        location, pkgs = pkgs
+                        for pkg in pkgs.split():
+                            fd.write('{}\n'.format(pkg))
+
+
+# ------------------------------------------------------------------------------
+
 
 class Distribution(_Distribution):
     def has_ext_modules(self):
@@ -410,28 +576,17 @@ def run_setup(with_cext):
     else:
         kwargs['ext_modules'] = []
 
-    setup(name='projectq',
-          version=__version__,
-          author='ProjectQ',
-          author_email='info@projectq.ch',
-          url='http://www.projectq.ch',
-          project_urls={
-              'Documentation': 'https://projectq.readthedocs.io/en/latest/',
-              'Issue Tracker':
-              'https://github.com/ProjectQ-Framework/ProjectQ/',
-          },
-          description=(
-              'ProjectQ - '
-              'An open source software framework for quantum computing'),
-          long_description=long_description,
-          install_requires=requirements,
-          cmdclass={'build_ext': BuildExt},
-          zip_safe=False,
-          license='Apache 2',
-          packages=find_packages(),
-          distclass=Distribution,
-          extras_require={'braket': ['boto3', ]},
-          **kwargs)
+    setup(
+        use_scm_version={'local_scheme': 'no-local-version'},
+        setup_requires=['setuptools_scm'],
+        cmdclass={
+            'build_ext': BuildExt,
+            'clang_tidy': ClangTidy,
+            'gen_reqfile': GenerateRequirementFile,
+        },
+        distclass=Distribution,
+        **kwargs,
+    )
 
 
 # ==============================================================================
@@ -439,15 +594,13 @@ def run_setup(with_cext):
 if not cpython:
     run_setup(False)
     important_msgs(
-        'WARNING: C/C++ extensions are not supported on '
-        + 'some features are disabled (e.g. C++ simulator).',
+        'WARNING: C/C++ extensions are not supported on some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
 elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
     run_setup(False)
     important_msgs(
-        'DISABLE_PROJECTQ_CEXT is set; '
-        + 'not attempting to build C/C++ extensions.',
+        'DISABLE_PROJECTQ_CEXT is set; not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
     )
 

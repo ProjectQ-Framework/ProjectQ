@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,16 +12,21 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._optimize.py."""
-
-import pytest
 
 import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import (CNOT, H, Rx, Ry, AllocateQubitGate, X,
-                          FastForwardingGate, ClassicalInstructionGate)
+from projectq.ops import (
+    CNOT,
+    H,
+    Rx,
+    Ry,
+    AllocateQubitGate,
+    X,
+    FastForwardingGate,
+    ClassicalInstructionGate,
+)
 
 from projectq.cengines import _optimize
 
@@ -104,8 +110,7 @@ def test_local_optimizer_cancel_inverse():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 2
     assert received_commands[0].gate == H
@@ -139,8 +144,8 @@ def test_local_optimizer_identity_gates():
     for _ in range(10):
         Rx(0.0) | qb0
         Ry(0.0) | qb0
-        Rx(4*math.pi) | qb0
-        Ry(4*math.pi) | qb0
+        Rx(4 * math.pi) | qb0
+        Ry(4 * math.pi) | qb0
     Rx(0.5) | qb0
     assert len(backend.received_commands) == 0
     eng.flush()

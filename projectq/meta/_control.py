@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains the tools to make an entire section of operations controlled.
 
@@ -59,8 +59,7 @@ class ControlEngine(BasicEngine):
         return False
 
     def _handle_command(self, cmd):
-        if (not self._has_compute_uncompute_tag(cmd) and not
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not self._has_compute_uncompute_tag(cmd) and not isinstance(cmd.gate, ClassicalInstructionGate):
             cmd.add_control_qubits(self._qubits)
         self.send([cmd])
 
@@ -96,7 +95,7 @@ class Control(object):
                 ...
         """
         self.engine = engine
-        assert(not isinstance(qubits, tuple))
+        assert not isinstance(qubits, tuple)
         if isinstance(qubits, BasicQubit):
             qubits = [qubits]
         self._qubits = qubits
