@@ -19,13 +19,13 @@ import tempfile
 from projectq.ops import AllocateQubitGate, XGate, MeasureGate, HGate, SGate, TGate
 from projectq.cengines import MainEngine, DummyEngine
 from projectq.backends import CommandPrinter
-from ._parse_qasm_qiskit import read_qasm_file, read_qasm_str
 
 # ==============================================================================
 
 _has_qiskit = True
 try:
     import qiskit  # noqa: F401
+    from ._parse_qasm_qiskit import read_qasm_file, read_qasm_str
 except ImportError:
     _has_qiskit = False
 

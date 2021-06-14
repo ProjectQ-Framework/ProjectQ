@@ -25,12 +25,9 @@ except ImportError:  # pragma: no cover
         import warnings
 
         err = (
-            'Unable to import either qiskit or pyparsing\n'
-            'Please install either of them (e.g. using the '
-            'command python -m pip install qiskit'
+            'Unable to import either qiskit or pyparsing\nPlease install either of them if you want to use '
+            'projectq.libs.qasm (e.g. using the command python -m pip install projectq[qiskit])'
         )
-
-        warnings.warn(err + '\n' 'The provided read_qasm_* functions will systematically' 'raise a RuntimeError')
 
         def read_qasm_file(eng, filename):
             # pylint: disable=unused-argument
