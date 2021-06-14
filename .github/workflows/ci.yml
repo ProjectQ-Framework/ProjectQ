@@ -144,6 +144,11 @@ jobs:
           libomp-dev
           --no-install-recommends
 
+      - name: Fix Python LDSHARED
+        run: |
+          ld_args=$(python3 -c "import sysconfig; print(' '.join(sysconfig.get_config_var('LDSHARED').split()[1:]))")
+          echo "LDSHARED='clang $ld_args'" >> $GITHUB_ENV
+
       - name: Prepare Python env
         run: |
           python3 -m pip install -U pip setuptools wheel
