@@ -15,7 +15,6 @@
 """Example of a basic entangling operation using an IonQBackend."""
 
 import getpass
-import random
 
 import matplotlib.pyplot as plt
 
