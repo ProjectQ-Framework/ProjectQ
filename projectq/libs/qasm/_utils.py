@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,8 +58,8 @@ def apply_gate(gate, qubits):
     # pylint: disable = protected-access,pointless-statement
 
     if isinstance(gate, ControlledGate):
-        ctrls = qubits[:gate._n]
-        qubits = qubits[gate._n:]
+        ctrls = qubits[: gate._n]
+        qubits = qubits[gate._n :]  # noqa: E203
         if isinstance(gate._gate, SwapGate):
             assert len(qubits) == 2
             gate | (ctrls, qubits[0], qubits[1])

@@ -66,16 +66,14 @@ class NotInvertible(Exception):
 def _round_angle(angle, mod_pi):
     rounded_angle = round(float(angle) % (mod_pi * math.pi), ANGLE_PRECISION)
     if rounded_angle > mod_pi * math.pi - ANGLE_TOLERANCE:
-        rounded_angle = 0.
+        rounded_angle = 0.0
     return rounded_angle
 
 
 def _angle_to_str(angle, symbols):
     if symbols:
-        return ('{}{}'.format(round(angle / math.pi, 3),
-                              unicodedata.lookup("GREEK SMALL LETTER PI")))
-    else:
-        return "{}".format(angle)
+        return f"({str(round(angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
+    return f"({str(angle)})"
 
 
 
@@ -373,11 +371,7 @@ class BasicRotationGate(BasicGate):
             symbols (bool): uses the pi character and round the angle for a more user friendly display if True, full
                             angle written in radian otherwise.
         """
-        if symbols:
-            angle = f"({str(round(self.angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
-        else:
-            angle = f"({str(self.angle)})"
-        return str(self.__class__.__name__) + angle
+        return str(self.__class__.__name__) + '(' + _angle_to_str(self.angle, symbols) + ')'
 
     def tex_str(self):
         """
@@ -439,6 +433,7 @@ class U3Gate(BasicGate):
     with the negated argument.  Rotation gates of the same class can be merged
     by adding the angles.  The continuous parameter are modulo 4 * pi.
     """
+
     def __init__(self, theta, phi, lamda):
         """
         Initialize a general unitary single-qubit gate.
@@ -474,10 +469,9 @@ class U3Gate(BasicGate):
                             more user friendly display if True, full angle
                             written in radian otherwise.
         """
-        return (str(self.__class__.__name__) + '({},{},{})'.format(
-            _angle_to_str(self.theta, symbols),
-            _angle_to_str(self.phi, symbols),
-            _angle_to_str(self.lamda, symbols)))
+        return str(self.__class__.__name__) + '({},{},{})'.format(
+            _angle_to_str(self.theta, symbols), _angle_to_str(self.phi, symbols), _angle_to_str(self.lamda, symbols)
+        )
 
     def tex_str(self):
         """
@@ -490,9 +484,8 @@ class U3Gate(BasicGate):
             [CLASSNAME]$_[ANGLE]$
         """
         return str(self.__class__.__name__) + "$({}\\pi,{}\\pi,{}\\pi)$".format(
-            round(self.theta / math.pi, 3),
-            round(self.phi / math.pi, 3),
-            round(self.lamda / math.pi, 3))
+            round(self.theta / math.pi, 3), round(self.phi / math.pi, 3), round(self.lamda / math.pi, 3)
+        )
 
     def get_inverse(self):
         """
@@ -502,9 +495,7 @@ class U3Gate(BasicGate):
         if (self.theta, self.phi, self.lamda) == (0, 0, 0):
             return self.__class__(0, 0, 0)
         else:
-            return self.__class__(-self.theta + 4 * math.pi,
-                                  -self.phi + 4 * math.pi,
-                                  -self.lamda + 4 * math.pi)
+            return self.__class__(-self.theta + 4 * math.pi, -self.phi + 4 * math.pi, -self.lamda + 4 * math.pi)
 
     def get_merged(self, other):
         """
@@ -524,16 +515,13 @@ class U3Gate(BasicGate):
             New object representing the merged gates.
         """
         if isinstance(other, self.__class__):
-            return self.__class__(self.theta + other.theta,
-                                  self.phi + other.phi,
-                                  self.lamda + other.lamda)
+            return self.__class__(self.theta + other.theta, self.phi + other.phi, self.lamda + other.lamda)
         raise NotMergeable("Can't merge different types of rotation gates.")
 
     def __eq__(self, other):
-        """ Return True if same class and same rotation angle. """
+        """Return True if same class and same rotation angle."""
         if isinstance(other, self.__class__):
-            return ((self.theta, self.phi, self.lamda)
-                    == (other.theta, other.phi, other.lamda))
+            return (self.theta, self.phi, self.lamda) == (other.theta, other.phi, other.lamda)
         else:
             return False
 
@@ -547,9 +535,11 @@ class U3Gate(BasicGate):
         """
         Return True if the gate is equivalent to an Identity gate
         """
-        return ((self.theta == 0. or self.theta == 4 * math.pi)
-                and (self.phi == 0. or self.phi == 4 * math.pi)
-                and (self.lamda == 0. or self.lamda == 4 * math.pi))
+        return (
+            (self.theta == 0.0 or self.theta == 4 * math.pi)
+            and (self.phi == 0.0 or self.phi == 4 * math.pi)
+            and (self.lamda == 0.0 or self.lamda == 4 * math.pi)
+        )
 
 
 class BasicPhaseGate(BasicGate):

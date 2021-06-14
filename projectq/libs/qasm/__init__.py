@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +23,14 @@ except ImportError:  # pragma: no cover
         from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str
     except ImportError as e:
         import warnings
-        err = ('Unable to import either qiskit or pyparsing\n'
-               'Please install either of them (e.g. using the '
-               'command python -m pip install qiskit')
 
-        warnings.warn(err + '\n'
-                      'The provided read_qasm_* functions will systematically'
-                      'raise a RuntimeError')
+        err = (
+            'Unable to import either qiskit or pyparsing\n'
+            'Please install either of them (e.g. using the '
+            'command python -m pip install qiskit'
+        )
+
+        warnings.warn(err + '\n' 'The provided read_qasm_* functions will systematically' 'raise a RuntimeError')
 
         def read_qasm_file(eng, filename):
             # pylint: disable=unused-argument

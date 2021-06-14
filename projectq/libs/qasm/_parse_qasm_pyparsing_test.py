@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 <Huawei Technologies Co., Ltd>
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +16,7 @@
 import pytest
 import tempfile
 
-from projectq.ops import (All, Measure, AllocateQubitGate, XGate, MeasureGate,
-                          HGate, SGate, TGate)
+from projectq.ops import AllocateQubitGate, XGate, MeasureGate, HGate, SGate, TGate
 from projectq.cengines import MainEngine, DummyEngine
 from projectq.backends import CommandPrinter
 from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str, _CUSTOM_GATES
@@ -25,12 +25,11 @@ from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str, _CUSTOM_GATES
 
 _has_pyparsing = True
 try:
-    import pyparsing
+    import pyparsing  # noqa: F401
 except ImportError:
     _has_pyparsing = False
 
-has_pyparsing = pytest.mark.skipif(not _has_pyparsing,
-                                   reason="Qiskit is not installed")
+has_pyparsing = pytest.mark.skipif(not _has_pyparsing, reason="Qiskit is not installed")
 
 # ------------------------------------------------------------------------------
 
@@ -43,9 +42,7 @@ def eng():
 @pytest.fixture
 def dummy_eng():
     dummy = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=CommandPrinter(accept_input=False,
-                                            default_measure=True),
-                     engine_list=[dummy])
+    eng = MainEngine(backend=CommandPrinter(accept_input=False, default_measure=True), engine_list=[dummy])
     return dummy, eng
 
 
@@ -86,17 +83,11 @@ measure q[3] -> c[3];
 
 
 def filter_gates(dummy, gate_class):
-    return [
-        cmd for cmd in dummy.received_commands
-        if isinstance(cmd.gate, gate_class)
-    ]
+    return [cmd for cmd in dummy.received_commands if isinstance(cmd.gate, gate_class)]
 
 
 def exclude_gates(dummy, gate_class):
-    return [
-        cmd for cmd in dummy.received_commands
-        if not isinstance(cmd.gate, gate_class)
-    ]
+    return [cmd for cmd in dummy.received_commands if not isinstance(cmd.gate, gate_class)]
 
 
 # ==============================================================================
@@ -119,9 +110,7 @@ creg c2[2];
     assert {'c', 'c2'} == set(bits_map)
     assert len(bits_map['c']) == 1
     assert len(bits_map['c2']) == 2
-    assert all(
-        isinstance(cmd.gate, AllocateQubitGate)
-        for cmd in eng.backend.received_commands)
+    assert all(isinstance(cmd.gate, AllocateQubitGate) for cmd in eng.backend.received_commands)
 
 
 @has_pyparsing

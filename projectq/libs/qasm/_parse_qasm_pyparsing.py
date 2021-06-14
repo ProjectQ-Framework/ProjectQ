@@ -18,10 +18,26 @@ Contains the main engine of every compiler engine pipeline, called MainEngine.
 
 from copy import deepcopy
 import operator as op
-from pyparsing import (Literal, Word, Group, Or, CharsNotIn, Optional,
-                       OneOrMore, ZeroOrMore, nestedExpr, Suppress,
-                       removeQuotes, Empty, cppStyleComment, cStyleComment,
-                       dblQuotedString, alphas, alphanums, pyparsing_common)
+from pyparsing import (
+    Literal,
+    Word,
+    Group,
+    Or,
+    CharsNotIn,
+    Optional,
+    OneOrMore,
+    ZeroOrMore,
+    nestedExpr,
+    Suppress,
+    removeQuotes,
+    Empty,
+    cppStyleComment,
+    cStyleComment,
+    dblQuotedString,
+    alphas,
+    alphanums,
+    pyparsing_common,
+)
 
 from projectq.ops import All, Measure
 
@@ -41,6 +57,7 @@ class CommonTokens:
     """
     Some general tokens
     """
+
     # pylint: disable = too-few-public-methods
 
     int_v = pyparsing_common.signed_integer
@@ -63,6 +80,7 @@ class QASMVersionOp:
     """
     OpenQASM version.
     """
+
     def __init__(self, toks):
         self.version = toks[0]
 
@@ -86,6 +104,7 @@ class IncludeOp:
     """
     Include file operation.
     """
+
     def __init__(self, toks):
         """
         Constructor
@@ -105,8 +124,7 @@ class IncludeOp:
         if self.fname in 'qelib1.inc, stdlib.inc':
             pass
         else:  # pragma: nocover
-            raise RuntimeError('Invalid cannot read: {}! (unsupported)'.format(
-                self.fname))
+            raise RuntimeError('Invalid cannot read: {}! (unsupported)'.format(self.fname))
 
     def __repr__(self):  # pragma: nocover
         """
@@ -122,6 +140,7 @@ class QubitProxy:
     """
     Qubit access proxy class
     """
+
     def __init__(self, toks):
         """
         Constructor
@@ -186,12 +205,9 @@ class VarDeclOp:
         Mainly for debugging
         """
         if self.init:
-            return "{}({}, {}, {}) = {}".format(self.__class__.__name__,
-                                                self.type_t, self.nbits,
-                                                self.name, self.init)
+            return "{}({}, {}, {}) = {}".format(self.__class__.__name__, self.type_t, self.nbits, self.name, self.init)
 
-        return "{}({}, {}, {})".format(self.__class__.__name__, self.type_t,
-                                       self.nbits, self.name)
+        return "{}({}, {}, {})".format(self.__class__.__name__, self.type_t, self.nbits, self.name)
 
 
 # ------------------------------------------------------------------------------
@@ -242,8 +258,7 @@ class CVarOp(VarDeclOp):
                 init = parse_expr(self.init)
 
             # The followings are OpenQASM 3.0
-            if self.type_t in ('const', 'float', 'fixed',
-                               'angle'):  # pragma: nocover
+            if self.type_t in ('const', 'float', 'fixed', 'angle'):  # pragma: nocover
                 _BITS_VARS[self.name] = float(init)
             elif self.type_t in ('int', 'uint'):  # pragma: nocover
                 _BITS_VARS[self.name] = int(init)
@@ -264,6 +279,7 @@ class GateDefOp:
     """
     Operation representing a gate definition.
     """
+
     def __init__(self, toks):
         """
         Constructor
@@ -291,15 +307,15 @@ class GateDefOp:
         """
         Mainly for debugging
         """
-        return "GateDefOp({}, {}, {})\n\t{}".format(self.name, self.params,
-                                                    self.qparams, self.body)
+        return "GateDefOp({}, {}, {})\n\t{}".format(self.name, self.params, self.qparams, self.body)
 
 
 # ==============================================================================
 
 
 class MeasureOp:
-    """ Measurement operations (OpenQASM 2.0 & 3.0) """
+    """Measurement operations (OpenQASM 2.0 & 3.0)"""
+
     def __init__(self, toks):
         """
         Constructor
@@ -362,6 +378,7 @@ class OpaqueDefOp:
     """
     Opaque gate definition operation.
     """
+
     def __init__(self, toks):
         """
         Constructor
@@ -399,6 +416,7 @@ class GateOp:
     """
     Gate applied to qubits operation.
     """
+
     def __init__(self, s, loc, toks):
         """
         Constructor
@@ -412,9 +430,8 @@ class GateOp:
             self.params = []
             self.qubits = [QubitProxy(qubit) for qubit in toks[1]]
         else:
-            param_str = s[loc:s.find(';', loc)]
-            self.params = param_str[param_str.find('(')
-                                    + 1:param_str.rfind(')')].split(',')
+            param_str = s[loc : s.find(';', loc)]  # noqa: E203
+            self.params = param_str[param_str.find('(') + 1 : param_str.rfind(')')].split(',')  # noqa: E203
             self.qubits = [QubitProxy(qubit) for qubit in toks[2]]
 
     def eval(self, eng):
@@ -426,8 +443,7 @@ class GateOp:
         """
         if self.name in gates_conv_table:
             if self.params:
-                gate = gates_conv_table[self.name](
-                    *[parse_expr(p) for p in self.params])
+                gate = gates_conv_table[self.name](*[parse_expr(p) for p in self.params])
             else:
                 gate = gates_conv_table[self.name]
 
@@ -455,14 +471,8 @@ class GateOp:
                 assert gate_params
                 assert len(self.params) == len(gate_params)
 
-            params_map = {
-                p_param: p_var
-                for p_var, p_param in zip(self.params, gate_params)
-            }
-            qparams_map = {
-                q_param: q_var
-                for q_var, q_param in zip(self.qubits, gate_qparams)
-            }
+            params_map = {p_param: p_var for p_var, p_param in zip(self.params, gate_params)}
+            qparams_map = {q_param: q_var for q_var, q_param in zip(self.qubits, gate_qparams)}
 
             # NB: this is a hack...
             #     Will probably not work for multiple expansions of
@@ -479,8 +489,7 @@ class GateOp:
             _BITS_VARS = bits_vars_bak
         else:  # pragma: nocover
             if self.params:
-                gate_str = '{}({}) | {}'.format(self.name, self.params,
-                                                self.qubits)
+                gate_str = '{}({}) | {}'.format(self.name, self.params, self.qubits)
             else:
                 gate_str = '{} | {}'.format(self.name, self.qubits)
             raise RuntimeError('Unknown gate: {}'.format(gate_str))
@@ -499,6 +508,7 @@ class AssignOp:  # pragma: nocover
     """
     Variable assignment operation (OpenQASM 3.0 only)
     """
+
     def __init__(self, toks):
         """
         Constructor
@@ -522,8 +532,7 @@ class AssignOp:  # pragma: nocover
             value = parse_expr(self.value)
             _BITS_VARS[self.var] = value
         else:
-            raise RuntimeError('The variable {} is not defined!'.format(
-                self.var))
+            raise RuntimeError('The variable {} is not defined!'.format(self.var))
         return 0
 
     def __repr__(self):
@@ -548,9 +557,8 @@ def _parse_if_conditional(if_str):
         elif ch == ')':
             level -= 1
         if level == 0:
-            return if_str[start:start + idx]
-    raise RuntimeError(
-        'Unbalanced parantheses in {}'.format(if_str))  # pragma: nocover
+            return if_str[start : start + idx]  # noqa: E203
+    raise RuntimeError('Unbalanced parantheses in {}'.format(if_str))  # pragma: nocover
 
 
 class IfOp:
@@ -565,11 +573,9 @@ class IfOp:
     equal = Literal('==').addParseAction(lambda: op.eq)
     not_equal = Literal('!=').addParseAction(lambda: op.ne)
 
-    logical_bin_op = Or(
-        [greater, greater_equal, less, less_equal, equal, not_equal])
+    logical_bin_op = Or([greater, greater_equal, less, less_equal, equal, not_equal])
 
-    cond_expr = (CommonTokens.variable_expr.copy() + logical_bin_op
-                 + CharsNotIn('()'))
+    cond_expr = CommonTokens.variable_expr.copy() + logical_bin_op + CharsNotIn('()')
 
     def __init__(self, if_str, loc, toks):
         """
@@ -617,8 +623,7 @@ class IfOp:
                 gate.eval(eng)
 
     def __repr__(self):  # pragma: nocover
-        return "IfExpr({} {} {}) {{ {} }}".format(self.bit, self.binary_op,
-                                                  self.comp_expr, self.body)
+        return "IfExpr({} {} {}) {{ {} }}".format(self.bit, self.binary_op, self.comp_expr, self.body)
 
 
 # ==============================================================================
@@ -652,6 +657,7 @@ def create_var_decl(toks):
 
         def _get_nbits(_):
             return nbits
+
     elif len(toks) == 2:
         # qubit qa, qb[2], qc[3];
         names = toks[1]
@@ -664,6 +670,7 @@ def create_var_decl(toks):
                 # OpenQASM >= 3.0 only
                 return 1
             return name[1]
+
     else:  # pragma: nocover
         # OpenQASM >= 3.0 only
         # const myvar = 1234;
@@ -681,16 +688,12 @@ def create_var_decl(toks):
 
     var_list = []
     for name in names:
-        if type_t in ('const', 'creg', 'bit', 'uint', 'int', 'fixed', 'float',
-                      'angle', 'bool'):
-            var_list.append(
-                CVarOp(type_t, _get_nbits(name), _get_name(name), body))
+        if type_t in ('const', 'creg', 'bit', 'uint', 'int', 'fixed', 'float', 'angle', 'bool'):
+            var_list.append(CVarOp(type_t, _get_nbits(name), _get_name(name), body))
         elif body is None:
-            var_list.append(
-                QVarOp(type_t, _get_nbits(name), _get_name(name), body))
+            var_list.append(QVarOp(type_t, _get_nbits(name), _get_name(name), body))
         else:  # pragma: nocover
-            raise RuntimeError(
-                'Initializer for quantum variable is unsupported!')
+            raise RuntimeError('Initializer for quantum variable is unsupported!')
 
     return var_list
 
@@ -712,6 +715,7 @@ class QiskitParser:
     """
     Qiskit parser class
     """
+
     def __init__(self):
         # pylint: disable = too-many-locals
         # ----------------------------------------------------------------------
@@ -747,12 +751,12 @@ class QiskitParser:
         # Variable type matching
 
         # Only match an exact type
-        var_type = Or(
-            [qubit_t, bit_t, bool_t, const_t, int_t, uint_t, angle_t, float_t])
+        var_type = Or([qubit_t, bit_t, bool_t, const_t, int_t, uint_t, angle_t, float_t])
 
         # Match a type or an array of type (e.g. int vs int[10])
         type_t = (var_type + Optional(lbra + int_v + rbra, default=1)) | (
-            fixed_t + Group(lbra + int_v + comma + int_v + rbra))
+            fixed_t + Group(lbra + int_v + comma + int_v + rbra)
+        )
 
         # ----------------------------------------------------------------------
         # (mathematical) expressions
@@ -764,55 +768,47 @@ class QiskitParser:
         # Variable declarations
 
         # e.g. qubit[10] qr, qs / int[5] i, j
-        variable_decl_const_bits = type_t + Group(cname
-                                                  + ZeroOrMore(comma + cname))
+        variable_decl_const_bits = type_t + Group(cname + ZeroOrMore(comma + cname))
 
         # e.g. qubit qr[10], qs[2] / int i[5], j[10]
-        variable_decl_var_bits = var_type + Group(
-            variable_expr + ZeroOrMore(comma + variable_expr))
+        variable_decl_var_bits = var_type + Group(variable_expr + ZeroOrMore(comma + variable_expr))
 
         # e.g. int[10] i = 5;
         variable_decl_assign = type_t + cname + equal_sign + Group(expr)
 
         # Putting it all together
-        variable_decl_statement = Or([
-            variable_decl_const_bits, variable_decl_var_bits,
-            variable_decl_assign
-        ]).addParseAction(create_var_decl)
+        variable_decl_statement = Or(
+            [variable_decl_const_bits, variable_decl_var_bits, variable_decl_assign]
+        ).addParseAction(create_var_decl)
 
         # ----------------------------------------------------------------------
         # Gate operations
 
-        gate_op_no_param = cname + Group(variable_expr
-                                         + ZeroOrMore(comma + variable_expr))
-        gate_op_w_param = cname + Group(nestedExpr(
-            ignoreExpr=comma)) + Group(variable_expr
-                                       + ZeroOrMore(comma + variable_expr))
+        gate_op_no_param = cname + Group(variable_expr + ZeroOrMore(comma + variable_expr))
+        gate_op_w_param = (
+            cname + Group(nestedExpr(ignoreExpr=comma)) + Group(variable_expr + ZeroOrMore(comma + variable_expr))
+        )
 
         # ----------------------------------
         # Measure gate operations
 
-        measure_op_qasm2 = Literal("measure") + variable_expr + Suppress(
-            "->") + variable_expr
-        measure_op_qasm3 = variable_expr + equal_sign + Literal(
-            "measure") + variable_expr
+        measure_op_qasm2 = Literal("measure") + variable_expr + Suppress("->") + variable_expr
+        measure_op_qasm3 = variable_expr + equal_sign + Literal("measure") + variable_expr
 
-        measure_op = (measure_op_qasm2
-                      ^ measure_op_qasm3).addParseAction(MeasureOp)
+        measure_op = (measure_op_qasm2 ^ measure_op_qasm3).addParseAction(MeasureOp)
 
         # Putting it all together
-        gate_op = Or([gate_op_no_param, gate_op_w_param,
-                      measure_op]).addParseAction(GateOp)
+        gate_op = Or([gate_op_no_param, gate_op_w_param, measure_op]).addParseAction(GateOp)
 
         # ----------------------------------------------------------------------
         # If expressions
 
-        if_expr_qasm2 = Literal("if") + nestedExpr(
-            ignoreExpr=comma) + gate_op + end
+        if_expr_qasm2 = Literal("if") + nestedExpr(ignoreExpr=comma) + gate_op + end
 
         # NB: not exactly 100% OpenQASM 3.0 conformant...
-        if_expr_qasm3 = (Literal("if") + nestedExpr(ignoreExpr=comma) +
-                         (lbrace + OneOrMore(Group(gate_op + end)) + rbrace))
+        if_expr_qasm3 = (
+            Literal("if") + nestedExpr(ignoreExpr=comma) + (lbrace + OneOrMore(Group(gate_op + end)) + rbrace)
+        )
         if_expr = (if_expr_qasm2 ^ if_expr_qasm3).addParseAction(IfOp)
 
         assign_op = (cname + equal_sign + Group(expr)).addParseAction(AssignOp)
@@ -833,22 +829,23 @@ class QiskitParser:
 
         qargs_list = Group(cname + ZeroOrMore(comma + cname))
 
-        gate_def_no_args = ZeroOrMore(lpar + rpar) + Group(
-            Empty()) + qargs_list
-        gate_def_w_args = (lpar
-                           + Group(param_decl + ZeroOrMore(comma + param_decl))
-                           + rpar + qargs_list)
-        gate_def_expr = (Literal("gate") + cname +
-                         (gate_def_no_args ^ gate_def_w_args) + lbrace
-                         + Group(ZeroOrMore(gate_op + end))
-                         + rbrace).addParseAction(GateDefOp)
+        gate_def_no_args = ZeroOrMore(lpar + rpar) + Group(Empty()) + qargs_list
+        gate_def_w_args = lpar + Group(param_decl + ZeroOrMore(comma + param_decl)) + rpar + qargs_list
+        gate_def_expr = (
+            Literal("gate")
+            + cname
+            + (gate_def_no_args ^ gate_def_w_args)
+            + lbrace
+            + Group(ZeroOrMore(gate_op + end))
+            + rbrace
+        ).addParseAction(GateDefOp)
 
         # ----------------------------------
         # Opaque gate declarations operations
 
-        opaque_def_expr = (Literal("opaque") + cname +
-                           (gate_def_no_args ^ gate_def_w_args)
-                           + end).addParseAction(OpaqueDefOp)
+        opaque_def_expr = (Literal("opaque") + cname + (gate_def_no_args ^ gate_def_w_args) + end).addParseAction(
+            OpaqueDefOp
+        )
 
         # ----------------------------------------------------------------------
         # Control related expressions (OpenQASM 3.0)
@@ -882,11 +879,9 @@ class QiskitParser:
 
         # ----------------------------------------------------------------------
 
-        header = (Suppress("OPENQASM") +
-                  (int_v ^ float_v).addParseAction(QASMVersionOp) + end)
+        header = Suppress("OPENQASM") + (int_v ^ float_v).addParseAction(QASMVersionOp) + end
 
-        include = (Suppress("include") + string_v.addParseAction(IncludeOp)
-                   + end)
+        include = Suppress("include") + string_v.addParseAction(IncludeOp) + end
 
         statement = (
             (measure_op + end)

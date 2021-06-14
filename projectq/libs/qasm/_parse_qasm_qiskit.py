@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,10 +60,9 @@ def apply_op(eng, gate, qubits, bits, bits_map):
             for gate_sub, quregs_sub, bits_sub in gate._definition.data:
                 # OpenQASM 2.0 limitation...
                 assert gate.name != 'measure' and not bits_sub
-                apply_op(eng, gate_sub, [
-                    gate_args[qubit.register.name][qubit.index]
-                    for qubit in quregs_sub
-                ], [], bits_map)
+                apply_op(
+                    eng, gate_sub, [gate_args[qubit.register.name][qubit.index] for qubit in quregs_sub], [], bits_map
+                )
         else:
             if gate.params:
                 gate_projectq = gates_conv_table[gate.name](*gate.params)
@@ -104,18 +104,12 @@ def _convert_qiskit_circuit(eng, circuit):
         although the latter is still experimental.
     """
     # Create maps between qiskit and ProjectQ for qubits and bits
-    qubits_map = {
-        qureg.name: eng.allocate_qureg(qureg.size)
-        for qureg in circuit.qregs
-    }
+    qubits_map = {qureg.name: eng.allocate_qureg(qureg.size) for qureg in circuit.qregs}
     bits_map = {bit.name: [False] * bit.size for bit in circuit.cregs}
 
     # Convert all the gates to ProjectQ commands
     for gate, quregs, bits in circuit.data:
-        apply_op(
-            eng, gate,
-            [qubits_map[qubit.register.name][qubit.index]
-             for qubit in quregs], bits, bits_map)
+        apply_op(eng, gate, [qubits_map[qubit.register.name][qubit.index] for qubit in quregs], bits, bits_map)
 
     return qubits_map, bits_map
 
