@@ -25,8 +25,6 @@ import random
 import scipy
 import scipy.sparse
 import scipy.sparse.linalg
-from scipy.stats import unitary_group
-import itertools
 
 from projectq import MainEngine
 from projectq.cengines import (
@@ -789,52 +787,3 @@ def test_simulator_constant_math_emulation():
         ref = result[0]
         for res in result[1:]:
             assert ref == res
-
-def test_simulator_matout():
-    def create_unitary(n):
-        matrix = unitary_group.rvs(2**n)
-        return matrix
-
-    mat1 = create_unitary(1)
-    mat2 = create_unitary(2)
-    mat3 = create_unitary(3)
-
-
-    for basis_state in [list(x[::-1]) for x in itertools.product([0,1],repeat=2**3)][1:]:
-        # Create single qubit gate with gate_matrix
-
-        print(basis_state)
-        #test_dummy_eng = DummyEngine(save_commands=True)
-        test_eng = MainEngine()
-
-
-        test_reg = test_eng.allocate_qureg(3)
-        test_eng.flush()
-
-        test_eng.backend.set_wavefunction(basis_state, test_reg)
-
-        MatrixGate(mat1) | test_reg[0]
-        MatrixGate(mat2) | test_reg[1:]
-        MatrixGate(mat3) | test_reg
-
-        with Control(test_eng,test_reg[1]):
-            MatrixGate(mat2) | (test_reg[0],test_reg[2])
-            MatrixGate(mat1) | test_reg[0]
-
-        with Control(test_eng,test_reg[2]):
-            with Control(test_eng,test_reg[0]):
-                MatrixGate(mat1) | test_reg[1]
-
-        with Control(test_eng, test_reg[1],ctrl_state='0'):
-            MatrixGate(mat1) | test_reg[0]
-            with Control(test_eng,test_reg[2],ctrl_state='0'):
-                MatrixGate(mat1) | test_reg[0]
-
-        test_eng.flush()
-
-
-        final_state = numpy.matmul(test_eng.backend.matout(),basis_state)
-        print(final_state,test_eng.backend.cheat()[1])
-        assert numpy.allclose(test_eng.backend.cheat()[1], final_state,rtol=1e-12, atol=1e-12)
-
-        All(Measure) | test_reg

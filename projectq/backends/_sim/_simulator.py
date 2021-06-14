@@ -17,12 +17,9 @@ Contains the projectq interface to a C++-based simulator, which has to be
 built first. If the c++ simulator is not exported to python, a (slow) python
 implementation is used as an alternative.
 """
-import itertools
 import math
 import random
-import warnings
 
-import numpy as np
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import Measure, FlushGate, Allocate, Deallocate, BasicMathGate, TimeEvolution
@@ -85,7 +82,6 @@ class Simulator(BasicEngine):
         BasicEngine.__init__(self)
         self._simulator = SimulatorBackend(rnd_seed)
         self._gate_fusion = gate_fusion
-        self._command_hist = []
 
     def is_available(self, cmd):
         """
@@ -339,85 +335,6 @@ class Simulator(BasicEngine):
         """
         return self._simulator.cheat()
 
-    def _qidmask(self,cids, cstate, qids, n):
-        mask_list = []
-        perms = np.array([x[::-1] for x in itertools.product('01',repeat=n)]).astype(int)
-        all_ids = np.array(range(n))
-        irel_ids = np.delete(all_ids, cids+qids)
-        m = len(irel_ids)
-
-        if len(cids)>0:
-            cstate = np.array(list(cstate)).astype(int)
-            cmask = np.where(np.all(perms[:,cids]==cstate,axis=1))
-        else:
-            cmask = np.array(range(perms.shape[0]))
-
-        if m > 0:
-            irel_perms = np.array([x[::-1] for x in itertools.product('01',repeat=m)]).astype(int)
-            for i in range(2**m):
-                irel_mask = np.where(np.all(perms[:,irel_ids]==irel_perms[i],axis=1))
-                common = np.intersect1d(irel_mask,cmask)
-                if len(common)>0:
-                    mask_list.append(common)
-        else:
-            irel_mask = np.array(range(perms.shape[0]))
-            mask_list.append(np.intersect1d(irel_mask,cmask))
-        return(mask_list)
-
-    def matout(self):
-        """
-        Access the ordering of the qubits and the state vector directly.
-
-        This is a cheat function which enables, e.g., more efficient
-        evaluation of expectation values and debugging.
-
-        Returns:
-            A tuple where the first entry is a dictionary mapping qubit
-            indices to bit-locations and the second entry is the corresponding
-            state vector.
-
-        Note:
-            Make sure all previous commands have passed through the
-            compilation chain (call main_engine.flush() to make sure).
-
-        Note:
-            The order of the qubit follows self.cheat() i.e. the least significant
-        """
-        mapper, state = self.cheat()
-        assert len(state) > 1, 'Empty state, please ensure main_egnine.flush() is called ' \
-                               'or qubits are measured'
-
-        n = int(np.log2(len(state)))
-        final_mat = np.diag([1]*(2**n)).astype(complex)
-
-        for cmd in self._command_hist:
-            if cmd.gate == Measure or cmd.gate == Allocate or cmd.gate == Deallocate \
-                    or cmd.gate== FlushGate():
-                final_mat = final_mat
-            elif isinstance(cmd.gate,BasicMathGate):
-                warnings.warn('Basic math gate '+str(cmd.gate)+' is not supported in matrix computation. It will be skipped')
-            elif isinstance(cmd.gate,TimeEvolution):
-                warnings.warn('Time evolution '+str(cmd.gate)+' is not supported in matrix computation. It will be skipped.')
-
-            elif len(cmd.gate.matrix) <= 2 ** 5:
-                cmd_mat = cmd.gate.matrix
-                ids = [mapper[qb.id] for qr in cmd.qubits for qb in qr]
-                c_ids = [mapper[qb.id] for qb in
-                         cmd.control_qubits]
-                c_state = cmd.control_state
-                mask_list = self._qidmask(c_ids,c_state,ids,n)
-                for mask in mask_list:
-                    cache = np.diag([1]*(2**n)).astype(complex)
-                    cache[np.ix_(mask,mask)] = cmd_mat
-
-                    final_mat = np.matmul(cache,final_mat)
-
-            else:
-                raise Exception("This simulator only supports controlled k-qubit"
-                                " gates with k < 6!\nPlease add an auto-replacer"
-                                " engine to your list of compiler engines.")
-        return final_mat
-
     def _handle(self, cmd):
         """
         Handle all commands, i.e., call the member functions of the C++-
@@ -528,7 +445,6 @@ class Simulator(BasicEngine):
             command_list (list<Command>): List of commands to execute on the
                 simulator.
         """
-        self._command_hist.extend(command_list)
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self._handle(cmd)
