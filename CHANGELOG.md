@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ``.editorconfig` file
 - Added ``pyproject.toml`` and ``setup.cfg``
 - Added CHANGELOG.md
+- Added backend for IonQ.
 
 ### Deprecated
 
