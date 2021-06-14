@@ -13,6 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import platform
 import pytest
 import tempfile
 
@@ -233,7 +234,7 @@ def test_read_qasm2_str(dummy_eng, iqft_example):
 def test_read_qasm2_file(dummy_eng, iqft_example):
     dummy, eng = dummy_eng
 
-    with tempfile.NamedTemporaryFile('w') as fd:
+    with tempfile.NamedTemporaryFile(mode='w', delete=True if platform.system() != 'Windows' else False) as fd:
         fd.write(iqft_example)
         fd.flush()
         qubits_map, bits_map = read_qasm_file(eng, fd.name)
