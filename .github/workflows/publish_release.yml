@@ -28,7 +28,7 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.11.0
+        uses: joerick/cibuildwheel@v1.11.1
         env:
           CIBW_ARCHS: auto64
           CIBW_SKIP: cp27-* pp* cp35-*
