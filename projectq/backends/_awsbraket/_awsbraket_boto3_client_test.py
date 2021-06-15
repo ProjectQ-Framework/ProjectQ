@@ -34,13 +34,13 @@ has_boto3 = pytest.mark.skipif(not _has_boto3, reason="boto3 package is not inst
 
 
 @has_boto3
-@patch('boto3.client')
-def test_show_devices(mock_boto3_client, show_devices_setup):
+def test_show_devices(mocker, show_devices_setup):
     creds, search_value, device_value, devicelist_result = show_devices_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device'])
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     devicelist = _awsbraket_boto3_client.show_devices(credentials=creds)
     assert devicelist == devicelist_result
@@ -85,7 +85,6 @@ other_value = {
 
 
 @has_boto3
-@patch('boto3.client')
 @pytest.mark.parametrize(
     "var_status, var_result",
     [
@@ -95,13 +94,14 @@ other_value = {
         ('other', other_value),
     ],
 )
-def test_retrieve(mock_boto3_client, var_status, var_result, retrieve_setup):
+def test_retrieve(mocker, var_status, var_result, retrieve_setup):
     arntask, creds, device_value, res_completed, results_dict = retrieve_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task', 'get_device', 'get_object'])
     mock_boto3_client.get_quantum_task.return_value = var_result
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     if var_status == 'completed':
         res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
@@ -132,8 +132,7 @@ and the status of the job is OTHER."
 
 
 @has_boto3
-@patch('boto3.client')
-def test_retrieve_devicetypes(mock_boto3_client, retrieve_devicetypes_setup):
+def test_retrieve_devicetypes(mocker, retrieve_devicetypes_setup):
     (
         arntask,
         creds,
@@ -142,10 +141,11 @@ def test_retrieve_devicetypes(mock_boto3_client, retrieve_devicetypes_setup):
         res_completed,
     ) = retrieve_devicetypes_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task', 'get_device', 'get_object'])
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
     assert res == res_completed
@@ -155,13 +155,13 @@ def test_retrieve_devicetypes(mock_boto3_client, retrieve_devicetypes_setup):
 
 
 @has_boto3
-@patch('boto3.client')
-def test_send_too_many_qubits(mock_boto3_client, send_too_many_setup):
+def test_send_too_many_qubits(mocker, send_too_many_setup):
     (creds, s3_folder, search_value, device_value, info_too_much) = send_too_many_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device'])
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     with pytest.raises(_awsbraket_boto3_client.DeviceTooSmall):
         _awsbraket_boto3_client.send(info_too_much, device='name2', credentials=creds, s3_folder=s3_folder)
@@ -171,7 +171,6 @@ def test_send_too_many_qubits(mock_boto3_client, send_too_many_setup):
 
 
 @has_boto3
-@patch('boto3.client')
 @pytest.mark.parametrize(
     "var_status, var_result",
     [
@@ -181,7 +180,7 @@ def test_send_too_many_qubits(mock_boto3_client, send_too_many_setup):
         ('other', other_value),
     ],
 )
-def test_send_real_device_online_verbose(mock_boto3_client, var_status, var_result, real_device_online_setup):
+def test_send_real_device_online_verbose(mocker, var_status, var_result, real_device_online_setup):
 
     (
         qtarntask,
@@ -194,12 +193,15 @@ def test_send_real_device_online_verbose(mock_boto3_client, var_status, var_resu
         results_dict,
     ) = real_device_online_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(
+        spec=['search_devices', 'get_device', 'create_quantum_task', 'get_quantum_task', 'get_object']
+    )
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = var_result
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     # This is a ficticios situation because the job will be always queued
     # at the beginning. After that the status will change at some point in time
@@ -243,7 +245,6 @@ and the status of the job is OTHER."
 
 
 @has_boto3
-@patch('boto3.client')
 @pytest.mark.parametrize(
     "var_error",
     [
@@ -254,16 +255,17 @@ and the status of the job is OTHER."
         ('ValidationException'),
     ],
 )
-def test_send_that_errors_are_caught(mock_boto3_client, var_error, send_that_error_setup):
+def test_send_that_errors_are_caught(mocker, var_error, send_that_error_setup):
     creds, s3_folder, info, search_value, device_value = send_that_error_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device', 'create_quantum_task'])
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
         {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
         "create_quantum_task",
     )
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     with pytest.raises(botocore.exceptions.ClientError):
         _awsbraket_boto3_client.send(info, device='name2', credentials=creds, s3_folder=s3_folder, num_retries=2)
@@ -282,15 +284,15 @@ def test_send_that_errors_are_caught(mock_boto3_client, var_error, send_that_err
 
 
 @has_boto3
-@patch('boto3.client')
 @pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
-def test_retrieve_error_arn_not_exist(mock_boto3_client, var_error, arntask, creds):
+def test_retrieve_error_arn_not_exist(mocker, var_error, arntask, creds):
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task'])
     mock_boto3_client.get_quantum_task.side_effect = botocore.exceptions.ClientError(
         {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
         "get_quantum_task",
     )
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     with pytest.raises(botocore.exceptions.ClientError):
         _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
