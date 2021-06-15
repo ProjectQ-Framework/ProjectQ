@@ -108,7 +108,8 @@ jobs:
       fail-fast: false
       matrix:
         clang:
-          - 3.5  # version for full C++14 support (3.4 fails because of -fstack-protector-strong)
+          - 3.7  # could be 3.5 version for full C++14 support (3.4 fails because of -fstack-protector-strong)
+                 # but for proper OpenMP support we require 3.7
           - 5    # earliest version for reasonable C++17 support
           - 10   # version for full C++17 support (with patches)
           - latest
