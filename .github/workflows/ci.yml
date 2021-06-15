@@ -156,14 +156,13 @@ jobs:
           apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
           python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
           python3-pytest python3-pytest-cov python3-flaky
-          libomp-dev libopenblas-dev liblapack-dev
+          libomp-dev
           --no-install-recommends
 
       - name: Fix environment variables for compilation with Clang
         run: |
           ld_flags=$(python3 -c "import sysconfig; print(' '.join(sysconfig.get_config_var('LDSHARED').split()[1:]))")
           echo "LDSHARED=clang" >> $GITHUB_ENV
-          echo "CFLAGS=-fPIC" >> $GITHUB_ENV
           echo "LDFLAGS=$ld_flags" >> $GITHUB_ENV
 
       - name: Prepare Python env
@@ -217,7 +216,6 @@ jobs:
           apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
           python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
           python3-pytest python3-pytest-cov python3-flaky
-          libopenblas-dev liblapack-dev
           --no-install-recommends
 
       - name: Prepare Python env
