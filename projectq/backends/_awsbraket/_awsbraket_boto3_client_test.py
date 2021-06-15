@@ -15,7 +15,6 @@
 """ Test for projectq.backends._awsbraket._awsbraket_boto3_client.py """
 
 import pytest
-from unittest.mock import patch
 
 from ._awsbraket_boto3_client_test_fixtures import *  # noqa: F401,F403
 
