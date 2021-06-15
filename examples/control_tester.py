@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,34 +15,75 @@
 
 from projectq.cengines import MainEngine
 from projectq.meta import Control
-from projectq.ops import All, get_inverse, H, Measure, QFT, R, X, CtrlAll
-
-# make the compiler and run the circuit on the simulator backend
-
-eng = MainEngine()
-n = 3
-m = 3
-x = eng.allocate_qureg(n)
-
-ctrl_reg = eng.allocate_qureg(m)
+from projectq.ops import All, X, Measure, CtrlAll
 
 
-X | ctrl_reg[0]
-# X | ctrl_reg[1]
-X | ctrl_reg[2]
-# invert = True
-with Control(eng, ctrl_reg, ctrl_state='101'):
-    X | x[0]
-    X | x[1]
-    # X | x[2]
+def run_circuit(eng, circuit_num):
+    qubit = eng.allocate_qureg(2)
+    ctrl_fail = eng.allocate_qureg(3)
+    ctrl_success = eng.allocate_qureg(3)
 
-All(Measure) | x
-All(Measure) | ctrl_reg
+    if circuit_num == 1:
+        with Control(eng, ctrl_fail):
+            X | qubit[0]
+        All(X) | ctrl_success
+        with Control(eng, ctrl_success):
+            X | qubit[1]
 
-eng.flush()
-print('\n')
-print('---------------------RESULTS--------------------------------')
-for i in range(n):
-    print('X_reg :', int(x[i]))
-for j in range(m):
-    print('Ctrl :', int(ctrl_reg[j]))
+    elif circuit_num == 2:
+        All(X) | ctrl_fail
+        with Control(eng, ctrl_fail, ctrl_state=CtrlAll.Zero):
+            X | qubit[0]
+        with Control(eng, ctrl_success, ctrl_state=CtrlAll.Zero):
+            X | qubit[1]
+
+    elif circuit_num == 3:
+        All(X) | ctrl_fail
+        with Control(eng, ctrl_fail, ctrl_state='101'):
+            X | qubit[0]
+
+        X | ctrl_success[0]
+        X | ctrl_success[2]
+        with Control(eng, ctrl_success, ctrl_state='101'):
+            X | qubit[1]
+
+    elif circuit_num == 4:
+        All(X) | ctrl_fail
+        with Control(eng, ctrl_fail, ctrl_state=5):
+            X | qubit[0]
+
+        X | ctrl_success[0]
+        X | ctrl_success[2]
+        with Control(eng, ctrl_success, ctrl_state=5):
+            X | qubit[1]
+
+    All(Measure) | qubit
+    All(Measure) | ctrl_fail
+    All(Measure) | ctrl_success
+    eng.flush()
+    return qubit, ctrl_fail, ctrl_success
+
+
+if __name__ == '__main__':
+    # Create a MainEngine with a unitary simulator backend
+    eng = MainEngine()
+
+    # Run out quantum circuit
+    #   1 - Default behaviour of the control: all control qubits should be 1
+    #   2 - Off-control: all control qubits should remain 0
+    #   3 - Specific state given by a string
+    #   4 - Specific state given by an integer
+
+    qubit, ctrl_fail, ctrl_success = run_circuit(eng, 4)
+
+    # Measured value of the failed qubit should be 0 in all cases
+    print('The final value of the qubit with failed control is:')
+    print(int(qubit[0]))
+    print('with the state of control qubits are:')
+    print([int(qubit) for qubit in ctrl_fail], '\n')
+
+    # Measured value of the success qubit should be 1 in all cases
+    print('The final value of the qubit with successful control is:')
+    print(int(qubit[1]))
+    print('with the state of control qubits are:')
+    print([int(qubit) for qubit in ctrl_success], '\n')

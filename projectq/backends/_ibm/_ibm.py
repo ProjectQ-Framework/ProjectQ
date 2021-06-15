@@ -18,24 +18,7 @@ import random
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
-from projectq.ops import (
-    NOT,
-    Y,
-    Z,
-    T,
-    Tdag,
-    S,
-    Sdag,
-    H,
-    Rx,
-    Ry,
-    Rz,
-    Measure,
-    Allocate,
-    Deallocate,
-    Barrier,
-    FlushGate
-)
+from projectq.ops import NOT, H, Rx, Ry, Rz, Measure, Allocate, Deallocate, Barrier, FlushGate
 
 from ._ibm_http_client import send, retrieve
 

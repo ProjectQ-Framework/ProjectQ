@@ -29,7 +29,7 @@ from projectq.ops import (
     X,
 )
 from projectq.cengines._replacer import _replacer
-from projectq.meta import Control
+
 
 def test_filter_engine():
     def my_filter(self, cmd):
@@ -255,13 +255,12 @@ def test_auto_replacer_priorize_controlstate_rule():
             return False
         return True
 
-    rule_set.add_decomposition_rule(DecompositionRule(BasicGate,
-                                                      _decompose_random))
+    rule_set.add_decomposition_rule(DecompositionRule(BasicGate, _decompose_random))
 
     backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(rule_set),
-                                  _replacer.InstructionFilter(control_filter)])
+    eng = MainEngine(
+        backend=backend, engine_list=[_replacer.AutoReplacer(rule_set), _replacer.InstructionFilter(control_filter)]
+    )
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     ControlGate() | qb
@@ -269,13 +268,12 @@ def test_auto_replacer_priorize_controlstate_rule():
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == H
 
-    rule_set.add_decomposition_rule(DecompositionRule(BasicGate,
-                                                      _decompose_controlstate))
+    rule_set.add_decomposition_rule(DecompositionRule(BasicGate, _decompose_controlstate))
 
     backend = DummyEngine(save_commands=True)
-    eng = MainEngine(backend=backend,
-                     engine_list=[_replacer.AutoReplacer(rule_set),
-                                  _replacer.InstructionFilter(control_filter)])
+    eng = MainEngine(
+        backend=backend, engine_list=[_replacer.AutoReplacer(rule_set), _replacer.InstructionFilter(control_filter)]
+    )
     assert len(backend.received_commands) == 0
     qb = eng.allocate_qubit()
     ControlGate() | qb

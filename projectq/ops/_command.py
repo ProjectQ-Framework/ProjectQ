@@ -51,6 +51,7 @@ class IncompatibleControlState(Exception):
     """
     Exception thrown when trying to set two incompatible states for a control qubit.
     """
+
     pass
 
 
@@ -285,23 +286,22 @@ class Command(object):
         # NB: avoid circular imports
         from projectq.meta import canonical_ctrl_state
 
-        assert (isinstance(qubits, list))
-        self._control_qubits.extend(
-            [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
+        assert isinstance(qubits, list)
+        self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
         self._control_state += canonical_ctrl_state(state, len(qubits))
 
-        zipped = sorted(zip(self._control_qubits, self._control_state), key = lambda x:x[0].id)
+        zipped = sorted(zip(self._control_qubits, self._control_state), key=lambda x: x[0].id)
         unzipped_qubit, unzipped_state = zip(*zipped)
         self._control_qubits, self._control_state = list(unzipped_qubit), ''.join(unzipped_state)
 
         # Make sure that we do not have contradicting control states for any control qubits
-        for _, data in itertools.groupby(zipped, key = lambda x:x[0].id):
+        for _, data in itertools.groupby(zipped, key=lambda x: x[0].id):
             qubits, states = list(zip(*data))
             assert len(set(qubits)) == 1  # This should be by design...
             if len(set(states)) != 1:
                 raise IncompatibleControlState(
-                    'Control qubits {} cannot have conflicting control states: {}'.format(list(qubits), states))
-
+                    'Control qubits {} cannot have conflicting control states: {}'.format(list(qubits), states)
+                )
 
     @property
     def all_qubits(self):

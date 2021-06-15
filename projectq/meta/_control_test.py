@@ -17,11 +17,10 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import Command, H, Rx, CtrlAll, Measure, All, X, IncompatibleControlState
+from projectq.ops import Command, H, Rx, CtrlAll, X, IncompatibleControlState
 from projectq.meta import DirtyQubitTag, ComputeTag, UncomputeTag, Compute, Uncompute
 
 from projectq.meta import _control
-from projectq.backends import Simulator
 from projectq.types import WeakQubitRef
 
 
@@ -90,7 +89,7 @@ def test_control_engine_has_compute_tag():
 
 
 def test_control():
-    backend =DummyEngine(save_commands=True)
+    backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
     qureg = eng.allocate_qureg(2)
     with _control.Control(eng, qureg):

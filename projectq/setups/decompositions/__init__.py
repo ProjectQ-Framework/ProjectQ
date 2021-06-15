@@ -39,7 +39,7 @@ from . import (
     time_evolution,
     uniformlycontrolledr2cnot,
     phaseestimation,
-    amplitudeamplification
+    amplitudeamplification,
 )
 
 all_defined_decomposition_rules = [
@@ -70,7 +70,7 @@ all_defined_decomposition_rules = [
         time_evolution,
         uniformlycontrolledr2cnot,
         phaseestimation,
-        amplitudeamplification
+        amplitudeamplification,
     ]
     for rule in module.all_defined_decomposition_rules
 ]

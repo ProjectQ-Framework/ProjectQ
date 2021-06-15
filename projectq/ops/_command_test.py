@@ -183,8 +183,11 @@ def test_command_interchangeable_qubit_indices(main_engine):
     )
 
 
-@pytest.mark.parametrize('state', [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
-                         ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'])
+@pytest.mark.parametrize(
+    'state',
+    [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
+    ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'],
+)
 def test_commmand_add_control_qubits_one(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
@@ -193,9 +196,23 @@ def test_commmand_add_control_qubits_one(main_engine, state):
     assert cmd.control_qubits[0].id == 1
     assert cmd.control_state == canonical_ctrl_state(state, 1)
 
-@pytest.mark.parametrize('state', [0, 1, 2, 3, '00', '01', '10', '11', CtrlAll.One, CtrlAll.Zero],
-                         ids=['int(0)', 'int(1)', 'int(2)', 'int(3)', 'str(00)', 'str(01)', 'str(10)', 'str(1)',
-                              'CtrlAll.One', 'CtrlAll.Zero'])
+
+@pytest.mark.parametrize(
+    'state',
+    [0, 1, 2, 3, '00', '01', '10', '11', CtrlAll.One, CtrlAll.Zero],
+    ids=[
+        'int(0)',
+        'int(1)',
+        'int(2)',
+        'int(3)',
+        'str(00)',
+        'str(01)',
+        'str(10)',
+        'str(1)',
+        'CtrlAll.One',
+        'CtrlAll.Zero',
+    ],
+)
 def test_commmand_add_control_qubits_two(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])

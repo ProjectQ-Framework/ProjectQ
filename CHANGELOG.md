@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ``pyproject.toml`` and ``setup.cfg``
 - Added CHANGELOG.md
 - Added backend for IonQ.
+- Added support for state-dependent qubit control
 
 ### Deprecated
 

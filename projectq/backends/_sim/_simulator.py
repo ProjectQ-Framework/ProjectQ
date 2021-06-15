@@ -20,20 +20,9 @@ implementation is used as an alternative.
 
 import math
 import random
-import numpy as np
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
-from projectq.ops import (
-    NOT,
-    H,
-    R,
-    Measure,
-    FlushGate,
-    Allocate,
-    Deallocate,
-    BasicMathGate,
-    TimeEvolution
-)
+from projectq.ops import Measure, FlushGate, Allocate, Deallocate, BasicMathGate, TimeEvolution
 from projectq.types import WeakQubitRef
 
 FALLBACK_TO_PYSIM = False
@@ -41,6 +30,7 @@ try:
     from ._cppsim import Simulator as SimulatorBackend
 except ImportError:
     from ._pysim import Simulator as SimulatorBackend
+
     FALLBACK_TO_PYSIM = True
 
 
@@ -110,10 +100,13 @@ class Simulator(BasicEngine):
         if has_negative_control(cmd):
             return False
 
-        if (cmd.gate == Measure or cmd.gate == Allocate or
-                cmd.gate == Deallocate or
-                isinstance(cmd.gate, BasicMathGate) or
-                isinstance(cmd.gate, TimeEvolution)):
+        if (
+            cmd.gate == Measure
+            or cmd.gate == Allocate
+            or cmd.gate == Deallocate
+            or isinstance(cmd.gate, BasicMathGate)
+            or isinstance(cmd.gate, TimeEvolution)
+        ):
             return True
         try:
             m = cmd.gate.matrix
@@ -121,7 +114,7 @@ class Simulator(BasicEngine):
             if len(m) > 2 ** 5:
                 return False
             return True
-        except:
+        except AttributeError:
             return False
 
     def _convert_logical_to_mapped_qureg(self, qureg):
@@ -356,7 +349,6 @@ class Simulator(BasicEngine):
                 (which should never happen due to is_available).
         """
 
-
         if cmd.gate == Measure:
             assert get_control_count(cmd) == 0
             ids = [qb.id for qr in cmd.qubits for qb in qr]
@@ -442,7 +434,6 @@ class Simulator(BasicEngine):
                 " gates with k < 6!\nPlease add an auto-replacer"
                 " engine to your list of compiler engines."
             )
-
 
     def receive(self, command_list):
         """

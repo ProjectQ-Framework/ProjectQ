@@ -22,7 +22,8 @@ replace/keep.
 """
 
 from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
-from projectq.ops import BasicGate, FlushGate, get_inverse
+from projectq.ops import FlushGate, get_inverse
+
 
 class NoGateDecompositionError(Exception):
     pass
@@ -136,8 +137,9 @@ class AutoReplacer(BasicEngine):
 
             # If the decomposition rule to remove negatively controlled qubits is present in the list of potential
             # decompositions, we process it immediately, before any other decompositions.
-            controlstate_rule = [rule for rule in rules.get('BasicGate', [])
-                                 if rule.decompose.__name__ == '_decompose_controlstate']
+            controlstate_rule = [
+                rule for rule in rules.get('BasicGate', []) if rule.decompose.__name__ == '_decompose_controlstate'
+            ]
             if controlstate_rule and controlstate_rule[0].check(cmd):
                 chosen_decomp = controlstate_rule[0]
             else:
@@ -164,10 +166,7 @@ class AutoReplacer(BasicEngine):
                     if level < len(inverse_mro):
                         inv_class_name = inverse_mro[level].__name__
                         try:
-                            potential_decomps += [
-                                d.get_inverse_decomposition()
-                                for d in rules[inv_class_name]
-                            ]
+                            potential_decomps += [d.get_inverse_decomposition() for d in rules[inv_class_name]]
                         except KeyError:
                             pass
                         # throw out the ones which don't recognize the command
@@ -178,8 +177,7 @@ class AutoReplacer(BasicEngine):
                             break
 
                 if len(decomp_list) == 0:
-                    raise NoGateDecompositionError("\nNo replacement found for " +
-                                                   str(cmd) + "!")
+                    raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
 
                 # use decomposition chooser to determine the best decomposition
                 chosen_decomp = self._decomp_chooser(cmd, decomp_list)
@@ -189,6 +187,7 @@ class AutoReplacer(BasicEngine):
             # decomposition rule).
             # --> use a CommandModifier with a ForwarderEngine to achieve this.
             old_tags = cmd.tags[:]
+
             def cmd_mod_fun(cmd):  # Adds the tags
                 cmd.tags = old_tags[:] + cmd.tags
                 cmd.engine = self.main_engine

@@ -24,10 +24,9 @@ Example:
 """
 
 from projectq.cengines import BasicEngine
-from projectq.meta import ComputeTag, UncomputeTag, Compute, Uncompute
+from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import ClassicalInstructionGate
 from projectq.types import BasicQubit
-from projectq.ops import X
 from ._util import insert_engine, drop_engine_after
 from projectq.ops import CtrlAll
 
@@ -158,12 +157,10 @@ class Control(object):
         self._qubits = qubits
         self._state = canonical_ctrl_state(ctrl_state, len(self._qubits))
 
-
     def __enter__(self):
         if len(self._qubits) > 0:
             ce = ControlEngine(self._qubits, self._state)
             insert_engine(self.engine, ce)
-
 
     def __exit__(self, type, value, traceback):
         # remove control handler from engine list (i.e. skip it)
