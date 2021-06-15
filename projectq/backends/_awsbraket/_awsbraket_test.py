@@ -15,7 +15,6 @@
 """ Test for projectq.backends._awsbraket._awsbraket.py"""
 
 import pytest
-from unittest.mock import patch
 
 import copy
 import math
@@ -403,18 +402,18 @@ def test_awsbraket_invalid_command():
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_sent_error(mock_boto3_client, sent_error_setup):
+def test_awsbraket_sent_error(mocker, sent_error_setup):
     creds, s3_folder, search_value, device_value = sent_error_setup
 
     var_error = 'ServiceQuotaExceededException'
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device', 'create_quantum_task'])
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
         {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
         "create_quantum_task",
     )
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
@@ -461,14 +460,14 @@ def test_awsbraket_sent_error_2():
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
+def test_awsbraket_retrieve(mocker, retrieve_setup):
     (arntask, creds, completed_value, device_value, results_dict) = retrieve_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task', 'get_device', 'get_object'])
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(retrieve_execution=arntask, credentials=creds, num_retries=2, verbose=True)
 
@@ -500,8 +499,7 @@ def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, mapper):
+def test_awsbraket_backend_functional_test(mocker, functional_setup, mapper):
     (
         creds,
         s3_folder,
@@ -512,12 +510,15 @@ def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, 
         results_dict,
     ) = functional_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(
+        spec=['search_devices', 'get_device', 'create_quantum_task', 'get_quantum_task', 'get_object']
+    )
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
@@ -576,8 +577,7 @@ def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, 
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_functional_test_as_engine(mock_boto3_client, functional_setup):
+def test_awsbraket_functional_test_as_engine(mocker, functional_setup):
     (
         creds,
         s3_folder,
@@ -588,12 +588,15 @@ def test_awsbraket_functional_test_as_engine(mock_boto3_client, functional_setup
         results_dict,
     ) = functional_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(
+        spec=['search_devices', 'get_device', 'create_quantum_task', 'get_quantum_task', 'get_object']
+    )
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_object.return_value = copy.deepcopy(results_dict)
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
