@@ -180,6 +180,20 @@ def test_simulator_is_available(sim):
     assert new_cmd.gate.cnt == 0
 
 
+def test_simulator_is_available_negative_control(sim):
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
+
+
 def test_simulator_cheat(sim):
     # cheat function should return a tuple
     assert isinstance(sim.cheat(), tuple)

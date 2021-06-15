@@ -18,7 +18,7 @@ import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
+from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.ops import Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate, FlushGate
 
 from ._aqt_http_client import send, retrieve
@@ -108,8 +108,6 @@ class AQTBackend(BasicEngine):
         Args:
             cmd (Command): Command for which to check availability
         """
-        if has_negative_control(cmd):
-            return False
         if get_control_count(cmd) == 0:
             if isinstance(cmd.gate, (Rx, Ry, Rxx)):
                 return True

@@ -126,6 +126,22 @@ def test_ionq_backend_is_available_control_not(num_ctrl_qubits, is_available):
     assert ionq_backend.is_available(cmd) is is_available
 
 
+def test_ionq_backend_is_available_negative_control():
+    backend = _ionq.IonQBackend()
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
+
+
 def test_ionq_backend_init():
     """Test initialized backend has an empty circuit"""
     backend = _ionq.IonQBackend(verbose=True, use_hardware=True)

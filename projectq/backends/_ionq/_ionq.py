@@ -17,7 +17,7 @@
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import LogicalQubitIDTag, get_control_count
+from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
 from projectq.ops import (
     Allocate,
     Barrier,
@@ -142,6 +142,9 @@ class IonQBackend(BasicEngine):
         # Metagates.
         if gate in (Measure, Allocate, Deallocate, Barrier):
             return True
+
+        if has_negative_control(cmd):
+            return False
 
         # CNOT gates.
         # NOTE: IonQ supports up to 7 control qubits
