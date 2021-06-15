@@ -31,12 +31,22 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Get history and tags for SCM versioning to work
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && runner.os != 'Windows' }}
         run: |
           if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
               git fetch --prune --unshallow
               git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           fi
+
+      - name: Get history and tags for SCM versioning to work (Windows)
+        if: ${{ !env.ACT && runner.os == 'Windows' }}
+        run: |
+          $value = git rev-parse --is-shallow-repository
+          if ( $value -eq "true" )
+          {
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          }
 
       - name: Setup Python ${{ matrix.python }}
         uses: actions/setup-python@v4
