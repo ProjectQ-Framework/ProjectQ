@@ -33,8 +33,10 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          fi
 
       - name: Setup Python ${{ matrix.python }}
         uses: actions/setup-python@v4
@@ -133,8 +135,10 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          fi
 
       - name: Prepare env
         run: >
@@ -144,10 +148,12 @@ jobs:
           libomp-dev
           --no-install-recommends
 
-      - name: Fix Python LDSHARED
+      - name: Fix environment variables for compilation with Clang
         run: |
-          ld_args=$(python3 -c "import sysconfig; print(' '.join(sysconfig.get_config_var('LDSHARED').split()[1:]))")
-          echo "LDSHARED='clang $ld_args'" >> $GITHUB_ENV
+          ld_flags=$(python3 -c "import sysconfig; print(' '.join(sysconfig.get_config_var('LDSHARED').split()[1:]))")
+          echo "LDSHARED=clang" >> $GITHUB_ENV
+          echo "CFLAGS=-fPIC" >> $GITHUB_ENV
+          echo "LDFLAGS=$ld_flags" >> $GITHUB_ENV
 
       - name: Prepare Python env
         run: |
@@ -190,8 +196,10 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          fi
 
       - name: Prepare env
         run: >
@@ -285,8 +293,10 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          fi
 
       - name: Cache wheels
         uses: actions/cache@v3
@@ -321,8 +331,10 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
+              git fetch --prune --unshallow
+              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          fi
 
       - uses: actions/setup-python@v4
         with:
