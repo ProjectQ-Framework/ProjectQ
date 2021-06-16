@@ -17,7 +17,7 @@
 from copy import deepcopy
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count
+from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
     X,
     NOT,
@@ -40,6 +40,7 @@ from projectq.ops import (
     Barrier,
     FlushGate,
 )
+
 
 # ==============================================================================
 
@@ -115,9 +116,11 @@ class OpenQASMBackend(BasicEngine):
         Args:
             cmd (Command): Command for which to check availability
         """
-        gate = cmd.gate
-        n_controls = get_control_count(cmd)
+        if has_negative_control(cmd):
+            return False
 
+        n_controls = get_control_count(cmd)
+        gate = cmd.gate
         is_available = False
 
         if gate in (Measure, Allocate, Deallocate, Barrier):
