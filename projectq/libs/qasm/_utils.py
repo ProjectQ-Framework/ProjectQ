@@ -25,7 +25,7 @@ class OpaqueGate(BasicGate):
         Constructor
 
         Args:
-            name (str): Name/type of gat
+            name (str): Name/type of the quantum gate
             params (list,tuple): Parameter for the gate (may be empty)
         """
 
@@ -49,7 +49,6 @@ class OpaqueGate(BasicGate):
 def apply_gate(gate, qubits):
     """
     Apply a gate to some qubits while separating control and target qubits.
-
 
     Args:
         gate (BasicGate): Instance of a ProjectQ gate
