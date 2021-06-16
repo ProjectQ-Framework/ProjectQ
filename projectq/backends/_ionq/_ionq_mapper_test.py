@@ -14,18 +14,19 @@
 #   limitations under the License.
 import pytest
 
-from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
+from projectq.cengines import MainEngine, DummyEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, Command, DeallocateQubitGate
 from projectq.types import WeakQubitRef
 
 
 def test_cannot_allocate_past_max():
+    mapper = BoundedQubitMapper(1)
     engine = MainEngine(
-        Simulator(),
-        engine_list=[BoundedQubitMapper(1)],
+        DummyEngine(),
+        engine_list=[mapper],
         verbose=True,
     )
     engine.allocate_qubit()
@@ -33,6 +34,9 @@ def test_cannot_allocate_past_max():
         engine.allocate_qubit()
 
     assert str(excinfo.value) == "Cannot allocate more than 1 qubits!"
+
+    # Avoid double error reporting
+    mapper.current_mapping = {0: 0, 1: 1}
 
 
 def test_cannot_reallocate_same_qubit():
@@ -74,26 +78,22 @@ def test_cannot_deallocate_unknown_qubit():
     assert str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
 
     # but we can still deallocate an already allocated one
-    qubit_id = qureg[0].id
-    deallocate_cmd = Command(
-        engine=engine,
-        gate=DeallocateQubitGate(),
-        qubits=([WeakQubitRef(engine=engine, idx=qubit_id)],),
-        tags=[LogicalQubitIDTag(qubit_id)],
-    )
-    engine.send([deallocate_cmd])
+    engine.deallocate_qubit(qureg[0])
+    del qureg
+    del engine
 
 
 def test_cannot_deallocate_same_qubit():
+    mapper = BoundedQubitMapper(1)
     engine = MainEngine(
         Simulator(),
-        engine_list=[BoundedQubitMapper(1)],
+        engine_list=[mapper],
         verbose=True,
     )
     qureg = engine.allocate_qubit()
-    qubit = qureg[0]
-    qubit_id = qubit.id
-    engine.deallocate_qubit(qubit)
+    qubit_id = qureg[0].id
+    engine.deallocate_qubit(qureg[0])
+
     with pytest.raises(RuntimeError) as excinfo:
         deallocate_cmd = Command(
             engine=engine,
@@ -106,7 +106,7 @@ def test_cannot_deallocate_same_qubit():
     assert str(excinfo.value) == "Cannot deallocate a qubit that is not already allocated!"
 
 
-def test_flush_deallocates_all_qubits(monkeypatch):
+def test_flush_deallocates_all_qubits():
     mapper = BoundedQubitMapper(10)
     engine = MainEngine(
         Simulator(),

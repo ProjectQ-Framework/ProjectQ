@@ -15,13 +15,13 @@
 """ Test for projectq.backends._awsbraket._awsbraket.py"""
 
 import pytest
-from unittest.mock import patch
 
 import copy
 import math
 from projectq import MainEngine
 
-from projectq.types import WeakQubitRef, Qubit
+
+from projectq.types import WeakQubitRef
 from projectq.cengines import (
     BasicMapperEngine,
     DummyEngine,
@@ -320,6 +320,22 @@ def test_awsbraket_backend_is_available_control_singlequbit_sv1(ctrl_singlequbit
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+def test_awsbraket_backend_is_available_negative_control():
+    backend = _awsbraket.AWSBraketBackend()
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
+
+
 @has_boto3
 def test_awsbraket_backend_is_available_swap_aspen():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -403,18 +419,18 @@ def test_awsbraket_invalid_command():
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_sent_error(mock_boto3_client, sent_error_setup):
+def test_awsbraket_sent_error(mocker, sent_error_setup):
     creds, s3_folder, search_value, device_value = sent_error_setup
 
     var_error = 'ServiceQuotaExceededException'
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device', 'create_quantum_task'])
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
         {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
         "create_quantum_task",
     )
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
@@ -461,14 +477,14 @@ def test_awsbraket_sent_error_2():
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
+def test_awsbraket_retrieve(mocker, retrieve_setup):
     (arntask, creds, completed_value, device_value, results_dict) = retrieve_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task', 'get_device', 'get_object'])
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(retrieve_execution=arntask, credentials=creds, num_retries=2, verbose=True)
 
@@ -491,7 +507,7 @@ def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
     assert prob_dict['010'] == 0.8
 
     # Unknown qubit or no mapper
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(invalid_qubit)
 
@@ -500,8 +516,7 @@ def test_awsbraket_retrieve(mock_boto3_client, retrieve_setup):
 
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, mapper):
+def test_awsbraket_backend_functional_test(mocker, functional_setup, mapper):
     (
         creds,
         s3_folder,
@@ -512,12 +527,15 @@ def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, 
         results_dict,
     ) = functional_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(
+        spec=['search_devices', 'get_device', 'create_quantum_task', 'get_quantum_task', 'get_object']
+    )
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_object.return_value = results_dict
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
@@ -574,10 +592,11 @@ def test_awsbraket_backend_functional_test(mock_boto3_client, functional_setup, 
     assert prob_dict['00'] == pytest.approx(0.84)
     assert prob_dict['01'] == pytest.approx(0.06)
 
+    eng.flush(deallocate_qubits=True)
+
 
 @has_boto3
-@patch('boto3.client')
-def test_awsbraket_functional_test_as_engine(mock_boto3_client, functional_setup):
+def test_awsbraket_functional_test_as_engine(mocker, functional_setup):
     (
         creds,
         s3_folder,
@@ -588,12 +607,15 @@ def test_awsbraket_functional_test_as_engine(mock_boto3_client, functional_setup
         results_dict,
     ) = functional_setup
 
-    mock_boto3_client.return_value = mock_boto3_client
+    mock_boto3_client = mocker.MagicMock(
+        spec=['search_devices', 'get_device', 'create_quantum_task', 'get_quantum_task', 'get_object']
+    )
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.return_value = qtarntask
     mock_boto3_client.get_quantum_task.return_value = completed_value
     mock_boto3_client.get_object.return_value = copy.deepcopy(results_dict)
+    mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     backend = _awsbraket.AWSBraketBackend(
         verbose=True,
@@ -638,3 +660,5 @@ def test_awsbraket_functional_test_as_engine(mock_boto3_client, functional_setup
     assert eng.backend.received_commands[7].qubits[0][0].id == qureg[0].id
     assert eng.backend.received_commands[8].gate == H
     assert eng.backend.received_commands[8].qubits[0][0].id == qureg[1].id
+
+    eng.flush(deallocate_qubits=True)

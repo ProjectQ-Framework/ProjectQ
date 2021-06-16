@@ -16,11 +16,8 @@
 
 import pytest
 import math
-from projectq.setups import restrictedgateset
-from projectq import MainEngine
 from projectq.backends._ibm import _ibm
-from projectq.cengines import BasicMapperEngine, DummyEngine
-
+from projectq.cengines import MainEngine, BasicMapperEngine, DummyEngine
 from projectq.ops import (
     All,
     Allocate,
@@ -43,6 +40,8 @@ from projectq.ops import (
     H,
     CNOT,
 )
+from projectq.setups import restrictedgateset
+from projectq.types import WeakQubitRef
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -89,6 +88,17 @@ def test_ibm_backend_is_available_control_not(num_ctrl_qubits, is_available):
     ibm_backend = _ibm.IBMBackend()
     cmd = Command(eng, NOT, (qubit1,), controls=qureg)
     assert ibm_backend.is_available(cmd) == is_available
+
+
+def test_ibm_backend_is_available_negative_control():
+    backend = _ibm.IBMBackend()
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+
+    assert backend.is_available(Command(None, NOT, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, NOT, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, NOT, qubits=([qb0],), controls=[qb1], control_state='0'))
 
 
 def test_ibm_backend_init():

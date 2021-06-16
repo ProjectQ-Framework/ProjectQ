@@ -28,6 +28,61 @@ from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import ClassicalInstructionGate
 from projectq.types import BasicQubit
 from ._util import insert_engine, drop_engine_after
+from projectq.ops import CtrlAll
+
+
+def canonical_ctrl_state(ctrl_state, num_qubits):
+    """
+    Return canonical form for control state
+
+    Args:
+        ctrl_state (int,str,CtrlAll): Initial control state representation
+        num_qubits (int): number of control qubits
+
+    Returns:
+        Canonical form of control state (currently a string composed of '0' and '1')
+
+    Note:
+        In case of integer values for `ctrl_state`, the least significant bit applies to the first qubit in the qubit
+        register, e.g. if ctrl_state == 2, its binary representation if '10' with the least significan bit being 0.
+        This means in particular that the followings are equivalent:
+
+        .. code-block:: python
+
+            canonical_ctrl_state(6, 3) == canonical_ctrl_state(6, '110')
+    """
+    if not num_qubits:
+        return ''
+
+    if isinstance(ctrl_state, CtrlAll):
+        if ctrl_state == CtrlAll.One:
+            return '1' * num_qubits
+        return '0' * num_qubits
+
+    if isinstance(ctrl_state, int):
+        # If the user inputs an integer, convert it to binary bit string
+        converted_str = '{0:b}'.format(ctrl_state).zfill(num_qubits)[::-1]
+        if len(converted_str) != num_qubits:
+            raise ValueError(
+                'Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
+                    ctrl_state, converted_str, num_qubits, 2 ** num_qubits - 1
+                )
+            )
+        return converted_str
+
+    if isinstance(ctrl_state, str):
+        # If the user inputs bit string, directly use it
+        if len(ctrl_state) != num_qubits:
+            raise ValueError(
+                'Control state {} has different length than the number of control qubits {}'.format(
+                    ctrl_state, num_qubits
+                )
+            )
+        if not set(ctrl_state).issubset({'0', '1'}):
+            raise ValueError('Control state {} has string other than 1 and 0'.format(ctrl_state))
+        return ctrl_state
+
+    raise TypeError('Input must be a string, an integer or an enum value of class State')
 
 
 class ControlEngine(BasicEngine):
@@ -35,7 +90,7 @@ class ControlEngine(BasicEngine):
     Adds control qubits to all commands that have no compute / uncompute tags.
     """
 
-    def __init__(self, qubits):
+    def __init__(self, qubits, ctrl_state=CtrlAll.One):
         """
         Initialize the control engine.
 
@@ -45,6 +100,7 @@ class ControlEngine(BasicEngine):
         """
         BasicEngine.__init__(self)
         self._qubits = qubits
+        self._state = ctrl_state
 
     def _has_compute_uncompute_tag(self, cmd):
         """
@@ -60,7 +116,7 @@ class ControlEngine(BasicEngine):
 
     def _handle_command(self, cmd):
         if not self._has_compute_uncompute_tag(cmd) and not isinstance(cmd.gate, ClassicalInstructionGate):
-            cmd.add_control_qubits(self._qubits)
+            cmd.add_control_qubits(self._qubits, self._state)
         self.send([cmd])
 
     def receive(self, command_list):
@@ -79,7 +135,7 @@ class Control(object):
                 do_something(otherqubits)
     """
 
-    def __init__(self, engine, qubits):
+    def __init__(self, engine, qubits, ctrl_state=CtrlAll.One):
         """
         Enter a controlled section.
 
@@ -99,10 +155,11 @@ class Control(object):
         if isinstance(qubits, BasicQubit):
             qubits = [qubits]
         self._qubits = qubits
+        self._state = canonical_ctrl_state(ctrl_state, len(self._qubits))
 
     def __enter__(self):
         if len(self._qubits) > 0:
-            ce = ControlEngine(self._qubits)
+            ce = ControlEngine(self._qubits, self._state)
             insert_engine(self.engine, ce)
 
     def __exit__(self, type, value, traceback):
@@ -116,3 +173,10 @@ def get_control_count(cmd):
     Return the number of control qubits of the command object cmd
     """
     return len(cmd.control_qubits)
+
+
+def has_negative_control(cmd):
+    """
+    Returns whether a command has negatively controlled qubits
+    """
+    return get_control_count(cmd) > 0 and '0' in cmd.control_state

@@ -54,7 +54,7 @@ from projectq.ops import (
     Y,
     Z,
 )
-from projectq.types import Qubit, WeakQubitRef
+from projectq.types import WeakQubitRef
 
 
 @pytest.fixture(scope='function')
@@ -124,6 +124,22 @@ def test_ionq_backend_is_available_control_not(num_ctrl_qubits, is_available):
     ionq_backend = _ionq.IonQBackend()
     cmd = Command(eng, X, (qubit1,), controls=qureg)
     assert ionq_backend.is_available(cmd) is is_available
+
+
+def test_ionq_backend_is_available_negative_control():
+    backend = _ionq.IonQBackend()
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
 
 
 def test_ionq_backend_init():
@@ -331,7 +347,7 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
     assert prob_dict['00'] == pytest.approx(0.6)
 
     # Unknown qubit
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     probs = eng.backend.get_probabilities(invalid_qubit)
     assert {'0': 1} == probs
 

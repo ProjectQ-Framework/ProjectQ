@@ -21,15 +21,8 @@ implementation is used as an alternative.
 import math
 import random
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (
-    Measure,
-    FlushGate,
-    Allocate,
-    Deallocate,
-    BasicMathGate,
-    TimeEvolution,
-)
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
+from projectq.ops import Measure, FlushGate, Allocate, Deallocate, BasicMathGate, TimeEvolution
 from projectq.types import WeakQubitRef
 
 FALLBACK_TO_PYSIM = False
@@ -104,6 +97,9 @@ class Simulator(BasicEngine):
         Returns:
             True if it can be simulated and False otherwise.
         """
+        if has_negative_control(cmd):
+            return False
+
         if (
             cmd.gate == Measure
             or cmd.gate == Allocate
@@ -352,6 +348,7 @@ class Simulator(BasicEngine):
             Exception: If a non-single-qubit gate needs to be processed
                 (which should never happen due to is_available).
         """
+
         if cmd.gate == Measure:
             assert get_control_count(cmd) == 0
             ids = [qb.id for qr in cmd.qubits for qb in qr]
@@ -428,6 +425,7 @@ class Simulator(BasicEngine):
                     )
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
+
             if not self._gate_fusion:
                 self._simulator.run()
         else:

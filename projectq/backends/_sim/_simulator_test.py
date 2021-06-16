@@ -180,6 +180,20 @@ def test_simulator_is_available(sim):
     assert new_cmd.gate.cnt == 0
 
 
+def test_simulator_is_available_negative_control(sim):
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
+
+
 def test_simulator_cheat(sim):
     # cheat function should return a tuple
     assert isinstance(sim.cheat(), tuple)
@@ -489,6 +503,9 @@ def test_simulator_applyqubitoperator(sim, mapper):
     assert sim.get_amplitude('000', qureg) == pytest.approx(1.0 / math.sqrt(2.0))
     sim.apply_qubit_operator(op_Proj1, [qureg[0]])
     assert sim.get_amplitude('000', qureg) == pytest.approx(0.0)
+
+    # TODO: this is suspicious...
+    eng.backend.set_wavefunction([1, 0, 0, 0, 0, 0, 0, 0], qureg)
 
 
 def test_simulator_time_evolution(sim):

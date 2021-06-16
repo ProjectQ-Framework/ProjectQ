@@ -23,6 +23,7 @@ from projectq.ops import (
     ClassicalInstructionGate,
     Command,
     H,
+    S,
     NotInvertible,
     Rx,
     X,
@@ -232,3 +233,50 @@ def test_auto_replacer_searches_parent_class_for_rule():
     eng.flush()
     received_gate = backend.received_commands[1].gate
     assert received_gate == X or received_gate == H
+
+
+def test_auto_replacer_priorize_controlstate_rule():
+    # Check that when a control state is given and it has negative control,
+    # Autoreplacer prioritizes the corresponding decomposition rule before anything else.
+    # (Decomposition rule should have name _decompose_controlstate)
+
+    # Create test gate and inverse
+    class ControlGate(BasicGate):
+        pass
+
+    def _decompose_controlstate(cmd):
+        S | cmd.qubits
+
+    def _decompose_random(cmd):
+        H | cmd.qubits
+
+    def control_filter(self, cmd):
+        if cmd.gate == ControlGate():
+            return False
+        return True
+
+    rule_set.add_decomposition_rule(DecompositionRule(BasicGate, _decompose_random))
+
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(
+        backend=backend, engine_list=[_replacer.AutoReplacer(rule_set), _replacer.InstructionFilter(control_filter)]
+    )
+    assert len(backend.received_commands) == 0
+    qb = eng.allocate_qubit()
+    ControlGate() | qb
+    eng.flush()
+    assert len(backend.received_commands) == 3
+    assert backend.received_commands[1].gate == H
+
+    rule_set.add_decomposition_rule(DecompositionRule(BasicGate, _decompose_controlstate))
+
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(
+        backend=backend, engine_list=[_replacer.AutoReplacer(rule_set), _replacer.InstructionFilter(control_filter)]
+    )
+    assert len(backend.received_commands) == 0
+    qb = eng.allocate_qubit()
+    ControlGate() | qb
+    eng.flush()
+    assert len(backend.received_commands) == 3
+    assert backend.received_commands[1].gate == S

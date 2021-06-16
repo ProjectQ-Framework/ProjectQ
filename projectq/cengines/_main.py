@@ -300,7 +300,7 @@ class MainEngine(BasicEngine):
                 id to -1).
         """
         if deallocate_qubits:
-            while len(self.active_qubits):
+            while [qb for qb in self.active_qubits if qb is not None]:
                 qb = self.active_qubits.pop()
                 qb.__del__()
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])

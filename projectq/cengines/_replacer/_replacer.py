@@ -126,10 +126,6 @@ class AutoReplacer(BasicEngine):
         if self.is_available(cmd):
             self.send([cmd])
         else:
-            # check for decomposition rules
-            decomp_list = []
-            potential_decomps = []
-
             # First check for a decomposition rules of the gate class, then
             # the gate class of the inverse gate. If nothing is found, do the
             # same for the first parent class, etc.
@@ -138,40 +134,54 @@ class AutoReplacer(BasicEngine):
             # DaggeredGate, BasicGate, object. Hence don't check the last two
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
             rules = self.decompositionRuleSet.decompositions
-            for level in range(max(len(gate_mro), len(inverse_mro))):
-                # Check for forward rules
-                if level < len(gate_mro):
-                    class_name = gate_mro[level].__name__
-                    try:
-                        potential_decomps = [d for d in rules[class_name]]
-                    except KeyError:
-                        pass
-                    # throw out the ones which don't recognize the command
-                    for d in potential_decomps:
-                        if d.check(cmd):
-                            decomp_list.append(d)
-                    if len(decomp_list) != 0:
-                        break
-                # Check for rules implementing the inverse gate
-                # and run them in reverse
-                if level < len(inverse_mro):
-                    inv_class_name = inverse_mro[level].__name__
-                    try:
-                        potential_decomps += [d.get_inverse_decomposition() for d in rules[inv_class_name]]
-                    except KeyError:
-                        pass
-                    # throw out the ones which don't recognize the command
-                    for d in potential_decomps:
-                        if d.check(cmd):
-                            decomp_list.append(d)
-                    if len(decomp_list) != 0:
-                        break
 
-            if len(decomp_list) == 0:
-                raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
+            # If the decomposition rule to remove negatively controlled qubits is present in the list of potential
+            # decompositions, we process it immediately, before any other decompositions.
+            controlstate_rule = [
+                rule for rule in rules.get('BasicGate', []) if rule.decompose.__name__ == '_decompose_controlstate'
+            ]
+            if controlstate_rule and controlstate_rule[0].check(cmd):
+                chosen_decomp = controlstate_rule[0]
+            else:
+                # check for decomposition rules
+                decomp_list = []
+                potential_decomps = []
 
-            # use decomposition chooser to determine the best decomposition
-            chosen_decomp = self._decomp_chooser(cmd, decomp_list)
+                for level in range(max(len(gate_mro), len(inverse_mro))):
+                    # Check for forward rules
+                    if level < len(gate_mro):
+                        class_name = gate_mro[level].__name__
+                        try:
+                            potential_decomps = [d for d in rules[class_name]]
+                        except KeyError:
+                            pass
+                        # throw out the ones which don't recognize the command
+                        for d in potential_decomps:
+                            if d.check(cmd):
+                                decomp_list.append(d)
+                        if len(decomp_list) != 0:
+                            break
+                    # Check for rules implementing the inverse gate
+                    # and run them in reverse
+                    if level < len(inverse_mro):
+                        inv_class_name = inverse_mro[level].__name__
+                        try:
+                            potential_decomps += [d.get_inverse_decomposition() for d in rules[inv_class_name]]
+                        except KeyError:
+                            pass
+                        # throw out the ones which don't recognize the command
+                        for d in potential_decomps:
+                            if d.check(cmd):
+                                decomp_list.append(d)
+                        if len(decomp_list) != 0:
+                            break
+
+                if len(decomp_list) == 0:
+                    raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
+
+                # use decomposition chooser to determine the best decomposition
+                chosen_decomp = self._decomp_chooser(cmd, decomp_list)
+
             # the decomposed command must have the same tags
             # (plus the ones it gets from meta-statements inside the
             # decomposition rule).

@@ -25,16 +25,8 @@ from ._basics import (
     BasicMathGate,
     BasicPhaseGate,
 )
-from ._command import apply_command, Command
-from ._metagates import (
-    DaggeredGate,
-    get_inverse,
-    is_identity,
-    ControlledGate,
-    C,
-    Tensor,
-    All,
-)
+from ._command import apply_command, Command, CtrlAll, IncompatibleControlState
+from ._metagates import DaggeredGate, get_inverse, is_identity, ControlledGate, C, Tensor, All
 from ._gates import *
 from ._qftgate import QFT, QFTGate
 from ._qubit_operator import QubitOperator

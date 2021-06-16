@@ -18,7 +18,7 @@ import random
 import json
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.types import WeakQubitRef
 from projectq.ops import (
     R,
@@ -176,6 +176,9 @@ class AWSBraketBackend(BasicEngine):
         if gate in (Measure, Allocate, Deallocate, Barrier):
             return True
 
+        if has_negative_control(cmd):
+            return False
+
         if self.device == 'Aspen-8':
             if get_control_count(cmd) == 2:
                 return isinstance(gate, XGate)
@@ -271,20 +274,23 @@ class AWSBraketBackend(BasicEngine):
         Args:
             cmd: Command to store
         """
+        gate = cmd.gate
+
+        # Do not clear the self._clear flag for those gates
+        if gate in (Deallocate, Barrier):
+            return
+
+        num_controls = get_control_count(cmd)
+        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
+
         if self._clear:
             self._probabilities = dict()
             self._clear = False
             self._circuit = ""
             self._allocated_qubits = set()
 
-        gate = cmd.gate
-        num_controls = get_control_count(cmd)
-        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
-
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
-            return
-        if gate in (Deallocate, Barrier):
             return
         if gate == Measure:
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
@@ -411,6 +417,10 @@ class AWSBraketBackend(BasicEngine):
         # implicitly measured.
         # Also, AWS Braket currently does not support intermediate
         # measurements.
+
+        # If the clear flag is set, nothing to do here...
+        if self._clear:
+            return
 
         # In Braket the results for the jobs are stored in S3.
         # You can recover the results from previous jobs using the TaskArn
