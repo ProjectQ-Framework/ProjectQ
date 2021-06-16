@@ -42,6 +42,7 @@ from projectq.ops import (
     Command,
     All,
 )
+from projectq.types import WeakQubitRef
 from ._qasm import OpenQASMBackend
 
 # ==============================================================================
@@ -204,6 +205,22 @@ def test_qasm_is_available_2control(gate, is_available):
     qureg = eng.allocate_qureg(2)
     cmd = Command(eng, gate, (qubit1,), controls=qureg)
     assert eng.is_available(cmd) == is_available
+
+
+def test_ibm_backend_is_available_negative_control():
+    backend = OpenQASMBackend()
+    backend.is_last_engine = True
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
 
 
 def test_qasm_test_qasm_single_qubit_gates():
