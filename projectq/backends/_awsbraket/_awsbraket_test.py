@@ -324,7 +324,7 @@ def test_awsbraket_backend_is_available_negative_control():
 
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)
-    qb2 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
 
     assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
     assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
