@@ -274,20 +274,23 @@ class AWSBraketBackend(BasicEngine):
         Args:
             cmd: Command to store
         """
+        gate = cmd.gate
+
+        # Do not clear the self._clear flag for those gates
+        if gate in (Deallocate, Barrier):
+            return
+
+        num_controls = get_control_count(cmd)
+        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
+
         if self._clear:
             self._probabilities = dict()
             self._clear = False
             self._circuit = ""
             self._allocated_qubits = set()
 
-        gate = cmd.gate
-        num_controls = get_control_count(cmd)
-        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
-
         if gate == Allocate:
             self._allocated_qubits.add(cmd.qubits[0][0].id)
-            return
-        if gate in (Deallocate, Barrier):
             return
         if gate == Measure:
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
@@ -414,6 +417,10 @@ class AWSBraketBackend(BasicEngine):
         # implicitly measured.
         # Also, AWS Braket currently does not support intermediate
         # measurements.
+
+        # If the clear flag is set, nothing to do here...
+        if self._clear:
+            return
 
         # In Braket the results for the jobs are stored in S3.
         # You can recover the results from previous jobs using the TaskArn

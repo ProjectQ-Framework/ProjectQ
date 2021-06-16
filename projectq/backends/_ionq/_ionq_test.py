@@ -54,7 +54,7 @@ from projectq.ops import (
     Y,
     Z,
 )
-from projectq.types import Qubit, WeakQubitRef
+from projectq.types import WeakQubitRef
 
 
 @pytest.fixture(scope='function')
@@ -347,7 +347,7 @@ def test_ionq_retrieve(monkeypatch, mapper_factory):
     assert prob_dict['00'] == pytest.approx(0.6)
 
     # Unknown qubit
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     probs = eng.backend.get_probabilities(invalid_qubit)
     assert {'0': 1} == probs
 

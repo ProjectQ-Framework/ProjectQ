@@ -504,6 +504,9 @@ def test_simulator_applyqubitoperator(sim, mapper):
     sim.apply_qubit_operator(op_Proj1, [qureg[0]])
     assert sim.get_amplitude('000', qureg) == pytest.approx(0.0)
 
+    # TODO: this is suspicious...
+    eng.backend.set_wavefunction([1, 0, 0, 0, 0, 0, 0, 0], qureg)
+
 
 def test_simulator_time_evolution(sim):
     N = 8  # number of qubits

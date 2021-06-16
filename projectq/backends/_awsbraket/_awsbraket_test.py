@@ -20,7 +20,8 @@ import copy
 import math
 from projectq import MainEngine
 
-from projectq.types import WeakQubitRef, Qubit
+
+from projectq.types import WeakQubitRef
 from projectq.cengines import (
     BasicMapperEngine,
     DummyEngine,
@@ -506,7 +507,7 @@ def test_awsbraket_retrieve(mocker, retrieve_setup):
     assert prob_dict['010'] == 0.8
 
     # Unknown qubit or no mapper
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(invalid_qubit)
 
@@ -591,6 +592,8 @@ def test_awsbraket_backend_functional_test(mocker, functional_setup, mapper):
     assert prob_dict['00'] == pytest.approx(0.84)
     assert prob_dict['01'] == pytest.approx(0.06)
 
+    eng.flush(deallocate_qubits=True)
+
 
 @has_boto3
 def test_awsbraket_functional_test_as_engine(mocker, functional_setup):
@@ -657,3 +660,5 @@ def test_awsbraket_functional_test_as_engine(mocker, functional_setup):
     assert eng.backend.received_commands[7].qubits[0][0].id == qureg[0].id
     assert eng.backend.received_commands[8].gate == H
     assert eng.backend.received_commands[8].qubits[0][0].id == qureg[1].id
+
+    eng.flush(deallocate_qubits=True)

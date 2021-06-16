@@ -19,7 +19,7 @@ import math
 
 from projectq import MainEngine
 from projectq.backends._aqt import _aqt
-from projectq.types import WeakQubitRef, Qubit
+from projectq.types import WeakQubitRef
 from projectq.cengines import DummyEngine, BasicMapperEngine
 from projectq.ops import (
     All,
@@ -140,6 +140,10 @@ def test_aqt_too_many_runs():
         Rx(math.pi / 2) | qubit
         eng.flush()
 
+    # Avoid exception at deletion
+    backend._num_runs = 1
+    backend._circuit = []
+
 
 def test_aqt_retrieve(monkeypatch):
     # patch send
@@ -171,7 +175,7 @@ def test_aqt_retrieve(monkeypatch):
     assert prob_dict['00'] == pytest.approx(0.6)
 
     # Unknown qubit and no mapper
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(invalid_qubit)
 
@@ -227,7 +231,7 @@ def test_aqt_backend_functional_test(monkeypatch):
     assert prob_dict['00'] == pytest.approx(0.6)
 
     # Unknown qubit and no mapper
-    invalid_qubit = [Qubit(eng, 10)]
+    invalid_qubit = [WeakQubitRef(eng, 10)]
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(invalid_qubit)
 
