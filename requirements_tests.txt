@@ -2,3 +2,4 @@ flaky
 pytest >= 6.0
 pytest-cov
 pytest-mock
+mock

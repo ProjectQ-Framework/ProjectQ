@@ -73,6 +73,7 @@ build-backend = "setuptools.build_meta"
 minversion = '6.0'
 addopts = '-pno:warnings'
 testpaths = ['projectq']
+mock_use_standalone_module = true
 
 [tool.setuptools_scm]
 
