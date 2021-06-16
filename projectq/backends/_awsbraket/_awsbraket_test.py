@@ -319,6 +319,22 @@ def test_awsbraket_backend_is_available_control_singlequbit_sv1(ctrl_singlequbit
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+def test_awsbraket_backend_is_available_negative_control():
+    backend = _awsbraket.AWSBraketBackend()
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=1)
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
+
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2]))
+    assert backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='11'))
+    assert not backend.is_available(Command(None, X, qubits=([qb0],), controls=[qb1, qb2], control_state='01'))
+
+
 @has_boto3
 def test_awsbraket_backend_is_available_swap_aspen():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])

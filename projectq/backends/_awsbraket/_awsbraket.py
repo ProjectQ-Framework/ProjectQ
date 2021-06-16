@@ -18,7 +18,7 @@ import random
 import json
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
+from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.types import WeakQubitRef
 from projectq.ops import (
     R,
@@ -175,6 +175,9 @@ class AWSBraketBackend(BasicEngine):
         gate = cmd.gate
         if gate in (Measure, Allocate, Deallocate, Barrier):
             return True
+
+        if has_negative_control(cmd):
+            return False
 
         if self.device == 'Aspen-8':
             if get_control_count(cmd) == 2:
