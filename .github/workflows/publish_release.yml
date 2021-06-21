@@ -131,7 +131,7 @@ jobs:
     needs: release # Only create PR if everything was successful
     steps:
       - name: Merge master into develop branch
-        uses: thomaseizinger/create-pull-request@1.0.0
+        uses: thomaseizinger/create-pull-request@1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
