@@ -28,7 +28,7 @@ from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
-    pass
+    """Exception raised when the lifetime of a qubit is problematic within a loop"""
 
 
 class DaggerEngine(BasicEngine):
@@ -78,7 +78,7 @@ class DaggerEngine(BasicEngine):
         self._commands.extend(command_list)
 
 
-class Dagger(object):
+class Dagger:
     """
     Invert an entire code block.
 
@@ -132,11 +132,11 @@ class Dagger(object):
         self._dagger_eng = DaggerEngine()
         insert_engine(self.engine, self._dagger_eng)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         # If an error happens in this context, qubits might not have been
         # deallocated because that code section was not yet executed,
         # so don't check and raise an additional error.
-        if type is not None:
+        if exc_type is not None:
             return
         # run dagger engine
         self._dagger_eng.run()

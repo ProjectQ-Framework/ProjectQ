@@ -29,12 +29,13 @@ from projectq.ops import (
 )
 
 
-def _decompose_state_preparation(cmd):
+def _decompose_state_preparation(cmd):  # pylint: disable=too-many-locals
     """
     Implements state preparation based on arXiv:quant-ph/0407010v1.
     """
     eng = cmd.engine
-    assert len(cmd.qubits) == 1
+    if len(cmd.qubits) != 1:
+        raise ValueError('StatePreparation does not support multiple quantum registers!')
     num_qubits = len(cmd.qubits[0])
     qureg = cmd.qubits[0]
     final_state = cmd.gate.final_state
@@ -52,17 +53,17 @@ def _decompose_state_preparation(cmd):
             phase_of_blocks = []
             for amplitude in final_state:
                 phase_of_blocks.append(cmath.phase(amplitude))
-            for target_qubit in range(len(qureg)):
+            for qubit_idx, qubit in enumerate(qureg):
                 angles = []
                 phase_of_next_blocks = []
-                for block in range(2 ** (len(qureg) - target_qubit - 1)):
+                for block in range(2 ** (len(qureg) - qubit_idx - 1)):
                     phase0 = phase_of_blocks[2 * block]
                     phase1 = phase_of_blocks[2 * block + 1]
                     angles.append(phase0 - phase1)
                     phase_of_next_blocks.append((phase0 + phase1) / 2.0)
                 UniformlyControlledRz(angles) | (
-                    qureg[(target_qubit + 1) :],  # noqa: E203
-                    qureg[target_qubit],
+                    qureg[(qubit_idx + 1) :],  # noqa: E203
+                    qubit,
                 )
                 phase_of_blocks = phase_of_next_blocks
             # Cancel global phase
@@ -71,20 +72,20 @@ def _decompose_state_preparation(cmd):
             abs_of_blocks = []
             for amplitude in final_state:
                 abs_of_blocks.append(abs(amplitude))
-            for target_qubit in range(len(qureg)):
+            for qubit_idx, qubit in enumerate(qureg):
                 angles = []
                 abs_of_next_blocks = []
-                for block in range(2 ** (len(qureg) - target_qubit - 1)):
-                    a0 = abs_of_blocks[2 * block]
-                    a1 = abs_of_blocks[2 * block + 1]
+                for block in range(2 ** (len(qureg) - qubit_idx - 1)):
+                    a0 = abs_of_blocks[2 * block]  # pylint: disable=invalid-name
+                    a1 = abs_of_blocks[2 * block + 1]  # pylint: disable=invalid-name
                     if a0 == 0 and a1 == 0:
                         angles.append(0)
                     else:
                         angles.append(-2.0 * math.acos(a0 / math.sqrt(a0 ** 2 + a1 ** 2)))
                     abs_of_next_blocks.append(math.sqrt(a0 ** 2 + a1 ** 2))
                 UniformlyControlledRy(angles) | (
-                    qureg[(target_qubit + 1) :],  # noqa: E203
-                    qureg[target_qubit],
+                    qureg[(qubit_idx + 1) :],  # noqa: E203
+                    qubit,
                 )
                 abs_of_blocks = abs_of_next_blocks
 

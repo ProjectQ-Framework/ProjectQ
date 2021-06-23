@@ -48,11 +48,10 @@ from projectq.ops import (
 from ._awsbraket_boto3_client import send, retrieve
 
 
-class AWSBraketBackend(BasicEngine):
+class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
-    The AWS Braket Backend class, which stores the circuit,
-    transforms it to Braket compatible,
-    and sends the circuit through the Boto3 and Amazon Braket SDK.
+    The AWS Braket Backend class, which stores the circuit, transforms it to Braket compatible, and sends the circuit
+    through the Boto3 and Amazon Braket SDK.
     """
 
     def __init__(
@@ -66,30 +65,24 @@ class AWSBraketBackend(BasicEngine):
         num_retries=30,
         interval=1,
         retrieve_execution=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """
         Initialize the Backend object.
 
         Args:
-            use_hardware (bool): If True, the code is run on one of the AWS
-                Braket backends, by default on the Rigetti Aspen-8 chip
-                (instead of using the AWS Braket SV1 Simulator)
-            num_runs (int): Number of runs to collect statistics.
-                (default is 1000)
-            verbose (bool): If True, statistics are printed, in addition to the
-                measurement result being registered (at the end of the
-                circuit).
-            credentials (dict): mapping the AWS key credentials as the
-                AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-            device (str): name of the device to use. Rigetti Aspen-8 by
-                default. Valid names are "Aspen-8", "IonQ Device" and "SV1"
-            num_retries (int): Number of times to retry to obtain results from
-                AWS Braket. (default is 30)
-            interval (float, int): Number of seconds between successive
-                attempts to obtain results from AWS Braket.  (default is 1)
-            retrieve_execution (str): TaskArn to retrieve instead of re-running
-                the circuit (e.g., if previous run timed out).  The TaskArns
-                have the form:
+            use_hardware (bool): If True, the code is run on one of the AWS Braket backends, by default on the Rigetti
+                Aspen-8 chip (instead of using the AWS Braket SV1 Simulator)
+            num_runs (int): Number of runs to collect statistics.  (default is 1000)
+            verbose (bool): If True, statistics are printed, in addition to the measurement result being registered
+                (at the end of the circuit).
+            credentials (dict): mapping the AWS key credentials as the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+            device (str): name of the device to use. Rigetti Aspen-8 by default. Valid names are "Aspen-8", "IonQ
+                Device" and "SV1"
+            num_retries (int): Number of times to retry to obtain results from AWS Braket. (default is 30)
+            interval (float, int): Number of seconds between successive attempts to obtain results from AWS Braket.
+                (default is 1)
+            retrieve_execution (str): TaskArn to retrieve instead of re-running the circuit (e.g., if previous run
+                timed out).  The TaskArns have the form:
                 "arn:aws:braket:us-east-1:123456789012:quantum-task/5766032b-2b47-4bf9-cg00-f11851g4015b"
         """
         BasicEngine.__init__(self)
@@ -136,37 +129,29 @@ class AWSBraketBackend(BasicEngine):
 
         self._circuittail = ']}'
 
-    def is_available(self, cmd):
+    def is_available(self, cmd):  # pylint: disable=too-many-return-statements,too-many-branches
         """
         Return true if the command can be executed.
 
         Depending on the device chosen, the operations available differ.
 
         The operations avialable for the Aspen-8 Rigetti device are:
-        - "cz" = Control Z, "xy" = Not available in ProjectQ,
-          "ccnot" = Toffoli (ie. controlled CNOT), "cnot" = Control X,
-          "cphaseshift" = Control R,
-          "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available
+        - "cz" = Control Z, "xy" = Not available in ProjectQ, "ccnot" = Toffoli (ie. controlled CNOT), "cnot" =
+          Control X, "cphaseshift" = Control R, "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available
           in ProjectQ,
-          "cswap" = Control Swap, "h" = H, "i" = Identity, not in ProjectQ,
-          "iswap" = Not available in ProjectQ, "phaseshift" = R,
-          "pswap" = Not available in ProjectQ, "rx" = Rx, "ry" = Ry, "rz" = Rz,
-          "s" = S, "si" = Sdag, "swap" = Swap, "t" = T, "ti" = Tdag,
-          "x" = X, "y" = Y, "z" = Z
+          "cswap" = Control Swap, "h" = H, "i" = Identity, not in ProjectQ, "iswap" = Not available in ProjectQ,
+          "phaseshift" = R, "pswap" = Not available in ProjectQ, "rx" = Rx, "ry" = Ry, "rz" = Rz, "s" = S, "si" =
+          Sdag, "swap" = Swap, "t" = T, "ti" = Tdag, "x" = X, "y" = Y, "z" = Z
 
         The operations available for the IonQ Device are:
-        - "x" = X, "y" = Y, "z" = Z, "rx" = Rx, "ry" = Ry, "rz" = Rz, "h", H,
-          "cnot" = Control X, "s" = S, "si" = Sdag, "t" = T, "ti" = Tdag,
-          "v" = SqrtX, "vi" = Not available in ProjectQ,
-          "xx" "yy" "zz" = Not available in ProjectQ, "swap" = Swap,
-          "i" = Identity, not in ProjectQ
+        - "x" = X, "y" = Y, "z" = Z, "rx" = Rx, "ry" = Ry, "rz" = Rz, "h", H, "cnot" = Control X, "s" = S, "si" =
+          Sdag, "t" = T, "ti" = Tdag, "v" = SqrtX, "vi" = Not available in ProjectQ, "xx" "yy" "zz" = Not available in
+          ProjectQ, "swap" = Swap, "i" = Identity, not in ProjectQ
 
-        The operations available for the StateVector simulator (SV1) are
-        the union of the ones for Rigetti Aspen-8 and IonQ Device plus some
-        more:
-        - "cy" = Control Y, "unitary" = Arbitrary unitary gate defined as a
-          matrix equivalent to the MatrixGate in ProjectQ, "xy" = Not available
-          in ProjectQ
+        The operations available for the StateVector simulator (SV1) are the union of the ones for Rigetti Aspen-8 and
+        IonQ Device plus some more:
+        - "cy" = Control Y, "unitary" = Arbitrary unitary gate defined as a matrix equivalent to the MatrixGate in
+          ProjectQ, "xy" = Not available in ProjectQ
 
         Args:
             cmd (Command): Command for which to check availability
@@ -264,12 +249,11 @@ class AWSBraketBackend(BasicEngine):
         self._clear = True
         self._measured_ids = []
 
-    def _store(self, cmd):
+    def _store(self, cmd):  # pylint: disable=too-many-branches
         """
         Temporarily store the command cmd.
 
-        Translates the command and stores it in a local variable
-        (self._circuit) in JSON format.
+        Translates the command and stores it in a local variable (self._circuit) in JSON format.
 
         Args:
             cmd: Command to store
@@ -281,7 +265,9 @@ class AWSBraketBackend(BasicEngine):
             return
 
         num_controls = get_control_count(cmd)
-        gate_type = type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)
+        gate_type = (
+            type(gate) if not isinstance(gate, DaggeredGate) else type(gate._gate)  # pylint: disable=protected-access
+        )
 
         if self._clear:
             self._probabilities = dict()
@@ -293,7 +279,6 @@ class AWSBraketBackend(BasicEngine):
             self._allocated_qubits.add(cmd.qubits[0][0].id)
             return
         if gate == Measure:
-            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             qb_id = cmd.qubits[0][0].id
             logical_id = None
             for tag in cmd.tags:
@@ -343,22 +328,21 @@ class AWSBraketBackend(BasicEngine):
             mapping = self.main_engine.mapper.current_mapping
             if qb_id not in mapping:
                 raise RuntimeError(
-                    "Unknown qubit id {} in current mapping. Please make sure "
-                    "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id)
+                    (
+                        "Unknown qubit id {} in current mapping. Please make sure eng.flush() was called and that the"
+                        "qubit was eliminated during optimization."
+                    ).format(qb_id)
                 )
             return mapping[qb_id]
         return qb_id
 
     def get_probabilities(self, qureg):
         """
-        Return the list of basis states with corresponding probabilities.  If
-        input qureg is a subset of the register used for the experiment, then
-        returns the projected probabilities over the other states.
+        Return the list of basis states with corresponding probabilities.  If input qureg is a subset of the register
+        used for the experiment, then returns the projected probabilities over the other states.
 
-        The measured bits are ordered according to the supplied quantum
-        register, i.e., the left-most bit in the state-string corresponds to
-        the first qubit in the supplied quantum register.
+        The measured bits are ordered according to the supplied quantum register, i.e., the left-most bit in the
+        state-string corresponds to the first qubit in the supplied quantum register.
 
         Args:
             qureg (list<Qubit>): Quantum register determining the order of the
@@ -376,16 +360,13 @@ class AWSBraketBackend(BasicEngine):
         Warning:
             Only call this function after the circuit has been executed!
 
-            This is maintained in the same form of IBM and AQT for
-            compatibility but in AWSBraket, a previously executed circuit will
-            store the results in the S3 bucket and it can be retreived at any
-            point in time thereafter.
-            No circuit execution should be required at the time of retrieving
-            the results and probabilities if the circuit has already been
-            executed.
-            In order to obtain the probabilities of a previous job you have to
-            get the TaskArn and remember the qubits and ordering used in the
-            original job.
+            This is maintained in the same form of IBM and AQT for compatibility but in AWSBraket, a previously
+            executed circuit will store the results in the S3 bucket and it can be retreived at any point in time
+            thereafter.
+            No circuit execution should be required at the time of retrieving the results and probabilities if the
+            circuit has already been executed.
+            In order to obtain the probabilities of a previous job you have to get the TaskArn and remember the qubits
+            and ordering used in the original job.
 
         """
         if len(self._probabilities) == 0:
@@ -394,9 +375,10 @@ class AWSBraketBackend(BasicEngine):
         probability_dict = dict()
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
-            for i, _ in enumerate(qureg):
-                assert self._logical_to_physical(qureg[i].id) < len(state)
-                mapped_state[i] = state[self._logical_to_physical(qureg[i].id)]
+            for i, qubit in enumerate(qureg):
+                if self._logical_to_physical(qubit.id) >= len(state):  # pragma: no cover
+                    raise IndexError('Physical ID {} > length of internal probabilities array'.format(qubit.id))
+                mapped_state[i] = state[self._logical_to_physical(qubit.id)]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             if mapped_state not in probability_dict:
@@ -409,26 +391,23 @@ class AWSBraketBackend(BasicEngine):
         """
         Run the circuit.
 
-        Send the circuit via the AWS Boto3 SDK. Use the provided Access Key and
-        Secret key or ask for them if not provided
+        Send the circuit via the AWS Boto3 SDK. Use the provided Access Key and Secret key or ask for them if not
+        provided
         """
-        # NB: the AWS Braket API does not require explicit measurement commands
-        # at the end of a circuit; after running any circuit, all qubits are
-        # implicitly measured.
-        # Also, AWS Braket currently does not support intermediate
+        # NB: the AWS Braket API does not require explicit measurement commands at the end of a circuit; after running
+        # any circuit, all qubits are implicitly measured.  Also, AWS Braket currently does not support intermediate
         # measurements.
 
         # If the clear flag is set, nothing to do here...
         if self._clear:
             return
 
-        # In Braket the results for the jobs are stored in S3.
-        # You can recover the results from previous jobs using the TaskArn
-        # (self._retrieve_execution).
+        # In Braket the results for the jobs are stored in S3.  You can recover the results from previous jobs using
+        # the TaskArn (self._retrieve_execution).
         if self._retrieve_execution is not None:
             res = retrieve(
                 credentials=self._credentials,
-                taskArn=self._retrieve_execution,
+                task_arn=self._retrieve_execution,
                 num_retries=self._num_retries,
                 interval=self._interval,
                 verbose=self._verbose,
@@ -457,14 +436,14 @@ class AWSBraketBackend(BasicEngine):
         counts = res
 
         # Determine random outcome
-        P = random.random()
+        random_outcome = random.random()
         p_sum = 0.0
         measured = ""
         for state in counts:
             probability = counts[state]
             p_sum += probability
             star = ""
-            if p_sum >= P and measured == "":
+            if p_sum >= random_outcome and measured == "":
                 measured = state
                 star = "*"
             self._probabilities[state] = probability
@@ -479,8 +458,7 @@ class AWSBraketBackend(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        completion.
+        Receives a command list and, for each command, stores it until completion.
 
         Args:
             command_list: List of commands to execute

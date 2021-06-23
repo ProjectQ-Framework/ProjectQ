@@ -18,6 +18,7 @@ import pytest
 import math
 from projectq.backends._ibm import _ibm
 from projectq.cengines import MainEngine, BasicMapperEngine, DummyEngine
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
     All,
     Allocate,
@@ -382,3 +383,22 @@ def test_ibm_backend_functional_test(monkeypatch):
 
     with pytest.raises(RuntimeError):
         eng.backend.get_probabilities(eng.allocate_qubit())
+
+
+def test_ibm_errors():
+    backend = _ibm.IBMBackend(verbose=True, num_runs=1000)
+    mapper = BasicMapperEngine()
+    mapper.current_mapping = {0: 0}
+    eng = MainEngine(backend=backend, engine_list=[mapper])
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+
+    # No LogicalQubitIDTag
+    with pytest.raises(RuntimeError):
+        eng.backend._store(Command(engine=eng, gate=Measure, qubits=([qb0],)))
+
+    eng = MainEngine(backend=backend, engine_list=[])
+
+    # No mapper
+    with pytest.raises(RuntimeError):
+        eng.backend._store(Command(engine=eng, gate=Measure, qubits=([qb0],), tags=(LogicalQubitIDTag(1),)))

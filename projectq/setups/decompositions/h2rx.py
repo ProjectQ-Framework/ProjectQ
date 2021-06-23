@@ -27,7 +27,7 @@ from projectq.meta import get_control_count
 from projectq.ops import Ph, Rx, Ry, H
 
 
-def _decompose_h2rx_M(cmd):
+def _decompose_h2rx_M(cmd):  # pylint: disable=invalid-name
     """Decompose the Ry gate."""
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     qubit = cmd.qubits[0]
@@ -36,7 +36,7 @@ def _decompose_h2rx_M(cmd):
     Ry(-1 * math.pi / 2) | qubit
 
 
-def _decompose_h2rx_N(cmd):
+def _decompose_h2rx_N(cmd):  # pylint: disable=invalid-name
     """Decompose the Ry gate."""
     # Labelled 'N' for 'neutral' because decomposition doesn't end with
     # Ry(pi/2) or Ry(-pi/2)
@@ -46,7 +46,7 @@ def _decompose_h2rx_N(cmd):
     Rx(-1 * math.pi) | qubit
 
 
-def _recognize_HNoCtrl(cmd):
+def _recognize_HNoCtrl(cmd):  # pylint: disable=invalid-name
     """For efficiency reasons only if no control qubits."""
     return get_control_count(cmd) == 0
 

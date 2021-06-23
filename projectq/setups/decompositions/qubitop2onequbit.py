@@ -29,7 +29,8 @@ def _recognize_qubitop(cmd):
 
 
 def _decompose_qubitop(cmd):
-    assert len(cmd.qubits) == 1
+    if len(cmd.qubits) != 1:
+        raise ValueError('QubitOperator decomposition can only accept a single quantum register')
     qureg = cmd.qubits[0]
     eng = cmd.engine
     qubit_op = cmd.gate

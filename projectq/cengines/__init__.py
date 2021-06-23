@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ module containing all compiler engines"""
+
 from ._basics import BasicEngine, LastEngineException, ForwarderEngine
 from ._cmdmodifier import CommandModifier
 from ._basicmapper import BasicMapperEngine

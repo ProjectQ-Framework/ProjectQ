@@ -21,28 +21,38 @@ import sys
 import traceback
 import weakref
 
-from projectq.cengines import BasicEngine, BasicMapperEngine
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
 from projectq.backends import Simulator
 
+from ._basics import BasicEngine
+from ._basicmapper import BasicMapperEngine
+
 
 class NotYetMeasuredError(Exception):
-    pass
+    """Exception raised when trying to access the measurement value of a qubit that has not yet been measured."""
 
 
 class UnsupportedEngineError(Exception):
-    pass
+    """Exception raised when a non-supported compiler engine is encountered"""
 
 
-class MainEngine(BasicEngine):
+class _ErrorEngine:  # pylint: disable=too-few-public-methods
     """
-    The MainEngine class provides all functionality of the main compiler
-    engine.
+    Fake compiler engine class only used to ensure gracious failure when an exception occurs in the MainEngine
+    constructor.
+    """
 
-    It initializes all further compiler engines (calls, e.g.,
-    .next_engine=...) and keeps track of measurement results and active
-    qubits (and their IDs).
+    def receive(self, command_list):  # pylint: disable=unused-argument
+        """No-op"""
+
+
+class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
+    """
+    The MainEngine class provides all functionality of the main compiler engine.
+
+    It initializes all further compiler engines (calls, e.g., .next_engine=...) and keeps track of measurement results
+    and active qubits (and their IDs).
 
     Attributes:
         next_engine (BasicEngine): Next compiler engine (or the back-end).
@@ -58,14 +68,13 @@ class MainEngine(BasicEngine):
         """
         Initialize the main compiler engine and all compiler engines.
 
-        Sets 'next_engine'- and 'main_engine'-attributes of all compiler
-        engines and adds the back-end as the last engine.
+        Sets 'next_engine'- and 'main_engine'-attributes of all compiler engines and adds the back-end as the last
+        engine.
 
         Args:
             backend (BasicEngine): Backend to send the compiled circuit to.
-            engine_list (list<BasicEngine>): List of engines / backends to use
-                as compiler engines. Note: The engine list must not contain
-                multiple mappers (instances of BasicMapperEngine).
+            engine_list (list<BasicEngine>): List of engines / backends to use as compiler engines. Note: The engine
+                list must not contain multiple mappers (instances of BasicMapperEngine).
                 Default: projectq.setups.default.get_engine_list()
             verbose (bool): Either print full or compact error messages.
                             Default: False (i.e. compact error messages).
@@ -103,12 +112,18 @@ class MainEngine(BasicEngine):
                            LocalOptimizer(3)]
                 eng = MainEngine(Simulator(), engines)
         """
-        BasicEngine.__init__(self)
+        super().__init__()
+        self.active_qubits = weakref.WeakSet()
+        self._measurements = dict()
+        self.dirty_qubits = set()
+        self.verbose = verbose
+        self.main_engine = self
 
         if backend is None:
             backend = Simulator()
         else:  # Test that backend is BasicEngine object
             if not isinstance(backend, BasicEngine):
+                self.next_engine = _ErrorEngine()
                 raise UnsupportedEngineError(
                     "\nYou supplied a backend which is not supported,\n"
                     "i.e. not an instance of BasicEngine.\n"
@@ -116,9 +131,11 @@ class MainEngine(BasicEngine):
                     "E.g. MainEngine(backend=Simulator) instead of \n"
                     "     MainEngine(backend=Simulator())"
                 )
+        self.backend = backend
+
         # default engine_list is projectq.setups.default.get_engine_list()
         if engine_list is None:
-            import projectq.setups.default
+            import projectq.setups.default  # pylint: disable=import-outside-toplevel
 
             engine_list = projectq.setups.default.get_engine_list()
 
@@ -127,26 +144,29 @@ class MainEngine(BasicEngine):
             # Test that engine list elements are all BasicEngine objects
             for current_eng in engine_list:
                 if not isinstance(current_eng, BasicEngine):
+                    self.next_engine = _ErrorEngine()
                     raise UnsupportedEngineError(
                         "\nYou supplied an unsupported engine in engine_list,"
                         "\ni.e. not an instance of BasicEngine.\n"
                         "Did you forget the brackets to create an instance?\n"
-                        "E.g. MainEngine(engine_list=[AutoReplacer]) instead "
-                        "of\n     MainEngine(engine_list=[AutoReplacer()])"
+                        "E.g. MainEngine(engine_list=[AutoReplacer]) instead of\n"
+                        "     MainEngine(engine_list=[AutoReplacer()])"
                     )
                 if isinstance(current_eng, BasicMapperEngine):
                     if self.mapper is None:
                         self.mapper = current_eng
                     else:
+                        self.next_engine = _ErrorEngine()
                         raise UnsupportedEngineError("More than one mapper engine is not supported.")
         else:
+            self.next_engine = _ErrorEngine()
             raise UnsupportedEngineError("The provided list of engines is not a list!")
         engine_list = engine_list + [backend]
-        self.backend = backend
 
         # Test that user did not supply twice the same engine instance
-        num_different_engines = len(set([id(item) for item in engine_list]))
+        num_different_engines = len(set(id(item) for item in engine_list))
         if len(engine_list) != num_different_engines:
+            self.next_engine = _ErrorEngine()
             raise UnsupportedEngineError(
                 "\nError:\n You supplied twice the same engine as backend"
                 " or item in engine_list. This doesn't work. Create two \n"
@@ -161,11 +181,6 @@ class MainEngine(BasicEngine):
         engine_list[-1].main_engine = self
         engine_list[-1].is_last_engine = True
         self.next_engine = engine_list[0]
-        self.main_engine = self
-        self.active_qubits = weakref.WeakSet()
-        self._measurements = dict()
-        self.dirty_qubits = set()
-        self.verbose = verbose
 
         # In order to terminate an example code without eng.flush
         def atexit_function(weakref_main_eng):
@@ -173,9 +188,8 @@ class MainEngine(BasicEngine):
             if eng is not None:
                 if not hasattr(sys, "last_type"):
                     eng.flush(deallocate_qubits=True)
-                # An exception causes the termination, don't send a flush and
-                # make sure no qubits send deallocation gates anymore as this
-                # might trigger additional exceptions
+                # An exception causes the termination, don't send a flush and make sure no qubits send deallocation
+                # gates anymore as this might trigger additional exceptions
                 else:
                     for qubit in eng.active_qubits:
                         qubit.id = -1
@@ -188,8 +202,7 @@ class MainEngine(BasicEngine):
         """
         Destroy the main engine.
 
-        Flushes the entire circuit down the pipeline, clearing all temporary
-        buffers (in, e.g., optimizers).
+        Flushes the entire circuit down the pipeline, clearing all temporary buffers (in, e.g., optimizers).
         """
         if not hasattr(sys, "last_type"):
             self.flush(deallocate_qubits=True)
@@ -202,23 +215,19 @@ class MainEngine(BasicEngine):
         """
         Register a measurement result
 
-        The engine being responsible for measurement results needs to register
-        these results with the master engine such that they are available when
-        the user calls an int() or bool() conversion operator on a measured
-        qubit.
+        The engine being responsible for measurement results needs to register these results with the master engine
+        such that they are available when the user calls an int() or bool() conversion operator on a measured qubit.
 
         Args:
-            qubit (BasicQubit): Qubit for which to register the measurement
-                result.
-            value (bool): Boolean value of the measurement outcome
-                (True / False = 1 / 0 respectively).
+            qubit (BasicQubit): Qubit for which to register the measurement result.
+            value (bool): Boolean value of the measurement outcome (True / False = 1 / 0 respectively).
         """
         self._measurements[qubit.id] = bool(value)
 
     def get_measurement_result(self, qubit):
         """
-        Return the classical value of a measured qubit, given that an engine
-        registered this result previously (see setMeasurementResult).
+        Return the classical value of a measured qubit, given that an engine registered this result previously (see
+        setMeasurementResult).
 
         Args:
             qubit (BasicQubit): Qubit of which to get the measurement result.
@@ -236,17 +245,13 @@ class MainEngine(BasicEngine):
         """
         if qubit.id in self._measurements:
             return self._measurements[qubit.id]
-        else:
-            raise NotYetMeasuredError(
-                "\nError: Can't access measurement result for "
-                "qubit #" + str(qubit.id) + ". The problem may "
-                "be:\n\t1. Your "
-                "code lacks a measurement statement\n\t"
-                "2. You have not yet called engine.flush() to "
-                "force execution of your code\n\t3. The "
-                "underlying backend failed to register "
-                "the measurement result\n"
-            )
+        raise NotYetMeasuredError(
+            "\nError: Can't access measurement result for qubit #" + str(qubit.id) + ". The problem may be:\n\t"
+            "1. Your code lacks a measurement statement\n\t"
+            "2. You have not yet called engine.flush() to force execution of your code\n\t"
+            "3. The "
+            "underlying backend failed to register the measurement result\n"
+        )
 
     def get_new_qubit_id(self):
         """
@@ -276,28 +281,25 @@ class MainEngine(BasicEngine):
         """
         try:
             self.next_engine.receive(command_list)
-        except Exception:
+        except Exception as err:  # pylint: disable=broad-except
             if self.verbose:
                 raise
-            else:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                # try:
-                last_line = traceback.format_exc().splitlines()
-                compact_exception = exc_type(
-                    str(exc_value) + '\n raised in:\n' + repr(last_line[-3]) + "\n" + repr(last_line[-2])
-                )
-                compact_exception.__cause__ = None
-                raise compact_exception  # use verbose=True for more info
+            exc_type, exc_value, _ = sys.exc_info()
+            # try:
+            last_line = traceback.format_exc().splitlines()
+            compact_exception = exc_type(
+                str(exc_value) + '\n raised in:\n' + repr(last_line[-3]) + "\n" + repr(last_line[-2])
+            )
+            compact_exception.__cause__ = None
+            raise compact_exception from err  # use verbose=True for more info
 
     def flush(self, deallocate_qubits=False):
         """
-        Flush the entire circuit down the pipeline, clearing potential buffers
-        (of, e.g., optimizers).
+        Flush the entire circuit down the pipeline, clearing potential buffers (of, e.g., optimizers).
 
         Args:
-            deallocate_qubits (bool): If True, deallocates all qubits that are
-                still alive (invalidating references to them by setting their
-                id to -1).
+            deallocate_qubits (bool): If True, deallocates all qubits that are still alive (invalidating references to
+                them by setting their id to -1).
         """
         if deallocate_qubits:
             while [qb for qb in self.active_qubits if qb is not None]:

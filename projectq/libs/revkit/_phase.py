@@ -13,12 +13,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""RevKit support for phase oracles"""
+
 from projectq.ops import BasicGate
 
 from ._utils import _exec
 
 
-class PhaseOracle:
+class PhaseOracle:  # pylint: disable=too-few-public-methods
     """
     Synthesizes phase circuit from an arbitrary Boolean function.
 
@@ -61,15 +63,15 @@ class PhaseOracle:
             self.function = function
         else:
             try:
-                import dormouse
+                import dormouse  # pylint: disable=import-outside-toplevel
 
                 self.function = dormouse.to_truth_table(function)
-            except ImportError:  # pragma: no cover
+            except ImportError as err:  # pragma: no cover
                 raise RuntimeError(
                     "The dormouse library needs to be installed in order to "
                     "automatically compile Python code into functions.  Try "
                     "to install dormouse with 'pip install dormouse'."
-                )
+                ) from err
         self.kwargs = kwargs
 
         self._check_function()
@@ -83,13 +85,14 @@ class PhaseOracle:
                                    applied.
         """
         try:
-            import revkit
-        except ImportError:  # pragma: no cover
+            import revkit  # pylint: disable=import-outside-toplevel
+        except ImportError as err:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function"
-            )
+            ) from err
 
+        # pylint: disable=invalid-name
         # convert qubits to tuple
         qs = []
         for item in BasicGate.make_tuple_of_qureg(qubits):
@@ -105,7 +108,7 @@ class PhaseOracle:
         revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
 
         # create phase circuit from truth table
-        self.kwargs.get("synth", lambda: revkit.esopps())()
+        self.kwargs.get("synth", revkit.esopps)()
 
         # check whether circuit has correct signature
         if revkit.ps(mct=True, silent=True)['qubits'] != len(qs):

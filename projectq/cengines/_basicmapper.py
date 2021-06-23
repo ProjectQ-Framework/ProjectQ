@@ -15,15 +15,16 @@
 """
 Defines the parent class from which all mappers should be derived.
 
-There is only one engine currently allowed to be derived from
-BasicMapperEngine. This allows the simulator to automatically translate
-logical qubit ids to mapped ids.
+There is only one engine currently allowed to be derived from BasicMapperEngine. This allows the simulator to
+automatically translate logical qubit ids to mapped ids.
 """
 from copy import deepcopy
 
-from projectq.cengines import BasicEngine, CommandModifier
 from projectq.meta import drop_engine_after, insert_engine, LogicalQubitIDTag
 from projectq.ops import MeasureGate
+
+from ._basics import BasicEngine
+from ._cmdmodifier import CommandModifier
 
 
 class BasicMapperEngine(BasicEngine):
@@ -31,21 +32,26 @@ class BasicMapperEngine(BasicEngine):
     Parent class for all Mappers.
 
     Attributes:
-        self.current_mapping (dict): Keys are the logical qubit ids and values
-                                     are the mapped qubit ids.
+        self.current_mapping (dict): Keys are the logical qubit ids and values are the mapped qubit ids.
 
     """
 
     def __init__(self):
-        BasicEngine.__init__(self)
+        super().__init__()
         self._current_mapping = None
 
     @property
     def current_mapping(self):
+        """
+        Access the current mapping
+        """
         return deepcopy(self._current_mapping)
 
     @current_mapping.setter
     def current_mapping(self, current_mapping):
+        """
+        Set the current mapping
+        """
         self._current_mapping = current_mapping
 
     def _send_cmd_with_mapped_ids(self, cmd):
@@ -67,8 +73,6 @@ class BasicMapperEngine(BasicEngine):
         for qubit in control_qubits:
             qubit.id = self.current_mapping[qubit.id]
         if isinstance(new_cmd.gate, MeasureGate):
-            assert len(new_cmd.qubits) == 1 and len(new_cmd.qubits[0]) == 1
-
             # Add LogicalQubitIDTag to MeasureGate
             def add_logical_id(command, old_tags=deepcopy(cmd.tags)):
                 command.tags = old_tags + [LogicalQubitIDTag(cmd.qubits[0][0].id)]
@@ -82,5 +86,6 @@ class BasicMapperEngine(BasicEngine):
             self.send([new_cmd])
 
     def receive(self, command_list):
+        """Forward all commands to the next engine."""
         for cmd in command_list:
             self._send_cmd_with_mapped_ids(cmd)

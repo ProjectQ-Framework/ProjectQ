@@ -21,13 +21,13 @@ The installation is very simple
 """
 
 import getpass
-import signal
+import json
 import re
+import signal
 import time
+
 import boto3
 import botocore
-
-import json
 
 
 class AWSBraket:
@@ -41,7 +41,7 @@ class AWSBraket:
         self._credentials = dict()
         self._s3_folder = []
 
-    def _authenticate(self, credentials=None):
+    def authenticate(self, credentials=None):
         """
         Args:
             credentials (dict): mapping the AWS key credentials as the
@@ -53,16 +53,16 @@ class AWSBraket:
 
         self._credentials = credentials
 
-    def _get_s3_folder(self, s3_folder=None):
+    def get_s3_folder(self, s3_folder=None):
         """
         Args:
            s3_folder (list): contains the S3 bucket and directory to store the
            results.
         """
         if s3_folder is None:  # pragma: no cover
-            S3Bucket = input("Enter the S3 Bucket configured in Braket: ")
-            S3Directory = input("Enter the Directory created in the S3 Bucket: ")
-            s3_folder = [S3Bucket, S3Directory]
+            s3_bucket = input("Enter the S3 Bucket configured in Braket: ")
+            s3_directory = input("Enter the Directory created in the S3 Bucket: ")
+            s3_folder = [s3_bucket, s3_directory]
 
         self._s3_folder = s3_folder
 
@@ -96,38 +96,38 @@ class AWSBraket:
                 if result['deviceType'] not in ['QPU', 'SIMULATOR']:
                     continue
                 if result['deviceType'] == 'QPU':
-                    deviceCapabilities = json.loads(
+                    device_capabilities = json.loads(
                         client.get_device(deviceArn=result['deviceArn'])['deviceCapabilities']
                     )
                     self.backends[result['deviceName']] = {
-                        'nq': deviceCapabilities['paradigm']['qubitCount'],
-                        'coupling_map': deviceCapabilities['paradigm']['connectivity']['connectivityGraph'],
-                        'version': deviceCapabilities['braketSchemaHeader']['version'],
+                        'nq': device_capabilities['paradigm']['qubitCount'],
+                        'coupling_map': device_capabilities['paradigm']['connectivity']['connectivityGraph'],
+                        'version': device_capabilities['braketSchemaHeader']['version'],
                         'location': region,  # deviceCapabilities['service']['deviceLocation'],
                         'deviceArn': result['deviceArn'],
-                        'deviceParameters': deviceCapabilities['deviceParameters']['properties']['braketSchemaHeader'][
+                        'deviceParameters': device_capabilities['deviceParameters']['properties']['braketSchemaHeader'][
                             'const'
                         ],
-                        'deviceModelParameters': deviceCapabilities['deviceParameters']['definitions'][
+                        'deviceModelParameters': device_capabilities['deviceParameters']['definitions'][
                             'GateModelParameters'
                         ]['properties']['braketSchemaHeader']['const'],
                     }
                 # Unfortunatelly the Capabilities schemas are not homogeneus
                 # for real devices and simulators
                 elif result['deviceType'] == 'SIMULATOR':
-                    deviceCapabilities = json.loads(
+                    device_capabilities = json.loads(
                         client.get_device(deviceArn=result['deviceArn'])['deviceCapabilities']
                     )
                     self.backends[result['deviceName']] = {
-                        'nq': deviceCapabilities['paradigm']['qubitCount'],
+                        'nq': device_capabilities['paradigm']['qubitCount'],
                         'coupling_map': {},
-                        'version': deviceCapabilities['braketSchemaHeader']['version'],
+                        'version': device_capabilities['braketSchemaHeader']['version'],
                         'location': 'us-east-1',
                         'deviceArn': result['deviceArn'],
-                        'deviceParameters': deviceCapabilities['deviceParameters']['properties']['braketSchemaHeader'][
+                        'deviceParameters': device_capabilities['deviceParameters']['properties']['braketSchemaHeader'][
                             'const'
                         ],
-                        'deviceModelParameters': deviceCapabilities['deviceParameters']['definitions'][
+                        'deviceModelParameters': device_capabilities['deviceParameters']['definitions'][
                             'GateModelParameters'
                         ]['properties']['braketSchemaHeader']['const'],
                     }
@@ -170,7 +170,7 @@ class AWSBraket:
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
 
-    def _run(self, info, device):
+    def run(self, info, device):
         """
         Run the quantum code to the AWS Braket selected device.
 
@@ -180,7 +180,7 @@ class AWSBraket:
             device (str): name of the device to use
 
         Returns:
-            taskArn (str): The Arn of the task
+            task_arn (str): The Arn of the task
 
 
         """
@@ -219,8 +219,10 @@ class AWSBraket:
 
         return response['quantumTaskArn']
 
-    def _get_result(self, execution_id, num_retries=30, interval=1, verbose=False):
-
+    def get_result(self, execution_id, num_retries=30, interval=1, verbose=False):  # pylint: disable=too-many-locals
+        """
+        Get the result of an execution
+        """
         if verbose:
             print("Waiting for results. [Job Arn: {}]".format(execution_id))
 
@@ -248,14 +250,14 @@ class AWSBraket:
             measurements_probabilities = {}
             for i in range(total_unique_mes):
                 strqubits = ''
-                for nq in range(len_qubits):
-                    strqubits += str(unique_mes[i][nq])
+                for qubit_idx in range(len_qubits):
+                    strqubits += str(unique_mes[i][qubit_idx])
                 prob = measurements.count(unique_mes[i]) / total_mes
                 measurements_probabilities[strqubits] = prob
 
             return measurements_probabilities
 
-        # The region_name is obtained from the taskArn itself
+        # The region_name is obtained from the task_arn itself
         region_name = re.split(':', execution_id)[3]
         client_braket = boto3.client(
             'braket',
@@ -321,11 +323,11 @@ class AWSBraket:
 
 
 class DeviceTooSmall(Exception):
-    pass
+    """Exception raised if the device is too small to run the circuit"""
 
 
 class DeviceOfflineError(Exception):
-    pass
+    """Exception raised if a selected device is currently offline"""
 
 
 def show_devices(credentials=None, verbose=False):
@@ -342,21 +344,21 @@ def show_devices(credentials=None, verbose=False):
         (list) list of available devices and their properties
     """
     awsbraket_session = AWSBraket()
-    awsbraket_session._authenticate(credentials=credentials)
+    awsbraket_session.authenticate(credentials=credentials)
     return awsbraket_session.get_list_devices(verbose=verbose)
 
 
 # TODO: Create a Show Online properties per device
 
 
-def retrieve(credentials, taskArn, num_retries=30, interval=1, verbose=False):
+def retrieve(credentials, task_arn, num_retries=30, interval=1, verbose=False):
     """
     Retrieves a job/task by its Arn.
 
     Args:
         credentials (dict): Dictionary storing the AWS credentials with
             keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-        taskArn (str): The Arn of the task to retreive
+        task_arn (str): The Arn of the task to retreive
 
     Returns:
         (dict) measurement probabilities from the result
@@ -368,18 +370,20 @@ def retrieve(credentials, taskArn, num_retries=30, interval=1, verbose=False):
             print("- Authenticating...")
             if credentials is not None:
                 print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
-        awsbraket_session._authenticate(credentials=credentials)
-        res = awsbraket_session._get_result(taskArn, num_retries=num_retries, interval=interval, verbose=verbose)
+        awsbraket_session.authenticate(credentials=credentials)
+        res = awsbraket_session.get_result(task_arn, num_retries=num_retries, interval=interval, verbose=verbose)
         return res
     except botocore.exceptions.ClientError as error:
         error_code = error.response['Error']['Code']
         if error_code == 'ResourceNotFoundException':
-            print("- Unable to locate the job with Arn ", taskArn)
+            print("- Unable to locate the job with Arn ", task_arn)
         print(error, error_code)
         raise
 
 
-def send(info, device, credentials, s3_folder, num_retries=30, interval=1, verbose=False):
+def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-locals
+    info, device, credentials, s3_folder, num_retries=30, interval=1, verbose=False
+):
     """
     Sends cicruit through the Boto3 SDK and runs the quantum circuit.
 
@@ -404,8 +408,8 @@ def send(info, device, credentials, s3_folder, num_retries=30, interval=1, verbo
             print("- Authenticating...")
             if credentials is not None:
                 print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
-        awsbraket_session._authenticate(credentials=credentials)
-        awsbraket_session._get_s3_folder(s3_folder=s3_folder)
+        awsbraket_session.authenticate(credentials=credentials)
+        awsbraket_session.get_s3_folder(s3_folder=s3_folder)
 
         # check if the device is online/is available
         awsbraket_session.get_list_devices(verbose)
@@ -429,12 +433,12 @@ def send(info, device, credentials, s3_folder, num_retries=30, interval=1, verbo
             raise DeviceTooSmall("Device is too small.")
         if verbose:
             print("- Running code: {}".format(info))
-        taskArn = awsbraket_session._run(info, device)
-        print("Your task Arn is: {}. Make note of that for future reference".format(taskArn))
+        task_arn = awsbraket_session.run(info, device)
+        print("Your task Arn is: {}. Make note of that for future reference".format(task_arn))
 
         if verbose:
             print("- Waiting for results...")
-        res = awsbraket_session._get_result(taskArn, num_retries=num_retries, interval=interval, verbose=verbose)
+        res = awsbraket_session.get_result(task_arn, num_retries=num_retries, interval=interval, verbose=verbose)
         if verbose:
             print("- Done.")
         return res

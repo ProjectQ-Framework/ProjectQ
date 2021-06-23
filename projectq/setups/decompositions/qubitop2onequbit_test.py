@@ -26,7 +26,8 @@ from projectq.cengines import (
     InstructionFilter,
 )
 from projectq.meta import Control
-from projectq.ops import All, Measure, Ph, QubitOperator, X, Y, Z
+from projectq.ops import All, Measure, Ph, QubitOperator, X, Y, Z, Command
+from projectq.types import WeakQubitRef
 
 import projectq.setups.decompositions.qubitop2onequbit as qubitop2onequbit
 
@@ -52,6 +53,13 @@ def _decomp_gates(eng, cmd):
         return False
     else:
         return True
+
+
+def test_qubitop2singlequbit_invalid():
+    qb0 = WeakQubitRef(None, idx=0)
+    qb1 = WeakQubitRef(None, idx=1)
+    with pytest.raises(ValueError):
+        qubitop2onequbit._decompose_qubitop(Command(None, QubitOperator(), ([qb0], [qb1])))
 
 
 def test_qubitop2singlequbit():

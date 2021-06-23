@@ -18,6 +18,8 @@ Tests for projectq.backends._circuits._to_latex.py.
 
 import copy
 
+import pytest
+
 from projectq import MainEngine
 from projectq.ops import (
     BasicGate,
@@ -45,7 +47,7 @@ def test_tolatex():
 
     _to_latex._header = lambda x: "H"
     _to_latex._body = lambda x, settings, drawing_order, draw_gates_in_parallel: x
-    _to_latex._footer = lambda x: "F"
+    _to_latex._footer = lambda: "F"
 
     latex = _to_latex.to_latex("B")
     assert latex == "HBF"
@@ -181,6 +183,27 @@ def test_body():
     assert code.count("measure") == 1  # 1 measurement
     assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
     assert code.count("{red}") == 3
+
+
+@pytest.mark.parametrize('gate, n_qubits', ((SqrtSwap, 3), (Swap, 3), (X, 2)), ids=str)
+def test_invalid_number_of_qubits(gate, n_qubits):
+    drawer = _drawer.CircuitDrawer()
+    eng = MainEngine(drawer, [])
+    old_tolatex = _drawer.to_latex
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
+
+    qureg = eng.allocate_qureg(n_qubits)
+
+    gate | (*qureg,)
+    eng.flush()
+
+    circuit_lines = drawer.get_latex()
+    _drawer.to_latex = old_tolatex
+    settings = _to_latex.get_default_settings()
+    settings['gates']['AllocateQubitGate']['draw_id'] = True
+
+    with pytest.raises(RuntimeError):
+        _to_latex._body(circuit_lines, settings)
 
 
 def test_body_with_drawing_order_and_gates_parallel():

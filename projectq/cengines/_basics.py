@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing the basic definition of a compiler engine"""
+
 from projectq.ops import Allocate, Deallocate
 from projectq.types import Qubit, Qureg, WeakQubitRef
 from projectq.ops import Command
@@ -20,35 +22,28 @@ from projectq.ops import Command
 
 class LastEngineException(Exception):
     """
-    Exception thrown when the last engine tries to access the next one.
-    (Next engine does not exist)
+    Exception thrown when the last engine tries to access the next one. (Next engine does not exist)
 
-    The default implementation of isAvailable simply asks the next engine
-    whether the command is available. An engine which legally may be the last
-    engine, this behavior needs to be adapted (see BasicEngine.isAvailable).
+    The default implementation of isAvailable simply asks the next engine whether the command is available. An engine
+    which legally may be the last engine, this behavior needs to be adapted (see BasicEngine.isAvailable).
     """
 
     def __init__(self, engine):
-        Exception.__init__(
-            self,
+        super().__init__(
             (
-                "\nERROR: Sending to next engine failed. "
-                "{} as last engine?\nIf this is legal, "
-                "please override 'isAvailable' to adapt its"
-                " behavior."
+                "\nERROR: Sending to next engine failed. {} as last engine?\nIf this is legal, please override"
+                "'isAvailable' to adapt its behavior."
             ).format(engine.__class__.__name__),
         )
 
 
-class BasicEngine(object):
+class BasicEngine:
     """
-    Basic compiler engine: All compiler engines are derived from this class.
-    It provides basic functionality such as qubit allocation/deallocation and
-    functions that provide information about the engine's position (e.g., next
+    Basic compiler engine: All compiler engines are derived from this class.  It provides basic functionality such as
+    qubit allocation/deallocation and functions that provide information about the engine's position (e.g., next
     engine).
 
-    This information is provided by the MainEngine, which initializes all
-    further engines.
+    This information is provided by the MainEngine, which initializes all further engines.
 
     Attributes:
         next_engine (BasicEngine): Next compiler engine (or the back-end).
@@ -60,8 +55,7 @@ class BasicEngine(object):
         """
         Initialize the basic engine.
 
-        Initializes local variables such as _next_engine, _main_engine, etc. to
-        None.
+        Initializes local variables such as _next_engine, _main_engine, etc. to None.
         """
         self.main_engine = None
         self.next_engine = None
@@ -69,9 +63,8 @@ class BasicEngine(object):
 
     def is_available(self, cmd):
         """
-        Default implementation of is_available:
-        Ask the next engine whether a command is available, i.e.,
-        whether it can be executed by the next engine(s).
+        Default implementation of is_available: Ask the next engine whether a command is available, i.e., whether it
+        can be executed by the next engine(s).
 
         Args:
             cmd (Command): Command for which to check availability.
@@ -80,13 +73,11 @@ class BasicEngine(object):
             True if the command can be executed.
 
         Raises:
-            LastEngineException: If is_last_engine is True but is_available
-                is not implemented.
+            LastEngineException: If is_last_engine is True but is_available is not implemented.
         """
         if not self.is_last_engine:
             return self.next_engine.is_available(cmd)
-        else:
-            raise LastEngineException(self)
+        raise LastEngineException(self)
 
     def allocate_qubit(self, dirty=False):
         """
@@ -117,7 +108,7 @@ class BasicEngine(object):
         qb = Qureg([Qubit(self, new_id)])
         cmd = Command(self, Allocate, (qb,))
         if dirty:
-            from projectq.meta import DirtyQubitTag
+            from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
 
             if self.is_meta_tag_supported(DirtyQubitTag):
                 cmd.tags += [DirtyQubitTag()]
@@ -126,23 +117,21 @@ class BasicEngine(object):
         self.send([cmd])
         return qb
 
-    def allocate_qureg(self, n):
+    def allocate_qureg(self, n_qubits):
         """
-        Allocate n qubits and return them as a quantum register, which is a
-        list of qubit objects.
+        Allocate n qubits and return them as a quantum register, which is a list of qubit objects.
 
         Args:
             n (int): Number of qubits to allocate
         Returns:
             Qureg of length n, a list of n newly allocated qubits.
         """
-        return Qureg([self.allocate_qubit()[0] for _ in range(n)])
+        return Qureg([self.allocate_qubit()[0] for _ in range(n_qubits)])
 
     def deallocate_qubit(self, qubit):
         """
-        Deallocate a qubit (and sends the deallocation command down the
-        pipeline). If the qubit was allocated as a dirty qubit, add
-        DirtyQubitTag() to Deallocate command.
+        Deallocate a qubit (and sends the deallocation command down the pipeline). If the qubit was allocated as a
+        dirty qubit, add DirtyQubitTag() to Deallocate command.
 
         Args:
             qubit (BasicQubit): Qubit to deallocate.
@@ -152,7 +141,7 @@ class BasicEngine(object):
         if qubit.id == -1:
             raise ValueError("Already deallocated.")
 
-        from projectq.meta import DirtyQubitTag
+        from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
 
         is_dirty = qubit.id in self.main_engine.dirty_qubits
         self.send(
@@ -173,14 +162,12 @@ class BasicEngine(object):
         Check if there is a compiler engine handling the meta tag
 
         Args:
-            engine: First engine to check (then iteratively calls
-                getNextEngine)
+            engine: First engine to check (then iteratively calls getNextEngine)
             meta_tag: Meta tag class for which to check support
 
         Returns:
-            supported (bool): True if one of the further compiler engines is a
-            meta tag handler, i.e., engine.is_meta_tag_handler(meta_tag)
-            returns True.
+            supported (bool): True if one of the further compiler engines is a meta tag handler, i.e.,
+            engine.is_meta_tag_handler(meta_tag) returns True.
         """
         engine = self
         while engine is not None:
@@ -202,11 +189,10 @@ class BasicEngine(object):
 
 class ForwarderEngine(BasicEngine):
     """
-    A ForwarderEngine is a trivial engine which forwards all commands to the
-    next engine.
+    A ForwarderEngine is a trivial engine which forwards all commands to the next engine.
 
-    It is mainly used as a substitute for the MainEngine at lower levels such
-    that meta operations still work (e.g., with Compute).
+    It is mainly used as a substitute for the MainEngine at lower levels such that meta operations still work (e.g.,
+    with Compute).
     """
 
     def __init__(self, engine, cmd_mod_fun=None):
@@ -215,11 +201,10 @@ class ForwarderEngine(BasicEngine):
 
         Args:
             engine (BasicEngine): Engine to forward all commands to.
-            cmd_mod_fun (function): Function which is called before sending a
-                command. Each command cmd is replaced by the command it
-                returns when getting called with cmd.
+            cmd_mod_fun (function): Function which is called before sending a command. Each command cmd is replaced by
+                the command it returns when getting called with cmd.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.main_engine = engine.main_engine
         self.next_engine = engine
         if cmd_mod_fun is None:

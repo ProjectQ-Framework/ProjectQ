@@ -31,16 +31,8 @@ from projectq.cengines import (
     DecompositionRuleSet,
 )
 from projectq.meta import Control
-from projectq.ops import (
-    QubitOperator,
-    TimeEvolution,
-    ClassicalInstructionGate,
-    Ph,
-    Rx,
-    Ry,
-    All,
-    Measure,
-)
+from projectq.ops import QubitOperator, TimeEvolution, ClassicalInstructionGate, Ph, Rx, Ry, All, Measure, Command
+from projectq.types import WeakQubitRef
 
 from . import time_evolution as te
 
@@ -143,6 +135,28 @@ def test_recognize_individual_terms():
     assert not te.rule_individual_terms.gate_recognizer(cmd1)
     assert te.rule_individual_terms.gate_recognizer(cmd2)
     assert te.rule_individual_terms.gate_recognizer(cmd3)
+
+
+def test_decompose_individual_terms_invalid():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    qb0 = WeakQubitRef(eng, idx=0)
+    qb1 = WeakQubitRef(eng, idx=1)
+    op1 = QubitOperator("X0 Y1", 0.5)
+    op2 = op1 + QubitOperator("Y2 X4", -0.5)
+    op3 = QubitOperator(tuple(), 0.5)
+    op4 = QubitOperator("X0 Y0", 0.5)
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op1), ([qb0], [qb1])))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op2), ([qb0],)))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op3), ([qb0],)))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op4), ([qb0, qb1],)))
 
 
 def test_decompose_individual_terms():

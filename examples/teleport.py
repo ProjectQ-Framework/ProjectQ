@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
+
 from projectq.ops import CNOT, H, Measure, Rz, X, Z
 from projectq import MainEngine
 from projectq.meta import Dagger, Control

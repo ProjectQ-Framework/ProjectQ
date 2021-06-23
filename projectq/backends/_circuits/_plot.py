@@ -296,7 +296,9 @@ def resize_figure(fig, axes, width, height, plot_params):
     axes.set_ylim(0, new_limits[1])
 
 
-def draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_params):
+def draw_gates(  # pylint: disable=too-many-arguments
+    axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_params
+):
     """
     Draws the gates.
 
@@ -326,7 +328,9 @@ def draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_para
                 )
 
 
-def draw_gate(axes, gate_str, gate_pos, target_wires, targets_order, control_wires, plot_params):
+def draw_gate(
+    axes, gate_str, gate_pos, target_wires, targets_order, control_wires, plot_params
+):  # pylint: disable=too-many-arguments
     """
     Draws a single gate at a given location.
 
@@ -482,7 +486,9 @@ def draw_measure_gate(axes, gate_pos, wire_pos, plot_params):
     axes.add_collection(gate)
 
 
-def multi_qubit_gate(axes, gate_str, gate_pos, wire_pos_min, wire_pos_max, plot_params):
+def multi_qubit_gate(  # pylint: disable=too-many-arguments
+    axes, gate_str, gate_pos, wire_pos_min, wire_pos_max, plot_params
+):
     """
     Draws a multi-target qubit gate.
 

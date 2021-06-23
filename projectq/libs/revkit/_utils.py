@@ -14,13 +14,20 @@
 #   limitations under the License.
 
 
+"""Module containing some utility functions"""
+
+# flake8: noqa
+# pylint: skip-file
+
+
 def _exec(code, qs):
     """
     Executes the Python code in 'filename'.
 
     Args:
         code (string): ProjectQ code.
-        qs (tuple<Qureg>): Qubits to which the permutation is being
-                           applied.
+        qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
     """
+    from projectq.ops import C, X, Z, All
+
     exec(code)

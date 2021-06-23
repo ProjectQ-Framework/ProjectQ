@@ -23,7 +23,11 @@ from projectq.ops import CNOT, SqrtSwap, SqrtX
 
 def _decompose_sqrtswap(cmd):
     """Decompose (controlled) swap gates."""
-    assert len(cmd.qubits) == 2 and len(cmd.qubits[0]) == 1 and len(cmd.qubits[1]) == 1
+
+    if len(cmd.qubits) != 2:
+        raise ValueError('SqrtSwap gate requires two quantum registers')
+    if not (len(cmd.qubits[0]) == 1 and len(cmd.qubits[1]) == 1):
+        raise ValueError('SqrtSwap gate requires must act on only 2 qubits')
     ctrl = cmd.control_qubits
     qubit0 = cmd.qubits[0][0]
     qubit1 = cmd.qubits[1][0]

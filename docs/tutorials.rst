@@ -15,7 +15,9 @@ To start using ProjectQ, simply run
 
     python -m pip install --user projectq
 
-or, alternatively, `clone/download <https://github.com/projectq-framework>`_ this repo (e.g., to your /home directory) and run
+Since version 0.6.0, ProjectQ is available as pre-compiled binary wheels in addition to the traditional source package. These wheels should work on most platforms, provided that your processor supports AVX2 instructions. Should you encounter any troubles while installation ProjectQ in binary form, you can always try tom compile the project manually as described below. You may want to pass the `--no-binary projectq` flag to Pip during the installation to make sure that you are downloading the source package.
+
+Alternatively, you can also `clone/download <https://github.com/projectq-framework>`_ this repository (e.g., to your /home directory) and run
 
 .. code-block:: bash
 
@@ -34,9 +36,9 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 
     .. code-block:: bash
 
-            env CC=g++-5 python -m pip install --user projectq
+            env CC=g++-10 python -m pip install --user projectq
 
-    Please note that the compiler you specify must support at leaste **C++11**!
+    Please note that the compiler you specify must support at least **C++11**!
 
 .. note::
     Please use pip version v6.1.0 or higher as this ensures that dependencies are installed in the `correct order <https://pip.pypa.io/en/stable/reference/pip_install/#installation-order>`_.

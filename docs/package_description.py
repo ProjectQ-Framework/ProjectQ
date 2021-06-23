@@ -1,13 +1,31 @@
 # -*- coding: utf-8 -*-
+#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+"""Module containing some helper classes for generating the documentation"""
+
 import inspect
 import sys
 import os
 
 
-class PackageDescription(object):
+class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
+    """Class representing a package description"""
+
     package_list = []
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         pkg_name,
         desc='',
@@ -80,7 +98,10 @@ class PackageDescription(object):
         ]
         self.members.sort(key=lambda x: x[0].lower())
 
-    def get_ReST(self):
+    def get_ReST(self):  # pylint: disable=invalid-name,too-many-branches,too-many-statements
+        """
+        Conversion to ReST formatted string.
+        """
         new_lines = []
         new_lines.append(self.name)
         new_lines.append('=' * len(self.name))
@@ -164,5 +185,4 @@ class PackageDescription(object):
                     new_lines.append('    {}'.format(param))
                 new_lines.append('')
 
-        assert not new_lines[-1]
         return new_lines[:-1]

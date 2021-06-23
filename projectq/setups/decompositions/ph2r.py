@@ -24,7 +24,7 @@ from projectq.meta import Control, get_control_count
 from projectq.ops import Ph, R
 
 
-def _decompose_Ph(cmd):
+def _decompose_Ph(cmd):  # pylint: disable=invalid-name
     """Decompose the controlled phase gate (C^nPh(phase))."""
     ctrl = cmd.control_qubits
     gate = cmd.gate
@@ -34,7 +34,7 @@ def _decompose_Ph(cmd):
         R(gate.angle) | ctrl[0]
 
 
-def _recognize_Ph(cmd):
+def _recognize_Ph(cmd):  # pylint: disable=invalid-name
     """Recognize the controlled phase gate."""
     return get_control_count(cmd) >= 1
 

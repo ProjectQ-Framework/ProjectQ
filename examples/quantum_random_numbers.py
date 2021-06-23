@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
+
 from projectq.ops import H, Measure
 from projectq import MainEngine
 

@@ -23,6 +23,7 @@ from projectq.types import Qubit, Qureg
 from projectq.ops import Command, X
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
+from projectq.types import WeakQubitRef
 
 from projectq.ops import _basics
 
@@ -76,6 +77,15 @@ def test_basic_gate_generate_command(main_engine):
     assert command4 == Command(main_engine, basic_gate, ([qubit0],))
     command5 = basic_gate.generate_command((qureg, qubit0))
     assert command5 == Command(main_engine, basic_gate, (qureg, [qubit0]))
+
+
+def test_basic_gate_generate_command_invalid():
+    qb0 = WeakQubitRef(1, idx=0)
+    qb1 = WeakQubitRef(2, idx=0)
+
+    basic_gate = _basics.BasicGate()
+    with pytest.raises(ValueError):
+        basic_gate.generate_command([qb0, qb1])
 
 
 def test_basic_gate_or():

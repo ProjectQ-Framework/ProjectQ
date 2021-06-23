@@ -13,6 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+""" Back-end to run quantum program on IBM QE cloud platform"""
+
+
 # helpers to run the jsonified gate sequence on ibm quantum experience server
 # api documentation does not exist and has to be deduced from the qiskit code
 # source at: https://github.com/Qiskit/qiskit-ibmq-provider
@@ -39,7 +42,7 @@ class IBMQ(Session):
     """
 
     def __init__(self, **kwargs):
-        super(IBMQ, self).__init__(**kwargs)  # Python 2 compatibility
+        super().__init__(**kwargs)
         self.backends = dict()
         self.timeout = 5.0
 
@@ -57,7 +60,7 @@ class IBMQ(Session):
         """
         list_device_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         argument = {'allow_redirects': True, 'timeout': (self.timeout, None)}
-        request = super(IBMQ, self).get(urljoin(_API_URL, list_device_url), **argument)
+        request = super().get(urljoin(_API_URL, list_device_url), **argument)
         request.raise_for_status()
         r_json = request.json()
         self.backends = dict()
@@ -104,7 +107,7 @@ class IBMQ(Session):
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
 
-    def _authenticate(self, token=None):
+    def authenticate(self, token=None):
         """
         Args:
             token (str): IBM quantum experience user API token.
@@ -119,12 +122,12 @@ class IBMQ(Session):
             'json': {'apiToken': token},
             'timeout': (self.timeout, None),
         }
-        request = super(IBMQ, self).post(_AUTH_API_URL, **args)
+        request = super().post(_AUTH_API_URL, **args)
         request.raise_for_status()
         r_json = request.json()
         self.params.update({'access_token': r_json['id']})
 
-    def _run(self, info, device):
+    def run(self, info, device):  # pylint: disable=too-many-locals
         """
         Run the quantum code to the IBMQ machine.
         Update since September 2020: only protocol available is what they call
@@ -153,7 +156,7 @@ class IBMQ(Session):
             },
             'timeout': (self.timeout, None),
         }
-        request = super(IBMQ, self).post(
+        request = super().post(
             urljoin(_API_URL, 'Network/ibm-q/Groups/open/Projects/main/Jobs'),
             **json_step1,
         )
@@ -196,7 +199,7 @@ class IBMQ(Session):
             'params': {'access_token': None},
             'timeout': (5.0, None),
         }
-        request = super(IBMQ, self).put(upload_url, **json_step2)
+        request = super().put(upload_url, **json_step2)
         request.raise_for_status()
 
         # STEP3: CONFIRM UPLOAD
@@ -206,12 +209,17 @@ class IBMQ(Session):
             _API_URL,
             'Network/ibm-q/Groups/open/Projects/main/Jobs/' + str(execution_id) + '/jobDataUploaded',
         )
-        request = super(IBMQ, self).post(upload_data_url, **json_step3)
+        request = super().post(upload_data_url, **json_step3)
         request.raise_for_status()
 
         return execution_id
 
-    def _get_result(self, device, execution_id, num_retries=3000, interval=1, verbose=False):
+    def get_result(
+        self, device, execution_id, num_retries=3000, interval=1, verbose=False
+    ):  # pylint: disable=too-many-arguments,too-many-locals
+        """
+        Get the result of an execution
+        """
 
         job_status_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/' + execution_id
 
@@ -229,7 +237,7 @@ class IBMQ(Session):
 
                 # STEP5: WAIT FOR THE JOB TO BE RUN
                 json_step5 = {'allow_redirects': True, 'timeout': (self.timeout, None)}
-                request = super(IBMQ, self).get(urljoin(_API_URL, job_status_url), **json_step5)
+                request = super().get(urljoin(_API_URL, job_status_url), **json_step5)
                 request.raise_for_status()
                 r_json = request.json()
                 acceptable_status = ['VALIDATING', 'VALIDATED', 'RUNNING']
@@ -239,7 +247,7 @@ class IBMQ(Session):
                         'allow_redirects': True,
                         'timeout': (self.timeout, None),
                     }
-                    request = super(IBMQ, self).get(
+                    request = super().get(
                         urljoin(_API_URL, job_status_url + '/resultDownloadUrl'),
                         **json_step6,
                     )
@@ -252,13 +260,13 @@ class IBMQ(Session):
                         'params': {'access_token': None},
                         'timeout': (self.timeout, None),
                     }
-                    request = super(IBMQ, self).get(r_json['url'], **json_step7)
+                    request = super().get(r_json['url'], **json_step7)
                     r_json = request.json()
                     result = r_json['results'][0]
 
                     # STEP8: Confirm the data was downloaded
                     json_step8 = {'data': None, 'json': None, 'timeout': (5.0, None)}
-                    request = super(IBMQ, self).post(
+                    request = super().post(
                         urljoin(_API_URL, job_status_url + '/resultDownloaded'),
                         **json_step8,
                     )
@@ -285,11 +293,11 @@ class IBMQ(Session):
 
 
 class DeviceTooSmall(Exception):
-    pass
+    """Exception raised if the device is too small to run the circuit"""
 
 
 class DeviceOfflineError(Exception):
-    pass
+    """Exception raised if a selected device is currently offline"""
 
 
 def show_devices(token=None, verbose=False):
@@ -305,11 +313,11 @@ def show_devices(token=None, verbose=False):
         (list) list of available devices and their properties
     """
     ibmq_session = IBMQ()
-    ibmq_session._authenticate(token=token)
+    ibmq_session.authenticate(token=token)
     return ibmq_session.get_list_devices(verbose=verbose)
 
 
-def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):
+def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):  # pylint: disable=too-many-arguments
     """
     Retrieves a previously run job by its ID.
 
@@ -322,9 +330,9 @@ def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):
         (dict) result form the IBMQ server
     """
     ibmq_session = IBMQ()
-    ibmq_session._authenticate(token)
+    ibmq_session.authenticate(token)
     ibmq_session.get_list_devices(verbose)
-    res = ibmq_session._get_result(device, jobid, num_retries=num_retries, interval=interval, verbose=verbose)
+    res = ibmq_session.get_result(device, jobid, num_retries=num_retries, interval=interval, verbose=verbose)
     return res
 
 
@@ -336,7 +344,7 @@ def send(
     num_retries=3000,
     interval=1,
     verbose=False,
-):
+):  # pylint: disable=too-many-arguments
     """
     Sends QASM through the IBM API and runs the quantum circuit.
 
@@ -362,7 +370,7 @@ def send(
             print("- Authenticating...")
             if token is not None:
                 print('user API token: ' + token)
-        ibmq_session._authenticate(token)
+        ibmq_session.authenticate(token)
 
         # check if the device is online
         ibmq_session.get_list_devices(verbose)
@@ -384,10 +392,10 @@ def send(
             raise DeviceTooSmall("Device is too small.")
         if verbose:
             print("- Running code: {}".format(info))
-        execution_id = ibmq_session._run(info, device)
+        execution_id = ibmq_session.run(info, device)
         if verbose:
             print("- Waiting for results...")
-        res = ibmq_session._get_result(
+        res = ibmq_session.get_result(
             device,
             execution_id,
             num_retries=num_retries,
@@ -406,3 +414,4 @@ def send(
     except KeyError as err:
         print("- Failed to parse response:")
         print(err)
+    return None

@@ -24,7 +24,7 @@ from projectq.meta import Control
 from projectq.ops import Ph, Rz, R
 
 
-def _decompose_R(cmd):
+def _decompose_R(cmd):  # pylint: disable=invalid-name
     """Decompose the (controlled) phase-shift gate, denoted by R(phase)."""
     ctrl = cmd.control_qubits
     eng = cmd.engine

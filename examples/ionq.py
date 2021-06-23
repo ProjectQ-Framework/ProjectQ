@@ -12,6 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+# pylint: skip-file
+
 """Example of a basic entangling operation using an IonQBackend."""
 
 import getpass

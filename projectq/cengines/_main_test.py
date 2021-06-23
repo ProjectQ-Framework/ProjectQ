@@ -95,7 +95,7 @@ def test_main_engine_del():
     sys.last_type = None
     del sys.last_type
     # need engine which caches commands to test that del calls flush
-    caching_engine = LocalOptimizer(m=5)
+    caching_engine = LocalOptimizer(cache_size=5)
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[caching_engine])
     qubit = eng.allocate_qubit()

@@ -1,20 +1,23 @@
 ProjectQ - An open source software framework for quantum computing
 ==================================================================
 
-.. image:: https://travis-ci.org/ProjectQ-Framework/ProjectQ.svg?branch=master
-    :target: https://travis-ci.org/ProjectQ-Framework/ProjectQ
-
-.. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
-    :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
-
-.. image:: https://readthedocs.org/projects/projectq/badge/?version=latest
-    :target: http://projectq.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+.. image:: https://img.shields.io/pypi/pyversions/projectq?label=Python
+   :alt: PyPI - Python Version
 
 .. image:: https://badge.fury.io/py/projectq.svg
-    :target: https://badge.fury.io/py/projectq
+   :target: https://badge.fury.io/py/projectq
 
-.. image:: https://img.shields.io/badge/python-2.7%2C%203.4%2C%203.5%2C%203.6-brightgreen.svg
+.. image:: https://github.com/ProjectQ-Framework/ProjectQ/actions/workflows/ci.yml/badge.svg
+   :alt: CI Status
+   :target: https://github.com/ProjectQ-Framework/ProjectQ/actions/workflows/ci.yml
+
+.. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
+   :alt: Coverage Status
+   :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
+
+.. image:: https://readthedocs.org/projects/projectq/badge/?version=latest
+   :target: http://projectq.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 
 ProjectQ is an open source effort for quantum computing.

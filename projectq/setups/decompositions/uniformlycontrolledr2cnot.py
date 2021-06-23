@@ -21,7 +21,9 @@ from projectq.meta import Compute, Control, CustomUncompute
 from projectq.ops import CNOT, Ry, Rz, UniformlyControlledRy, UniformlyControlledRz
 
 
-def _apply_ucr_n(angles, ucontrol_qubits, target_qubit, eng, gate_class, rightmost_cnot):
+def _apply_ucr_n(
+    angles, ucontrol_qubits, target_qubit, eng, gate_class, rightmost_cnot
+):  # pylint: disable=too-many-arguments
     if len(ucontrol_qubits) == 0:
         gate = gate_class(angles[0])
         if gate != gate_class(0):

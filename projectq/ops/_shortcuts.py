@@ -25,9 +25,9 @@ from ._gates import NOT, Rz, Z
 
 def CRz(angle):
     """
-    Shortcut for C(Rz(angle), n=1).
+    Shortcut for C(Rz(angle), n_qubits=1).
     """
-    return C(Rz(angle), n=1)
+    return C(Rz(angle), n_qubits=1)
 
 
 CNOT = CX = C(NOT)

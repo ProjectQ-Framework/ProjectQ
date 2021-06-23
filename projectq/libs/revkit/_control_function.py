@@ -13,12 +13,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""RevKit support for control function oracles"""
+
+
 from projectq.ops import BasicGate
 
 from ._utils import _exec
 
 
-class ControlFunctionOracle:
+class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
     """
     Synthesizes a negation controlled by an arbitrary control function.
 
@@ -57,15 +60,15 @@ class ControlFunctionOracle:
             self.function = function
         else:
             try:
-                import dormouse
+                import dormouse  # pylint: disable=import-outside-toplevel
 
                 self.function = dormouse.to_truth_table(function)
-            except ImportError:  # pragma: no cover
+            except ImportError as err:  # pragma: no cover
                 raise RuntimeError(
                     "The dormouse library needs to be installed in order to "
                     "automatically compile Python code into functions.  Try "
                     "to install dormouse with 'pip install dormouse'."
-                )
+                ) from err
         self.kwargs = kwargs
 
         self._check_function()
@@ -81,12 +84,13 @@ class ControlFunctionOracle:
                                    target qubit.
         """
         try:
-            import revkit
-        except ImportError:  # pragma: no cover
+            import revkit  # pylint: disable=import-outside-toplevel
+        except ImportError as err:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function"
-            )
+            ) from err
+        # pylint: disable=invalid-name
 
         # convert qubits to tuple
         qs = []

@@ -26,34 +26,32 @@ from projectq.ops import FlushGate, get_inverse
 
 
 class NoGateDecompositionError(Exception):
-    pass
+    """Exception raised when no gate decomposition rule can be found"""
 
 
 class InstructionFilter(BasicEngine):
     """
-    The InstructionFilter is a compiler engine which changes the behavior of
-    is_available according to a filter function. All commands are passed to
-    this function, which then returns whether this command can be executed
-    (True) or needs replacement (False).
+    The InstructionFilter is a compiler engine which changes the behavior of is_available according to a filter
+    function. All commands are passed to this function, which then returns whether this command can be executed (True)
+    or needs replacement (False).
     """
 
     def __init__(self, filterfun):
         """
-        Initializer: The provided filterfun returns True for all commands
-        which do not need replacement and False for commands that do.
+        Initializer: The provided filterfun returns True for all commands which do not need replacement and False for
+        commands that do.
 
         Args:
-            filterfun (function): Filter function which returns True for
-                available commands, and False otherwise. filterfun will be
-                called as filterfun(self, cmd).
+            filterfun (function): Filter function which returns True for available commands, and False
+                otherwise. filterfun will be called as filterfun(self, cmd).
         """
         BasicEngine.__init__(self)
         self._filterfun = filterfun
 
     def is_available(self, cmd):
         """
-        Specialized implementation of BasicBackend.is_available: Forwards this
-        call to the filter function given to the constructor.
+        Specialized implementation of BasicBackend.is_available: Forwards this call to the filter function given to
+        the constructor.
 
         Args:
             cmd (Command): Command for which to check availability.
@@ -72,15 +70,14 @@ class InstructionFilter(BasicEngine):
 
 class AutoReplacer(BasicEngine):
     """
-    The AutoReplacer is a compiler engine which uses engine.is_available in
-    order to determine which commands need to be replaced/decomposed/compiled
-    further. The loaded setup is used to find decomposition rules appropriate
-    for each command (e.g., setups.default).
+    The AutoReplacer is a compiler engine which uses engine.is_available in order to determine which commands need to
+    be replaced/decomposed/compiled further. The loaded setup is used to find decomposition rules appropriate for each
+    command (e.g., setups.default).
     """
 
     def __init__(
         self,
-        decompositionRuleSet,
+        decomposition_rule_se,
         decomposition_chooser=lambda cmd, decomposition_list: decomposition_list[0],
     ):
         """
@@ -109,13 +106,12 @@ class AutoReplacer(BasicEngine):
         """
         BasicEngine.__init__(self)
         self._decomp_chooser = decomposition_chooser
-        self.decompositionRuleSet = decompositionRuleSet
+        self.decomposition_rule_set = decomposition_rule_se
 
-    def _process_command(self, cmd):
+    def _process_command(self, cmd):  # pylint: disable=too-many-locals,too-many-branches
         """
-        Check whether a command cmd can be handled by further engines and,
-        if not, replace it using the decomposition rules loaded with the setup
-        (e.g., setups.default).
+        Check whether a command cmd can be handled by further engines and, if not, replace it using the decomposition
+        rules loaded with the setup (e.g., setups.default).
 
         Args:
             cmd (Command): Command to process.
@@ -123,7 +119,7 @@ class AutoReplacer(BasicEngine):
         Raises:
             Exception if no replacement is available in the loaded setup.
         """
-        if self.is_available(cmd):
+        if self.is_available(cmd):  # pylint: disable=too-many-nested-blocks
             self.send([cmd])
         else:
             # First check for a decomposition rules of the gate class, then
@@ -133,7 +129,7 @@ class AutoReplacer(BasicEngine):
             # If gate does not have an inverse it's parent classes are
             # DaggeredGate, BasicGate, object. Hence don't check the last two
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
-            rules = self.decompositionRuleSet.decompositions
+            rules = self.decomposition_rule_set.decompositions
 
             # If the decomposition rule to remove negatively controlled qubits is present in the list of potential
             # decompositions, we process it immediately, before any other decompositions.
@@ -152,13 +148,13 @@ class AutoReplacer(BasicEngine):
                     if level < len(gate_mro):
                         class_name = gate_mro[level].__name__
                         try:
-                            potential_decomps = [d for d in rules[class_name]]
+                            potential_decomps = rules[class_name]
                         except KeyError:
                             pass
                         # throw out the ones which don't recognize the command
-                        for d in potential_decomps:
-                            if d.check(cmd):
-                                decomp_list.append(d)
+                        for decomp in potential_decomps:
+                            if decomp.check(cmd):
+                                decomp_list.append(decomp)
                         if len(decomp_list) != 0:
                             break
                     # Check for rules implementing the inverse gate
@@ -170,9 +166,9 @@ class AutoReplacer(BasicEngine):
                         except KeyError:
                             pass
                         # throw out the ones which don't recognize the command
-                        for d in potential_decomps:
-                            if d.check(cmd):
-                                decomp_list.append(d)
+                        for decomp in potential_decomps:
+                            if decomp.check(cmd):
+                                decomp_list.append(decomp)
                         if len(decomp_list) != 0:
                             break
 

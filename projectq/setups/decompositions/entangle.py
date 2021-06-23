@@ -26,13 +26,13 @@ from projectq.ops import X, H, Entangle, All
 
 def _decompose_entangle(cmd):
     """Decompose the entangle gate."""
-    qr = cmd.qubits[0]
+    qureg = cmd.qubits[0]
     eng = cmd.engine
 
     with Control(eng, cmd.control_qubits):
-        H | qr[0]
-        with Control(eng, qr[0]):
-            All(X) | qr[1:]
+        H | qureg[0]
+        with Control(eng, qureg[0]):
+            All(X) | qureg[1:]
 
 
 #: Decomposition rules

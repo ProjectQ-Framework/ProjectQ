@@ -164,6 +164,15 @@ def test_write_register_value_error_exception(mapper):  # noqa: F811
         sim.write_register(a, 8)
 
 
+def test_x_gate_invalid():
+    sim = ClassicalSimulator()
+    eng = MainEngine(sim, [AutoReplacer(DecompositionRuleSet())])
+    a = eng.allocate_qureg(2)
+
+    with pytest.raises(ValueError):
+        X | a
+
+
 def test_available_gates():
     sim = ClassicalSimulator()
     eng = MainEngine(sim, [AutoReplacer(DecompositionRuleSet())])

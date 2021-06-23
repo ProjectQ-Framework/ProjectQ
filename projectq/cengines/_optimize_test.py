@@ -15,6 +15,9 @@
 """Tests for projectq.cengines._optimize.py."""
 
 import math
+
+import pytest
+
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (
@@ -31,8 +34,20 @@ from projectq.ops import (
 from projectq.cengines import _optimize
 
 
+def test_local_optimizer_init_api_change():
+    with pytest.warns(DeprecationWarning):
+        tmp = _optimize.LocalOptimizer(m=10)
+        assert tmp._cache_size == 10
+
+    local_optimizer = _optimize.LocalOptimizer()
+    assert local_optimizer._cache_size == 5
+
+    local_optimizer = _optimize.LocalOptimizer(cache_size=10)
+    assert local_optimizer._cache_size == 10
+
+
 def test_local_optimizer_caching():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it caches for each qubit 3 gates
@@ -63,7 +78,7 @@ def test_local_optimizer_caching():
 
 
 def test_local_optimizer_flush_gate():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it caches for each qubit 3 gates
@@ -78,7 +93,7 @@ def test_local_optimizer_flush_gate():
 
 
 def test_local_optimizer_fast_forwarding_gate():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that FastForwardingGate (e.g. Deallocate) flushes that qb0 pipeline
@@ -93,7 +108,7 @@ def test_local_optimizer_fast_forwarding_gate():
 
 
 def test_local_optimizer_cancel_inverse():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it cancels inverses (H, CNOT are self-inverse)
@@ -121,7 +136,7 @@ def test_local_optimizer_cancel_inverse():
 
 
 def test_local_optimizer_mergeable_gates():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it merges mergeable gates such as Rx
@@ -136,7 +151,7 @@ def test_local_optimizer_mergeable_gates():
 
 
 def test_local_optimizer_identity_gates():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it merges mergeable gates such as Rx

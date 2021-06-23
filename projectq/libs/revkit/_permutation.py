@@ -13,12 +13,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""RevKit support for permutation oracles"""
+
 from projectq.ops import BasicGate
 
 from ._utils import _exec
 
 
-class PermutationOracle:
+class PermutationOracle:  # pylint: disable=too-few-public-methods
     """
     Synthesizes a permutation using RevKit.
 
@@ -60,13 +62,14 @@ class PermutationOracle:
                                    applied.
         """
         try:
-            import revkit
-        except ImportError:  # pragma: no cover
+            import revkit  # pylint: disable=import-outside-toplevel
+        except ImportError as err:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
                 "PYTHONPATH in order to call this function"
-            )
+            ) from err
 
+        # pylint: disable=invalid-name
         # convert qubits to flattened list
         qs = BasicGate.make_tuple_of_qureg(qubits)
         qs = sum(qs, [])

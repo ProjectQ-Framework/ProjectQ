@@ -43,11 +43,9 @@ and meta gates, i.e.,
 
 import math
 import cmath
-import warnings
 
 import numpy as np
 
-from projectq.ops import get_inverse
 from ._basics import (
     BasicGate,
     SelfInverseGate,
@@ -57,6 +55,7 @@ from ._basics import (
     FastForwardingGate,
 )
 from ._command import apply_command
+from ._metagates import get_inverse
 
 
 class HGate(SelfInverseGate):
@@ -67,6 +66,7 @@ class HGate(SelfInverseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return 1.0 / cmath.sqrt(2.0) * np.matrix([[1, 1], [1, -1]])
 
 
@@ -82,6 +82,7 @@ class XGate(SelfInverseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[0, 1], [1, 0]])
 
 
@@ -97,6 +98,7 @@ class YGate(SelfInverseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[0, -1j], [1j, 0]])
 
 
@@ -112,6 +114,7 @@ class ZGate(SelfInverseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[1, 0], [0, -1]])
 
 
@@ -124,6 +127,7 @@ class SGate(BasicGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[1, 0], [0, 1j]])
 
     def __str__(self):
@@ -141,6 +145,7 @@ class TGate(BasicGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[1, 0], [0, cmath.exp(1j * cmath.pi / 4)]])
 
     def __str__(self):
@@ -158,9 +163,13 @@ class SqrtXGate(BasicGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return 0.5 * np.matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]])
 
-    def tex_str(self):
+    def tex_str(self):  # pylint: disable=no-self-use
+        """
+        Return the Latex string representation of a SqrtXGate.
+        """
         return r'$\sqrt{X}$'
 
     def __str__(self):
@@ -183,6 +192,7 @@ class SwapGate(SelfInverseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         # fmt: off
         return np.matrix([[1, 0, 0, 0],
                           [0, 0, 1, 0],
@@ -207,6 +217,7 @@ class SqrtSwapGate(BasicGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [1, 0, 0, 0],
@@ -240,6 +251,7 @@ class Ph(BasicPhaseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[cmath.exp(1j * self.angle), 0], [0, cmath.exp(1j * self.angle)]])
 
 
@@ -248,6 +260,7 @@ class Rx(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [math.cos(0.5 * self.angle), -1j * math.sin(0.5 * self.angle)],
@@ -261,6 +274,7 @@ class Ry(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [math.cos(0.5 * self.angle), -math.sin(0.5 * self.angle)],
@@ -274,6 +288,7 @@ class Rz(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [cmath.exp(-0.5 * 1j * self.angle), 0],
@@ -287,6 +302,7 @@ class Rxx(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [cmath.cos(0.5 * self.angle), 0, 0, -1j * cmath.sin(0.5 * self.angle)],
@@ -302,6 +318,7 @@ class Ryy(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [cmath.cos(0.5 * self.angle), 0, 0, 1j * cmath.sin(0.5 * self.angle)],
@@ -317,6 +334,7 @@ class Rzz(BasicRotationGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [cmath.exp(-0.5 * 1j * self.angle), 0, 0, 0],
@@ -332,6 +350,7 @@ class R(BasicPhaseGate):
 
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])
 
 
@@ -340,9 +359,8 @@ class FlushGate(FastForwardingGate):
     Flush gate (denotes the end of the circuit).
 
     Note:
-        All compiler engines (cengines) which cache/buffer gates are obligated
-        to flush and send all gates to the next compiler engine (followed by
-        the flush command).
+        All compiler engines (cengines) which cache/buffer gates are obligated to flush and send all gates to the next
+        compiler engine (followed by the flush command).
 
     Note:
         This gate is sent when calling
@@ -377,13 +395,8 @@ class MeasureGate(FastForwardingGate):
                 num_qubits += 1
                 cmd = self.generate_command(([qubit],))
                 apply_command(cmd)
-        if num_qubits > 1:
-            warnings.warn(
-                "Pending syntax change in future versions of "
-                "ProjectQ: \n Measure will be a single qubit gate "
-                "only. Use `All(Measure) | qureg` instead to "
-                "measure multiple qubits."
-            )
+        if num_qubits > 1:  # pragma: no cover
+            raise RuntimeError('Measure is a single qubit gate. Use All(Measure) | qureg instead')
 
 
 #: Shortcut (instance of) :class:`projectq.ops.MeasureGate`

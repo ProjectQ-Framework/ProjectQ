@@ -19,7 +19,8 @@ Tests for projectq.backends.circuits._drawer.py.
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import H, X, CNOT, Measure
+from projectq.ops import H, X, CNOT, Measure, Command
+from projectq.types import WeakQubitRef
 
 import projectq.backends._circuits._drawer as _drawer
 from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
@@ -79,6 +80,11 @@ def test_drawer_measurement():
     Measure | qubit
     assert int(qubit) == 1
     _drawer.input = old_input
+
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    with pytest.raises(ValueError):
+        eng.backend._print_cmd(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
 def test_drawer_qubitmapping():

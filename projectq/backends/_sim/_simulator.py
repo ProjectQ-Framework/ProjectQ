@@ -104,14 +104,13 @@ class Simulator(BasicEngine):
             cmd.gate == Measure
             or cmd.gate == Allocate
             or cmd.gate == Deallocate
-            or isinstance(cmd.gate, BasicMathGate)
-            or isinstance(cmd.gate, TimeEvolution)
+            or isinstance(cmd.gate, (BasicMathGate, TimeEvolution))
         ):
             return True
         try:
-            m = cmd.gate.matrix
+            matrix = cmd.gate.matrix
             # Allow up to 5-qubit gates
-            if len(m) > 2 ** 5:
+            if len(matrix) > 2 ** 5:
                 return False
             return True
         except AttributeError:
@@ -133,8 +132,7 @@ class Simulator(BasicEngine):
                 new_qubit = WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
                 mapped_qureg.append(new_qubit)
             return mapped_qureg
-        else:
-            return qureg
+        return qureg
 
     def get_expectation_value(self, qubit_operator, qureg):
         """
@@ -335,7 +333,7 @@ class Simulator(BasicEngine):
         """
         return self._simulator.cheat()
 
-    def _handle(self, cmd):
+    def _handle(self, cmd):  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         """
         Handle all commands, i.e., call the member functions of the C++-
         simulator object corresponding to measurement, allocation/
@@ -350,12 +348,13 @@ class Simulator(BasicEngine):
         """
 
         if cmd.gate == Measure:
-            assert get_control_count(cmd) == 0
+            if get_control_count(cmd) != 0:
+                raise ValueError('Cannot have control qubits with a measurement gate!')
             ids = [qb.id for qr in cmd.qubits for qb in qr]
             out = self._simulator.measure_qubits(ids)
             i = 0
-            for qr in cmd.qubits:
-                for qb in qr:
+            for qureg in cmd.qubits:
+                for qb in qureg:
                     # Check if a mapper assigned a different logical id
                     logical_id_tag = None
                     for tag in cmd.tags:
@@ -366,23 +365,23 @@ class Simulator(BasicEngine):
                     self.main_engine.set_measurement_result(qb, out[i])
                     i += 1
         elif cmd.gate == Allocate:
-            ID = cmd.qubits[0][0].id
-            self._simulator.allocate_qubit(ID)
+            qubit_id = cmd.qubits[0][0].id
+            self._simulator.allocate_qubit(qubit_id)
         elif cmd.gate == Deallocate:
-            ID = cmd.qubits[0][0].id
-            self._simulator.deallocate_qubit(ID)
+            qubit_id = cmd.qubits[0][0].id
+            self._simulator.deallocate_qubit(qubit_id)
         elif isinstance(cmd.gate, BasicMathGate):
             # improve performance by using C++ code for some commomn gates
-            from projectq.libs.math import (
+            from projectq.libs.math import (  # pylint: disable=import-outside-toplevel
                 AddConstant,
                 AddConstantModN,
                 MultiplyByConstantModN,
             )
 
             qubitids = []
-            for qr in cmd.qubits:
+            for qureg in cmd.qubits:
                 qubitids.append([])
-                for qb in qr:
+                for qb in qureg:
                     qubitids[-1].append(qb.id)
             if FALLBACK_TO_PYSIM:
                 math_fun = cmd.gate.get_math_function(cmd.qubits)
@@ -410,13 +409,13 @@ class Simulator(BasicEngine):
                     self._simulator.emulate_math(math_fun, qubitids, [qb.id for qb in cmd.control_qubits])
         elif isinstance(cmd.gate, TimeEvolution):
             op = [(list(term), coeff) for (term, coeff) in cmd.gate.hamiltonian.terms.items()]
-            t = cmd.gate.time
+            time = cmd.gate.time
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
-            self._simulator.emulate_time_evolution(op, t, qubitids, ctrlids)
+            self._simulator.emulate_time_evolution(op, time, qubitids, ctrlids)
         elif len(cmd.gate.matrix) <= 2 ** 5:
             matrix = cmd.gate.matrix
-            ids = [qb.id for qr in cmd.qubits for qb in qr]
+            ids = [qb.id for qureg in cmd.qubits for qb in qureg]
             if not 2 ** len(ids) == len(cmd.gate.matrix):
                 raise Exception(
                     "Simulator: Error applying {} gate: "

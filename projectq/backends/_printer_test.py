@@ -59,6 +59,16 @@ def test_command_printer_accept_input(monkeypatch):
     assert int(qubit) == 0
 
 
+def test_command_printer_measure_no_control():
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    printer = _printer.CommandPrinter()
+    printer.is_last_engine = True
+    with pytest.raises(ValueError):
+        printer._print_cmd(Command(engine=None, gate=Measure, qubits=([qb1],), controls=[qb2]))
+
+
 def test_command_printer_no_input_default_measure():
     cmd_printer = _printer.CommandPrinter(accept_input=False)
     eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])

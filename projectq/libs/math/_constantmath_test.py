@@ -54,6 +54,18 @@ def eng():
 rule_set = DecompositionRuleSet(modules=[projectq.libs.math, qft2crandhadamard, swap2cnot])
 
 
+@pytest.mark.parametrize(
+    'gate', (AddConstantModN(-1, 6), MultiplyByConstantModN(-1, 6), MultiplyByConstantModN(4, 4)), ids=str
+)
+def test_invalid(eng, gate):
+    qureg = eng.allocate_qureg(4)
+    init(eng, qureg, 4)
+
+    with pytest.raises(ValueError):
+        gate | qureg
+        eng.flush()
+
+
 def test_adder(eng):
     qureg = eng.allocate_qureg(4)
     init(eng, qureg, 4)

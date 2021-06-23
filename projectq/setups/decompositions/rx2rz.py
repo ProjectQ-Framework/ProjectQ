@@ -34,7 +34,7 @@ def _decompose_rx(cmd):
         Uncompute(eng)
 
 
-def _recognize_RxNoCtrl(cmd):
+def _recognize_RxNoCtrl(cmd):  # pylint: disable=invalid-name
     """For efficiency reasons only if no control qubits."""
     return get_control_count(cmd) == 0
 

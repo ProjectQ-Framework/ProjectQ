@@ -44,6 +44,9 @@ from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):
+    """
+    Return the default list of compiler engine for the IonQ platform
+    """
     devices = show_devices(token)
     if not device or device not in devices:
         raise DeviceOfflineError("Error checking engine list: no '{}' devices available".format(device))

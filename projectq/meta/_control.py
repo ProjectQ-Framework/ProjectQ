@@ -24,11 +24,11 @@ Example:
 """
 
 from projectq.cengines import BasicEngine
-from projectq.meta import ComputeTag, UncomputeTag
-from projectq.ops import ClassicalInstructionGate
+from projectq.ops import ClassicalInstructionGate, CtrlAll
 from projectq.types import BasicQubit
+
+from ._compute import ComputeTag, UncomputeTag
 from ._util import insert_engine, drop_engine_after
-from projectq.ops import CtrlAll
 
 
 def canonical_ctrl_state(ctrl_state, num_qubits):
@@ -45,6 +45,7 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
     Note:
         In case of integer values for `ctrl_state`, the least significant bit applies to the first qubit in the qubit
         register, e.g. if ctrl_state == 2, its binary representation if '10' with the least significan bit being 0.
+
         This means in particular that the followings are equivalent:
 
         .. code-block:: python
@@ -85,6 +86,19 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
     raise TypeError('Input must be a string, an integer or an enum value of class State')
 
 
+def _has_compute_uncompute_tag(cmd):
+    """
+    Return True if command cmd has a compute/uncompute tag.
+
+    Args:
+        cmd (Command object): a command object.
+    """
+    for tag in cmd.tags:
+        if tag in [UncomputeTag(), ComputeTag()]:
+            return True
+    return False
+
+
 class ControlEngine(BasicEngine):
     """
     Adds control qubits to all commands that have no compute / uncompute tags.
@@ -102,29 +116,18 @@ class ControlEngine(BasicEngine):
         self._qubits = qubits
         self._state = ctrl_state
 
-    def _has_compute_uncompute_tag(self, cmd):
-        """
-        Return True if command cmd has a compute/uncompute tag.
-
-        Args:
-            cmd (Command object): a command object.
-        """
-        for t in cmd.tags:
-            if t in [UncomputeTag(), ComputeTag()]:
-                return True
-        return False
-
     def _handle_command(self, cmd):
-        if not self._has_compute_uncompute_tag(cmd) and not isinstance(cmd.gate, ClassicalInstructionGate):
+        if not _has_compute_uncompute_tag(cmd) and not isinstance(cmd.gate, ClassicalInstructionGate):
             cmd.add_control_qubits(self._qubits, self._state)
         self.send([cmd])
 
     def receive(self, command_list):
+        """Forward all commands to the next engine."""
         for cmd in command_list:
             self._handle_command(cmd)
 
 
-class Control(object):
+class Control:
     """
     Condition an entire code block on the value of qubits being 1.
 
@@ -151,7 +154,8 @@ class Control(object):
                 ...
         """
         self.engine = engine
-        assert not isinstance(qubits, tuple)
+        if isinstance(qubits, tuple):
+            raise TypeError('Control qubits must be a list, not a tuple!')
         if isinstance(qubits, BasicQubit):
             qubits = [qubits]
         self._qubits = qubits
@@ -159,10 +163,10 @@ class Control(object):
 
     def __enter__(self):
         if len(self._qubits) > 0:
-            ce = ControlEngine(self._qubits, self._state)
-            insert_engine(self.engine, ce)
+            engine = ControlEngine(self._qubits, self._state)
+            insert_engine(self.engine, engine)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         # remove control handler from engine list (i.e. skip it)
         if len(self._qubits) > 0:
             drop_engine_after(self.engine)

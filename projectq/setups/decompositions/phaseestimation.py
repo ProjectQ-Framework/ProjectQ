@@ -91,7 +91,7 @@ from projectq.ops import H, Tensor, get_inverse, QFT
 from projectq.ops import QPE
 
 
-def _decompose_QPE(cmd):
+def _decompose_QPE(cmd):  # pylint: disable=invalid-name
     """Decompose the Quantum Phase Estimation gate."""
     eng = cmd.engine
 
@@ -103,20 +103,20 @@ def _decompose_QPE(cmd):
     Tensor(H) | qpe_ancillas
 
     # The Unitary Operator
-    U = cmd.gate.unitary
+    unitary = cmd.gate.unitary
 
     # Control U on the system_qubits
-    if callable(U):
+    if callable(unitary):
         # If U is a function
-        for i in range(len(qpe_ancillas)):
-            with Control(eng, qpe_ancillas[i]):
-                U(system_qubits, time=2 ** i)
+        for i, ancilla in enumerate(qpe_ancillas):
+            with Control(eng, ancilla):
+                unitary(system_qubits, time=2 ** i)
     else:
-        for i in range(len(qpe_ancillas)):
+        for i, ancilla in enumerate(qpe_ancillas):
             ipower = int(2 ** i)
             with Loop(eng, ipower):
-                with Control(eng, qpe_ancillas[i]):
-                    U | system_qubits
+                with Control(eng, ancilla):
+                    unitary | system_qubits
 
     # Inverse QFT on the ancillas
     get_inverse(QFT) | qpe_ancillas

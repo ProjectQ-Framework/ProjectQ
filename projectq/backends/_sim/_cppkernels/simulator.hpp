@@ -455,7 +455,8 @@ public:
 
     void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
         run();
-        assert(ids.size() == values.size());
+        if (ids.size() != values.size())
+            throw(std::length_error("collapse_wavefunction(): ids and values size mismatch"));
         if (!check_ids(ids))
             throw(std::runtime_error("collapse_wavefunction(): Unknown qubit id(s) provided. Try calling eng.flush() before invoking this function."));
         std::size_t mask = 0, val = 0;

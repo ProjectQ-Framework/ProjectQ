@@ -16,6 +16,8 @@
 Tests for projectq.backends.circuits._drawer.py.
 """
 
+import pytest
+
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import H, X, Rx, CNOT, Swap, Measure, Command, BasicGate
@@ -48,6 +50,11 @@ def test_drawer_measurement():
     Measure | qubit
     assert int(qubit) == 1
     _drawer.input = old_input
+
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    with pytest.raises(ValueError):
+        eng.backend._process(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
 class MockEngine(object):

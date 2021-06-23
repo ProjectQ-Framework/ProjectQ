@@ -14,6 +14,8 @@
 #   limitations under the License.
 """Tests for projectq.cengines._tagremover.py."""
 
+import pytest
+
 from projectq import MainEngine
 from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import Command, H
@@ -25,6 +27,11 @@ from projectq.cengines import _tagremover
 def test_tagremover_default():
     tag_remover = _tagremover.TagRemover()
     assert tag_remover._tags == [ComputeTag, UncomputeTag]
+
+
+def test_tagremover_invalid():
+    with pytest.raises(TypeError):
+        _tagremover.TagRemover(ComputeTag)
 
 
 def test_tagremover():

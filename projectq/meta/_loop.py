@@ -31,10 +31,10 @@ from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
-    pass
+    """Exception raised when the lifetime of a qubit is problematic within a loop"""
 
 
-class LoopTag(object):
+class LoopTag:
     """
     Loop meta tag
     """
@@ -99,7 +99,7 @@ class LoopEngine(BasicEngine):
             "    ...\n"
             "    del qubit[0]\n"
         )
-        if not self._next_engines_support_loop_tag:
+        if not self._next_engines_support_loop_tag:  # pylint: disable=too-many-nested-blocks
             # Unroll the loop
             # Check that local qubits have been deallocated:
             if self._deallocated_qubit_ids != self._allocated_qubit_ids:
@@ -130,7 +130,7 @@ class LoopEngine(BasicEngine):
             if self._deallocated_qubit_ids != self._allocated_qubit_ids:
                 raise QubitManagementError(error_message)
 
-    def receive(self, command_list):
+    def receive(self, command_list):  # pylint: disable=too-many-branches
         """
         Receive (and potentially temporarily store) all commands.
 
@@ -147,6 +147,7 @@ class LoopEngine(BasicEngine):
                 unroll or, if there is a LoopTag-handling engine, add the
                 LoopTag.
         """
+        # pylint: disable=too-many-nested-blocks
         if self._next_engines_support_loop_tag or self.next_engine.is_meta_tag_supported(LoopTag):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
@@ -185,7 +186,7 @@ class LoopEngine(BasicEngine):
                                 self._refs_to_local_qb[qubit.id].append(qubit)
 
 
-class Loop(object):
+class Loop:
     """
     Loop n times over an entire code block.
 
@@ -196,8 +197,8 @@ class Loop(object):
                 # [quantum gates to be executed 4 times]
 
     Warning:
-        If the code in the loop contains allocation of qubits, those qubits
-        have to be deleted prior to exiting the 'with Loop()' context.
+        If the code in the loop contains allocation of qubits, those qubits have to be deleted prior to exiting the
+        'with Loop()' context.
 
         This code is **NOT VALID**:
 
@@ -248,7 +249,7 @@ class Loop(object):
             self._loop_eng = LoopEngine(self.num)
             insert_engine(self.engine, self._loop_eng)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         if self.num != 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()

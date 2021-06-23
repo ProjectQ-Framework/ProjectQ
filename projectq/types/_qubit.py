@@ -16,9 +16,8 @@
 This file defines BasicQubit, Qubit, WeakQubit and Qureg.
 
 A Qureg represents a list of Qubit or WeakQubit objects.
-Qubit represents a (logical-level) qubit with a unique index provided by the
-MainEngine. Qubit objects are automatically deallocated if they go out of
-scope and intented to be used within Qureg objects in user code.
+A Qubit represents a (logical-level) qubit with a unique index provided by the MainEngine. Qubit objects are
+automatically deallocated if they go out of scope and intented to be used within Qureg objects in user code.
 
 Example:
     .. code-block:: python
@@ -27,15 +26,13 @@ Example:
         eng = MainEngine()
         qubit = eng.allocate_qubit()
 
-qubit is a Qureg of size 1 with one Qubit object which is deallocated once
-qubit goes out of scope.
+qubit is a Qureg of size 1 with one Qubit object which is deallocated once qubit goes out of scope.
 
-WeakQubit are used inside the Command object and are not automatically
-deallocated.
+WeakQubit are used inside the Command object and are not automatically deallocated.
 """
 
 
-class BasicQubit(object):
+class BasicQubit:
     """
     BasicQubit objects represent qubits.
 
@@ -61,21 +58,13 @@ class BasicQubit(object):
 
     def __bool__(self):
         """
-        Access the result of a previous measurement and return False / True
-        (0 / 1)
+        Access the result of a previous measurement and return False / True (0 / 1)
         """
         return self.engine.main_engine.get_measurement_result(self)
 
-    def __nonzero__(self):
-        """
-        Access the result of a previous measurement for Python 2.7.
-        """
-        return self.__bool__()
-
     def __int__(self):
         """
-        Access the result of a previous measurement and return as integer
-        (0 / 1).
+        Access the result of a previous measurement and return as integer (0 / 1).
         """
         return int(bool(self))
 
@@ -97,8 +86,7 @@ class BasicQubit(object):
         """
         Return the hash of this qubit.
 
-        Hash definition because of custom __eq__.
-        Enables storing a qubit in, e.g., a set.
+        Hash definition because of custom __eq__.  Enables storing a qubit in, e.g., a set.
         """
         if self.id == -1:
             return object.__hash__(self)
@@ -109,13 +97,10 @@ class Qubit(BasicQubit):
     """
     Qubit class.
 
-    Represents a (logical-level) qubit with a unique index provided by the
-    MainEngine. Once the qubit goes out of scope (and is garbage-collected),
-    it deallocates itself automatically, allowing automatic resource
-    management.
+    Represents a (logical-level) qubit with a unique index provided by the MainEngine. Once the qubit goes out of scope
+    (and is garbage-collected), it deallocates itself automatically, allowing automatic resource management.
 
-    Thus the qubit is not copyable; only returns a reference to the same
-    object.
+    Thus the qubit is not copyable; only returns a reference to the same object.
     """
 
     def __del__(self):
@@ -124,10 +109,9 @@ class Qubit(BasicQubit):
         """
         if self.id == -1:
             return
-        # If a user directly calls this function, then the qubit gets id == -1
-        # but stays in active_qubits as it is not yet deleted, hence remove
-        # it manually (if the garbage collector calls this function, then the
-        # WeakRef in active qubits is already gone):
+        # If a user directly calls this function, then the qubit gets id == -1 but stays in active_qubits as it is not
+        # yet deleted, hence remove it manually (if the garbage collector calls this function, then the WeakRef in
+        # active qubits is already gone):
         if self in self.engine.main_engine.active_qubits:
             self.engine.main_engine.active_qubits.remove(self)
         weak_copy = WeakQubitRef(self.engine, self.id)
@@ -139,8 +123,7 @@ class Qubit(BasicQubit):
         Non-copyable (returns reference to self).
 
         Note:
-            To prevent problems with automatic deallocation, qubits are not
-            copyable!
+            To prevent problems with automatic deallocation, qubits are not copyable!
         """
         return self
 
@@ -149,33 +132,28 @@ class Qubit(BasicQubit):
         Non-deepcopyable (returns reference to self).
 
         Note:
-            To prevent problems with automatic deallocation, qubits are not
-            deepcopyable!
+            To prevent problems with automatic deallocation, qubits are not deepcopyable!
         """
         return self
 
 
-class WeakQubitRef(BasicQubit):
+class WeakQubitRef(BasicQubit):  # pylint: disable=too-few-public-methods
     """
     WeakQubitRef objects are used inside the Command object.
 
-    Qubits feature automatic deallocation when destroyed. WeakQubitRefs, on
-    the other hand, do not share this feature, allowing to copy them and pass
-    them along the compiler pipeline, while the actual qubit objects may be
-    garbage-collected (and, thus, cleaned up early). Otherwise there is no
-    difference between a WeakQubitRef and a Qubit object.
+    Qubits feature automatic deallocation when destroyed. WeakQubitRefs, on the other hand, do not share this feature,
+    allowing to copy them and pass them along the compiler pipeline, while the actual qubit objects may be
+    garbage-collected (and, thus, cleaned up early). Otherwise there is no difference between a WeakQubitRef and a Qubit
+    object.
     """
-
-    pass
 
 
 class Qureg(list):
     """
     Quantum register class.
 
-    Simplifies accessing measured values for single-qubit registers (no []-
-    access necessary) and enables pretty-printing of general quantum registers
-    (call Qureg.__str__(qureg)).
+    Simplifies accessing measured values for single-qubit registers (no []- access necessary) and enables
+    pretty-printing of general quantum registers (call Qureg.__str__(qureg)).
     """
 
     def __bool__(self):
@@ -183,40 +161,28 @@ class Qureg(list):
         Return measured value if Qureg consists of 1 qubit only.
 
         Raises:
-            Exception if more than 1 qubit resides in this register (then you
-            need to specify which value to get using qureg[???])
+            Exception if more than 1 qubit resides in this register (then you need to specify which value to get using
+            qureg[???])
         """
         if len(self) == 1:
             return bool(self[0])
-        else:
-            raise Exception(
-                "__bool__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
-            )
+        raise Exception(
+            "__bool__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
+        )
 
     def __int__(self):
         """
         Return measured value if Qureg consists of 1 qubit only.
 
         Raises:
-            Exception if more than 1 qubit resides in this register (then you
-            need to specify which value to get using qureg[???])
+            Exception if more than 1 qubit resides in this register (then you need to specify which value to get using
+            qureg[???])
         """
         if len(self) == 1:
             return int(self[0])
-        else:
-            raise Exception(
-                "__int__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
-            )
-
-    def __nonzero__(self):
-        """
-        Return measured value if Qureg consists of 1 qubit only for Python 2.7.
-
-        Raises:
-            Exception if more than 1 qubit resides in this register (then you
-            need to specify which value to get using qureg[???])
-        """
-        return int(self) != 0
+        raise Exception(
+            "__int__(qureg): Quantum register contains more than 1 qubit. Use __bool__(qureg[idx]) instead."
+        )
 
     def __str__(self):
         """
