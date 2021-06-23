@@ -33,15 +33,14 @@ def _recognize_time_evolution_commuting_terms(cmd):
     hamiltonian = cmd.gate.hamiltonian
     if len(hamiltonian.terms) == 1:
         return False
-    else:
-        id_op = QubitOperator((), 0.0)
-        for term in hamiltonian.terms:
-            test_op = QubitOperator(term, hamiltonian.terms[term])
-            for other in hamiltonian.terms:
-                other_op = QubitOperator(other, hamiltonian.terms[other])
-                commutator = test_op * other_op - other_op * test_op
-                if not commutator.isclose(id_op, rel_tol=1e-9, abs_tol=1e-9):
-                    return False
+    id_op = QubitOperator((), 0.0)
+    for term in hamiltonian.terms:
+        test_op = QubitOperator(term, hamiltonian.terms[term])
+        for other in hamiltonian.terms:
+            other_op = QubitOperator(other, hamiltonian.terms[other])
+            commutator = test_op * other_op - other_op * test_op
+            if not commutator.isclose(id_op, rel_tol=1e-9, abs_tol=1e-9):
+                return False
     return True
 
 
@@ -60,7 +59,7 @@ def _recognize_time_evolution_individual_terms(cmd):
     return len(cmd.gate.hamiltonian.terms) == 1
 
 
-def _decompose_time_evolution_individual_terms(cmd):
+def _decompose_time_evolution_individual_terms(cmd):  # pylint: disable=too-many-branches
     """
     Implements a TimeEvolution gate with a hamiltonian having only one term.
 
@@ -78,19 +77,22 @@ def _decompose_time_evolution_individual_terms(cmd):
 
     Nielsen and Chuang, Quantum Computation and Information.
     """
-    assert len(cmd.qubits) == 1
+    if len(cmd.qubits) != 1:
+        raise ValueError('TimeEvolution gate can only accept a single quantum register')
     qureg = cmd.qubits[0]
     eng = cmd.engine
     time = cmd.gate.time
     hamiltonian = cmd.gate.hamiltonian
-    assert len(hamiltonian.terms) == 1
+    if len(hamiltonian.terms) != 1:
+        raise ValueError('This decomposition function only accepts single-term hamiltonians!')
     term = list(hamiltonian.terms)[0]
     coefficient = hamiltonian.terms[term]
     check_indices = set()
 
     # Check that hamiltonian is not identity term,
     # Previous __or__ operator should have apply a global phase instead:
-    assert not term == ()
+    if term == ():
+        raise ValueError('This decomposition function cannot accept a hamiltonian with an empty term!')
 
     # hamiltonian has only a single local operator
     if len(term) == 1:
@@ -112,8 +114,10 @@ def _decompose_time_evolution_individual_terms(cmd):
                         H | qureg[index]
                     elif action == 'Y':
                         Rx(math.pi / 2.0) | qureg[index]
+                print(check_indices, set(range(len(qureg))))
                 # Check that qureg had exactly as many qubits as indices:
-                assert check_indices == set((range(len(qureg))))
+                if check_indices != set(range(len(qureg))):
+                    raise ValueError('Indices mismatch between hamiltonian terms and qubits')
                 # Compute parity
                 for i in range(len(qureg) - 1):
                     CNOT | (qureg[i], qureg[i + 1])

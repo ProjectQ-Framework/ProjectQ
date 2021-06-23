@@ -31,6 +31,9 @@ from projectq.backends._aqt._aqt_http_client import show_devices
 
 
 def get_engine_list(token=None, device=None):
+    """
+    Return the default list of compiler engine for the AQT plaftorm
+    """
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -65,8 +68,8 @@ def get_engine_list(token=None, device=None):
 
 
 class DeviceOfflineError(Exception):
-    pass
+    """Exception raised if a selected device is currently offline"""
 
 
 class DeviceNotHandledError(Exception):
-    pass
+    """Exception raised if a selected device is cannot handle the circuit"""

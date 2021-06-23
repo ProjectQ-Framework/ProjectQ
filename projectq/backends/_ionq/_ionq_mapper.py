@@ -20,6 +20,8 @@ from projectq.types import WeakQubitRef
 
 
 class BoundedQubitMapper(BasicMapperEngine):
+    """Maps logical qubits to a fixed number of hardware qubits"""
+
     def __init__(self, max_qubits):
         super().__init__()
         self._qubit_idx = 0

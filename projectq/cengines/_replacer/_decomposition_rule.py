@@ -13,14 +13,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing the definition of a decomposition rule"""
+
 from projectq.ops import BasicGate
 
 
 class ThisIsNotAGateClassError(TypeError):
-    pass
+    """Exception raised when a gate instance is encountered instead of a gate class in a decomposition rule"""
 
 
-class DecompositionRule:
+class DecompositionRule:  # pylint: disable=too-few-public-methods
     """
     A rule for breaking down specific gates into sequences of simpler gates.
     """

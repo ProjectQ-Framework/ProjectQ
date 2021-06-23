@@ -34,8 +34,20 @@ from projectq.ops import (
     ClassicalInstructionGate,
     All,
 )
+from projectq.types import WeakQubitRef
 
 from projectq.ops import _metagates
+
+
+def test_tensored_gate_invalid():
+    qb0 = WeakQubitRef(None, idx=0)
+    qb1 = WeakQubitRef(None, idx=1)
+
+    with pytest.raises(ValueError):
+        _metagates.Tensor(Y) | (qb0, qb1)
+
+    with pytest.raises(ValueError):
+        _metagates.Tensor(Y) | qb0
 
 
 def test_tensored_controlled_gate():

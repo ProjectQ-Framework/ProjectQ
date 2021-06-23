@@ -19,11 +19,12 @@ import random
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
 from projectq.ops import NOT, H, Rx, Ry, Rz, Measure, Allocate, Deallocate, Barrier, FlushGate
+from projectq.types import WeakQubitRef
 
 from ._ibm_http_client import send, retrieve
 
 
-class IBMBackend(BasicEngine):
+class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
     The IBM Backend class, which stores the circuit, transforms it to JSON,
     and sends the circuit through the IBM API.
@@ -39,7 +40,7 @@ class IBMBackend(BasicEngine):
         num_retries=3000,
         interval=1,
         retrieve_execution=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """
         Initialize the Backend object.
 
@@ -61,7 +62,8 @@ class IBMBackend(BasicEngine):
             retrieve_execution (int): Job ID to retrieve instead of re-
                 running the circuit (e.g., if previous run timed out).
         """
-        BasicEngine.__init__(self)
+        super().__init__()
+        self._clear = False
         self._reset()
         if use_hardware:
             self.device = device
@@ -92,17 +94,12 @@ class IBMBackend(BasicEngine):
         if has_negative_control(cmd):
             return False
 
-        g = cmd.gate
+        gate = cmd.gate
 
-        if g == NOT and get_control_count(cmd) == 1:
-            return True
+        if get_control_count(cmd) == 1:
+            return gate == NOT
         if get_control_count(cmd) == 0:
-            if g == H:
-                return True
-            if isinstance(g, (Rx, Ry, Rz)):
-                return True
-        if g in (Measure, Allocate, Deallocate, Barrier):
-            return True
+            return gate == H or isinstance(gate, (Rx, Ry, Rz)) or gate in (Measure, Allocate, Deallocate, Barrier)
         return False
 
     def get_qasm(self):
@@ -115,7 +112,7 @@ class IBMBackend(BasicEngine):
         self._clear = True
         self._measured_ids = []
 
-    def _store(self, cmd):
+    def _store(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
         """
         Temporarily store the command cmd.
 
@@ -124,6 +121,9 @@ class IBMBackend(BasicEngine):
         Args:
             cmd: Command to store
         """
+        if self.main_engine.mapper is None:
+            raise RuntimeError('No mapper is present in the compiler engine list!')
+
         if self._clear:
             self._probabilities = dict()
             self._clear = False
@@ -140,13 +140,13 @@ class IBMBackend(BasicEngine):
             return
 
         if gate == Measure:
-            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             logical_id = None
-            for t in cmd.tags:
-                if isinstance(t, LogicalQubitIDTag):
-                    logical_id = t.logical_qubit_id
+            for tag in cmd.tags:
+                if isinstance(tag, LogicalQubitIDTag):
+                    logical_id = tag.logical_qubit_id
                     break
-            assert logical_id is not None
+            if logical_id is None:
+                raise RuntimeError('No LogicalQubitIDTag found in command!')
             self._measured_ids += [logical_id]
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
@@ -162,7 +162,6 @@ class IBMBackend(BasicEngine):
             self.qasm += qb_str[:-2] + ";"
             self._json.append({'qubits': qb_pos, 'name': 'barrier'})
         elif isinstance(gate, (Rx, Ry, Rz)):
-            assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
             u_name = {'Rx': 'u3', 'Ry': 'u3', 'Rz': 'u1'}
@@ -177,7 +176,6 @@ class IBMBackend(BasicEngine):
             self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
             self._json.append({'qubits': [qb_pos], 'name': gate_name, 'params': params})
         elif gate == H:
-            assert get_control_count(cmd) == 0
             qb_pos = cmd.qubits[0][0].id
             self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
             self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
@@ -192,7 +190,6 @@ class IBMBackend(BasicEngine):
             qb_id (int): ID of the logical qubit whose position should be
                 returned.
         """
-        assert self.main_engine.mapper is not None
         mapping = self.main_engine.mapper.current_mapping
         if qb_id not in mapping:
             raise RuntimeError(
@@ -234,8 +231,8 @@ class IBMBackend(BasicEngine):
         probability_dict = dict()
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
-            for i in range(len(qureg)):
-                mapped_state[i] = state[self._logical_to_physical(qureg[i].id)]
+            for i, val in enumerate(qureg):
+                mapped_state[i] = state[self._logical_to_physical(val.id)]
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             if mapped_state not in probability_dict:
@@ -244,7 +241,7 @@ class IBMBackend(BasicEngine):
                 probability_dict[mapped_state] += probability
         return probability_dict
 
-    def _run(self):
+    def _run(self):  # pylint: disable=too-many-locals
         """
         Run the circuit.
 
@@ -254,7 +251,7 @@ class IBMBackend(BasicEngine):
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-            self.qasm += "\nmeasure q[{}] -> c[{}];".format(qb_loc, qb_loc)
+            self.qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
             self._json.append({'qubits': [qb_loc], 'name': 'measure', 'memory': [qb_loc]})
         # return if no operations / measurements have been performed.
         if self.qasm == "":
@@ -288,7 +285,7 @@ class IBMBackend(BasicEngine):
                 )
             counts = res['data']['counts']
             # Determine random outcome
-            P = random.random()
+            random_outcome = random.random()
             p_sum = 0.0
             measured = ""
             for state in counts:
@@ -299,30 +296,26 @@ class IBMBackend(BasicEngine):
                 state = state[::-1]
                 p_sum += probability
                 star = ""
-                if p_sum >= P and measured == "":
+                if p_sum >= random_outcome and measured == "":
                     measured = state
                     star = "*"
                 self._probabilities[state] = probability
                 if self._verbose and probability > 0:
                     print(str(state) + " with p = " + str(probability) + star)
 
-            class QB:
-                def __init__(self, ID):
-                    self.id = ID
-
-            # register measurement result
-            for ID in self._measured_ids:
-                location = self._logical_to_physical(ID)
+            # register measurement result from IBM
+            for qubit_id in self._measured_ids:
+                location = self._logical_to_physical(qubit_id)
                 result = int(measured[location])
-                self.main_engine.set_measurement_result(QB(ID), result)
+                self.main_engine.set_measurement_result(WeakQubitRef(self, qubit_id), result)
             self._reset()
-        except TypeError:
-            raise Exception("Failed to run the circuit. Aborting.")
+        except TypeError as err:
+            raise Exception("Failed to run the circuit. Aborting.") from err
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        completion.
+        Receives a command list and, for each command, stores it until completion. Upon flush, send the data to the
+        IBM QE API.
 
         Args:
             command_list: List of commands to execute

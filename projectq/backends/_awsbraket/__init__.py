@@ -13,18 +13,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ module for supporting the AWS Braket platform"""
+
 try:
     from ._awsbraket import AWSBraketBackend
 except ImportError:  # pragma: no cover
-    import warnings
 
-    warnings.warn(
-        "Failed to import one of the dependencies required to use "
-        "the Amazon Braket Backend.\n"
-        "Did you install ProjectQ using the [braket] extra? "
-        "(python3 -m pip install projectq[braket])"
-    )
+    class AWSBraketBackend:  # pylint: disable=too-few-public-methods
+        """Dummy class"""
 
-    # Make sure that the symbol is defined
-    class AWSBraketBackend:
-        pass
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(
+                "Failed to import one of the dependencies required to use "
+                "the Amazon Braket Backend.\n"
+                "Did you install ProjectQ using the [braket] extra? "
+                "(python3 -m pip install projectq[braket])"
+            )

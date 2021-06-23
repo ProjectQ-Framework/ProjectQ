@@ -103,11 +103,11 @@ def test_retrieve(mocker, var_status, var_result, retrieve_setup):
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     if var_status == 'completed':
-        res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
+        res = _awsbraket_boto3_client.retrieve(credentials=creds, task_arn=arntask)
         assert res == res_completed
     else:
         with pytest.raises(Exception) as exinfo:
-            _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask, num_retries=2)
+            _awsbraket_boto3_client.retrieve(credentials=creds, task_arn=arntask, num_retries=2)
         print(exinfo.value)
         if var_status == 'failed':
             assert (
@@ -146,7 +146,7 @@ def test_retrieve_devicetypes(mocker, retrieve_devicetypes_setup):
     mock_boto3_client.get_object.return_value = results_dict
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
-    res = _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
+    res = _awsbraket_boto3_client.retrieve(credentials=creds, task_arn=arntask)
     assert res == res_completed
 
 
@@ -294,7 +294,7 @@ def test_retrieve_error_arn_not_exist(mocker, var_error, arntask, creds):
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
 
     with pytest.raises(botocore.exceptions.ClientError):
-        _awsbraket_boto3_client.retrieve(credentials=creds, taskArn=arntask)
+        _awsbraket_boto3_client.retrieve(credentials=creds, task_arn=arntask)
 
 
 # ==============================================================================

@@ -15,12 +15,10 @@
 """
 Mapper for a quantum circuit to a 2D square grid.
 
-Input: Quantum circuit with 1 and 2 qubit gates on n qubits. Gates are assumed
-       to be applied in parallel if they act on disjoint qubit(s) and any pair
-       of qubits can perform a 2 qubit gate (all-to-all connectivity)
-Output: Quantum circuit in which qubits are placed in 2-D square grid in which
-        only nearest neighbour qubits can perform a 2 qubit gate. The mapper
-        uses Swap gates in order to move qubits next to each other.
+Input: Quantum circuit with 1 and 2 qubit gates on n qubits. Gates are assumed to be applied in parallel if they act
+       on disjoint qubit(s) and any pair of qubits can perform a 2 qubit gate (all-to-all connectivity)
+Output: Quantum circuit in which qubits are placed in 2-D square grid in which only nearest neighbour qubits can
+        perform a 2 qubit gate. The mapper uses Swap gates in order to move qubits next to each other.
 """
 from copy import deepcopy
 import itertools
@@ -29,7 +27,6 @@ import random
 
 import networkx as nx
 
-from projectq.cengines import BasicMapperEngine, LinearMapper, return_swap_depth
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
     AllocateQubitGate,
@@ -41,12 +38,15 @@ from projectq.ops import (
 from projectq.types import WeakQubitRef
 
 
-class GridMapper(BasicMapperEngine):
+from ._basicmapper import BasicMapperEngine
+from ._linearmapper import LinearMapper, return_swap_depth
+
+
+class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attributes
     """
     Mapper to a 2-D grid graph.
 
-    Mapped qubits on the grid are numbered in row-major order. E.g. for
-    3 rows and 2 columns:
+    Mapped qubits on the grid are numbered in row-major order. E.g. for 3 rows and 2 columns:
 
     0 - 1
     |   |
@@ -54,39 +54,33 @@ class GridMapper(BasicMapperEngine):
     |   |
     4 - 5
 
-    The numbers are the mapped qubit ids. The backend might number
-    the qubits on the grid differently (e.g. not row-major), we call these
-    backend qubit ids. If the backend qubit ids are not row-major, one can
-    pass a dictionary translating from our row-major mapped ids to these
-    backend ids.
+    The numbers are the mapped qubit ids. The backend might number the qubits on the grid differently (e.g. not
+    row-major), we call these backend qubit ids. If the backend qubit ids are not row-major, one can pass a dictionary
+    translating from our row-major mapped ids to these backend ids.
 
-    Note: The algorithm sorts twice inside each column and once inside each
-          row.
+    Note: The algorithm sorts twice inside each column and once inside each row.
 
     Attributes:
-        current_mapping:  Stores the mapping: key is logical qubit id, value
-                          is backend qubit id.
+        current_mapping: Stores the mapping: key is logical qubit id, value is backend qubit id.
         storage(int): Number of gate it caches before mapping.
         num_rows(int): Number of rows in the grid
         num_columns(int): Number of columns in the grid
         num_qubits(int): num_rows x num_columns = number of qubits
         num_mappings (int): Number of times the mapper changed the mapping
-        depth_of_swaps (dict): Key are circuit depth of swaps, value is the
-                               number of such mappings which have been
+        depth_of_swaps (dict): Key are circuit depth of swaps, value is the number of such mappings which have been
                                applied
-        num_of_swaps_per_mapping (dict): Key are the number of swaps per
-                                         mapping, value is the number of such
-                                         mappings which have been applied
+        num_of_swaps_per_mapping (dict): Key are the number of swaps per mapping, value is the number of such mappings
+                                         which have been applied
 
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         num_rows,
         num_columns,
         mapped_ids_to_backend_ids=None,
         storage=1000,
-        optimization_function=lambda x: return_swap_depth(x),
+        optimization_function=return_swap_depth,
         num_optimization_steps=50,
     ):
         """
@@ -95,27 +89,19 @@ class GridMapper(BasicMapperEngine):
         Args:
             num_rows(int): Number of rows in the grid
             num_columns(int): Number of columns in the grid.
-            mapped_ids_to_backend_ids(dict): Stores a mapping from mapped ids
-                                             which are 0,...,self.num_qubits-1
-                                             in row-major order on the grid to
-                                             the corresponding qubit ids of the
-                                             backend. Key: mapped id. Value:
-                                             corresponding backend id.
-                                             Default is None which means
-                                             backend ids are identical to
-                                             mapped ids.
+            mapped_ids_to_backend_ids(dict): Stores a mapping from mapped ids which are 0,...,self.num_qubits-1 in
+                                             row-major order on the grid to the corresponding qubit ids of the
+                                             backend. Key: mapped id. Value: corresponding backend id.  Default is
+                                             None which means backend ids are identical to mapped ids.
             storage: Number of gates to temporarily store
-            optimization_function: Function which takes a list of swaps and
-                                   returns a cost value. Mapper chooses a
-                                   permutation which minimizes this cost.
-                                   Default optimizes for circuit depth.
-            num_optimization_steps(int): Number of different permutations to
-                                         of the matching to try and minimize
-                                         the cost.
+            optimization_function: Function which takes a list of swaps and returns a cost value. Mapper chooses a
+                                   permutation which minimizes this cost.  Default optimizes for circuit depth.
+            num_optimization_steps(int): Number of different permutations to of the matching to try and minimize the
+                                         cost.
         Raises:
             RuntimeError: if incorrect `mapped_ids_to_backend_ids` parameter
         """
-        BasicMapperEngine.__init__(self)
+        super().__init__()
         self.num_rows = num_rows
         self.num_columns = num_columns
         self.num_qubits = num_rows * num_columns
@@ -193,25 +179,19 @@ class GridMapper(BasicMapperEngine):
         num_qubits = 0
         for qureg in cmd.all_qubits:
             num_qubits += len(qureg)
-        if num_qubits <= 2:
-            return True
-        else:
-            return False
+        return num_qubits <= 2
 
     def _return_new_mapping(self):
         """
         Returns a new mapping of the qubits.
 
-        It goes through self._saved_commands and tries to find a
-        mapping to apply these gates on a first come first served basis.
-        It reuses the function of a 1D mapper and creates a mapping for a
-        1D linear chain and then wraps it like a snake onto the square grid.
+        It goes through self._saved_commands and tries to find a mapping to apply these gates on a first come first
+        served basis.  It reuses the function of a 1D mapper and creates a mapping for a 1D linear chain and then
+        wraps it like a snake onto the square grid.
 
-        One might create better mappings by specializing this function for a
-        square grid.
+        One might create better mappings by specializing this function for a square grid.
 
-        Returns: A new mapping as a dict. key is logical qubit id,
-                 value is mapped id
+        Returns: A new mapping as a dict. key is logical qubit id, value is mapped id
         """
         # Change old mapping to 1D in order to use LinearChain heuristic
         if self._current_row_major_mapping:
@@ -236,8 +216,7 @@ class GridMapper(BasicMapperEngine):
 
     def _compare_and_swap(self, element0, element1, key):
         """
-        If swapped (inplace), then return swap operation
-        so that key(element0) < key(element1)
+        If swapped (inplace), then return swap operation so that key(element0) < key(element1)
         """
         if key(element0) > key(element1):
             mapped_id0 = element0.current_column + element0.current_row * self.num_columns
@@ -254,8 +233,7 @@ class GridMapper(BasicMapperEngine):
             element1.final_column = tmp_1
             element1.row_after_step_1 = tmp_2
             return swap_operation
-        else:
-            return None
+        return None
 
     def _sort_within_rows(self, final_positions, key):
         swap_operations = []
@@ -301,30 +279,29 @@ class GridMapper(BasicMapperEngine):
                         swap_operations.append(swap)
         return swap_operations
 
-    def return_swaps(self, old_mapping, new_mapping, permutation=None):
+    def return_swaps(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+        self, old_mapping, new_mapping, permutation=None
+    ):
         """
         Returns the swap operation to change mapping
 
         Args:
-            old_mapping: dict: keys are logical ids and values are mapped
-                         qubit ids
-            new_mapping: dict: keys are logical ids and values are mapped
-                         qubit ids
-            permutation: list of int from 0, 1, ..., self.num_rows-1. It is
-                         used to permute the found perfect matchings. Default
-                         is None which keeps the original order.
+            old_mapping: dict: keys are logical ids and values are mapped qubit ids
+            new_mapping: dict: keys are logical ids and values are mapped qubit ids
+            permutation: list of int from 0, 1, ..., self.num_rows-1. It is used to permute the found perfect
+                         matchings. Default is None which keeps the original order.
         Returns:
-            List of tuples. Each tuple is a swap operation which needs to be
-            applied. Tuple contains the two mapped qubit ids for the Swap.
+            List of tuples. Each tuple is a swap operation which needs to be applied. Tuple contains the two mapped
+            qubit ids for the Swap.
         """
         if permutation is None:
             permutation = list(range(self.num_rows))
         swap_operations = []
 
-        class Position(object):
+        class Position:  # pylint: disable=too-few-public-methods
             """Custom Container."""
 
-            def __init__(
+            def __init__(  # pylint: disable=too-many-arguments
                 self,
                 current_row,
                 current_column,
@@ -375,20 +352,19 @@ class GridMapper(BasicMapperEngine):
                         final_column=new_column,
                     )
                     final_positions[row][column] = info_container
-        assert len(not_used_mapped_ids) == 0
+        if len(not_used_mapped_ids) > 0:  # pragma: no cover
+            raise RuntimeError('Internal compiler error: len(not_used_mapped_ids) > 0')
         # 1. Assign column_after_step_1 for each element
         # Matching contains the num_columns matchings
         matchings = [None for i in range(self.num_rows)]
-        # Build bipartite graph. Nodes are the current columns numbered
-        # (0, 1, ...) and the destination columns numbered with an offset of
-        # self.num_columns (0 + offset, 1+offset, ...)
+        # Build bipartite graph. Nodes are the current columns numbered (0, 1, ...) and the destination columns
+        # numbered with an offset of self.num_columns (0 + offset, 1+offset, ...)
         graph = nx.Graph()
         offset = self.num_columns
         graph.add_nodes_from(range(self.num_columns), bipartite=0)
         graph.add_nodes_from(range(offset, offset + self.num_columns), bipartite=1)
-        # Add an edge to the graph from (i, j+offset) for every element
-        # currently in column i which should go to column j for the new
-        # mapping
+        # Add an edge to the graph from (i, j+offset) for every element currently in column i which should go to
+        # column j for the new mapping
         for row in range(self.num_rows):
             for column in range(self.num_columns):
                 destination_column = final_positions[row][column].final_column
@@ -398,8 +374,7 @@ class GridMapper(BasicMapperEngine):
                     graph[column][destination_column + offset]['num'] = 1
                 else:
                     graph[column][destination_column + offset]['num'] += 1
-        # Find perfect matching, remove those edges from the graph
-        # and do it again:
+        # Find perfect matching, remove those edges from the graph and do it again:
         for i in range(self.num_rows):
             top_nodes = range(self.num_columns)
             matching = nx.bipartite.maximum_matching(graph, top_nodes)
@@ -423,7 +398,7 @@ class GridMapper(BasicMapperEngine):
                     element = final_positions[row][column]
                     if element.row_after_step_1 is not None:
                         continue
-                    elif element.final_column == dest_column:
+                    if element.final_column == dest_column:
                         if best_element is None:
                             best_element = element
                         elif best_element.final_row > element.final_row:
@@ -440,12 +415,11 @@ class GridMapper(BasicMapperEngine):
         swap_operations += swaps
         return swap_operations
 
-    def _send_possible_commands(self):
+    def _send_possible_commands(self):  # pylint: disable=too-many-branches
         """
         Sends the stored commands possible without changing the mapping.
 
-        Note: self._current_row_major_mapping (hence also self.current_mapping)
-              must exist already
+        Note: self._current_row_major_mapping (hence also self.current_mapping) must exist already
         """
         active_ids = deepcopy(self._currently_allocated_ids)
         for logical_id in self._current_row_major_mapping:
@@ -508,10 +482,8 @@ class GridMapper(BasicMapperEngine):
                     elif qb1 - qb0 == 1 and qb1 % self.num_columns != 0:
                         send_gate = True
                 if send_gate:
-                    # Note: This sends the cmd correctly with the backend ids
-                    #       as it looks up the mapping in self.current_mapping
-                    #       and not our internal mapping
-                    #       self._current_row_major_mapping
+                    # Note: This sends the cmd correctly with the backend ids as it looks up the mapping in
+                    #       self.current_mapping and not our internal mapping self._current_row_major_mapping
                     self._send_cmd_with_mapped_ids(cmd)
                 else:
                     for qureg in cmd.all_qubits:
@@ -520,15 +492,13 @@ class GridMapper(BasicMapperEngine):
                     new_stored_commands.append(cmd)
         self._stored_commands = new_stored_commands
 
-    def _run(self):
+    def _run(self):  # pylint: disable=too-many-locals.too-many-branches,too-many-statements
         """
         Creates a new mapping and executes possible gates.
 
-        It first allocates all 0, ..., self.num_qubits-1 mapped qubit ids, if
-        they are not already used because we might need them all for the
-        swaps. Then it creates a new map, swaps all the qubits to the new map,
-        executes all possible gates, and finally deallocates mapped qubit ids
-        which don't store any information.
+        It first allocates all 0, ..., self.num_qubits-1 mapped qubit ids, if they are not already used because we
+        might need them all for the swaps. Then it creates a new map, swaps all the qubits to the new map, executes
+        all possible gates, and finally deallocates mapped qubit ids which don't store any information.
         """
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
@@ -573,9 +543,9 @@ class GridMapper(BasicMapperEngine):
                 self.send([cmd])
             # Send swap operations to arrive at new_mapping:
             for qubit_id0, qubit_id1 in swaps:
-                q0 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id0])
-                q1 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id1])
-                cmd = Command(engine=self, gate=Swap, qubits=([q0], [q1]))
+                qb0 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id0])
+                qb1 = WeakQubitRef(engine=self, idx=self._mapped_ids_to_backend_ids[qubit_id1])
+                cmd = Command(engine=self, gate=Swap, qubits=([qb0], [qb1]))
                 self.send([cmd])
             # Register statistics:
             self.num_mappings += 1
@@ -609,24 +579,21 @@ class GridMapper(BasicMapperEngine):
         # Check that mapper actually made progress
         if len(self._stored_commands) == num_of_stored_commands_before:
             raise RuntimeError(
-                "Mapper is potentially in an infinite loop. "
-                + "It is likely that the algorithm requires "
-                + "too many qubits. Increase the number of "
-                + "qubits for this mapper."
+                "Mapper is potentially in an infinite loop. It is likely that the algorithm requires too"
+                "many qubits. Increase the number of qubits for this mapper."
             )
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        we do a mapping (FlushGate or Cache of stored commands is full).
+        Receives a command list and, for each command, stores it until we do a mapping (FlushGate or Cache of stored
+        commands is full).
 
         Args:
-            command_list (list of Command objects): list of commands to
-                receive.
+            command_list (list of Command objects): list of commands to receive.
         """
         for cmd in command_list:
             if isinstance(cmd.gate, FlushGate):
-                while len(self._stored_commands):
+                while self._stored_commands:
                     self._run()
                 self.send([cmd])
             else:

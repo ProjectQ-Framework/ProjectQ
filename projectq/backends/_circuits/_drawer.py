@@ -21,10 +21,12 @@ from builtins import input
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import FlushGate, Measure, Allocate, Deallocate
 from projectq.meta import get_control_count
-from projectq.backends._circuits import to_latex
+from ._to_latex import to_latex
 
 
-class CircuitItem(object):
+class CircuitItem:
+    """Item of a quantum circuit to draw"""
+
     def __init__(self, gate, lines, ctrl_lines):
         """
         Initialize a circuit item.
@@ -216,6 +218,7 @@ class CircuitDrawer(BasicEngine):
         Args:
             cmd (Command): Command to add to the circuit diagram.
         """
+        # pylint: disable=R0801
         if cmd.gate == Allocate:
             qubit_id = cmd.qubits[0][0].id
             if qubit_id not in self._map:
@@ -227,19 +230,20 @@ class CircuitDrawer(BasicEngine):
             self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert get_control_count(cmd) == 0
+            if get_control_count(cmd) != 0:
+                raise ValueError('Cannot have control qubits with a measurement gate!')
 
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
-                        m = None
-                        while m not in ('0', '1', 1, 0):
+                        meas = None
+                        while meas not in ('0', '1', 1, 0):
                             prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
-                            m = input(prompt)
+                            meas = input(prompt)
                     else:
-                        m = self._default_measure
-                    m = int(m)
-                    self.main_engine.set_measurement_result(qubit, m)
+                        meas = self._default_measure
+                    meas = int(meas)
+                    self.main_engine.set_measurement_result(qubit, meas)
 
         all_lines = [qb.id for qr in cmd.all_qubits for qb in qr]
 

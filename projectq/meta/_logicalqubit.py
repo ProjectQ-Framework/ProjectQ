@@ -17,7 +17,7 @@ Defines LogicalQubitIDTag to annotate a MeasureGate for mapped qubits.
 """
 
 
-class LogicalQubitIDTag(object):
+class LogicalQubitIDTag:
     """
     LogicalQubitIDTag for a mapped qubit to annotate a MeasureGate.
 

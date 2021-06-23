@@ -3,7 +3,6 @@ include CHANGELOG.md
 include MANIFEST.in
 include NOTICE
 include README.rst
-include requirements*.txt
 include setup.py
 include setup.cfg
 include pyproject.toml

@@ -29,8 +29,10 @@ _API_URL = 'https://gateway.aqt.eu/marmot/'
 
 
 class AQT(Session):
+    """Class managing the session to AQT's APIs"""
+
     def __init__(self):
-        super(AQT, self).__init__()
+        super().__init__()
         self.backends = dict()
         self.timeout = 5.0
         self.token = None
@@ -57,7 +59,15 @@ class AQT(Session):
             print(self.backends)
 
     def is_online(self, device):
-        # useless at the moment, may change if API evolves
+        """
+        Check whether a device is currently online
+
+        Args:
+            device (str): name of the aqt device to use
+
+        Note:
+            Useless at the moment, may change if the API evolves
+        """
         return device in self.backends
 
     def can_run_experiment(self, info, device):
@@ -75,7 +85,7 @@ class AQT(Session):
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
 
-    def _authenticate(self, token=None):
+    def authenticate(self, token=None):
         """
         Args:
             token (str): AQT user API token.
@@ -85,14 +95,15 @@ class AQT(Session):
         self.headers.update({'Ocp-Apim-Subscription-Key': token, 'SDK': 'ProjectQ'})
         self.token = token
 
-    def _run(self, info, device):
+    def run(self, info, device):
+        """Run a quantum circuit"""
         argument = {
             'data': info['circuit'],
             'access_token': self.token,
             'repetitions': info['shots'],
             'no_qubits': info['nq'],
         }
-        req = super(AQT, self).put(urljoin(_API_URL, self.backends[device]['url']), data=argument)
+        req = super().put(urljoin(_API_URL, self.backends[device]['url']), data=argument)
         req.raise_for_status()
         r_json = req.json()
         if r_json['status'] != 'queued':
@@ -100,8 +111,12 @@ class AQT(Session):
         execution_id = r_json["id"]
         return execution_id
 
-    def _get_result(self, device, execution_id, num_retries=3000, interval=1, verbose=False):
-
+    def get_result(  # pylint: disable=too-many-arguments
+        self, device, execution_id, num_retries=3000, interval=1, verbose=False
+    ):
+        """
+        Get the result of an execution
+        """
         if verbose:
             print("Waiting for results. [Job ID: {}]".format(execution_id))
 
@@ -116,7 +131,7 @@ class AQT(Session):
             for retries in range(num_retries):
 
                 argument = {'id': execution_id, 'access_token': self.token}
-                req = super(AQT, self).put(urljoin(_API_URL, self.backends[device]['url']), data=argument)
+                req = super().put(urljoin(_API_URL, self.backends[device]['url']), data=argument)
                 req.raise_for_status()
                 r_json = req.json()
                 if r_json['status'] == 'finished' or 'samples' in r_json:
@@ -131,7 +146,7 @@ class AQT(Session):
                     #       available
                     if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of " "your submitted job is {}.".format(execution_id)
+                            "Device went offline. The ID of your submitted job is {}.".format(execution_id)
                         )
 
         finally:
@@ -142,11 +157,11 @@ class AQT(Session):
 
 
 class DeviceTooSmall(Exception):
-    pass
+    """Exception raised if the device is too small to run the circuit"""
 
 
 class DeviceOfflineError(Exception):
-    pass
+    """Exception raised if a selected device is currently offline"""
 
 
 def show_devices(verbose=False):
@@ -165,7 +180,7 @@ def show_devices(verbose=False):
     return aqt_session.backends
 
 
-def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):
+def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):  # pylint: disable=too-many-arguments
     """
     Retrieves a previously run job by its ID.
 
@@ -178,9 +193,9 @@ def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):
         (list) samples form the AQT server
     """
     aqt_session = AQT()
-    aqt_session._authenticate(token)
+    aqt_session.authenticate(token)
     aqt_session.update_devices_list(verbose)
-    res = aqt_session._get_result(device, jobid, num_retries=num_retries, interval=interval, verbose=verbose)
+    res = aqt_session.get_result(device, jobid, num_retries=num_retries, interval=interval, verbose=verbose)
     return res
 
 
@@ -188,11 +203,10 @@ def send(
     info,
     device='aqt_simulator',
     token=None,
-    shots=100,
     num_retries=100,
     interval=1,
     verbose=False,
-):
+):  # pylint: disable=too-many-arguments
     """
     Sends cicruit through the AQT API and runs the quantum circuit.
 
@@ -200,8 +214,6 @@ def send(
         info(dict): Contains representation of the circuit to run.
         device (str): name of the aqt device. Simulator chosen by default
         token (str): AQT user API token.
-        shots (int): Number of runs of the same circuit to collect
-            statistics. max for AQT is 200.
         verbose (bool): If True, additional information is printed, such as
             measurement statistics. Otherwise, the backend simply registers
             one measurement result (same behavior as the projectq Simulator).
@@ -217,7 +229,7 @@ def send(
             print("- Authenticating...")
         if token is not None:
             print('user API token: ' + token)
-        aqt_session._authenticate(token)
+        aqt_session.authenticate(token)
 
         # check if the device is online
         aqt_session.update_devices_list(verbose)
@@ -238,10 +250,10 @@ def send(
             raise DeviceTooSmall("Device is too small.")
         if verbose:
             print("- Running code: {}".format(info))
-        execution_id = aqt_session._run(info, device)
+        execution_id = aqt_session.run(info, device)
         if verbose:
             print("- Waiting for results...")
-        res = aqt_session._get_result(
+        res = aqt_session.get_result(
             device,
             execution_id,
             num_retries=num_retries,
@@ -260,3 +272,4 @@ def send(
     except KeyError as err:
         print("- Failed to parse response:")
         print(err)
+    return None

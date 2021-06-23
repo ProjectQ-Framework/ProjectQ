@@ -50,19 +50,32 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
         restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
 
+    - name: Generate requirement file (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        python setup.py gen_reqfile --include-extras=test,braket,revkit
+
+    - name: Generate requirement file (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        python setup.py gen_reqfile --include-extras=test,braket
+
     - name: Prepare env
       run: |
-        python setup.py gen_reqfile --include-extras
         python -m pip install -r requirements.txt --prefer-binary
-        python -m pip install -r requirements_tests.txt --prefer-binary
         python -m pip install coveralls
 
     - name: Setup annotations on Linux
       if: runner.os == 'Linux'
       run: python -m pip install pytest-github-actions-annotate-failures
 
-    - name: Build and install package
-      run: python -m pip install -ve .[braket]
+    - name: Build and install package (Unix)
+      if: runner.os != 'Windows'
+      run: python -m pip install -ve .[braket,revkit,test]
+
+    - name: Build and install package (Windows)
+      if: runner.os == 'Windows'
+      run: python -m pip install -ve .[braket,test]
 
     - name: Pytest
       run: |
@@ -125,15 +138,14 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras
+        python3 setup.py gen_reqfile --include-extras=test,braket
         python3 -m pip install -r requirements.txt --prefer-binary
-        python3 -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket]
+      run: python3 -m pip install -ve .[braket,test]
 
     - name: Pytest
       run: |
@@ -170,15 +182,14 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras
+        python3 setup.py gen_reqfile --include-extras=test,braket
         python3 -m pip install -r requirements.txt --prefer-binary
-        python3 -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket]
+      run: python3 -m pip install -ve .[braket,test]
 
     - name: Pytest
       run: |
@@ -244,12 +255,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 setup.py gen_reqfile --include-extras
+        python3 setup.py gen_reqfile --include-extras=test,braket
         python3 -m pip install -r requirements.txt --prefer-binary
-        python3 -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket]
+      run: python3 -m pip install -ve .[braket,test]
 
     - name: Pytest
       run: |
@@ -283,10 +293,7 @@ jobs:
 
     - name: Install docs & setup requirements
       run: |
-        python3 setup.py gen_reqfile --include-extras
-        python3 -m pip install -r requirements.txt --prefer-binary
-        python3 -m pip install -r docs/requirements.txt --prefer-binary
-        python3 -m pip install .
+        python3 -m pip install .[docs]
 
     - name: Build docs
       run: python3 -m sphinx -b html docs docs/.build
@@ -334,12 +341,11 @@ jobs:
 
     - name: Prepare env
       run: |
-        python setup.py gen_reqfile --include-extras
+        python setup.py gen_reqfile --include-extras=test,braket
         python -m pip install -r requirements.txt --prefer-binary
-        python -m pip install -r requirements_tests.txt --prefer-binary
 
     - name: Build and install package
-      run: python -m pip install -ve .[braket]
+      run: python -m pip install -ve .[braket,test]
 
     - name: Run all checks
       run: |

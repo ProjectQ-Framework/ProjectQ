@@ -33,7 +33,7 @@ class AddConstant(BasicMathGate):
     be a quantum register for the compiler/decomposition to work.
     """
 
-    def __init__(self, a):
+    def __init__(self, a):  # pylint: disable=invalid-name
         """
         Initializes the gate to the number to add.
 
@@ -44,7 +44,7 @@ class AddConstant(BasicMathGate):
         corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((x + a),))
-        self.a = a
+        self.a = a  # pylint: disable=invalid-name
 
     def get_inverse(self):
         """
@@ -65,7 +65,7 @@ class AddConstant(BasicMathGate):
         return not self.__eq__(other)
 
 
-def SubConstant(a):
+def SubConstant(a):  # pylint: disable=invalid-name
     """
     Subtract a constant from a quantum number represented by a quantum
     register, stored from low- to high-bit.
@@ -118,7 +118,7 @@ class AddConstantModN(BasicMathGate):
         corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((x + a) % N,))
-        self.a = a
+        self.a = a  # pylint: disable=invalid-name
         self.N = N
 
     def __str__(self):
@@ -141,7 +141,7 @@ class AddConstantModN(BasicMathGate):
         return not self.__eq__(other)
 
 
-def SubConstantModN(a, N):
+def SubConstantModN(a, N):  # pylint: disable=invalid-name
     """
     Subtract a constant from a quantum number represented by a quantum
     register modulo N.
@@ -195,7 +195,7 @@ class MultiplyByConstantModN(BasicMathGate):
       * The value stored in the quantum register must be lower than N
     """
 
-    def __init__(self, a, N):
+    def __init__(self, a, N):  # pylint: disable=invalid-name
         """
         Initializes the gate to the number to multiply with modulo N.
 
@@ -208,7 +208,7 @@ class MultiplyByConstantModN(BasicMathGate):
         corresponding function, so it can be emulated efficiently.
         """
         BasicMathGate.__init__(self, lambda x: ((a * x) % N,))
-        self.a = a
+        self.a = a  # pylint: disable=invalid-name
         self.N = N
 
     def __str__(self):
@@ -258,12 +258,12 @@ class AddQuantumGate(BasicMathGate):
         return not self.__eq__(other)
 
     def get_math_function(self, qubits):
-        n = len(qubits[0])
+        n_qubits = len(qubits[0])
 
-        def math_fun(a):
+        def math_fun(a):  # pylint: disable=invalid-name
             a[1] = a[0] + a[1]
-            if len(bin(a[1])[2:]) > n:
-                a[1] = a[1] % (2 ** n)
+            if len(bin(a[1])[2:]) > n_qubits:
+                a[1] = a[1] % (2 ** n_qubits)
 
                 if len(a) == 3:
                     # Flip the last bit of the carry register
@@ -296,7 +296,7 @@ class _InverseAddQuantumGate(BasicMathGate):
         return "_InverseAddQuantum"
 
     def get_math_function(self, qubits):
-        def math_fun(a):
+        def math_fun(a):  # pylint: disable=invalid-name
             if len(a) == 3:
                 # Flip the last bit of the carry register
                 a[2] ^= 1
@@ -326,11 +326,11 @@ class SubtractQuantumGate(BasicMathGate):
 
     def __init__(self):
         """
-        Initializes the gate to  its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
+        Initializes the gate to its base class, BasicMathGate, with the corresponding function, so it can be emulated
+        efficiently.
         """
 
-        def subtract(a, b):
+        def subtract(a, b):  # pylint: disable=invalid-name
             return (a, b - a)
 
         BasicMathGate.__init__(self, subtract)
@@ -349,8 +349,7 @@ class SubtractQuantumGate(BasicMathGate):
 
     def get_inverse(self):
         """
-        Return the inverse gate (subtraction of the same number a modulo the
-        same number N).
+        Return the inverse gate (subtraction of the same number a modulo the same number N).
         """
         return AddQuantum
 
@@ -360,8 +359,7 @@ SubtractQuantum = SubtractQuantumGate()
 
 class ComparatorQuantumGate(BasicMathGate):
     """
-    Flips a compare qubit if the binary value of first imput is higher than
-    the second input.
+    Flips a compare qubit if the binary value of first imput is higher than the second input.
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
     Example:
         .. code-block:: python
@@ -379,11 +377,12 @@ class ComparatorQuantumGate(BasicMathGate):
 
     def __init__(self):
         """
-        Initializes the gate and its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
+        Initializes the gate and its base class, BasicMathGate, with the corresponding function, so it can be emulated
+        efficiently.
         """
 
-        def compare(a, b, c):
+        def compare(a, b, c):  # pylint: disable=invalid-name
+            # pylint: disable=invalid-name
             if b < a:
                 if c == 0:
                     c = 1
@@ -417,11 +416,9 @@ ComparatorQuantum = ComparatorQuantumGate()
 
 class DivideQuantumGate(BasicMathGate):
     """
-    Divides one quantum number from another. Takes three inputs which should
-    be quantum registers of equal size; a dividend, a remainder and a
-    divisor. The remainder should be in the state |0...0> and the dividend
-    should be bigger than the divisor.The gate returns (in this order): the
-    remainder, the quotient and the divisor.
+    Divides one quantum number from another. Takes three inputs which should be quantum registers of equal size; a
+    dividend, a remainder and a divisor. The remainder should be in the state |0...0> and the dividend should be
+    bigger than the divisor.The gate returns (in this order): the remainder, the quotient and the divisor.
 
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
 
@@ -444,17 +441,16 @@ class DivideQuantumGate(BasicMathGate):
 
     def __init__(self):
         """
-        Initializes the gate and its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
+        Initializes the gate and its base class, BasicMathGate, with the corresponding function, so it can be emulated
+        efficiently.
         """
 
         def division(dividend, remainder, divisor):
             if divisor == 0 or divisor > dividend:
                 return (remainder, dividend, divisor)
 
-            else:
-                quotient = remainder + dividend // divisor
-                return ((dividend - (quotient * divisor)), quotient, divisor)
+            quotient = remainder + dividend // divisor
+            return ((dividend - (quotient * divisor)), quotient, divisor)
 
         BasicMathGate.__init__(self, division)
 
@@ -479,8 +475,7 @@ DivideQuantum = DivideQuantumGate()
 
 class _InverseDivideQuantumGate(BasicMathGate):
     """
-    Internal gate glass to support emulation for inverse
-    division.
+    Internal gate glass to support emulation for inverse division.
     """
 
     def __init__(self):
@@ -500,11 +495,10 @@ class _InverseDivideQuantumGate(BasicMathGate):
 
 class MultiplyQuantumGate(BasicMathGate):
     """
-    Multiplies two quantum numbers represented by a quantum registers.
-    Requires three quantum registers as inputs, the first two are the
-    numbers to be multiplied and should have the same size (n qubits). The
-    third register will hold the product and should be of size 2n+1.
-    The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
+    Multiplies two quantum numbers represented by a quantum registers.  Requires three quantum registers as inputs,
+    the first two are the numbers to be multiplied and should have the same size (n qubits). The third register will
+    hold the product and should be of size 2n+1.  The numbers are stored from low- to high-bit, i.e., qunum[0] is the
+    LSB.
 
     Example:
         .. code-block:: python
@@ -520,11 +514,11 @@ class MultiplyQuantumGate(BasicMathGate):
 
     def __init__(self):
         """
-        Initializes the gate and its base class, BasicMathGate, with the
-        corresponding function, so it can be emulated efficiently.
+        Initializes the gate and its base class, BasicMathGate, with the corresponding function, so it can be emulated
+        efficiently.
         """
 
-        def multiply(a, b, c):
+        def multiply(a, b, c):  # pylint: disable=invalid-name
             return (a, b, c + a * b)
 
         BasicMathGate.__init__(self, multiply)
@@ -550,12 +544,11 @@ MultiplyQuantum = MultiplyQuantumGate()
 
 class _InverseMultiplyQuantumGate(BasicMathGate):
     """
-    Internal gate glass to support emulation for inverse
-    multiplication.
+    Internal gate glass to support emulation for inverse multiplication.
     """
 
     def __init__(self):
-        def inverse_multiplication(a, b, c):
+        def inverse_multiplication(a, b, c):  # pylint: disable=invalid-name
             return (a, b, c - a * b)
 
         BasicMathGate.__init__(self, inverse_multiplication)

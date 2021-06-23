@@ -34,7 +34,7 @@ def test_is_online():
     token = 'access'
 
     aqt_session = _aqt_http_client.AQT()
-    aqt_session._authenticate(token)
+    aqt_session.authenticate(token)
     aqt_session.update_devices_list()
     assert aqt_session.is_online('aqt_simulator')
     assert aqt_session.is_online('aqt_simulator_noise')
@@ -48,7 +48,7 @@ def test_show_devices():
     assert len(device_list) == 3
 
 
-def test_send_too_many_qubits(monkeypatch):
+def test_send_too_many_qubits():
     info = {
         'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
@@ -58,11 +58,10 @@ def test_send_too_many_qubits(monkeypatch):
         'backend': {'name': 'aqt_simulator'},
     }
     token = "access"
-    shots = 1
 
     # Code to test:
     with pytest.raises(_aqt_http_client.DeviceTooSmall):
-        _aqt_http_client.send(info, device="aqt_simulator", token=token, shots=shots, verbose=True)
+        _aqt_http_client.send(info, device="aqt_simulator", token=token, verbose=True)
 
 
 def test_send_real_device_online_verbose(monkeypatch):
@@ -83,7 +82,6 @@ def test_send_real_device_online_verbose(monkeypatch):
         'backend': {'name': 'aqt_simulator'},
     }
     token = "access"
-    shots = 1
     execution_id = '3'
     result_ready = [False]
     result = "my_result"
@@ -139,7 +137,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     monkeypatch.setattr("getpass.getpass", user_password_input)
 
     # Code to test:
-    res = _aqt_http_client.send(info, device="aqt_simulator", token=None, shots=shots, verbose=True)
+    res = _aqt_http_client.send(info, device="aqt_simulator", token=None, verbose=True)
     assert res == result
 
 
@@ -157,7 +155,6 @@ def test_send_that_errors_are_caught(monkeypatch):
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
-    shots = 1
     info = {
         'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
@@ -166,7 +163,7 @@ def test_send_that_errors_are_caught(monkeypatch):
         'shots': 1,
         'backend': {'name': 'aqt_simulator'},
     }
-    _aqt_http_client.send(info, device="aqt_simulator", token=None, shots=shots, verbose=True)
+    _aqt_http_client.send(info, device="aqt_simulator", token=None, verbose=True)
 
 
 def test_send_that_errors_are_caught2(monkeypatch):
@@ -183,7 +180,6 @@ def test_send_that_errors_are_caught2(monkeypatch):
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
-    shots = 1
     info = {
         'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
@@ -192,7 +188,7 @@ def test_send_that_errors_are_caught2(monkeypatch):
         'shots': 1,
         'backend': {'name': 'aqt_simulator'},
     }
-    _aqt_http_client.send(info, device="aqt_simulator", token=None, shots=shots, verbose=True)
+    _aqt_http_client.send(info, device="aqt_simulator", token=None, verbose=True)
 
 
 def test_send_that_errors_are_caught3(monkeypatch):
@@ -209,7 +205,6 @@ def test_send_that_errors_are_caught3(monkeypatch):
             return token
 
     monkeypatch.setattr("getpass.getpass", user_password_input)
-    shots = 1
     info = {
         'circuit': '[["Y", 0.5, [1]], ["X", 0.5, [1]], ["X", 0.5, [1]], '
         '["Y", 0.5, [1]], ["MS", 0.5, [1, 2]], ["X", 3.5, [1]], '
@@ -218,7 +213,7 @@ def test_send_that_errors_are_caught3(monkeypatch):
         'shots': 1,
         'backend': {'name': 'aqt_simulator'},
     }
-    _aqt_http_client.send(info, device="aqt_simulator", token=None, shots=shots, verbose=True)
+    _aqt_http_client.send(info, device="aqt_simulator", token=None, verbose=True)
 
 
 def test_send_that_errors_are_caught4(monkeypatch):
@@ -230,7 +225,6 @@ def test_send_that_errors_are_caught4(monkeypatch):
     }
     info = {'circuit': '[]', 'nq': 3, 'shots': 1, 'backend': {'name': 'aqt_simulator'}}
     token = "access"
-    shots = 1
     execution_id = '123e'
 
     def mocked_requests_put(*args, **kwargs):
@@ -265,7 +259,6 @@ def test_send_that_errors_are_caught4(monkeypatch):
             device="aqt_simulator",
             token=token,
             num_retries=10,
-            shots=shots,
             verbose=True,
         )
 
@@ -288,7 +281,6 @@ def test_timeout_exception(monkeypatch):
         'backend': {'name': 'aqt_simulator'},
     }
     token = "access"
-    shots = 1
     execution_id = '123e'
     tries = [0]
 
@@ -338,7 +330,6 @@ def test_timeout_exception(monkeypatch):
                 device="aqt_simulator",
                 token=tok,
                 num_retries=10,
-                shots=shots,
                 verbose=True,
             )
     assert "123e" in str(excinfo.value)  # check that job id is in exception

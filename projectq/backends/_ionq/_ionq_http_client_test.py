@@ -35,7 +35,7 @@ _api_url = 'https://api.ionq.co/v0.1/jobs/'
 
 def test_authenticate():
     ionq_session = _ionq_http_client.IonQ()
-    ionq_session._authenticate('NotNone')
+    ionq_session.authenticate('NotNone')
     assert 'Authorization' in ionq_session.headers
     assert ionq_session.token == 'NotNone'
     assert ionq_session.headers['Authorization'] == 'apiKey NotNone'
@@ -49,13 +49,13 @@ def test_authenticate_prompt_requires_token(monkeypatch):
     monkeypatch.setattr('getpass.getpass', user_password_input)
     ionq_session = _ionq_http_client.IonQ()
     with pytest.raises(RuntimeError) as excinfo:
-        ionq_session._authenticate()
+        ionq_session.authenticate()
     assert str(excinfo.value) == 'An authentication token is required!'
 
 
 def test_is_online():
     ionq_session = _ionq_http_client.IonQ()
-    ionq_session._authenticate('not none')
+    ionq_session.authenticate('not none')
     ionq_session.update_devices_list()
     assert ionq_session.is_online('ionq_simulator')
     assert ionq_session.is_online('ionq_qpu')

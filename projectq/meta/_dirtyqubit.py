@@ -17,7 +17,7 @@ Defines the DirtyQubitTag meta tag.
 """
 
 
-class DirtyQubitTag(object):
+class DirtyQubitTag:
     """
     Dirty qubit meta tag
     """

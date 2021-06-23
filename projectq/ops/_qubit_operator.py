@@ -13,6 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """QubitOperator stores a sum of Pauli operators acting on qubits."""
+
 import cmath
 import copy
 
@@ -44,7 +45,7 @@ _PAULI_OPERATOR_PRODUCTS = {
 
 
 class QubitOperatorError(Exception):
-    pass
+    """Exception raised when a QubitOperator is instantiated with some invalid data"""
 
 
 class QubitOperator(BasicGate):
@@ -55,63 +56,51 @@ class QubitOperator(BasicGate):
 
     coefficent * local_operator[0] x ... x local_operator[n-1]
 
-    where x is the tensor product. A local operator is a Pauli operator
-    ('I', 'X', 'Y', or 'Z') which acts on one qubit. In math notation a term
-    is, for example, 0.5 * 'X0 X5', which means that a Pauli X operator acts
-    on qubit 0 and 5, while the identity operator acts on all other qubits.
+    where x is the tensor product. A local operator is a Pauli operator ('I', 'X', 'Y', or 'Z') which acts on one
+    qubit. In math notation a term is, for example, 0.5 * 'X0 X5', which means that a Pauli X operator acts on qubit 0
+    and 5, while the identity operator acts on all other qubits.
 
-    A QubitOperator represents a sum of terms acting on qubits and overloads
-    operations for easy manipulation of these objects by the user.
+    A QubitOperator represents a sum of terms acting on qubits and overloads operations for easy manipulation of these
+    objects by the user.
 
-    Note for a QubitOperator to be a Hamiltonian which is a hermitian
-    operator, the coefficients of all terms must be real.
+    Note for a QubitOperator to be a Hamiltonian which is a hermitian operator, the coefficients of all terms must be
+    real.
 
     .. code-block:: python
 
         hamiltonian = 0.5 * QubitOperator('X0 X5') + 0.3 * QubitOperator('Z0')
 
-    Our Simulator takes a hermitian QubitOperator to directly calculate the
-    expectation value (see Simulator.get_expectation_value) of this observable.
+    Our Simulator takes a hermitian QubitOperator to directly calculate the expectation value (see
+    Simulator.get_expectation_value) of this observable.
 
-    A hermitian QubitOperator can also be used as input for the
-    TimeEvolution gate.
+    A hermitian QubitOperator can also be used as input for the TimeEvolution gate.
 
-    If the QubitOperator is unitary, i.e., it contains only one term with a
-    coefficient, whose absolute value is 1, then one can apply it directly to
-    qubits:
+    If the QubitOperator is unitary, i.e., it contains only one term with a coefficient, whose absolute value is 1,
+    then one can apply it directly to qubits:
 
     .. code-block:: python
 
         eng = projectq.MainEngine()
         qureg = eng.allocate_qureg(6)
-        QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
-                                             # with an additional global phase
-                                             # of 1.j
+        QubitOperator('X0 X5', 1.j) | qureg # Applies X to qubit 0 and 5 with an additional global phase of 1.j
 
 
     Attributes:
-        terms (dict): **key**: A term represented by a tuple containing all
-                      non-trivial local Pauli operators ('X', 'Y', or 'Z').
-                      A non-trivial local Pauli operator is specified by a
-                      tuple with the first element being an integer
-                      indicating the qubit on which a non-trivial local
-                      operator acts and the second element being a string,
-                      either 'X', 'Y', or 'Z', indicating which non-trivial
-                      Pauli operator acts on that qubit. Examples:
-                      ((1, 'X'),) or ((1, 'X'), (4,'Z')) or the identity ().
-                      The tuples representing the non-trivial local terms
-                      are sorted according to the qubit number they act on,
-                      starting from 0.
-                      **value**: Coefficient of this term as a (complex) float
+        terms (dict): **key**: A term represented by a tuple containing all non-trivial local Pauli operators ('X',
+                      'Y', or 'Z').  A non-trivial local Pauli operator is specified by a tuple with the first element
+                      being an integer indicating the qubit on which a non-trivial local operator acts and the second
+                      element being a string, either 'X', 'Y', or 'Z', indicating which non-trivial Pauli operator
+                      acts on that qubit. Examples: ((1, 'X'),) or ((1, 'X'), (4,'Z')) or the identity ().  The tuples
+                      representing the non-trivial local terms are sorted according to the qubit number they act on,
+                      starting from 0.  **value**: Coefficient of this term as a (complex) float
     """
 
-    def __init__(self, term=None, coefficient=1.0):
+    def __init__(self, term=None, coefficient=1.0):  # pylint: disable=too-many-branches
         """
         Inits a QubitOperator.
 
-        The init function only allows to initialize one term. Additional terms
-        have to be added using += (which is fast) or using + of two
-        QubitOperator objects:
+        The init function only allows to initialize one term. Additional terms have to be added using += (which is
+        fast) or using + of two QubitOperator objects:
 
         Example:
             .. code-block:: python
@@ -123,28 +112,22 @@ class QubitOperator(BasicGate):
                 ham2 += 0.6 * QubitOperator('X0 Y3')
 
         Note:
-            Adding terms to QubitOperator is faster using += (as this is done
-            by in-place addition). Specifying the coefficient in the __init__
-            is faster than by multiplying a QubitOperator with a scalar as
-            calls an out-of-place multiplication.
+            Adding terms to QubitOperator is faster using += (as this is done by in-place addition). Specifying the
+            coefficient in the __init__ is faster than by multiplying a QubitOperator with a scalar as calls an
+            out-of-place multiplication.
 
         Args:
-            coefficient (complex float, optional): The coefficient of the
-                first term of this QubitOperator. Default is 1.0.
+            coefficient (complex float, optional): The coefficient of the first term of this QubitOperator. Default is
+                1.0.
             term (optional, empy tuple, a tuple of tuples, or a string):
-                1) Default is None which means there are no terms in the
-                   QubitOperator hence it is the "zero" Operator
-                2) An empty tuple means there are no non-trivial Pauli
-                   operators acting on the qubits hence only identities
-                   with a coefficient (which by default is 1.0).
-                3) A sorted tuple of tuples. The first element of each tuple
-                   is an integer indicating the qubit on which a non-trivial
-                   local operator acts, starting from zero. The second element
-                   of each tuple is a string, either 'X', 'Y' or 'Z',
-                   indicating which local operator acts on that qubit.
-                4) A string of the form 'X0 Z2 Y5', indicating an X on
-                   qubit 0, Z on qubit 2, and Y on qubit 5. The string should
-                   be sorted by the qubit number. '' is the identity.
+                1) Default is None which means there are no terms in the QubitOperator hence it is the "zero" Operator
+                2) An empty tuple means there are no non-trivial Pauli operators acting on the qubits hence only
+                   identities with a coefficient (which by default is 1.0).
+                3) A sorted tuple of tuples. The first element of each tuple is an integer indicating the qubit on
+                   which a non-trivial local operator acts, starting from zero. The second element of each tuple is a
+                   string, either 'X', 'Y' or 'Z', indicating which local operator acts on that qubit.
+                4) A string of the form 'X0 Z2 Y5', indicating an X on qubit 0, Z on qubit 2, and Y on qubit 5. The
+                   string should be sorted by the qubit number. '' is the identity.
 
         Raises:
             QubitOperatorError: Invalid operators provided to QubitOperator.
@@ -155,7 +138,7 @@ class QubitOperator(BasicGate):
         self.terms = {}
         if term is None:
             return
-        elif isinstance(term, tuple):
+        if isinstance(term, tuple):
             if term == ():
                 self.terms[()] = coefficient
             else:
@@ -176,10 +159,10 @@ class QubitOperator(BasicGate):
                 self.terms[tuple(term)] = coefficient
         elif isinstance(term, str):
             list_ops = []
-            for el in term.split():
-                if len(el) < 2:
+            for element in term.split():
+                if len(element) < 2:
                     raise ValueError('term specified incorrectly.')
-                list_ops.append((int(el[1:]), el[0]))
+                list_ops.append((int(element[1:]), element[0]))
             # Test that list_ops has correct format of tuples
             for local_operator in list_ops:
                 qubit_num, action = local_operator
@@ -195,8 +178,8 @@ class QubitOperator(BasicGate):
 
     def compress(self, abs_tol=1e-12):
         """
-        Eliminates all terms with coefficients close to zero and removes
-        imaginary parts of coefficients that are close to zero.
+        Eliminates all terms with coefficients close to zero and removes imaginary parts of coefficients that are
+        close to zero.
 
         Args:
             abs_tol(float): Absolute tolerance, must be at least 0.0
@@ -214,11 +197,9 @@ class QubitOperator(BasicGate):
         """
         Returns True if other (QubitOperator) is close to self.
 
-        Comparison is done for each term individually. Return True
-        if the difference between each term in self and other is
-        less than the relative tolerance w.r.t. either other or self
-        (symmetric test) or if the difference is less than the absolute
-        tolerance.
+        Comparison is done for each term individually. Return True if the difference between each term in self and
+        other is less than the relative tolerance w.r.t. either other or self (symmetric test) or if the difference is
+        less than the absolute tolerance.
 
         Args:
             other(QubitOperator): QubitOperator to compare against.
@@ -227,10 +208,10 @@ class QubitOperator(BasicGate):
         """
         # terms which are in both:
         for term in set(self.terms).intersection(set(other.terms)):
-            a = self.terms[term]
-            b = other.terms[term]
+            left = self.terms[term]
+            right = other.terms[term]
             # math.isclose does this in Python >=3.5
-            if not abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol):
+            if not abs(left - right) <= max(rel_tol * max(abs(left), abs(right)), abs_tol):
                 return False
         # terms only in one (compare to 0.0 so only abs_tol)
         for term in set(self.terms).symmetric_difference(set(other.terms)):
@@ -241,7 +222,7 @@ class QubitOperator(BasicGate):
                 return False
         return True
 
-    def __or__(self, qubits):
+    def __or__(self, qubits):  # pylint: disable=too-many-locals
         """
         Operator| overload which enables the following syntax:
 
@@ -317,7 +298,7 @@ class QubitOperator(BasicGate):
         # Check that Qureg has enough qubits:
         num_qubits = len(qubits[0])
         non_trivial_qubits = set()
-        for index, action in term:
+        for index, _ in term:
             non_trivial_qubits.add(index)
         if max(non_trivial_qubits) >= num_qubits:
             raise ValueError("QubitOperator acts on more qubits than the gate is applied to.")
@@ -335,11 +316,10 @@ class QubitOperator(BasicGate):
         # 0,..., len(non_trivial_qubits) - 1
         new_index = dict()
         non_trivial_qubits = sorted(list(non_trivial_qubits))
-        for i in range(len(non_trivial_qubits)):
-            new_index[non_trivial_qubits[i]] = i
+        for i, qubit in enumerate(non_trivial_qubits):
+            new_index[qubit] = i
         new_qubitoperator = QubitOperator()
-        assert len(new_qubitoperator.terms) == 0
-        new_term = tuple([(new_index[index], action) for index, action in term])
+        new_term = tuple((new_index[index], action) for index, action in term)
         new_qubitoperator.terms[new_term] = coefficient
         new_qubits = [qubits[0][i] for i in non_trivial_qubits]
         # Apply new gate
@@ -373,10 +353,9 @@ class QubitOperator(BasicGate):
         """
         if isinstance(other, self.__class__) and len(other.terms) == 1 and len(self.terms) == 1:
             return self * other
-        else:
-            raise NotMergeable()
+        raise NotMergeable()
 
-    def __imul__(self, multiplier):
+    def __imul__(self, multiplier):  # pylint: disable=too-many-locals,too-many-branches
         """
         In-place multiply (*=) terms with scalar or QubitOperator.
 
@@ -390,7 +369,7 @@ class QubitOperator(BasicGate):
             return self
 
         # Handle QubitOperator.
-        elif isinstance(multiplier, QubitOperator):
+        if isinstance(multiplier, QubitOperator):  # pylint: disable=too-many-nested-blocks
             result_terms = dict()
             for left_term in self.terms:
                 for right_term in multiplier.terms:
@@ -442,8 +421,7 @@ class QubitOperator(BasicGate):
                         result_terms[tmp_key] = new_coefficient
             self.terms = result_terms
             return self
-        else:
-            raise TypeError('Cannot in-place multiply term of invalid type ' + 'to QubitTerm.')
+        raise TypeError('Cannot in-place multiply term of invalid type ' + 'to QubitTerm.')
 
     def __mul__(self, multiplier):
         """
@@ -458,12 +436,11 @@ class QubitOperator(BasicGate):
         Raises:
             TypeError: Invalid type cannot be multiply with QubitOperator.
         """
-        if isinstance(multiplier, (int, float, complex)) or isinstance(multiplier, QubitOperator):
+        if isinstance(multiplier, (int, float, complex, QubitOperator)):
             product = copy.deepcopy(self)
             product *= multiplier
             return product
-        else:
-            raise TypeError('Object of invalid type cannot multiply with QubitOperator.')
+        raise TypeError('Object of invalid type cannot multiply with QubitOperator.')
 
     def __rmul__(self, multiplier):
         """
@@ -587,9 +564,10 @@ class QubitOperator(BasicGate):
                     tmp_string += ' X{}'.format(operator[0])
                 elif operator[1] == 'Y':
                     tmp_string += ' Y{}'.format(operator[0])
-                else:
-                    assert operator[1] == 'Z'
+                elif operator[1] == 'Z':
                     tmp_string += ' Z{}'.format(operator[0])
+                else:  # pragma: no cover
+                    raise ValueError('Internal compiler error: operator must be one of X, Y, Z!')
             string_rep += '{} +\n'.format(tmp_string)
         return string_rep[:-3]
 

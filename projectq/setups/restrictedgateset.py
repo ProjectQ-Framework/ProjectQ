@@ -35,48 +35,22 @@ from projectq.cengines import (
 )
 from projectq.ops import (
     BasicGate,
-    BasicMathGate,
     ClassicalInstructionGate,
     CNOT,
     ControlledGate,
-    get_inverse,
-    QFT,
-    Swap,
 )
 
+from ._utils import one_and_two_qubit_gates, high_level_gates
 
-def high_level_gates(eng, cmd):
+
+def default_chooser(cmd, decomposition_list):  # pylint: disable=unused-argument
     """
-    Remove any MathGates.
+    Default chooser function for the AutoReplacer compiler engine.
     """
-    g = cmd.gate
-    if eng.next_engine.is_available(cmd):
-        return True
-    elif g == QFT or get_inverse(g) == QFT or g == Swap:
-        return True
-    elif isinstance(g, BasicMathGate):
-        return False
-    return True
-
-
-def one_and_two_qubit_gates(eng, cmd):
-    all_qubits = [q for qr in cmd.all_qubits for q in qr]
-    if isinstance(cmd.gate, ClassicalInstructionGate):
-        # This is required to allow Measure, Allocate, Deallocate, Flush
-        return True
-    elif eng.next_engine.is_available(cmd):
-        return True
-    elif len(all_qubits) <= 2:
-        return True
-    else:
-        return False
-
-
-def default_chooser(cmd, decomposition_list):
     return decomposition_list[0]
 
 
-def get_engine_list(
+def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
     one_qubit_gates="any",
     two_qubit_gates=(CNOT,),
     other_gates=(),
@@ -164,11 +138,12 @@ def get_engine_list(
             if inspect.isclass(gate):
                 #  Controlled gate classes don't yet exists and would require
                 #  separate treatment
-                assert not isinstance(gate, ControlledGate)
+                if isinstance(gate, ControlledGate):  # pragma: no cover
+                    raise RuntimeError('Support for controlled gate not implemented!')
                 allowed_gate_classes2.append(gate)
             elif isinstance(gate, BasicGate):
                 if isinstance(gate, ControlledGate):
-                    allowed_gate_instances2.append((gate._gate, gate._n))
+                    allowed_gate_instances2.append((gate._gate, gate._n))  # pylint: disable=protected-access
                 else:
                     allowed_gate_instances2.append((gate, 0))
             else:
@@ -177,11 +152,12 @@ def get_engine_list(
         if inspect.isclass(gate):
             #  Controlled gate classes don't yet exists and would require
             #  separate treatment
-            assert not isinstance(gate, ControlledGate)
+            if isinstance(gate, ControlledGate):  # pragma: no cover
+                raise RuntimeError('Support for controlled gate not implemented!')
             allowed_gate_classes.append(gate)
         elif isinstance(gate, BasicGate):
             if isinstance(gate, ControlledGate):
-                allowed_gate_instances.append((gate._gate, gate._n))
+                allowed_gate_instances.append((gate._gate, gate._n))  # pylint: disable=protected-access
             else:
                 allowed_gate_instances.append((gate, 0))
         else:
@@ -193,26 +169,26 @@ def get_engine_list(
     allowed_gate_classes2 = tuple(allowed_gate_classes2)
     allowed_gate_instances2 = tuple(allowed_gate_instances2)
 
-    def low_level_gates(eng, cmd):
+    def low_level_gates(eng, cmd):  # pylint: disable=unused-argument,too-many-return-statements
         all_qubits = [q for qr in cmd.all_qubits for q in qr]
         if isinstance(cmd.gate, ClassicalInstructionGate):
             # This is required to allow Measure, Allocate, Deallocate, Flush
             return True
-        elif one_qubit_gates == "any" and len(all_qubits) == 1:
+        if one_qubit_gates == "any" and len(all_qubits) == 1:
             return True
-        elif two_qubit_gates == "any" and len(all_qubits) == 2:
+        if two_qubit_gates == "any" and len(all_qubits) == 2:
             return True
-        elif isinstance(cmd.gate, allowed_gate_classes):
+        if isinstance(cmd.gate, allowed_gate_classes):
             return True
-        elif (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances:
+        if (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances:
             return True
-        elif isinstance(cmd.gate, allowed_gate_classes1) and len(all_qubits) == 1:
+        if isinstance(cmd.gate, allowed_gate_classes1) and len(all_qubits) == 1:
             return True
-        elif isinstance(cmd.gate, allowed_gate_classes2) and len(all_qubits) == 2:
+        if isinstance(cmd.gate, allowed_gate_classes2) and len(all_qubits) == 2:
             return True
-        elif cmd.gate in allowed_gate_instances1 and len(all_qubits) == 1:
+        if cmd.gate in allowed_gate_instances1 and len(all_qubits) == 1:
             return True
-        elif (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2 and len(all_qubits) == 2:
+        if (cmd.gate, len(cmd.control_qubits)) in allowed_gate_instances2 and len(all_qubits) == 2:
             return True
         return False
 

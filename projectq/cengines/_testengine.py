@@ -15,25 +15,34 @@
 """TestEngine and DummyEngine."""
 
 from copy import deepcopy
-from projectq.cengines import BasicEngine
 from projectq.ops import FlushGate
+
+from ._basics import BasicEngine
+
+
+def _compare_cmds(cmd1, cmd2):
+    """Compare two command objects"""
+    cmd2 = deepcopy(cmd2)
+    cmd2.engine = cmd1.engine
+    return cmd1 == cmd2
 
 
 class CompareEngine(BasicEngine):
     """
-    CompareEngine is an engine which saves all commands. It is only intended
-    for testing purposes. Two CompareEngine backends can be compared and
-    return True if they contain the same commmands.
+    CompareEngine is an engine which saves all commands. It is only intended for testing purposes. Two CompareEngine
+    backends can be compared and return True if they contain the same commmands.
     """
 
     def __init__(self):
-        BasicEngine.__init__(self)
+        super().__init__()
         self._l = [[]]
 
     def is_available(self, cmd):
+        """All commands are accepted by this compiler engine"""
         return True
 
     def cache_cmd(self, cmd):
+        """Cache a command"""
         # are there qubit ids that haven't been added to the list?
         all_qubit_id_list = [qubit.id for qureg in cmd.all_qubits for qubit in qureg]
         maxidx = int(0)
@@ -43,7 +52,7 @@ class CompareEngine(BasicEngine):
         # if so, increase size of list to account for these qubits
         add = maxidx + 1 - len(self._l)
         if add > 0:
-            for i in range(add):
+            for _ in range(add):
                 self._l += [[]]
 
         # add gate command to each of the qubits involved
@@ -51,16 +60,18 @@ class CompareEngine(BasicEngine):
             self._l[qubit_id] += [cmd]
 
     def receive(self, command_list):
+        """
+        Receives a command list and, for each command, stores it inside the cache before sending it to the next
+        compiler engine.
+
+        Args:
+            command_list (list of Command objects): list of commands to receive.
+        """
         for cmd in command_list:
             if not cmd.gate == FlushGate():
                 self.cache_cmd(cmd)
         if not self.is_last_engine:
             self.send(command_list)
-
-    def compare_cmds(self, c1, c2):
-        c2 = deepcopy(c2)
-        c2.engine = c1.engine
-        return c1 == c2
 
     def __eq__(self, other):
         if not isinstance(other, CompareEngine) or len(self._l) != len(other._l):
@@ -69,7 +80,7 @@ class CompareEngine(BasicEngine):
             if len(self._l[i]) != len(other._l[i]):
                 return False
             for j in range(len(self._l[i])):
-                if not self.compare_cmds(self._l[i][j], other._l[i][j]):
+                if not _compare_cmds(self._l[i][j], other._l[i][j]):
                     return False
         return True
 
@@ -90,11 +101,10 @@ class DummyEngine(BasicEngine):
     """
     DummyEngine used for testing.
 
-    The DummyEngine forwards all commands directly to next engine.
-    If self.is_last_engine == True it just discards all gates.
-    By setting save_commands == True all commands get saved as a
-    list in self.received_commands. Elements are appended to this
-    list so they are ordered according to when they are received.
+    The DummyEngine forwards all commands directly to next engine.  If self.is_last_engine == True it just discards
+    all gates.
+    By setting save_commands == True all commands get saved as a list in self.received_commands. Elements are appended
+    to this list so they are ordered according to when they are received.
     """
 
     def __init__(self, save_commands=False):
@@ -105,17 +115,23 @@ class DummyEngine(BasicEngine):
             save_commands (default = False): If True, commands are saved in
                                              self.received_commands.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.save_commands = save_commands
         self.received_commands = []
 
     def is_available(self, cmd):
+        """All commands are accepted by this compiler engine"""
         return True
 
     def receive(self, command_list):
+        """
+        Receives a command list and, for each command, stores it internally if requested before sending it to the next
+        compiler engine.
+
+        Args:
+            command_list (list of Command objects): list of commands to receive.
+        """
         if self.save_commands:
             self.received_commands.extend(command_list)
         if not self.is_last_engine:
             self.send(command_list)
-        else:
-            pass

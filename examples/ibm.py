@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
+
 import matplotlib.pyplot as plt
 import getpass
 

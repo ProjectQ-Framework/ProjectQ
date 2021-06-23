@@ -59,31 +59,31 @@ from ._quantummath import (
 
 def _replace_addconstant(cmd):
     eng = cmd.engine
-    c = cmd.gate.a
+    const = cmd.gate.a
     quint = cmd.qubits[0]
 
     with Control(eng, cmd.control_qubits):
-        add_constant(eng, c, quint)
+        add_constant(eng, const, quint)
 
 
-def _replace_addconstmodN(cmd):
+def _replace_addconstmodN(cmd):  # pylint: disable=invalid-name
     eng = cmd.engine
-    c = cmd.gate.a
+    const = cmd.gate.a
     N = cmd.gate.N
     quint = cmd.qubits[0]
 
     with Control(eng, cmd.control_qubits):
-        add_constant_modN(eng, c, N, quint)
+        add_constant_modN(eng, const, N, quint)
 
 
-def _replace_multiplybyconstantmodN(cmd):
+def _replace_multiplybyconstantmodN(cmd):  # pylint: disable=invalid-name
     eng = cmd.engine
-    c = cmd.gate.a
+    const = cmd.gate.a
     N = cmd.gate.N
     quint = cmd.qubits[0]
 
     with Control(eng, cmd.control_qubits):
-        mul_by_constant_modN(eng, c, N, quint)
+        mul_by_constant_modN(eng, const, N, quint)
 
 
 def _replace_addquantum(cmd):
@@ -92,17 +92,17 @@ def _replace_addquantum(cmd):
         quint_a = cmd.qubits[0]
         quint_b = cmd.qubits[1]
         if len(cmd.qubits) == 3:
-            c = cmd.qubits[2]
-            add_quantum(eng, quint_a, quint_b, c)
+            carry = cmd.qubits[2]
+            add_quantum(eng, quint_a, quint_b, carry)
         else:
             add_quantum(eng, quint_a, quint_b)
     else:
         quint_a = cmd.qubits[0]
         quint_b = cmd.qubits[1]
         if len(cmd.qubits) == 3:
-            c = cmd.qubits[2]
+            carry = cmd.qubits[2]
             with Control(eng, cmd.control_qubits):
-                quantum_conditional_add_carry(eng, quint_a, quint_b, cmd.control_qubits, c)
+                quantum_conditional_add_carry(eng, quint_a, quint_b, cmd.control_qubits, carry)
         else:
             with Control(eng, cmd.control_qubits):
                 quantum_conditional_add(eng, quint_a, quint_b, cmd.control_qubits)
@@ -126,10 +126,10 @@ def _replace_comparator(cmd):
     eng = cmd.engine
     quint_a = cmd.qubits[0]
     quint_b = cmd.qubits[1]
-    c = cmd.qubits[2]
+    carry = cmd.qubits[2]
 
     with Control(eng, cmd.control_qubits):
-        comparator(eng, quint_a, quint_b, c)
+        comparator(eng, quint_a, quint_b, carry)
 
 
 def _replace_quantumdivision(cmd):

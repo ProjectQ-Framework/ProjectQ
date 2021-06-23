@@ -29,7 +29,7 @@ from projectq.ops import H, R, QFT
 from projectq.meta import Control
 
 
-def _decompose_QFT(cmd):
+def _decompose_QFT(cmd):  # pylint: disable=invalid-name
     qb = cmd.qubits[0]
     eng = cmd.engine
     with Control(eng, cmd.control_qubits):

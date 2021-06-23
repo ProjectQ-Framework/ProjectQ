@@ -29,6 +29,14 @@ from projectq.types import WeakQubitRef
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 
 
+def test_invalid_arguments():
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    cmd = Command(None, StatePreparation([0, 1j]), qubits=([qb0], [qb1]))
+    with pytest.raises(ValueError):
+        stateprep2cnot._decompose_state_preparation(cmd)
+
+
 def test_wrong_final_state():
     qb0 = WeakQubitRef(engine=None, idx=0)
     qb1 = WeakQubitRef(engine=None, idx=1)

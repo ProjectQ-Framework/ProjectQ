@@ -36,8 +36,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-from __future__ import print_function
-from setuptools import setup, Extension
+"""Setup.py file"""
+
 import distutils.log
 from distutils.cmd import Command
 from distutils.spawn import find_executable, spawn
@@ -48,34 +48,39 @@ from distutils.errors import (
     DistutilsExecError,
     DistutilsPlatformError,
 )
+import os
+import platform
+import subprocess
+import sys
+import tempfile
+
+from setuptools import setup, Extension
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_ext import build_ext
-import sys
-import os
-import subprocess
-import platform
 
 # ==============================================================================
 # Helper functions and classes
 
 
-class get_pybind_include(object):
-    """Helper class to determine the pybind11 include path
-
-    The purpose of this class is to postpone importing pybind11
-    until it is actually installed, so that the ``get_include()``
-    method can be invoked."""
+class Pybind11Include:  # pylint: disable=too-few-public-methods
+    """
+    Helper class to determine the pybind11 include path The purpose of this class is to postpone importing pybind11
+    until it is actually installed, so that the ``get_include()`` method can be invoked.
+    """
 
     def __init__(self, user=False):
         self.user = user
 
     def __str__(self):
-        import pybind11
+        import pybind11  # pylint: disable=import-outside-toplevel
 
         return pybind11.get_include(self.user)
 
 
 def important_msgs(*msgs):
+    """
+    Print an important message.
+    """
     print('*' * 75)
     for msg in msgs:
         print(msg)
@@ -83,22 +88,27 @@ def important_msgs(*msgs):
 
 
 def status_msgs(*msgs):
+    """
+    Print a status message.
+    """
     print('-' * 75)
     for msg in msgs:
         print('# INFO: ', msg)
     print('-' * 75)
 
 
-def compiler_test(compiler, flagname=None, link=False, include='', body='', postargs=None):
+def compiler_test(
+    compiler, flagname=None, link=False, include='', body='', postargs=None
+):  # pylint: disable=too-many-arguments
     """
     Return a boolean indicating whether a flag name is supported on the
     specified compiler.
     """
-    import tempfile
 
-    f = tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False)
-    f.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
-    f.close()
+    fname = None
+    with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
+        temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
+        fname = temp.name
     ret = True
 
     if postargs is None:
@@ -111,10 +121,10 @@ def compiler_test(compiler, flagname=None, link=False, include='', body='', post
 
         if compiler.compiler_type == 'msvc':
             olderr = os.dup(sys.stderr.fileno())
-            err = open('err.txt', 'w')
+            err = open('err.txt', 'w')  # pylint: disable=consider-using-with
             os.dup2(err.fileno(), sys.stderr.fileno())
 
-        obj_file = compiler.compile([f.name], extra_postargs=postargs)
+        obj_file = compiler.compile([fname], extra_postargs=postargs)
         if not os.path.exists(obj_file[0]):
             raise RuntimeError('')
         if link:
@@ -128,37 +138,39 @@ def compiler_test(compiler, flagname=None, link=False, include='', body='', post
                     raise RuntimeError('')
     except (CompileError, LinkError, RuntimeError):
         ret = False
-    os.unlink(f.name)
+    os.unlink(fname)
     return ret
 
 
 def _fix_macosx_header_paths(*args):
     # Fix path to SDK headers if necessary
-    _MACOSX_XCODE_REF_PATH = '/Applications/Xcode.app/Contents/' + 'Developer/Platforms/MacOSX.platform/' + 'Developer'
-    _MACOSX_DEVTOOLS_REF_PATH = '/Library/Developer/CommandLineTools/'
+    _MACOSX_XCODE_REF_PATH = (  # pylint: disable=invalid-name
+        '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer'
+    )
+    _MACOSX_DEVTOOLS_REF_PATH = '/Library/Developer/CommandLineTools/'  # pylint: disable=invalid-name
     _has_xcode = os.path.exists(_MACOSX_XCODE_REF_PATH)
     _has_devtools = os.path.exists(_MACOSX_DEVTOOLS_REF_PATH)
     if not _has_xcode and not _has_devtools:
         important_msgs('ERROR: Must install either Xcode or CommandLineTools!')
         raise BuildFailed()
 
-    def _do_replace(idx, item):
-        if not _has_xcode and _MACOSX_XCODE_REF_PATH in item:
-            compiler_args[idx] = item.replace(_MACOSX_XCODE_REF_PATH, _MACOSX_DEVTOOLS_REF_PATH)
-
-        if not _has_devtools and _MACOSX_DEVTOOLS_REF_PATH in item:
-            compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH, _MACOSX_XCODE_REF_PATH)
-
     for compiler_args in args:
         for idx, item in enumerate(compiler_args):
-            _do_replace(idx, item)
+            if not _has_xcode and _MACOSX_XCODE_REF_PATH in item:
+                compiler_args[idx] = item.replace(_MACOSX_XCODE_REF_PATH, _MACOSX_DEVTOOLS_REF_PATH)
+
+            if not _has_devtools and _MACOSX_DEVTOOLS_REF_PATH in item:
+                compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH, _MACOSX_XCODE_REF_PATH)
 
 
 # ------------------------------------------------------------------------------
 
 
 class BuildFailed(Exception):
+    """Extension raised if the build fails for any reason"""
+
     def __init__(self):
+        super().__init__()
         self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
 
 
@@ -181,8 +193,8 @@ ext_modules = [
         ['projectq/backends/_sim/_cppsim.cpp'],
         include_dirs=[
             # Path to pybind11 headers
-            get_pybind_include(),
-            get_pybind_include(user=True),
+            Pybind11Include(),
+            Pybind11Include(user=True),
         ],
         language='c++',
     ),
@@ -203,7 +215,7 @@ class BuildExt(build_ext):
         (
             'gen-compiledb',
             None,
-            'Generate a compile_commands.json alongside the compilation ' 'implies (-n/--dry-run)',
+            'Generate a compile_commands.json alongside the compilation implies (-n/--dry-run)',
         ),
     ]
 
@@ -216,13 +228,13 @@ class BuildExt(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
         if self.gen_compiledb:
-            self.dry_run = True
+            self.dry_run = True  # pylint: disable=attribute-defined-outside-init
 
     def run(self):
         try:
             build_ext.run(self)
-        except DistutilsPlatformError:
-            raise BuildFailed()
+        except DistutilsPlatformError as err:
+            raise BuildFailed() from err
 
     def build_extensions(self):
         self._configure_compiler()
@@ -244,26 +256,27 @@ class BuildExt(build_ext):
                         }
                     )
 
-            import json
+            import json  # pylint: disable=import-outside-toplevel
 
             with open(
                 os.path.join(os.path.dirname(os.path.abspath(__file__)), 'compile_commands.json'),
                 'w',
-            ) as fd:
-                json.dump(compile_commands, fd, sort_keys=True, indent=4)
+            ) as json_file:
+                json.dump(compile_commands, json_file, sort_keys=True, indent=4)
 
         try:
             build_ext.build_extensions(self)
-        except ext_errors:
-            raise BuildFailed()
-        except ValueError:
+        except ext_errors as err:
+            raise BuildFailed() from err
+        except ValueError as err:
             # this can happen on Windows 64 bit, see Python issue 7511
             if "'path'" in str(sys.exc_info()[1]):  # works with both py 2/3
-                raise BuildFailed()
+                raise BuildFailed() from err
             raise
 
     def _get_compilation_commands(self, ext):
-        (macros, objects, extra_postargs, pp_opts, build,) = self.compiler._setup_compile(
+        # pylint: disable=protected-access
+        (_, objects, extra_postargs, pp_opts, build,) = self.compiler._setup_compile(
             outdir=self.build_temp,
             sources=ext.sources,
             macros=ext.define_macros,
@@ -294,6 +307,8 @@ class BuildExt(build_ext):
         return commands
 
     def _configure_compiler(self):
+        # pylint: disable=attribute-defined-outside-init
+
         # Force dry_run = False to allow for compiler feature testing
         dry_run_old = self.compiler.dry_run
         self.compiler.dry_run = False
@@ -311,8 +326,8 @@ class BuildExt(build_ext):
             if compiler_test(self.compiler, '-stdlib=libc++'):
                 self.c_opts['unix'] += ['-stdlib=libc++']
 
-        ct = self.compiler.compiler_type
-        self.opts = self.c_opts.get(ct, [])
+        compiler_type = self.compiler.compiler_type
+        self.opts = self.c_opts.get(compiler_type, [])
         self.link_opts = []
 
         if not compiler_test(self.compiler):
@@ -335,7 +350,7 @@ class BuildExt(build_ext):
 
         status_msgs('Other compiler tests')
         self.compiler.define_macro('VERSION_INFO', '"{}"'.format(self.distribution.get_version()))
-        if ct == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
+        if compiler_type == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
             self.opts.append('-fvisibility=hidden')
 
         self.compiler.dry_run = dry_run_old
@@ -503,10 +518,9 @@ class ClangTidy(Command):
         try:
             cmd_obj.run()
             self.distribution.have_run[command] = 1
-            assert self.distribution.ext_modules
-        except BuildFailed:
+        except BuildFailed as err:
             distutils.log.error('build_ext --dry-run --gen-compiledb command failed!')
-            raise RuntimeError('build_ext --dry-run --gen-compiledb command failed!')
+            raise RuntimeError('build_ext --dry-run --gen-compiledb command failed!') from err
 
         command = ['clang-tidy']
         if self.warning_as_errors:
@@ -523,40 +537,52 @@ class GenerateRequirementFile(Command):
     """A custom command to list the dependencies of the current"""
 
     description = 'List the dependencies of the current package'
-    user_options = [('include-extras', None, 'Include "extras_require" into the list')]
-    boolean_options = ['include-extras']
+    user_options = [
+        ('include-all-extras', None, 'Include all "extras_require" into the list'),
+        ('include-extras=', None, 'Include some of extras_requires into the list (comma separated)'),
+    ]
+
+    boolean_options = ['include-all-extras']
 
     def initialize_options(self):
         self.include_extras = None
+        self.include_all_extras = None
+        self.extra_pkgs = []
 
     def finalize_options(self):
-        pass
+        include_extras = self.include_extras.split(',')
+
+        try:
+            for name, pkgs in self.distribution.extras_require.items():
+                if self.include_all_extras or name in include_extras:
+                    self.extra_pkgs.extend(pkgs)
+
+        except TypeError:  # Mostly for old setuptools (< 30.x)
+            for name, pkgs in self.distribution.command_options['options.extras_require'].items():
+                if self.include_all_extras or name in include_extras:
+                    self.extra_pkgs.extend(pkgs)
 
     def run(self):
-        with open('requirements.txt', 'w') as fd:
+        with open('requirements.txt', 'w') as req_file:
             try:
                 for pkg in self.distribution.install_requires:
-                    fd.write('{}\n'.format(pkg))
-                if self.include_extras:
-                    for name, pkgs in self.distribution.extras_require.items():
-                        for pkg in pkgs:
-                            fd.write('{}\n'.format(pkg))
-
+                    req_file.write('{}\n'.format(pkg))
             except TypeError:  # Mostly for old setuptools (< 30.x)
                 for pkg in self.distribution.command_options['options']['install_requires']:
-                    fd.write('{}\n'.format(pkg))
-                if self.include_extras:
-                    for name, pkgs in self.distribution.command_options['options.extras_require'].items():
-                        location, pkgs = pkgs
-                        for pkg in pkgs.split():
-                            fd.write('{}\n'.format(pkg))
+                    req_file.write('{}\n'.format(pkg))
+            req_file.write('\n')
+            for pkg in self.extra_pkgs:
+                req_file.write('{}\n'.format(pkg))
 
 
 # ------------------------------------------------------------------------------
 
 
 class Distribution(_Distribution):
-    def has_ext_modules(self):
+    """Distribution class"""
+
+    def has_ext_modules(self):  # pylint: disable=no-self-use
+        """Return whether this distribution has some external modules"""
         # We want to always claim that we have ext_modules. This will be fine
         # if we don't actually have them (such as on PyPy) because nothing
         # will get built, however we don't want to provide an overally broad
@@ -570,6 +596,7 @@ class Distribution(_Distribution):
 
 
 def run_setup(with_cext):
+    """Run the setup() function"""
     kwargs = {}
     if with_cext:
         kwargs['ext_modules'] = ext_modules

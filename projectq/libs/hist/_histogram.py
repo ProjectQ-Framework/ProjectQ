@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Functions to plot a histogram of measured data"""
+
 from __future__ import print_function
 import matplotlib.pyplot as plt
 
@@ -39,11 +41,11 @@ def histogram(backend, qureg):
         Don't forget to call eng.flush() before using this function.
     """
     qubit_list = []
-    for q in qureg:
-        if isinstance(q, list):
-            qubit_list.extend(q)
+    for qb in qureg:
+        if isinstance(qb, list):
+            qubit_list.extend(qb)
         else:
-            qubit_list.append(q)
+            qubit_list.append(qb)
 
     if len(qubit_list) > 5:
         print('Warning: For {0} qubits there are 2^{0} different outcomes'.format(len(qubit_list)))

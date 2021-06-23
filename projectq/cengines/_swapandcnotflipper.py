@@ -19,9 +19,11 @@ necessary.
 """
 from copy import deepcopy
 
-from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
 from projectq.meta import get_control_count
 from projectq.ops import All, NOT, CNOT, H, Swap
+
+from ._basics import BasicEngine, ForwarderEngine
+from ._cmdmodifier import CommandModifier
 
 
 class SwapAndCNOTFlipper(BasicEngine):
@@ -46,7 +48,7 @@ class SwapAndCNOTFlipper(BasicEngine):
                 the physical ids (c, t) with c being the control and t being
                 the target qubit.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.connectivity = connectivity
 
     def is_available(self, cmd):
@@ -59,7 +61,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return self._is_swap(cmd) or self.next_engine.is_available(cmd)
 
-    def _is_cnot(self, cmd):
+    def _is_cnot(self, cmd):  # pylint: disable=no-self-use
         """
         Check if the command corresponds to a CNOT (controlled NOT gate).
 
@@ -68,7 +70,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1
 
-    def _is_swap(self, cmd):
+    def _is_swap(self, cmd):  # pylint: disable=no-self-use
         """
         Check if the command corresponds to a Swap gate.
 
@@ -133,7 +135,8 @@ class SwapAndCNOTFlipper(BasicEngine):
             elif self._is_swap(cmd):
                 qubits = [qb for qr in cmd.qubits for qb in qr]
                 ids = [qb.id for qb in qubits]
-                assert len(ids) == 2
+                if len(ids) != 2:
+                    raise RuntimeError('Swap gate is a 2-qubit gate!')
                 if tuple(ids) in self.connectivity:
                     control = [qubits[0]]
                     target = [qubits[1]]

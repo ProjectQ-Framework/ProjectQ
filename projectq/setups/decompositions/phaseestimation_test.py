@@ -17,6 +17,7 @@
 
 import cmath
 import numpy as np
+from flaky import flaky
 import pytest
 
 from projectq.backends import Simulator
@@ -34,6 +35,7 @@ import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
 
+@flaky(max_runs=5, min_passes=2)
 def test_simple_test_X_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(
@@ -43,7 +45,7 @@ def test_simple_test_X_eigenvectors():
         ],
     )
     results = np.array([])
-    for i in range(100):
+    for i in range(150):
         autovector = eng.allocate_qureg(1)
         X | autovector
         H | autovector
@@ -66,6 +68,7 @@ def test_simple_test_X_eigenvectors():
     )
 
 
+@flaky(max_runs=5, min_passes=2)
 def test_Ph_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(
@@ -75,7 +78,7 @@ def test_Ph_eigenvectors():
         ],
     )
     results = np.array([])
-    for i in range(100):
+    for i in range(150):
         autovector = eng.allocate_qureg(1)
         theta = cmath.pi * 2.0 * 0.125
         unit = Ph(theta)
@@ -103,6 +106,7 @@ def two_qubit_gate(system_q, time):
     CNOT | (system_q[0], system_q[1])
 
 
+@flaky(max_runs=5, min_passes=2)
 def test_2qubitsPh_andfunction_eigenvectors():
     rule_set = DecompositionRuleSet(modules=[pe, dqft])
     eng = MainEngine(
@@ -112,7 +116,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         ],
     )
     results = np.array([])
-    for i in range(100):
+    for i in range(150):
         autovector = eng.allocate_qureg(2)
         X | autovector[0]
         ancillas = eng.allocate_qureg(3)

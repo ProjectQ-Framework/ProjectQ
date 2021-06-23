@@ -24,8 +24,8 @@ from projectq.cengines import (
     DummyEngine,
     InstructionFilter,
 )
-
-from projectq.ops import All, Measure, SqrtSwap
+from projectq.ops import All, Measure, SqrtSwap, Command
+from projectq.types import WeakQubitRef
 
 import projectq.setups.decompositions.sqrtswap2cnot as sqrtswap2cnot
 
@@ -34,6 +34,18 @@ def _decomp_gates(eng, cmd):
     if isinstance(cmd.gate, SqrtSwap.__class__):
         return False
     return True
+
+
+def test_sqrtswap_invalid():
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    with pytest.raises(ValueError):
+        sqrtswap2cnot._decompose_sqrtswap(Command(None, SqrtSwap, ([qb0], [qb1], [qb2])))
+
+    with pytest.raises(ValueError):
+        sqrtswap2cnot._decompose_sqrtswap(Command(None, SqrtSwap, ([qb0], [qb1, qb2])))
 
 
 def test_sqrtswap():

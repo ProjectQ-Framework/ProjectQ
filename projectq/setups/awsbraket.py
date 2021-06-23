@@ -45,6 +45,9 @@ from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 
 
 def get_engine_list(credentials=None, device=None):
+    """
+    Return the default list of compiler engine for the AWS Braket platform.
+    """
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -81,7 +84,8 @@ def get_engine_list(credentials=None, device=None):
             other_gates=(Barrier,),
         )
         return setup
+    raise RuntimeError('Unsupported device type: {}!'.format(device))  # pragma: no cover
 
 
 class DeviceOfflineError(Exception):
-    pass
+    """Exception raised if a selected device is currently offline"""

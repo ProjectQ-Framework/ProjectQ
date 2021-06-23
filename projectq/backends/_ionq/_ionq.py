@@ -81,7 +81,7 @@ def _rearrange_result(input_result, length):
     return ''.join(bin_input)[::-1]
 
 
-class IonQBackend(BasicEngine):
+class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """Backend for building circuits and submitting them to the IonQ API."""
 
     def __init__(
@@ -94,7 +94,7 @@ class IonQBackend(BasicEngine):
         num_retries=3000,
         interval=1,
         retrieve_execution=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """Constructor for the IonQBackend.
 
         Args:
@@ -196,7 +196,6 @@ class IonQBackend(BasicEngine):
 
         # Create a measurement.
         if gate == Measure:
-            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             logical_id = cmd.qubits[0][0].id
             for tag in cmd.tags:
                 if isinstance(tag, LogicalQubitIDTag):
@@ -211,7 +210,7 @@ class IonQBackend(BasicEngine):
         gate_name = GATE_MAP.get(gate_type)
         # Daggered gates get special treatment.
         if isinstance(gate, DaggeredGate):
-            gate_name = GATE_MAP[type(gate._gate)] + 'i'
+            gate_name = GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
 
         # Unable to determine a gate mapping here, so raise out.
         if gate_name is None:
@@ -301,7 +300,7 @@ class IonQBackend(BasicEngine):
             probability_dict[mapped_state] = probability_dict.get(mapped_state, 0) + probability
         return probability_dict
 
-    def _run(self):
+    def _run(self):  # pylint: disable=too-many-locals
         """Run the circuit this object has built during engine execution."""
         # Nothing to do with an empty circuit.
         if len(self._circuit) == 0:
@@ -341,7 +340,7 @@ class IonQBackend(BasicEngine):
             self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.
-        P = random.random()
+        random_outcome = random.random()
         p_sum = 0.0
         measured = ""
         star = ""
@@ -353,7 +352,7 @@ class IonQBackend(BasicEngine):
             state = _rearrange_result(int(state_int), num_measured)
             probability = probable_outcomes[state_int]
             p_sum += probability
-            if p_sum >= P and measured == "" or (idx == len(states) - 1):
+            if p_sum >= random_outcome and measured == "" or (idx == len(states) - 1):
                 measured = state
                 star = "*"
             self._probabilities[state] = probability

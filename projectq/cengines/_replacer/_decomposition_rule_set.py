@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing the definition of a decomposition rule set"""
+
 from projectq.meta import Dagger
 
 
@@ -40,6 +42,9 @@ class DecompositionRuleSet:
             )
 
     def add_decomposition_rules(self, rules):
+        """
+        Add some decomposition rules to a decomposition rule set
+        """
         for rule in rules:
             self.add_decomposition_rule(rule)
 
@@ -57,7 +62,7 @@ class DecompositionRuleSet:
         self.decompositions[cls].append(decomp_obj)
 
 
-class ModuleWithDecompositionRuleSet:  # pragma: no cover
+class ModuleWithDecompositionRuleSet:  # pragma: no cover # pylint: disable=too-few-public-methods
     """
     Interface type for explaining one of the parameters that can be given to
     DecompositionRuleSet.
@@ -72,7 +77,7 @@ class ModuleWithDecompositionRuleSet:  # pragma: no cover
         self.all_defined_decomposition_rules = all_defined_decomposition_rules
 
 
-class _Decomposition(object):
+class _Decomposition:  # pylint: disable=too-few-public-methods
     """
     The Decomposition class can be used to register a decomposition rule (by
     calling register_decomposition)

@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ module for exporting quantum circuits to LaTeX code"""
+
 import json
 from projectq.ops import (
     Allocate,
@@ -27,25 +29,41 @@ from projectq.ops import (
 )
 
 
+def _gate_name(gate):
+    """
+    Return the string representation of the gate.
+
+    Tries to use gate.tex_str and, if that is not available, uses str(gate) instead.
+
+    Args:
+        gate: Gate object of which to get the name / latex representation.
+
+    Returns:
+        gate_name (string): Latex gate name.
+    """
+    try:
+        name = gate.tex_str()
+    except AttributeError:
+        name = str(gate)
+    return name
+
+
 def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
     """
     Translates a given circuit to a TikZ picture in a Latex document.
 
-    It uses a json-configuration file which (if it does not exist) is created
-    automatically upon running this function for the first time. The config
-    file can be used to determine custom gate sizes, offsets, etc.
+    It uses a json-configuration file which (if it does not exist) is created automatically upon running this function
+    for the first time. The config file can be used to determine custom gate sizes, offsets, etc.
 
-    New gate options can be added under settings['gates'], using the gate
-    class name string as a key. Every gate can have its own width, height, pre
-    offset and offset.
+    New gate options can be added under settings['gates'], using the gate class name string as a key. Every gate can
+    have its own width, height, pre offset and offset.
 
     Example:
         .. code-block:: python
 
             settings['gates']['HGate'] = {'width': .5, 'offset': .15}
 
-    The default settings can be acquired using the get_default_settings()
-    function, and written using write_settings().
+    The default settings can be acquired using the get_default_settings() function, and written using write_settings().
 
     Args:
         circuit (list): Each qubit line is a list of
@@ -67,7 +85,7 @@ def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
 
     text = _header(settings)
     text += _body(circuit, settings, drawing_order, draw_gates_in_parallel=draw_gates_in_parallel)
-    text += _footer(settings)
+    text += _footer()
     return text
 
 
@@ -146,7 +164,7 @@ def _header(settings):
         "blur,fit,decorations.pathreplacing,shapes}\n\n"
     )
 
-    init = "\\begin{document}\n" "\\begin{tikzpicture}[scale=0.8, transform shape]\n\n"
+    init = "\\begin{document}\n\\begin{tikzpicture}[scale=0.8, transform shape]\n\n"
 
     gate_style = (
         "\\tikzstyle{basicshadow}=[blur shadow={shadow blur steps=8,"
@@ -199,17 +217,14 @@ def _header(settings):
 
 def _body(circuit, settings, drawing_order=None, draw_gates_in_parallel=True):
     """
-    Return the body of the Latex document, including the entire circuit in
-    TikZ format.
+    Return the body of the Latex document, including the entire circuit in TikZ format.
 
     Args:
         circuit (list<list<CircuitItem>>): Circuit to draw.
         settings: Dictionary of settings to use for the TikZ image.
-        drawing_order: A list of circuit wires from where to read
-            one gate command.
-        draw_gates_in_parallel: Are the gate/commands occupying a
-            single time step in the circuit diagram? For example, False means
-            that gates can be parallel in the circuit.
+        drawing_order: A list of circuit wires from where to read one gate command.
+        draw_gates_in_parallel: Are the gate/commands occupying a single time step in the circuit diagram? For example,
+            False means that gates can be parallel in the circuit.
 
     Returns:
         tex_str (string): Latex string to draw the entire circuit.
@@ -237,7 +252,7 @@ def _body(circuit, settings, drawing_order=None, draw_gates_in_parallel=True):
     return "".join(code)
 
 
-def _footer(settings):
+def _footer():
     """
     Return the footer of the Latex document.
 
@@ -247,10 +262,9 @@ def _footer(settings):
     return "\n\n\\end{tikzpicture}\n\\end{document}"
 
 
-class _Circ2Tikz(object):
+class _Circ2Tikz:  # pylint: disable=too-few-public-methods
     """
-    The Circ2Tikz class takes a circuit (list of lists of CircuitItem objects)
-    and turns them into Latex/TikZ code.
+    The Circ2Tikz class takes a circuit (list of lists of CircuitItem objects) and turns them into Latex/TikZ code.
 
     It uses the settings dictionary for gate offsets, sizes, spacing, ...
     """
@@ -269,14 +283,14 @@ class _Circ2Tikz(object):
         self.op_count = [0] * num_lines
         self.is_quantum = [settings['lines']['init_quantum']] * num_lines
 
-    def to_tikz(self, line, circuit, end=None, draw_gates_in_parallel=True):
+    def to_tikz(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+        self, line, circuit, end=None, draw_gates_in_parallel=True
+    ):
         """
-        Generate the TikZ code for one line of the circuit up to a certain
-        gate.
+        Generate the TikZ code for one line of the circuit up to a certain gate.
 
-        It modifies the circuit to include only the gates which have not been
-        drawn. It automatically switches to other lines if the gates on those
-        lines have to be drawn earlier.
+        It modifies the circuit to include only the gates which have not been drawn. It automatically switches to other
+        lines if the gates on those lines have to be drawn earlier.
 
         Args:
             line (int): Line to generate the TikZ code for.
@@ -285,9 +299,8 @@ class _Circ2Tikz(object):
             draw_gates_in_parallel (bool): True or False for how to place gates
 
         Returns:
-            tikz_code (string): TikZ code representing the current qubit line
-                and, if it was necessary to draw other lines, those lines as
-                well.
+            tikz_code (string): TikZ code representing the current qubit line and, if it was necessary to draw other
+                lines, those lines as well.
         """
         if end is None:
             end = len(circuit[line])
@@ -302,24 +315,24 @@ class _Circ2Tikz(object):
 
             all_lines = lines + ctrl_lines
             all_lines.remove(line)  # remove current line
-            for ll in all_lines:
+            for _line in all_lines:
                 gate_idx = 0
-                while not (circuit[ll][gate_idx] == cmds[i]):
+                while not circuit[_line][gate_idx] == cmds[i]:
                     gate_idx += 1
 
-                tikz_code.append(self.to_tikz(ll, circuit, gate_idx))
+                tikz_code.append(self.to_tikz(_line, circuit, gate_idx))
 
                 # we are taking care of gate 0 (the current one)
-                circuit[ll] = circuit[ll][1:]
+                circuit[_line] = circuit[_line][1:]
 
             all_lines = lines + ctrl_lines
             pos = max([self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1)])
-            for ll in range(min(all_lines), max(all_lines) + 1):
-                self.pos[ll] = pos + self._gate_pre_offset(gate)
+            for _line in range(min(all_lines), max(all_lines) + 1):
+                self.pos[_line] = pos + self._gate_pre_offset(gate)
 
             connections = ""
-            for ll in all_lines:
-                connections += self._line(self.op_count[ll] - 1, self.op_count[ll], line=ll)
+            for _line in all_lines:
+                connections += self._line(self.op_count[_line] - 1, self.op_count[_line], line=_line)
             add_str = ""
             if gate == X:
                 # draw NOT-gate with controls
@@ -338,8 +351,8 @@ class _Circ2Tikz(object):
                 add_str = self._sqrtswap_gate(lines, ctrl_lines, daggered=True)
             elif gate == Measure:
                 # draw measurement gate
-                for ll in lines:
-                    op = self._op(ll)
+                for _line in lines:
+                    op = self._op(_line)
                     width = self._gate_width(Measure)
                     height = self._gate_height(Measure)
                     shift0 = 0.07 * height
@@ -357,15 +370,15 @@ class _Circ2Tikz(object):
                         "{shift1}cm]{op}.north east);"
                     ).format(
                         op=op,
-                        pos=self.pos[ll],
-                        line=ll,
+                        pos=self.pos[_line],
+                        line=_line,
                         shift0=shift0,
                         shift1=shift1,
                         shift2=shift2,
                     )
-                    self.op_count[ll] += 1
-                    self.pos[ll] += self._gate_width(gate) + self._gate_offset(gate)
-                    self.is_quantum[ll] = False
+                    self.op_count[_line] += 1
+                    self.pos[_line] += self._gate_width(gate) + self._gate_offset(gate)
+                    self.is_quantum[_line] = False
             elif gate == Allocate:
                 # draw 'begin line'
                 add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
@@ -401,41 +414,22 @@ class _Circ2Tikz(object):
                 # regular gate must draw the lines it does not act upon
                 # if it spans multiple qubits
                 add_str = self._regular_gate(gate, lines, ctrl_lines)
-                for ll in lines:
-                    self.is_quantum[ll] = True
+                for _line in lines:
+                    self.is_quantum[_line] = True
 
             tikz_code.append(add_str)
             if not gate == Allocate:
                 tikz_code.append(connections)
 
             if not draw_gates_in_parallel:
-                for ll in range(len(self.pos)):
-                    if ll != line:
-                        self.pos[ll] = self.pos[line]
+                for _line in range(len(self.pos)):
+                    if _line != line:
+                        self.pos[_line] = self.pos[line]
 
         circuit[line] = circuit[line][end:]
         return "".join(tikz_code)
 
-    def _gate_name(self, gate):
-        """
-        Return the string representation of the gate.
-
-        Tries to use gate.tex_str and, if that is not available, uses str(gate)
-        instead.
-
-        Args:
-            gate: Gate object of which to get the name / latex representation.
-
-        Returns:
-            gate_name (string): Latex gate name.
-        """
-        try:
-            name = gate.tex_str()
-        except AttributeError:
-            name = str(gate)
-        return name
-
-    def _sqrtswap_gate(self, lines, ctrl_lines, daggered):
+    def _sqrtswap_gate(self, lines, ctrl_lines, daggered):  # pylint: disable=too-many-locals
         """
         Return the TikZ code for a Square-root Swap-gate.
 
@@ -445,7 +439,8 @@ class _Circ2Tikz(object):
             ctrl_lines (list<int>): List of qubit lines which act as controls.
             daggered (bool): Show the daggered one if True.
         """
-        assert len(lines) == 2  # sqrt swap gate acts on 2 qubits
+        if len(lines) != 2:
+            raise RuntimeError('Sqrt SWAP gate acts on 2 qubits')
         delta_pos = self._gate_offset(SqrtSwap)
         gate_width = self._gate_width(SqrtSwap)
         lines.sort()
@@ -453,11 +448,11 @@ class _Circ2Tikz(object):
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            w = "{}cm".format(0.5 * gate_width)
-            s1 = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=w, op=op)
-            s2 = "[xshift={w},yshift={w}]{op}.center".format(w=w, op=op)
-            s3 = "[xshift=-{w},yshift={w}]{op}.center".format(w=w, op=op)
-            s4 = "[xshift={w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            width = "{}cm".format(0.5 * gate_width)
+            blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
+            trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
+            tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
+            brc = "[xshift={w},yshift=-{w}]{op}.center".format(w=width, op=op)
             swap_style = "swapstyle,edgestyle"
             if self.settings['gate_shadow']:
                 swap_style += ",shadowed"
@@ -467,10 +462,10 @@ class _Circ2Tikz(object):
                 "\\draw[{swap_style}] ({s3})--({s4});"
             ).format(
                 op=op,
-                s1=s1,
-                s2=s2,
-                s3=s3,
-                s4=s4,
+                s1=blc,
+                s2=trc,
+                s3=tlc,
+                s4=brc,
                 line=line,
                 pos=self.pos[line],
                 swap_style=swap_style,
@@ -511,7 +506,7 @@ class _Circ2Tikz(object):
             self.pos[i] = new_pos
         return gate_str
 
-    def _swap_gate(self, lines, ctrl_lines):
+    def _swap_gate(self, lines, ctrl_lines):  # pylint: disable=too-many-locals
         """
         Return the TikZ code for a Swap-gate.
 
@@ -521,7 +516,8 @@ class _Circ2Tikz(object):
             ctrl_lines (list<int>): List of qubit lines which act as controls.
 
         """
-        assert len(lines) == 2  # swap gate acts on 2 qubits
+        if len(lines) != 2:
+            raise RuntimeError('SWAP gate acts on 2 qubits')
         delta_pos = self._gate_offset(Swap)
         gate_width = self._gate_width(Swap)
         lines.sort()
@@ -529,11 +525,11 @@ class _Circ2Tikz(object):
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            w = "{}cm".format(0.5 * gate_width)
-            s1 = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=w, op=op)
-            s2 = "[xshift={w},yshift={w}]{op}.center".format(w=w, op=op)
-            s3 = "[xshift=-{w},yshift={w}]{op}.center".format(w=w, op=op)
-            s4 = "[xshift={w},yshift=-{w}]{op}.center".format(w=w, op=op)
+            width = "{}cm".format(0.5 * gate_width)
+            blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
+            trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
+            tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
+            brc = "[xshift={w},yshift=-{w}]{op}.center".format(w=width, op=op)
             swap_style = "swapstyle,edgestyle"
             if self.settings['gate_shadow']:
                 swap_style += ",shadowed"
@@ -543,10 +539,10 @@ class _Circ2Tikz(object):
                 "\\draw[{swap_style}] ({s3})--({s4});"
             ).format(
                 op=op,
-                s1=s1,
-                s2=s2,
-                s3=s3,
-                s4=s4,
+                s1=blc,
+                s2=trc,
+                s3=tlc,
+                s4=brc,
                 line=line,
                 pos=self.pos[line],
                 swap_style=swap_style,
@@ -580,7 +576,8 @@ class _Circ2Tikz(object):
             ctrl_lines (list<int>): List of qubit lines which act as controls.
 
         """
-        assert len(lines) == 1  # NOT gate only acts on 1 qubit
+        if len(lines) != 1:
+            raise RuntimeError('X gate acts on 1 qubits')
         line = lines[0]
         delta_pos = self._gate_offset(X)
         gate_width = self._gate_width(X)
@@ -611,7 +608,6 @@ class _Circ2Tikz(object):
         Args:
             lines (list<int>): List of all qubits involved.
         """
-        assert len(lines) > 1
         line = lines[0]
         delta_pos = self._gate_offset(Z)
         gate_width = self._gate_width(Z)
@@ -637,7 +633,7 @@ class _Circ2Tikz(object):
                 (settings['gates'][gate_class_name]['width'])
         """
         if isinstance(gate, DaggeredGate):
-            gate = gate._gate
+            gate = gate._gate  # pylint: disable=protected-access
         try:
             gates = self.settings['gates']
             gate_width = gates[gate.__class__.__name__]['width']
@@ -654,7 +650,7 @@ class _Circ2Tikz(object):
                 (settings['gates'][gate_class_name]['pre_offset'])
         """
         if isinstance(gate, DaggeredGate):
-            gate = gate._gate
+            gate = gate._gate  # pylint: disable=protected-access
         try:
             gates = self.settings['gates']
             delta_pos = gates[gate.__class__.__name__]['pre_offset']
@@ -672,7 +668,7 @@ class _Circ2Tikz(object):
                 (settings['gates'][gate_class_name]['offset'])
         """
         if isinstance(gate, DaggeredGate):
-            gate = gate._gate
+            gate = gate._gate  # pylint: disable=protected-access
         try:
             gates = self.settings['gates']
             delta_pos = gates[gate.__class__.__name__]['offset']
@@ -689,7 +685,7 @@ class _Circ2Tikz(object):
                 (settings['gates'][gate_class_name]['height'])
         """
         if isinstance(gate, DaggeredGate):
-            gate = gate._gate
+            gate = gate._gate  # pylint: disable=protected-access
         try:
             height = self.settings['gates'][gate.__class__.__name__]['height']
         except KeyError:
@@ -727,11 +723,10 @@ class _Circ2Tikz(object):
             op = self.op_count[line]
         return "line{}_gate{}".format(line, op + offset)
 
-    def _line(self, p1, p2, double=False, line=None):
+    def _line(self, point1, point2, double=False, line=None):  # pylint: disable=too-many-locals,unused-argument
         """
-        Connects p1 and p2, where p1 and p2 are either to qubit line indices,
-        in which case the two most recent gates are connected, or two gate
-        indices, in which case line denotes the line number and the two gates
+        Connects point1 and point2, where point1 and point2 are either to qubit line indices, in which case the two most
+        recent gates are connected, or two gate indices, in which case line denotes the line number and the two gates
         are connected on the given line.
 
         Args:
@@ -747,30 +742,30 @@ class _Circ2Tikz(object):
         dbl_classical = self.settings['lines']['double_classical']
 
         if line is None:
-            quantum = not dbl_classical or self.is_quantum[p1]
-            op1, op2 = self._op(p1), self._op(p2)
+            quantum = not dbl_classical or self.is_quantum[point1]
+            op1, op2 = self._op(point1), self._op(point2)
             loc1, loc2 = 'north', 'south'
             shift = "xshift={}cm"
         else:
             quantum = not dbl_classical or self.is_quantum[line]
-            op1, op2 = self._op(line, p1), self._op(line, p2)
+            op1, op2 = self._op(line, point1), self._op(line, point2)
             loc1, loc2 = 'west', 'east'
             shift = "yshift={}cm"
 
         if quantum:
             return "\n\\draw ({}) edge[edgestyle] ({});".format(op1, op2)
-        else:
-            if p2 > p1:
-                loc1, loc2 = loc2, loc1
-            edge_str = "\n\\draw ([{shift}]{op1}.{loc1}) edge[edgestyle] ([{shift}]{op2}.{loc2});"
-            line_sep = self.settings['lines']['double_lines_sep']
-            shift1 = shift.format(line_sep / 2.0)
-            shift2 = shift.format(-line_sep / 2.0)
-            edges_str = edge_str.format(shift=shift1, op1=op1, op2=op2, loc1=loc1, loc2=loc2)
-            edges_str += edge_str.format(shift=shift2, op1=op1, op2=op2, loc1=loc1, loc2=loc2)
-            return edges_str
 
-    def _regular_gate(self, gate, lines, ctrl_lines):
+        if point2 > point1:
+            loc1, loc2 = loc2, loc1
+        edge_str = "\n\\draw ([{shift}]{op1}.{loc1}) edge[edgestyle] ([{shift}]{op2}.{loc2});"
+        line_sep = self.settings['lines']['double_lines_sep']
+        shift1 = shift.format(line_sep / 2.0)
+        shift2 = shift.format(-line_sep / 2.0)
+        edges_str = edge_str.format(shift=shift1, op1=op1, op2=op2, loc1=loc1, loc2=loc2)
+        edges_str += edge_str.format(shift=shift2, op1=op1, op2=op2, loc1=loc1, loc2=loc2)
+        return edges_str
+
+    def _regular_gate(self, gate, lines, ctrl_lines):  # pylint: disable=too-many-locals
         """
         Draw a regular gate.
 
@@ -792,7 +787,7 @@ class _Circ2Tikz(object):
         gate_width = self._gate_width(gate)
         gate_height = self._gate_height(gate)
 
-        name = self._gate_name(gate)
+        name = _gate_name(gate)
 
         lines = list(range(imin, imax + 1))
 

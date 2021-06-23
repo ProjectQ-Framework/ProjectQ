@@ -82,10 +82,9 @@ def test_control_engine_has_compute_tag():
     test_cmd0.tags = [DirtyQubitTag(), ComputeTag(), DirtyQubitTag()]
     test_cmd1.tags = [DirtyQubitTag(), UncomputeTag(), DirtyQubitTag()]
     test_cmd2.tags = [DirtyQubitTag()]
-    control_eng = _control.ControlEngine("MockEng", ctrl_state=CtrlAll.One)
-    assert control_eng._has_compute_uncompute_tag(test_cmd0)
-    assert control_eng._has_compute_uncompute_tag(test_cmd1)
-    assert not control_eng._has_compute_uncompute_tag(test_cmd2)
+    assert _control._has_compute_uncompute_tag(test_cmd0)
+    assert _control._has_compute_uncompute_tag(test_cmd1)
+    assert not _control._has_compute_uncompute_tag(test_cmd2)
 
 
 def test_control():
@@ -113,6 +112,9 @@ def test_control():
     assert backend.received_commands[4].control_qubits[0].id == qureg[0].id
     assert backend.received_commands[4].control_qubits[1].id == qureg[1].id
     assert backend.received_commands[6].control_qubits[0].id == qureg[0].id
+
+    with pytest.raises(TypeError):
+        _control.Control(eng, (qureg[0], qureg[1]))
 
 
 def test_control_state():

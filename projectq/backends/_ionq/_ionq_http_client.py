@@ -38,7 +38,7 @@ class IonQ(Session):
     """A requests.Session based HTTP client for the IonQ API."""
 
     def __init__(self, verbose=False):
-        super(IonQ, self).__init__()
+        super().__init__()
         self.backends = dict()
         self.timeout = 5.0
         self.token = None
@@ -93,7 +93,7 @@ class IonQ(Session):
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
 
-    def _authenticate(self, token=None):
+    def authenticate(self, token=None):
         """Set an Authorization header for this session.
 
         If no token is provided, an prompt will appear to ask for one.
@@ -108,7 +108,7 @@ class IonQ(Session):
         self.headers.update({'Authorization': 'apiKey {}'.format(token)})
         self.token = token
 
-    def _run(self, info, device):
+    def run(self, info, device):
         """Run a circuit from ``info`` on the specified ``device``.
 
         Args:
@@ -140,7 +140,7 @@ class IonQ(Session):
 
         # _API_URL[:-1] strips the trailing slash.
         # TODO: Add comprehensive error parsing for non-200 responses.
-        req = super(IonQ, self).post(_API_URL[:-1], json=argument)
+        req = super().post(_API_URL[:-1], json=argument)
         req.raise_for_status()
 
         # Process the response.
@@ -164,7 +164,7 @@ class IonQ(Session):
             )
         )
 
-    def _get_result(self, device, execution_id, num_retries=3000, interval=1):
+    def get_result(self, device, execution_id, num_retries=3000, interval=1):
         """Given a backend and ID, fetch the results for this job's execution.
 
         The return dictionary should have at least:
@@ -203,7 +203,7 @@ class IonQ(Session):
 
         try:
             for retries in range(num_retries):
-                req = super(IonQ, self).get(urljoin(_API_URL, execution_id))
+                req = super().get(urljoin(_API_URL, execution_id))
                 req.raise_for_status()
                 r_json = req.json()
                 status = r_json['status']
@@ -261,7 +261,7 @@ def retrieve(
     num_retries=3000,
     interval=1,
     verbose=False,
-):
+):  # pylint: disable=too-many-arguments
     """Retrieve an already submitted IonQ job.
 
     Args:
@@ -279,9 +279,9 @@ def retrieve(
         dict: A dict with job submission results.
     """
     ionq_session = IonQ(verbose=verbose)
-    ionq_session._authenticate(token)
+    ionq_session.authenticate(token)
     ionq_session.update_devices_list()
-    res = ionq_session._get_result(
+    res = ionq_session.get_result(
         device,
         jobid,
         num_retries=num_retries,
@@ -297,7 +297,7 @@ def send(
     num_retries=100,
     interval=1,
     verbose=False,
-):
+):  # pylint: disable=too-many-arguments,too-many-locals
     """Submit a job to the IonQ API.
 
     The ``info`` dict should have at least the following keys::
@@ -334,7 +334,7 @@ def send(
             print("- Authenticating...")
         if verbose and token is not None:  # pragma: no cover
             print('user API token: ' + token)
-        ionq_session._authenticate(token)
+        ionq_session.authenticate(token)
 
         # check if the device is online
         ionq_session.update_devices_list()
@@ -356,10 +356,10 @@ def send(
             raise DeviceTooSmall("Device is too small.")
         if verbose:  # pragma: no cover
             print("- Running code: {}".format(info))
-        execution_id = ionq_session._run(info, device)
+        execution_id = ionq_session.run(info, device)
         if verbose:  # pragma: no cover
             print("- Waiting for results...")
-        res = ionq_session._get_result(
+        res = ionq_session.get_result(
             device,
             execution_id,
             num_retries=num_retries,
@@ -383,7 +383,7 @@ def send(
                         err_json['error'],
                         err_json['message'],
                     )
-                )
+                ) from err
 
         # Else, just print:
         print("- There was an error running your code:")
@@ -391,6 +391,7 @@ def send(
     except requests.exceptions.RequestException as err:
         print("- Looks like something is wrong with server:")
         print(err)
+    return None
 
 
 __all__ = [

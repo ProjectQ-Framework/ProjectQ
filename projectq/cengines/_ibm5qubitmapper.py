@@ -17,10 +17,12 @@ Contains a compiler engine to map to the 5-qubit IBM chip
 """
 import itertools
 
-from projectq.cengines import BasicMapperEngine
 from projectq.ops import FlushGate, NOT, Allocate
 from projectq.meta import get_control_count
 from projectq.backends import IBMBackend
+
+
+from ._basicmapper import BasicMapperEngine
 
 
 class IBM5QubitMapper(BasicMapperEngine):
@@ -44,7 +46,7 @@ class IBM5QubitMapper(BasicMapperEngine):
 
         Resets the mapping.
         """
-        BasicMapperEngine.__init__(self)
+        super().__init__()
         self.current_mapping = dict()
         self._reset()
         self._cmds = []

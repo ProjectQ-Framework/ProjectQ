@@ -1,5 +1,0 @@
-flaky
-mock
-pytest >= 6.0
-pytest-cov
-pytest-mock

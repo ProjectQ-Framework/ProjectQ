@@ -22,12 +22,11 @@ from projectq.cengines import DecompositionRule
 from projectq.ops import BarrierGate
 
 
-def _decompose_barrier(cmd):
+def _decompose_barrier(cmd):  # pylint: disable=unused-argument
     """Throw out all barriers if they are not supported."""
-    pass
 
 
-def _recognize_barrier(cmd):
+def _recognize_barrier(cmd):  # pylint: disable=unused-argument
     """Recognize all barriers."""
     return True
 

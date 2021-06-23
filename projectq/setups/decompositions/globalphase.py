@@ -23,12 +23,11 @@ from projectq.meta import get_control_count
 from projectq.ops import Ph
 
 
-def _decompose_PhNoCtrl(cmd):
+def _decompose_PhNoCtrl(cmd):  # pylint: disable=invalid-name,unused-argument
     """Throw out global phases (no controls)."""
-    pass
 
 
-def _recognize_PhNoCtrl(cmd):
+def _recognize_PhNoCtrl(cmd):  # pylint: disable=invalid-name
     """Recognize global phases (no controls)."""
     return get_control_count(cmd) == 0
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
+
 from projectq.cengines import MainEngine
 from projectq.ops import All, H, X, Measure
 from projectq.meta import Compute, Uncompute

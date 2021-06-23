@@ -48,16 +48,12 @@ def _recognize_arb1qubit(cmd):
     carb1qubit2cnotrzandry instead.
     """
     try:
-        m = cmd.gate.matrix
-        if len(m) == 2 and get_control_count(cmd) == 0:
-            return True
-        else:
-            return False
+        return len(cmd.gate.matrix) == 2 and get_control_count(cmd) == 0
     except AttributeError:
         return False
 
 
-def _test_parameters(matrix, a, b_half, c_half, d_half):
+def _test_parameters(matrix, a, b_half, c_half, d_half):  # pylint: disable=invalid-name
     """
     It builds matrix U with parameters (a, b/2, c/2, d/2) and compares against
     matrix.
@@ -75,7 +71,7 @@ def _test_parameters(matrix, a, b_half, c_half, d_half):
     Returns:
         True if matrix elements of U and `matrix` are TOLERANCE close.
     """
-    U = [
+    unitary = [
         [
             cmath.exp(1j * (a - b_half - d_half)) * math.cos(c_half),
             -cmath.exp(1j * (a - b_half + d_half)) * math.sin(c_half),
@@ -85,10 +81,10 @@ def _test_parameters(matrix, a, b_half, c_half, d_half):
             cmath.exp(1j * (a + b_half + d_half)) * math.cos(c_half),
         ],
     ]
-    return numpy.allclose(U, matrix, rtol=10 * TOLERANCE, atol=TOLERANCE)
+    return numpy.allclose(unitary, matrix, rtol=10 * TOLERANCE, atol=TOLERANCE)
 
 
-def _find_parameters(matrix):
+def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-statements
     """
     Given a 2x2 unitary matrix, find the parameters
     a, b/2, c/2, and d/2 such that
@@ -114,11 +110,11 @@ def _find_parameters(matrix):
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
-            a = 0
+            a = 0  # pylint: disable=invalid-name
         else:
-            a = two_a / 2.0
+            a = two_a / 2.0  # pylint: disable=invalid-name
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][1]) - cmath.phase(matrix[0][0])
+        b = cmath.phase(matrix[1][1]) - cmath.phase(matrix[0][0])  # pylint: disable=invalid-name
         possible_b_half = [
             (b / 2.0) % (2 * math.pi),
             (b / 2.0 + math.pi) % (2 * math.pi),
@@ -143,11 +139,11 @@ def _find_parameters(matrix):
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
-            a = 0
+            a = 0  # pylint: disable=invalid-name
         else:
-            a = two_a / 2.0
+            a = two_a / 2.0  # pylint: disable=invalid-name
         d_half = 0  # w.l.g
-        b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1]) + math.pi
+        b = cmath.phase(matrix[1][0]) - cmath.phase(matrix[0][1]) + math.pi  # pylint: disable=invalid-name
         possible_b_half = [
             (b / 2.0) % (2 * math.pi),
             (b / 2.0 + math.pi) % (2 * math.pi),
@@ -172,9 +168,9 @@ def _find_parameters(matrix):
             # from 2a==0 (mod 2pi), it follows that a==0 or a==pi,
             # w.l.g. we can choose a==0 because (see U above)
             # c/2 -> c/2 + pi would have the same effect as as a==0 -> a==pi.
-            a = 0
+            a = 0  # pylint: disable=invalid-name
         else:
-            a = two_a / 2.0
+            a = two_a / 2.0  # pylint: disable=invalid-name
         two_d = 2.0 * cmath.phase(matrix[0][1]) - 2.0 * cmath.phase(matrix[0][0])
         # yapf: disable
         possible_d_half = [two_d/4. % (2*math.pi),
@@ -219,7 +215,7 @@ def _decompose_arb1qubit(cmd):
     we can choose a = 0.
     """
     matrix = cmd.gate.matrix.tolist()
-    a, b_half, c_half, d_half = _find_parameters(matrix)
+    a, b_half, c_half, d_half = _find_parameters(matrix)  # pylint: disable=invalid-name
     qb = cmd.qubits
     eng = cmd.engine
     with Control(eng, cmd.control_qubits):

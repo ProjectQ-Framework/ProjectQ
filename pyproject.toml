@@ -29,6 +29,8 @@ build-backend = "setuptools.build_meta"
     '*.mo',
     '.clang-format',
     '.gitmodules',
+    'requirements.txt',
+    'requirements_tests.txt',
     'VERSION.txt',
     '.editorconfig',
     '*.yml',
@@ -49,22 +51,46 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.pylint]
-    [tools.pylint.master]
+    [tool.pylint.master]
     ignore-patterns = [
-        '__init__.py'
+        '__init__.py',
+        '.*_test.py',
+        '.*_fixtures.py',
+        '.*flycheck.*.py',
+        'docs/.*',
+        'examples/.*',
     ]
 
-    [tools.pylint.format]
+    extension-pkg-whitelist = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+    extension-pkg-allow-list = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+
+    [tool.pylint.basic]
+    good-names = ['qb', 'id', 'i', 'j', 'k', 'N', 'op', 'X', 'Y', 'Z', 'R', 'C', 'CRz', 'Zero', 'One']
+
+    [tool.pylint.format]
     max-line-length = 120
 
-    [tools.pylint.reports]
+    [tool.pylint.reports]
     msg-template = '{path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})'
 
-    [tools.pylint.messages_control]
+    [tool.pylint.similarities]
+    min-similarity-lines = 20
+
+    [tool.pylint.messages_control]
     disable = [
-         'invalid-name',
          'expression-not-assigned',
-         'pointless-statemen',
+         'pointless-statement',
+         'fixme'
     ]
 
 
@@ -73,6 +99,7 @@ build-backend = "setuptools.build_meta"
 minversion = '6.0'
 addopts = '-pno:warnings'
 testpaths = ['projectq']
+ignore-glob = ['*flycheck*.py']
 mock_use_standalone_module = true
 
 [tool.setuptools_scm]

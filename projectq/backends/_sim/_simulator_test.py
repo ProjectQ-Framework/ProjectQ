@@ -232,6 +232,11 @@ def test_simulator_functional_measurement(sim):
     bit_value_sum = sum([int(qubit) for qubit in qubits])
     assert bit_value_sum == 0 or bit_value_sum == 5
 
+    qb1 = WeakQubitRef(engine=eng, idx=qubits[0].id)
+    qb2 = WeakQubitRef(engine=eng, idx=qubits[1].id)
+    with pytest.raises(ValueError):
+        eng.backend._handle(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
+
 
 def test_simulator_measure_mapped_qubit(sim):
     eng = MainEngine(sim, [])
@@ -606,6 +611,10 @@ def test_simulator_collapse_wavefunction(sim, mapper):
     with pytest.raises(RuntimeError):
         eng.backend.collapse_wavefunction(qubits, [0] * 4)
     eng.flush()
+
+    # mismatch in length: raises
+    with pytest.raises(ValueError):
+        eng.backend.collapse_wavefunction(qubits, [0] * 5)
     eng.backend.collapse_wavefunction(qubits, [0] * 4)
     assert pytest.approx(eng.backend.get_probability([0] * 4, qubits)) == 1.0
     All(H) | qubits[1:]

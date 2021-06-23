@@ -12,6 +12,9 @@
 #
 # See https://github.com/pre-commit/pre-commit
 
+ci:
+    skip: [check-manifest]
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.0.1
@@ -25,7 +28,6 @@ repos:
   - id: debug-statements
   - id: end-of-file-fixer
   - id: mixed-line-ending
-  - id: requirements-txt-fixer
   - id: trailing-whitespace
   - id: fix-encoding-pragma
 
@@ -35,12 +37,6 @@ repos:
   hooks:
   - id: remove-tabs
 
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.9.2
-  hooks:
-  - id: flake8
-    exclude: ^(docs/.*|tools/.*)$
-
 - repo: https://github.com/psf/black
   rev: 21.5b1
   hooks:
@@ -49,13 +45,20 @@ repos:
     # This is a slow hook, so only run this if --hook-stage manual is passed
     stages: [manual]
 
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+  - id: flake8
+    exclude: ^(docs/.*|tools/.*)$
+
 - repo: https://github.com/pre-commit/mirrors-pylint
   rev: 'v3.0.0a3'
   hooks:
   - id: pylint
-    args: ['--score=n', '--exit-zero']
+    args: ['--score=n']
     # This is a slow hook, so only run this if --hook-stage manual is passed
     stages: [manual]
+    additional_dependencies: ['pybind11>=2.6', 'numpy', 'requests', 'boto3', 'matplotlib', 'networkx']
 
 - repo: https://github.com/mgedmin/check-manifest
   rev: "0.46"

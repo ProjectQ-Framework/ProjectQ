@@ -196,6 +196,9 @@ def test_commmand_add_control_qubits_one(main_engine, state):
     assert cmd.control_qubits[0].id == 1
     assert cmd.control_state == canonical_ctrl_state(state, 1)
 
+    with pytest.raises(ValueError):
+        cmd.add_control_qubits(qubit0[0])
+
 
 @pytest.mark.parametrize(
     'state',

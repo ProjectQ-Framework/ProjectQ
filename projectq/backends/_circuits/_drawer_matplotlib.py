@@ -24,7 +24,7 @@ import itertools
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import FlushGate, Measure, Allocate, Deallocate
 from projectq.meta import get_control_count
-from projectq.backends._circuits import to_draw
+from ._plot import to_draw
 
 # ==============================================================================
 
@@ -98,7 +98,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         except LastEngineException:
             return True
 
-    def _process(self, cmd):
+    def _process(self, cmd):  # pylint: disable=too-many-branches
         """
         Process the command cmd and stores it in the internal storage
 
@@ -109,18 +109,20 @@ class CircuitDrawerMatplotlib(BasicEngine):
         Args:
             cmd (Command): Command to add to the circuit diagram.
         """
+        # pylint: disable=R0801
         if cmd.gate == Allocate:
-            qubit_id = cmd.qubits[0][0].id
-            if qubit_id not in self._map:
-                self._map[qubit_id] = qubit_id
-            self._qubit_lines[qubit_id] = []
+            qb_id = cmd.qubits[0][0].id
+            if qb_id not in self._map:
+                self._map[qb_id] = qb_id
+            self._qubit_lines[qb_id] = []
             return
 
         if cmd.gate == Deallocate:
             return
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert get_control_count(cmd) == 0
+            if get_control_count(cmd) != 0:
+                raise ValueError('Cannot have control qubits with a measurement gate!')
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
@@ -152,14 +154,14 @@ class CircuitDrawerMatplotlib(BasicEngine):
         if len(targets) + len(controls) > 1:
             max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
 
-        for qubit_id in itertools.chain(targets, controls):
-            depth = len(self._qubit_lines[qubit_id])
-            self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
+        for qb_id in itertools.chain(targets, controls):
+            depth = len(self._qubit_lines[qb_id])
+            self._qubit_lines[qb_id] += [None] * (max_depth - depth)
 
-            if qubit_id == ref_qubit_id:
-                self._qubit_lines[qubit_id].append((gate_str, targets, controls))
+            if qb_id == ref_qubit_id:
+                self._qubit_lines[qb_id].append((gate_str, targets, controls))
             else:
-                self._qubit_lines[qubit_id].append(None)
+                self._qubit_lines[qb_id].append(None)
 
     def receive(self, command_list):
         """

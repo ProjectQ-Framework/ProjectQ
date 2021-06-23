@@ -18,9 +18,11 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, CNOT, X, Swap
+from projectq.ops import All, H, CNOT, X, Swap, Command
 from projectq.meta import Control, Compute, Uncompute, ComputeTag, UncomputeTag
-from projectq.cengines import _swapandcnotflipper
+from projectq.types import WeakQubitRef
+
+from . import _swapandcnotflipper
 
 
 def test_swapandcnotflipper_missing_connection():
@@ -29,6 +31,16 @@ def test_swapandcnotflipper_missing_connection():
     qubit1, qubit2 = eng.allocate_qureg(2)
     with pytest.raises(RuntimeError):
         Swap | (qubit1, qubit2)
+
+
+def test_swapandcnotflipper_invalid_swap():
+    flipper = _swapandcnotflipper.SwapAndCNOTFlipper(set())
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+    with pytest.raises(RuntimeError):
+        flipper.receive([Command(engine=None, gate=Swap, qubits=([qb0, qb1], [qb2]))])
 
 
 def test_swapandcnotflipper_is_available():

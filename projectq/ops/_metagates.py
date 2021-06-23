@@ -23,8 +23,7 @@ Contains meta gates, i.e.,
           Tensor(H) | (qubit1, qubit2) # apply H to qubit #1 and #2
 
 As well as the meta functions
-* get_inverse (Tries to access the get_inverse member function of a gate
-  and upon failure returns a DaggeredGate)
+* get_inverse (Tries to access the get_inverse member function of a gate and upon failure returns a DaggeredGate)
 * C (Creates an n-ary controlled version of an arbitrary gate)
 """
 
@@ -36,20 +35,16 @@ class ControlQubitError(Exception):
     Exception thrown when wrong number of control qubits are supplied.
     """
 
-    pass
-
 
 class DaggeredGate(BasicGate):
     """
-    Wrapper class allowing to execute the inverse of a gate, even when it does
-    not define one.
+    Wrapper class allowing to execute the inverse of a gate, even when it does not define one.
 
-    If there is a replacement available, then there is also one for the
-    inverse, namely the replacement function run in reverse, while inverting
-    all gates. This class enables using this emulation automatically.
+    If there is a replacement available, then there is also one for the inverse, namely the replacement function run
+    in reverse, while inverting all gates. This class enables using this emulation automatically.
 
-    A DaggeredGate is returned automatically when employing the get_inverse-
-    function on a gate which does not provide a get_inverse() member function.
+    A DaggeredGate is returned automatically when employing the get_inverse- function on a gate which does not provide
+    a get_inverse() member function.
 
     Example:
         .. code-block:: python
@@ -57,10 +52,9 @@ class DaggeredGate(BasicGate):
             with Dagger(eng):
                 MySpecialGate | qubits
 
-    will create a DaggeredGate if MySpecialGate does not implement
-    get_inverse. If there is a decomposition function available, an auto-
-    replacer engine can automatically replace the inverted gate by a call to
-    the decomposition function inside a "with Dagger"-statement.
+    will create a DaggeredGate if MySpecialGate does not implement get_inverse. If there is a decomposition function
+    available, an auto- replacer engine can automatically replace the inverted gate by a call to the decomposition
+    function inside a "with Dagger"-statement.
     """
 
     def __init__(self, gate):
@@ -91,13 +85,11 @@ class DaggeredGate(BasicGate):
         """
         if hasattr(self._gate, 'tex_str'):
             return self._gate.tex_str() + r"${}^\dagger$"
-        else:
-            return str(self._gate) + r"${}^\dagger$"
+        return str(self._gate) + r"${}^\dagger$"
 
     def get_inverse(self):
         """
-        Return the inverse gate (the inverse of the inverse of a gate is the
-        gate itself).
+        Return the inverse gate (the inverse of the inverse of a gate is the gate itself).
         """
         return self._gate
 
@@ -116,8 +108,7 @@ def get_inverse(gate):
     """
     Return the inverse of a gate.
 
-    Tries to call gate.get_inverse and, upon failure, creates a DaggeredGate
-    instead.
+    Tries to call gate.get_inverse and, upon failure, creates a DaggeredGate instead.
 
     Args:
         gate: Gate of which to get the inverse
@@ -158,10 +149,8 @@ class ControlledGate(BasicGate):
     Note:
         Use the meta function :func:`C()` to create a controlled gate
 
-    A wrapper class which enables (multi-) controlled gates. It overloads
-    the __or__-operator, using the first qubits provided as control qubits.
-    The n control-qubits need to be the first n qubits. They can be in
-    separate quregs.
+    A wrapper class which enables (multi-) controlled gates. It overloads the __or__-operator, using the first qubits
+    provided as control qubits.  The n control-qubits need to be the first n qubits. They can be in separate quregs.
 
     Example:
         .. code-block:: python
@@ -207,12 +196,10 @@ class ControlledGate(BasicGate):
 
     def __or__(self, qubits):
         """
-        Apply the controlled gate to qubits, using the first n qubits as
-        controls.
+        Apply the controlled gate to qubits, using the first n qubits as controls.
 
-        Note: The control qubits can be split across the first quregs.
-            However, the n-th control qubit needs to be the last qubit in a
-            qureg. The following quregs belong to the gate.
+        Note: The control qubits can be split across the first quregs.  However, the n-th control qubit needs to be
+            the last qubit in a qureg. The following quregs belong to the gate.
 
         Args:
             qubits (tuple of lists of Qubit objects): qubits to which to apply
@@ -238,7 +225,7 @@ class ControlledGate(BasicGate):
                 "the required number of control quregs."
             )
 
-        import projectq.meta
+        import projectq.meta  # pylint: disable=import-outside-toplevel
 
         with projectq.meta.Control(gate_quregs[0][0].engine, ctrl):
             self._gate | tuple(gate_quregs)
@@ -251,27 +238,26 @@ class ControlledGate(BasicGate):
         return not self.__eq__(other)
 
 
-def C(gate, n=1):
+def C(gate, n_qubits=1):
     """
     Return n-controlled version of the provided gate.
 
     Args:
         gate: Gate to turn into its controlled version
-        n: Number of controls (default: 1)
+        n_qubits: Number of controls (default: 1)
 
     Example:
         .. code-block:: python
 
             C(NOT) | (c, q) # equivalent to CNOT | (c, q)
     """
-    return ControlledGate(gate, n)
+    return ControlledGate(gate, n_qubits)
 
 
 class Tensor(BasicGate):
     """
-    Wrapper class allowing to apply a (single-qubit) gate to every qubit in a
-    quantum register. Allowed syntax is to supply either a qureg or a tuple
-    which contains only one qureg.
+    Wrapper class allowing to apply a (single-qubit) gate to every qubit in a quantum register. Allowed syntax is to
+    supply either a qureg or a tuple which contains only one qureg.
 
     Example:
         .. code-block:: python
@@ -291,8 +277,7 @@ class Tensor(BasicGate):
 
     def get_inverse(self):
         """
-        Return the inverse of this tensored gate (which is the tensored
-        inverse of the gate).
+        Return the inverse of this tensored gate (which is the tensored inverse of the gate).
         """
         return Tensor(get_inverse(self._gate))
 
@@ -305,9 +290,12 @@ class Tensor(BasicGate):
     def __or__(self, qubits):
         """Applies the gate to every qubit in the quantum register qubits."""
         if isinstance(qubits, tuple):
-            assert len(qubits) == 1
+            if len(qubits) != 1:
+                raise ValueError('Tensor/All must be applied to a single quantum register!')
             qubits = qubits[0]
-        assert isinstance(qubits, list)
+        if not isinstance(qubits, list):
+            raise ValueError('Tensor/All must be applied to a list of qubits!')
+
         for qubit in qubits:
             self._gate | qubit
 

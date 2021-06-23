@@ -28,23 +28,21 @@ def _decompose_toffoli(cmd):
     ctrl = cmd.control_qubits
 
     target = cmd.qubits[0]
-    c1 = ctrl[0]
-    c2 = ctrl[1]
 
     H | target
-    CNOT | (c1, target)
-    T | c1
+    CNOT | (ctrl[0], target)
+    T | ctrl[0]
     Tdag | target
-    CNOT | (c2, target)
-    CNOT | (c2, c1)
-    Tdag | c1
+    CNOT | (ctrl[1], target)
+    CNOT | (ctrl[1], ctrl[0])
+    Tdag | ctrl[0]
     T | target
-    CNOT | (c2, c1)
-    CNOT | (c1, target)
+    CNOT | (ctrl[1], ctrl[0])
+    CNOT | (ctrl[0], target)
     Tdag | target
-    CNOT | (c2, target)
+    CNOT | (ctrl[1], target)
     T | target
-    T | c2
+    T | ctrl[1]
     H | target
 
 

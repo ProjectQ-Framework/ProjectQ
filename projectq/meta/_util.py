@@ -13,6 +13,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""
+Tools to add/remove compiler engines to the MainEngine list
+"""
+
 
 def insert_engine(prev_engine, engine_to_insert):
     """
