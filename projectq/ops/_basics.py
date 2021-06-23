@@ -494,8 +494,7 @@ class U3Gate(BasicGate):
         """
         if (self.theta, self.phi, self.lamda) == (0, 0, 0):
             return self.__class__(0, 0, 0)
-        else:
-            return self.__class__(-self.theta + 4 * math.pi, -self.phi + 4 * math.pi, -self.lamda + 4 * math.pi)
+        return self.__class__(-self.theta + 4 * math.pi, -self.phi + 4 * math.pi, -self.lamda + 4 * math.pi)
 
     def get_merged(self, other):
         """
@@ -522,8 +521,7 @@ class U3Gate(BasicGate):
         """Return True if same class and same rotation angle."""
         if isinstance(other, self.__class__):
             return (self.theta, self.phi, self.lamda) == (other.theta, other.phi, other.lamda)
-        else:
-            return False
+        return False
 
     def __ne__(self, other):
         return not self.__eq__(other)

@@ -45,54 +45,43 @@ from projectq.ops import (
 # ==============================================================================
 
 
-class OpenQASMBackend(BasicEngine):
+class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
-    Engine to convert ProjectQ commands to OpenQASM format (either string or
-    file)
+    Engine to convert ProjectQ commands to OpenQASM format (either string or file)
     """
 
     def __init__(
         self,
-        collate=True,
         collate_callback=None,
-        qubit_callback=lambda qubit_id: 'q{}'.format(qubit_id),
-        bit_callback=lambda qubit_id: 'c{}'.format(qubit_id),
+        qubit_callback='q{}'.format,
+        bit_callback='c{}'.format,
         qubit_id_mapping_redux=True,
     ):
         """
         Initialize an OpenQASMBackend object.
 
-        Contrary to OpenQASM, ProjectQ does not impose the restriction that a
-        programm must start with qubit/bit allocations and end with some
-        measurements.
+        Contrary to OpenQASM, ProjectQ does not impose the restriction that a programm must start with qubit/bit
+        allocations and end with some measurements.
 
-        The user can configure what happens each time a FlushGate() is
-        encountered by setting the `collate` and `collate_func` arguments to
-        an OpenQASMBackend constructor,
+        The user can configure what happens each time a FlushGate() is encountered by setting the `collate` and
+        `collate_func` arguments to an OpenQASMBackend constructor,
 
         Args:
             output (list,file):
-            collate (bool): If True, simply append commands to the exisiting
-                file/string list when a FlushGate is received. If False, you
-                need to specify `collate_callback` arguments as well.
-            collate (function): Only has an effect if `collate` is False. Each
-                time a FlushGate is received, this callback function will be
-                called.
+            collate (function): Each time a FlushGate is received, this callback function will be called. If let
+                unspecified, the commands are appended to the existing file/string.
                 Function signature: Callable[[Sequence[str]], None]
-            qubit_callback (function): Callback function called upon create of
-                each qubit to generate a name for the qubit.
+            qubit_callback (function): Callback function called upon create of each qubit to generate a name for the
+                qubit.
                 Function signature: Callable[[int], str]
-            bit_callback (function): Callback function called upon create of
-                each qubit to generate a name for the qubit.
+            bit_callback (function): Callback function called upon create of each qubit to generate a name for the
+                qubit.
                 Function signature: Callable[[int], str]
-            qubit_id_mapping_redux (bool): If True, try to allocate new Qubit
-                IDs to the next available qreg/creg (if any), otherwise create
-                a new qreg/creg. If False, simply create a new qreg/creg for
-                each new Qubit ID
+            qubit_id_mapping_redux (bool): If True, try to allocate new Qubit IDs to the next available qreg/creg (if
+                any), otherwise create a new qreg/creg. If False, simply create a new qreg/creg for each new Qubit ID
         """
         super().__init__()
-        self._collate = collate
-        self._collate_callback = None if collate else collate_callback
+        self._collate_callback = collate_callback
         self._gen_qubit_name = qubit_callback
         self._gen_bit_name = bit_callback
         self._qubit_id_mapping_redux = qubit_id_mapping_redux
@@ -107,6 +96,9 @@ class OpenQASMBackend(BasicEngine):
 
     @property
     def qasm(self):
+        """
+        Access to the QASM representation of the circuit.
+        """
         return self._output
 
     def is_available(self, cmd):
@@ -150,8 +142,7 @@ class OpenQASMBackend(BasicEngine):
             return False
         if not self.is_last_engine:
             return self.next_engine.is_available(cmd)
-        else:
-            return True
+        return True
 
     def receive(self, command_list):
         """
@@ -170,12 +161,11 @@ class OpenQASMBackend(BasicEngine):
         if not self.is_last_engine:
             self.send(command_list)
 
-    def _store(self, cmd):
+    def _store(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
         """
         Temporarily store the command cmd.
 
-        Translates the command and stores it the _openqasm_circuit attribute
-        (self._openqasm_circuit)
+        Translates the command and stores it the _openqasm_circuit attribute (self._openqasm_circuit)
 
         Args:
             cmd: Command to store
@@ -223,9 +213,8 @@ class OpenQASMBackend(BasicEngine):
         if gate == Allocate:
             add = True
 
-            # Perform qubit index reduction if possible.  This typically means
-            # that existing qubit keep their indices between FlushGates but
-            # that qubit indices of deallocated qubit may be reused.
+            # Perform qubit index reduction if possible.  This typically means that existing qubit keep their indices
+            # between FlushGates but that qubit indices of deallocated qubit may be reused.
             if self._qubit_id_mapping_redux and self._available_indices:
                 add = False
                 index = self._available_indices.pop()
@@ -263,8 +252,8 @@ class OpenQASMBackend(BasicEngine):
 
             try:
                 self._output.append('{} {};'.format(_ccontrolled_gates_func[gate], ','.join(controls + targets)))
-            except KeyError:
-                raise RuntimeError('Unable to perform {} gate with n=2 control qubits'.format(gate))
+            except KeyError as err:
+                raise RuntimeError('Unable to perform {} gate with n=2 control qubits'.format(gate)) from err
 
         elif n_controls == 1:
             target_qureg = [self._qreg_dict[qb.id] for qureg in cmd.qubits for qb in qureg]
@@ -300,8 +289,8 @@ class OpenQASMBackend(BasicEngine):
                             _controlled_gates_func[gate], self._qreg_dict[cmd.control_qubits[0].id], *target_qureg
                         )
                     )
-            except KeyError:
-                raise RuntimeError('Unable to perform {} gate with n=1 control qubits'.format(gate))
+            except KeyError as err:
+                raise RuntimeError('Unable to perform {} gate with n=1 control qubits'.format(gate)) from err
         else:
             target_qureg = [self._qreg_dict[qb.id] for qureg in cmd.qubits for qb in qureg]
             if isinstance(gate, Ph):
@@ -323,7 +312,7 @@ class OpenQASMBackend(BasicEngine):
         """
         Reset the internal quantum circuit after a FlushGate
         """
-        if self._collate:
+        if not self._collate_callback:
             self._output.append('# ' + '=' * 80)
         else:
             self._collate_callback(deepcopy(self._output))

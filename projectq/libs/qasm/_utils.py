@@ -20,6 +20,10 @@ from projectq.ops import ControlledGate, SwapGate, BasicGate
 
 
 class OpaqueGate(BasicGate):
+    """
+    Gate representing an opaque gate type.
+    """
+
     def __init__(self, name, params):
         """
         Constructor
@@ -54,7 +58,7 @@ def apply_gate(gate, qubits):
         gate (BasicGate): Instance of a ProjectQ gate
         qubits (list): List of ProjectQ qubits the gate applies to.
     """
-    # pylint: disable = protected-access,pointless-statement
+    # pylint: disable = protected-access
 
     if isinstance(gate, ControlledGate):
         ctrls = qubits[: gate._n]
