@@ -21,16 +21,22 @@ try:
 except ImportError:  # pragma: no cover
     try:
         from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str
-    except ImportError as e:
-        err = (
+    except ImportError:
+        ERROR_MSG = (
             'Unable to import either qiskit or pyparsing\nPlease install either of them if you want to use '
             'projectq.libs.qasm (e.g. using the command python -m pip install projectq[qiskit])'
         )
 
         def read_qasm_file(eng, filename):
+            """
+            Dummy implementation
+            """
             # pylint: disable=unused-argument
-            raise RuntimeError(err)
+            raise RuntimeError(ERROR_MSG)
 
         def read_qasm_str(eng, qasm_str):
+            """
+            Dummy implementation
+            """
             # pylint: disable=unused-argument
-            raise RuntimeError(err)
+            raise RuntimeError(ERROR_MSG)

@@ -434,7 +434,7 @@ class GateOp:
             self.params = param_str[param_str.find('(') + 1 : param_str.rfind(')')].split(',')  # noqa: E203
             self.qubits = [QubitProxy(qubit) for qubit in toks[2]]
 
-    def eval(self, eng):
+    def eval(self, eng):  # pylint: disable=too-many-branches
         """
         Evaluate a GateOp
 
@@ -442,10 +442,7 @@ class GateOp:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
         """
         if self.name in gates_conv_table:
-            if self.params:
-                gate = gates_conv_table[self.name](*[parse_expr(p) for p in self.params])
-            else:
-                gate = gates_conv_table[self.name]
+            gate = gates_conv_table[self.name](*[parse_expr(p) for p in self.params])
 
             qubits = []
             for qureg in [qubit.eval(eng) for qubit in self.qubits]:

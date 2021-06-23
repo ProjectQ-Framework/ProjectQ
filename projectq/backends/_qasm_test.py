@@ -346,9 +346,7 @@ def test_qasm_no_collate():
     def _process(output):
         qasm_list.append(output)
 
-    eng = MainEngine(
-        backend=OpenQASMBackend(collate=False, collate_callback=_process, qubit_id_mapping_redux=False), engine_list=[]
-    )
+    eng = MainEngine(backend=OpenQASMBackend(collate_callback=_process, qubit_id_mapping_redux=False), engine_list=[])
     qubit = eng.allocate_qubit()
     ctrls = eng.allocate_qureg(2)
 

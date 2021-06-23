@@ -311,8 +311,13 @@ class Rz(BasicRotationGate):
 
 
 class U3(U3Gate):
+    """
+    U3 rotation gate class
+    """
+
     @property
     def matrix(self):
+        """Access to the matrix property of this gate"""
         return np.matrix(
             [
                 [
@@ -328,6 +333,10 @@ class U3(U3Gate):
 
 
 class U2(U3):
+    """
+    U2 rotation gate class
+    """
+
     def __init__(self, phi, lamda):
         super().__init__(math.pi / 2, phi, lamda)
 
