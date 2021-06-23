@@ -49,12 +49,12 @@ jobs:
       - name: Generate requirement file (Unix)
         if: runner.os != 'Windows'
         run: |
-          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit
+          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit,qiskit,pyparsing
 
       - name: Generate requirement file (Windows)
         if: runner.os == 'Windows'
         run: |
-          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
 
       - name: Prepare env
         run: |
