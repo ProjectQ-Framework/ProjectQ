@@ -27,32 +27,58 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Extract version from tag name
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      - name: Extract version from tag name (Unix)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && runner.os != 'Windows'
         run: |
           TAG_NAME="${GITHUB_REF/refs\/tags\//}"
           VERSION=${TAG_NAME#v}
 
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Extract version from branch name (for release branches)
-        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/')
+      - name: Extract version from branch name (for release branches) (Unix)
+        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/') && runner.os != 'Windows'
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION=${BRANCH_NAME#release/}
 
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          git tag v${RELEASE_VERSION} master
 
-      - name: Extract version from branch name (for hotfix branches)
-        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+      - name: Extract version from branch name (for hotfix branches) (Unix)
+        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/') && runner.os != 'Windows'
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION=${BRANCH_NAME#hotfix/}
 
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          git tag v${RELEASE_VERSION} master
 
-      - name: Set tag for setuptools-scm
-        run: git tag v${RELEASE_VERSION} master
+
+      - name: Extract version from tag name (Windows)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows'
+        run: |
+          $TAG_NAME = $GITHUB_REF -replace "refs/tags/",""
+          $VERSION = $TAG_NAME -replace "v",""
+
+          Write-Output "RELEASE_VERSION=$VERSION"" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Extract version from branch name (for release branches) (Windows)
+        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/') && runner.os == 'Windows'
+        run: |
+          $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          $VERSION = $BRANCH_NAME -replace "release/",""
+
+          Write-Output "RELEASE_VERSION=$VERSION"" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          git tag v${RELEASE_VERSION} master
+
+      - name: Extract version from branch name (for hotfix branches) (Unix)
+        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/') && runner.os == 'Windows'
+        run: |
+          $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          $VERSION = $BRANCH_NAME -replace hotfix/",""
+
+          Write-Output "RELEASE_VERSION=$VERSION"" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          git tag v${RELEASE_VERSION} master
 
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.11.1
