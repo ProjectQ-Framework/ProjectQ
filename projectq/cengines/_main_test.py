@@ -73,6 +73,18 @@ def test_main_engine_init_defaults():
         assert type(engine) == type(expected)
 
 
+def test_main_engine_too_many_compiler_engines():
+    old = _main._N_ENGINES_THRESHOLD
+    _main._N_ENGINES_THRESHOLD = 3
+
+    _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine()])
+
+    with pytest.raises(ValueError):
+        _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine(), DummyEngine()])
+
+    _main._N_ENGINES_THRESHOLD = old
+
+
 def test_main_engine_init_mapper():
     class LinearMapper(BasicMapperEngine):
         pass
