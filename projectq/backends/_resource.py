@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,10 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
-Contains a compiler engine which counts the number of calls for each type of
-gate used in a circuit, in addition to the max. number of active qubits.
+Contains a compiler engine which counts the number of calls for each type of gate used in a circuit, in addition to
+the max. number of active qubits.
 """
 
 from projectq.cengines import BasicEngine, LastEngineException
@@ -25,22 +25,18 @@ from projectq.types import WeakQubitRef
 
 class ResourceCounter(BasicEngine):
     """
-    ResourceCounter is a compiler engine which counts the number of gates and
-    max. number of active qubits.
+    ResourceCounter is a compiler engine which counts the number of gates and max. number of active qubits.
 
     Attributes:
-        gate_counts (dict): Dictionary of gate counts.
-            The keys are tuples of the form (cmd.gate, ctrl_cnt), where
+        gate_counts (dict): Dictionary of gate counts.  The keys are tuples of the form (cmd.gate, ctrl_cnt), where
             ctrl_cnt is the number of control qubits.
-        gate_class_counts (dict): Dictionary of gate class counts.
-            The keys are tuples of the form (cmd.gate.__class__, ctrl_cnt),
-            where ctrl_cnt is the number of control qubits.
-        max_width (int): Maximal width (=max. number of active qubits at any
-            given point).
+        gate_class_counts (dict): Dictionary of gate class counts.  The keys are tuples of the form
+            (cmd.gate.__class__, ctrl_cnt), where ctrl_cnt is the number of control qubits.
+        max_width (int): Maximal width (=max. number of active qubits at any given point).
     Properties:
-        depth_of_dag (int): It is the longest path in the directed
-                            acyclic graph (DAG) of the program.
+        depth_of_dag (int): It is the longest path in the directed acyclic graph (DAG) of the program.
     """
+
     def __init__(self):
         """
         Initialize a resource counter engine.
@@ -58,16 +54,14 @@ class ResourceCounter(BasicEngine):
 
     def is_available(self, cmd):
         """
-        Specialized implementation of is_available: Returns True if the
-        ResourceCounter is the last engine (since it can count any command).
+        Specialized implementation of is_available: Returns True if the ResourceCounter is the last engine (since it
+        can count any command).
 
         Args:
-            cmd (Command): Command for which to check availability (all
-                Commands can be counted).
+            cmd (Command): Command for which to check availability (all Commands can be counted).
 
         Returns:
-            availability (bool): True, unless the next engine cannot handle
-                the Command (if there is a next engine).
+            availability (bool): True, unless the next engine cannot handle the Command (if there is a next engine).
         """
         try:
             return BasicEngine.is_available(self, cmd)
@@ -76,13 +70,15 @@ class ResourceCounter(BasicEngine):
 
     @property
     def depth_of_dag(self):
+        """
+        Return the depth of the DAG.
+        """
         if self._depth_of_qubit:
             current_max = max(self._depth_of_qubit.values())
             return max(current_max, self._previous_max_depth)
-        else:
-            return self._previous_max_depth
+        return self._previous_max_depth
 
-    def _add_cmd(self, cmd):
+    def _add_cmd(self, cmd):  # pylint: disable=too-many-branches
         """
         Add a gate to the count.
         """
@@ -104,8 +100,7 @@ class ResourceCounter(BasicEngine):
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
                     if logical_id_tag is not None:
-                        qubit = WeakQubitRef(qubit.engine,
-                                             logical_id_tag.logical_qubit_id)
+                        qubit = WeakQubitRef(qubit.engine, logical_id_tag.logical_qubit_id)
                     self.main_engine.set_measurement_result(qubit, 0)
         else:
             qubit_ids = set()
@@ -142,9 +137,8 @@ class ResourceCounter(BasicEngine):
         Return the string representation of this ResourceCounter.
 
         Returns:
-            A summary (string) of resources used, including gates, number of
-                calls, and max. number of qubits that were active at the same
-                time.
+            A summary (string) of resources used, including gates, number of calls, and max. number of qubits that
+                were active at the same time.
         """
         if len(self.gate_counts) > 0:
             gate_class_list = []
@@ -159,23 +153,24 @@ class ResourceCounter(BasicEngine):
                 gate_name = ctrl_cnt * "C" + str(gate)
                 gate_list.append(gate_name + " : " + str(num))
 
-            return ("Gate class counts:\n    " +
-                    "\n    ".join(list(sorted(gate_class_list))) +
-                    "\n\nGate counts:\n    " +
-                    "\n    ".join(list(sorted(gate_list))) +
-                    "\n\nMax. width (number of qubits) : " +
-                    str(self.max_width) + ".")
+            return (
+                "Gate class counts:\n    "
+                + "\n    ".join(list(sorted(gate_class_list)))
+                + "\n\nGate counts:\n    "
+                + "\n    ".join(list(sorted(gate_list)))
+                + "\n\nMax. width (number of qubits) : "
+                + str(self.max_width)
+                + "."
+            )
         return "(No quantum resources used)"
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, increases the
-        counters of the received commands, and then send them on to the next
-        engine.
+        Receive a list of commands from the previous engine, increases the counters of the received commands, and then
+        send them on to the next engine.
 
         Args:
-            command_list (list<Command>): List of commands to receive (and
-                count).
+            command_list (list<Command>): List of commands to receive (and count).
         """
         for cmd in command_list:
             if not cmd.gate == FlushGate():

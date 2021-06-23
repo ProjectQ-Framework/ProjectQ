@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +22,9 @@ import re
 import itertools
 
 from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import (FlushGate, Measure, Allocate, Deallocate)
+from projectq.ops import FlushGate, Measure, Allocate, Deallocate
 from projectq.meta import get_control_count
-from projectq.backends._circuits import to_draw
+from ._plot import to_draw
 
 # ==============================================================================
 
@@ -56,9 +57,11 @@ class CircuitDrawerMatplotlib(BasicEngine):
     CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library
     for drawing quantum circuits
     """
+
     def __init__(self, accept_input=False, default_measure=0):
         """
         Initialize a circuit drawing engine(mpl)
+
         Args:
             accept_input (bool): If accept_input is true, the printer queries
                 the user to input measurement results if the CircuitDrawerMPL
@@ -95,7 +98,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         except LastEngineException:
             return True
 
-    def _process(self, cmd):
+    def _process(self, cmd):  # pylint: disable=too-many-branches
         """
         Process the command cmd and stores it in the internal storage
 
@@ -106,30 +109,30 @@ class CircuitDrawerMatplotlib(BasicEngine):
         Args:
             cmd (Command): Command to add to the circuit diagram.
         """
+        # pylint: disable=R0801
         if cmd.gate == Allocate:
-            qubit_id = cmd.qubits[0][0].id
-            if qubit_id not in self._map:
-                self._map[qubit_id] = qubit_id
-            self._qubit_lines[qubit_id] = []
+            qb_id = cmd.qubits[0][0].id
+            if qb_id not in self._map:
+                self._map[qb_id] = qb_id
+            self._qubit_lines[qb_id] = []
             return
 
         if cmd.gate == Deallocate:
             return
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert get_control_count(cmd) == 0
+            if get_control_count(cmd) != 0:
+                raise ValueError('Cannot have control qubits with a measurement gate!')
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
                         measurement = None
                         while measurement not in ('0', '1', 1, 0):
-                            prompt = ("Input measurement result (0 or 1) for "
-                                      "qubit " + str(qubit) + ": ")
+                            prompt = "Input measurement result (0 or 1) for qubit {}: ".format(qubit)
                             measurement = input(prompt)
                     else:
                         measurement = self._default_measure
-                    self.main_engine.set_measurement_result(
-                        qubit, int(measurement))
+                    self.main_engine.set_measurement_result(qubit, int(measurement))
 
         targets = [qubit.id for qureg in cmd.qubits for qubit in qureg]
         controls = [qubit.id for qubit in cmd.control_qubits]
@@ -139,9 +142,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
         # First find out what is the maximum index that this command might
         # have
-        max_depth = max(
-            len(self._qubit_lines[qubit_id])
-            for qubit_id in itertools.chain(targets, controls))
+        max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in itertools.chain(targets, controls))
 
         # If we have a multi-qubit gate, make sure that all the qubit axes
         # have the same depth. We do that by recalculating the maximum index
@@ -151,19 +152,16 @@ class CircuitDrawerMatplotlib(BasicEngine):
         # considering the qubit axes that are between the topmost and
         # bottommost qubit axes of the current command.
         if len(targets) + len(controls) > 1:
-            max_depth = max(
-                len(self._qubit_lines[qubit_id])
-                for qubit_id in self._qubit_lines)
+            max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
 
-        for qubit_id in itertools.chain(targets, controls):
-            depth = len(self._qubit_lines[qubit_id])
-            self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
+        for qb_id in itertools.chain(targets, controls):
+            depth = len(self._qubit_lines[qb_id])
+            self._qubit_lines[qb_id] += [None] * (max_depth - depth)
 
-            if qubit_id == ref_qubit_id:
-                self._qubit_lines[qubit_id].append(
-                    (gate_str, targets, controls))
+            if qb_id == ref_qubit_id:
+                self._qubit_lines[qb_id].append((gate_str, targets, controls))
             else:
-                self._qubit_lines[qubit_id].append(None)
+                self._qubit_lines[qb_id].append(None)
 
     def receive(self, command_list):
         """
@@ -219,14 +217,15 @@ class CircuitDrawerMatplotlib(BasicEngine):
               - wire_height (1): Vertical spacing between two qubit
                 wires (roughly in inches)
         """
-        max_depth = max(
-            len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
+        max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
         for qubit_id in self._qubit_lines:
             depth = len(self._qubit_lines[qubit_id])
             if depth < max_depth:
                 self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
 
-        return to_draw(self._qubit_lines,
-                       qubit_labels=qubit_labels,
-                       drawing_order=drawing_order,
-                       **kwargs)
+        return to_draw(
+            self._qubit_lines,
+            qubit_labels=qubit_labels,
+            drawing_order=drawing_order,
+            **kwargs,
+        )

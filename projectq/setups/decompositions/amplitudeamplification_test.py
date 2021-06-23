@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +18,10 @@
 import math
 import pytest
 
-from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (AutoReplacer, DecompositionRuleSet, MainEngine)
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, MainEngine
 
-from projectq.ops import (X, H, Ry, All, Measure)
+from projectq.ops import X, H, Ry, All, Measure
 from projectq.meta import Loop, Control, Compute, Uncompute
 
 from projectq.ops import QAA
@@ -44,10 +44,12 @@ def simple_oracle(eng, system_q, control):
 def test_simple_grover():
     rule_set = DecompositionRuleSet(modules=[aa])
 
-    eng = MainEngine(backend=Simulator(),
-                     engine_list=[
-                         AutoReplacer(rule_set),
-                     ])
+    eng = MainEngine(
+        backend=Simulator(),
+        engine_list=[
+            AutoReplacer(rule_set),
+        ],
+    )
 
     system_qubits = eng.allocate_qureg(7)
 
@@ -71,8 +73,8 @@ def test_simple_grover():
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi / (4. * theta_before) + 1)
-    theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
+    num_it = int(math.pi / (4.0 * theta_before) + 1)
+    theoretical_prob = math.sin((2 * num_it + 1.0) * theta_before) ** 2
     with Loop(eng, num_it):
         QAA(hache_algorithm, simple_oracle) | (system_qubits, control)
 
@@ -85,14 +87,15 @@ def test_simple_grover():
     All(Measure) | system_qubits
     H | control
     Measure | control
-    result = [int(q) for q in system_qubits]
-    control_result = int(control)
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-6), (
-        "The obtained probability is less than expected %f vs. %f" %
-        (total_prob_after, theoretical_prob))
+    assert total_prob_after == pytest.approx(
+        theoretical_prob, abs=1e-6
+    ), "The obtained probability is less than expected %f vs. %f" % (
+        total_prob_after,
+        theoretical_prob,
+    )
 
 
 def complex_algorithm(eng, qreg):
@@ -121,10 +124,12 @@ def complex_oracle(eng, system_q, control):
 def test_complex_aa():
     rule_set = DecompositionRuleSet(modules=[aa])
 
-    eng = MainEngine(backend=Simulator(),
-                     engine_list=[
-                         AutoReplacer(rule_set),
-                     ])
+    eng = MainEngine(
+        backend=Simulator(),
+        engine_list=[
+            AutoReplacer(rule_set),
+        ],
+    )
 
     system_qubits = eng.allocate_qureg(6)
 
@@ -149,8 +154,8 @@ def test_complex_aa():
     # Theta is calculated previously using get_probability
     # We calculate also the theoretical final probability
     # of getting the good state
-    num_it = int(math.pi / (4. * theta_before) + 1)
-    theoretical_prob = math.sin((2 * num_it + 1.) * theta_before)**2
+    num_it = int(math.pi / (4.0 * theta_before) + 1)
+    theoretical_prob = math.sin((2 * num_it + 1.0) * theta_before) ** 2
     with Loop(eng, num_it):
         QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
 
@@ -164,19 +169,19 @@ def test_complex_aa():
     All(Measure) | system_qubits
     H | control
     Measure | control
-    result = [int(q) for q in system_qubits]
-    control_result = int(control)
 
     eng.flush()
 
-    assert total_prob_after == pytest.approx(theoretical_prob, abs=1e-2), (
-        "The obtained probability is less than expected %f vs. %f" %
-        (total_prob_after, theoretical_prob))
+    assert total_prob_after == pytest.approx(
+        theoretical_prob, abs=1e-2
+    ), "The obtained probability is less than expected %f vs. %f" % (
+        total_prob_after,
+        theoretical_prob,
+    )
 
 
 def test_string_functions():
     algorithm = hache_algorithm
     oracle = simple_oracle
     gate = QAA(algorithm, oracle)
-    assert (str(gate) ==
-            "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)")
+    assert str(gate) == "QAA(Algorithm = hache_algorithm, Oracle = simple_oracle)"

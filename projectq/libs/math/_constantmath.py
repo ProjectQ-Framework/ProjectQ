@@ -1,4 +1,5 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,19 +13,22 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing constant math quantum operations"""
+
 import math
+
 try:
     from math import gcd
-except ImportError:
+except ImportError:  # pragma: no cover
     from fractions import gcd
 
-from projectq.ops import R, X, Swap, Measure, CNOT, QFT
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
+from projectq.ops import R, X, Swap, CNOT, QFT
+from projectq.meta import Control, Compute, Uncompute, CustomUncompute
 from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
 
 
 # Draper's addition by constant https://arxiv.org/abs/quant-ph/0008033
-def add_constant(eng, c, quint):
+def add_constant(eng, constant, quint):
     """
     Adds a classical constant c to the quantum integer (qureg) quint using
     Draper addition.
@@ -36,24 +40,25 @@ def add_constant(eng, c, quint):
     with Compute(eng):
         QFT | quint
 
-    for i in range(len(quint)):
+    for i, qubit in enumerate(quint):
         for j in range(i, -1, -1):
-            if ((c >> j) & 1):
-                R(math.pi / (1 << (i - j))) | quint[i]
+            if (constant >> j) & 1:
+                R(math.pi / (1 << (i - j))) | qubit
 
     Uncompute(eng)
 
 
 # Modular adder by Beauregard https://arxiv.org/abs/quant-ph/0205095
-def add_constant_modN(eng, c, N, quint):
+def add_constant_modN(eng, constant, N, quint):  # pylint: disable=invalid-name
     """
     Adds a classical constant c to a quantum integer (qureg) quint modulo N
     using Draper addition and the construction from
     https://arxiv.org/abs/quant-ph/0205095.
     """
-    assert(c < N and c >= 0)
+    if constant < 0 or constant > N:
+        raise ValueError('Pre-condition failed: 0 <= constant < N')
 
-    AddConstant(c) | quint
+    AddConstant(constant) | quint
 
     with Compute(eng):
         SubConstant(N) | quint
@@ -62,7 +67,7 @@ def add_constant_modN(eng, c, N, quint):
         with Control(eng, ancilla):
             AddConstant(N) | quint
 
-    SubConstant(c) | quint
+    SubConstant(constant) | quint
 
     with CustomUncompute(eng):
         X | quint[-1]
@@ -70,12 +75,12 @@ def add_constant_modN(eng, c, N, quint):
         X | quint[-1]
         del ancilla
 
-    AddConstant(c) | quint
+    AddConstant(constant) | quint
 
 
 # Modular multiplication by modular addition & shift, followed by uncompute
 # from https://arxiv.org/abs/quant-ph/0205095
-def mul_by_constant_modN(eng, c, N, quint_in):
+def mul_by_constant_modN(eng, constant, N, quint_in):  # pylint: disable=invalid-name
     """
     Multiplies a quantum integer by a classical number a modulo N, i.e.,
 
@@ -84,29 +89,34 @@ def mul_by_constant_modN(eng, c, N, quint_in):
     (only works if a and N are relative primes, otherwise the modular inverse
     does not exist).
     """
-    assert(c < N and c >= 0)
-    assert(gcd(c, N) == 1)
+    if constant < 0 or constant > N:
+        raise ValueError('Pre-condition failed: 0 <= constant < N')
+    if gcd(constant, N) != 1:
+        raise ValueError('Pre-condition failed: gcd(constant, N) == 1')
 
-    n = len(quint_in)
-    quint_out = eng.allocate_qureg(n + 1)
+    n_qubits = len(quint_in)
+    quint_out = eng.allocate_qureg(n_qubits + 1)
 
-    for i in range(n):
+    for i in range(n_qubits):
         with Control(eng, quint_in[i]):
-            AddConstantModN((c << i) % N, N) | quint_out
+            AddConstantModN((constant << i) % N, N) | quint_out
 
-    for i in range(n):
+    for i in range(n_qubits):
         Swap | (quint_out[i], quint_in[i])
 
-    cinv = inv_mod_N(c, N)
+    cinv = inv_mod_N(constant, N)
 
-    for i in range(n):
+    for i in range(n_qubits):
         with Control(eng, quint_in[i]):
             SubConstantModN((cinv << i) % N, N) | quint_out
     del quint_out
 
 
-# calculates the inverse of a modulo N
-def inv_mod_N(a, N):
+def inv_mod_N(a, N):  # pylint: disable=invalid-name
+    """
+    Calculate the inverse of a modulo N
+    """
+    # pylint: disable=invalid-name
     s = 0
     old_s = 1
     r = N

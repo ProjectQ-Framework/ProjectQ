@@ -1,0 +1,353 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - v*
+
+jobs:
+  standard:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        python:
+        - 3.6
+        - 3.7
+        - 3.8
+        - 3.9
+
+    name: "🐍 ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Setup Python ${{ matrix.python }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: 'x64'
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        echo "::set-output name=dir::$(python -m pip  cache dir)"
+
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
+        restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
+
+    - name: Generate requirement file (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        python setup.py gen_reqfile --include-extras=test,braket,revkit
+
+    - name: Generate requirement file (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        python setup.py gen_reqfile --include-extras=test,braket
+
+    - name: Prepare env
+      run: |
+        python -m pip install -r requirements.txt --prefer-binary
+        python -m pip install coveralls
+
+    - name: Setup annotations on Linux
+      if: runner.os == 'Linux'
+      run: python -m pip install pytest-github-actions-annotate-failures
+
+    - name: Build and install package (Unix)
+      if: runner.os != 'Windows'
+      run: python -m pip install -ve .[braket,revkit,test]
+
+    - name: Build and install package (Windows)
+      if: runner.os == 'Windows'
+      run: python -m pip install -ve .[braket,test]
+
+    - name: Pytest
+      run: |
+        echo 'backend: Agg' > matplotlibrc
+        python -m pytest -p no:warnings --cov=projectq
+
+    - name: Coveralls.io
+      run: coveralls --service=github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_FLAG_NAME: python-${{ matrix.python }}-${{ matrix.runs-on }}-x64
+        COVERALLS_PARALLEL: true
+
+
+  finish:
+    needs: standard
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Coveralls Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  clang:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clang:
+          - 3.5  # version for full C++14 support (3.4 fails because of -fstack-protector-strong)
+          - 5    # earliest version for reasonable C++17 support
+          - 10   # version for full C++17 support (with patches)
+          - latest
+    env:
+      CC: clang
+      CXX: clang++
+      PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang < 10) && 1 || 0 }}
+
+    name: "🐍 3 • Clang ${{ matrix.clang }} • x64"
+    container: "silkeh/clang:${{ matrix.clang }}"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Prepare env
+      run: >
+        apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
+        python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
+        python3-pytest python3-pytest-cov python3-flaky
+        --no-install-recommends
+
+    - name: Prepare Python env
+      run: |
+        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -r requirements.txt --prefer-binary
+
+    - name: Upgrade pybind11 and flaky
+      run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
+
+    - name: Build and install package
+      run: python3 -m pip install -ve .[braket,test]
+
+    - name: Pytest
+      run: |
+        echo 'backend: Agg' > matplotlibrc
+        python3 -m pytest -p no:warnings
+
+
+  gcc:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc:
+          - 7  # C++17 earliest version
+          - latest
+
+    name: "🐍 3 • GCC ${{ matrix.gcc }} • x64"
+    container: "gcc:${{ matrix.gcc }}"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Prepare env
+      run: >
+        apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
+        python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
+        python3-pytest python3-pytest-cov python3-flaky
+        --no-install-recommends
+
+    - name: Prepare Python env
+      run: |
+        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -r requirements.txt --prefer-binary
+
+    - name: Upgrade pybind11 and flaky
+      run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
+
+    - name: Build and install package
+      run: python3 -m pip install -ve .[braket,test]
+
+    - name: Pytest
+      run: |
+        echo 'backend: Agg' > matplotlibrc
+        python3 -m pytest -p no:warnings
+
+
+  # Testing on CentOS (manylinux uses a centos base, and this is an easy way
+  # to get GCC 4.8, which is the manylinux1 compiler).
+  centos:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        centos:
+          - 7  # GCC 4.8
+          - 8
+
+    name: "🐍 3 • CentOS ${{ matrix.centos }} • x64"
+    container: "centos:${{ matrix.centos }}"
+
+    steps:
+    - name: Enable cache for yum
+      run: echo 'keepcache=1' >> /etc/yum.conf
+
+    - name: Setup yum cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          /var/cache/yum/
+          /var/cache/dnf/
+        key: ${{ runner.os }}-centos${{ matrix.centos }}-yum-${{ secrets.yum_cache }}
+
+    - name: Add Python 3 and other dependencies
+      run: yum update -y && yum install -y python3-devel gcc-c++ make
+
+    - name: Setup Endpoint repository (CentOS 7 only)
+      if: matrix.centos == 7
+      run: yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.7-1.x86_64.rpm
+
+    - name: Install Git > 2.18
+      run: yum install -y git
+
+    - uses: actions/checkout@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Create pip cache dir
+      run: mkdir -p ~/.cache/pip
+
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg') }}
+        restore-keys: ${{ runner.os }}-centos-pip-
+
+    - name: Update pip
+      run: python3 -m pip install --upgrade pip
+
+    - name: Install dependencies
+      run: |
+        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -r requirements.txt --prefer-binary
+
+    - name: Build and install package
+      run: python3 -m pip install -ve .[braket,test]
+
+    - name: Pytest
+      run: |
+        echo 'backend: Agg' > matplotlibrc
+        python3 -m pytest -p no:warnings
+
+
+  documentation:
+    name: "Documentation build test"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create pip cache dir
+      run: mkdir -p ~/.cache/pip
+
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-doc-pip-${{ hashFiles('**/setup.cfg') }}
+        restore-keys: ${{ runner.os }}-doc-pip-
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - uses: actions/setup-python@v2
+
+    - name: Install docs & setup requirements
+      run: |
+        python3 -m pip install .[docs]
+
+    - name: Build docs
+      run: python3 -m sphinx -b html docs docs/.build
+
+    - name: Make SDist
+      run: python3 setup.py sdist
+
+
+  win32-msvc2017:
+    name: "🐍 ${{ matrix.python }} • MSVC 2017 • x64"
+    runs-on: windows-2016
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        echo "::set-output name=dir::$(python -m pip cache dir)"
+
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
+        restore-keys: ${{ runner.os }}-${{ matrix.python }}-pip-
+
+    - name: Setup 🐍 ${{ matrix.python }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Prepare env
+      run: |
+        python setup.py gen_reqfile --include-extras=test,braket
+        python -m pip install -r requirements.txt --prefer-binary
+
+    - name: Build and install package
+      run: python -m pip install -ve .[braket,test]
+
+    - name: Run all checks
+      run: |
+        echo 'backend: Agg' > matplotlibrc
+        python3 -m pytest -p no:warnings

@@ -1,10 +1,13 @@
-from projectq.ops import All, CNOT, H, Measure, Rz, X, Z
+# -*- coding: utf-8 -*-
+# pylint: skip-file
+
+from projectq.ops import CNOT, H, Measure, Rz, X, Z
 from projectq import MainEngine
 from projectq.meta import Dagger, Control
 
 
 def create_bell_pair(eng):
-    """
+    r"""
     Returns a Bell-pair (two qubits in state :math:`|A\rangle \otimes |B
     \rangle = \frac 1{\sqrt 2} \left( |0\rangle\otimes|0\rangle + |1\rangle
     \otimes|1\rangle \right)`).

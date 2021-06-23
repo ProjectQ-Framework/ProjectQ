@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Defines a few shortcuts for certain gates such as
 * CNOT = C(NOT)
@@ -25,15 +25,13 @@ from ._gates import NOT, Rz, Z
 
 def CRz(angle):
     """
-    Shortcut for C(Rz(angle), n=1).
+    Shortcut for C(Rz(angle), n_qubits=1).
     """
-    return C(Rz(angle), n=1)
+    return C(Rz(angle), n_qubits=1)
 
 
 CNOT = CX = C(NOT)
 
-
 CZ = C(Z)
-
 
 Toffoli = C(CNOT)

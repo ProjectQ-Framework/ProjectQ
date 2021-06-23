@@ -85,4 +85,3 @@ void kernel(V &psi, unsigned id2, unsigned id1, unsigned id0, M const& m, std::s
         }
     }
 }
-

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._cmdmodifier.py."""
 
 from projectq import MainEngine
@@ -35,8 +35,7 @@ def test_command_modifier():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     for cmd in received_commands:
         print(cmd)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for the quantum Fourier transform.
 
@@ -29,7 +29,7 @@ from projectq.ops import H, R, QFT
 from projectq.meta import Control
 
 
-def _decompose_QFT(cmd):
+def _decompose_QFT(cmd):  # pylint: disable=invalid-name
     qb = cmd.qubits[0]
     eng = cmd.engine
     with Control(eng, cmd.control_qubits):
@@ -41,6 +41,4 @@ def _decompose_QFT(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(QFT.__class__, _decompose_QFT)
-]
+all_defined_decomposition_rules = [DecompositionRule(QFT.__class__, _decompose_QFT)]

@@ -1,4 +1,5 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,10 +21,12 @@ from builtins import input
 from projectq.cengines import LastEngineException, BasicEngine
 from projectq.ops import FlushGate, Measure, Allocate, Deallocate
 from projectq.meta import get_control_count
-from projectq.backends._circuits import to_latex
+from ._to_latex import to_latex
 
 
-class CircuitItem(object):
+class CircuitItem:
+    """Item of a quantum circuit to draw"""
+
     def __init__(self, gate, lines, ctrl_lines):
         """
         Initialize a circuit item.
@@ -39,9 +42,12 @@ class CircuitItem(object):
         self.id = -1
 
     def __eq__(self, other):
-        return (self.gate == other.gate and self.lines == other.lines
-                and self.ctrl_lines == other.ctrl_lines
-                and self.id == other.id)
+        return (
+            self.gate == other.gate
+            and self.lines == other.lines
+            and self.ctrl_lines == other.ctrl_lines
+            and self.id == other.id
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -126,6 +132,7 @@ class CircuitDrawer(BasicEngine):
         },
 
     """
+
     def __init__(self, accept_input=False, default_measure=0):
         """
         Initialize a circuit drawing engine.
@@ -187,15 +194,16 @@ class CircuitDrawer(BasicEngine):
                 needs be called before any gates have been received).
         """
         if len(self._map) > 0:
-            raise RuntimeError("set_qubit_locations() has to be called before"
-                               " applying gates!")
+            raise RuntimeError("set_qubit_locations() has to be called before applying gates!")
 
         for k in range(min(id_to_loc), max(id_to_loc) + 1):
             if k not in id_to_loc:
-                raise RuntimeError("set_qubit_locations(): Invalid id_to_loc "
-                                   "mapping provided. All ids in the provided"
-                                   " range of qubit ids have to be mapped "
-                                   "somewhere.")
+                raise RuntimeError(
+                    "set_qubit_locations(): Invalid id_to_loc "
+                    "mapping provided. All ids in the provided"
+                    " range of qubit ids have to be mapped "
+                    "somewhere."
+                )
         self._map = id_to_loc
 
     def _print_cmd(self, cmd):
@@ -210,6 +218,7 @@ class CircuitDrawer(BasicEngine):
         Args:
             cmd (Command): Command to add to the circuit diagram.
         """
+        # pylint: disable=R0801
         if cmd.gate == Allocate:
             qubit_id = cmd.qubits[0][0].id
             if qubit_id not in self._map:
@@ -221,20 +230,20 @@ class CircuitDrawer(BasicEngine):
             self._free_lines.append(qubit_id)
 
         if self.is_last_engine and cmd.gate == Measure:
-            assert get_control_count(cmd) == 0
+            if get_control_count(cmd) != 0:
+                raise ValueError('Cannot have control qubits with a measurement gate!')
 
             for qureg in cmd.qubits:
                 for qubit in qureg:
                     if self._accept_input:
-                        m = None
-                        while m not in ('0', '1', 1, 0):
-                            prompt = ("Input measurement result (0 or 1) for "
-                                      "qubit " + str(qubit) + ": ")
-                            m = input(prompt)
+                        meas = None
+                        while meas not in ('0', '1', 1, 0):
+                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
+                            meas = input(prompt)
                     else:
-                        m = self._default_measure
-                    m = int(m)
-                    self.main_engine.set_measurement_result(qubit, m)
+                        meas = self._default_measure
+                    meas = int(meas)
+                    self.main_engine.set_measurement_result(qubit, meas)
 
         all_lines = [qb.id for qr in cmd.all_qubits for qb in qr]
 
@@ -242,8 +251,8 @@ class CircuitDrawer(BasicEngine):
         lines = [qb.id for qr in cmd.qubits for qb in qr]
         ctrl_lines = [qb.id for qb in cmd.control_qubits]
         item = CircuitItem(gate, lines, ctrl_lines)
-        for l in all_lines:
-            self._qubit_lines[l].append(item)
+        for line in all_lines:
+            self._qubit_lines[line].append(item)
 
         self._drawing_order.append(all_lines[0])
 
@@ -284,9 +293,11 @@ class CircuitDrawer(BasicEngine):
         if ordered:
             drawing_order = self._drawing_order
 
-        return to_latex(qubit_lines,
-                        drawing_order=drawing_order,
-                        draw_gates_in_parallel=draw_gates_in_parallel)
+        return to_latex(
+            qubit_lines,
+            drawing_order=drawing_order,
+            draw_gates_in_parallel=draw_gates_in_parallel,
+        )
 
     def receive(self, command_list):
         """

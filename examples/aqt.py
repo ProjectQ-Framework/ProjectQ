@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# pylint: skip-file
+
 import matplotlib.pyplot as plt
 import getpass
 
@@ -44,24 +47,24 @@ def run_entangle(eng, num_qubits=3):
 
 
 if __name__ == "__main__":
-    #devices available to subscription:
+    # devices available to subscription:
     # aqt_simulator (11 qubits)
     # aqt_simulator_noise (11 qubits)
     # aqt_device (4 qubits)
-    # 
+    #
     # To get a subscription, create a profile at :
     # https://gateway-portal.aqt.eu/
-    #  
-    device = None # replace by the AQT device name you want to use
+    #
+    device = None  # replace by the AQT device name you want to use
     token = None  # replace by the token given by AQT
     if token is None:
         token = getpass.getpass(prompt='AQT token > ')
     if device is None:
         device = getpass.getpass(prompt='AQT device > ')
     # create main compiler engine for the AQT back-end
-    eng = MainEngine(AQTBackend(use_hardware=True, token=token, num_runs=200,
-                                verbose=False, device=device),
-                     engine_list=projectq.setups.aqt.get_engine_list(
-                         token=token, device=device))
+    eng = MainEngine(
+        AQTBackend(use_hardware=True, token=token, num_runs=200, verbose=False, device=device),
+        engine_list=projectq.setups.aqt.get_engine_list(token=token, device=device),
+    )
     # run the circuit and print the result
     print(run_entangle(eng))

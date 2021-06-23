@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Contains an AutoReplacer compiler engine which uses engine.is_available to
 determine whether a command can be executed. If not, it uses the loaded setup
@@ -21,41 +21,37 @@ The InstructionFilter can be used to further specify which gates to
 replace/keep.
 """
 
-from projectq.cengines import (BasicEngine,
-                               ForwarderEngine,
-                               CommandModifier)
-from projectq.ops import (FlushGate,
-                          get_inverse)
+from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
+from projectq.ops import FlushGate, get_inverse
 
 
 class NoGateDecompositionError(Exception):
-    pass
+    """Exception raised when no gate decomposition rule can be found"""
 
 
 class InstructionFilter(BasicEngine):
     """
-    The InstructionFilter is a compiler engine which changes the behavior of
-    is_available according to a filter function. All commands are passed to
-    this function, which then returns whether this command can be executed
-    (True) or needs replacement (False).
+    The InstructionFilter is a compiler engine which changes the behavior of is_available according to a filter
+    function. All commands are passed to this function, which then returns whether this command can be executed (True)
+    or needs replacement (False).
     """
+
     def __init__(self, filterfun):
         """
-        Initializer: The provided filterfun returns True for all commands
-        which do not need replacement and False for commands that do.
+        Initializer: The provided filterfun returns True for all commands which do not need replacement and False for
+        commands that do.
 
         Args:
-            filterfun (function): Filter function which returns True for
-                available commands, and False otherwise. filterfun will be
-                called as filterfun(self, cmd).
+            filterfun (function): Filter function which returns True for available commands, and False
+                otherwise. filterfun will be called as filterfun(self, cmd).
         """
         BasicEngine.__init__(self)
         self._filterfun = filterfun
 
     def is_available(self, cmd):
         """
-        Specialized implementation of BasicBackend.is_available: Forwards this
-        call to the filter function given to the constructor.
+        Specialized implementation of BasicBackend.is_available: Forwards this call to the filter function given to
+        the constructor.
 
         Args:
             cmd (Command): Command for which to check availability.
@@ -74,14 +70,16 @@ class InstructionFilter(BasicEngine):
 
 class AutoReplacer(BasicEngine):
     """
-    The AutoReplacer is a compiler engine which uses engine.is_available in
-    order to determine which commands need to be replaced/decomposed/compiled
-    further. The loaded setup is used to find decomposition rules appropriate
-    for each command (e.g., setups.default).
+    The AutoReplacer is a compiler engine which uses engine.is_available in order to determine which commands need to
+    be replaced/decomposed/compiled further. The loaded setup is used to find decomposition rules appropriate for each
+    command (e.g., setups.default).
     """
-    def __init__(self, decompositionRuleSet,
-                 decomposition_chooser=lambda cmd,
-                 decomposition_list: decomposition_list[0]):
+
+    def __init__(
+        self,
+        decomposition_rule_se,
+        decomposition_chooser=lambda cmd, decomposition_list: decomposition_list[0],
+    ):
         """
         Initialize an AutoReplacer.
 
@@ -108,13 +106,12 @@ class AutoReplacer(BasicEngine):
         """
         BasicEngine.__init__(self)
         self._decomp_chooser = decomposition_chooser
-        self.decompositionRuleSet = decompositionRuleSet
+        self.decomposition_rule_set = decomposition_rule_se
 
-    def _process_command(self, cmd):
+    def _process_command(self, cmd):  # pylint: disable=too-many-locals,too-many-branches
         """
-        Check whether a command cmd can be handled by further engines and,
-        if not, replace it using the decomposition rules loaded with the setup
-        (e.g., setups.default).
+        Check whether a command cmd can be handled by further engines and, if not, replace it using the decomposition
+        rules loaded with the setup (e.g., setups.default).
 
         Args:
             cmd (Command): Command to process.
@@ -122,13 +119,9 @@ class AutoReplacer(BasicEngine):
         Raises:
             Exception if no replacement is available in the loaded setup.
         """
-        if self.is_available(cmd):
+        if self.is_available(cmd):  # pylint: disable=too-many-nested-blocks
             self.send([cmd])
         else:
-            # check for decomposition rules
-            decomp_list = []
-            potential_decomps = []
-
             # First check for a decomposition rules of the gate class, then
             # the gate class of the inverse gate. If nothing is found, do the
             # same for the first parent class, etc.
@@ -136,45 +129,55 @@ class AutoReplacer(BasicEngine):
             # If gate does not have an inverse it's parent classes are
             # DaggeredGate, BasicGate, object. Hence don't check the last two
             inverse_mro = type(get_inverse(cmd.gate)).mro()[:-2]
-            rules = self.decompositionRuleSet.decompositions
-            for level in range(max(len(gate_mro), len(inverse_mro))):
-                # Check for forward rules
-                if level < len(gate_mro):
-                    class_name = gate_mro[level].__name__
-                    try:
-                        potential_decomps = [d for d in rules[class_name]]
-                    except KeyError:
-                        pass
-                    # throw out the ones which don't recognize the command
-                    for d in potential_decomps:
-                        if d.check(cmd):
-                            decomp_list.append(d)
-                    if len(decomp_list) != 0:
-                        break
-                # Check for rules implementing the inverse gate
-                # and run them in reverse
-                if level < len(inverse_mro):
-                    inv_class_name = inverse_mro[level].__name__
-                    try:
-                        potential_decomps += [
-                            d.get_inverse_decomposition()
-                            for d in rules[inv_class_name]
-                        ]
-                    except KeyError:
-                        pass
-                    # throw out the ones which don't recognize the command
-                    for d in potential_decomps:
-                        if d.check(cmd):
-                            decomp_list.append(d)
-                    if len(decomp_list) != 0:
-                        break
+            rules = self.decomposition_rule_set.decompositions
 
-            if len(decomp_list) == 0:
-                raise NoGateDecompositionError("\nNo replacement found for " +
-                                               str(cmd) + "!")
+            # If the decomposition rule to remove negatively controlled qubits is present in the list of potential
+            # decompositions, we process it immediately, before any other decompositions.
+            controlstate_rule = [
+                rule for rule in rules.get('BasicGate', []) if rule.decompose.__name__ == '_decompose_controlstate'
+            ]
+            if controlstate_rule and controlstate_rule[0].check(cmd):
+                chosen_decomp = controlstate_rule[0]
+            else:
+                # check for decomposition rules
+                decomp_list = []
+                potential_decomps = []
 
-            # use decomposition chooser to determine the best decomposition
-            chosen_decomp = self._decomp_chooser(cmd, decomp_list)
+                for level in range(max(len(gate_mro), len(inverse_mro))):
+                    # Check for forward rules
+                    if level < len(gate_mro):
+                        class_name = gate_mro[level].__name__
+                        try:
+                            potential_decomps = rules[class_name]
+                        except KeyError:
+                            pass
+                        # throw out the ones which don't recognize the command
+                        for decomp in potential_decomps:
+                            if decomp.check(cmd):
+                                decomp_list.append(decomp)
+                        if len(decomp_list) != 0:
+                            break
+                    # Check for rules implementing the inverse gate
+                    # and run them in reverse
+                    if level < len(inverse_mro):
+                        inv_class_name = inverse_mro[level].__name__
+                        try:
+                            potential_decomps += [d.get_inverse_decomposition() for d in rules[inv_class_name]]
+                        except KeyError:
+                            pass
+                        # throw out the ones which don't recognize the command
+                        for decomp in potential_decomps:
+                            if decomp.check(cmd):
+                                decomp_list.append(decomp)
+                        if len(decomp_list) != 0:
+                            break
+
+                if len(decomp_list) == 0:
+                    raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
+
+                # use decomposition chooser to determine the best decomposition
+                chosen_decomp = self._decomp_chooser(cmd, decomp_list)
+
             # the decomposed command must have the same tags
             # (plus the ones it gets from meta-statements inside the
             # decomposition rule).
@@ -185,6 +188,7 @@ class AutoReplacer(BasicEngine):
                 cmd.tags = old_tags[:] + cmd.tags
                 cmd.engine = self.main_engine
                 return cmd
+
             # the CommandModifier calls cmd_mod_fun for each command
             # --> commands get the right tags.
             cmod_eng = CommandModifier(cmd_mod_fun)

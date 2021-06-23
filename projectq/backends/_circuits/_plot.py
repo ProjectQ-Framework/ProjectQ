@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,17 +46,19 @@ from matplotlib.patches import Circle, Arc, Rectangle
 #   - x_offset
 #
 # The rest have misc. units (as defined by matplotlib)
-_DEFAULT_PLOT_PARAMS = dict(fontsize=14.0,
-                            column_spacing=.5,
-                            control_radius=0.015,
-                            labels_margin=1,
-                            linewidth=1.0,
-                            not_radius=0.03,
-                            gate_offset=.05,
-                            mgate_width=0.1,
-                            swap_delta=0.02,
-                            x_offset=.05,
-                            wire_height=1)
+_DEFAULT_PLOT_PARAMS = dict(
+    fontsize=14.0,
+    column_spacing=0.5,
+    control_radius=0.015,
+    labels_margin=1,
+    linewidth=1.0,
+    not_radius=0.03,
+    gate_offset=0.05,
+    mgate_width=0.1,
+    swap_delta=0.02,
+    x_offset=0.05,
+    wire_height=1,
+)
 
 # ==============================================================================
 
@@ -104,24 +107,18 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
         qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}
     else:
         if list(qubit_labels) != list(qubit_lines):
-            raise RuntimeError('Qubit IDs in qubit_labels do not match '
-                               + 'qubit IDs in qubit_lines!')
+            raise RuntimeError('Qubit IDs in qubit_labels do not match qubit IDs in qubit_lines!')
 
     if drawing_order is None:
         n_qubits = len(qubit_lines)
-        drawing_order = {
-            qubit_id: n_qubits - qubit_id - 1
-            for qubit_id in list(qubit_lines)
-        }
+        drawing_order = {qubit_id: n_qubits - qubit_id - 1 for qubit_id in list(qubit_lines)}
     else:
         if list(drawing_order) != list(qubit_lines):
-            raise RuntimeError('Qubit IDs in drawing_order do not match '
-                               + 'qubit IDs in qubit_lines!')
-        if (list(sorted(drawing_order.values())) != list(
-                range(len(drawing_order)))):
+            raise RuntimeError('Qubit IDs in drawing_order do not match ' + 'qubit IDs in qubit_lines!')
+        if list(sorted(drawing_order.values())) != list(range(len(drawing_order))):
             raise RuntimeError(
-                'Indices of qubit wires in drawing_order '
-                + 'must be between 0 and {}!'.format(len(drawing_order)))
+                'Indices of qubit wires in drawing_order must be between 0 and {}!'.format(len(drawing_order))
+            )
 
     plot_params = deepcopy(_DEFAULT_PLOT_PARAMS)
     plot_params.update(kwargs)
@@ -130,9 +127,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
 
     wire_height = plot_params['wire_height']
     # Grid in inches
-    wire_grid = np.arange(wire_height, (n_labels + 1) * wire_height,
-                          wire_height,
-                          dtype=float)
+    wire_grid = np.arange(wire_height, (n_labels + 1) * wire_height, wire_height, dtype=float)
 
     fig, axes = create_figure(plot_params)
 
@@ -156,8 +151,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
 
     draw_labels(axes, qubit_labels, drawing_order, wire_grid, plot_params)
 
-    draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,
-               plot_params)
+    draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_params)
     return fig, axes
 
 
@@ -185,15 +179,16 @@ def gate_width(axes, gate_str, plot_params):
     if gate_str == 'Measure':
         return plot_params['mgate_width']
 
-    obj = axes.text(0,
-                    0,
-                    gate_str,
-                    visible=True,
-                    bbox=dict(edgecolor='k', facecolor='w', fill=True, lw=1.0),
-                    fontsize=14)
+    obj = axes.text(
+        0,
+        0,
+        gate_str,
+        visible=True,
+        bbox=dict(edgecolor='k', facecolor='w', fill=True, lw=1.0),
+        fontsize=14,
+    )
     obj.figure.canvas.draw()
-    width = (obj.get_window_extent(obj.figure.canvas.get_renderer()).width
-             / axes.figure.dpi)
+    width = obj.get_window_extent(obj.figure.canvas.get_renderer()).width / axes.figure.dpi
     obj.remove()
     return width + 2 * plot_params['gate_offset']
 
@@ -216,19 +211,16 @@ def calculate_gate_grid(axes, qubit_lines, plot_params):
     depth = len(data[0])
 
     width_list = [
-        max(
-            gate_width(axes, line[idx][0], plot_params) if line[idx] else 0
-            for line in data) for idx in range(depth)
+        max(gate_width(axes, line[idx][0], plot_params) if line[idx] else 0 for line in data) for idx in range(depth)
     ]
 
     gate_grid = np.array([0] * (depth + 1), dtype=float)
-    
+
     gate_grid[0] = plot_params['labels_margin']
     if depth > 0:
         gate_grid[0] += width_list[0] * 0.5
         for idx in range(1, depth):
-            gate_grid[idx] = gate_grid[idx - 1] + column_spacing + (
-                width_list[idx] + width_list[idx - 1]) * 0.5
+            gate_grid[idx] = gate_grid[idx - 1] + column_spacing + (width_list[idx] + width_list[idx - 1]) * 0.5
         gate_grid[-1] = gate_grid[-2] + column_spacing + width_list[-1] * 0.5
     return gate_grid
 
@@ -249,14 +241,16 @@ def text(axes, gate_pos, wire_pos, textstr, plot_params):
         plot_params (dict): plot parameters
         box (bool): draw the rectangle box if box is True
     """
-    return axes.text(gate_pos,
-                     wire_pos,
-                     textstr,
-                     color='k',
-                     ha='center',
-                     va='center',
-                     clip_on=True,
-                     size=plot_params['fontsize'])
+    return axes.text(
+        gate_pos,
+        wire_pos,
+        textstr,
+        color='k',
+        ha='center',
+        va='center',
+        clip_on=True,
+        size=plot_params['fontsize'],
+    )
 
 
 # ==============================================================================
@@ -302,8 +296,9 @@ def resize_figure(fig, axes, width, height, plot_params):
     axes.set_ylim(0, new_limits[1])
 
 
-def draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,
-               plot_params):
+def draw_gates(  # pylint: disable=too-many-arguments
+    axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_params
+):
     """
     Draws the gates.
 
@@ -323,14 +318,19 @@ def draw_gates(axes, qubit_lines, drawing_order, gate_grid, wire_grid,
                 (gate_str, targets, controls) = data
                 targets_order = [drawing_order[tgt] for tgt in targets]
                 draw_gate(
-                    axes, gate_str, gate_grid[idx],
-                    [wire_grid[tgt] for tgt in targets_order], targets_order,
-                    [wire_grid[drawing_order[ctrl]]
-                     for ctrl in controls], plot_params)
+                    axes,
+                    gate_str,
+                    gate_grid[idx],
+                    [wire_grid[tgt] for tgt in targets_order],
+                    targets_order,
+                    [wire_grid[drawing_order[ctrl]] for ctrl in controls],
+                    plot_params,
+                )
 
 
-def draw_gate(axes, gate_str, gate_pos, target_wires, targets_order,
-              control_wires, plot_params):
+def draw_gate(
+    axes, gate_str, gate_pos, target_wires, targets_order, control_wires, plot_params
+):  # pylint: disable=too-many-arguments
     """
     Draws a single gate at a given location.
 
@@ -349,47 +349,56 @@ def draw_gate(axes, gate_str, gate_pos, target_wires, targets_order,
     """
     # Special cases
     if gate_str == 'Z' and len(control_wires) == 1:
-        draw_control_z_gate(axes, gate_pos, target_wires[0], control_wires[0],
-                            plot_params)
+        draw_control_z_gate(axes, gate_pos, target_wires[0], control_wires[0], plot_params)
     elif gate_str == 'X':
         draw_x_gate(axes, gate_pos, target_wires[0], plot_params)
     elif gate_str == 'Swap':
-        draw_swap_gate(axes, gate_pos, target_wires[0], target_wires[1],
-                       plot_params)
+        draw_swap_gate(axes, gate_pos, target_wires[0], target_wires[1], plot_params)
     elif gate_str == 'Measure':
         draw_measure_gate(axes, gate_pos, target_wires[0], plot_params)
     else:
         if len(target_wires) == 1:
-            draw_generic_gate(axes, gate_pos, target_wires[0], gate_str,
-                              plot_params)
+            draw_generic_gate(axes, gate_pos, target_wires[0], gate_str, plot_params)
         else:
-            if sorted(targets_order) != list(
-                    range(min(targets_order),
-                          max(targets_order) + 1)):
+            if sorted(targets_order) != list(range(min(targets_order), max(targets_order) + 1)):
                 raise RuntimeError(
                     'Multi-qubit gate with non-neighbouring qubits!\n'
-                    + 'Gate: {} on wires {}'.format(gate_str, targets_order))
+                    + 'Gate: {} on wires {}'.format(gate_str, targets_order)
+                )
 
-            multi_qubit_gate(axes, gate_str, gate_pos, min(target_wires),
-                             max(target_wires), plot_params)
+            multi_qubit_gate(
+                axes,
+                gate_str,
+                gate_pos,
+                min(target_wires),
+                max(target_wires),
+                plot_params,
+            )
 
     if not control_wires:
         return
 
     for control_wire in control_wires:
         axes.add_patch(
-            Circle((gate_pos, control_wire),
-                   plot_params['control_radius'],
-                   ec='k',
-                   fc='k',
-                   fill=True,
-                   lw=plot_params['linewidth']))
+            Circle(
+                (gate_pos, control_wire),
+                plot_params['control_radius'],
+                ec='k',
+                fc='k',
+                fill=True,
+                lw=plot_params['linewidth'],
+            )
+        )
 
     all_wires = target_wires + control_wires
     axes.add_line(
-        Line2D((gate_pos, gate_pos), (min(all_wires), max(all_wires)),
-               color='k',
-               lw=plot_params['linewidth']))
+        Line2D(
+            (gate_pos, gate_pos),
+            (min(all_wires), max(all_wires)),
+            color='k',
+            lw=plot_params['linewidth'],
+        )
+    )
 
 
 def draw_generic_gate(axes, gate_pos, wire_pos, gate_str, plot_params):
@@ -414,14 +423,17 @@ def draw_generic_gate(axes, gate_pos, wire_pos, gate_str, plot_params):
     height = obj.get_window_extent(renderer).height * factor + 2 * gate_offset
 
     axes.add_patch(
-        Rectangle((gate_pos - width / 2, wire_pos - height / 2),
-                  width,
-                  height,
-                  ec='k',
-                  fc='w',
-                  fill=True,
-                  lw=plot_params['linewidth'],
-                  zorder=6))
+        Rectangle(
+            (gate_pos - width / 2, wire_pos - height / 2),
+            width,
+            height,
+            ec='k',
+            fc='w',
+            fill=True,
+            lw=plot_params['linewidth'],
+            zorder=6,
+        )
+    )
 
 
 def draw_measure_gate(axes, gate_pos, wire_pos, plot_params):
@@ -441,38 +453,42 @@ def draw_measure_gate(axes, gate_pos, wire_pos, plot_params):
     y_ref = wire_pos - 0.3 * height
 
     # Cannot use PatchCollection for the arc due to bug in matplotlib code...
-    arc = Arc((gate_pos, y_ref),
-              width * 0.7,
-              height * 0.8,
-              theta1=0,
-              theta2=180,
-              ec='k',
-              fc='w',
-              zorder=5)
+    arc = Arc(
+        (gate_pos, y_ref),
+        width * 0.7,
+        height * 0.8,
+        theta1=0,
+        theta2=180,
+        ec='k',
+        fc='w',
+        zorder=5,
+    )
     axes.add_patch(arc)
 
     patches = [
-        Rectangle((gate_pos - width / 2, wire_pos - height / 2),
-                  width,
-                  height,
-                  fill=True),
-        Line2D((gate_pos, gate_pos + width * 0.35),
-               (y_ref, wire_pos + height * 0.35),
-               color='k',
-               linewidth=1)
+        Rectangle((gate_pos - width / 2, wire_pos - height / 2), width, height, fill=True),
+        Line2D(
+            (gate_pos, gate_pos + width * 0.35),
+            (y_ref, wire_pos + height * 0.35),
+            color='k',
+            linewidth=1,
+        ),
     ]
 
-    gate = PatchCollection(patches,
-                           edgecolors='k',
-                           facecolors='w',
-                           linewidths=plot_params['linewidth'],
-                           zorder=5)
+    gate = PatchCollection(
+        patches,
+        edgecolors='k',
+        facecolors='w',
+        linewidths=plot_params['linewidth'],
+        zorder=5,
+    )
     gate.set_label('Measure')
     axes.add_collection(gate)
 
 
-def multi_qubit_gate(axes, gate_str, gate_pos, wire_pos_min, wire_pos_max,
-                     plot_params):
+def multi_qubit_gate(  # pylint: disable=too-many-arguments
+    axes, gate_str, gate_pos, wire_pos_min, wire_pos_max, plot_params
+):
     """
     Draws a multi-target qubit gate.
 
@@ -486,27 +502,31 @@ def multi_qubit_gate(axes, gate_str, gate_pos, wire_pos_min, wire_pos_max,
     """
     gate_offset = plot_params['gate_offset']
     y_center = (wire_pos_max - wire_pos_min) / 2 + wire_pos_min
-    obj = axes.text(gate_pos,
-                    y_center,
-                    gate_str,
-                    color='k',
-                    ha='center',
-                    va='center',
-                    size=plot_params['fontsize'],
-                    zorder=7)
+    obj = axes.text(
+        gate_pos,
+        y_center,
+        gate_str,
+        color='k',
+        ha='center',
+        va='center',
+        size=plot_params['fontsize'],
+        zorder=7,
+    )
     height = wire_pos_max - wire_pos_min + 2 * gate_offset
     inv = axes.transData.inverted()
-    width = inv.transform_bbox(
-        obj.get_window_extent(obj.figure.canvas.get_renderer())).width
+    width = inv.transform_bbox(obj.get_window_extent(obj.figure.canvas.get_renderer())).width
     return axes.add_patch(
-        Rectangle((gate_pos - width / 2, wire_pos_min - gate_offset),
-                  width,
-                  height,
-                  edgecolor='k',
-                  facecolor='w',
-                  fill=True,
-                  lw=plot_params['linewidth'],
-                  zorder=6))
+        Rectangle(
+            (gate_pos - width / 2, wire_pos_min - gate_offset),
+            width,
+            height,
+            edgecolor='k',
+            facecolor='w',
+            fill=True,
+            lw=plot_params['linewidth'],
+            zorder=6,
+        )
+    )
 
 
 def draw_x_gate(axes, gate_pos, wire_pos, plot_params):
@@ -521,14 +541,15 @@ def draw_x_gate(axes, gate_pos, wire_pos, plot_params):
     """
     not_radius = plot_params['not_radius']
 
-    gate = PatchCollection([
-        Circle((gate_pos, wire_pos), not_radius, fill=False),
-        Line2D((gate_pos, gate_pos),
-               (wire_pos - not_radius, wire_pos + not_radius))
-    ],
-                           edgecolors='k',
-                           facecolors='w',
-                           linewidths=plot_params['linewidth'])
+    gate = PatchCollection(
+        [
+            Circle((gate_pos, wire_pos), not_radius, fill=False),
+            Line2D((gate_pos, gate_pos), (wire_pos - not_radius, wire_pos + not_radius)),
+        ],
+        edgecolors='k',
+        facecolors='w',
+        linewidths=plot_params['linewidth'],
+    )
     gate.set_label('NOT')
     axes.add_collection(gate)
 
@@ -544,16 +565,16 @@ def draw_control_z_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
         y2 (float): y coordinate of the 2nd qubit wire
         plot_params (dict): plot parameters
     """
-    gate = PatchCollection([
-        Circle(
-            (gate_pos, wire_pos1), plot_params['control_radius'], fill=True),
-        Circle(
-            (gate_pos, wire_pos2), plot_params['control_radius'], fill=True),
-        Line2D((gate_pos, gate_pos), (wire_pos1, wire_pos2))
-    ],
-                           edgecolors='k',
-                           facecolors='k',
-                           linewidths=plot_params['linewidth'])
+    gate = PatchCollection(
+        [
+            Circle((gate_pos, wire_pos1), plot_params['control_radius'], fill=True),
+            Circle((gate_pos, wire_pos2), plot_params['control_radius'], fill=True),
+            Line2D((gate_pos, gate_pos), (wire_pos1, wire_pos2)),
+        ],
+        edgecolors='k',
+        facecolors='k',
+        linewidths=plot_params['linewidth'],
+    )
     gate.set_label('CZ')
     axes.add_collection(gate)
 
@@ -573,15 +594,11 @@ def draw_swap_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
 
     lines = []
     for wire_pos in (wire_pos1, wire_pos2):
-        lines.append([(gate_pos - delta, wire_pos - delta),
-                      (gate_pos + delta, wire_pos + delta)])
-        lines.append([(gate_pos - delta, wire_pos + delta),
-                      (gate_pos + delta, wire_pos - delta)])
+        lines.append([(gate_pos - delta, wire_pos - delta), (gate_pos + delta, wire_pos + delta)])
+        lines.append([(gate_pos - delta, wire_pos + delta), (gate_pos + delta, wire_pos - delta)])
     lines.append([(gate_pos, wire_pos1), (gate_pos, wire_pos2)])
 
-    gate = LineCollection(lines,
-                          colors='k',
-                          linewidths=plot_params['linewidth'])
+    gate = LineCollection(lines, colors='k', linewidths=plot_params['linewidth'])
     gate.set_label('SWAP')
     axes.add_collection(gate)
 
@@ -602,11 +619,13 @@ def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
 
     lines = []
     for i in range(n_labels):
-        lines.append(((gate_grid[0] - plot_params['column_spacing'],
-                       wire_grid[i]), (gate_grid[-1], wire_grid[i])))
-    all_lines = LineCollection(lines,
-                               linewidths=plot_params['linewidth'],
-                               edgecolor='k')
+        lines.append(
+            (
+                (gate_grid[0] - plot_params['column_spacing'], wire_grid[i]),
+                (gate_grid[-1], wire_grid[i]),
+            )
+        )
+    all_lines = LineCollection(lines, linewidths=plot_params['linewidth'], edgecolor='k')
     all_lines.set_label('qubit_wires')
     axes.add_collection(all_lines)
 
@@ -626,5 +645,10 @@ def draw_labels(axes, qubit_labels, drawing_order, wire_grid, plot_params):
     """
     for qubit_id in qubit_labels:
         wire_idx = drawing_order[qubit_id]
-        text(axes, plot_params['x_offset'], wire_grid[wire_idx],
-             qubit_labels[qubit_id], plot_params)
+        text(
+            axes,
+            plot_params['x_offset'],
+            wire_grid[wire_idx],
+            qubit_labels[qubit_id],
+            plot_params,
+        )

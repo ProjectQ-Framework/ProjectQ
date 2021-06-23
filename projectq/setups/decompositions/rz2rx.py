@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +28,8 @@ from projectq.meta import Compute, Control, get_control_count, Uncompute
 from projectq.ops import Rx, Ry, Rz
 
 
-def _decompose_rz2rx_P(cmd):
-    """ Decompose the Rz using negative angle. """
+def _decompose_rz2rx_P(cmd):  # pylint: disable=invalid-name
+    """Decompose the Rz using negative angle."""
     # Labelled 'P' for 'plus' because decomposition ends with a Ry(+pi/2)
     qubit = cmd.qubits[0]
     eng = cmd.engine
@@ -36,13 +37,13 @@ def _decompose_rz2rx_P(cmd):
 
     with Control(eng, cmd.control_qubits):
         with Compute(eng):
-            Ry(-math.pi / 2.) | qubit
+            Ry(-math.pi / 2.0) | qubit
         Rx(-angle) | qubit
         Uncompute(eng)
 
 
-def _decompose_rz2rx_M(cmd):
-    """ Decompose the Rz using positive angle. """
+def _decompose_rz2rx_M(cmd):  # pylint: disable=invalid-name
+    """Decompose the Rz using positive angle."""
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     qubit = cmd.qubits[0]
     eng = cmd.engine
@@ -50,18 +51,18 @@ def _decompose_rz2rx_M(cmd):
 
     with Control(eng, cmd.control_qubits):
         with Compute(eng):
-            Ry(math.pi / 2.) | qubit
+            Ry(math.pi / 2.0) | qubit
         Rx(angle) | qubit
         Uncompute(eng)
 
 
-def _recognize_RzNoCtrl(cmd):
-    """ Decompose the gate only if the command represents a single qubit gate (if it is not part of a control gate)."""
+def _recognize_RzNoCtrl(cmd):  # pylint: disable=invalid-name
+    """Decompose the gate only if the command represents a single qubit gate (if it is not part of a control gate)."""
     return get_control_count(cmd) == 0
 
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(Rz, _decompose_rz2rx_P, _recognize_RzNoCtrl),
-    DecompositionRule(Rz, _decompose_rz2rx_M, _recognize_RzNoCtrl)
+    DecompositionRule(Rz, _decompose_rz2rx_M, _recognize_RzNoCtrl),
 ]

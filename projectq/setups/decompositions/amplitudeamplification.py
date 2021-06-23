@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,17 +69,16 @@ Attributes:
 """
 
 import math
-import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
+from projectq.meta import Control, Compute, CustomUncompute, Dagger
 from projectq.ops import X, Z, Ph, All
 
 from projectq.ops import QAA
 
 
-def _decompose_QAA(cmd):
-    """ Decompose the Quantum Amplitude Apmplification algorithm as a gate. """
+def _decompose_QAA(cmd):  # pylint: disable=invalid-name
+    """Decompose the Quantum Amplitude Apmplification algorithm as a gate."""
     eng = cmd.engine
 
     # System-qubit is the first qubit/qureg. Ancilla qubit is the second qubit
@@ -86,24 +86,24 @@ def _decompose_QAA(cmd):
     qaa_ancilla = cmd.qubits[1]
 
     # The Oracle and the Algorithm
-    Oracle = cmd.gate.oracle
-    A = cmd.gate.algorithm
+    oracle = cmd.gate.oracle
+    alg = cmd.gate.algorithm
 
     # Apply the oracle to invert the amplitude of the good states, S_Chi
-    Oracle(eng, system_qubits, qaa_ancilla)
+    oracle(eng, system_qubits, qaa_ancilla)
 
     # Apply the inversion of the Algorithm,
     # the inversion of the aplitude of |0> and the Algorithm
 
     with Compute(eng):
         with Dagger(eng):
-            A(eng, system_qubits)
+            alg(eng, system_qubits)
         All(X) | system_qubits
     with Control(eng, system_qubits[0:-1]):
         Z | system_qubits[-1]
     with CustomUncompute(eng):
         All(X) | system_qubits
-        A(eng, system_qubits)
+        alg(eng, system_qubits)
     Ph(math.pi) | system_qubits[0]
 
 

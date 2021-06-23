@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for the Toffoli gate.
 
@@ -24,37 +24,32 @@ from projectq.ops import NOT, CNOT, T, Tdag, H
 
 
 def _decompose_toffoli(cmd):
-    """ Decompose the Toffoli gate into CNOT, H, T, and Tdagger gates. """
+    """Decompose the Toffoli gate into CNOT, H, T, and Tdagger gates."""
     ctrl = cmd.control_qubits
-    eng = cmd.engine
 
     target = cmd.qubits[0]
-    c1 = ctrl[0]
-    c2 = ctrl[1]
 
     H | target
-    CNOT | (c1, target)
-    T | c1
+    CNOT | (ctrl[0], target)
+    T | ctrl[0]
     Tdag | target
-    CNOT | (c2, target)
-    CNOT | (c2, c1)
-    Tdag | c1
+    CNOT | (ctrl[1], target)
+    CNOT | (ctrl[1], ctrl[0])
+    Tdag | ctrl[0]
     T | target
-    CNOT | (c2, c1)
-    CNOT | (c1, target)
+    CNOT | (ctrl[1], ctrl[0])
+    CNOT | (ctrl[0], target)
     Tdag | target
-    CNOT | (c2, target)
+    CNOT | (ctrl[1], target)
     T | target
-    T | c2
+    T | ctrl[1]
     H | target
 
 
 def _recognize_toffoli(cmd):
-    """ Recognize the Toffoli gate. """
+    """Recognize the Toffoli gate."""
     return get_control_count(cmd) == 2
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)
-]
+all_defined_decomposition_rules = [DecompositionRule(NOT.__class__, _decompose_toffoli, _recognize_toffoli)]

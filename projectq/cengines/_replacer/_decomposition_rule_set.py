@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing the definition of a decomposition rule set"""
+
 from projectq.meta import Dagger
 
 
@@ -19,6 +22,7 @@ class DecompositionRuleSet:
     """
     A collection of indexed decomposition rules.
     """
+
     def __init__(self, rules=None, modules=None):
         """
         Args:
@@ -33,12 +37,14 @@ class DecompositionRuleSet:
             self.add_decomposition_rules(rules)
 
         if modules:
-            self.add_decomposition_rules([
-                rule
-                for module in modules
-                for rule in module.all_defined_decomposition_rules])
+            self.add_decomposition_rules(
+                [rule for module in modules for rule in module.all_defined_decomposition_rules]
+            )
 
     def add_decomposition_rules(self, rules):
+        """
+        Add some decomposition rules to a decomposition rule set
+        """
         for rule in rules:
             self.add_decomposition_rule(rule)
 
@@ -56,11 +62,12 @@ class DecompositionRuleSet:
         self.decompositions[cls].append(decomp_obj)
 
 
-class ModuleWithDecompositionRuleSet:
+class ModuleWithDecompositionRuleSet:  # pragma: no cover # pylint: disable=too-few-public-methods
     """
     Interface type for explaining one of the parameters that can be given to
     DecompositionRuleSet.
     """
+
     def __init__(self, all_defined_decomposition_rules):
         """
         Args:
@@ -70,11 +77,12 @@ class ModuleWithDecompositionRuleSet:
         self.all_defined_decomposition_rules = all_defined_decomposition_rules
 
 
-class _Decomposition(object):
+class _Decomposition:  # pylint: disable=too-few-public-methods
     """
     The Decomposition class can be used to register a decomposition rule (by
     calling register_decomposition)
     """
+
     def __init__(self, replacement_fun, recogn_fun):
         """
         Construct the Decomposition object.
@@ -132,6 +140,7 @@ class _Decomposition(object):
         Returns:
             Decomposition handling the inverse of the original command.
         """
+
         def decomp(cmd):
             with Dagger(cmd.engine):
                 self.decompose(cmd.get_inverse())

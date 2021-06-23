@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,14 +20,15 @@
 Registers a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates.
 """
 
+import math
+
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
 from projectq.ops import Ph, Rxx, Ry, Rx, X
-import math
 
 
-def _decompose_cnot2rxx_M(cmd):
-    """ Decompose CNOT gate into Rxx gate. """
+def _decompose_cnot2rxx_M(cmd):  # pylint: disable=invalid-name
+    """Decompose CNOT gate into Rxx gate."""
     # Labelled 'M' for 'minus' because decomposition ends with a Ry(-pi/2)
     ctrl = cmd.control_qubits
     Ry(math.pi / 2) | ctrl[0]
@@ -37,8 +39,8 @@ def _decompose_cnot2rxx_M(cmd):
     Ry(-1 * math.pi / 2) | ctrl[0]
 
 
-def _decompose_cnot2rxx_P(cmd):
-    """ Decompose CNOT gate into Rxx gate. """
+def _decompose_cnot2rxx_P(cmd):  # pylint: disable=invalid-name
+    """Decompose CNOT gate into Rxx gate."""
     # Labelled 'P' for 'plus' because decomposition ends with a Ry(+pi/2)
     ctrl = cmd.control_qubits
     Ry(-math.pi / 2) | ctrl[0]
@@ -50,12 +52,12 @@ def _decompose_cnot2rxx_P(cmd):
 
 
 def _recognize_cnot2(cmd):
-    """ Identify that the command is a CNOT gate (control - X gate)"""
+    """Identify that the command is a CNOT gate (control - X gate)"""
     return get_control_count(cmd) == 1
 
 
 #: Decomposition rules
 all_defined_decomposition_rules = [
     DecompositionRule(X.__class__, _decompose_cnot2rxx_M, _recognize_cnot2),
-    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot2)
+    DecompositionRule(X.__class__, _decompose_cnot2rxx_P, _recognize_cnot2),
 ]

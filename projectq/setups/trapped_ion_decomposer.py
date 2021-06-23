@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,23 +19,21 @@
 """
 Apply the restricted gate set setup for trapped ion based quantum computers.
 
-It provides the `engine_list` for the `MainEngine`, restricting the gate set to
-Rx and Ry single qubit gates and the Rxx two qubit gates.
+It provides the `engine_list` for the `MainEngine`, restricting the gate set to Rx and Ry single qubit gates and the
+Rxx two qubit gates.
 
-A decomposition chooser is implemented following the ideas in QUOTE for
-reducing the number of Ry gates in the new circuit.
+A decomposition chooser is implemented following the ideas in QUOTE for reducing the number of Ry gates in the new
+circuit.
 
 NOTE:
 
-Because the decomposition chooser is only called when a gate has to be
-decomposed, this reduction will work better when the entire circuit has to be
-decomposed. Otherwise, If the circuit has both superconding gates and native
-ion trapped gates the decomposed circuit will not be optimal.
+Because the decomposition chooser is only called when a gate has to be decomposed, this reduction will work better
+when the entire circuit has to be decomposed. Otherwise, If the circuit has both superconding gates and native ion
+trapped gates the decomposed circuit will not be optimal.
 """
 
 from projectq.setups import restrictedgateset
-from projectq.ops import (Rxx, Rx, Ry)
-from projectq.meta import get_control_count
+from projectq.ops import Rxx, Rx, Ry
 
 # ------------------chooser_Ry_reducer-------------------#
 # If the qubit is not in the prev_Ry_sign dictionary, then no decomposition
@@ -50,7 +49,7 @@ prev_Ry_sign = dict()  # Keeps track of most recent Ry sign, i.e.
 #                        +1
 
 
-def chooser_Ry_reducer(cmd, decomposition_list):
+def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name, too-many-return-statements
     """
     Choose the decomposition so as to maximise Ry cancellations, based on the
     previous decomposition used for the given qubit.
@@ -78,10 +77,9 @@ def chooser_Ry_reducer(cmd, decomposition_list):
         except IndexError:
             pass
 
-    local_prev_Ry_sign = prev_Ry_sign.setdefault(cmd.engine, dict())
+    local_prev_Ry_sign = prev_Ry_sign.setdefault(cmd.engine, dict())  # pylint: disable=invalid-name
 
     if name == 'cnot2rxx':
-        assert get_control_count(cmd) == 1
         ctrl_id = cmd.control_qubits[0].id
 
         if local_prev_Ry_sign.get(ctrl_id, -1) <= 0:
@@ -99,7 +97,6 @@ def chooser_Ry_reducer(cmd, decomposition_list):
 
     if name == 'h2rx':
         qubit_id = [qb.id for qureg in cmd.qubits for qb in qureg]
-        assert len(qubit_id) == 1  # this should be a single qubit gate
         qubit_id = qubit_id[0]
 
         if local_prev_Ry_sign.get(qubit_id, 0) == 0:
@@ -111,7 +108,6 @@ def chooser_Ry_reducer(cmd, decomposition_list):
 
     if name == 'rz2rx':
         qubit_id = [qb.id for qureg in cmd.qubits for qb in qureg]
-        assert len(qubit_id) == 1  # this should be a single qubit gate
         qubit_id = qubit_id[0]
 
         if local_prev_Ry_sign.get(qubit_id, -1) <= 0:
@@ -144,5 +140,6 @@ def get_engine_list():
     """
     return restrictedgateset.get_engine_list(
         one_qubit_gates=(Rx, Ry),
-        two_qubit_gates=(Rxx, ),
-        compiler_chooser=chooser_Ry_reducer)
+        two_qubit_gates=(Rxx,),
+        compiler_chooser=chooser_Ry_reducer,
+    )

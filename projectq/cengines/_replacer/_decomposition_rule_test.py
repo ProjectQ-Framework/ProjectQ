@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._replacer._decomposition_rule.py."""
 
 import pytest
@@ -25,11 +25,7 @@ def test_decomposition_rule_wrong_input():
         pass
 
     with pytest.raises(ThisIsNotAGateClassError):
-        _ = DecompositionRule(WrongInput.__class__,
-                              lambda cmd: None,
-                              lambda cmd: None)
+        _ = DecompositionRule(WrongInput.__class__, lambda cmd: None, lambda cmd: None)
 
     with pytest.raises(ThisIsNotAGateClassError):
-        _ = DecompositionRule(WrongInput(0),
-                              lambda cmd: None,
-                              lambda cmd: None)
+        _ = DecompositionRule(WrongInput(0), lambda cmd: None, lambda cmd: None)

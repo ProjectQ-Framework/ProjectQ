@@ -1,0 +1,67 @@
+# To use:
+#
+#     pre-commit run -a
+#
+# Or:
+#
+#     pre-commit install  # (runs every time you commit in git)
+#
+# To update this file:
+#
+#     pre-commit autoupdate
+#
+# See https://github.com/pre-commit/pre-commit
+
+ci:
+    skip: [check-manifest]
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: check-yaml
+  - id: check-toml
+  - id: debug-statements
+  - id: end-of-file-fixer
+  - id: mixed-line-ending
+  - id: trailing-whitespace
+  - id: fix-encoding-pragma
+
+# Changes tabs to spaces
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.1.10
+  hooks:
+  - id: remove-tabs
+
+- repo: https://github.com/psf/black
+  rev: 21.5b1
+  hooks:
+  - id: black
+    language_version: python3
+    # This is a slow hook, so only run this if --hook-stage manual is passed
+    stages: [manual]
+
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+  - id: flake8
+    exclude: ^(docs/.*|tools/.*)$
+
+- repo: https://github.com/pre-commit/mirrors-pylint
+  rev: 'v3.0.0a3'
+  hooks:
+  - id: pylint
+    args: ['--score=n']
+    # This is a slow hook, so only run this if --hook-stage manual is passed
+    stages: [manual]
+    additional_dependencies: ['pybind11>=2.6', 'numpy', 'requests', 'boto3', 'matplotlib', 'networkx']
+
+- repo: https://github.com/mgedmin/check-manifest
+  rev: "0.46"
+  hooks:
+  - id: check-manifest
+    additional_dependencies: ['setuptools-scm', 'pybind11>=2.6']

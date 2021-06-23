@@ -117,4 +117,3 @@ class aligned_allocator
 #if __cplusplus < 201103L
 #undef noexcept
 #endif
-

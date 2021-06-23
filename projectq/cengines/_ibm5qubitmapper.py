@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +17,12 @@ Contains a compiler engine to map to the 5-qubit IBM chip
 """
 import itertools
 
-from projectq.cengines import BasicMapperEngine
 from projectq.ops import FlushGate, NOT, Allocate
 from projectq.meta import get_control_count
 from projectq.backends import IBMBackend
+
+
+from ._basicmapper import BasicMapperEngine
 
 
 class IBM5QubitMapper(BasicMapperEngine):
@@ -36,23 +39,36 @@ class IBM5QubitMapper(BasicMapperEngine):
         without performing Swaps, the mapping procedure
         **raises an Exception**.
     """
+
     def __init__(self, connections=None):
         """
         Initialize an IBM 5-qubit mapper compiler engine.
 
         Resets the mapping.
         """
-        BasicMapperEngine.__init__(self)
+        super().__init__()
         self.current_mapping = dict()
         self._reset()
         self._cmds = []
         self._interactions = dict()
 
         if connections is None:
-            #general connectivity easier for testing functions
-            self.connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4),
-                                    (2, 1), (2, 3), (2, 4), (3, 1), (3, 4),
-                                    (4, 3)])
+            # general connectivity easier for testing functions
+            self.connections = set(
+                [
+                    (0, 1),
+                    (1, 0),
+                    (1, 2),
+                    (1, 3),
+                    (1, 4),
+                    (2, 1),
+                    (2, 3),
+                    (2, 4),
+                    (3, 1),
+                    (3, 4),
+                    (4, 3),
+                ]
+            )
         else:
             self.connections = connections
 
@@ -109,30 +125,26 @@ class IBM5QubitMapper(BasicMapperEngine):
                 the mapping was already determined but more CNOTs get sent
                 down the pipeline.
         """
-        if (len(self.current_mapping) > 0
-                and max(self.current_mapping.values()) > 4):
-            raise RuntimeError("Too many qubits allocated. The IBM Q "
-                               "device supports at most 5 qubits and no "
-                               "intermediate measurements / "
-                               "reallocations.")
+        if len(self.current_mapping) > 0 and max(self.current_mapping.values()) > 4:
+            raise RuntimeError(
+                "Too many qubits allocated. The IBM Q "
+                "device supports at most 5 qubits and no "
+                "intermediate measurements / "
+                "reallocations."
+            )
         if len(self._interactions) > 0:
             logical_ids = list(self.current_mapping)
             best_mapping = self.current_mapping
             best_cost = None
-            for physical_ids in itertools.permutations(list(range(5)),
-                                                       len(logical_ids)):
-                mapping = {
-                    logical_ids[i]: physical_ids[i]
-                    for i in range(len(logical_ids))
-                }
+            for physical_ids in itertools.permutations(list(range(5)), len(logical_ids)):
+                mapping = {logical_ids[i]: physical_ids[i] for i in range(len(logical_ids))}
                 new_cost = self._determine_cost(mapping)
                 if new_cost is not None:
                     if best_cost is None or new_cost < best_cost:
                         best_cost = new_cost
                         best_mapping = mapping
             if best_cost is None:
-                raise RuntimeError("Circuit cannot be mapped without using "
-                                   "Swaps. Mapping failed.")
+                raise RuntimeError("Circuit cannot be mapped without using Swaps. Mapping failed.")
             self._interactions = dict()
             self.current_mapping = best_mapping
 
@@ -194,5 +206,4 @@ def _is_cnot(cmd):
         cmd (Command): Command to check whether it is a controlled NOT
             gate.
     """
-    return (isinstance(cmd.gate, NOT.__class__)
-            and get_control_count(cmd) == 1)
+    return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1

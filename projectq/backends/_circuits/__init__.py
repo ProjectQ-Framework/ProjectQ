@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ module for exporting/printing quantum circuits"""
+
 from ._to_latex import to_latex
 from ._plot import to_draw
 
 from ._drawer import CircuitDrawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib
-

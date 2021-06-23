@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for multi-controlled gates.
 
@@ -25,7 +25,7 @@ from projectq.meta import get_control_count, Compute, Control, Uncompute
 from projectq.ops import BasicGate, Toffoli, XGate
 
 
-def _recognize_CnU(cmd):
+def _recognize_CnU(cmd):  # pylint: disable=invalid-name
     """
     Recognize an arbitrary gate which has n>=2 control qubits, except a
     Toffoli gate.
@@ -38,7 +38,7 @@ def _recognize_CnU(cmd):
     return False
 
 
-def _decompose_CnU(cmd):
+def _decompose_CnU(cmd):  # pylint: disable=invalid-name
     """
     Decompose a multi-controlled gate U with n control qubits into a single-
     controlled U.
@@ -50,18 +50,21 @@ def _decompose_CnU(cmd):
     qubits = cmd.qubits
     ctrl_qureg = cmd.control_qubits
     gate = cmd.gate
-    n = get_control_count(cmd)
+    n_controls = get_control_count(cmd)
 
     # specialized for X-gate
-    if gate == XGate() and n > 2:
-        n -= 1
-    ancilla_qureg = eng.allocate_qureg(n-1)
+    if gate == XGate() and n_controls > 2:
+        n_controls -= 1
+    ancilla_qureg = eng.allocate_qureg(n_controls - 1)
 
     with Compute(eng):
         Toffoli | (ctrl_qureg[0], ctrl_qureg[1], ancilla_qureg[0])
-        for ctrl_index in range(2, n):
-            Toffoli | (ctrl_qureg[ctrl_index], ancilla_qureg[ctrl_index-2],
-                       ancilla_qureg[ctrl_index-1])
+        for ctrl_index in range(2, n_controls):
+            Toffoli | (
+                ctrl_qureg[ctrl_index],
+                ancilla_qureg[ctrl_index - 2],
+                ancilla_qureg[ctrl_index - 1],
+            )
     ctrls = [ancilla_qureg[-1]]
 
     # specialized for X-gate
@@ -74,6 +77,4 @@ def _decompose_CnU(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(BasicGate, _decompose_CnU, _recognize_CnU)
-]
+all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_CnU, _recognize_CnU)]

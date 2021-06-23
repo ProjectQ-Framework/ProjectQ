@@ -1,20 +1,23 @@
 ProjectQ - An open source software framework for quantum computing
 ==================================================================
 
-.. image:: https://travis-ci.org/ProjectQ-Framework/ProjectQ.svg?branch=master
-    :target: https://travis-ci.org/ProjectQ-Framework/ProjectQ
-
-.. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
-    :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
-
-.. image:: https://readthedocs.org/projects/projectq/badge/?version=latest
-    :target: http://projectq.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+.. image:: https://img.shields.io/pypi/pyversions/projectq?label=Python
+   :alt: PyPI - Python Version
 
 .. image:: https://badge.fury.io/py/projectq.svg
-    :target: https://badge.fury.io/py/projectq
-    
-.. image:: https://img.shields.io/badge/python-2.7%2C%203.4%2C%203.5%2C%203.6-brightgreen.svg
+   :target: https://badge.fury.io/py/projectq
+
+.. image:: https://github.com/ProjectQ-Framework/ProjectQ/actions/workflows/ci.yml/badge.svg
+   :alt: CI Status
+   :target: https://github.com/ProjectQ-Framework/ProjectQ/actions/workflows/ci.yml
+
+.. image:: https://coveralls.io/repos/github/ProjectQ-Framework/ProjectQ/badge.svg
+   :alt: Coverage Status
+   :target: https://coveralls.io/github/ProjectQ-Framework/ProjectQ
+
+.. image:: https://readthedocs.org/projects/projectq/badge/?version=latest
+   :target: http://projectq.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 
 ProjectQ is an open source effort for quantum computing.
@@ -24,7 +27,7 @@ targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
 
--  run quantum programs on the IBM Quantum Experience chip
+-  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, or IonQ service provided devices
 -  simulate quantum programs on classical computers
 -  emulate quantum programs at a higher level of abstraction (e.g.,
    mimicking the action of large oracles instead of compiling them to
@@ -108,7 +111,7 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
 
     import projectq.setups.ibm
     from projectq.backends import IBMBackend
-    
+
     token='MY_TOKEN'
     device='ibmq_16_melbourne'
     compiler_engines = projectq.setups.ibm.get_engine_list(token=token,device=device)
@@ -125,13 +128,82 @@ To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend
 
     import projectq.setups.aqt
     from projectq.backends import AQTBackend
-    
+
     token='MY_TOKEN'
     device='aqt_device'
     compiler_engines = projectq.setups.aqt.get_engine_list(token=token,device=device)
     eng = MainEngine(AQTBackend(token=token,use_hardware=True, num_runs=1024,
                                 verbose=False, device=device),
                      engine_list=compiler_engines)
+
+
+**Running a quantum program on a AWS Braket provided device**
+
+To run a program on some of the devices provided by the AWS Braket service,
+choose the `AWSBraketBackend`. The currend devices supported are Aspen-8 from Rigetti,
+IonQ from IonQ and the state vector simulator SV1:
+
+.. code-block:: python
+
+    from projectq.backends import AWSBraketBackend
+
+    creds = {
+        'AWS_ACCESS_KEY_ID': 'your_aws_access_key_id',
+        'AWS_SECRET_KEY': 'your_aws_secret_key',
+        }
+
+    s3_folder = ['S3Bucket', 'S3Directory']
+    device='IonQ'
+    eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,
+                     num_runs=1024, verbose=False, device=device),
+                     engine_list=[])
+
+
+.. note::
+
+   In order to use the AWSBraketBackend, you need to install ProjectQ with the 'braket' extra requirement:
+
+   .. code-block:: bash
+
+       python3 -m pip install projectq[braket]
+
+   or
+
+   .. code-block:: bash
+
+       cd /path/to/projectq/source/code
+       python3 -m pip install -ve .[braket]
+
+
+**Running a quantum program on IonQ devices**
+
+To run a program on the IonQ trapped ion hardware, use the `IonQBackend` and its corresponding setup.
+
+Currently available devices are:
+
+* `ionq_simulator`: A 29-qubit simulator.
+* `ionq_qpu`: A 11-qubit trapped ion system.
+
+.. code-block:: python
+
+    import projectq.setups.ionq
+    from projectq import MainEngine
+    from projectq.backends import IonQBackend
+
+    token = 'MY_TOKEN'
+    device = 'ionq_qpu'
+    backend = IonQBackend(
+        token=token,
+        use_hardware=True,
+        num_runs=1024,
+        verbose=False,
+        device=device,
+    )
+    compiler_engines = projectq.setups.ionq.get_engine_list(
+        token=token,
+        device=device,
+    )
+    eng = MainEngine(backend, engine_list=compiler_engines)
 
 
 **Classically simulate a quantum program**
@@ -142,7 +214,7 @@ ProjectQ has a high-performance simulator which allows simulating up to about 30
 The advanced features of the simulator are also particularly useful to investigate algorithms for the simulation of quantum systems. For example, the simulator can evolve a quantum system in time (without Trotter errors) and it gives direct access to expectation values of Hamiltonians leading to extremely fast simulations of VQE type algorithms:
 
 .. code-block:: python
-    
+
     from projectq import MainEngine
     from projectq.ops import All, Measure, QubitOperator, TimeEvolution
 
@@ -182,19 +254,19 @@ Please cite
 
 When using ProjectQ for research projects, please cite
 
--  Damian S. Steiger, Thomas Häner, and Matthias Troyer "ProjectQ: An
+-  Damian S. Steiger, Thomas Haener, and Matthias Troyer "ProjectQ: An
    Open Source Software Framework for Quantum Computing"
    `Quantum 2, 49 (2018) <https://doi.org/10.22331/q-2018-01-31-49>`__
    (published on `arXiv <https://arxiv.org/abs/1612.08091>`__ on 23 Dec 2016)
--  Thomas Häner, Damian S. Steiger, Krysta M. Svore, and Matthias Troyer
-   "A Software Methodology for Compiling Quantum Programs" `Quantum Sci. Technol. 3 (2018) 020501 <https://doi.org/10.1088/2058-9565/aaa5cc>`__ 
+-  Thomas Haener, Damian S. Steiger, Krysta M. Svore, and Matthias Troyer
+   "A Software Methodology for Compiling Quantum Programs" `Quantum Sci. Technol. 3 (2018) 020501 <https://doi.org/10.1088/2058-9565/aaa5cc>`__
    (published on `arXiv <http://arxiv.org/abs/1604.01401>`__ on 5 Apr 2016)
 
 Authors
 -------
 
 The first release of ProjectQ (v0.1) was developed by `Thomas
-Häner <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=179208>`__
+Haener <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=179208>`__
 and `Damian S.
 Steiger <http://www.comp.phys.ethz.ch/people/person-detail.html?persid=165677>`__
 in the group of `Prof. Dr. Matthias

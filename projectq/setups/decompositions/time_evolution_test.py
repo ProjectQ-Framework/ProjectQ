@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +24,15 @@ import scipy.sparse.linalg
 
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import (DummyEngine, AutoReplacer, InstructionFilter,
-                               InstructionFilter, DecompositionRuleSet)
+from projectq.cengines import (
+    DummyEngine,
+    AutoReplacer,
+    InstructionFilter,
+    DecompositionRuleSet,
+)
 from projectq.meta import Control
-from projectq.ops import (QubitOperator, TimeEvolution,
-                          ClassicalInstructionGate, Ph, Rx, Ry, Rz, All,
-                          Measure)
+from projectq.ops import QubitOperator, TimeEvolution, ClassicalInstructionGate, Ph, Rx, Ry, All, Measure, Command
+from projectq.types import WeakQubitRef
 
 from . import time_evolution as te
 
@@ -43,10 +47,10 @@ def test_recognize_commuting_terms():
     op4 = QubitOperator("X1 Y2", 0.5) + QubitOperator("X2", 1e-10)
     op5 = QubitOperator("X1 Y2", 0.5) + QubitOperator("X2", 1e-8)
     op6 = QubitOperator("X2", 1.0)
-    TimeEvolution(1., op1 + op2 + op3 + op4) | wavefunction
-    TimeEvolution(1., op1 + op5) | wavefunction
-    TimeEvolution(1., op1 + op6) | wavefunction
-    TimeEvolution(1., op1) | wavefunction
+    TimeEvolution(1.0, op1 + op2 + op3 + op4) | wavefunction
+    TimeEvolution(1.0, op1 + op5) | wavefunction
+    TimeEvolution(1.0, op1 + op6) | wavefunction
+    TimeEvolution(1.0, op1) | wavefunction
 
     cmd1 = saving_backend.received_commands[5]
     cmd2 = saving_backend.received_commands[6]
@@ -63,16 +67,14 @@ def test_decompose_commuting_terms():
     saving_backend = DummyEngine(save_commands=True)
 
     def my_filter(self, cmd):
-        if (len(cmd.qubits[0]) <= 2 or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if len(cmd.qubits[0]) <= 2 or isinstance(cmd.gate, ClassicalInstructionGate):
             return True
         return False
 
     rules = DecompositionRuleSet([te.rule_commuting_terms])
     replacer = AutoReplacer(rules)
     filter_eng = InstructionFilter(my_filter)
-    eng = MainEngine(backend=saving_backend,
-                     engine_list=[replacer, filter_eng])
+    eng = MainEngine(backend=saving_backend, engine_list=[replacer, filter_eng])
     qureg = eng.allocate_qureg(5)
     with Control(eng, qureg[3]):
         op1 = QubitOperator("X1 Y2", 0.7)
@@ -88,23 +90,29 @@ def test_decompose_commuting_terms():
     scaled_op1 = QubitOperator("X0 Y1", 0.7)
     scaled_op2 = QubitOperator("Y0 X1", -0.8)
     for cmd in [cmd1, cmd2, cmd3]:
-        if (cmd.gate == Ph(- 1.5 * 0.6) and
-                cmd.qubits[0][0].id == qureg[1].id and  # 1st qubit of [1,2,4]
-                cmd.control_qubits[0].id == qureg[3].id):
+        if (
+            cmd.gate == Ph(-1.5 * 0.6)
+            and cmd.qubits[0][0].id == qureg[1].id
+            and cmd.control_qubits[0].id == qureg[3].id  # 1st qubit of [1,2,4]
+        ):
             found[0] = True
-        elif (isinstance(cmd.gate, TimeEvolution) and
-                cmd.gate.hamiltonian.isclose(scaled_op1) and
-                cmd.gate.time == pytest.approx(1.5) and
-                cmd.qubits[0][0].id == qureg[1].id and
-                cmd.qubits[0][1].id == qureg[2].id and
-                cmd.control_qubits[0].id == qureg[3].id):
+        elif (
+            isinstance(cmd.gate, TimeEvolution)
+            and cmd.gate.hamiltonian.isclose(scaled_op1)
+            and cmd.gate.time == pytest.approx(1.5)
+            and cmd.qubits[0][0].id == qureg[1].id
+            and cmd.qubits[0][1].id == qureg[2].id
+            and cmd.control_qubits[0].id == qureg[3].id
+        ):
             found[1] = True
-        elif (isinstance(cmd.gate, TimeEvolution) and
-                cmd.gate.hamiltonian.isclose(scaled_op2) and
-                cmd.gate.time == pytest.approx(1.5) and
-                cmd.qubits[0][0].id == qureg[2].id and
-                cmd.qubits[0][1].id == qureg[4].id and
-                cmd.control_qubits[0].id == qureg[3].id):
+        elif (
+            isinstance(cmd.gate, TimeEvolution)
+            and cmd.gate.hamiltonian.isclose(scaled_op2)
+            and cmd.gate.time == pytest.approx(1.5)
+            and cmd.qubits[0][0].id == qureg[2].id
+            and cmd.qubits[0][1].id == qureg[4].id
+            and cmd.control_qubits[0].id == qureg[3].id
+        ):
             found[2] = True
     assert all(found)
 
@@ -116,9 +124,9 @@ def test_recognize_individual_terms():
     op1 = QubitOperator("X1 Y2", 0.5)
     op2 = QubitOperator("Y2 X4", -0.5)
     op3 = QubitOperator("X2", 1.0)
-    TimeEvolution(1., op1 + op2) | wavefunction
-    TimeEvolution(1., op2) | wavefunction
-    TimeEvolution(1., op3) | wavefunction
+    TimeEvolution(1.0, op1 + op2) | wavefunction
+    TimeEvolution(1.0, op2) | wavefunction
+    TimeEvolution(1.0, op3) | wavefunction
 
     cmd1 = saving_backend.received_commands[5]
     cmd2 = saving_backend.received_commands[6]
@@ -129,19 +137,40 @@ def test_recognize_individual_terms():
     assert te.rule_individual_terms.gate_recognizer(cmd3)
 
 
+def test_decompose_individual_terms_invalid():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    qb0 = WeakQubitRef(eng, idx=0)
+    qb1 = WeakQubitRef(eng, idx=1)
+    op1 = QubitOperator("X0 Y1", 0.5)
+    op2 = op1 + QubitOperator("Y2 X4", -0.5)
+    op3 = QubitOperator(tuple(), 0.5)
+    op4 = QubitOperator("X0 Y0", 0.5)
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op1), ([qb0], [qb1])))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op2), ([qb0],)))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op3), ([qb0],)))
+
+    with pytest.raises(ValueError):
+        te._decompose_time_evolution_individual_terms(Command(eng, TimeEvolution(1, op4), ([qb0, qb1],)))
+
+
 def test_decompose_individual_terms():
     saving_eng = DummyEngine(save_commands=True)
 
     def my_filter(self, cmd):
-        if (isinstance(cmd.gate, TimeEvolution)):
+        if isinstance(cmd.gate, TimeEvolution):
             return False
         return True
 
     rules = DecompositionRuleSet([te.rule_individual_terms])
     replacer = AutoReplacer(rules)
     filter_eng = InstructionFilter(my_filter)
-    eng = MainEngine(backend=Simulator(),
-                     engine_list=[replacer, filter_eng, saving_eng])
+    eng = MainEngine(backend=Simulator(), engine_list=[replacer, filter_eng, saving_eng])
     qureg = eng.allocate_qureg(5)
     # initialize in random wavefunction by applying some gates:
     Rx(0.1) | qureg[0]
@@ -174,6 +203,7 @@ def test_decompose_individual_terms():
     eng.flush()
     qbit_to_bit_map5, final_wavefunction5 = copy.deepcopy(eng.backend.cheat())
     All(Measure) | qureg
+
     # Check manually:
 
     def build_matrix(list_single_matrices):
@@ -183,12 +213,11 @@ def test_decompose_individual_terms():
         return res.tocsc()
 
     id_sp = sps.identity(2, format="csc", dtype=complex)
-    x_sp = sps.csc_matrix([[0., 1.], [1., 0.]], dtype=complex)
-    y_sp = sps.csc_matrix([[0., -1.j], [1.j, 0.]], dtype=complex)
-    z_sp = sps.csc_matrix([[1., 0.], [0., -1.]], dtype=complex)
+    x_sp = sps.csc_matrix([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
+    y_sp = sps.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=complex)
+    z_sp = sps.csc_matrix([[1.0, 0.0], [0.0, -1.0]], dtype=complex)
 
-    matrix1 = (sps.identity(2**5, format="csc", dtype=complex) * 0.6 *
-               1.1 * -1.0j)
+    matrix1 = sps.identity(2 ** 5, format="csc", dtype=complex) * 0.6 * 1.1 * -1.0j
     step1 = scipy.sparse.linalg.expm(matrix1).dot(init_wavefunction)
     assert numpy.allclose(step1, final_wavefunction1)
 

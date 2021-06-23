@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Contains the definition of the quantum amplitude amplification gate"""
+
 from ._basics import BasicGate
 
 
 class QAA(BasicGate):
     """
-    Quantum Aplitude Aplification gate.
+    Quantum Aplitude Amplification gate.
 
-    (Quick reference https://en.wikipedia.org/wiki/Amplitude_amplification.
-    Complete reference G. Brassard, P. Hoyer, M. Mosca, A. Tapp (2000)
-    Quantum Amplitude Amplification and Estimation
-    https://arxiv.org/abs/quant-ph/0005055)
+    (Quick reference https://en.wikipedia.org/wiki/Amplitude_amplification.  Complete reference G. Brassard, P. Hoyer,
+    M. Mosca, A. Tapp (2000) Quantum Amplitude Amplification and Estimation https://arxiv.org/abs/quant-ph/0005055)
 
-    Quantum Amplitude Amplification (QAA) executes the algorithm, but not
-    the final measurement required to obtain the marked state(s) with high
-    probability. The starting state on wich the QAA algorithm is executed
-    is the one resulting of aplying the Algorithm on the |0> state.
+    Quantum Amplitude Amplification (QAA) executes the algorithm, but not the final measurement required to obtain the
+    marked state(s) with high probability. The starting state on wich the QAA algorithm is executed is the one
+    resulting of aplying the Algorithm on the |0> state.
 
     Example:
         .. code-block:: python
@@ -59,23 +59,21 @@ class QAA(BasicGate):
            All(Measure) | system_qubits
 
     Warning:
-        No qubit allocation/deallocation may take place during the call
-        to the defined Algorithm :code:`func_algorithm`
+        No qubit allocation/deallocation may take place during the call to the defined Algorithm
+        :code:`func_algorithm`
 
     Attributes:
-        func_algorithm: Algorithm that initialite the state and to be used
-                        in the QAA algorithm
+        func_algorithm: Algorithm that initialite the state and to be used in the QAA algorithm
         func_oracle: The Oracle that marks the state(s) as "good"
         system_qubits: the system we are interested on
-        qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the
-                     "good" states
+        qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the "good" states
 
     """
+
     def __init__(self, algorithm, oracle):
         BasicGate.__init__(self)
         self.algorithm = algorithm
         self.oracle = oracle
 
     def __str__(self):
-        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(
-                str(self.algorithm.__name__), str(self.oracle.__name__))
+        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(str(self.algorithm.__name__), str(self.oracle.__name__))

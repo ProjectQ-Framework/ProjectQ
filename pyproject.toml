@@ -1,0 +1,113 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "pybind11>=2", "setuptools_scm[toml]>=3.4"]
+build-backend = "setuptools.build_meta"
+
+# ==============================================================================
+
+[tool.black]
+
+    line-length = 120
+    target-version = ['py36','py37','py38']
+    skip-string-normalization = true
+
+
+[tool.check-manifest]
+    ignore = [
+    'PKG-INFO',
+    '*.egg-info',
+    '*.egg-info/*',
+    'setup.cfg',
+    '.hgtags',
+    '.hgsigs',
+    '.hgignore',
+    '.gitignore',
+    '.bzrignore',
+    '.gitattributes',
+    '.github/*',
+    '.travis.yml',
+    'Jenkinsfile',
+    '*.mo',
+    '.clang-format',
+    '.gitmodules',
+    'requirements.txt',
+    'requirements_tests.txt',
+    'VERSION.txt',
+    '.editorconfig',
+    '*.yml',
+    '*.yaml',
+    'docs/*',
+    'docs/images/*',
+    'examples/*',
+    ]
+
+
+
+[tool.coverage]
+    [tool.coverage.run]
+        omit = [
+            '*_test.py',
+            '*_fixtures.py'
+        ]
+
+
+[tool.pylint]
+    [tool.pylint.master]
+    ignore-patterns = [
+        '__init__.py',
+        '.*_test.py',
+        '.*_fixtures.py',
+        '.*flycheck.*.py',
+        'docs/.*',
+        'examples/.*',
+    ]
+
+    extension-pkg-whitelist = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+    extension-pkg-allow-list = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+
+    [tool.pylint.basic]
+    good-names = ['qb', 'id', 'i', 'j', 'k', 'N', 'op', 'X', 'Y', 'Z', 'R', 'C', 'CRz', 'Zero', 'One']
+
+    [tool.pylint.format]
+    max-line-length = 120
+
+    [tool.pylint.reports]
+    msg-template = '{path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})'
+
+    [tool.pylint.similarities]
+    min-similarity-lines = 20
+
+    [tool.pylint.messages_control]
+    disable = [
+         'expression-not-assigned',
+         'pointless-statement',
+         'fixme'
+    ]
+
+
+[tool.pytest.ini_options]
+
+minversion = '6.0'
+addopts = '-pno:warnings'
+testpaths = ['projectq']
+ignore-glob = ['*flycheck*.py']
+mock_use_standalone_module = true
+
+[tool.setuptools_scm]
+
+write_to = 'VERSION.txt'
+write_to_template = '{version}'
+local_scheme = 'no-local-version'
+
+[tool.yapf]
+
+column_limit = 120

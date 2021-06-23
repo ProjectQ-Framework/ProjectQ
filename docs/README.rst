@@ -1,4 +1,4 @@
-Documentation  
+Documentation
 =============
 
 .. image:: https://readthedocs.org/projects/projectq/badge/?version=latest

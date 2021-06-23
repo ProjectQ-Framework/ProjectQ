@@ -1,4 +1,5 @@
-#   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
+# -*- coding: utf-8 -*-
+#   Copyright 2020, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +19,8 @@ import random
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import (Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate,
-                          FlushGate)
+from projectq.ops import Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate, FlushGate
+from projectq.types import WeakQubitRef
 
 from ._aqt_http_client import send, retrieve
 
@@ -38,27 +39,26 @@ def _format_counts(samples, length):
             counts[h_result] = 1
         else:
             counts[h_result] += 1
-    counts = {
-        k: v
-        for k, v in sorted(counts.items(), key=lambda item: item[0])
-    }
-    return counts
+    return dict(sorted(counts.items(), key=lambda item: item[0]))
 
 
-class AQTBackend(BasicEngine):
+class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
     The AQT Backend class, which stores the circuit, transforms it to the
     appropriate data format, and sends the circuit through the AQT API.
     """
-    def __init__(self,
-                 use_hardware=False,
-                 num_runs=100,
-                 verbose=False,
-                 token='',
-                 device='simulator',
-                 num_retries=3000,
-                 interval=1,
-                 retrieve_execution=None):
+
+    def __init__(
+        self,
+        use_hardware=False,
+        num_runs=100,
+        verbose=False,
+        token='',
+        device='simulator',
+        num_retries=3000,
+        interval=1,
+        retrieve_execution=None,
+    ):  # pylint: disable=too-many-arguments
         """
         Initialize the Backend object.
 
@@ -116,7 +116,7 @@ class AQTBackend(BasicEngine):
         return False
 
     def _reset(self):
-        """ Reset all temporary variables (after flush gate). """
+        """Reset all temporary variables (after flush gate)."""
         self._clear = True
         self._measured_ids = []
 
@@ -142,14 +142,12 @@ class AQTBackend(BasicEngine):
         if gate == Deallocate:
             return
         if gate == Measure:
-            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             qb_id = cmd.qubits[0][0].id
             logical_id = None
             for tag in cmd.tags:
                 if isinstance(tag, LogicalQubitIDTag):
                     logical_id = tag.logical_qubit_id
                     break
-            # assert logical_id is not None
             if logical_id is None:
                 logical_id = qb_id
                 self._mapper.append(qb_id)
@@ -163,7 +161,7 @@ class AQTBackend(BasicEngine):
             angle = gate.angle / math.pi
             instruction = []
             u_name = {'Rx': "X", 'Ry': "Y", 'Rxx': "MS"}
-            instruction.append(u_name[str(gate)[0:int(len(cmd.qubits) + 1)]])
+            instruction.append(u_name[str(gate)[0 : int(len(cmd.qubits) + 1)]])  # noqa: E203
             instruction.append(round(angle, 2))
             instruction.append(qubits)
             self._circuit.append(instruction)
@@ -187,14 +185,16 @@ class AQTBackend(BasicEngine):
                 raise RuntimeError(
                     "Unknown qubit id {}. Please make sure "
                     "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id))
+                    "was eliminated during optimization.".format(qb_id)
+                )
             return mapping[qb_id]
-        except AttributeError:
+        except AttributeError as err:
             if qb_id not in self._mapper:
                 raise RuntimeError(
                     "Unknown qubit id {}. Please make sure "
                     "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id))
+                    "was eliminated during optimization.".format(qb_id)
+                ) from err
             return qb_id
 
     def get_probabilities(self, qureg):
@@ -229,8 +229,7 @@ class AQTBackend(BasicEngine):
             probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
 
-            probability_dict[mapped_state] = (
-                probability_dict.get(mapped_state, 0) + probability)
+            probability_dict[mapped_state] = probability_dict.get(mapped_state, 0) + probability
         return probability_dict
 
     def _run(self):
@@ -259,54 +258,53 @@ class AQTBackend(BasicEngine):
             raise Exception("Number of shots limited to 200")
         try:
             if self._retrieve_execution is None:
-                res = send(info,
-                           device=self.device,
-                           token=self._token,
-                           shots=self._num_runs,
-                           num_retries=self._num_retries,
-                           interval=self._interval,
-                           verbose=self._verbose)
+                res = send(
+                    info,
+                    device=self.device,
+                    token=self._token,
+                    num_retries=self._num_retries,
+                    interval=self._interval,
+                    verbose=self._verbose,
+                )
             else:
-                res = retrieve(device=self.device,
-                               token=self._token,
-                               jobid=self._retrieve_execution,
-                               num_retries=self._num_retries,
-                               interval=self._interval,
-                               verbose=self._verbose)
+                res = retrieve(
+                    device=self.device,
+                    token=self._token,
+                    jobid=self._retrieve_execution,
+                    num_retries=self._num_retries,
+                    interval=self._interval,
+                    verbose=self._verbose,
+                )
             self._num_runs = len(res)
             counts = _format_counts(res, n_qubit)
             # Determine random outcome
-            P = random.random()
-            p_sum = 0.
+            random_outcome = random.random()
+            p_sum = 0.0
             measured = ""
             for state in counts:
-                probability = counts[state] * 1. / self._num_runs
+                probability = counts[state] * 1.0 / self._num_runs
                 p_sum += probability
                 star = ""
-                if p_sum >= P and measured == "":
+                if p_sum >= random_outcome and measured == "":
                     measured = state
                     star = "*"
                 self._probabilities[state] = probability
                 if self._verbose and probability > 0:
                     print(str(state) + " with p = " + str(probability) + star)
 
-            class QB():
-                def __init__(self, qubit_id):
-                    self.id = qubit_id
-
-            # register measurement result
+            # register measurement result from AQT
             for qubit_id in self._measured_ids:
                 location = self._logical_to_physical(qubit_id)
                 result = int(measured[location])
-                self.main_engine.set_measurement_result(QB(qubit_id), result)
+                self.main_engine.set_measurement_result(WeakQubitRef(self, qubit_id), result)
             self._reset()
-        except TypeError:
-            raise Exception("Failed to run the circuit. Aborting.")
+        except TypeError as err:
+            raise Exception("Failed to run the circuit. Aborting.") from err
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        completion.
+        Receives a command list and, for each command, stores it until completion. Upon flush, send the data to the
+        AQT API.
 
         Args:
             command_list: List of commands to execute

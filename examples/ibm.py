@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# pylint: skip-file
+
 import matplotlib.pyplot as plt
 import getpass
 
@@ -44,7 +47,7 @@ def run_entangle(eng, num_qubits=3):
 
 
 if __name__ == "__main__":
-    #devices commonly available :
+    # devices commonly available :
     # ibmq_16_melbourne (15 qubit)
     # ibmq_essex (5 qubit)
     # ibmq_qasm_simulator (32 qubits)
@@ -53,16 +56,16 @@ if __name__ == "__main__":
     # To get a token, create a profile at:
     # https://quantum-computing.ibm.com/
     #
-    device = None # replace by the IBM device name you want to use
+    device = None  # replace by the IBM device name you want to use
     token = None  # replace by the token given by IBMQ
     if token is None:
         token = getpass.getpass(prompt='IBM Q token > ')
     if device is None:
         device = getpass.getpass(prompt='IBM device > ')
     # create main compiler engine for the IBM back-end
-    eng = MainEngine(IBMBackend(use_hardware=True, token=token, num_runs=1024,
-                                verbose=False, device=device),
-                     engine_list=projectq.setups.ibm.get_engine_list(
-                         token=token, device=device))
+    eng = MainEngine(
+        IBMBackend(use_hardware=True, token=token, num_runs=1024, verbose=False, device=device),
+        engine_list=projectq.setups.ibm.get_engine_list(token=token, device=device),
+    )
     # run the circuit and print the result
     print(run_entangle(eng))

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,22 +12,42 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._optimize.py."""
+
+import math
 
 import pytest
 
-import math
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import (CNOT, H, Rx, Ry, AllocateQubitGate, X,
-                          FastForwardingGate, ClassicalInstructionGate)
+from projectq.ops import (
+    CNOT,
+    H,
+    Rx,
+    Ry,
+    AllocateQubitGate,
+    X,
+    FastForwardingGate,
+    ClassicalInstructionGate,
+)
 
 from projectq.cengines import _optimize
 
 
+def test_local_optimizer_init_api_change():
+    with pytest.warns(DeprecationWarning):
+        tmp = _optimize.LocalOptimizer(m=10)
+        assert tmp._cache_size == 10
+
+    local_optimizer = _optimize.LocalOptimizer()
+    assert local_optimizer._cache_size == 5
+
+    local_optimizer = _optimize.LocalOptimizer(cache_size=10)
+    assert local_optimizer._cache_size == 10
+
+
 def test_local_optimizer_caching():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it caches for each qubit 3 gates
@@ -57,7 +78,7 @@ def test_local_optimizer_caching():
 
 
 def test_local_optimizer_flush_gate():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it caches for each qubit 3 gates
@@ -72,7 +93,7 @@ def test_local_optimizer_flush_gate():
 
 
 def test_local_optimizer_fast_forwarding_gate():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that FastForwardingGate (e.g. Deallocate) flushes that qb0 pipeline
@@ -87,7 +108,7 @@ def test_local_optimizer_fast_forwarding_gate():
 
 
 def test_local_optimizer_cancel_inverse():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it cancels inverses (H, CNOT are self-inverse)
@@ -104,8 +125,7 @@ def test_local_optimizer_cancel_inverse():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 2
     assert received_commands[0].gate == H
@@ -116,7 +136,7 @@ def test_local_optimizer_cancel_inverse():
 
 
 def test_local_optimizer_mergeable_gates():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it merges mergeable gates such as Rx
@@ -131,7 +151,7 @@ def test_local_optimizer_mergeable_gates():
 
 
 def test_local_optimizer_identity_gates():
-    local_optimizer = _optimize.LocalOptimizer(m=4)
+    local_optimizer = _optimize.LocalOptimizer(cache_size=4)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     # Test that it merges mergeable gates such as Rx
@@ -139,8 +159,8 @@ def test_local_optimizer_identity_gates():
     for _ in range(10):
         Rx(0.0) | qb0
         Ry(0.0) | qb0
-        Rx(4*math.pi) | qb0
-        Ry(4*math.pi) | qb0
+        Rx(4 * math.pi) | qb0
+        Ry(4 * math.pi) | qb0
     Rx(0.5) | qb0
     assert len(backend.received_commands) == 0
     eng.flush()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,16 +22,12 @@ decompositions rules defined in projectq.setups.decompositions
 
 import projectq
 import projectq.setups.decompositions
-from projectq.cengines import (TagRemover,
-                               LocalOptimizer,
-                               AutoReplacer,
-                               DecompositionRuleSet)
+from projectq.cengines import TagRemover, LocalOptimizer, AutoReplacer, DecompositionRuleSet
 
 
 def get_engine_list():
+    """
+    Return the default list of compiler engine.
+    """
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
-    return [TagRemover(),
-            LocalOptimizer(10),
-            AutoReplacer(rule_set),
-            TagRemover(),
-            LocalOptimizer(10)]
+    return [TagRemover(), LocalOptimizer(10), AutoReplacer(rule_set), TagRemover(), LocalOptimizer(10)]

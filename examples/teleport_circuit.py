@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# pylint: skip-file
+
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._tagremover.py."""
+
+import pytest
 
 from projectq import MainEngine
 from projectq.meta import ComputeTag, UncomputeTag
@@ -25,6 +27,11 @@ from projectq.cengines import _tagremover
 def test_tagremover_default():
     tag_remover = _tagremover.TagRemover()
     assert tag_remover._tags == [ComputeTag, UncomputeTag]
+
+
+def test_tagremover_invalid():
+    with pytest.raises(TypeError):
+        _tagremover.TagRemover(ComputeTag)
 
 
 def test_tagremover():

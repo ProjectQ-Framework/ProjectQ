@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,19 +21,25 @@ def test_aqt_mapper_in_cengines(monkeypatch):
     import projectq.setups.aqt
 
     def mock_show_devices(*args, **kwargs):
-        connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                           (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-        return {
-            'aqt_simulator': {
-                'coupling_map': connections,
-                'version': '0.0.0',
-                'nq': 32
-            }
-        }
+        connections = set(
+            [
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            ]
+        )
+        return {'aqt_simulator': {'coupling_map': connections, 'version': '0.0.0', 'nq': 32}}
 
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)
-    engines_simulator = projectq.setups.aqt.get_engine_list(
-        device='aqt_simulator')
+    engines_simulator = projectq.setups.aqt.get_engine_list(device='aqt_simulator')
     assert len(engines_simulator) == 13
 
 
@@ -40,15 +47,22 @@ def test_aqt_errors(monkeypatch):
     import projectq.setups.aqt
 
     def mock_show_devices(*args, **kwargs):
-        connections = set([(0, 1), (1, 0), (1, 2), (1, 3), (1, 4), (2, 1),
-                           (2, 3), (2, 4), (3, 1), (3, 4), (4, 3)])
-        return {
-            'aqt_imaginary': {
-                'coupling_map': connections,
-                'version': '0.0.0',
-                'nq': 6
-            }
-        }
+        connections = set(
+            [
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            ]
+        )
+        return {'aqt_imaginary': {'coupling_map': connections, 'version': '0.0.0', 'nq': 6}}
 
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)
     with pytest.raises(projectq.setups.aqt.DeviceOfflineError):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +16,16 @@
 "Tests for projectq.setups.trapped_ion_decomposer.py."
 
 import projectq
-from projectq.ops import (Rx, Ry, Rz, H, X, CNOT, Measure, Rxx,
-                          ClassicalInstructionGate)
-from projectq.cengines import (MainEngine, DummyEngine, AutoReplacer,
-                               TagRemover, InstructionFilter,
-                               DecompositionRuleSet, DecompositionRule)
+from projectq.ops import Rx, Ry, Rz, H, X, CNOT, Measure, Rxx, ClassicalInstructionGate
+from projectq.cengines import (
+    MainEngine,
+    DummyEngine,
+    AutoReplacer,
+    TagRemover,
+    InstructionFilter,
+    DecompositionRuleSet,
+    DecompositionRule,
+)
 from projectq.meta import get_control_count
 
 from . import restrictedgateset
@@ -29,16 +35,14 @@ from .trapped_ion_decomposer import chooser_Ry_reducer, get_engine_list
 def filter_gates(eng, cmd):
     if isinstance(cmd.gate, ClassicalInstructionGate):
         return True
-    if ((cmd.gate == X and get_control_count(cmd) == 1) or cmd.gate == H
-            or isinstance(cmd.gate, Rz)):
+    if (cmd.gate == X and get_control_count(cmd) == 1) or cmd.gate == H or isinstance(cmd.gate, Rz):
         return False
     return True
 
 
 def test_chooser_Ry_reducer_synthetic():
     backend = DummyEngine(save_commands=True)
-    rule_set = DecompositionRuleSet(
-        modules=[projectq.libs.math, projectq.setups.decompositions])
+    rule_set = DecompositionRuleSet(modules=[projectq.libs.math, projectq.setups.decompositions])
 
     engine_list = [
         AutoReplacer(rule_set, chooser_Ry_reducer),
@@ -59,8 +63,7 @@ def test_chooser_Ry_reducer_synthetic():
 
     assert isinstance(backend.received_commands[idx0].gate, Ry)
     assert isinstance(backend.received_commands[idx1].gate, Ry)
-    assert (backend.received_commands[idx0].gate.get_inverse() ==
-            backend.received_commands[idx1].gate)
+    assert backend.received_commands[idx0].gate.get_inverse() == backend.received_commands[idx1].gate
 
     eng = MainEngine(backend=backend, engine_list=engine_list)
     control = eng.allocate_qubit()
@@ -74,8 +77,7 @@ def test_chooser_Ry_reducer_synthetic():
 
     assert isinstance(backend.received_commands[idx0].gate, Ry)
     assert isinstance(backend.received_commands[idx1].gate, Ry)
-    assert (backend.received_commands[idx0].gate.get_inverse() ==
-            backend.received_commands[idx1].gate)
+    assert backend.received_commands[idx0].gate.get_inverse() == backend.received_commands[idx1].gate
 
     eng = MainEngine(backend=backend, engine_list=engine_list)
     control = eng.allocate_qubit()
@@ -89,8 +91,7 @@ def test_chooser_Ry_reducer_synthetic():
 
     assert isinstance(backend.received_commands[idx0].gate, Ry)
     assert isinstance(backend.received_commands[idx1].gate, Ry)
-    assert (backend.received_commands[idx0].gate.get_inverse() ==
-            backend.received_commands[idx1].gate)
+    assert backend.received_commands[idx0].gate.get_inverse() == backend.received_commands[idx1].gate
 
 
 def _dummy_h2nothing_A(cmd):
@@ -100,8 +101,7 @@ def _dummy_h2nothing_A(cmd):
 
 def test_chooser_Ry_reducer_unsupported_gate():
     backend = DummyEngine(save_commands=True)
-    rule_set = DecompositionRuleSet(
-        rules=[DecompositionRule(H.__class__, _dummy_h2nothing_A)])
+    rule_set = DecompositionRuleSet(rules=[DecompositionRule(H.__class__, _dummy_h2nothing_A)])
 
     engine_list = [
         AutoReplacer(rule_set, chooser_Ry_reducer),
@@ -132,10 +132,13 @@ def test_chooser_Ry_reducer():
     # Using the chooser_Rx_reducer you get 10 commands, since you now have 4
     # single qubit gates and 1 two qubit gate.
 
-    for engine_list, count in [(restrictedgateset.get_engine_list(
-                                   one_qubit_gates=(Rx, Ry),
-                                   two_qubit_gates=(Rxx, )), 13),
-                               (get_engine_list(), 11)]:
+    for engine_list, count in [
+        (
+            restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,)),
+            13,
+        ),
+        (get_engine_list(), 11),
+    ]:
 
         backend = DummyEngine(save_commands=True)
         eng = projectq.MainEngine(backend, engine_list, verbose=True)

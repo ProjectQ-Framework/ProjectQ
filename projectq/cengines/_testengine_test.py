@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._testengine.py."""
 
 from projectq import MainEngine
@@ -29,9 +29,11 @@ def test_compare_engine_str():
     H | qb0
     CNOT | (qb0, qb1)
     eng.flush()
-    expected = ("Qubit 0 : Allocate | Qureg[0], H | Qureg[0], " +
-                "CX | ( Qureg[0], Qureg[1] )\nQubit 1 : Allocate | Qureg[1]," +
-                " CX | ( Qureg[0], Qureg[1] )\n")
+    expected = (
+        "Qubit 0 : Allocate | Qureg[0], H | Qureg[0], "
+        + "CX | ( Qureg[0], Qureg[1] )\nQubit 1 : Allocate | Qureg[1],"
+        + " CX | ( Qureg[0], Qureg[1] )\n"
+    )
     assert str(compare_engine) == expected
 
 
@@ -97,9 +99,9 @@ def test_compare_engine():
     CNOT | (qb20, qb21)
     eng2.flush()
     # test other branch to fail
-    qb30 = eng3.allocate_qubit()
-    qb31 = eng3.allocate_qubit()
-    qb32 = eng3.allocate_qubit()
+    qb30 = eng3.allocate_qubit()  # noqa: F841
+    qb31 = eng3.allocate_qubit()  # noqa: F841
+    qb32 = eng3.allocate_qubit()  # noqa: F841
     eng3.flush()
     assert compare_engine0 == compare_engine1
     assert compare_engine1 != compare_engine2

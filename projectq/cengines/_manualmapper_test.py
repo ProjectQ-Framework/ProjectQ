@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,18 +12,14 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._manualmapper.py."""
-
-import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, Allocate, Measure, All
+from projectq.ops import H, Measure, All
 from projectq.meta import LogicalQubitIDTag
 
 from projectq.cengines import ManualMapper
-from projectq.backends import IBMBackend
 
 
 def test_manualmapper_mapping():
@@ -31,8 +28,7 @@ def test_manualmapper_mapping():
     def mapping(qubit_id):
         return (qubit_id + 1) & 1
 
-    eng = MainEngine(backend=backend,
-                     engine_list=[ManualMapper(mapping)])
+    eng = MainEngine(backend=backend, engine_list=[ManualMapper(mapping)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     H | qb0
