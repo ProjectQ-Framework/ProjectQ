@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Fix GitHub workflow for publishing a new release
 
+
 ## [0.6.0] - 2021-06-23
 
 ### Added
