@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Deprecated
 ### Fixed
+
+-   Prevent infinite recursion errors when too many compiler engines are added to the MainEngine
+
 ### Removed
 ### Repository
 
