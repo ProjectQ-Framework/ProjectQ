@@ -47,6 +47,9 @@ class _ErrorEngine:  # pylint: disable=too-few-public-methods
         """No-op"""
 
 
+_N_ENGINES_THRESHOLD = 100
+
+
 class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
     The MainEngine class provides all functionality of the main compiler engine.
@@ -61,10 +64,13 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         dirty_qubits (Set): Containing all dirty qubit ids
         backend (BasicEngine): Access the back-end.
         mapper (BasicMapperEngine): Access to the mapper if there is one.
-
+        n_engines (int): Current number of compiler engines in the engine list
+        n_engines_max (int): Maximum number of compiler engines allowed in the engine list. Defaults to 100.
     """
 
-    def __init__(self, backend=None, engine_list=None, verbose=False):
+    def __init__(  # pylint: disable=too-many-statements,too-many-branches
+        self, backend=None, engine_list=None, verbose=False
+    ):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -118,6 +124,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         self.dirty_qubits = set()
         self.verbose = verbose
         self.main_engine = self
+        self.n_engines_max = _N_ENGINES_THRESHOLD
 
         if backend is None:
             backend = Simulator()
@@ -173,6 +180,10 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 " separate instances of a compiler engine if it is needed\n"
                 " twice.\n"
             )
+
+        self.n_engines = len(engine_list)
+        if self.n_engines > self.n_engines_max:
+            raise ValueError('Too many compiler engines added to the MainEngine!')
 
         self._qubit_idx = int(0)
         for i in range(len(engine_list) - 1):
