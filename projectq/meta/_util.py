@@ -30,15 +30,15 @@ def insert_engine(prev_engine, engine_to_insert):
         engine_to_insert (projectq.cengines.BasicEngine):
             The engine to insert at the insertion point.
     """
-    engine_to_insert.main_engine = prev_engine.main_engine
-    engine_to_insert.next_engine = prev_engine.next_engine
-    prev_engine.next_engine = engine_to_insert
-
     if prev_engine.main_engine is not None:
         prev_engine.main_engine.n_engines += 1
 
         if prev_engine.main_engine.n_engines > prev_engine.main_engine.n_engines_max:
             raise RuntimeError('Too many compiler engines added to the MainEngine!')
+
+    engine_to_insert.main_engine = prev_engine.main_engine
+    engine_to_insert.next_engine = prev_engine.next_engine
+    prev_engine.next_engine = engine_to_insert
 
 
 def drop_engine_after(prev_engine):
