@@ -171,7 +171,7 @@ def test_unitary_simulator():
         All(Measure) | test_qureg
 
 
-def test_simulator_functional_measurement():
+def test_unitary_functional_measurement():
     eng = MainEngine(UnitarySimulator())
     qubits = eng.allocate_qureg(5)
     # entangle all qubits:
@@ -190,7 +190,7 @@ def test_simulator_functional_measurement():
         eng.backend._handle(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
-def test_simulator_measure_mapped_qubit():
+def test_unitary_measure_mapped_qubit():
     eng = MainEngine(UnitarySimulator())
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
