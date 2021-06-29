@@ -12,16 +12,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+# pylint: skip-file
 
 import numpy as np
 
 from projectq.backends import UnitarySimulator
 from projectq.cengines import MainEngine
 from projectq.meta import Control
-from projectq.ops import All, X, QFT, Measure
+from projectq.ops import All, X, QFT, Measure, CtrlAll
 
 
-def run_circuit(eng, n_qubits, circuit_num):
+def run_circuit(eng, n_qubits, circuit_num, gate_after_measure=False):
     qureg = eng.allocate_qureg(n_qubits)
 
     if circuit_num == 1:
@@ -31,10 +32,18 @@ def run_circuit(eng, n_qubits, circuit_num):
         with Control(eng, qureg[:2]):
             All(X) | qureg[2:]
     elif circuit_num == 3:
+        with Control(eng, qureg[:2], ctrl_state=CtrlAll.Zero):
+            All(X) | qureg[2:]
+    elif circuit_num == 4:
         QFT | qureg
 
-    All(Measure) | qureg
     eng.flush()
+    All(Measure) | qureg
+
+    if gate_after_measure:
+        QFT | qureg
+    eng.flush()
+    All(Measure) | qureg
 
 
 if __name__ == '__main__':
@@ -46,8 +55,9 @@ if __name__ == '__main__':
     # Run out quantum circuit
     #   1 - circuit applying X on all qubits
     #   2 - circuit applying an X gate followed by a controlled-X gate
-    #   3 - circuit applying a QFT on all qubits (QFT will get decomposed)
-    run_circuit(eng, n_qubits, 1)
+    #   3 - circuit applying a off-controlled-X gate
+    #   4 - circuit applying a QFT on all qubits (QFT will get decomposed)
+    run_circuit(eng, n_qubits, 3, gate_after_measure=True)
 
     # Output the unitary transformation of the circuit
     print('The unitary of the circuit is:')
@@ -56,3 +66,8 @@ if __name__ == '__main__':
     # Output the final state of the qubits (assuming they all start in state |0>)
     print('The final state of the qubits is:')
     print(eng.backend.unitary @ np.array([1] + ([0] * (2 ** n_qubits - 1))))
+    print('\n')
+
+    # Show the unitaries separated by measurement:
+    for history in eng.backend.history:
+        print('Previous unitary is: \n', history, '\n')

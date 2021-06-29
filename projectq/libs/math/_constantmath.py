@@ -32,7 +32,6 @@ def add_constant(eng, constant, quint):
     """
     Adds a classical constant c to the quantum integer (qureg) quint using
     Draper addition.
-
     Note: Uses the Fourier-transform adder from
           https://arxiv.org/abs/quant-ph/0008033.
     """
@@ -83,9 +82,7 @@ def add_constant_modN(eng, constant, N, quint):  # pylint: disable=invalid-name
 def mul_by_constant_modN(eng, constant, N, quint_in):  # pylint: disable=invalid-name
     """
     Multiplies a quantum integer by a classical number a modulo N, i.e.,
-
     |x> -> |a*x mod N>
-
     (only works if a and N are relative primes, otherwise the modular inverse
     does not exist).
     """

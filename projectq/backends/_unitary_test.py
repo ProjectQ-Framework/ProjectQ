@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 from scipy.stats import unitary_group
 
-from projectq.cengines import MainEngine, DummyEngine
+from projectq.cengines import MainEngine, DummyEngine, NotYetMeasuredError
 from projectq.ops import (
     BasicGate,
     MatrixGate,
@@ -34,8 +34,10 @@ from projectq.ops import (
     X,
     Rx,
     Rxx,
+    H,
+    CNOT,
 )
-from projectq.meta import Control
+from projectq.meta import Control, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 from ._unitary import UnitarySimulator
@@ -57,8 +59,11 @@ def test_unitary_is_available():
     assert sim.is_available(Command(None, X, qubits=([qb0],)))
     assert sim.is_available(Command(None, Rx(1.2), qubits=([qb0],)))
     assert sim.is_available(Command(None, Rxx(1.2), qubits=([qb0, qb1],)))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1]))
+    assert sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='1'))
 
     assert not sim.is_available(Command(None, BasicGate(), qubits=([qb0],)))
+    assert not sim.is_available(Command(None, X, qubits=([qb0],), controls=[qb1], control_state='0'))
 
     with pytest.warns(UserWarning):
         assert sim.is_available(
@@ -70,39 +75,49 @@ def test_unitary_is_available():
         )
 
 
+def test_unitary_warnings():
+    eng = MainEngine(backend=DummyEngine(save_commands=True), engine_list=[UnitarySimulator()])
+    qubit = eng.allocate_qubit()
+    X | qubit
+
+    with pytest.raises(RuntimeError):
+        Measure | qubit
+
+
 def test_unitary_not_last_engine():
     eng = MainEngine(backend=DummyEngine(save_commands=True), engine_list=[UnitarySimulator()])
     qubit = eng.allocate_qubit()
     X | qubit
+    eng.flush()
     Measure | qubit
-    assert len(eng.backend.received_commands) == 3
+    assert len(eng.backend.received_commands) == 4
 
 
-def test_unitary_error_after_deallocation_or_measurement():
+def test_unitary_after_deallocation_or_measurement():
     eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
     qubit = eng.allocate_qubit()
     X | qubit
-    Measure | qubit
     eng.flush()
+    Measure | qubit
 
-    with pytest.raises(RuntimeError):
+    with pytest.warns(UserWarning):
         X | qubit
 
     # Still ok
-    Measure | qubit
     eng.flush()
+    Measure | qubit
 
     eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
     qureg = eng.allocate_qureg(2)
     All(X) | qureg
     eng.deallocate_qubit(qureg[0])
 
-    with pytest.raises(RuntimeError):
+    with pytest.warns(UserWarning):
         X | qureg[1]
 
     # Still ok
-    Measure | qubit
     eng.flush()
+    Measure | qureg[1]
 
 
 def test_unitary_simulator():
@@ -125,11 +140,10 @@ def test_unitary_simulator():
             MatrixGate(mat2) | (qureg[0], qureg[2])
             MatrixGate(mat4) | qureg[0]
 
-        # TODO: uncomment once the general control state branch has been merged
-        # with Control(eng, qureg[1], ctrl_state='0'):
-        #     MatrixGate(mat1) | qureg[0]
-        #     with Control(test_eng,qureg[2],ctrl_state='0'):
-        #         MatrixGate(mat1) | qureg[0]
+        with Control(eng, qureg[1], ctrl_state='0'):
+            MatrixGate(mat1) | qureg[0]
+            with Control(eng, qureg[2], ctrl_state='0'):
+                MatrixGate(mat1) | qureg[0]
 
     for basis_state in [list(x[::-1]) for x in itertools.product([0, 1], repeat=2 ** n_qubits)][1:]:
         ref_eng = MainEngine(engine_list=[], verbose=True)
@@ -151,5 +165,52 @@ def test_unitary_simulator():
 
         assert np.allclose(ref_eng.backend.cheat()[1], test_state)
 
+        ref_eng.flush()
+        test_eng.flush()
         All(Measure) | ref_qureg
         All(Measure) | test_qureg
+
+
+def test_simulator_functional_measurement():
+    eng = MainEngine(UnitarySimulator())
+    qubits = eng.allocate_qureg(5)
+    # entangle all qubits:
+    H | qubits[0]
+    for qb in qubits[1:]:
+        CNOT | (qubits[0], qb)
+    eng.flush()
+    All(Measure) | qubits
+
+    bit_value_sum = sum([int(qubit) for qubit in qubits])
+    assert bit_value_sum == 0 or bit_value_sum == 5
+
+    qb1 = WeakQubitRef(engine=eng, idx=qubits[0].id)
+    qb2 = WeakQubitRef(engine=eng, idx=qubits[1].id)
+    with pytest.raises(ValueError):
+        eng.backend._handle(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
+
+
+def test_simulator_measure_mapped_qubit():
+    eng = MainEngine(UnitarySimulator())
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
+    cmd1 = Command(engine=eng, gate=X, qubits=([qb1],))
+    cmd2 = Command(
+        engine=eng,
+        gate=Measure,
+        qubits=([qb1],),
+        controls=[],
+        tags=[LogicalQubitIDTag(2)],
+    )
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    with pytest.raises(NotYetMeasuredError):
+        int(qb2)
+
+    eng.send([cmd0, cmd1])
+    eng.flush()
+    eng.send([cmd2])
+    with pytest.raises(NotYetMeasuredError):
+        int(qb1)
+    assert int(qb2) == 1

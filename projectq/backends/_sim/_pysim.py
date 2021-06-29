@@ -73,6 +73,7 @@ class Simulator:
         Returns:
             List of measurement results (containing either True or False).
         """
+
         random_outcome = random.random()
         val = 0.0
         i_picked = 0
