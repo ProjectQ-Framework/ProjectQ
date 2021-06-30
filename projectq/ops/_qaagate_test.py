@@ -14,7 +14,7 @@
 #   limitations under the License.
 """Tests for projectq.ops._qaagate."""
 
-from projectq.ops import _qaagate, All, H, X
+from projectq.ops import All, H, X, _qaagate
 
 
 def test_qaa_str():

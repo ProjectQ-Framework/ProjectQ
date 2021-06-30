@@ -43,18 +43,18 @@ and meta gates, i.e.,
 * FlipBits
 """
 
-import math
 import cmath
+import math
 
 import numpy as np
 
 from ._basics import (
     BasicGate,
-    SelfInverseGate,
-    BasicRotationGate,
     BasicPhaseGate,
+    BasicRotationGate,
     ClassicalInstructionGate,
     FastForwardingGate,
+    SelfInverseGate,
 )
 from ._command import apply_command
 from ._metagates import get_inverse

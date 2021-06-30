@@ -15,38 +15,38 @@
 
 """Back-end to run quantum program on AWS Braket provided devices."""
 
-import random
 import json
+import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
-from projectq.types import WeakQubitRef
+from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
 from projectq.ops import (
-    R,
-    SwapGate,
+    Allocate,
+    Barrier,
+    DaggeredGate,
+    Deallocate,
+    FlushGate,
     HGate,
+    Measure,
+    R,
     Rx,
     Ry,
     Rz,
-    SGate,
     Sdag,
-    TGate,
+    SGate,
+    SqrtXGate,
+    SwapGate,
     Tdag,
+    TGate,
     XGate,
     YGate,
     ZGate,
-    SqrtXGate,
-    Measure,
-    Allocate,
-    Deallocate,
-    Barrier,
-    FlushGate,
-    DaggeredGate,
 )
+from projectq.types import WeakQubitRef
+
+from ._awsbraket_boto3_client import retrieve, send
 
 # TODO: Add MatrixGate to cover the unitary operation in the SV1 simulator
-
-from ._awsbraket_boto3_client import send, retrieve
 
 
 class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes

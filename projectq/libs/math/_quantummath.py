@@ -15,8 +15,9 @@
 
 """Definition of some mathematical quantum operations."""
 
-from projectq.ops import All, X, CNOT
 from projectq.meta import Control
+from projectq.ops import CNOT, All, X
+
 from ._gates import AddQuantum, SubtractQuantum
 
 

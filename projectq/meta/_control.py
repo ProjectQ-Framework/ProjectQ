@@ -28,7 +28,7 @@ from projectq.ops import ClassicalInstructionGate, CtrlAll
 from projectq.types import BasicQubit
 
 from ._compute import ComputeTag, UncomputeTag
-from ._util import insert_engine, drop_engine_after
+from ._util import drop_engine_after, insert_engine
 
 
 def canonical_ctrl_state(ctrl_state, num_qubits):

@@ -33,15 +33,15 @@ This means that for more than one quantum argument (right side of | ), a tuple
 needs to be made explicitely, while for one argument it is optional.
 """
 
-from copy import deepcopy
 import math
 import unicodedata
+from copy import deepcopy
 
 import numpy as np
 
 from projectq.types import BasicQubit
-from ._command import Command, apply_command
 
+from ._command import Command, apply_command
 
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION

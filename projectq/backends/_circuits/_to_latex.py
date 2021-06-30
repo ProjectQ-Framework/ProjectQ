@@ -16,16 +16,17 @@
 """ProjectQ module for exporting quantum circuits to LaTeX code."""
 
 import json
+
 from projectq.ops import (
     Allocate,
-    Deallocate,
     DaggeredGate,
-    get_inverse,
+    Deallocate,
     Measure,
     SqrtSwap,
     Swap,
     X,
     Z,
+    get_inverse,
 )
 
 

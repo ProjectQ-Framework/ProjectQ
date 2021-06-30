@@ -17,11 +17,9 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import H, CNOT, All
-
-from projectq.cengines import _ibm5qubitmapper, SwapAndCNOTFlipper
 from projectq.backends import IBMBackend
+from projectq.cengines import DummyEngine, SwapAndCNOTFlipper, _ibm5qubitmapper
+from projectq.ops import CNOT, All, H
 
 
 def test_ibm5qubitmapper_is_available(monkeypatch):

@@ -20,12 +20,12 @@ import sys
 import traceback
 import weakref
 
+from projectq.backends import Simulator
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
-from projectq.backends import Simulator
 
-from ._basics import BasicEngine
 from ._basicmapper import BasicMapperEngine
+from ._basics import BasicEngine
 
 
 class NotYetMeasuredError(Exception):

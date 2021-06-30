@@ -14,16 +14,14 @@
 #   limitations under the License.
 """Tests for libs.revkit._phase."""
 
+import numpy as np
 import pytest
 
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, Measure
-
 from projectq.libs.revkit import PhaseOracle
-
-import numpy as np
+from projectq.ops import All, H, Measure
 
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')

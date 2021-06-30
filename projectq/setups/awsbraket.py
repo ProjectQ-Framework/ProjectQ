@@ -26,25 +26,25 @@ device.  Decompose the circuit into the available gate set for each device
 that will be used in the backend.
 """
 
-from projectq.setups import restrictedgateset
+from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 from projectq.ops import (
-    R,
-    Swap,
+    Barrier,
     H,
+    R,
     Rx,
     Ry,
     Rz,
     S,
     Sdag,
+    SqrtX,
+    Swap,
     T,
     Tdag,
     X,
     Y,
     Z,
-    SqrtX,
-    Barrier,
 )
-from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(credentials=None, device=None):

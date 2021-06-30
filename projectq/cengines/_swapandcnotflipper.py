@@ -20,7 +20,7 @@ It also translates Swap gates to CNOTs if necessary.
 from copy import deepcopy
 
 from projectq.meta import get_control_count
-from projectq.ops import All, NOT, CNOT, H, Swap
+from projectq.ops import CNOT, NOT, All, H, Swap
 
 from ._basics import BasicEngine, ForwarderEngine
 from ._cmdmodifier import CommandModifier

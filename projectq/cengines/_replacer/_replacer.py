@@ -22,7 +22,7 @@ executed. If not, it uses the loaded setup (e.g., default) to find an appropriat
 The InstructionFilter can be used to further specify which gates to replace/keep.
 """
 
-from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
+from projectq.cengines import BasicEngine, CommandModifier, ForwarderEngine
 from projectq.ops import FlushGate, get_inverse
 
 

@@ -17,10 +17,9 @@
 
 import itertools
 
-from projectq.ops import FlushGate, NOT, Allocate
-from projectq.meta import get_control_count
 from projectq.backends import IBMBackend
-
+from projectq.meta import get_control_count
+from projectq.ops import NOT, Allocate, FlushGate
 
 from ._basicmapper import BasicMapperEngine
 

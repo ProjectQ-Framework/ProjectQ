@@ -14,20 +14,24 @@
 #   limitations under the License.
 """Tests for projectq.backends._ibm._ibm.py."""
 
-import pytest
 import math
+
+import pytest
+
 from projectq.backends._ibm import _ibm
-from projectq.cengines import MainEngine, BasicMapperEngine, DummyEngine
+from projectq.cengines import BasicMapperEngine, DummyEngine, MainEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
+    CNOT,
+    NOT,
     All,
     Allocate,
     Barrier,
     Command,
     Deallocate,
     Entangle,
+    H,
     Measure,
-    NOT,
     Rx,
     Ry,
     Rz,
@@ -38,8 +42,6 @@ from projectq.ops import (
     X,
     Y,
     Z,
-    H,
-    CNOT,
 )
 from projectq.setups import restrictedgateset
 from projectq.types import WeakQubitRef

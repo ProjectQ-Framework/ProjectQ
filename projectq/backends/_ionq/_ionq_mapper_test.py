@@ -16,7 +16,7 @@ import pytest
 
 from projectq.backends import Simulator
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
-from projectq.cengines import MainEngine, DummyEngine
+from projectq.cengines import DummyEngine, MainEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, Command, DeallocateQubitGate
 from projectq.types import WeakQubitRef

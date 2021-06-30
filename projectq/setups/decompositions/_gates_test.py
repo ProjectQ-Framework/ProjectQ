@@ -18,14 +18,15 @@ Tests for decompositions rules (using the Simulator).
 
 import pytest
 
-from projectq.cengines import (
-    MainEngine,
-    InstructionFilter,
-    AutoReplacer,
-    DummyEngine,
-    DecompositionRuleSet,
-)
 from projectq.backends import Simulator
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+    MainEngine,
+)
+from projectq.meta import Control
 from projectq.ops import (
     All,
     ClassicalInstructionGate,
@@ -41,7 +42,6 @@ from projectq.ops import (
     Toffoli,
     X,
 )
-from projectq.meta import Control
 from projectq.setups.decompositions import (
     crz2cxandrz,
     entangle,

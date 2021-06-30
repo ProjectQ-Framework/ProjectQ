@@ -27,9 +27,9 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
     Allocate,
     AllocateQubitGate,
+    Command,
     Deallocate,
     DeallocateQubitGate,
-    Command,
     FlushGate,
     Swap,
 )

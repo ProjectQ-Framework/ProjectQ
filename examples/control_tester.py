@@ -18,7 +18,7 @@
 
 from projectq.cengines import MainEngine
 from projectq.meta import Control
-from projectq.ops import All, X, Measure, CtrlAll
+from projectq.ops import All, CtrlAll, Measure, X
 
 
 def run_circuit(eng, circuit_num):

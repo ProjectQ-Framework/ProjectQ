@@ -3,14 +3,15 @@
 
 """Example of running a quantum circuit using the IBM QE APIs."""
 
-import matplotlib.pyplot as plt
 import getpass
 
+import matplotlib.pyplot as plt
+
+import projectq.setups.ibm
 from projectq import MainEngine
 from projectq.backends import IBMBackend
 from projectq.libs.hist import histogram
-from projectq.ops import Measure, Entangle, All
-import projectq.setups.ibm
+from projectq.ops import All, Entangle, Measure
 
 
 def run_entangle(eng, num_qubits=3):

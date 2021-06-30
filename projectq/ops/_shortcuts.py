@@ -21,8 +21,8 @@ These include:
 * Toffoli = C(NOT,2) = C(CNOT)
 """
 
-from ._metagates import C
 from ._gates import NOT, Rz, Z
+from ._metagates import C
 
 
 def CRz(angle):

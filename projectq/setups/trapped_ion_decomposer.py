@@ -31,8 +31,8 @@ Note:
     trapped gates the decomposed circuit will not be optimal.
 """
 
+from projectq.ops import Rx, Rxx, Ry
 from projectq.setups import restrictedgateset
-from projectq.ops import Rxx, Rx, Ry
 
 # ------------------chooser_Ry_reducer-------------------#
 # If the qubit is not in the prev_Ry_sign dictionary, then no decomposition

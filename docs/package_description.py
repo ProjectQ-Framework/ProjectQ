@@ -16,8 +16,8 @@
 """Module containing some helper classes for generating the documentation"""
 
 import inspect
-import sys
 import os
+import sys
 
 
 class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-few-public-methods

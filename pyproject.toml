@@ -102,6 +102,10 @@ testpaths = ['projectq']
 ignore-glob = ['*flycheck*.py']
 mock_use_standalone_module = true
 
+[tool.isort]
+
+profile = "black"
+
 [tool.setuptools_scm]
 
 write_to = 'VERSION.txt'

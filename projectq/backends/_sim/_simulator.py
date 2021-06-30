@@ -22,9 +22,17 @@ implementation is used as an alternative.
 
 import math
 import random
+
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
-from projectq.ops import Measure, FlushGate, Allocate, Deallocate, BasicMathGate, TimeEvolution
+from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
+from projectq.ops import (
+    Allocate,
+    BasicMathGate,
+    Deallocate,
+    FlushGate,
+    Measure,
+    TimeEvolution,
+)
 from projectq.types import WeakQubitRef
 
 FALLBACK_TO_PYSIM = False

@@ -19,26 +19,29 @@ and the C++ simulator as backends.
 
 import copy
 import math
+import random
+
 import numpy
 import pytest
-import random
 import scipy
 import scipy.sparse
 import scipy.sparse.linalg
 
 from projectq import MainEngine
+from projectq.backends import Simulator
 from projectq.cengines import (
     BasicMapperEngine,
     DummyEngine,
     LocalOptimizer,
     NotYetMeasuredError,
 )
+from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.ops import (
+    CNOT,
     All,
     Allocate,
     BasicGate,
     BasicMathGate,
-    CNOT,
     Command,
     H,
     MatrixGate,
@@ -54,10 +57,7 @@ from projectq.ops import (
     Y,
     Z,
 )
-from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
-
-from projectq.backends import Simulator
 
 
 def test_is_cpp_simulator_present():
@@ -745,8 +745,8 @@ def test_simulator_constant_math_emulation():
     results = [[[1, 1, 0, 0, 0]], [[0, 1, 0, 0, 0]], [[0, 1, 1, 1, 0]]]
 
     import projectq.backends._sim._simulator as _sim
-    from projectq.backends._sim._pysim import Simulator as PySim
     from projectq.backends._sim._cppsim import Simulator as CppSim
+    from projectq.backends._sim._pysim import Simulator as PySim
     from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
 
     def gate_filter(eng, cmd):

@@ -22,7 +22,7 @@
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
+from projectq.meta import Compute, Control, Uncompute, get_control_count
 from projectq.ops import Rx, Ry, Rz
 
 

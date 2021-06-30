@@ -23,11 +23,12 @@ neighbours in the output figure (which cannot be determined durinng compilation 
 """
 
 from copy import deepcopy
-import numpy as np
+
 import matplotlib.pyplot as plt
-from matplotlib.collections import PatchCollection, LineCollection
+import numpy as np
+from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.lines import Line2D
-from matplotlib.patches import Circle, Arc, Rectangle
+from matplotlib.patches import Arc, Circle, Rectangle
 
 # Important note on units for the plot parameters.
 # The following entries are in inches:

@@ -14,19 +14,18 @@
 #   limitations under the License.
 """Tests for projectq.cengines._2dmapper.py."""
 
-from copy import deepcopy
 import itertools
 import random
+from copy import deepcopy
 
 import pytest
 
 import projectq
 from projectq.cengines import DummyEngine, LocalOptimizer
+from projectq.cengines import _twodmapper as two_d
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import Allocate, BasicGate, Command, Deallocate, FlushGate, X
 from projectq.types import WeakQubitRef
-
-from projectq.cengines import _twodmapper as two_d
 
 
 def test_is_available():

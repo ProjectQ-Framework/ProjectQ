@@ -16,23 +16,18 @@
 "Tests for projectq.setups.decompositions.phaseestimation.py."
 
 import cmath
+
 import numpy as np
-from flaky import flaky
 import pytest
+from flaky import flaky
 
-from projectq.backends import Simulator
-from projectq.cengines import (
-    AutoReplacer,
-    DecompositionRuleSet,
-    MainEngine,
-)
-
-from projectq.ops import X, H, All, Measure, Tensor, Ph, CNOT, StatePreparation, QPE
-
-from projectq.setups.decompositions import phaseestimation as pe
-from projectq.setups.decompositions import qft2crandhadamard as dqft
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
+from projectq.backends import Simulator
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, MainEngine
+from projectq.ops import CNOT, QPE, All, H, Measure, Ph, StatePreparation, Tensor, X
+from projectq.setups.decompositions import phaseestimation as pe
+from projectq.setups.decompositions import qft2crandhadamard as dqft
 
 
 @flaky(max_runs=5, min_passes=2)

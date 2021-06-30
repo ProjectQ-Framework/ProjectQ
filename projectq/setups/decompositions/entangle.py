@@ -21,7 +21,7 @@ qubit, CNOT gates to all others.
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control
-from projectq.ops import X, H, Entangle, All
+from projectq.ops import All, Entangle, H, X
 
 
 def _decompose_entangle(cmd):

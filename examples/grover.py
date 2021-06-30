@@ -6,8 +6,8 @@
 import math
 
 from projectq import MainEngine
-from projectq.ops import H, Z, X, Measure, All
-from projectq.meta import Loop, Compute, Uncompute, Control
+from projectq.meta import Compute, Control, Loop, Uncompute
+from projectq.ops import All, H, Measure, X, Z
 
 
 def run_grover(eng, n, oracle):

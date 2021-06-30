@@ -12,7 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """Tests for projectq.ops._time_evolution."""
+
 import cmath
 import copy
 
@@ -21,8 +23,7 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import QubitOperator, BasicGate, NotMergeable, Ph
-
+from projectq.ops import BasicGate, NotMergeable, Ph, QubitOperator
 from projectq.ops import _time_evolution as te
 
 

@@ -22,8 +22,8 @@ other in which case one can implement each term individually.
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import TimeEvolution, QubitOperator, H, CNOT, Rz, Rx, Ry
+from projectq.meta import Compute, Control, Uncompute
+from projectq.ops import CNOT, H, QubitOperator, Rx, Ry, Rz, TimeEvolution
 
 
 def _recognize_time_evolution_commuting_terms(cmd):

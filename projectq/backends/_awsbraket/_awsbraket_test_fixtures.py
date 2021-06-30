@@ -31,8 +31,9 @@
 
 """Define test fixtures for the AWSBraket backend."""
 
-from io import StringIO
 import json
+from io import StringIO
+
 import pytest
 
 try:

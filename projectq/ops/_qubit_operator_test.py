@@ -22,10 +22,10 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
+from projectq.ops import _qubit_operator as qo
+
 from ._basics import NotInvertible, NotMergeable
 from ._gates import Ph, T, X, Y, Z
-
-from projectq.ops import _qubit_operator as qo
 
 
 def test_pauli_operator_product_unchanged():

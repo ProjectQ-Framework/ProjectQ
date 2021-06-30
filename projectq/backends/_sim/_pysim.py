@@ -19,8 +19,9 @@ Contain a (slow) Python simulator.
 Please compile the c++ simulator for large-scale simulations.
 """
 
-import random
 import os
+import random
+
 import numpy as _np
 
 _USE_REFCHECK = True

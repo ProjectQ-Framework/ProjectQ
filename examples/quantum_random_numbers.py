@@ -3,8 +3,8 @@
 
 """Example of a simple quantum random number generator."""
 
-from projectq.ops import H, Measure
 from projectq import MainEngine
+from projectq.ops import H, Measure
 
 # create a main compiler engine
 eng = MainEngine()

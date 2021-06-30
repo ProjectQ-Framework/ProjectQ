@@ -15,13 +15,14 @@
 
 """Contain a compiler engine which generates matplotlib figures describing the circuit."""
 
-from builtins import input
-import re
 import itertools
+import re
+from builtins import input
 
-from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import FlushGate, Measure, Allocate, Deallocate
+from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
+from projectq.ops import Allocate, Deallocate, FlushGate, Measure
+
 from ._plot import to_draw
 
 # ==============================================================================

@@ -37,6 +37,12 @@ repos:
   hooks:
   - id: remove-tabs
 
+- repo: https://github.com/PyCQA/isort
+  rev: 5.9.1
+  hooks:
+  - id: isort
+    name: isort (python)
+
 - repo: https://github.com/psf/black
   rev: 21.5b1
   hooks:
@@ -45,7 +51,7 @@ repos:
     # This is a slow hook, so only run this if --hook-stage manual is passed
     stages: [manual]
 
-- repo: https://gitlab.com/pycqa/flake8
+- repo: https://gitlab.com/PyCQA/flake8
   rev: 3.9.2
   hooks:
     - id: flake8

@@ -17,7 +17,6 @@
 
 import copy
 
-
 from ._basics import BasicGate, NotMergeable
 from ._command import apply_command
 from ._gates import Ph

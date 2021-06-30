@@ -16,6 +16,7 @@
 
 import pytest
 
+import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
@@ -24,7 +25,6 @@ from projectq.cengines import (
     DummyEngine,
     InstructionFilter,
 )
-
 from projectq.meta import Compute, Control, Uncompute
 from projectq.ops import (
     All,
@@ -35,8 +35,6 @@ from projectq.ops import (
     UniformlyControlledRz,
     X,
 )
-
-import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
 
 
 def slow_implementation(angles, control_qubits, target_qubit, eng, gate_class):

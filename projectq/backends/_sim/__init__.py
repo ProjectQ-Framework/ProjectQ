@@ -15,5 +15,5 @@
 
 """ProjectQ module dedicated to simulation"""
 
-from ._simulator import Simulator
 from ._classical_simulator import ClassicalSimulator
+from ._simulator import Simulator

@@ -19,11 +19,11 @@ import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate, FlushGate
+from projectq.meta import LogicalQubitIDTag, get_control_count
+from projectq.ops import Allocate, Barrier, Deallocate, FlushGate, Measure, Rx, Rxx, Ry
 from projectq.types import WeakQubitRef
 
-from ._aqt_http_client import send, retrieve
+from ._aqt_http_client import retrieve, send
 
 
 # _rearrange_result & _format_counts imported and modified from qiskit

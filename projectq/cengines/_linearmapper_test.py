@@ -18,20 +18,19 @@ from copy import deepcopy
 import pytest
 
 from projectq.cengines import DummyEngine
+from projectq.cengines import _linearmapper as lm
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
+    CNOT,
+    QFT,
     Allocate,
     BasicGate,
-    CNOT,
     Command,
     Deallocate,
     FlushGate,
-    QFT,
     X,
 )
 from projectq.types import WeakQubitRef
-
-from projectq.cengines import _linearmapper as lm
 
 
 def test_return_swap_depth():

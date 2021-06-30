@@ -23,7 +23,7 @@ import math
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
-from projectq.ops import Ph, Rx, Ry, H
+from projectq.ops import H, Ph, Rx, Ry
 
 
 def _decompose_h2rx_M(cmd):  # pylint: disable=invalid-name

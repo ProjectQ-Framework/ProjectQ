@@ -21,13 +21,13 @@
 # source at: https://github.com/Qiskit/qiskit-ibmq-provider
 
 import getpass
-import time
 import signal
+import time
 import uuid
 
 import requests
-from requests.compat import urljoin
 from requests import Session
+from requests.compat import urljoin
 
 _AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken'
 _API_URL = 'https://api.quantum-computing.ibm.com/api/'

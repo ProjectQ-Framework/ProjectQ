@@ -3,9 +3,9 @@
 
 """Example of a quantum teleportation circuit."""
 
-from projectq.ops import CNOT, H, Measure, Rz, X, Z
 from projectq import MainEngine
-from projectq.meta import Dagger, Control
+from projectq.meta import Control, Dagger
+from projectq.ops import CNOT, H, Measure, Rz, X, Z
 
 
 def create_bell_pair(eng):

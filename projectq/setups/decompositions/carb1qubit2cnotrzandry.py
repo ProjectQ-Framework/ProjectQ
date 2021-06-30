@@ -27,7 +27,7 @@ import math
 import numpy
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count, Control
+from projectq.meta import Control, get_control_count
 from projectq.ops import BasicGate, Ph, Ry, Rz, X
 from projectq.setups.decompositions import arb1qubit2rzandry as arb1q
 

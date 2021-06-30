@@ -14,20 +14,22 @@
 #   limitations under the License.
 
 from . import (
+    amplitudeamplification,
     arb1qubit2rzandry,
     barrier,
     carb1qubit2cnotrzandry,
-    crz2cxandrz,
-    cnot2rxx,
     cnot2cz,
+    cnot2rxx,
     cnu2toffoliandcu,
     controlstate,
+    crz2cxandrz,
     entangle,
     globalphase,
     h2rx,
     ph2r,
-    qubitop2onequbit,
+    phaseestimation,
     qft2crandhadamard,
+    qubitop2onequbit,
     r2rzandph,
     rx2rz,
     ry2rz,
@@ -35,11 +37,9 @@ from . import (
     sqrtswap2cnot,
     stateprep2cnot,
     swap2cnot,
-    toffoli2cnotandtgate,
     time_evolution,
+    toffoli2cnotandtgate,
     uniformlycontrolledr2cnot,
-    phaseestimation,
-    amplitudeamplification,
 )
 
 all_defined_decomposition_rules = [

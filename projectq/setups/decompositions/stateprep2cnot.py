@@ -21,10 +21,10 @@ import math
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, Dagger
 from projectq.ops import (
+    Ph,
     StatePreparation,
     UniformlyControlledRy,
     UniformlyControlledRz,
-    Ph,
 )
 
 

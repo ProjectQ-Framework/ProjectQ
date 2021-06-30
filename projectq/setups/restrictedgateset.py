@@ -32,14 +32,9 @@ from projectq.cengines import (
     LocalOptimizer,
     TagRemover,
 )
-from projectq.ops import (
-    BasicGate,
-    ClassicalInstructionGate,
-    CNOT,
-    ControlledGate,
-)
+from projectq.ops import CNOT, BasicGate, ClassicalInstructionGate, ControlledGate
 
-from ._utils import one_and_two_qubit_gates, high_level_gates
+from ._utils import high_level_gates, one_and_two_qubit_gates
 
 
 def default_chooser(cmd, decomposition_list):  # pylint: disable=unused-argument

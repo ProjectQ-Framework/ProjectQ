@@ -17,9 +17,10 @@
 
 from builtins import input
 
-from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import FlushGate, Measure, Allocate, Deallocate
+from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
+from projectq.ops import Allocate, Deallocate, FlushGate, Measure
+
 from ._to_latex import to_latex
 
 

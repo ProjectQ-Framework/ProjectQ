@@ -16,12 +16,11 @@
 """Contains a compiler engine which prints commands to stdout prior to sending them on to the next engines."""
 
 import sys
-
 from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
+from projectq.meta import LogicalQubitIDTag, get_control_count
 from projectq.ops import FlushGate, Measure
-from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 

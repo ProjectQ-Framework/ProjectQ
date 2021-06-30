@@ -13,23 +13,24 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module containing all compiler engines"""
+"""ProjectQ module containing all compiler engines."""
 
-from ._basics import BasicEngine, LastEngineException, ForwarderEngine
-from ._cmdmodifier import CommandModifier
-from ._basicmapper import BasicMapperEngine
+from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
+from ._cmdmodifier import CommandModifier  # isort:skip
+from ._basicmapper import BasicMapperEngine  # isort:skip
+
 from ._ibm5qubitmapper import IBM5QubitMapper
-from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._linearmapper import LinearMapper, return_swap_depth
-from ._manualmapper import ManualMapper
 from ._main import MainEngine, NotYetMeasuredError, UnsupportedEngineError
+from ._manualmapper import ManualMapper
 from ._optimize import LocalOptimizer
 from ._replacer import (
     AutoReplacer,
-    InstructionFilter,
-    DecompositionRuleSet,
     DecompositionRule,
+    DecompositionRuleSet,
+    InstructionFilter,
 )
+from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper

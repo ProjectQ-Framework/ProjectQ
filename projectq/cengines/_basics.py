@@ -15,9 +15,8 @@
 
 """Module containing the basic definition of a compiler engine."""
 
-from projectq.ops import Allocate, Deallocate
+from projectq.ops import Allocate, Command, Deallocate
 from projectq.types import Qubit, Qureg, WeakQubitRef
-from projectq.ops import Command
 
 
 class LastEngineException(Exception):
@@ -107,7 +106,9 @@ class BasicEngine:
         qb = Qureg([Qubit(self, new_id)])
         cmd = Command(self, Allocate, (qb,))
         if dirty:
-            from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
+            from projectq.meta import (  # pylint: disable=import-outside-toplevel
+                DirtyQubitTag,
+            )
 
             if self.is_meta_tag_supported(DirtyQubitTag):
                 cmd.tags += [DirtyQubitTag()]
@@ -141,7 +142,9 @@ class BasicEngine:
         if qubit.id == -1:
             raise ValueError("Already deallocated.")
 
-        from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
+        from projectq.meta import (  # pylint: disable=import-outside-toplevel
+            DirtyQubitTag,
+        )
 
         is_dirty = qubit.id in self.main_engine.dirty_qubits
         self.send(

@@ -20,7 +20,7 @@ automatically translate logical qubit ids to mapped ids.
 """
 from copy import deepcopy
 
-from projectq.meta import drop_engine_after, insert_engine, LogicalQubitIDTag
+from projectq.meta import LogicalQubitIDTag, drop_engine_after, insert_engine
 from projectq.ops import MeasureGate
 
 from ._basics import BasicEngine

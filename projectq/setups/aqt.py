@@ -26,11 +26,10 @@ device.  Decompose the circuit into a Rx/Ry/Rxx gate set that will be
 translated in the backend in the Rx/Ry/MS gate set.
 """
 
-from projectq.setups import restrictedgateset
-from projectq.ops import Rx, Ry, Rxx, Barrier
-from projectq.cengines import BasicMapperEngine
-
 from projectq.backends._aqt._aqt_http_client import show_devices
+from projectq.cengines import BasicMapperEngine
+from projectq.ops import Barrier, Rx, Rxx, Ry
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):

@@ -71,10 +71,8 @@ Attributes:
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, CustomUncompute, Dagger
-from projectq.ops import X, Z, Ph, All
-
-from projectq.ops import QAA
+from projectq.meta import Compute, Control, CustomUncompute, Dagger
+from projectq.ops import QAA, All, Ph, X, Z
 
 
 def _decompose_QAA(cmd):  # pylint: disable=invalid-name

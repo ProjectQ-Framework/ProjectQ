@@ -17,7 +17,7 @@
 
 import warnings
 
-from projectq.ops import FlushGate, FastForwardingGate, NotMergeable
+from projectq.ops import FastForwardingGate, FlushGate, NotMergeable
 
 from ._basics import BasicEngine
 

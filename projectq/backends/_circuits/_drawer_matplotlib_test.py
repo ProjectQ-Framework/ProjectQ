@@ -20,7 +20,7 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import H, X, Rx, CNOT, Swap, Measure, Command, BasicGate
+from projectq.ops import CNOT, BasicGate, Command, H, Measure, Rx, Swap, X
 from projectq.types import WeakQubitRef
 
 from . import _drawer_matplotlib as _drawer

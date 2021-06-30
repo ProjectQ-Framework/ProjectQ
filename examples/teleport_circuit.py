@@ -3,10 +3,10 @@
 
 """Example if drawing of a quantum teleportation circuit."""
 
+import teleport
+
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
-
-import teleport
 
 if __name__ == "__main__":
     # create a main compiler engine with a simulator backend:

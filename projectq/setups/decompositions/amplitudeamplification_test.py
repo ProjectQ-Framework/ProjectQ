@@ -16,15 +16,13 @@
 "Tests for projectq.setups.decompositions.amplitudeamplification.py."
 
 import math
+
 import pytest
 
 from projectq.backends import Simulator
 from projectq.cengines import AutoReplacer, DecompositionRuleSet, MainEngine
-
-from projectq.ops import X, H, Ry, All, Measure
-from projectq.meta import Loop, Control, Compute, Uncompute
-
-from projectq.ops import QAA
+from projectq.meta import Compute, Control, Loop, Uncompute
+from projectq.ops import QAA, All, H, Measure, Ry, X
 from projectq.setups.decompositions import amplitudeamplification as aa
 
 

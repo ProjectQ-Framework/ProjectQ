@@ -3,12 +3,12 @@
 
 """Example of a 6-qubit phase function."""
 
-from projectq.cengines import MainEngine
-from projectq.ops import All, H, X, Measure
-from projectq.meta import Compute, Uncompute, Dagger
-from projectq.libs.revkit import PhaseOracle, PermutationOracle
-
 import revkit
+
+from projectq.cengines import MainEngine
+from projectq.libs.revkit import PermutationOracle, PhaseOracle
+from projectq.meta import Compute, Dagger, Uncompute
+from projectq.ops import All, H, Measure, X
 
 
 # phase function

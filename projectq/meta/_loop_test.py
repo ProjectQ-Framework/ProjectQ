@@ -14,16 +14,15 @@
 #   limitations under the License.
 """Tests for projectq.meta._loop.py"""
 
-import pytest
 import types
-
 from copy import deepcopy
-from projectq import MainEngine
-from projectq.meta import ComputeTag
-from projectq.cengines import DummyEngine
-from projectq.ops import H, CNOT, X, FlushGate, Allocate, Deallocate
 
-from projectq.meta import _loop
+import pytest
+
+from projectq import MainEngine
+from projectq.cengines import DummyEngine
+from projectq.meta import ComputeTag, _loop
+from projectq.ops import CNOT, Allocate, Deallocate, FlushGate, H, X
 
 
 def test_loop_tag():

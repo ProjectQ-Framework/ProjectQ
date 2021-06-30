@@ -26,16 +26,16 @@ Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be translated in
 set.
 """
 
-from projectq.setups import restrictedgateset
-from projectq.ops import Rx, Ry, Rz, H, CNOT, Barrier
+from projectq.backends._ibm._ibm_http_client import show_devices
 from projectq.cengines import (
-    LocalOptimizer,
-    IBM5QubitMapper,
-    SwapAndCNOTFlipper,
     BasicMapperEngine,
     GridMapper,
+    IBM5QubitMapper,
+    LocalOptimizer,
+    SwapAndCNOTFlipper,
 )
-from projectq.backends._ibm._ibm_http_client import show_devices
+from projectq.ops import CNOT, Barrier, H, Rx, Ry, Rz
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):

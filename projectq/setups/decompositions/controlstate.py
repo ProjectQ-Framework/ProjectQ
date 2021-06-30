@@ -20,6 +20,7 @@ This achived by applying X gates to selected qubits.
 """
 
 from copy import deepcopy
+
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Uncompute, has_negative_control
 from projectq.ops import BasicGate, X

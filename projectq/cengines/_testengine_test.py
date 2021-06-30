@@ -15,10 +15,8 @@
 """Tests for projectq.cengines._testengine.py."""
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import CNOT, H, Rx, Allocate, FlushGate
-
-from projectq.cengines import _testengine
+from projectq.cengines import DummyEngine, _testengine
+from projectq.ops import CNOT, Allocate, FlushGate, H, Rx
 
 
 def test_compare_engine_str():

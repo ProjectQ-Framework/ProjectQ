@@ -16,8 +16,8 @@
 """Register a decomposition for the Rx gate into an Rz gate and Hadamard."""
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
-from projectq.ops import Rx, Rz, H
+from projectq.meta import Compute, Control, Uncompute, get_control_count
+from projectq.ops import H, Rx, Rz
 
 
 def _decompose_rx(cmd):

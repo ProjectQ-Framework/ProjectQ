@@ -37,12 +37,12 @@ The command then gets sent to the MainEngine via the
 apply wrapper (apply_command).
 """
 
+import itertools
 from copy import deepcopy
 from enum import IntEnum
-import itertools
 
 import projectq
-from projectq.types import WeakQubitRef, Qureg
+from projectq.types import Qureg, WeakQubitRef
 
 
 class IncompatibleControlState(Exception):
@@ -246,7 +246,9 @@ class Command:  # pylint: disable=too-many-instance-attributes
             state (int,str,projectq.meta.CtrtAll): state of control qubit (ie. positive or negative)
         """
         # NB: avoid circular imports
-        from projectq.meta import canonical_ctrl_state  # pylint: disable=import-outside-toplevel
+        from projectq.meta import (  # pylint: disable=import-outside-toplevel
+            canonical_ctrl_state,
+        )
 
         self._control_state = canonical_ctrl_state(state, len(self._control_qubits))
 
@@ -264,7 +266,9 @@ class Command:  # pylint: disable=too-many-instance-attributes
                 control qubits.
         """
         # NB: avoid circular imports
-        from projectq.meta import canonical_ctrl_state  # pylint: disable=import-outside-toplevel
+        from projectq.meta import (  # pylint: disable=import-outside-toplevel
+            canonical_ctrl_state,
+        )
 
         if not isinstance(qubits, list):
             raise ValueError('Control qubits must be a list of qubits!')

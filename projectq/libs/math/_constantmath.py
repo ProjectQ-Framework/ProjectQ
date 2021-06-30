@@ -22,9 +22,10 @@ try:
 except ImportError:  # pragma: no cover
     from fractions import gcd
 
-from projectq.ops import R, X, Swap, CNOT, QFT
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute
-from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
+from projectq.meta import Compute, Control, CustomUncompute, Uncompute
+from projectq.ops import CNOT, QFT, R, Swap, X
+
+from ._gates import AddConstant, AddConstantModN, SubConstant, SubConstantModN
 
 
 # Draper's addition by constant https://arxiv.org/abs/quant-ph/0008033

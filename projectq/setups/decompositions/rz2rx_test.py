@@ -16,6 +16,7 @@
 "Tests for projectq.setups.decompositions.rz2rx.py"
 
 import math
+
 import numpy as np
 import pytest
 

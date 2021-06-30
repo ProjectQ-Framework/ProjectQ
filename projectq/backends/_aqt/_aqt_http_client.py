@@ -20,8 +20,8 @@ import signal
 import time
 
 import requests
-from requests.compat import urljoin
 from requests import Session
+from requests.compat import urljoin
 
 # An AQT token can be requested at:
 # https://gateway-portal.aqt.eu/

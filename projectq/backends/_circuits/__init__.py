@@ -15,8 +15,7 @@
 
 """ProjectQ module for exporting/printing quantum circuits"""
 
-from ._to_latex import to_latex
-from ._plot import to_draw
-
 from ._drawer import CircuitDrawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib
+from ._plot import to_draw
+from ._to_latex import to_latex

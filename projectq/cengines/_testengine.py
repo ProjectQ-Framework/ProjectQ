@@ -15,6 +15,7 @@
 """TestEngine and DummyEngine."""
 
 from copy import deepcopy
+
 from projectq.ops import FlushGate
 
 from ._basics import BasicEngine

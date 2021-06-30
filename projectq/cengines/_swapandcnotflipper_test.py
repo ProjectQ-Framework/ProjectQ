@@ -18,8 +18,8 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, CNOT, X, Swap, Command
-from projectq.meta import Control, Compute, Uncompute, ComputeTag, UncomputeTag
+from projectq.meta import Compute, ComputeTag, Control, Uncompute, UncomputeTag
+from projectq.ops import CNOT, All, Command, H, Swap, X
 from projectq.types import WeakQubitRef
 
 from . import _swapandcnotflipper

@@ -39,23 +39,23 @@
 """Setup.py file."""
 
 import distutils.log
-from distutils.cmd import Command
-from distutils.spawn import find_executable, spawn
-from distutils.errors import (
-    CompileError,
-    LinkError,
-    CCompilerError,
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
 import os
 import platform
 import subprocess
 import sys
 import tempfile
+from distutils.cmd import Command
+from distutils.errors import (
+    CCompilerError,
+    CompileError,
+    DistutilsExecError,
+    DistutilsPlatformError,
+    LinkError,
+)
+from distutils.spawn import find_executable, spawn
 
-from setuptools import setup, Extension
 from setuptools import Distribution as _Distribution
+from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 # ==============================================================================

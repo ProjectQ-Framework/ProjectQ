@@ -86,9 +86,7 @@ Attributes:
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control, Loop
-from projectq.ops import H, Tensor, get_inverse, QFT
-
-from projectq.ops import QPE
+from projectq.ops import QFT, QPE, H, Tensor, get_inverse
 
 
 def _decompose_QPE(cmd):  # pylint: disable=invalid-name

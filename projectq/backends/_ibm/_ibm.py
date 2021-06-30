@@ -19,11 +19,22 @@ import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag, has_negative_control
-from projectq.ops import NOT, H, Rx, Ry, Rz, Measure, Allocate, Deallocate, Barrier, FlushGate
+from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
+from projectq.ops import (
+    NOT,
+    Allocate,
+    Barrier,
+    Deallocate,
+    FlushGate,
+    H,
+    Measure,
+    Rx,
+    Ry,
+    Rz,
+)
 from projectq.types import WeakQubitRef
 
-from ._ibm_http_client import send, retrieve
+from ._ibm_http_client import retrieve, send
 
 
 class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes

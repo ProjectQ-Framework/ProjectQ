@@ -25,17 +25,22 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from importlib.metadata import version
 
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+import sphinx_rtd_theme
+
 import projectq
 
 # Also import all the modules that are not automatically imported
 import projectq.libs.math
 import projectq.libs.revkit
+import projectq.setups.decompositions
 import projectq.setups.default
 import projectq.setups.grid
 import projectq.setups.ibm
 import projectq.setups.linear
 import projectq.setups.restrictedgateset
-import projectq.setups.decompositions
 
 # -- General configuration ------------------------------------------------
 
@@ -43,10 +48,6 @@ import projectq.setups.decompositions
 #
 # needs_sphinx = '1.0'
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
-import sphinx_rtd_theme
 
 extensions = [
     'sphinx.ext.autodoc',

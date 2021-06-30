@@ -27,7 +27,8 @@ from copy import deepcopy
 
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
-from ._util import insert_engine, drop_engine_after
+
+from ._util import drop_engine_after, insert_engine
 
 
 class QubitManagementError(Exception):

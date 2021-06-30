@@ -17,7 +17,7 @@ from builtins import input
 
 import projectq.libs.math
 import projectq.setups.decompositions
-from projectq.backends import Simulator, ResourceCounter
+from projectq.backends import ResourceCounter, Simulator
 from projectq.cengines import (
     AutoReplacer,
     DecompositionRuleSet,
@@ -28,7 +28,7 @@ from projectq.cengines import (
 )
 from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
 from projectq.meta import Control
-from projectq.ops import All, BasicMathGate, get_inverse, H, Measure, QFT, R, Swap, X
+from projectq.ops import QFT, All, BasicMathGate, H, Measure, R, Swap, X, get_inverse
 
 
 def run_shor(eng, N, a, verbose=False):

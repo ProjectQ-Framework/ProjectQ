@@ -16,25 +16,17 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import (
-    All,
-    BasicMathGate,
-    C,
-    Measure,
-    NOT,
-    X,
-    Y,
-)
 from projectq.cengines import (
     AutoReplacer,
     BasicMapperEngine,
     DecompositionRuleSet,
     DummyEngine,
 )
-from ._simulator_test import mapper  # noqa: F401
+from projectq.ops import NOT, All, BasicMathGate, C, Measure, X, Y
 from projectq.types import WeakQubitRef
 
 from ._classical_simulator import ClassicalSimulator
+from ._simulator_test import mapper  # noqa: F401
 
 
 def test_simulator_read_write(mapper):  # noqa: F811
