@@ -110,7 +110,7 @@ class ControlEngine(BasicEngine):
             qubits (list of Qubit objects): qubits conditional on which the
                 following operations are executed.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._qubits = qubits
         self._state = ctrl_state
 

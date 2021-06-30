@@ -67,7 +67,7 @@ class TimeEvolution(BasicGate):
             TypeError: If time is not a numeric type and hamiltonian is not a QubitOperator.
             NotHermitianOperatorError: If the input hamiltonian is not hermitian (only real coefficients).
         """
-        BasicGate.__init__(self)
+        super().__init__()
         if not isinstance(time, (float, int)):
             raise TypeError("time needs to be a (real) numeric type.")
         if not isinstance(hamiltonian, QubitOperator):
@@ -198,10 +198,6 @@ class TimeEvolution(BasicGate):
         apply_command(cmd)
 
     def __eq__(self, other):
-        """Not implemented as this object is a floating point type."""
-        return NotImplemented
-
-    def __ne__(self, other):
         """Not implemented as this object is a floating point type."""
         return NotImplemented
 

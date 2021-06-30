@@ -73,10 +73,6 @@ class BasicQubit:
             return self is other
         return isinstance(other, BasicQubit) and self.id == other.id and self.engine == other.engine
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
-
     def __hash__(self):
         """
         Return the hash of this qubit.

@@ -88,7 +88,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
                 timed out).  The TaskArns have the form:
                 "arn:aws:braket:us-east-1:123456789012:quantum-task/5766032b-2b47-4bf9-cg00-f11851g4015b"
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._reset()
         if use_hardware:
             self.device = device

@@ -26,8 +26,8 @@ class QPE(BasicGate):
     """
 
     def __init__(self, unitary):
-        BasicGate.__init__(self)
         """Initialize a QPE gate."""
+        super().__init__()
         self.unitary = unitary
 
     def __str__(self):

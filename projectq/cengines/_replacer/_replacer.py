@@ -50,7 +50,7 @@ class InstructionFilter(BasicEngine):
             filterfun (function): Filter function which returns True for available commands, and False
                 otherwise. filterfun will be called as filterfun(self, cmd).
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._filterfun = filterfun
 
     def is_available(self, cmd):
@@ -115,7 +115,7 @@ class AutoReplacer(BasicEngine):
                 return decomp_list[0]
             repl = AutoReplacer(decomposition_chooser)
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._decomp_chooser = decomposition_chooser
         self.decomposition_rule_set = decomposition_rule_se
 

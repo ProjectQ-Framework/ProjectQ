@@ -216,10 +216,6 @@ class BasicGate:
             return NotImplemented
         return False
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
-
     def __str__(self):
         """Return a string representation of the object."""
         raise NotImplementedError('This gate does not implement __str__.')
@@ -263,7 +259,7 @@ class MatrixGate(BasicGate):
         Args:
             matrix(numpy.matrix): matrix which defines the gate. Default: None
         """
-        BasicGate.__init__(self)
+        super().__init__()
         self._matrix = np.matrix(matrix) if matrix is not None else None
 
     @property
@@ -340,7 +336,7 @@ class BasicRotationGate(BasicGate):
         Args:
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
-        BasicGate.__init__(self)
+        super().__init__()
         rounded_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
         if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
             rounded_angle = 0.0
@@ -415,10 +411,6 @@ class BasicRotationGate(BasicGate):
             return self.angle == other.angle
         return False
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
-
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
@@ -444,7 +436,7 @@ class BasicPhaseGate(BasicGate):
         Args:
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
-        BasicGate.__init__(self)
+        super().__init__()
         rounded_angle = round(float(angle) % (2.0 * math.pi), ANGLE_PRECISION)
         if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
             rounded_angle = 0.0
@@ -505,10 +497,6 @@ class BasicPhaseGate(BasicGate):
         if isinstance(other, self.__class__):
             return self.angle == other.angle
         return False
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def __hash__(self):
         """Compute the hash of the object."""
@@ -584,7 +572,7 @@ class BasicMathGate(BasicGate):
 
                 def add(a,b):
                     return (a,a+b)
-                BasicMathGate.__init__(self, add)
+                super().__init__(add)
 
         If the gate acts on, e.g., fixed point numbers, the number of bits per register is also required in order to
         describe the action of such a mathematical gate. For this reason, there is
@@ -606,7 +594,7 @@ class BasicMathGate(BasicGate):
                     return math_fun
 
         """
-        BasicGate.__init__(self)
+        super().__init__()
 
         def math_function(arg):
             return list(math_fun(*arg))

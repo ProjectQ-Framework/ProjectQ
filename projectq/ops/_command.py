@@ -334,10 +334,6 @@ class Command:  # pylint: disable=too-many-instance-attributes
             return True
         return False
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
-
     def __str__(self):
         """Return a string representation of the object."""
         return self.to_string()

@@ -64,7 +64,7 @@ class DaggeredGate(BasicGate):
         Args:
             gate: Any gate object of which to represent the inverse.
         """
-        BasicGate.__init__(self)
+        super().__init__()
         self._gate = gate
 
         try:
@@ -167,7 +167,7 @@ class ControlledGate(BasicGate):
             gate: Gate to wrap.
             n (int): Number of control qubits.
         """
-        BasicGate.__init__(self)
+        super().__init__()
         if isinstance(gate, ControlledGate):
             self._gate = gate._gate
             self._n = gate._n + n
@@ -223,10 +223,6 @@ class ControlledGate(BasicGate):
         """Compare two ControlledGate objects (return True if equal)."""
         return isinstance(other, self.__class__) and self._gate == other._gate and self._n == other._n
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
-
 
 def C(gate, n_qubits=1):
     """
@@ -259,7 +255,7 @@ class Tensor(BasicGate):
 
     def __init__(self, gate):
         """Initialize a Tensor object for the gate."""
-        BasicGate.__init__(self)
+        super().__init__()
         self._gate = gate
 
     def __str__(self):
@@ -273,10 +269,6 @@ class Tensor(BasicGate):
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, Tensor) and self._gate == other._gate
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def __or__(self, qubits):
         """Operator| overload which enables the syntax Gate | qubits."""

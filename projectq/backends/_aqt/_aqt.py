@@ -78,7 +78,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             retrieve_execution (int): Job ID to retrieve instead of re- running the circuit (e.g., if previous run
                 timed out).
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._reset()
         if use_hardware:
             self.device = device

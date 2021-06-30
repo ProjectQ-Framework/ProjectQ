@@ -36,28 +36,20 @@ class NoComputeSectionError(Exception):
     """Exception raised if uncompute is called but no compute section found."""
 
 
-class ComputeTag:
+class ComputeTag:  # pylint: disable=too-few-public-methods
     """Compute meta tag."""
 
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, ComputeTag)
 
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
-
-class UncomputeTag:
+class UncomputeTag:  # pylint: disable=too-few-public-methods
     """Uncompute meta tag."""
 
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, UncomputeTag)
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 def _add_uncompute_tag(cmd):
@@ -75,8 +67,8 @@ class ComputeEngine(BasicEngine):
     """Add Compute-tags to all commands and stores them (to later uncompute them automatically)."""
 
     def __init__(self):
-        BasicEngine.__init__(self)
         """Initialize a ComputeEngine."""
+        super().__init__()
         self._l = []
         self._compute = True
         # Save all qubit ids from qubits which are created or destroyed.
@@ -236,7 +228,7 @@ class UncomputeEngine(BasicEngine):
 
     def __init__(self):
         """Initialize a UncomputeEngine."""
-        BasicEngine.__init__(self)
+        super().__init__()
         # Save all qubit ids from qubits which are created or destroyed.
         self._allocated_qubit_ids = set()
         self._deallocated_qubit_ids = set()

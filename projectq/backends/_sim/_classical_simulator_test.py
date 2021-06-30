@@ -103,11 +103,11 @@ def test_simulator_bit_repositioning(mapper):  # noqa: F811
 def test_simulator_arithmetic(mapper):  # noqa: F811
     class Offset(BasicMathGate):
         def __init__(self, amount):
-            BasicMathGate.__init__(self, lambda x: (x + amount,))
+            super().__init__(lambda x: (x + amount,))
 
     class Sub(BasicMathGate):
         def __init__(self):
-            BasicMathGate.__init__(self, lambda x, y: (x, y - x))
+            super().__init__(lambda x, y: (x, y - x))
 
     engine_list = []
     if mapper is not None:

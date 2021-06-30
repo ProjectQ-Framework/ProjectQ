@@ -192,7 +192,7 @@ class SwapGate(SelfInverseGate):
 
     def __init__(self):
         """Initialize a Swap gate."""
-        SelfInverseGate.__init__(self)
+        super().__init__()
         self.interchangeable_qubit_indices = [[0, 1]]
 
     def __str__(self):
@@ -219,7 +219,7 @@ class SqrtSwapGate(BasicGate):
 
     def __init__(self):
         """Initialize a SqrtSwap gate."""
-        BasicGate.__init__(self)
+        super().__init__()
         self.interchangeable_qubit_indices = [[0, 1]]
 
     def __str__(self):
@@ -504,7 +504,7 @@ class FlipBits(SelfInverseGate):
                least significant bit corresponding to qureg[0]. If bits_to_flip is negative, exactly all qubits which
                would not be flipped for the input -bits_to_flip-1 are flipped, i.e., bits_to_flip=-1 flips all qubits.
         """
-        SelfInverseGate.__init__(self)
+        super().__init__()
         if isinstance(bits_to_flip, int):
             self.bits_to_flip = bits_to_flip
         else:

@@ -28,7 +28,6 @@ import scipy.sparse.linalg
 
 from projectq import MainEngine
 from projectq.cengines import (
-    BasicEngine,
     BasicMapperEngine,
     DummyEngine,
     LocalOptimizer,
@@ -104,7 +103,7 @@ def mapper(request):
 
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
-                BasicEngine.__init__(self)
+                super().__init__()
                 self.current_mapping = dict()
 
             def receive(self, command_list):
@@ -126,7 +125,7 @@ def mapper(request):
 
 class Mock1QubitGate(MatrixGate):
     def __init__(self):
-        MatrixGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
     @property
@@ -137,7 +136,7 @@ class Mock1QubitGate(MatrixGate):
 
 class Mock6QubitGate(MatrixGate):
     def __init__(self):
-        MatrixGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
     @property
@@ -148,7 +147,7 @@ class Mock6QubitGate(MatrixGate):
 
 class MockNoMatrixGate(BasicGate):
     def __init__(self):
-        BasicGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
 
@@ -264,7 +263,7 @@ def test_simulator_measure_mapped_qubit(sim):
 
 class Plus2Gate(BasicMathGate):
     def __init__(self):
-        BasicMathGate.__init__(self, lambda x: (x + 2,))
+        super().__init__(lambda x: (x + 2,))
 
 
 def test_simulator_emulation(sim):

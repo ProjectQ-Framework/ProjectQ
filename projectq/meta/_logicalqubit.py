@@ -16,7 +16,7 @@
 """Defines LogicalQubitIDTag to annotate a MeasureGate for mapped qubits."""
 
 
-class LogicalQubitIDTag:
+class LogicalQubitIDTag:  # pylint: disable=too-few-public-methods
     """
     LogicalQubitIDTag for a mapped qubit to annotate a MeasureGate.
 
@@ -31,7 +31,3 @@ class LogicalQubitIDTag:
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, LogicalQubitIDTag) and self.logical_qubit_id == other.logical_qubit_id
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)

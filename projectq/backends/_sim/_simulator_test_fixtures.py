@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 import pytest
-from projectq.cengines import BasicEngine, BasicMapperEngine
+from projectq.cengines import BasicMapperEngine
 
 
 @pytest.fixture(params=["mapper", "no_mapper"])
@@ -24,7 +24,7 @@ def mapper(request):
 
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
-                BasicEngine.__init__(self)
+                super().__init__()
                 self.current_mapping = dict()
 
             def receive(self, command_list):

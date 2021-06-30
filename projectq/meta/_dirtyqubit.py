@@ -16,13 +16,9 @@
 """Define the DirtyQubitTag meta tag."""
 
 
-class DirtyQubitTag:
+class DirtyQubitTag:  # pylint: disable=too-few-public-methods
     """Dirty qubit meta tag."""
 
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, DirtyQubitTag)
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)

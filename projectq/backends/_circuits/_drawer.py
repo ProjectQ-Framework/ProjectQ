@@ -23,7 +23,7 @@ from projectq.meta import get_control_count
 from ._to_latex import to_latex
 
 
-class CircuitItem:
+class CircuitItem:  # pylint: disable=too-few-public-methods
     """Item of a quantum circuit to draw."""
 
     def __init__(self, gate, lines, ctrl_lines):
@@ -48,10 +48,6 @@ class CircuitItem:
             and self.ctrl_lines == other.ctrl_lines
             and self.id == other.id
         )
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 class CircuitDrawer(BasicEngine):
@@ -143,7 +139,7 @@ class CircuitDrawer(BasicEngine):
             default_measure (bool): Default value to use as measurement results if accept_input is False and there is
                 no underlying backend to register real measurement results.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
         self._qubit_lines = dict()

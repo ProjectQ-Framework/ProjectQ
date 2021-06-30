@@ -39,7 +39,7 @@ class StatePreparation(BasicGate):
             final_state(list[complex]): wavefunction of the desired quantum state. len(final_state) must be
                                         2**len(qureg). Must be normalized!
         """
-        BasicGate.__init__(self)
+        super().__init__()
         self.final_state = list(final_state)
 
     def __str__(self):
@@ -51,10 +51,6 @@ class StatePreparation(BasicGate):
         if isinstance(other, self.__class__):
             return self.final_state == other.final_state
         return False
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def __hash__(self):
         """Compute the hash of the object."""

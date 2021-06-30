@@ -45,7 +45,7 @@ class ResourceCounter(BasicEngine):
 
         Sets all statistics to zero.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.gate_counts = {}
         self.gate_class_counts = {}
         self._active_qubits = 0

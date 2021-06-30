@@ -72,7 +72,7 @@ class Simulator(BasicEngine):
         """
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
-        BasicEngine.__init__(self)
+        super().__init__()
         self._simulator = SimulatorBackend(rnd_seed)
         self._gate_fusion = gate_fusion
 

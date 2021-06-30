@@ -34,7 +34,7 @@ class QubitManagementError(Exception):
     """Exception raised when the lifetime of a qubit is problematic within a loop."""
 
 
-class LoopTag:
+class LoopTag:  # pylint: disable=too-few-public-methods
     """Loop meta tag."""
 
     def __init__(self, num):
@@ -46,10 +46,6 @@ class LoopTag:
     def __eq__(self, other):
         """Equal operator."""
         return isinstance(other, LoopTag) and self.id == other.id and self.num == other.num
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     loop_tag_id = 0
 
@@ -69,7 +65,7 @@ class LoopEngine(BasicEngine):
         Args:
             num (int): Number of loop iterations.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._tag = LoopTag(num)
         self._cmd_list = []
         self._allocated_qubit_ids = set()

@@ -72,7 +72,7 @@ class QAA(BasicGate):
 
     def __init__(self, algorithm, oracle):
         """Initialize a QAA object."""
-        BasicGate.__init__(self)
+        super().__init__()
         self.algorithm = algorithm
         self.oracle = oracle
 

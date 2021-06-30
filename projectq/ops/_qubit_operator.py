@@ -132,7 +132,7 @@ class QubitOperator(BasicGate):
         Raises:
             QubitOperatorError: Invalid operators provided to QubitOperator.
         """
-        BasicGate.__init__(self)
+        super().__init__()
         if not isinstance(coefficient, (int, float, complex)):
             raise ValueError('Coefficient must be a numeric type.')
         self.terms = {}

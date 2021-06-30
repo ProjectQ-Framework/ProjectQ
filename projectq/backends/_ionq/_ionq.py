@@ -114,7 +114,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
                 fetched. Defaults to None.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.device = device if use_hardware else 'ionq_simulator'
         self._num_runs = num_runs
         self._verbose = verbose

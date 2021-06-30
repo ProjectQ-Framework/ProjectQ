@@ -30,8 +30,8 @@ class ClassicalSimulator(BasicEngine):
     """
 
     def __init__(self):
-        BasicEngine.__init__(self)
         """Initialize a ClassicalSimulator object."""
+        super().__init__()
         self._state = 0
         self._bit_positions = {}
 

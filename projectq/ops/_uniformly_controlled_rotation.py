@@ -47,7 +47,7 @@ class UniformlyControlledRy(BasicGate):
 
     def __init__(self, angles):
         """Construct a UniformlyControlledRy gate."""
-        BasicGate.__init__(self)
+        super().__init__()
         rounded_angles = []
         for angle in angles:
             new_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
@@ -76,10 +76,6 @@ class UniformlyControlledRy(BasicGate):
         if isinstance(other, self.__class__):
             return self.angles == other.angles
         return False
-
-    def __ne__(self, other):
-        """Not-equal operator."""
-        return not self.__eq__(other)
 
     def __hash__(self):
         """Compute the hash of the object."""
@@ -142,10 +138,6 @@ class UniformlyControlledRz(BasicGate):
         if isinstance(other, self.__class__):
             return self.angles == other.angles
         return False
-
-    def __ne__(self, other):
-        """Not-equal operator."""
-        return not self.__eq__(other)
 
     def __hash__(self):
         """Compute the hash of the object."""

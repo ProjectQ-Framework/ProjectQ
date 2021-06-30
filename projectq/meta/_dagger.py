@@ -35,8 +35,8 @@ class DaggerEngine(BasicEngine):
     """Store all commands and, when done, inverts the circuit & runs it."""
 
     def __init__(self):
-        BasicEngine.__init__(self)
         """Initialize a DaggerEngine object."""
+        super().__init__()
         self._commands = []
         self._allocated_qubit_ids = set()
         self._deallocated_qubit_ids = set()

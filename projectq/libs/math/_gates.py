@@ -43,7 +43,7 @@ class AddConstant(BasicMathGate):
         It also initializes its base class, BasicMathGate, with the
         corresponding function, so it can be emulated efficiently.
         """
-        BasicMathGate.__init__(self, lambda x: ((x + a),))
+        super().__init__(lambda x: ((x + a),))
         self.a = a  # pylint: disable=invalid-name
 
     def get_inverse(self):
@@ -61,10 +61,6 @@ class AddConstant(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 def SubConstant(a):  # pylint: disable=invalid-name
@@ -117,7 +113,7 @@ class AddConstantModN(BasicMathGate):
         It also initializes its base class, BasicMathGate, with the corresponding function, so it can be emulated
         efficiently.
         """
-        BasicMathGate.__init__(self, lambda x: ((x + a) % N,))
+        super().__init__(lambda x: ((x + a) % N,))
         self.a = a  # pylint: disable=invalid-name
         self.N = N
 
@@ -136,10 +132,6 @@ class AddConstantModN(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 def SubConstantModN(a, N):  # pylint: disable=invalid-name
@@ -205,7 +197,7 @@ class MultiplyByConstantModN(BasicMathGate):
         It also initializes its base class, BasicMathGate, with the
         corresponding function, so it can be emulated efficiently.
         """
-        BasicMathGate.__init__(self, lambda x: ((a * x) % N,))
+        super().__init__(lambda x: ((a * x) % N,))
         self.a = a  # pylint: disable=invalid-name
         self.N = N
 
@@ -220,10 +212,6 @@ class MultiplyByConstantModN(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 class AddQuantumGate(BasicMathGate):
@@ -246,8 +234,8 @@ class AddQuantumGate(BasicMathGate):
     """
 
     def __init__(self):
-        BasicMathGate.__init__(self, None)
         """Initialize an AddQuantumGate object."""
+        super().__init__(None)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -260,10 +248,6 @@ class AddQuantumGate(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def get_math_function(self, qubits):
         """Get the math function associated with an AddQuantumGate."""
@@ -294,7 +278,7 @@ class _InverseAddQuantumGate(BasicMathGate):
 
     def __init__(self):
         """Initialize an _InverseAddQuantumGate object."""
-        BasicMathGate.__init__(self, None)
+        super().__init__(None)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -339,7 +323,7 @@ class SubtractQuantumGate(BasicMathGate):
         def subtract(a, b):  # pylint: disable=invalid-name
             return (a, b - a)
 
-        BasicMathGate.__init__(self, subtract)
+        super().__init__(subtract)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -352,10 +336,6 @@ class SubtractQuantumGate(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def get_inverse(self):
         """Return the inverse gate (subtraction of the same number a modulo the same number N)."""
@@ -401,7 +381,7 @@ class ComparatorQuantumGate(BasicMathGate):
                     c = 0
             return (a, b, c)
 
-        BasicMathGate.__init__(self, compare)
+        super().__init__(compare)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -414,10 +394,6 @@ class ComparatorQuantumGate(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def get_inverse(self):
         """Return the inverse of this gate."""
@@ -469,7 +445,7 @@ class DivideQuantumGate(BasicMathGate):
             quotient = remainder + dividend // divisor
             return ((dividend - (quotient * divisor)), quotient, divisor)
 
-        BasicMathGate.__init__(self, division)
+        super().__init__(division)
 
     def get_inverse(self):
         """Return the inverse of this gate."""
@@ -486,10 +462,6 @@ class DivideQuantumGate(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
 
 DivideQuantum = DivideQuantumGate()
@@ -509,7 +481,7 @@ class _InverseDivideQuantumGate(BasicMathGate):
             remainder = 0
             return (dividend, remainder, divisor)
 
-        BasicMathGate.__init__(self, inverse_division)
+        super().__init__(inverse_division)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -547,7 +519,7 @@ class MultiplyQuantumGate(BasicMathGate):
         def multiply(a, b, c):  # pylint: disable=invalid-name
             return (a, b, c + a * b)
 
-        BasicMathGate.__init__(self, multiply)
+        super().__init__(multiply)
 
     def __str__(self):
         """Return a string representation of the object."""
@@ -560,10 +532,6 @@ class MultiplyQuantumGate(BasicMathGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
-
-    def __ne__(self, other):
-        """Not equal operator."""
-        return not self.__eq__(other)
 
     def get_inverse(self):
         """Return the inverse of this gate."""
@@ -582,7 +550,7 @@ class _InverseMultiplyQuantumGate(BasicMathGate):
         def inverse_multiplication(a, b, c):  # pylint: disable=invalid-name
             return (a, b, c - a * b)
 
-        BasicMathGate.__init__(self, inverse_multiplication)
+        super().__init__(inverse_multiplication)
 
     def __str__(self):
         """Return a string representation of the object."""

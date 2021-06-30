@@ -108,7 +108,7 @@ def _draw_subst(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
 
 class MyGate(BasicGate):
     def __init__(self, *args):
-        BasicGate.__init__(self)
+        super().__init__()
         self.params = args
 
     def __str__(self):

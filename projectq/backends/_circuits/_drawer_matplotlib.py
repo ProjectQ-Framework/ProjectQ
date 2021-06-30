@@ -64,7 +64,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
             default_measure (bool): Default value to use as measurement results if accept_input is False and there is
                 no underlying backend to register real measurement results.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
         self._map = dict()

@@ -43,7 +43,7 @@ class CommandPrinter(BasicEngine):
             default_measure (bool): Default measurement result (if accept_input is False).
             in_place (bool): If in_place is true, all output is written on the same line of the terminal.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
         self._in_place = in_place

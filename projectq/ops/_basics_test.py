@@ -314,7 +314,7 @@ def test_basic_math_gate():
 
     class MyMultiplyGate(_basics.BasicMathGate):
         def __init__(self):
-            _basics.BasicMathGate.__init__(self, my_math_function)
+            super().__init__(my_math_function)
 
     gate = MyMultiplyGate()
     assert str(gate) == 'MATH'

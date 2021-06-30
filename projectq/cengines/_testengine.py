@@ -90,10 +90,6 @@ class CompareEngine(BasicEngine):
                     return False
         return True
 
-    def __ne__(self, other):
-        """Not-equal operator."""
-        return not self.__eq__(other)
-
     def __str__(self):
         """Return a string representation of the object."""
         string = ""

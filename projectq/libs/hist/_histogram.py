@@ -15,7 +15,6 @@
 
 """Functions to plot a histogram of measured data."""
 
-from __future__ import print_function
 import matplotlib.pyplot as plt
 
 from projectq.backends import Simulator
