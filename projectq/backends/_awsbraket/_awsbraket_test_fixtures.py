@@ -29,6 +29,8 @@
 #   * functional_setup
 # ==============================================================================
 
+"""Define test fixtures for the AWSBraket backend."""
+
 from io import StringIO
 import json
 import pytest
@@ -38,8 +40,10 @@ try:
 except ImportError:
 
     class StreamingBody:
+        """Dummy implementation of a StreamingBody."""
+
         def __init__(self, raw_stream, content_length):
-            pass
+            """Initialize a dummy StreamingBody."""
 
 
 # ==============================================================================
@@ -47,11 +51,13 @@ except ImportError:
 
 @pytest.fixture
 def arntask():
+    """Define an ARNTask test setup."""
     return 'arn:aws:braket:us-east-1:id:retrieve_execution'
 
 
 @pytest.fixture
 def creds():
+    """Credentials test setup."""
     return {
         'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
         'AWS_SECRET_KEY': 'aws_secret_key',
@@ -60,11 +66,13 @@ def creds():
 
 @pytest.fixture
 def s3_folder():
+    """S3 folder value test setup."""
     return ['S3Bucket', 'S3Directory']
 
 
 @pytest.fixture
 def device_value():
+    """Device value test setup."""
     device_value_devicecapabilities = json.dumps(
         {
             "braketSchemaHeader": {
@@ -133,6 +141,7 @@ def device_value():
 
 @pytest.fixture
 def search_value():
+    """Search value test setup."""
     return {
         "devices": [
             {
@@ -162,6 +171,7 @@ def search_value():
 
 @pytest.fixture
 def completed_value():
+    """Completed value test setup."""
     return {
         'deviceArn': 'arndevice',
         'deviceParameters': 'parameters',
@@ -179,12 +189,13 @@ def completed_value():
 
 @pytest.fixture
 def sent_error_setup(creds, s3_folder, device_value, search_value):
-
+    """Send error test setup."""
     return creds, s3_folder, search_value, device_value
 
 
 @pytest.fixture
 def results_json():
+    """Results test setup."""
     return json.dumps(
         {
             "braketSchemaHeader": {
@@ -205,7 +216,7 @@ def results_json():
 
 @pytest.fixture
 def retrieve_setup(arntask, creds, device_value, completed_value, results_json):
-
+    """Retrieve test setup."""
     body = StreamingBody(StringIO(results_json), len(results_json))
 
     results_dict = {
@@ -221,6 +232,7 @@ def retrieve_setup(arntask, creds, device_value, completed_value, results_json):
 
 @pytest.fixture
 def functional_setup(arntask, creds, s3_folder, search_value, device_value, completed_value, results_json):
+    """Functional test setup."""
     qtarntask = {'quantumTaskArn': arntask}
     body2 = StreamingBody(StringIO(results_json), len(results_json))
     results_dict = {

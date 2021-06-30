@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for exporting quantum circuits to LaTeX code"""
+"""ProjectQ module for exporting quantum circuits to LaTeX code."""
 
 import json
 from projectq.ops import (
@@ -50,7 +50,7 @@ def _gate_name(gate):
 
 def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
     """
-    Translates a given circuit to a TikZ picture in a Latex document.
+    Translate a given circuit to a TikZ picture in a Latex document.
 
     It uses a json-configuration file which (if it does not exist) is created automatically upon running this function
     for the first time. The config file can be used to determine custom gate sizes, offsets, etc.
@@ -149,7 +149,7 @@ def get_default_settings():
 
 def _header(settings):
     """
-    Writes the Latex header using the settings file.
+    Write the Latex header using the settings file.
 
     The header includes all packages and defines all tikz styles.
 
@@ -660,12 +660,12 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
 
     def _gate_offset(self, gate):
         """
-        Return the offset to use after placing this gate and, if no pre_offset
-        is defined, the same offset is used in front of the gate.
+        Return the offset to use after placing this gate.
+
+        If no pre_offset is defined, the same offset is used in front of the gate.
 
         Returns:
-            gate_offset (float): Offset.
-                (settings['gates'][gate_class_name]['offset'])
+            gate_offset (float): Offset.  (settings['gates'][gate_class_name]['offset'])
         """
         if isinstance(gate, DaggeredGate):
             gate = gate._gate  # pylint: disable=protected-access
@@ -709,7 +709,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
 
     def _op(self, line, op=None, offset=0):
         """
-        Returns the gate name for placing a gate on a line.
+        Return the gate name for placing a gate on a line.
 
         Args:
             line (int): Line number.
@@ -725,6 +725,8 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
 
     def _line(self, point1, point2, double=False, line=None):  # pylint: disable=too-many-locals,unused-argument
         """
+        Create a line that connects two points.
+
         Connects point1 and point2, where point1 and point2 are either to qubit line indices, in which case the two most
         recent gates are connected, or two gate indices, in which case line denotes the line number and the two gates
         are connected on the given line.
@@ -733,8 +735,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
             p1 (int): Index of the first object to connect.
             p2 (int): Index of the second object to connect.
             double (bool): Draws double lines if True.
-            line (int or None): Line index - if provided, p1 and p2 are gate
-                indices.
+            line (int or None): Line index - if provided, p1 and p2 are gate indices.
 
         Returns:
             tex_str (string): Latex code to draw this / these line(s).

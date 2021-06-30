@@ -12,10 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a compiler engine which generates TikZ Latex code describing the
-circuit.
-"""
+
+"""Contain a compiler engine which generates TikZ Latex code describing the circuit."""
+
 from builtins import input
 
 from projectq.cengines import LastEngineException, BasicEngine
@@ -25,7 +24,7 @@ from ._to_latex import to_latex
 
 
 class CircuitItem:
-    """Item of a quantum circuit to draw"""
+    """Item of a quantum circuit to draw."""
 
     def __init__(self, gate, lines, ctrl_lines):
         """
@@ -42,6 +41,7 @@ class CircuitItem:
         self.id = -1
 
     def __eq__(self, other):
+        """Equal operator."""
         return (
             self.gate == other.gate
             and self.lines == other.lines
@@ -50,21 +50,19 @@ class CircuitItem:
         )
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
 
 class CircuitDrawer(BasicEngine):
     """
-    CircuitDrawer is a compiler engine which generates TikZ code for drawing
-    quantum circuits.
+    CircuitDrawer is a compiler engine which generates TikZ code for drawing quantum circuits.
 
-    The circuit can be modified by editing the settings.json file which is
-    generated upon first execution. This includes adjusting the gate width,
-    height, shadowing, line thickness, and many more options.
+    The circuit can be modified by editing the settings.json file which is generated upon first execution. This
+    includes adjusting the gate width, height, shadowing, line thickness, and many more options.
 
-    After initializing the CircuitDrawer, it can also be given the mapping
-    from qubit IDs to wire location (via the :meth:`set_qubit_locations`
-    function):
+    After initializing the CircuitDrawer, it can also be given the mapping from qubit IDs to wire location (via the
+    :meth:`set_qubit_locations` function):
 
     .. code-block:: python
 
@@ -76,9 +74,8 @@ class CircuitDrawer(BasicEngine):
 
         print(circuit_backend.get_latex()) # prints LaTeX code
 
-    To see the qubit IDs in the generated circuit, simply set the `draw_id`
-    option in the settings.json file under "gates":"AllocateQubitGate" to
-    True:
+    To see the qubit IDs in the generated circuit, simply set the `draw_id` option in the settings.json file under
+    "gates":"AllocateQubitGate" to True:
 
     .. code-block:: python
 
@@ -119,8 +116,7 @@ class CircuitDrawer(BasicEngine):
             }
         }
 
-    All gates (except for the ones requiring special treatment) support the
-    following properties:
+    All gates (except for the ones requiring special treatment) support the following properties:
 
     .. code-block:: python
 
@@ -137,18 +133,15 @@ class CircuitDrawer(BasicEngine):
         """
         Initialize a circuit drawing engine.
 
-        The TikZ code generator uses a settings file (settings.json), which
-        can be altered by the user. It contains gate widths, heights, offsets,
-        etc.
+        The TikZ code generator uses a settings file (settings.json), which can be altered by the user. It contains
+        gate widths, heights, offsets, etc.
 
         Args:
-            accept_input (bool): If accept_input is true, the printer queries
-                the user to input measurement results if the CircuitDrawer is
-                the last engine. Otherwise, all measurements yield the result
-                default_measure (0 or 1).
-            default_measure (bool): Default value to use as measurement
-                results if accept_input is False and there is no underlying
-                backend to register real measurement results.
+            accept_input (bool): If accept_input is true, the printer queries the user to input measurement results if
+                the CircuitDrawer is the last engine. Otherwise, all measurements yield the result default_measure (0
+                or 1).
+            default_measure (bool): Default value to use as measurement results if accept_input is False and there is
+                no underlying backend to register real measurement results.
         """
         BasicEngine.__init__(self)
         self._accept_input = accept_input
@@ -162,15 +155,16 @@ class CircuitDrawer(BasicEngine):
 
     def is_available(self, cmd):
         """
-        Specialized implementation of is_available: Returns True if the
-        CircuitDrawer is the last engine (since it can print any command).
+        Test whether a Command is supported by a compiler engine.
+
+        Specialized implementation of is_available: Returns True if the CircuitDrawer is the last engine (since it can
+        print any command).
 
         Args:
-            cmd (Command): Command for which to check availability (all
-                Commands can be printed).
+            cmd (Command): Command for which to check availability (all Commands can be printed).
+
         Returns:
-            availability (bool): True, unless the next engine cannot handle
-            the Command (if there is a next engine).
+            availability (bool): True, unless the next engine cannot handle the Command (if there is a next engine).
         """
         try:
             return BasicEngine.is_available(self, cmd)
@@ -179,19 +173,17 @@ class CircuitDrawer(BasicEngine):
 
     def set_qubit_locations(self, id_to_loc):
         """
-        Sets the qubit lines to use for the qubits explicitly.
+        Set the qubit lines to use for the qubits explicitly.
 
-        To figure out the qubit IDs, simply use the setting `draw_id` in the
-        settings file. It is located in "gates":"AllocateQubitGate".
-        If draw_id is True, the qubit IDs are drawn in red.
+        To figure out the qubit IDs, simply use the setting `draw_id` in the settings file. It is located in
+        "gates":"AllocateQubitGate".  If draw_id is True, the qubit IDs are drawn in red.
 
         Args:
-            id_to_loc (dict): Dictionary mapping qubit ids to qubit line
-                numbers.
+            id_to_loc (dict): Dictionary mapping qubit ids to qubit line numbers.
 
         Raises:
-            RuntimeError: If the mapping has already begun (this function
-                needs be called before any gates have been received).
+            RuntimeError: If the mapping has already begun (this function needs be called before any gates have been
+                received).
         """
         if len(self._map) > 0:
             raise RuntimeError("set_qubit_locations() has to be called before applying gates!")
@@ -208,12 +200,13 @@ class CircuitDrawer(BasicEngine):
 
     def _print_cmd(self, cmd):
         """
-        Add the command cmd to the circuit diagram, taking care of potential
-        measurements as specified in the __init__ function.
+        Add a command to the list of commands to be printed.
 
-        Queries the user for measurement input if a measurement command
-        arrives if accept_input was set to True. Otherwise, it uses the
-        default_measure parameter to register the measurement outcome.
+        Add the command cmd to the circuit diagram, taking care of potential measurements as specified in the __init__
+        function.
+
+        Queries the user for measurement input if a measurement command arrives if accept_input was set to
+        True. Otherwise, it uses the default_measure parameter to register the measurement outcome.
 
         Args:
             cmd (Command): Command to add to the circuit diagram.
@@ -270,10 +263,8 @@ class CircuitDrawer(BasicEngine):
         where my_circuit.py calls this function and prints it to the terminal.
 
         Args:
-            ordered(bool): flag if the gates should be drawn in the order they
-                were added to the circuit
-            draw_gates_in_parallel(bool): flag if parallel gates should be drawn
-                parallel (True), or not (False)
+            ordered(bool): flag if the gates should be drawn in the order they were added to the circuit
+            draw_gates_in_parallel(bool): flag if parallel gates should be drawn parallel (True), or not (False)
         """
         qubit_lines = dict()
 
@@ -301,12 +292,13 @@ class CircuitDrawer(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, print the
-        commands, and then send them on to the next engine.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous engine, print the commands, and then send them on to the next
+        engine.
 
         Args:
-            command_list (list<Command>): List of Commands to print (and
-                potentially send on to the next engine).
+            command_list (list<Command>): List of Commands to print (and potentially send on to the next engine).
         """
         for cmd in command_list:
             if not cmd.gate == FlushGate():

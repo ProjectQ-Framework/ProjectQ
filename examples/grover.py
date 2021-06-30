@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example implementation of Grover's algorithm."""
+
 import math
 
 from projectq import MainEngine
@@ -10,7 +12,7 @@ from projectq.meta import Loop, Compute, Uncompute, Control
 
 def run_grover(eng, n, oracle):
     """
-    Runs Grover's algorithm on n qubit using the provided quantum oracle.
+    Run Grover's algorithm on n qubit using the provided quantum oracle.
 
     Args:
         eng (MainEngine): Main compiler engine to run Grover on.
@@ -62,8 +64,10 @@ def run_grover(eng, n, oracle):
 
 def alternating_bits_oracle(eng, qubits, output):
     """
-    Marks the solution string 1,0,1,0,...,0,1 by flipping the output qubit,
-    conditioned on qubits being equal to the alternating bit-string.
+    Alternating bit oracle.
+
+    Mark the solution string 1,0,1,0,...,0,1 by flipping the output qubit, conditioned on qubits being equal to the
+    alternating bit-string.
 
     Args:
         eng (MainEngine): Main compiler engine the algorithm is being run on.

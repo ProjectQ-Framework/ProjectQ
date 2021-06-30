@@ -13,7 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines a few shortcuts for certain gates such as
+Define a few shortcuts for certain gates.
+
+These include:
 * CNOT = C(NOT)
 * CRz = C(Rz)
 * Toffoli = C(NOT,2) = C(CNOT)
@@ -24,9 +26,7 @@ from ._gates import NOT, Rz, Z
 
 
 def CRz(angle):
-    """
-    Shortcut for C(Rz(angle), n_qubits=1).
-    """
+    """Shortcut for C(Rz(angle), n_qubits=1)."""
     return C(Rz(angle), n_qubits=1)
 
 

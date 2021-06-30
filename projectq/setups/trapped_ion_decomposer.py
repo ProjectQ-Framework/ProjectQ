@@ -25,11 +25,10 @@ Rxx two qubit gates.
 A decomposition chooser is implemented following the ideas in QUOTE for reducing the number of Ry gates in the new
 circuit.
 
-NOTE:
-
-Because the decomposition chooser is only called when a gate has to be decomposed, this reduction will work better
-when the entire circuit has to be decomposed. Otherwise, If the circuit has both superconding gates and native ion
-trapped gates the decomposed circuit will not be optimal.
+Note:
+    Because the decomposition chooser is only called when a gate has to be decomposed, this reduction will work better
+    when the entire circuit has to be decomposed. Otherwise, If the circuit has both superconding gates and native ion
+    trapped gates the decomposed circuit will not be optimal.
 """
 
 from projectq.setups import restrictedgateset
@@ -51,8 +50,10 @@ prev_Ry_sign = dict()  # Keeps track of most recent Ry sign, i.e.
 
 def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name, too-many-return-statements
     """
-    Choose the decomposition so as to maximise Ry cancellations, based on the
-    previous decomposition used for the given qubit.
+    Choose the decomposition to maximise Ry cancellations.
+
+    Choose the decomposition so as to maximise Ry cancellations, based on the previous decomposition used for the
+    given qubit.
 
     Note:
         Classical instructions gates e.g. Flush and Measure are automatically
@@ -124,16 +125,12 @@ def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name
 
 def get_engine_list():
     """
-    Returns an engine list compiling code into a trapped ion based compiled
-    circuit code.
+    Return an engine list compiling code into a trapped ion based compiled circuit code.
 
     Note:
-
-        - Classical instructions gates such as e.g. Flush and Measure are
-        automatically allowed.
-        - The restricted gate set engine does not work with Rxx gates, as
-        ProjectQ will by default bounce back and forth between Cz gates and Cx
-        gates. An appropriate decomposition chooser needs to be used!
+        - Classical instructions gates such as e.g. Flush and Measure are automatically allowed.
+        - The restricted gate set engine does not work with Rxx gates, as ProjectQ will by default bounce back and
+          forth between Cz gates and Cx gates. An appropriate decomposition chooser needs to be used!
 
     Returns:
         A list of suitable compiler engines.

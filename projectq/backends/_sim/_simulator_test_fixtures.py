@@ -19,9 +19,7 @@ from projectq.cengines import BasicEngine, BasicMapperEngine
 
 @pytest.fixture(params=["mapper", "no_mapper"])
 def mapper(request):
-    """
-    Adds a mapper which changes qubit ids by adding 1
-    """
+    """Add a mapper which changes qubit ids by adding 1."""
     if request.param == "mapper":
 
         class TrivialMapper(BasicMapperEngine):

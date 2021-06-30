@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a decomposition for the Rx gate into an Rz gate and Hadamard.
-"""
+
+"""Register a decomposition for the Rx gate into an Rz gate and Hadamard."""
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Control, get_control_count, Uncompute

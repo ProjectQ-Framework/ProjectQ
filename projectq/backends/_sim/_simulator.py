@@ -12,9 +12,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
-Contains the projectq interface to a C++-based simulator, which has to be
-built first. If the c++ simulator is not exported to python, a (slow) python
+Contain the projectq interface to a C++-based simulator.
+
+The C++ simulator has to be built first. If the C++ simulator is not exported to python, a (slow) python
 implementation is used as an alternative.
 """
 
@@ -36,11 +38,9 @@ except ImportError:  # pragma: no cover
 
 class Simulator(BasicEngine):
     """
-    Simulator is a compiler engine which simulates a quantum computer using
-    C++-based kernels.
+    Simulator is a compiler engine which simulates a quantum computer using C++-based kernels.
 
-    OpenMP is enabled and the number of threads can be controlled using the
-    OMP_NUM_THREADS environment variable, i.e.
+    OpenMP is enabled and the number of threads can be controlled using the OMP_NUM_THREADS environment variable, i.e.
 
     .. code-block:: bash
 
@@ -50,32 +50,25 @@ class Simulator(BasicEngine):
 
     def __init__(self, gate_fusion=False, rnd_seed=None):
         """
-        Construct the C++/Python-simulator object and initialize it with a
-        random seed.
+        Construct the C++/Python-simulator object and initialize it with a random seed.
 
         Args:
-            gate_fusion (bool): If True, gates are cached and only executed
-                once a certain gate-size has been reached (only has an effect
-                for the c++ simulator).
-            rnd_seed (int): Random seed (uses random.randint(0, 4294967295) by
-                default).
+            gate_fusion (bool): If True, gates are cached and only executed once a certain gate-size has been reached
+                (only has an effect for the c++ simulator).
+            rnd_seed (int): Random seed (uses random.randint(0, 4294967295) by default).
 
-        Example of gate_fusion: Instead of applying a Hadamard gate to 5
-        qubits, the simulator calculates the kronecker product of the 1-qubit
-        gate matrices and then applies one 5-qubit gate. This increases
-        operational intensity and keeps the simulator from having to iterate
-        through the state vector multiple times. Depending on the system (and,
-        especially, number of threads), this may or may not be beneficial.
+        Example of gate_fusion: Instead of applying a Hadamard gate to 5 qubits, the simulator calculates the
+        kronecker product of the 1-qubit gate matrices and then applies one 5-qubit gate. This increases operational
+        intensity and keeps the simulator from having to iterate through the state vector multiple times. Depending on
+        the system (and, especially, number of threads), this may or may not be beneficial.
 
         Note:
-            If the C++ Simulator extension was not built or cannot be found,
-            the Simulator defaults to a Python implementation of the kernels.
-            While this is much slower, it is still good enough to run basic
-            quantum algorithms.
+            If the C++ Simulator extension was not built or cannot be found, the Simulator defaults to a Python
+            implementation of the kernels.  While this is much slower, it is still good enough to run basic quantum
+            algorithms.
 
-            If you need to run large simulations, check out the tutorial in
-            the docs which gives futher hints on how to build the C++
-            extension.
+            If you need to run large simulations, check out the tutorial in the docs which gives futher hints on how
+            to build the C++ extension.
         """
         if rnd_seed is None:
             rnd_seed = random.randint(0, 4294967295)
@@ -85,14 +78,13 @@ class Simulator(BasicEngine):
 
     def is_available(self, cmd):
         """
-        Specialized implementation of is_available: The simulator can deal
-        with all arbitrarily-controlled gates which provide a
-        gate-matrix (via gate.matrix) and acts on 5 or less qubits (not
-        counting the control qubits).
+        Test whether a Command is supported by a compiler engine.
+
+        Specialized implementation of is_available: The simulator can deal with all arbitrarily-controlled gates which
+        provide a gate-matrix (via gate.matrix) and acts on 5 or less qubits (not counting the control qubits).
 
         Args:
-            cmd (Command): Command for which to check availability (single-
-                qubit gate, arbitrary controls)
+            cmd (Command): Command for which to check availability (single- qubit gate, arbitrary controls)
 
         Returns:
             True if it can be simulated and False otherwise.
@@ -118,7 +110,7 @@ class Simulator(BasicEngine):
 
     def _convert_logical_to_mapped_qureg(self, qureg):
         """
-        Converts a qureg from logical to mapped qubits if there is a mapper.
+        Convert a qureg from logical to mapped qubits if there is a mapper.
 
         Args:
             qureg (list[Qubit],Qureg): Logical quantum bits
@@ -136,6 +128,8 @@ class Simulator(BasicEngine):
 
     def get_expectation_value(self, qubit_operator, qureg):
         """
+        Return the expectation value of a qubit operator.
+
         Get the expectation value of qubit_operator w.r.t. the current wave
         function represented by the supplied quantum register.
 
@@ -147,18 +141,15 @@ class Simulator(BasicEngine):
             Expectation value
 
         Note:
-            Make sure all previous commands (especially allocations) have
-            passed through the compilation chain (call main_engine.flush() to
-            make sure).
+            Make sure all previous commands (especially allocations) have passed through the compilation chain (call
+            main_engine.flush() to make sure).
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
 
         Raises:
-            Exception: If `qubit_operator` acts on more qubits than present in
-                the `qureg` argument.
+            Exception: If `qubit_operator` acts on more qubits than present in the `qureg` argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         num_qubits = len(qureg)
@@ -170,32 +161,27 @@ class Simulator(BasicEngine):
 
     def apply_qubit_operator(self, qubit_operator, qureg):
         """
-        Apply a (possibly non-unitary) qubit_operator to the current wave
-        function represented by the supplied quantum register.
+        Apply a (possibly non-unitary) qubit_operator to the current wave function represented by a quantum register.
 
         Args:
             qubit_operator (projectq.ops.QubitOperator): Operator to apply.
-            qureg (list[Qubit],Qureg): Quantum bits to which to apply the
-                operator.
+            qureg (list[Qubit],Qureg): Quantum bits to which to apply the operator.
 
         Raises:
             Exception: If `qubit_operator` acts on more qubits than present in
                 the `qureg` argument.
 
         Warning:
-            This function allows applying non-unitary gates and it will not
-            re-normalize the wave function! It is for numerical experiments
-            only and should not be used for other purposes.
+            This function allows applying non-unitary gates and it will not re-normalize the wave function! It is for
+            numerical experiments only and should not be used for other purposes.
 
         Note:
-            Make sure all previous commands (especially allocations) have
-            passed through the compilation chain (call main_engine.flush() to
-            make sure).
+            Make sure all previous commands (especially allocations) have passed through the compilation chain (call
+            main_engine.flush() to make sure).
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         num_qubits = len(qureg)
@@ -207,8 +193,7 @@ class Simulator(BasicEngine):
 
     def get_probability(self, bit_string, qureg):
         """
-        Return the probability of the outcome `bit_string` when measuring
-        the quantum register `qureg`.
+        Return the probability of the outcome `bit_string` when measuring the quantum register `qureg`.
 
         Args:
             bit_string (list[bool|int]|string[0|1]): Measurement outcome.
@@ -218,14 +203,12 @@ class Simulator(BasicEngine):
             Probability of measuring the provided bit string.
 
         Note:
-            Make sure all previous commands (especially allocations) have
-            passed through the compilation chain (call main_engine.flush() to
-            make sure).
+            Make sure all previous commands (especially allocations) have passed through the compilation chain (call
+            main_engine.flush() to make sure).
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
@@ -234,26 +217,24 @@ class Simulator(BasicEngine):
     def get_amplitude(self, bit_string, qureg):
         """
         Return the probability amplitude of the supplied `bit_string`.
+
         The ordering is given by the quantum register `qureg`, which must
         contain all allocated qubits.
 
         Args:
             bit_string (list[bool|int]|string[0|1]): Computational basis state
-            qureg (Qureg|list[Qubit]): Quantum register determining the
-                ordering. Must contain all allocated qubits.
+            qureg (Qureg|list[Qubit]): Quantum register determining the ordering. Must contain all allocated qubits.
 
         Returns:
             Probability amplitude of the provided bit string.
 
         Note:
-            Make sure all previous commands (especially allocations) have
-            passed through the compilation chain (call main_engine.flush() to
-            make sure).
+            Make sure all previous commands (especially allocations) have passed through the compilation chain (call
+            main_engine.flush() to make sure).
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
         """
         qureg = self._convert_logical_to_mapped_qureg(qureg)
         bit_string = [bool(int(b)) for b in bit_string]
@@ -335,18 +316,18 @@ class Simulator(BasicEngine):
 
     def _handle(self, cmd):  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         """
-        Handle all commands, i.e., call the member functions of the C++-
-        simulator object corresponding to measurement, allocation/
+        Handle all commands.
+
+        i.e., call the member functions of the C++- simulator object corresponding to measurement, allocation/
         deallocation, and (controlled) single-qubit gate.
 
         Args:
             cmd (Command): Command to handle.
 
         Raises:
-            Exception: If a non-single-qubit gate needs to be processed
-                (which should never happen due to is_available).
+            Exception: If a non-single-qubit gate needs to be processed (which should never happen due to
+                is_available).
         """
-
         if cmd.gate == Measure:
             if get_control_count(cmd) != 0:
                 raise ValueError('Cannot have control qubits with a measurement gate!')
@@ -436,13 +417,13 @@ class Simulator(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine and handle them
-        (simulate them classically) prior to sending them on to the next
-        engine.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous engine and handle them (simulate them classically) prior to
+        sending them on to the next engine.
 
         Args:
-            command_list (list<Command>): List of commands to execute on the
-                simulator.
+            command_list (list<Command>): List of commands to execute on the simulator.
         """
         for cmd in command_list:
             if not cmd.gate == FlushGate():

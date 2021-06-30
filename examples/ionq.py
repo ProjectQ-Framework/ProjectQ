@@ -29,7 +29,7 @@ from projectq.ops import All, Entangle, Measure
 
 def run_entangle(eng, num_qubits=3):
     """
-    Runs an entangling operation on the provided compiler engine.
+    Run an entangling operation on the provided compiler engine.
 
     Args:
         eng (MainEngine): Main compiler engine to use.

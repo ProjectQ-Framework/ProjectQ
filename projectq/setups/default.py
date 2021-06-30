@@ -14,10 +14,10 @@
 #   limitations under the License.
 
 """
-Defines the default setup which provides an `engine_list` for the `MainEngine`
+Define the default setup which provides an `engine_list` for the `MainEngine`.
 
-It contains `LocalOptimizers` and an `AutoReplacer` which uses most of the
-decompositions rules defined in projectq.setups.decompositions
+It contains `LocalOptimizers` and an `AutoReplacer` which uses most of the decompositions rules defined in
+projectq.setups.decompositions
 """
 
 import projectq
@@ -26,8 +26,6 @@ from projectq.cengines import TagRemover, LocalOptimizer, AutoReplacer, Decompos
 
 
 def get_engine_list():
-    """
-    Return the default list of compiler engine.
-    """
+    """Return the default list of compiler engine."""
     rule_set = DecompositionRuleSet(modules=[projectq.setups.decompositions])
     return [TagRemover(), LocalOptimizer(10), AutoReplacer(rule_set), TagRemover(), LocalOptimizer(10)]

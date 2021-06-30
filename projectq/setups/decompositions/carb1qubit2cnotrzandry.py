@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Registers the decomposition of an controlled arbitary single qubit gate.
+Register the decomposition of an controlled arbitary single qubit gate.
 
 See paper "Elementary gates for quantum computing" by Adriano Barenco et al.,
 arXiv:quant-ph/9503016v1. (Note: They use different gate definitions!) or
@@ -46,8 +46,7 @@ def _recognize_carb1qubit(cmd):
 
 def _test_parameters(matrix, a, b, c_half):  # pylint: disable=invalid-name
     """
-    It builds matrix V with parameters (a, b, c/2) and compares against
-    matrix.
+    Build matrix V with parameters (a, b, c/2) and compares against matrix.
 
     V = [[-sin(c/2) * exp(j*a), exp(j*(a-b)) * cos(c/2)],
          [exp(j*(a+b)) * cos(c/2), exp(j*a) * sin(c/2)]]
@@ -76,7 +75,9 @@ def _test_parameters(matrix, a, b, c_half):  # pylint: disable=invalid-name
 
 def _recognize_v(matrix):  # pylint: disable=too-many-branches
     """
-    Recognizes a matrix which can be written in the following form:
+    Test whether a matrix has the correct form.
+
+    Recognize a matrix which can be written in the following form:
 
     V = [[-sin(c/2) * exp(j*a), exp(j*(a-b)) * cos(c/2)],
          [exp(j*(a+b)) * cos(c/2), exp(j*a) * sin(c/2)]]

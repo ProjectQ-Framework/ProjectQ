@@ -16,9 +16,8 @@
 #   Module uses ideas from "Basic circuit compilation techniques
 #   for an ion-trap quantum machine" by Dmitri Maslov (2017) at
 #   https://iopscience.iop.org/article/10.1088/1367-2630/aa5e47
-"""
-Registers a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates.
-"""
+
+"""Register a decomposition to for a CNOT gate in terms of Rxx, Rx and Ry gates."""
 
 import math
 
@@ -52,7 +51,7 @@ def _decompose_cnot2rxx_P(cmd):  # pylint: disable=invalid-name
 
 
 def _recognize_cnot2(cmd):
-    """Identify that the command is a CNOT gate (control - X gate)"""
+    """Identify that the command is a CNOT gate (control - X gate)."""
     return get_control_count(cmd) == 1
 
 

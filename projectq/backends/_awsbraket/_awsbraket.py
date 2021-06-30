@@ -12,7 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Back-end to run quantum program on AWS Braket provided devices."""
+
+"""Back-end to run quantum program on AWS Braket provided devices."""
 
 import random
 import json
@@ -50,6 +51,8 @@ from ._awsbraket_boto3_client import send, retrieve
 
 class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
+    Compiler engine class implementing support for the AWS Braket framework.
+
     The AWS Braket Backend class, which stores the circuit, transforms it to Braket compatible, and sends the circuit
     through the Boto3 and Amazon Braket SDK.
     """
@@ -156,7 +159,6 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
         Args:
             cmd (Command): Command for which to check availability
         """
-
         gate = cmd.gate
         if gate in (Measure, Allocate, Deallocate, Barrier):
             return True
@@ -321,8 +323,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
         Return the physical location of the qubit with the given logical id.
 
         Args:
-            qb_id (int): ID of the logical qubit whose position should be
-                returned.
+            qb_id (int): ID of the logical qubit whose position should be returned.
         """
         if self.main_engine.mapper is not None:
             mapping = self.main_engine.mapper.current_mapping
@@ -338,24 +339,23 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
 
     def get_probabilities(self, qureg):
         """
-        Return the list of basis states with corresponding probabilities.  If input qureg is a subset of the register
-        used for the experiment, then returns the projected probabilities over the other states.
+        Return the list of basis states with corresponding probabilities.
+
+        If input qureg is a subset of the register used for the experiment, then returns the projected probabilities
+        over the other states.
 
         The measured bits are ordered according to the supplied quantum register, i.e., the left-most bit in the
         state-string corresponds to the first qubit in the supplied quantum register.
 
         Args:
-            qureg (list<Qubit>): Quantum register determining the order of the
-                qubits.
+            qureg (list<Qubit>): Quantum register determining the order of the qubits.
 
         Returns:
-            probability_dict (dict): Dictionary mapping n-bit strings to
-                probabilities.
+            probability_dict (dict): Dictionary mapping n-bit strings to probabilities.
 
         Raises:
-            RuntimeError: If no data is available (i.e., if the circuit has not
-                been executed). Or if a qubit was supplied which was not
-                present in the circuit (might have gotten optimized away).
+            RuntimeError: If no data is available (i.e., if the circuit has not been executed). Or if a qubit was
+                supplied which was not present in the circuit (might have gotten optimized away).
 
         Warning:
             Only call this function after the circuit has been executed!
@@ -367,7 +367,6 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             circuit has already been executed.
             In order to obtain the probabilities of a previous job you have to get the TaskArn and remember the qubits
             and ordering used in the original job.
-
         """
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")

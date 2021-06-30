@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
-from __future__ import print_function
+"""Example implementation of Shor's algorithm."""
 
 import math
 import random
@@ -33,7 +33,7 @@ from projectq.ops import All, BasicMathGate, get_inverse, H, Measure, QFT, R, Sw
 
 def run_shor(eng, N, a, verbose=False):
     """
-    Runs the quantum subroutine of Shor's algorithm for factoring.
+    Run the quantum subroutine of Shor's algorithm for factoring.
 
     Args:
         eng (MainEngine): Main compiler engine to use.
@@ -92,6 +92,7 @@ def run_shor(eng, N, a, verbose=False):
 # Filter function, which defines the gate set for the first optimization
 # (don't decompose QFTs and iQFTs to make cancellation easier)
 def high_level_gates(eng, cmd):
+    """Filter high-level gates."""
     g = cmd.gate
     if g == QFT or get_inverse(g) == QFT or g == Swap:
         return True

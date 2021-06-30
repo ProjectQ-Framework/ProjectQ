@@ -12,10 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a few default replacement rules for Shor's algorithm to work
-(see Examples).
-"""
+
+"""Registers a few default replacement rules for Shor's algorithm to work (see Examples)."""
 
 from projectq.meta import Control
 from projectq.cengines import DecompositionRule

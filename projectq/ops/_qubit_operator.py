@@ -45,7 +45,7 @@ _PAULI_OPERATOR_PRODUCTS = {
 
 
 class QubitOperatorError(Exception):
-    """Exception raised when a QubitOperator is instantiated with some invalid data"""
+    """Exception raised when a QubitOperator is instantiated with some invalid data."""
 
 
 class QubitOperator(BasicGate):
@@ -97,7 +97,7 @@ class QubitOperator(BasicGate):
 
     def __init__(self, term=None, coefficient=1.0):  # pylint: disable=too-many-branches
         """
-        Inits a QubitOperator.
+        Initialize a QubitOperator object.
 
         The init function only allows to initialize one term. Additional terms have to be added using += (which is
         fast) or using + of two QubitOperator objects:
@@ -178,8 +178,10 @@ class QubitOperator(BasicGate):
 
     def compress(self, abs_tol=1e-12):
         """
-        Eliminates all terms with coefficients close to zero and removes imaginary parts of coefficients that are
-        close to zero.
+        Compress the coefficient of a QubitOperator.
+
+        Eliminate all terms with coefficients close to zero and removes imaginary parts of coefficients that are close
+        to zero.
 
         Args:
             abs_tol(float): Absolute tolerance, must be at least 0.0
@@ -195,7 +197,7 @@ class QubitOperator(BasicGate):
 
     def isclose(self, other, rel_tol=1e-12, abs_tol=1e-12):
         """
-        Returns True if other (QubitOperator) is close to self.
+        Return True if other (QubitOperator) is close to self.
 
         Comparison is done for each term individually. Return True if the difference between each term in self and
         other is less than the relative tolerance w.r.t. either other or self (symmetric test) or if the difference is
@@ -224,7 +226,9 @@ class QubitOperator(BasicGate):
 
     def __or__(self, qubits):  # pylint: disable=too-many-locals
         """
-        Operator| overload which enables the following syntax:
+        Operator| overload which enables the syntax Gate | qubits.
+
+        In particular, enable the following syntax:
 
         .. code-block:: python
 
@@ -335,7 +339,6 @@ class QubitOperator(BasicGate):
                            multiple terms or a coefficient with absolute value
                            not equal to 1.
         """
-
         if len(self.terms) == 1:
             ((term, coefficient),) = self.terms.items()
             if not abs(coefficient) < 1 - EQ_TOLERANCE and not abs(coefficient) > 1 + EQ_TOLERANCE:
@@ -484,6 +487,7 @@ class QubitOperator(BasicGate):
         return self * (1.0 / divisor)
 
     def __itruediv__(self, divisor):
+        """Perform self =/ divisor for a scalar."""
         if not isinstance(divisor, (int, float, complex)):
             raise TypeError('Cannot divide QubitOperator by non-scalar type.')
         self *= 1.0 / divisor
@@ -548,10 +552,15 @@ class QubitOperator(BasicGate):
         return minuend
 
     def __neg__(self):
+        """
+        Opposite operator.
+
+        Return -self for a QubitOperator.
+        """
         return -1.0 * self
 
     def __str__(self):
-        """Return an easy-to-read string representation."""
+        """Return a string representation of the object."""
         if not self.terms:
             return '0'
         string_rep = ''
@@ -572,7 +581,9 @@ class QubitOperator(BasicGate):
         return string_rep[:-3]
 
     def __repr__(self):
+        """Repr method."""
         return str(self)
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))

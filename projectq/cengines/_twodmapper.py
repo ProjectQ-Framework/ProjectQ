@@ -160,6 +160,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
 
     @property
     def current_mapping(self):
+        """Access to the mapping stored inside the mapper engine."""
         return deepcopy(self._current_mapping)
 
     @current_mapping.setter
@@ -173,9 +174,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
                 self._current_row_major_mapping[logical_id] = self._backend_ids_to_mapped_ids[backend_id]
 
     def is_available(self, cmd):
-        """
-        Only allows 1 or two qubit gates.
-        """
+        """Only allow 1 or two qubit gates."""
         num_qubits = 0
         for qureg in cmd.all_qubits:
             num_qubits += len(qureg)
@@ -183,7 +182,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
 
     def _return_new_mapping(self):
         """
-        Returns a new mapping of the qubits.
+        Return a new mapping of the qubits.
 
         It goes through self._saved_commands and tries to find a mapping to apply these gates on a first come first
         served basis.  It reuses the function of a 1D mapper and creates a mapping for a 1D linear chain and then
@@ -215,9 +214,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
         return new_mapping_2d
 
     def _compare_and_swap(self, element0, element1, key):
-        """
-        If swapped (inplace), then return swap operation so that key(element0) < key(element1)
-        """
+        """If swapped (inplace), then return swap operation so that key(element0) < key(element1)."""
         if key(element0) > key(element1):
             mapped_id0 = element0.current_column + element0.current_row * self.num_columns
             mapped_id1 = element1.current_column + element1.current_row * self.num_columns
@@ -283,7 +280,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
         self, old_mapping, new_mapping, permutation=None
     ):
         """
-        Returns the swap operation to change mapping
+        Return the swap operation to change mapping.
 
         Args:
             old_mapping: dict: keys are logical ids and values are mapped qubit ids
@@ -417,7 +414,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
 
     def _send_possible_commands(self):  # pylint: disable=too-many-branches
         """
-        Sends the stored commands possible without changing the mapping.
+        Send the stored commands possible without changing the mapping.
 
         Note: self._current_row_major_mapping (hence also self.current_mapping) must exist already
         """
@@ -494,7 +491,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
 
     def _run(self):  # pylint: disable=too-many-locals.too-many-branches,too-many-statements
         """
-        Creates a new mapping and executes possible gates.
+        Create a new mapping and executes possible gates.
 
         It first allocates all 0, ..., self.num_qubits-1 mapped qubit ids, if they are not already used because we
         might need them all for the swaps. Then it creates a new map, swaps all the qubits to the new map, executes
@@ -585,7 +582,9 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until we do a mapping (FlushGate or Cache of stored
+        Receive a list of commands.
+
+        Receive a command list and, for each command, stores it until we do a mapping (FlushGate or Cache of stored
         commands is full).
 
         Args:

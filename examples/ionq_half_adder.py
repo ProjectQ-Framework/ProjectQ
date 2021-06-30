@@ -14,7 +14,7 @@
 #   limitations under the License.
 # pylint: skip-file
 
-"""Example of a basic 'half-adder' circuit using an IonQBackend"""
+"""Example of a basic 'half-adder' circuit using an IonQBackend."""
 
 import getpass
 import random
@@ -30,6 +30,7 @@ from projectq.ops import CNOT, All, Barrier, Measure, Toffoli, X
 
 
 def run_half_adder(eng):
+    """Run the half-adder circuit."""
     # allocate the quantum register to entangle
     circuit = eng.allocate_qureg(4)
     qubit1, qubit2, qubit3, qubit4 = circuit

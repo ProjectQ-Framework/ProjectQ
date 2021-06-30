@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example of a simple quantum random number generator using IBM's API."""
+
 import projectq.setups.ibm
 from projectq.ops import H, Measure
 from projectq import MainEngine

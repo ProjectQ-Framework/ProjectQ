@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
+Contain the definitions of some of the most basic quantum gates.
+
 Defines the BasicGate class, the base class of all gates, the
 BasicRotationGate class, the SelfInverseGate, the FastForwardingGate, the
 ClassicalInstruction gate, and the BasicMathGate class.
@@ -49,21 +51,22 @@ ATOL = 1e-12
 
 class NotMergeable(Exception):
     """
-    Exception thrown when trying to merge two gates which are not mergeable (or where it is not implemented (yet)).
+    Exception thrown when trying to merge two gates which are not mergeable.
+
+    This exception is also thrown if the merging is not implemented (yet)).
     """
 
 
 class NotInvertible(Exception):
     """
-    Exception thrown when trying to invert a gate which is not invertable (or where the inverse is not implemented
-    (yet)).
+    Exception thrown when trying to invert a gate which is not invertable.
+
+    This exception is also thrown if the inverse is not implemented (yet).
     """
 
 
 class BasicGate:
-    """
-    Base class of all gates. (Don't use it directly but derive from it)
-    """
+    """Base class of all gates. (Don't use it directly but derive from it)."""
 
     def __init__(self):
         """
@@ -164,8 +167,9 @@ class BasicGate:
 
     def generate_command(self, qubits):
         """
-        Helper function to generate a command consisting of the gate and
-        the qubits being acted upon.
+        Generate a command.
+
+        The command object created consists of the gate and the qubits being acted upon.
 
         Args:
             qubits: see BasicGate.make_tuple_of_qureg(qubits)
@@ -201,7 +205,7 @@ class BasicGate:
 
     def __eq__(self, other):
         """
-        Equality comparision
+        Equal operator.
 
         Return True if instance of the same class, unless other is an instance of :class:MatrixGate, in which case
         equality is to be checked by testing for existence and (approximate) equality of matrix representations.
@@ -213,39 +217,39 @@ class BasicGate:
         return False
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
     def __str__(self):
+        """Return a string representation of the object."""
         raise NotImplementedError('This gate does not implement __str__.')
 
     def to_string(self, symbols):  # pylint: disable=unused-argument
         """
-        String representation
+        Return a string representation of the object.
 
         Achieve same function as str() but can be extended for configurable representation
         """
         return str(self)
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
     def is_identity(self):  # pylint: disable=no-self-use
-        """
-        Return True if the gate is an identity gate. In this base class, always returns False.
-        """
+        """Return True if the gate is an identity gate. In this base class, always returns False."""
         return False
 
 
 class MatrixGate(BasicGate):
     """
-    Defines a gate class whose instances are defined by a matrix.
+    Define a gate class whose instances are defined by a matrix.
 
     Note:
         Use this gate class only for gates acting on a small numbers of qubits.  In general, consider instead using
         one of the provided ProjectQ gates or define a new class as this allows the compiler to work symbolically.
 
     Example:
-
         .. code-block:: python
 
             gate = MatrixGate([[0, 1], [1, 0]])
@@ -254,7 +258,7 @@ class MatrixGate(BasicGate):
 
     def __init__(self, matrix=None):
         """
-        Initialize MatrixGate
+        Initialize a MatrixGate object.
 
         Args:
             matrix(numpy.matrix): matrix which defines the gate. Default: None
@@ -264,21 +268,17 @@ class MatrixGate(BasicGate):
 
     @property
     def matrix(self):
-        """
-        Access to the matrix property of this gate.
-        """
+        """Access to the matrix property of this gate."""
         return self._matrix
 
     @matrix.setter
     def matrix(self, matrix):
-        """
-        Set the matrix property of this gate.
-        """
+        """Set the matrix property of this gate."""
         self._matrix = np.matrix(matrix)
 
     def __eq__(self, other):
         """
-        Equality comparision
+        Equal operator.
 
         Return True only if both gates have a matrix respresentation and the matrices are (approximately)
         equal. Otherwise return False.
@@ -294,12 +294,15 @@ class MatrixGate(BasicGate):
         return False
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "MatrixGate(" + str(self.matrix.tolist()) + ")"
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return MatrixGate(np.linalg.inv(self.matrix))
 
 
@@ -307,7 +310,7 @@ class SelfInverseGate(BasicGate):  # pylint: disable=abstract-method
     """
     Self-inverse basic gate class.
 
-    Automatic implementation of the get_inverse-member function for self- inverse gates.
+    Automatic implementation of the get_inverse-member function for self-inverse gates.
 
     Example:
         .. code-block:: python
@@ -317,6 +320,7 @@ class SelfInverseGate(BasicGate):  # pylint: disable=abstract-method
     """
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return deepcopy(self)
 
 
@@ -381,10 +385,7 @@ class BasicRotationGate(BasicGate):
         return str(self.__class__.__name__) + "$_{" + str(round(self.angle / math.pi, 3)) + "\\pi}$"
 
     def get_inverse(self):
-        """
-        Return the inverse of this rotation gate (negate the angle, return new
-        object).
-        """
+        """Return the inverse of this rotation gate (negate the angle, return new object)."""
         if self.angle == 0:
             return self.__class__(0)
         return self.__class__(-self.angle + 4 * math.pi)
@@ -415,15 +416,15 @@ class BasicRotationGate(BasicGate):
         return False
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
     def is_identity(self):
-        """
-        Return True if the gate is equivalent to an Identity gate
-        """
+        """Return True if the gate is equivalent to an Identity gate."""
         return self.angle == 0.0 or self.angle == 4 * math.pi
 
 
@@ -474,9 +475,7 @@ class BasicPhaseGate(BasicGate):
         return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
 
     def get_inverse(self):
-        """
-        Return the inverse of this rotation gate (negate the angle, return new object).
-        """
+        """Return the inverse of this rotation gate (negate the angle, return new object)."""
         if self.angle == 0:
             return self.__class__(0)
         return self.__class__(-self.angle + 2 * math.pi)
@@ -508,9 +507,11 @@ class BasicPhaseGate(BasicGate):
         return False
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
 
@@ -526,6 +527,8 @@ class ClassicalInstructionGate(BasicGate):  # pylint: disable=abstract-method
 
 class FastForwardingGate(ClassicalInstructionGate):  # pylint: disable=abstract-method
     """
+    Base class for fast-forward gates.
+
     Base class for classical instruction gates which require a fast-forward through compiler engines that cache /
     buffer gates. Examples include Measure and Deallocate, which both should be executed asap, such that Measurement
     results are available and resources are freed, respectively.
@@ -611,10 +614,13 @@ class BasicMathGate(BasicGate):
         self._math_function = math_function
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "MATH"
 
     def get_math_function(self, qubits):  # pylint: disable=unused-argument
         """
+        Get the math function associated with a BasicMathGate.
+
         Return the math function which corresponds to the action of this math gate, given the input to the gate (a
         tuple of quantum registers).
 

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contains the definition of the quantum amplitude amplification gate"""
+"""Contain the definition of the quantum amplitude amplification gate."""
 
 from ._basics import BasicGate
 
@@ -71,9 +71,11 @@ class QAA(BasicGate):
     """
 
     def __init__(self, algorithm, oracle):
+        """Initialize a QAA object."""
         BasicGate.__init__(self)
         self.algorithm = algorithm
         self.oracle = oracle
 
     def __str__(self):
+        """Return a string representation of the object."""
         return 'QAA(Algorithm = {0}, Oracle = {1})'.format(str(self.algorithm.__name__), str(self.oracle.__name__))

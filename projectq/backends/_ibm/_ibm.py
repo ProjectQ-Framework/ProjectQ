@@ -12,7 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Back-end to run quantum program on IBM's Quantum Experience."""
+
+"""Back-end to run quantum program on IBM's Quantum Experience."""
+
 import math
 import random
 
@@ -26,8 +28,9 @@ from ._ibm_http_client import send, retrieve
 
 class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
-    The IBM Backend class, which stores the circuit, transforms it to JSON,
-    and sends the circuit through the IBM API.
+    Define the compiler engine class that handles interactions with the IBM API.
+
+    The IBM Backend class, which stores the circuit, transforms it to JSON, and sends the circuit through the IBM API.
     """
 
     def __init__(
@@ -103,8 +106,11 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         return False
 
     def get_qasm(self):
-        """Return the QASM representation of the circuit sent to the backend.
-        Should be called AFTER calling the ibm device"""
+        """
+        Return the QASM representation of the circuit sent to the backend.
+
+        Should be called AFTER calling the ibm device.
+        """
         return self.qasm
 
     def _reset(self):
@@ -201,13 +207,13 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_probabilities(self, qureg):
         """
-        Return the list of basis states with corresponding probabilities.
-        If input qureg is a subset of the register used for the experiment,
-        then returns the projected probabilities over the other states.
+        Return the probability of the outcome `bit_string` when measuring the quantum register `qureg`.
 
-        The measured bits are ordered according to the supplied quantum
-        register, i.e., the left-most bit in the state-string corresponds to
-        the first qubit in the supplied quantum register.
+        Return the list of basis states with corresponding probabilities.  If input qureg is a subset of the register
+        used for the experiment, then returns the projected probabilities over the other states.
+
+        The measured bits are ordered according to the supplied quantum register, i.e., the left-most bit in the
+        state-string corresponds to the first qubit in the supplied quantum register.
 
         Warning:
             Only call this function after the circuit has been executed!
@@ -217,13 +223,11 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 qubits.
 
         Returns:
-            probability_dict (dict): Dictionary mapping n-bit strings to
-                probabilities.
+            probability_dict (dict): Dictionary mapping n-bit strings to probabilities.
 
         Raises:
-            RuntimeError: If no data is available (i.e., if the circuit has
-                not been executed). Or if a qubit was supplied which was not
-                present in the circuit (might have gotten optimized away).
+            RuntimeError: If no data is available (i.e., if the circuit has not been executed). Or if a qubit was
+                supplied which was not present in the circuit (might have gotten optimized away).
         """
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
@@ -314,7 +318,9 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until completion. Upon flush, send the data to the
+        Receive a list of commands.
+
+        Receive a command list and, for each command, stores it until completion. Upon flush, send the data to the
         IBM QE API.
 
         Args:

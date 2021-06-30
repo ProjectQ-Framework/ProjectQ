@@ -13,14 +13,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines a setup allowing to compile code for the IBM quantum chips:
-->Any 5 qubit devices
-->the ibmq online simulator
-->the melbourne 15 qubit device
+Define a setup for IBM quantum chips.
 
-It provides the `engine_list` for the `MainEngine' based on the requested
-device.  Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be
-translated in the backend in the U1/U2/U3/CX gate set.
+Defines a setup allowing to compile code for the IBM quantum chips:
+* Any 5 qubit devices
+* the ibmq online simulator
+* the melbourne 15 qubit device
+
+It provides the `engine_list` for the `MainEngine' based on the requested device.
+
+Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be translated in the backend in the U1/U2/U3/CX gate
+set.
 """
 
 from projectq.setups import restrictedgateset
@@ -36,9 +39,7 @@ from projectq.backends._ibm._ibm_http_client import show_devices
 
 
 def get_engine_list(token=None, device=None):
-    """
-    Return the default list of compiler engine for the IBM QE platform
-    """
+    """Return the default list of compiler engine for the IBM QE platform."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -113,17 +114,15 @@ def get_engine_list(token=None, device=None):
 
 
 class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+    """Exception raised if a selected device is currently offline."""
 
 
 class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit"""
+    """Exception raised if a selected device is cannot handle the circuit."""
 
 
 def list2set(coupling_list):
-    """
-    Convert a list() to a set()
-    """
+    """Convert a list() to a set()."""
     result = []
     for element in coupling_list:
         result.append(tuple(element))

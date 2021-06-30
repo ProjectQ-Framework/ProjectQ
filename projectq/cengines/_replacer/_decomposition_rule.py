@@ -13,49 +13,41 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Module containing the definition of a decomposition rule"""
+"""Module containing the definition of a decomposition rule."""
 
 from projectq.ops import BasicGate
 
 
 class ThisIsNotAGateClassError(TypeError):
-    """Exception raised when a gate instance is encountered instead of a gate class in a decomposition rule"""
+    """Exception raised when a gate instance is encountered instead of a gate class in a decomposition rule."""
 
 
 class DecompositionRule:  # pylint: disable=too-few-public-methods
-    """
-    A rule for breaking down specific gates into sequences of simpler gates.
-    """
+    """A rule for breaking down specific gates into sequences of simpler gates."""
 
     def __init__(self, gate_class, gate_decomposer, gate_recognizer=lambda cmd: True):
         """
+        Initialize a DecompositionRule object.
+
         Args:
             gate_class (type): The type of gate that this rule decomposes.
 
-                The gate class is redundant information used to make lookups
-                faster when iterating over a circuit and deciding "which rules
-                apply to this gate?" again and again.
+                The gate class is redundant information used to make lookups faster when iterating over a circuit and
+                deciding "which rules apply to this gate?" again and again.
 
-                Note that this parameter is a gate type, not a gate instance.
-                You supply gate_class=MyGate or gate_class=MyGate().__class__,
-                not gate_class=MyGate().
+                Note that this parameter is a gate type, not a gate instance.  You supply gate_class=MyGate or
+                gate_class=MyGate().__class__, not gate_class=MyGate().
 
-            gate_decomposer (function[projectq.ops.Command]): Function which,
-                given the command to decompose, applies a sequence of gates
-                corresponding to the high-level function of a gate of type
-                gate_class.
+            gate_decomposer (function[projectq.ops.Command]): Function which, given the command to decompose, applies
+                a sequence of gates corresponding to the high-level function of a gate of type gate_class.
 
-            gate_recognizer (function[projectq.ops.Command] : boolean): A
-                predicate that determines if the decomposition applies to the
-                given command (on top of the filtering by gate_class).
+            gate_recognizer (function[projectq.ops.Command] : boolean): A predicate that determines if the
+                decomposition applies to the given command (on top of the filtering by gate_class).
 
-                For example, a decomposition rule may only to apply rotation
-                gates that rotate by a specific angle.
+                For example, a decomposition rule may only to apply rotation gates that rotate by a specific angle.
 
-                If no gate_recognizer is given, the decomposition applies to
-                all gates matching the gate_class.
+                If no gate_recognizer is given, the decomposition applies to all gates matching the gate_class.
         """
-
         # Check for common gate_class type mistakes.
         if isinstance(gate_class, BasicGate):
             raise ThisIsNotAGateClassError(

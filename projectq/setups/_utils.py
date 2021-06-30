@@ -12,9 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Some utility functions common to some setups
-"""
+
+"""Some utility functions common to some setups."""
+
 import inspect
 
 from projectq.cengines import (
@@ -30,9 +30,7 @@ import projectq.setups.decompositions
 
 
 def one_and_two_qubit_gates(eng, cmd):  # pylint: disable=unused-argument
-    """
-    Filter out 1- and 2-qubit gates.
-    """
+    """Filter out 1- and 2-qubit gates."""
     all_qubits = [qb for qureg in cmd.all_qubits for qb in qureg]
     if isinstance(cmd.gate, ClassicalInstructionGate):
         # This is required to allow Measure, Allocate, Deallocate, Flush
@@ -45,9 +43,7 @@ def one_and_two_qubit_gates(eng, cmd):  # pylint: disable=unused-argument
 
 
 def high_level_gates(eng, cmd):  # pylint: disable=unused-argument
-    """
-    Remove any MathGates.
-    """
+    """Remove any MathGates."""
     gate = cmd.gate
     if eng.next_engine.is_available(cmd):
         return True
@@ -60,7 +56,7 @@ def high_level_gates(eng, cmd):  # pylint: disable=unused-argument
 
 def get_engine_list_linear_grid_base(mapper, one_qubit_gates="any", two_qubit_gates=(CNOT, Swap)):
     """
-    Returns an engine list to compile to a 2-D grid of qubits.
+    Return an engine list to compile to a 2-D grid of qubits.
 
     Note:
         If you choose a new gate set for which the compiler does not yet have standard rules, it raises an

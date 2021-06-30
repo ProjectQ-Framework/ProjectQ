@@ -33,7 +33,7 @@ from ._util import insert_engine, drop_engine_after
 
 def canonical_ctrl_state(ctrl_state, num_qubits):
     """
-    Return canonical form for control state
+    Return canonical form for control state.
 
     Args:
         ctrl_state (int,str,CtrlAll): Initial control state representation
@@ -100,9 +100,7 @@ def _has_compute_uncompute_tag(cmd):
 
 
 class ControlEngine(BasicEngine):
-    """
-    Adds control qubits to all commands that have no compute / uncompute tags.
-    """
+    """Add control qubits to all commands that have no compute / uncompute tags."""
 
     def __init__(self, qubits, ctrl_state=CtrlAll.One):
         """
@@ -122,7 +120,7 @@ class ControlEngine(BasicEngine):
         self.send([cmd])
 
     def receive(self, command_list):
-        """Forward all commands to the next engine."""
+        """Receive a list of commands."""
         for cmd in command_list:
             self._handle_command(cmd)
 
@@ -162,25 +160,23 @@ class Control:
         self._state = canonical_ctrl_state(ctrl_state, len(self._qubits))
 
     def __enter__(self):
+        """Context manager enter function."""
         if len(self._qubits) > 0:
             engine = ControlEngine(self._qubits, self._state)
             insert_engine(self.engine, engine)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # remove control handler from engine list (i.e. skip it)
         if len(self._qubits) > 0:
             drop_engine_after(self.engine)
 
 
 def get_control_count(cmd):
-    """
-    Return the number of control qubits of the command object cmd
-    """
+    """Return the number of control qubits of the command object cmd."""
     return len(cmd.control_qubits)
 
 
 def has_negative_control(cmd):
-    """
-    Returns whether a command has negatively controlled qubits
-    """
+    """Return whether a command has negatively controlled qubits."""
     return get_control_count(cmd) > 0 and '0' in cmd.control_state

@@ -12,7 +12,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
+Define a setup for AWS Braket devices.
+
 Defines a setup allowing to compile code for the AWS Braket devices:
 ->The 11 qubits IonQ device
 ->The 32 qubits Rigetti device
@@ -45,9 +48,7 @@ from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
 
 
 def get_engine_list(credentials=None, device=None):
-    """
-    Return the default list of compiler engine for the AWS Braket platform.
-    """
+    """Return the default list of compiler engine for the AWS Braket platform."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -88,4 +89,4 @@ def get_engine_list(credentials=None, device=None):
 
 
 class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+    """Exception raised if a selected device is currently offline."""

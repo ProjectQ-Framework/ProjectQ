@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
+Definition of some `meta` gates.
+
 Contains meta gates, i.e.,
 * DaggeredGate (Represents the inverse of an arbitrary gate)
 * ControlledGate (Represents a controlled version of an arbitrary gate)
@@ -31,9 +33,7 @@ from ._basics import BasicGate, NotInvertible
 
 
 class ControlQubitError(Exception):
-    """
-    Exception thrown when wrong number of control qubits are supplied.
-    """
+    """Exception thrown when wrong number of control qubits are supplied."""
 
 
 class DaggeredGate(BasicGate):
@@ -74,33 +74,25 @@ class DaggeredGate(BasicGate):
             pass
 
     def __str__(self):
-        r"""
-        Return string representation (str(gate) + \"^\dagger\").
-        """
+        r"""Return string representation (str(gate) + \"^\dagger\")."""
         return str(self._gate) + r"^\dagger"
 
     def tex_str(self):
-        """
-        Return the Latex string representation of a Daggered gate.
-        """
+        """Return the Latex string representation of a Daggered gate."""
         if hasattr(self._gate, 'tex_str'):
             return self._gate.tex_str() + r"${}^\dagger$"
         return str(self._gate) + r"${}^\dagger$"
 
     def get_inverse(self):
-        """
-        Return the inverse gate (the inverse of the inverse of a gate is the gate itself).
-        """
+        """Return the inverse gate (the inverse of the inverse of a gate is the gate itself)."""
         return self._gate
 
     def __eq__(self, other):
-        """
-        Return True if self is equal to other, i.e., same type and
-        representing the inverse of the same gate.
-        """
+        """Return True if self is equal to other, i.e., same type and representing the inverse of the same gate."""
         return isinstance(other, self.__class__) and self._gate == other._gate
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
 
@@ -184,14 +176,11 @@ class ControlledGate(BasicGate):
             self._n = n
 
     def __str__(self):
-        """Return string representation, i.e., CC...C(gate)."""
+        """Return a string representation of the object."""
         return "C" * self._n + str(self._gate)
 
     def get_inverse(self):
-        """
-        Return inverse of a controlled gate, which is the controlled inverse
-        gate.
-        """
+        """Return inverse of a controlled gate, which is the controlled inverse gate."""
         return ControlledGate(get_inverse(self._gate), self._n)
 
     def __or__(self, qubits):
@@ -235,6 +224,7 @@ class ControlledGate(BasicGate):
         return isinstance(other, self.__class__) and self._gate == other._gate and self._n == other._n
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
 
@@ -256,8 +246,9 @@ def C(gate, n_qubits=1):
 
 class Tensor(BasicGate):
     """
-    Wrapper class allowing to apply a (single-qubit) gate to every qubit in a quantum register. Allowed syntax is to
-    supply either a qureg or a tuple which contains only one qureg.
+    Wrapper class allowing to apply a (single-qubit) gate to every qubit in a quantum register.
+
+    Allowed syntax is to supply either a qureg or a tuple which contains only one qureg.
 
     Example:
         .. code-block:: python
@@ -272,23 +263,23 @@ class Tensor(BasicGate):
         self._gate = gate
 
     def __str__(self):
-        """Return string representation."""
+        """Return a string representation of the object."""
         return "Tensor(" + str(self._gate) + ")"
 
     def get_inverse(self):
-        """
-        Return the inverse of this tensored gate (which is the tensored inverse of the gate).
-        """
+        """Return the inverse of this tensored gate (which is the tensored inverse of the gate)."""
         return Tensor(get_inverse(self._gate))
 
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, Tensor) and self._gate == other._gate
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
     def __or__(self, qubits):
-        """Applies the gate to every qubit in the quantum register qubits."""
+        """Operator| overload which enables the syntax Gate | qubits."""
         if isinstance(qubits, tuple):
             if len(qubits) != 1:
                 raise ValueError('Tensor/All must be applied to a single quantum register!')

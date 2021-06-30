@@ -13,7 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contains a CommandModifier engine, which can be used to, e.g., modify the tags of all commands which pass by (see the
+Contain a CommandModifier engine that can be used to apply a user-defined transformation to all incoming commands.
+
+A CommandModifier engine can be used to, e.g., modify the tags of all commands which pass by (see the
 AutoReplacer for an example).
 """
 
@@ -22,6 +24,8 @@ from ._basics import BasicEngine
 
 class CommandModifier(BasicEngine):
     """
+    Compiler engine applying a user-defined transformation to all incoming commands.
+
     CommandModifier is a compiler engine which applies a function to all incoming commands, sending on the resulting
     command instead of the original one.
     """
@@ -46,6 +50,8 @@ class CommandModifier(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         Receive a list of commands from the previous engine, modify all commands, and send them on to the next engine.
 
         Args:

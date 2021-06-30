@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example of a 6-qubit phase function."""
+
 from projectq.cengines import MainEngine
 from projectq.ops import All, H, X, Measure
 from projectq.meta import Compute, Uncompute, Dagger
@@ -11,6 +13,7 @@ import revkit
 
 # phase function
 def f(a, b, c, d, e, f):
+    """Phase function."""
     return (a and b) ^ (c and d) ^ (e and f)
 
 

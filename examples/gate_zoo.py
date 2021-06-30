@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Showcase most of the quantum gates available in ProjectQ."""
+
 import os
 import sys
 
@@ -37,9 +39,7 @@ from projectq.ops import (
 
 
 def zoo_profile():
-    '''
-    Generate and display the zoo of quantum gates.
-    '''
+    """Generate and display the zoo of quantum gates."""
     # create a main compiler engine with a drawing backend
     drawing_engine = CircuitDrawer()
     locations = {0: 1, 1: 2, 2: 0, 3: 3}
@@ -104,7 +104,7 @@ def zoo_profile():
 
 
 def openfile(filename):
-    '''
+    """
     Open a file.
 
     Args:
@@ -112,7 +112,7 @@ def openfile(filename):
 
     Return:
         bool: succeed if True.
-    '''
+    """
     platform = sys.platform
     if platform == "linux" or platform == "linux2":
         os.system('xdg-open %s' % filename)

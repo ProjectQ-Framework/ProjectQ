@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers decomposition for StatePreparation.
-"""
+
+"""Register decomposition for StatePreparation."""
 
 import cmath
 import math
@@ -30,9 +29,7 @@ from projectq.ops import (
 
 
 def _decompose_state_preparation(cmd):  # pylint: disable=too-many-locals
-    """
-    Implements state preparation based on arXiv:quant-ph/0407010v1.
-    """
+    """Implement state preparation based on arXiv:quant-ph/0407010v1."""
     eng = cmd.engine
     if len(cmd.qubits) != 1:
         raise ValueError('StatePreparation does not support multiple quantum registers!')

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""RevKit support for phase oracles"""
+"""RevKit support for phase oracles."""
 
 from projectq.ops import BasicGate
 
@@ -22,23 +22,19 @@ from ._utils import _exec
 
 class PhaseOracle:  # pylint: disable=too-few-public-methods
     """
-    Synthesizes phase circuit from an arbitrary Boolean function.
+    Synthesize phase circuit from an arbitrary Boolean function.
 
-    This creates a phase circuit from a Boolean function.  It inverts the phase
-    of all amplitudes for which the function evaluates to 1.  The Boolean
-    function is provided as integer representation of the function's truth
-    table in binary notation.  For example, for the majority-of-three function,
-    which truth table 11101000, the value for function can be, e.g.,
-    ``0b11101000``, ``0xe8``, or ``232``.
+    This creates a phase circuit from a Boolean function.  It inverts the phase of all amplitudes for which the
+    function evaluates to 1.  The Boolean function is provided as integer representation of the function's truth table
+    in binary notation.  For example, for the majority-of-three function, which truth table 11101000, the value for
+    function can be, e.g., ``0b11101000``, ``0xe8``, or ``232``.
 
-    Note that a phase circuit can only accurately be found for a normal
-    function, i.e., a function that maps the input pattern 0, 0, ..., 0 to 0.
-    The circuits for a function and its inverse are the same.
+    Note that a phase circuit can only accurately be found for a normal function, i.e., a function that maps the input
+    pattern 0, 0, ..., 0 to 0.  The circuits for a function and its inverse are the same.
 
     Example:
-
-        This example creates a phase circuit based on the majority-of-three
-        function on qubits ``a``, ``b``, and ``c``.
+        This example creates a phase circuit based on the majority-of-three function on qubits ``a``, ``b``, and
+        ``c``.
 
         .. code-block:: python
 
@@ -47,16 +43,15 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
 
     def __init__(self, function, **kwargs):
         """
-        Initializes a phase oracle.
+        Initialize a phase oracle.
 
         Args:
             function (int): Function truth table.
 
         Keyword Args:
-            synth: A RevKit synthesis command which creates a reversible
-                   circuit based on a truth table and requires no additional
-                   ancillae (e.g., ``revkit.esopps``).  Can also be a nullary
-                   lambda that calls several RevKit commands.
+            synth: A RevKit synthesis command which creates a reversible circuit based on a truth table and requires
+                   no additional ancillae (e.g., ``revkit.esopps``).  Can also be a nullary lambda that calls several
+                   RevKit commands.
                    **Default:** ``revkit.esopps``
         """
         if isinstance(function, int):
@@ -78,11 +73,10 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
 
     def __or__(self, qubits):
         """
-        Applies phase circuit to qubits (and synthesizes circuit).
+        Apply phase circuit to qubits (and synthesizes circuit).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the phase circuit is being
-                                   applied.
+            qubits (tuple<Qureg>): Qubits to which the phase circuit is being applied.
         """
         try:
             import revkit  # pylint: disable=import-outside-toplevel
@@ -118,9 +112,7 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
         _exec(revkit.to_projectq(mct=True), qs)
 
     def _check_function(self):
-        """
-        Checks whether function is valid.
-        """
+        """Check whether function is valid."""
         # function must be positive.  We check in __or__ whether function is
         # too large
         if self.function < 0:

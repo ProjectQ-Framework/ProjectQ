@@ -28,25 +28,21 @@ from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
-    """Exception raised when the lifetime of a qubit is problematic within a loop"""
+    """Exception raised when the lifetime of a qubit is problematic within a loop."""
 
 
 class DaggerEngine(BasicEngine):
-    """
-    Stores all commands and, when done, inverts the circuit & runs it.
-    """
+    """Store all commands and, when done, inverts the circuit & runs it."""
 
     def __init__(self):
         BasicEngine.__init__(self)
+        """Initialize a DaggerEngine object."""
         self._commands = []
         self._allocated_qubit_ids = set()
         self._deallocated_qubit_ids = set()
 
     def run(self):
-        """
-        Run the stored circuit in reverse and check that local qubits
-        have been deallocated.
-        """
+        """Run the stored circuit in reverse and check that local qubits have been deallocated."""
         if self._deallocated_qubit_ids != self._allocated_qubit_ids:
             raise QubitManagementError(
                 "\n Error. Qubits have been allocated in 'with "
@@ -129,10 +125,12 @@ class Dagger:
         self._dagger_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         self._dagger_eng = DaggerEngine()
         insert_engine(self.engine, self._dagger_eng)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # If an error happens in this context, qubits might not have been
         # deallocated because that code section was not yet executed,
         # so don't check and raise an additional error.

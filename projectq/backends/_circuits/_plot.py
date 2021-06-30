@@ -13,15 +13,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-This module provides the basic functionality required to plot a quantum
-circuit in a matplotlib figure.
+This module provides the basic functionality required to plot a quantum circuit in a matplotlib figure.
+
 It is mainly used by the CircuitDrawerMatplotlib compiler engine.
 
-Currently, it supports all single-qubit gates, including their controlled
-versions to an arbitrary number of control qubits. It also supports
-multi-target qubit gates under some restrictions. Namely that the target
-qubits must be neighbours in the output figure (which cannot be determined
-durinng compilation at this time).
+Currently, it supports all single-qubit gates, including their controlled versions to an arbitrary number of control
+qubits. It also supports multi-target qubit gates under some restrictions. Namely that the target qubits must be
+neighbours in the output figure (which cannot be determined durinng compilation at this time).
 """
 
 from copy import deepcopy
@@ -65,27 +63,23 @@ _DEFAULT_PLOT_PARAMS = dict(
 
 def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
     """
-    Translates a given circuit to a matplotlib figure.
+    Translate a given circuit to a matplotlib figure.
 
     Args:
         qubit_lines (dict): list of gates for each qubit axis
-        qubit_labels (dict): label to print in front of the qubit wire for
-            each qubit ID
+        qubit_labels (dict): label to print in front of the qubit wire for each qubit ID
         drawing_order (dict): index of the wire for each qubit ID to be drawn.
-        **kwargs (dict): additional parameters are used to update the default
-            plot parameters
+        **kwargs (dict): additional parameters are used to update the default plot parameters
 
     Returns:
         A tuple with (figure, axes)
 
     Note:
-        Numbering of qubit wires starts at 0 at the bottom and increases
-        vertically.
+        Numbering of qubit wires starts at 0 at the bottom and increases vertically.
 
     Note:
-        Additional keyword arguments can be passed to this
-        function in order to further customize the figure output
-        by matplotlib (default value in parentheses):
+        Additional keyword arguments can be passed to this function in order to further customize the figure output by
+        matplotlib (default value in parentheses):
 
           - fontsize (14): Font size in pt
           - column_spacing (.5): Vertical spacing between two
@@ -231,7 +225,7 @@ def calculate_gate_grid(axes, qubit_lines, plot_params):
 
 def text(axes, gate_pos, wire_pos, textstr, plot_params):
     """
-    Draws a text box on the figure.
+    Draw a text box on the figure.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
@@ -258,7 +252,7 @@ def text(axes, gate_pos, wire_pos, textstr, plot_params):
 
 def create_figure(plot_params):
     """
-    Create a new figure as well as a new axes instance
+    Create a new figure as well as a new axes instance.
 
     Args:
         plot_params (dict): plot parameters
@@ -276,8 +270,9 @@ def create_figure(plot_params):
 
 def resize_figure(fig, axes, width, height, plot_params):
     """
-    Resizes a figure and adjust the limits of the axes instance to make sure
-    that the distances in data coordinates on the screen stay constant.
+    Resize a figure and adjust the limits of the axes instance.
+
+    This functions makes sure that the distances in data coordinates on the screen stay constant.
 
     Args:
         fig (matplotlib.figure.Figure): figure object
@@ -300,7 +295,7 @@ def draw_gates(  # pylint: disable=too-many-arguments
     axes, qubit_lines, drawing_order, gate_grid, wire_grid, plot_params
 ):
     """
-    Draws the gates.
+    Draw the gates.
 
     Args:
         qubit_lines (dict): list of gates for each qubit axis
@@ -332,15 +327,14 @@ def draw_gate(
     axes, gate_str, gate_pos, target_wires, targets_order, control_wires, plot_params
 ):  # pylint: disable=too-many-arguments
     """
-    Draws a single gate at a given location.
+    Draw a single gate at a given location.
 
     Args:
         axes (AxesSubplot): axes object
         gate_str (str): string representation of a gate
         gate_pos (float): x coordinate of the gate [data units]
         target_wires (list): y coordinates of the target qubits
-        targets_order (list): index of the wires corresponding to the target
-                              qubit IDs
+        targets_order (list): index of the wires corresponding to the target qubit IDs
         control_wires (list): y coordinates of the control qubits
         plot_params (dict): plot parameters
 
@@ -403,7 +397,7 @@ def draw_gate(
 
 def draw_generic_gate(axes, gate_pos, wire_pos, gate_str, plot_params):
     """
-    Draws a measurement gate.
+    Draw a measurement gate.
 
     Args:
         axes (AxesSubplot): axes object
@@ -438,7 +432,7 @@ def draw_generic_gate(axes, gate_pos, wire_pos, gate_str, plot_params):
 
 def draw_measure_gate(axes, gate_pos, wire_pos, plot_params):
     """
-    Draws a measurement gate.
+    Draw a measurement gate.
 
     Args:
         axes (AxesSubplot): axes object
@@ -490,7 +484,7 @@ def multi_qubit_gate(  # pylint: disable=too-many-arguments
     axes, gate_str, gate_pos, wire_pos_min, wire_pos_max, plot_params
 ):
     """
-    Draws a multi-target qubit gate.
+    Draw a multi-target qubit gate.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
@@ -531,7 +525,7 @@ def multi_qubit_gate(  # pylint: disable=too-many-arguments
 
 def draw_x_gate(axes, gate_pos, wire_pos, plot_params):
     """
-    Draws the symbol for a X/NOT gate.
+    Draw the symbol for a X/NOT gate.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
@@ -556,7 +550,7 @@ def draw_x_gate(axes, gate_pos, wire_pos, plot_params):
 
 def draw_control_z_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
     """
-    Draws the symbol for a controlled-Z gate.
+    Draw the symbol for a controlled-Z gate.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
@@ -581,7 +575,7 @@ def draw_control_z_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
 
 def draw_swap_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
     """
-    Draws the symbol for a SWAP gate.
+    Draw the symbol for a SWAP gate.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
@@ -605,14 +599,13 @@ def draw_swap_gate(axes, gate_pos, wire_pos1, wire_pos2, plot_params):
 
 def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
     """
-    Draws all the circuit qubit wires.
+    Draw all the circuit qubit wires.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
         n_labels (int): number of qubit
         gate_grid (ndarray): array with the ref. x positions of the gates
-        wire_grid (ndarray): array with the ref. y positions of the qubit
-                             wires
+        wire_grid (ndarray): array with the ref. y positions of the qubit wires
         plot_params (dict): plot parameters
     """
     # pylint: disable=invalid-name
@@ -632,15 +625,14 @@ def draw_wires(axes, n_labels, gate_grid, wire_grid, plot_params):
 
 def draw_labels(axes, qubit_labels, drawing_order, wire_grid, plot_params):
     """
-    Draws the labels at the start of each qubit wire
+    Draw the labels at the start of each qubit wire.
 
     Args:
         axes (matplotlib.axes.Axes): axes object
         qubit_labels (list): labels of the qubit to be drawn
         drawing_order (dict): Mapping between wire indices and qubit IDs
         gate_grid (ndarray): array with the ref. x positions of the gates
-        wire_grid (ndarray): array with the ref. y positions of the qubit
-                             wires
+        wire_grid (ndarray): array with the ref. y positions of the qubit wires
         plot_params (dict): plot parameters
     """
     for qubit_id in qubit_labels:

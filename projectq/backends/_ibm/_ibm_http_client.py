@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-""" Back-end to run quantum program on IBM QE cloud platform"""
+"""Back-end to run quantum program on IBM QE cloud platform."""
 
 
 # helpers to run the jsonified gate sequence on ibm quantum experience server
@@ -37,26 +37,24 @@ CLIENT_APPLICATION = 'ibmqprovider/0.4.4'
 
 
 class IBMQ(Session):
-    """
-    Manage a session between ProjectQ and the IBMQ web API.
-    """
+    """Manage a session between ProjectQ and the IBMQ web API."""
 
     def __init__(self, **kwargs):
+        """Initialize a session with the IBM QE's APIs."""
         super().__init__(**kwargs)
         self.backends = dict()
         self.timeout = 5.0
 
     def get_list_devices(self, verbose=False):
         """
-        Get the list of available IBM backends with their properties
+        Get the list of available IBM backends with their properties.
 
         Args:
             verbose (bool): print the returned dictionnary if True
 
         Returns:
-            (dict) backends dictionary by name device, containing the qubit
-                    size 'nq', the coupling map 'coupling_map' as well as the
-                    device version 'version'
+            (dict) backends dictionary by name device, containing the qubit size 'nq', the coupling map 'coupling_map'
+                    as well as the device version 'version'
         """
         list_device_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         argument = {'allow_redirects': True, 'timeout': (self.timeout, None)}
@@ -93,8 +91,7 @@ class IBMQ(Session):
         Check if the device is big enough to run the code.
 
         Args:
-            info (dict): dictionary sent by the backend containing the code to
-                run
+            info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the ibm device to use
 
         Returns:
@@ -109,6 +106,8 @@ class IBMQ(Session):
 
     def authenticate(self, token=None):
         """
+        Authenticate with IBM's Web API.
+
         Args:
             token (str): IBM quantum experience user API token.
         """
@@ -130,21 +129,18 @@ class IBMQ(Session):
     def run(self, info, device):  # pylint: disable=too-many-locals
         """
         Run the quantum code to the IBMQ machine.
-        Update since September 2020: only protocol available is what they call
-        'object storage' where a job request via the POST method gets in
-        return a url link to which send the json data. A final http validates
-        the data communication.
+
+        Update since September 2020: only protocol available is what they call 'object storage' where a job request
+        via the POST method gets in return a url link to which send the json data. A final http validates the data
+        communication.
 
         Args:
-            info (dict): dictionary sent by the backend containing the code to
-                run
+            info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the ibm device to use
 
         Returns:
             (tuple): (str) Execution Id
-
         """
-
         # STEP1: Obtain most of the URLs for handling communication with
         #        quantum device
         json_step1 = {
@@ -217,10 +213,7 @@ class IBMQ(Session):
     def get_result(
         self, device, execution_id, num_retries=3000, interval=1, verbose=False
     ):  # pylint: disable=too-many-arguments,too-many-locals
-        """
-        Get the result of an execution
-        """
-
+        """Get the result of an execution."""
         job_status_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/' + execution_id
 
         if verbose:
@@ -293,17 +286,16 @@ class IBMQ(Session):
 
 
 class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit"""
+    """Exception raised if the device is too small to run the circuit."""
 
 
 class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+    """Exception raised if a selected device is currently offline."""
 
 
 def show_devices(token=None, verbose=False):
     """
-    Access the list of available devices and their properties (ex: for setup
-    configuration)
+    Access the list of available devices and their properties (ex: for setup configuration).
 
     Args:
         token (str): IBM quantum experience user API token.
@@ -319,7 +311,7 @@ def show_devices(token=None, verbose=False):
 
 def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):  # pylint: disable=too-many-arguments
     """
-    Retrieves a previously run job by its ID.
+    Retrieve a previously run job by its ID.
 
     Args:
         device (str): Device on which the code was run / is running.
@@ -346,16 +338,15 @@ def send(
     verbose=False,
 ):  # pylint: disable=too-many-arguments
     """
-    Sends QASM through the IBM API and runs the quantum circuit.
+    Send QASM through the IBM API and runs the quantum circuit.
 
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the ibm device. Simulator chosen by default
         token (str): IBM quantum experience user API token.
         shots (int): Number of runs of the same circuit to collect statistics.
-        verbose (bool): If True, additional information is printed, such as
-            measurement statistics. Otherwise, the backend simply registers
-            one measurement result (same behavior as the projectq Simulator).
+        verbose (bool): If True, additional information is printed, such as measurement statistics. Otherwise, the
+            backend simply registers one measurement result (same behavior as the projectq Simulator).
 
     Returns:
         (dict) result form the IBMQ server

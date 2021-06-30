@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains the main engine of every compiler engine pipeline, called MainEngine.
-"""
+
+"""Contain the main engine of every compiler engine pipeline, called MainEngine."""
 
 import atexit
 import sys
@@ -34,17 +33,19 @@ class NotYetMeasuredError(Exception):
 
 
 class UnsupportedEngineError(Exception):
-    """Exception raised when a non-supported compiler engine is encountered"""
+    """Exception raised when a non-supported compiler engine is encountered."""
 
 
 class _ErrorEngine:  # pylint: disable=too-few-public-methods
     """
+    Fake compiler engine class.
+
     Fake compiler engine class only used to ensure gracious failure when an exception occurs in the MainEngine
     constructor.
     """
 
     def receive(self, command_list):  # pylint: disable=unused-argument
-        """No-op"""
+        """No-op."""
 
 
 _N_ENGINES_THRESHOLD = 100
@@ -224,7 +225,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def set_measurement_result(self, qubit, value):
         """
-        Register a measurement result
+        Register a measurement result.
 
         The engine being responsible for measurement results needs to register these results with the master engine
         such that they are available when the user calls an int() or bool() conversion operator on a measured qubit.
@@ -237,8 +238,9 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_measurement_result(self, qubit):
         """
-        Return the classical value of a measured qubit, given that an engine registered this result previously (see
-        setMeasurementResult).
+        Return the classical value of a measured qubit, given that an engine registered this result previously.
+
+        See also setMeasurementResult.
 
         Args:
             qubit (BasicQubit): Qubit of which to get the measurement result.
@@ -266,7 +268,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_new_qubit_id(self):
         """
-        Returns a unique qubit id to be used for the next qubit allocation.
+        Return a unique qubit id to be used for the next qubit allocation.
 
         Returns:
             new_qubit_id (int): New unique qubit id.

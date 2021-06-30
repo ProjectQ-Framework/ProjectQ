@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-This file defines the apply_command function and the Command class.
+Define the apply_command function and the Command class.
 
 When a gate is applied to qubits, e.g.,
 
@@ -46,13 +46,11 @@ from projectq.types import WeakQubitRef, Qureg
 
 
 class IncompatibleControlState(Exception):
-    """
-    Exception thrown when trying to set two incompatible states for a control qubit.
-    """
+    """Exception thrown when trying to set two incompatible states for a control qubit."""
 
 
 class CtrlAll(IntEnum):
-    """Enum type to initialise the control state of qubits"""
+    """Enum type to initialise the control state of qubits."""
 
     Zero = 0
     One = 1
@@ -73,9 +71,11 @@ def apply_command(cmd):
 
 class Command:  # pylint: disable=too-many-instance-attributes
     """
-    Class used as a container to store commands. If a gate is applied to qubits, then the gate and qubits are saved in
-    a command object. Qubits are copied into WeakQubitRefs in order to allow early deallocation (would be kept alive
-    otherwise). WeakQubitRef qubits don't send deallocate gate when destructed.
+    Class used as a container to store commands.
+
+    If a gate is applied to qubits, then the gate and qubits are saved in a command object. Qubits are copied into
+    WeakQubitRefs in order to allow early deallocation (would be kept alive otherwise). WeakQubitRef qubits don't send
+    deallocate gate when destructed.
 
     Attributes:
         gate: The gate to execute
@@ -83,10 +83,10 @@ class Command:  # pylint: disable=too-many-instance-attributes
         control_qubits: The Qureg of control qubits in a unique order
         engine: The engine (usually: MainEngine)
         tags: The list of tag objects associated with this command (e.g., ComputeTag, UncomputeTag, LoopTag, ...). tag
-          objects need to support ==, != (__eq__ and __ne__) for comparison as used in e.g.  TagRemover. New tags
-          should always be added to the end of the list.  This means that if there are e.g. two LoopTags in a command,
-          tag[0] is from the inner scope while tag[1] is from the other scope as the other scope receives the command
-          after the inner scope LoopEngine and hence adds its LoopTag to the end.
+            objects need to support ==, != (__eq__ and __ne__) for comparison as used in e.g.  TagRemover. New tags
+            should always be added to the end of the list.  This means that if there are e.g. two LoopTags in a
+            command, tag[0] is from the inner scope while tag[1] is from the other scope as the other scope receives
+            the command after the inner scope LoopEngine and hence adds its LoopTag to the end.
         all_qubits: A tuple of control_qubits + qubits
     """
 
@@ -97,8 +97,8 @@ class Command:  # pylint: disable=too-many-instance-attributes
         Initialize a Command object.
 
         Note:
-            control qubits (Command.control_qubits) are stored as a list of qubits, and command tags (Command.tags) as
-            a list of tag- objects. All functions within this class also work if WeakQubitRefs are supplied instead of
+            control qubits (Command.control_qubits) are stored as a list of qubits, and command tags (Command.tags) as a
+            list of tag-objects. All functions within this class also work if WeakQubitRefs are supplied instead of
             normal Qubit objects (see WeakQubitRef).
 
         Args:
@@ -109,7 +109,6 @@ class Command:  # pylint: disable=too-many-instance-attributes
             tags (list[object]): Tags associated with the command.
             control_state(int,str,projectq.meta.CtrlAll) Control state for any control qubits
         """
-
         qubits = tuple([WeakQubitRef(qubit.engine, qubit.id) for qubit in qreg] for qreg in qubits)
 
         self.gate = gate
@@ -121,12 +120,12 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
     @property
     def qubits(self):
-        """Qubits stored in a Command object"""
+        """Qubits stored in a Command object."""
         return self._qubits
 
     @qubits.setter
     def qubits(self, qubits):
-        """Set the qubits stored in a Command object"""
+        """Set the qubits stored in a Command object."""
         self._qubits = self._order_qubits(qubits)
 
     def __deepcopy__(self, memo):
@@ -167,15 +166,13 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
     def get_merged(self, other):
         """
-        Merge this command with another one and return the merged command
-        object.
+        Merge this command with another one and return the merged command object.
 
         Args:
             other: Other command to merge with this one (self)
 
         Raises:
-            NotMergeable: if the gates don't supply a get_merged()-function
-                or can't be merged for other reasons.
+            NotMergeable: if the gates don't supply a get_merged()-function or can't be merged for other reasons.
         """
         if self.tags == other.tags and self.all_qubits == other.all_qubits and self.engine == other.engine:
             return Command(
@@ -189,8 +186,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
     def _order_qubits(self, qubits):
         """
-        Order the given qubits according to their IDs (for unique comparison of
-        commands).
+        Order the given qubits according to their IDs (for unique comparison of commands).
 
         Args:
             qubits: Tuple of quantum registers (i.e., tuple of lists of qubits)
@@ -212,25 +208,23 @@ class Command:  # pylint: disable=too-many-instance-attributes
         """
         Return nested list of qubit indices which are interchangeable.
 
-        Certain qubits can be interchanged (e.g., the qubit order for a Swap
-        gate). To ensure that only those are sorted when determining the
-        ordering (see _order_qubits), self.interchangeable_qubit_indices is
-        used.
+        Certain qubits can be interchanged (e.g., the qubit order for a Swap gate). To ensure that only those are sorted
+        when determining the ordering (see _order_qubits), self.interchangeable_qubit_indices is used.
+
         Example:
-            If we can interchange qubits 0,1 and qubits 3,4,5,
-            then this function returns [[0,1],[3,4,5]]
+            If we can interchange qubits 0,1 and qubits 3,4,5, then this function returns [[0,1],[3,4,5]]
         """
         return self.gate.interchangeable_qubit_indices
 
     @property
     def control_qubits(self):
-        """Returns Qureg of control qubits."""
+        """Return a Qureg of control qubits."""
         return self._control_qubits
 
     @control_qubits.setter
     def control_qubits(self, qubits):
         """
-        Set control_qubits to qubits
+        Set control_qubits to qubits.
 
         Args:
             control_qubits (Qureg): quantum register
@@ -240,13 +234,13 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
     @property
     def control_state(self):
-        """Returns the state of the control qubits (ie. either positively- or negatively-controlled)"""
+        """Return the state of the control qubits (ie. either positively- or negatively-controlled)."""
         return self._control_state
 
     @control_state.setter
     def control_state(self, state):
         """
-        Set control_state to state
+        Set control_state to state.
 
         Args:
             state (int,str,projectq.meta.CtrtAll): state of control qubit (ie. positive or negative)
@@ -302,10 +296,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
     @property
     def engine(self):
-        """
-        Return engine to which the qubits belong / on which the gates are
-        executed.
-        """
+        """Return engine to which the qubits belong / on which the gates are executed."""
         return self._engine
 
     @engine.setter
@@ -344,15 +335,15 @@ class Command:  # pylint: disable=too-many-instance-attributes
         return False
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.to_string()
 
     def to_string(self, symbols=False):
-        """
-        Get string representation of this Command object.
-        """
+        """Get string representation of this Command object."""
         qubits = self.qubits
         ctrlqubits = self.control_qubits
         if len(ctrlqubits) > 0:

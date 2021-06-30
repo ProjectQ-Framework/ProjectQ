@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example implementation of a quantum circuit generating a Bell pair state."""
+
 import matplotlib.pyplot as plt
 
 from projectq import MainEngine

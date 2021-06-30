@@ -30,13 +30,13 @@ from projectq.ops import CX, All, Barrier, H, Measure, Z
 
 def oracle(qureg, input_size, s):
     """Apply the 'oracle'."""
-
     for bit in range(input_size):
         if s[input_size - 1 - bit] == '1':
             CX | (qureg[bit], qureg[input_size])
 
 
 def run_bv_circuit(eng, input_size, s_int):
+    """Run the quantum circuit."""
     s = ('{0:0' + str(input_size) + 'b}').format(s_int)
     print("Secret string: ", s)
     print("Number of qubits: ", str(input_size + 1))

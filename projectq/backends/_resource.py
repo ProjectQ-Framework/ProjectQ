@@ -13,7 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contains a compiler engine which counts the number of calls for each type of gate used in a circuit, in addition to
+Contain a compiler engine to calculate resource count used by a quantum circuit.
+
+A resrouce counter compiler engine counts the number of calls for each type of gate used in a circuit, in addition to
 the max. number of active qubits.
 """
 
@@ -54,6 +56,8 @@ class ResourceCounter(BasicEngine):
 
     def is_available(self, cmd):
         """
+        Test whether a Command is supported by a compiler engine.
+
         Specialized implementation of is_available: Returns True if the ResourceCounter is the last engine (since it
         can count any command).
 
@@ -70,18 +74,14 @@ class ResourceCounter(BasicEngine):
 
     @property
     def depth_of_dag(self):
-        """
-        Return the depth of the DAG.
-        """
+        """Return the depth of the DAG."""
         if self._depth_of_qubit:
             current_max = max(self._depth_of_qubit.values())
             return max(current_max, self._previous_max_depth)
         return self._previous_max_depth
 
     def _add_cmd(self, cmd):  # pylint: disable=too-many-branches
-        """
-        Add a gate to the count.
-        """
+        """Add a gate to the count."""
         if cmd.gate == Allocate:
             self._active_qubits += 1
             self._depth_of_qubit[cmd.qubits[0][0].id] = 0
@@ -166,6 +166,8 @@ class ResourceCounter(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         Receive a list of commands from the previous engine, increases the counters of the received commands, and then
         send them on to the next engine.
 

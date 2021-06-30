@@ -12,7 +12,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
+Define a setup for AQT trapped ion devices.
+
 Defines a setup allowing to compile code for the AQT trapped ion devices:
 ->The 4 qubits device
 ->The 11 qubits simulator
@@ -31,9 +34,7 @@ from projectq.backends._aqt._aqt_http_client import show_devices
 
 
 def get_engine_list(token=None, device=None):
-    """
-    Return the default list of compiler engine for the AQT plaftorm
-    """
+    """Return the default list of compiler engine for the AQT plaftorm."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -68,8 +69,8 @@ def get_engine_list(token=None, device=None):
 
 
 class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+    """Exception raised if a selected device is currently offline."""
 
 
 class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit"""
+    """Exception raised if a selected device is cannot handle the circuit."""

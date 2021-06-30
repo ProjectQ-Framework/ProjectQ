@@ -12,7 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""Mapper that has a max number of allocatable qubits."""
+
+"""Mapper that has a maximum number of allocatable qubits."""
+
 from projectq.cengines import BasicMapperEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, Command, DeallocateQubitGate, FlushGate
@@ -20,9 +22,10 @@ from projectq.types import WeakQubitRef
 
 
 class BoundedQubitMapper(BasicMapperEngine):
-    """Maps logical qubits to a fixed number of hardware qubits"""
+    """Map logical qubits to a fixed number of hardware qubits."""
 
     def __init__(self, max_qubits):
+        """Initialize a BoundedQubitMapper object."""
         super().__init__()
         self._qubit_idx = 0
         self.max_qubits = max_qubits
@@ -74,6 +77,12 @@ class BoundedQubitMapper(BasicMapperEngine):
             self._send_cmd_with_mapped_ids(cmd)
 
     def receive(self, command_list):
+        """
+        Receive a list of commands.
+
+        Args:
+            command_list (list<Command>): List of commands to receive.
+        """
         for cmd in command_list:
             if isinstance(cmd.gate, FlushGate):
                 self._reset()

@@ -12,8 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
-Registers a decomposition rule for multi-controlled gates.
+Register a decomposition rule for multi-controlled gates.
 
 Implements the decomposition of Nielsen and Chuang (Fig. 4.10) which
 decomposes a C^n(U) gate into a sequence of 2 * (n-1) Toffoli gates and one
@@ -26,10 +27,7 @@ from projectq.ops import BasicGate, Toffoli, XGate
 
 
 def _recognize_CnU(cmd):  # pylint: disable=invalid-name
-    """
-    Recognize an arbitrary gate which has n>=2 control qubits, except a
-    Toffoli gate.
-    """
+    """Recognize an arbitrary gate which has n>=2 control qubits, except a Toffoli gate."""
     if get_control_count(cmd) == 2:
         if not isinstance(cmd.gate, XGate):
             return True
@@ -40,11 +38,10 @@ def _recognize_CnU(cmd):  # pylint: disable=invalid-name
 
 def _decompose_CnU(cmd):  # pylint: disable=invalid-name
     """
-    Decompose a multi-controlled gate U with n control qubits into a single-
-    controlled U.
+    Decompose a multi-controlled gate U with n control qubits into a single- controlled U.
 
-    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates for general U
-    and (n-2) work qubits and 2n - 3 Toffoli gates if U is an X-gate.
+    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates for general U and (n-2) work qubits and 2n - 3 Toffoli gates
+    if U is an X-gate.
     """
     eng = cmd.engine
     qubits = cmd.qubits

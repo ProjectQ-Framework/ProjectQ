@@ -36,7 +36,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-"""Setup.py file"""
+"""Setup.py file."""
 
 import distutils.log
 from distutils.cmd import Command
@@ -64,23 +64,25 @@ from setuptools.command.build_ext import build_ext
 
 class Pybind11Include:  # pylint: disable=too-few-public-methods
     """
-    Helper class to determine the pybind11 include path The purpose of this class is to postpone importing pybind11
-    until it is actually installed, so that the ``get_include()`` method can be invoked.
+    Helper class to determine the pybind11 include path.
+
+    The purpose of this class is to postpone importing pybind11 until it is actually installed, so that the
+    ``get_include()`` method can be invoked.
     """
 
     def __init__(self, user=False):
+        """Initialize a Pybind11Include object."""
         self.user = user
 
     def __str__(self):
+        """Conversion to string."""
         import pybind11  # pylint: disable=import-outside-toplevel
 
         return pybind11.get_include(self.user)
 
 
 def important_msgs(*msgs):
-    """
-    Print an important message.
-    """
+    """Print an important message."""
     print('*' * 75)
     for msg in msgs:
         print(msg)
@@ -88,9 +90,7 @@ def important_msgs(*msgs):
 
 
 def status_msgs(*msgs):
-    """
-    Print a status message.
-    """
+    """Print a status message."""
     print('-' * 75)
     for msg in msgs:
         print('# INFO: ', msg)
@@ -100,11 +100,7 @@ def status_msgs(*msgs):
 def compiler_test(
     compiler, flagname=None, link=False, include='', body='', postargs=None
 ):  # pylint: disable=too-many-arguments
-    """
-    Return a boolean indicating whether a flag name is supported on the
-    specified compiler.
-    """
-
+    """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
     with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
         temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
@@ -167,9 +163,10 @@ def _fix_macosx_header_paths(*args):
 
 
 class BuildFailed(Exception):
-    """Extension raised if the build fails for any reason"""
+    """Extension raised if the build fails for any reason."""
 
     def __init__(self):
+        """Initialize a BuildFailed exception object."""
         super().__init__()
         self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
 
@@ -204,7 +201,7 @@ ext_modules = [
 
 
 class BuildExt(build_ext):
-    '''A custom build extension for adding compiler-specific options.'''
+    """A custom build extension for adding compiler-specific options."""
 
     c_opts = {
         'msvc': ['/EHsc'],
@@ -222,21 +219,25 @@ class BuildExt(build_ext):
     boolean_options = build_ext.boolean_options + ['gen-compiledb']
 
     def initialize_options(self):
+        """Initialize this command's options."""
         build_ext.initialize_options(self)
         self.gen_compiledb = None
 
     def finalize_options(self):
+        """Finalize this command's options."""
         build_ext.finalize_options(self)
         if self.gen_compiledb:
             self.dry_run = True  # pylint: disable=attribute-defined-outside-init
 
     def run(self):
+        """Execute this command."""
         try:
             build_ext.run(self)
         except DistutilsPlatformError as err:
             raise BuildFailed() from err
 
     def build_extensions(self):
+        """Build the individual C/C++ extensions."""
         self._configure_compiler()
 
         for ext in self.extensions:
@@ -492,7 +493,7 @@ class BuildExt(build_ext):
 
 
 class ClangTidy(Command):
-    """A custom command to run Clang-Tidy on all C/C++ source files"""
+    """A custom command to run Clang-Tidy on all C/C++ source files."""
 
     description = 'run Clang-Tidy on all C/C++ source files'
     user_options = [('warning-as-errors', None, 'Warning as errors')]
@@ -501,12 +502,14 @@ class ClangTidy(Command):
     sub_commands = [('build_ext', None)]
 
     def initialize_options(self):
+        """Initialize this command's options."""
         self.warning_as_errors = None
 
     def finalize_options(self):
-        pass
+        """Finalize this command's options."""
 
     def run(self):
+        """Execute this command."""
         # Ideally we would use self.run_command(command) but we need to ensure
         # that --dry-run --gen-compiledb are passed to build_ext regardless of
         # other arguments
@@ -534,7 +537,7 @@ class ClangTidy(Command):
 
 
 class GenerateRequirementFile(Command):
-    """A custom command to list the dependencies of the current"""
+    """A custom command to list the dependencies of the current."""
 
     description = 'List the dependencies of the current package'
     user_options = [
@@ -545,11 +548,13 @@ class GenerateRequirementFile(Command):
     boolean_options = ['include-all-extras']
 
     def initialize_options(self):
+        """Initialize this command's options."""
         self.include_extras = None
         self.include_all_extras = None
         self.extra_pkgs = []
 
     def finalize_options(self):
+        """Finalize this command's options."""
         include_extras = self.include_extras.split(',')
 
         try:
@@ -563,6 +568,7 @@ class GenerateRequirementFile(Command):
                     self.extra_pkgs.extend(pkgs)
 
     def run(self):
+        """Execute this command."""
         with open('requirements.txt', 'w') as req_file:
             try:
                 for pkg in self.distribution.install_requires:
@@ -579,10 +585,10 @@ class GenerateRequirementFile(Command):
 
 
 class Distribution(_Distribution):
-    """Distribution class"""
+    """Distribution class."""
 
     def has_ext_modules(self):  # pylint: disable=no-self-use
-        """Return whether this distribution has some external modules"""
+        """Return whether this distribution has some external modules."""
         # We want to always claim that we have ext_modules. This will be fine
         # if we don't actually have them (such as on PyPy) because nothing
         # will get built, however we don't want to provide an overally broad
@@ -596,7 +602,7 @@ class Distribution(_Distribution):
 
 
 def run_setup(with_cext):
-    """Run the setup() function"""
+    """Run the setup() function."""
     kwargs = {}
     if with_cext:
         kwargs['ext_modules'] = ext_modules

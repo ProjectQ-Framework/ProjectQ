@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example of running a quantum circuit using the AQT APIs."""
+
 import matplotlib.pyplot as plt
 import getpass
 
@@ -13,7 +15,7 @@ import projectq.setups.aqt
 
 def run_entangle(eng, num_qubits=3):
     """
-    Runs an entangling operation on the provided compiler engine.
+    Run an entangling operation on the provided compiler engine.
 
     Args:
         eng (MainEngine): Main compiler engine to use.

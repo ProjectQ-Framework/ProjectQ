@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Compute, Uncompute, CustomUncompute.
+Define Compute, Uncompute and CustomUncompute.
 
 Contains Compute, Uncompute, and CustomUncompute classes which can be used to annotate Compute / Action / Uncompute
 sections, facilitating the conditioning of the entire operation on the value of a qubit / register (only Action needs
@@ -29,36 +29,34 @@ from ._util import insert_engine, drop_engine_after
 
 
 class QubitManagementError(Exception):
-    """Exception raised when the lifetime of a qubit is problematic within a loop"""
+    """Exception raised when the lifetime of a qubit is problematic within a loop."""
 
 
 class NoComputeSectionError(Exception):
-    """
-    Exception raised if uncompute is called but no compute section found.
-    """
+    """Exception raised if uncompute is called but no compute section found."""
 
 
 class ComputeTag:
-    """
-    Compute meta tag.
-    """
+    """Compute meta tag."""
 
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, ComputeTag)
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
 
 class UncomputeTag:
-    """
-    Uncompute meta tag.
-    """
+    """Uncompute meta tag."""
 
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, UncomputeTag)
 
     def __ne__(self, other):
+        """Not equal operator."""
         return not self.__eq__(other)
 
 
@@ -74,16 +72,11 @@ def _add_uncompute_tag(cmd):
 
 
 class ComputeEngine(BasicEngine):
-    """
-    Adds Compute-tags to all commands and stores them (to later uncompute them
-    automatically)
-    """
+    """Add Compute-tags to all commands and stores them (to later uncompute them automatically)."""
 
     def __init__(self):
-        """
-        Initialize a ComputeEngine.
-        """
         BasicEngine.__init__(self)
+        """Initialize a ComputeEngine."""
         self._l = []
         self._compute = True
         # Save all qubit ids from qubits which are created or destroyed.
@@ -99,7 +92,6 @@ class ComputeEngine(BasicEngine):
         during uncompute. If a qubit has been allocated and deallocated during compute, then a new qubit is allocated
         and deallocated during uncompute.
         """
-
         # No qubits allocated during Compute section -> do standard uncompute
         if len(self._allocated_qubit_ids) == 0:
             self.send([_add_uncompute_tag(cmd.get_inverse()) for cmd in reversed(self._l)])
@@ -217,6 +209,8 @@ class ComputeEngine(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         If in compute-mode, receive commands and store deepcopy of each cmd.  Add ComputeTag to received cmd and send
         it on. Otherwise, send all received commands directly to next_engine.
 
@@ -238,14 +232,10 @@ class ComputeEngine(BasicEngine):
 
 
 class UncomputeEngine(BasicEngine):
-    """
-    Adds Uncompute-tags to all commands.
-    """
+    """Adds Uncompute-tags to all commands."""
 
     def __init__(self):
-        """
-        Initialize a UncomputeEngine.
-        """
+        """Initialize a UncomputeEngine."""
         BasicEngine.__init__(self)
         # Save all qubit ids from qubits which are created or destroyed.
         self._allocated_qubit_ids = set()
@@ -253,6 +243,8 @@ class UncomputeEngine(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         Receive commands and add an UncomputeTag to their tags.
 
         Args:
@@ -328,10 +320,12 @@ class Compute:
         self._compute_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         self._compute_eng = ComputeEngine()
         insert_engine(self.engine, self._compute_eng)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # notify ComputeEngine that the compute section is done
         self._compute_eng.end_compute()
         self._compute_eng = None
@@ -369,6 +363,7 @@ class CustomUncompute:
         self._uncompute_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         # first, remove the compute engine
         compute_eng = self.engine.next_engine
         if not isinstance(compute_eng, ComputeEngine):
@@ -386,6 +381,7 @@ class CustomUncompute:
         insert_engine(self.engine, self._uncompute_eng)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # If an error happens in this context, qubits might not have been
         # deallocated because that code section was not yet executed,
         # so don't check and raise an additional error.
