@@ -27,6 +27,7 @@ that will be used in the backend.
 """
 
 from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
 from projectq.ops import (
     Barrier,
     H,
@@ -85,8 +86,4 @@ def get_engine_list(credentials=None, device=None):
             other_gates=(Barrier,),
         )
         return setup
-    raise RuntimeError('Unsupported device type: {}!'.format(device))  # pragma: no cover
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
+    raise DeviceNotHandledError('Unsupported device type: {}!'.format(device))  # pragma: no cover

@@ -21,12 +21,11 @@ from unittest import mock
 import pytest
 
 from projectq import MainEngine
-from projectq.backends._ionq import _ionq, _ionq_http_client
-from projectq.backends._ionq._ionq_exc import (
+from projectq.backends._exceptions import (
     InvalidCommandError,
     MidCircuitMeasurementError,
 )
-from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
+from projectq.backends._ionq import _ionq, _ionq_http_client
 from projectq.cengines import DummyEngine
 from projectq.ops import (
     CNOT,
@@ -55,6 +54,8 @@ from projectq.ops import (
     Z,
 )
 from projectq.types import WeakQubitRef
+
+from ._ionq_mapper import BoundedQubitMapper
 
 
 @pytest.fixture(scope='function')

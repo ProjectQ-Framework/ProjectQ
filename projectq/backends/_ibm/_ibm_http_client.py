@@ -29,6 +29,8 @@ import requests
 from requests import Session
 from requests.compat import urljoin
 
+from .._exceptions import DeviceOfflineError, DeviceTooSmall
+
 _AUTH_API_URL = 'https://auth.quantum-computing.ibm.com/api/users/loginWithToken'
 _API_URL = 'https://api.quantum-computing.ibm.com/api/'
 
@@ -283,14 +285,6 @@ class IBMQ(Session):
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
         raise Exception("Timeout. The ID of your submitted job is {}.".format(execution_id))
-
-
-class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit."""
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
 
 
 def show_devices(token=None, verbose=False):

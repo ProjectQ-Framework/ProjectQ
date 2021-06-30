@@ -27,6 +27,7 @@ translated in the backend in the Rx/Ry/MS gate set.
 """
 
 from projectq.backends._aqt._aqt_http_client import show_devices
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
 from projectq.cengines import BasicMapperEngine
 from projectq.ops import Barrier, Rx, Rxx, Ry
 from projectq.setups import restrictedgateset
@@ -65,11 +66,3 @@ def get_engine_list(token=None, device=None):
     setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,), other_gates=(Barrier,))
     setup.extend(aqt_setup)
     return setup
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
-
-
-class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit."""

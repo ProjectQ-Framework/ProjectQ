@@ -25,11 +25,8 @@ from copy import deepcopy
 from projectq.cengines import BasicEngine, CommandModifier
 from projectq.ops import Allocate, Deallocate
 
+from ._exceptions import QubitManagementError
 from ._util import drop_engine_after, insert_engine
-
-
-class QubitManagementError(Exception):
-    """Exception raised when the lifetime of a qubit is problematic within a loop."""
 
 
 class NoComputeSectionError(Exception):

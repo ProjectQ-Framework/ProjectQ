@@ -46,8 +46,8 @@ from projectq.ops import (
 )
 from projectq.types import WeakQubitRef
 
+from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 from . import _ionq_http_client as http_client
-from ._ionq_exc import InvalidCommandError, MidCircuitMeasurementError
 
 GATE_MAP = {
     XGate: 'x',

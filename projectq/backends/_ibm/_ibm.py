@@ -34,6 +34,7 @@ from projectq.ops import (
 )
 from projectq.types import WeakQubitRef
 
+from .._exceptions import InvalidCommandError
 from ._ibm_http_client import retrieve, send
 
 
@@ -197,7 +198,9 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
             self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
         else:
-            raise Exception('Command not authorized. You should run the circuit with the appropriate ibm setup.')
+            raise InvalidCommandError(
+                'Command not authorized. You should run the circuit with the appropriate ibm setup.'
+            )
 
     def _logical_to_physical(self, qb_id):
         """

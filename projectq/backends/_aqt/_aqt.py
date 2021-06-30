@@ -23,6 +23,7 @@ from projectq.meta import LogicalQubitIDTag, get_control_count
 from projectq.ops import Allocate, Barrier, Deallocate, FlushGate, Measure, Rx, Rxx, Ry
 from projectq.types import WeakQubitRef
 
+from .._exceptions import InvalidCommandError
 from ._aqt_http_client import retrieve, send
 
 
@@ -166,7 +167,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             return
         if gate == Barrier:
             return
-        raise Exception('Invalid command: ' + str(cmd))
+        raise InvalidCommandError('Invalid command: ' + str(cmd))
 
     def _logical_to_physical(self, qb_id):
         """

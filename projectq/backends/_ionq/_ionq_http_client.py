@@ -24,7 +24,7 @@ import requests
 from requests import Session
 from requests.compat import urljoin
 
-from ._ionq_exc import (
+from .._exceptions import (
     DeviceOfflineError,
     DeviceTooSmall,
     JobSubmissionError,

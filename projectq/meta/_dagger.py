@@ -25,11 +25,8 @@ Tools to easily invert a sequence of gates.
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
 
+from ._exceptions import QubitManagementError
 from ._util import drop_engine_after, insert_engine
-
-
-class QubitManagementError(Exception):
-    """Exception raised when the lifetime of a qubit is problematic within a loop."""
 
 
 class DaggerEngine(BasicEngine):

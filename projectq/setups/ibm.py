@@ -26,6 +26,7 @@ Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be translated in
 set.
 """
 
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
 from projectq.backends._ibm._ibm_http_client import show_devices
 from projectq.cengines import (
     BasicMapperEngine,
@@ -111,14 +112,6 @@ def get_engine_list(token=None, device=None):
     )
     setup.extend(ibm_setup)
     return setup
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
-
-
-class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit."""
 
 
 def list2set(coupling_list):

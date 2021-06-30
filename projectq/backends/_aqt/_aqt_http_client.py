@@ -23,8 +23,11 @@ import requests
 from requests import Session
 from requests.compat import urljoin
 
+from .._exceptions import DeviceOfflineError, DeviceTooSmall, RequestTimeoutError
+
 # An AQT token can be requested at:
 # https://gateway-portal.aqt.eu/
+
 
 _API_URL = 'https://gateway.aqt.eu/marmot/'
 
@@ -158,15 +161,7 @@ class AQT(Session):
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception("Timeout. The ID of your submitted job is {}.".format(execution_id))
-
-
-class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit."""
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
+        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
 
 def show_devices(verbose=False):

@@ -29,6 +29,8 @@ import time
 import boto3
 import botocore
 
+from .._exceptions import DeviceOfflineError, DeviceTooSmall, RequestTimeoutError
+
 
 class AWSBraket:
     """Manage a session between ProjectQ and AWS Braket service."""
@@ -308,19 +310,11 @@ class AWSBraket:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception(
+        raise RequestTimeoutError(
             "Timeout. "
             "The Arn of your submitted job is {} and the status "
             "of the job is {}.".format(execution_id, status)
         )
-
-
-class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit."""
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline."""
 
 
 def show_devices(credentials=None, verbose=False):
