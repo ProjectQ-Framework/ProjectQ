@@ -13,9 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Contains a backend that saves the unitary of the circuit
-"""
+"""Contain a backend that saves the unitary of a quantum circuit."""
 
 from copy import deepcopy
 import itertools
@@ -37,7 +35,7 @@ from projectq.ops import (
 
 def _qidmask(target_ids, control_ids, n_qubits):
     """
-    Calculate index masks
+    Calculate index masks.
 
     Args:
         target_ids (list): list of target qubit indices
@@ -70,8 +68,7 @@ def _qidmask(target_ids, control_ids, n_qubits):
 
 class UnitarySimulator(BasicEngine):
     """
-    The UnitarySimulator is aimed at calculating the unitary transformation that represents the current quantum circuit
-    that is being processed.
+    Simulator engine aimed at calculating the unitary transformation that represents the current quantum circuit.
 
     Note:
         The current implementation of this backend does not support the processing of any gates after a qubit
@@ -91,9 +88,7 @@ class UnitarySimulator(BasicEngine):
     """
 
     def __init__(self):
-        """
-        Construct the UnitarySimulator
-        """
+        """Initialize a UnitarySimulator object."""
         super().__init__()
         self._qubit_map = dict()
         self._unitary = [1]
@@ -119,19 +114,20 @@ class UnitarySimulator(BasicEngine):
         Access all previous unitary matrices.
 
         Returns:
-            A list where the elements are all previous unitary matrices representing the circuit,
-            separated by measurement/deallocate gates.
+            A list where the elements are all previous unitary matrices representing the circuit, separated by
+            measurement/deallocate gates.
         """
         return deepcopy(self._history)
 
     def is_available(self, cmd):
         """
+        Test whether a Command is supported by a compiler engine.
+
         Specialized implementation of is_available: The unitary simulator can deal with all arbitrarily-controlled gates
         which provide a gate-matrix (via gate.matrix).
 
         Args:
-            cmd (Command): Command for which to check availability (single-
-                qubit gate, arbitrary controls)
+            cmd (Command): Command for which to check availability (single- qubit gate, arbitrary controls)
 
         Returns:
             True if it can be simulated and False otherwise.
@@ -152,13 +148,13 @@ class UnitarySimulator(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine and handle them
-        (simulate them classically) prior to sending them on to the next
-        engine.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous engine and handle them (simulate them classically) prior to sending
+        them on to the next engine.
 
         Args:
-            command_list (list<Command>): List of commands to execute on the
-                simulator.
+            command_list (list<Command>): List of commands to execute on the simulator.
         """
         for cmd in command_list:
             self._handle(cmd)
@@ -176,7 +172,6 @@ class UnitarySimulator(BasicEngine):
         Raises:
             RuntimeError: If a measurement is performed before flush gate.
         """
-
         if isinstance(cmd.gate, AllocateQubitGate):
             self._qubit_map[cmd.qubits[0][0].id] = self._num_qubits
             self._num_qubits += 1
@@ -244,8 +239,7 @@ class UnitarySimulator(BasicEngine):
 
     def measure_qubits(self, ids):
         """
-        Measure the qubits with IDs ids and return a list of measurement
-        outcomes (True/False).
+        Measure the qubits with IDs ids and return a list of measurement outcomes (True/False).
 
         Args:
             ids (list<int>): List of qubit IDs to measure.
