@@ -219,19 +219,19 @@ class UnitarySimulator(BasicEngine):
                     "Processing of other gates after a qubit deallocation or measurement will reset the unitary,"
                     "previous unitary can be accessed in history"
                 )
-                self._unitary = np.diag([1] * (2 ** self._num_qubits)).astype(complex)
-                self._state = np.array([1] + ([0] * (2 ** self._num_qubits - 1))).astype(complex)
+                self._unitary = np.identity(2 ** self._num_qubits, dtype=complex)
+                self._state = np.array([1] + ([0] * (2 ** self._num_qubits - 1)), dtype=complex)
                 self._is_valid = True
                 self._is_flushed = False
 
-            cmd_mat = cmd.gate.matrix
-            target_ids = [self._qubit_map[qb.id] for qr in cmd.qubits for qb in qr]
-            control_ids = [self._qubit_map[qb.id] for qb in cmd.control_qubits]
-
-            mask_list = _qidmask(target_ids, control_ids, self._num_qubits)
+            mask_list = _qidmask(
+                [self._qubit_map[qb.id] for qr in cmd.qubits for qb in qr],
+                [self._qubit_map[qb.id] for qb in cmd.control_qubits],
+                self._num_qubits,
+            )
             for mask in mask_list:
-                cache = np.diag([1] * (2 ** self._num_qubits)).astype(complex)
-                cache[np.ix_(mask, mask)] = cmd_mat
+                cache = np.identity(2 ** self._num_qubits, dtype=complex)
+                cache[np.ix_(mask, mask)] = cmd.gate.matrix
                 self._unitary = cache @ self._unitary
 
     def measure_qubits(self, ids):

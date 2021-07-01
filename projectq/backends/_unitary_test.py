@@ -32,6 +32,7 @@ from projectq.ops import (
     Deallocate,
     Command,
     X,
+    Y,
     Rx,
     Rxx,
     H,
@@ -97,27 +98,58 @@ def test_unitary_after_deallocation_or_measurement():
     eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
     qubit = eng.allocate_qubit()
     X | qubit
+
+    assert not eng.backend.history
+
     eng.flush()
     Measure | qubit
 
+    assert len(eng.backend.history) == 1
+    assert np.allclose(eng.backend.unitary, X.matrix)
+    assert np.allclose(eng.backend.history[0], X.matrix)
+
     with pytest.warns(UserWarning):
-        X | qubit
+        Y | qubit
+
+    assert len(eng.backend.history) == 1
+    assert np.allclose(eng.backend.unitary, Y.matrix)  # Reset of unitary when applying Y above
+    assert np.allclose(eng.backend.history[0], X.matrix)
 
     # Still ok
     eng.flush()
     Measure | qubit
+
+    assert len(eng.backend.history) == 2
+    assert np.allclose(eng.backend.unitary, Y.matrix)
+    assert np.allclose(eng.backend.history[0], X.matrix)
+    assert np.allclose(eng.backend.history[1], Y.matrix)
+
+    # --------------------------------------------------------------------------
 
     eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
     qureg = eng.allocate_qureg(2)
     All(X) | qureg
+
+    assert not eng.backend.history
+    assert np.allclose(eng.backend.unitary, np.kron(X.matrix, X.matrix))
+
     eng.deallocate_qubit(qureg[0])
+
+    assert not eng.backend.history
 
     with pytest.warns(UserWarning):
         X | qureg[1]
 
+    assert not eng.backend.history
+    assert np.allclose(eng.backend.unitary, X.matrix)
+
     # Still ok
     eng.flush()
     Measure | qureg[1]
+
+    assert len(eng.backend.history) == 1
+    assert np.allclose(eng.backend.unitary, X.matrix)
+    assert np.allclose(eng.backend.history[0], X.matrix)
 
 
 def test_unitary_simulator():
