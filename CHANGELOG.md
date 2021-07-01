@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UnitarySimulator backend for computing unitary of circuit.
+- UnitarySimulator backend for computing the unitary transformation corresponding to a quantum circuit.
 
 ### Changed
 ### Deprecated
