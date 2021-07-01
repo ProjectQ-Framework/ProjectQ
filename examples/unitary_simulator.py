@@ -22,7 +22,7 @@ import numpy as np
 from projectq.backends import UnitarySimulator
 from projectq.cengines import MainEngine
 from projectq.meta import Control
-from projectq.ops import All, X, QFT, Measure, CtrlAll
+from projectq.ops import QFT, All, CtrlAll, Measure, X
 
 
 def run_circuit(eng, n_qubits, circuit_num, gate_after_measure=False):

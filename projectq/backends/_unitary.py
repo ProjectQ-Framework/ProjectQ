@@ -15,22 +15,18 @@
 
 """Contain a backend that saves the unitary of a quantum circuit."""
 
-from copy import deepcopy
 import itertools
 import math
-import warnings
 import random
+import warnings
+from copy import deepcopy
+
 import numpy as np
 
 from projectq.cengines import BasicEngine
+from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
+from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, MeasureGate
 from projectq.types import WeakQubitRef
-from projectq.meta import has_negative_control, get_control_count, LogicalQubitIDTag
-from projectq.ops import (
-    AllocateQubitGate,
-    DeallocateQubitGate,
-    MeasureGate,
-    FlushGate,
-)
 
 
 def _qidmask(target_ids, control_ids, n_qubits):
