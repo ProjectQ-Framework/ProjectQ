@@ -36,3 +36,4 @@ from ._ibm import IBMBackend
 from ._aqt import AQTBackend
 from ._awsbraket import AWSBraketBackend
 from ._ionq import IonQBackend
+from ._unitary import UnitarySimulator
