@@ -37,3 +37,4 @@ from ._ionq import IonQBackend
 from ._printer import CommandPrinter
 from ._resource import ResourceCounter
 from ._sim import ClassicalSimulator, Simulator
+from ._unitary import UnitarySimulator
