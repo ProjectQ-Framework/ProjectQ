@@ -14,6 +14,9 @@
 #   limitations under the License.
 # pylint: skip-file
 
+"""Example of using the UnitarySimulator."""
+
+
 import numpy as np
 
 from projectq.backends import UnitarySimulator
@@ -23,6 +26,7 @@ from projectq.ops import All, X, QFT, Measure, CtrlAll
 
 
 def run_circuit(eng, n_qubits, circuit_num, gate_after_measure=False):
+    """Run a quantum circuit demonstrating the capabilities of the UnitarySimulator."""
     qureg = eng.allocate_qureg(n_qubits)
 
     if circuit_num == 1:
@@ -46,7 +50,8 @@ def run_circuit(eng, n_qubits, circuit_num, gate_after_measure=False):
     All(Measure) | qureg
 
 
-if __name__ == '__main__':
+def main():
+    """Definition of the main function of this example."""
     # Create a MainEngine with a unitary simulator backend
     eng = MainEngine(backend=UnitarySimulator())
 
@@ -71,3 +76,7 @@ if __name__ == '__main__':
     # Show the unitaries separated by measurement:
     for history in eng.backend.history:
         print('Previous unitary is: \n', history, '\n')
+
+
+if __name__ == '__main__':
+    main()
