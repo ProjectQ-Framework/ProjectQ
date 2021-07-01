@@ -162,7 +162,7 @@ class UnitarySimulator(BasicEngine):
         if not self.is_last_engine:
             self.send(command_list)
 
-    def _handle(self, cmd):  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+    def _handle(self, cmd):
         """
         Handle all commands.
 
@@ -196,20 +196,17 @@ class UnitarySimulator(BasicEngine):
 
             if get_control_count(cmd) != 0:
                 raise ValueError('Cannot have control qubits with a measurement gate!')
-            ids = [qb.id for qr in cmd.qubits for qb in qr]
-            out = self.measure_qubits(ids)
-            i = 0
-            for qureg in cmd.qubits:
-                for qb in qureg:
-                    # Check if a mapper assigned a different logical id
-                    logical_id_tag = None
-                    for tag in cmd.tags:
-                        if isinstance(tag, LogicalQubitIDTag):
-                            logical_id_tag = tag
-                    if logical_id_tag is not None:
-                        qb = WeakQubitRef(qb.engine, logical_id_tag.logical_qubit_id)
-                    self.main_engine.set_measurement_result(qb, out[i])
-                    i += 1
+
+            all_qubits = [qb for qr in cmd.qubits for qb in qr]
+            measurements = self.measure_qubits([qb.id for qb in all_qubits])
+
+            for qb, res in zip(all_qubits, measurements):
+                # Check if a mapper assigned a different logical id
+                for tag in cmd.tags:
+                    if isinstance(tag, LogicalQubitIDTag):
+                        qb = WeakQubitRef(qb.engine, tag.logical_qubit_id)
+                        break
+                self.main_engine.set_measurement_result(qb, res)
 
         elif isinstance(cmd.gate, FlushGate):
             self._is_flushed = True
