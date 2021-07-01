@@ -94,6 +94,35 @@ def test_unitary_not_last_engine():
     assert len(eng.backend.received_commands) == 4
 
 
+def test_unitary_flush_does_not_invalidate():
+    eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
+    qureg = eng.allocate_qureg(2)
+
+    X | qureg[0]
+    eng.flush()
+
+    Y | qureg[1]
+    eng.flush()
+
+    # Make sure that calling flush() multiple time is ok (before measurements)
+    eng.flush()
+    eng.flush()
+
+    # Nothing should be added to the history here since no measurements or qubit deallocation happened
+    assert not eng.backend.history
+    assert np.allclose(eng.backend.unitary, np.kron(Y.matrix, X.matrix))
+
+    All(Measure) | qureg
+
+    # Make sure that calling flush() multiple time is ok (after measurement)
+    eng.flush()
+    eng.flush()
+
+    # Nothing should be added to the history here since no gate since measurements or qubit deallocation happened
+    assert not eng.backend.history
+    assert np.allclose(eng.backend.unitary, np.kron(Y.matrix, X.matrix))
+
+
 def test_unitary_after_deallocation_or_measurement():
     eng = MainEngine(backend=UnitarySimulator(), engine_list=[])
     qubit = eng.allocate_qubit()
@@ -104,13 +133,14 @@ def test_unitary_after_deallocation_or_measurement():
     eng.flush()
     Measure | qubit
 
-    assert len(eng.backend.history) == 1
+    # FlushGate and MeasureGate do not append to the history
+    assert not eng.backend.history
     assert np.allclose(eng.backend.unitary, X.matrix)
-    assert np.allclose(eng.backend.history[0], X.matrix)
 
     with pytest.warns(UserWarning):
         Y | qubit
 
+    # YGate after FlushGate and MeasureGate does not append current unitary (identity) to the history
     assert len(eng.backend.history) == 1
     assert np.allclose(eng.backend.unitary, Y.matrix)  # Reset of unitary when applying Y above
     assert np.allclose(eng.backend.history[0], X.matrix)
@@ -119,8 +149,16 @@ def test_unitary_after_deallocation_or_measurement():
     eng.flush()
     Measure | qubit
 
-    assert len(eng.backend.history) == 2
+    # FlushGate and MeasureGate do not append to the history
+    assert len(eng.backend.history) == 1
     assert np.allclose(eng.backend.unitary, Y.matrix)
+    assert np.allclose(eng.backend.history[0], X.matrix)
+
+    # Make sure that the new gate will trigger appending to the history and modify the current unitary
+    with pytest.warns(UserWarning):
+        Rx(1) | qubit
+    assert len(eng.backend.history) == 2
+    assert np.allclose(eng.backend.unitary, Rx(1).matrix)
     assert np.allclose(eng.backend.history[0], X.matrix)
     assert np.allclose(eng.backend.history[1], Y.matrix)
 
@@ -130,26 +168,32 @@ def test_unitary_after_deallocation_or_measurement():
     qureg = eng.allocate_qureg(2)
     All(X) | qureg
 
+    XX_matrix = np.kron(X.matrix, X.matrix)
     assert not eng.backend.history
-    assert np.allclose(eng.backend.unitary, np.kron(X.matrix, X.matrix))
+    assert np.allclose(eng.backend.unitary, XX_matrix)
 
     eng.deallocate_qubit(qureg[0])
 
     assert not eng.backend.history
 
     with pytest.warns(UserWarning):
-        X | qureg[1]
+        Y | qureg[1]
 
-    assert not eng.backend.history
-    assert np.allclose(eng.backend.unitary, X.matrix)
+    # An internal call to flush() happens automatically since the X
+    # gate occurs as the simulator is in an invalid state (after qubit
+    # deallocation)
+    assert len(eng.backend.history) == 1
+    assert np.allclose(eng.backend.history[0], XX_matrix)
+    assert np.allclose(eng.backend.unitary, Y.matrix)
 
     # Still ok
     eng.flush()
     Measure | qureg[1]
 
+    # Nothing should have changed
     assert len(eng.backend.history) == 1
-    assert np.allclose(eng.backend.unitary, X.matrix)
-    assert np.allclose(eng.backend.history[0], X.matrix)
+    assert np.allclose(eng.backend.history[0], XX_matrix)
+    assert np.allclose(eng.backend.unitary, Y.matrix)
 
 
 def test_unitary_simulator():
