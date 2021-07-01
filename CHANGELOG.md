@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Repository
 
--   Added flake8-docstrings to the flake8 checks to ensure PEP257 compliance for docstrings
+-   Added `isort` to the list of pre-commit hooks
+-   Added `flake8-docstrings` to the flake8 checks to ensure PEP257 compliance for docstrings
 
 ## [0.6.1] - 2021-06-23
 
