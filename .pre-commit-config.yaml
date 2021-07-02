@@ -56,12 +56,11 @@ repos:
   hooks:
     - id: flake8
       name: flake8-strict
-      exclude: ^(docs/.*|tools/.*|.*_test\.py)$
+      exclude: ^(.*_test\.py)$
       additional_dependencies: [flake8-docstrings]
     - id: flake8
       name: flake8-test-files
       files: ^(.*_test\.py)$
-      exclude: ^(docs/.*|tools/.*|)$
 
 - repo: https://github.com/pre-commit/mirrors-pylint
   rev: 'v3.0.0a3'
