@@ -108,9 +108,9 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
         n_qubits = len(qubit_lines)
         drawing_order = {qubit_id: n_qubits - qubit_id - 1 for qubit_id in list(qubit_lines)}
     else:
-        if list(drawing_order) != list(qubit_lines):
+        if set(drawing_order) != set(qubit_lines):
             raise RuntimeError('Qubit IDs in drawing_order do not match ' + 'qubit IDs in qubit_lines!')
-        if sorted(drawing_order.values()) != list(range(len(drawing_order))):
+        if set(drawing_order.values()) != set(range(len(drawing_order))):
             raise RuntimeError(
                 'Indices of qubit wires in drawing_order must be between 0 and {}!'.format(len(drawing_order))
             )
