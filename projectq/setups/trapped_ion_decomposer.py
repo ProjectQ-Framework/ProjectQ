@@ -42,7 +42,7 @@ from projectq.setups import restrictedgateset
 #   1 then the last gate applied (during a decomposition!) was Ry(+math.pi/2)
 #   0 then the last gate applied (during a decomposition!) was a Rx
 
-prev_Ry_sign = dict()  # Keeps track of most recent Ry sign, i.e.
+prev_Ry_sign = {}  # Keeps track of most recent Ry sign, i.e.
 #                        whether we had Ry(-pi/2) or Ry(pi/2)
 #                        prev_Ry_sign[qubit_index] should hold -1 or
 #                        +1
@@ -62,7 +62,7 @@ def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name
     Returns:
         A decomposition object from the decomposition_list.
     """
-    decomp_rule = dict()
+    decomp_rule = {}
     name = 'default'
 
     for decomp in decomposition_list:
@@ -78,7 +78,7 @@ def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name
         except IndexError:
             pass
 
-    local_prev_Ry_sign = prev_Ry_sign.setdefault(cmd.engine, dict())  # pylint: disable=invalid-name
+    local_prev_Ry_sign = prev_Ry_sign.setdefault(cmd.engine, {})  # pylint: disable=invalid-name
 
     if name == 'cnot2rxx':
         ctrl_id = cmd.control_qubits[0].id

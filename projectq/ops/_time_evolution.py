@@ -182,8 +182,8 @@ class TimeEvolution(BasicGate):
         # create new TimeEvolution gate with rescaled qubit indices in
         # self.hamiltonian which are ordered from
         # 0,...,len(non_trivial_qubits) - 1
-        new_index = dict()
-        non_trivial_qubits = sorted(list(non_trivial_qubits))
+        new_index = {}
+        non_trivial_qubits = sorted(non_trivial_qubits)
         for i, qubit in enumerate(non_trivial_qubits):
             new_index[qubit] = i
         new_hamiltonian = QubitOperator()

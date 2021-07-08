@@ -71,21 +71,19 @@ def test_send_real_device_online_verbose(monkeypatch):
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url) and (request_num[0] == 1 or request_num[0] == 6):
             request_num[0] += 1
-            connections = set(
-                [
-                    (0, 1),
-                    (1, 0),
-                    (1, 2),
-                    (1, 3),
-                    (1, 4),
-                    (2, 1),
-                    (2, 3),
-                    (2, 4),
-                    (3, 1),
-                    (3, 4),
-                    (4, 3),
-                ]
-            )
+            connections = {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            }
             return MockResponse(
                 [
                     {
@@ -334,21 +332,19 @@ def test_show_device(monkeypatch):
         # Accessing status of device. Return online.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
-            connections = set(
-                [
-                    (0, 1),
-                    (1, 0),
-                    (1, 2),
-                    (1, 3),
-                    (1, 4),
-                    (2, 1),
-                    (2, 3),
-                    (2, 4),
-                    (3, 1),
-                    (3, 4),
-                    (4, 3),
-                ]
-            )
+            connections = {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            }
             return MockResponse(
                 [
                     {
@@ -532,21 +528,19 @@ def test_timeout_exception(monkeypatch):
         # Accessing status of device. Return device info.
         status_url = 'Network/ibm-q/Groups/open/Projects/main/devices/v/1'
         if args[1] == urljoin(_API_URL, status_url):
-            connections = set(
-                [
-                    (0, 1),
-                    (1, 0),
-                    (1, 2),
-                    (1, 3),
-                    (1, 4),
-                    (2, 1),
-                    (2, 3),
-                    (2, 4),
-                    (3, 1),
-                    (3, 4),
-                    (4, 3),
-                ]
-            )
+            connections = {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            }
             return MockResponse(
                 [
                     {

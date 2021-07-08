@@ -318,8 +318,8 @@ class QubitOperator(BasicGate):
             return
         # Create new QubitOperator gate with rescaled qubit indices in
         # 0,..., len(non_trivial_qubits) - 1
-        new_index = dict()
-        non_trivial_qubits = sorted(list(non_trivial_qubits))
+        new_index = {}
+        non_trivial_qubits = sorted(non_trivial_qubits)
         for i, qubit in enumerate(non_trivial_qubits):
             new_index[qubit] = i
         new_qubitoperator = QubitOperator()
@@ -373,7 +373,7 @@ class QubitOperator(BasicGate):
 
         # Handle QubitOperator.
         if isinstance(multiplier, QubitOperator):  # pylint: disable=too-many-nested-blocks
-            result_terms = dict()
+            result_terms = {}
             for left_term in self.terms:
                 for right_term in multiplier.terms:
                     new_coefficient = self.terms[left_term] * multiplier.terms[right_term]

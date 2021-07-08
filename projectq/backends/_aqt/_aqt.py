@@ -91,7 +91,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         self._token = token
         self._num_retries = num_retries
         self._interval = interval
-        self._probabilities = dict()
+        self._probabilities = {}
         self._circuit = []
         self._mapper = []
         self._measured_ids = []
@@ -129,7 +129,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             cmd: Command to store
         """
         if self._clear:
-            self._probabilities = dict()
+            self._probabilities = {}
             self._clear = False
             self._circuit = []
             self._allocated_qubits = set()
@@ -221,7 +221,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
 
-        probability_dict = dict()
+        probability_dict = {}
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):

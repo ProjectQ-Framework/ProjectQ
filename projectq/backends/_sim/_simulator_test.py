@@ -104,7 +104,7 @@ def mapper(request):
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
                 super().__init__()
-                self.current_mapping = dict()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:
@@ -780,7 +780,6 @@ def test_simulator_constant_math_emulation():
     _sim.FALLBACK_TO_PYSIM = True
     pysim = Simulator()
     pysim._simulator = PySim(1)
-    # run_simulation(pysim)
 
     for result in results:
         ref = result[0]

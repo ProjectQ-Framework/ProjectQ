@@ -121,7 +121,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__()
         self.active_qubits = weakref.WeakSet()
-        self._measurements = dict()
+        self._measurements = {}
         self.dirty_qubits = set()
         self.verbose = verbose
         self.main_engine = self
@@ -172,7 +172,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         engine_list = engine_list + [backend]
 
         # Test that user did not supply twice the same engine instance
-        num_different_engines = len(set(id(item) for item in engine_list))
+        num_different_engines = len({id(item) for item in engine_list})
         if len(engine_list) != num_different_engines:
             self.next_engine = _ErrorEngine()
             raise UnsupportedEngineError(

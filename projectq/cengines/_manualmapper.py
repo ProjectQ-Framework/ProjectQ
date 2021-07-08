@@ -37,7 +37,7 @@ class ManualMapper(BasicMapperEngine):
         """
         super().__init__()
         self.map = map_fun
-        self.current_mapping = dict()
+        self.current_mapping = {}
 
     def receive(self, command_list):
         """

@@ -153,7 +153,7 @@ def test_decompose_individual_terms_invalid():
     qb1 = WeakQubitRef(eng, idx=1)
     op1 = QubitOperator("X0 Y1", 0.5)
     op2 = op1 + QubitOperator("Y2 X4", -0.5)
-    op3 = QubitOperator(tuple(), 0.5)
+    op3 = QubitOperator((), 0.5)
     op4 = QubitOperator("X0 Y0", 0.5)
 
     with pytest.raises(ValueError):

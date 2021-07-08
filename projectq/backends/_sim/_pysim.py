@@ -48,7 +48,7 @@ class Simulator:
         """
         random.seed(rnd_seed)
         self._state = _np.ones(1, dtype=_np.complex128)
-        self._map = dict()
+        self._map = {}
         self._num_qubits = 0
         print("(Note: This is the (slow) Python simulator.)")
 
@@ -163,7 +163,7 @@ class Simulator:
             newstate[k : k + (1 << pos)] = self._state[i : i + (1 << pos)]  # noqa: E203
             k += 1 << pos
 
-        newmap = dict()
+        newmap = {}
         for key, value in self._map.items():
             if value > pos:
                 newmap[key] = value - 1

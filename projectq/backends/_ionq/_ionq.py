@@ -123,7 +123,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         self._interval = interval
         self._circuit = []
         self._measured_ids = []
-        self._probabilities = dict()
+        self._probabilities = {}
         self._retrieve_execution = retrieve_execution
         self._clear = True
 
@@ -183,7 +183,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         if self._clear:
             self._measured_ids = []
-            self._probabilities = dict()
+            self._probabilities = {}
             self._clear = False
 
         # No-op/Meta gates.

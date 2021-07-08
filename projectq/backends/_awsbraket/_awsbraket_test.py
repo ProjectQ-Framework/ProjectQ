@@ -84,7 +84,7 @@ def mapper(request):
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
                 super().__init__()
-                self.current_mapping = dict()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:
@@ -488,7 +488,7 @@ def test_awsbraket_retrieve(mocker, retrieve_setup):
     backend = _awsbraket.AWSBraketBackend(retrieve_execution=arntask, credentials=creds, num_retries=2, verbose=True)
 
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res

@@ -43,7 +43,7 @@ class LocalOptimizer(BasicEngine):
             cache_size (int): Number of gates to cache per qubit, before sending on the first gate.
         """
         super().__init__()
-        self._l = dict()  # dict of lists containing operations for each qubit
+        self._l = {}  # dict of lists containing operations for each qubit
 
         if m:
             warnings.warn(
@@ -211,7 +211,7 @@ class LocalOptimizer(BasicEngine):
                     self._send_qubit_pipeline(i, len(self._l[i]) - self._cache_size + 1)
                 elif len(self._l[i]) > 0 and isinstance(self._l[i][-1].gate, FastForwardingGate):
                     self._send_qubit_pipeline(i, len(self._l[i]))
-        new_dict = dict()
+        new_dict = {}
         for idx in self._l:
             if len(self._l[idx]) > 0:
                 new_dict[idx] = self._l[idx]
@@ -242,12 +242,12 @@ class LocalOptimizer(BasicEngine):
                 for idx in self._l:
                     self._optimize(idx)
                     self._send_qubit_pipeline(idx, len(self._l[idx]))
-                new_dict = dict()
+                new_dict = {}
                 for idx in self._l:
                     if len(self._l[idx]) > 0:  # pragma: no cover
                         new_dict[idx] = self._l[idx]
                 self._l = new_dict
-                if self._l != dict():  # pragma: no cover
+                if self._l != {}:  # pragma: no cover
                     raise RuntimeError('Internal compiler error: qubits remaining in LocalOptimizer after a flush!')
                 self.send([cmd])
             else:

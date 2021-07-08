@@ -40,7 +40,7 @@ class IonQ(Session):
     def __init__(self, verbose=False):
         """Initialize an session with IonQ's APIs."""
         super().__init__()
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
         self.token = None
         self._verbose = verbose

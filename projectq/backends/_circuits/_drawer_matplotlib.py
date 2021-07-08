@@ -68,7 +68,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
-        self._map = dict()
+        self._map = {}
         self._qubit_lines = {}
 
     def is_available(self, cmd):

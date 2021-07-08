@@ -51,7 +51,7 @@ class ResourceCounter(BasicEngine):
         self._active_qubits = 0
         self.max_width = 0
         # key: qubit id, depth of this qubit
-        self._depth_of_qubit = dict()
+        self._depth_of_qubit = {}
         self._previous_max_depth = 0
 
     def is_available(self, cmd):
@@ -155,9 +155,9 @@ class ResourceCounter(BasicEngine):
 
             return (
                 "Gate class counts:\n    "
-                + "\n    ".join(list(sorted(gate_class_list)))
+                + "\n    ".join(sorted(gate_class_list))
                 + "\n\nGate counts:\n    "
-                + "\n    ".join(list(sorted(gate_list)))
+                + "\n    ".join(sorted(gate_list))
                 + "\n\nMax. width (number of qubits) : "
                 + str(self.max_width)
                 + "."

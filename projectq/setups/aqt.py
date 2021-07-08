@@ -50,7 +50,7 @@ def get_engine_list(token=None, device=None):
         # Note: Manual Mapper doesn't work, because its map is updated only if
         # gates are applied if gates in the register are not used, then it
         # will lead to state errors
-        res = dict()
+        res = {}
         for i in range(devices[device]['nq']):
             res[i] = i
         mapper.current_mapping = res

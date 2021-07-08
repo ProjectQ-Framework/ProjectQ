@@ -72,7 +72,7 @@ def test_swapandcnotflipper_is_available():
 
 def test_swapandcnotflipper_flips_cnot():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 1)])
+    connectivity = {(0, 1)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -91,7 +91,7 @@ def test_swapandcnotflipper_flips_cnot():
 
 def test_swapandcnotflipper_invalid_circuit():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 2)])
+    connectivity = {(0, 2)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -107,7 +107,7 @@ def test_swapandcnotflipper_invalid_circuit():
 
 def test_swapandcnotflipper_optimize_swaps():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(1, 0)])
+    connectivity = {(1, 0)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -123,7 +123,7 @@ def test_swapandcnotflipper_optimize_swaps():
     assert hgates == 4
 
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 1)])
+    connectivity = {(0, 1)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -141,7 +141,7 @@ def test_swapandcnotflipper_optimize_swaps():
 
 def test_swapandcnotflipper_keeps_tags():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(1, 0)])
+    connectivity = {(1, 0)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()

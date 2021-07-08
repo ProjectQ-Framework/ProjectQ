@@ -114,7 +114,7 @@ class ComputeEngine(BasicEngine):
             return
         # There was at least one qubit allocated and deallocated within
         # compute section. Handle uncompute in most general case
-        new_local_id = dict()
+        new_local_id = {}
         for cmd in reversed(self._l):
             if cmd.gate == Deallocate:
                 if not cmd.qubits[0][0].id in ids_local_to_compute:  # pragma: no cover

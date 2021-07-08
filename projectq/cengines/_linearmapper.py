@@ -48,7 +48,7 @@ def return_swap_depth(swaps):
     Returns:
         Circuit depth to execute these swaps.
     """
-    depth_of_qubits = dict()
+    depth_of_qubits = {}
     for qb0_id, qb1_id in swaps:
         if qb0_id not in depth_of_qubits:
             depth_of_qubits[qb0_id] = 0
@@ -99,15 +99,15 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         self.cyclic = cyclic
         self.storage = storage
         # Storing commands
-        self._stored_commands = list()
+        self._stored_commands = []
         # Logical qubit ids for which the Allocate gate has already been
         # processed and sent to the next engine but which are not yet
         # deallocated:
         self._currently_allocated_ids = set()
         # Statistics:
         self.num_mappings = 0
-        self.depth_of_swaps = dict()
-        self.num_of_swaps_per_mapping = dict()
+        self.depth_of_swaps = {}
+        self.num_of_swaps_per_mapping = {}
 
     def is_available(self, cmd):
         """Only allows 1 or two qubit gates."""
@@ -148,7 +148,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         segments = []
         # neighbour_ids only used to speedup the lookup process if qubits
         # are already connected. key: qubit_id, value: set of neighbour ids
-        neighbour_ids = dict()
+        neighbour_ids = {}
         for qubit_id in active_qubits:
             neighbour_ids[qubit_id] = set()
 
@@ -391,7 +391,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
             current_position_to_fill += best_padding + len(best_segment)
             num_unused_qubits -= best_padding
         # Create mapping
-        new_mapping = dict()
+        new_mapping = {}
         for pos, logical_id in enumerate(new_chain):
             if logical_id is not None:
                 new_mapping[logical_id] = pos
@@ -529,7 +529,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         """
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
-            self.current_mapping = dict()
+            self.current_mapping = {}
         else:
             self._send_possible_commands()
             if len(self._stored_commands) == 0:

@@ -37,7 +37,7 @@ class BoundedQubitMapper(BasicMapperEngine):
     def _process_cmd(self, cmd):
         current_mapping = self.current_mapping
         if current_mapping is None:
-            current_mapping = dict()
+            current_mapping = {}
 
         if isinstance(cmd.gate, AllocateQubitGate):
             qubit_id = cmd.qubits[0][0].id

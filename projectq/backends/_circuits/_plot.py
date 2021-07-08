@@ -45,19 +45,19 @@ from matplotlib.patches import Arc, Circle, Rectangle
 #   - x_offset
 #
 # The rest have misc. units (as defined by matplotlib)
-_DEFAULT_PLOT_PARAMS = dict(
-    fontsize=14.0,
-    column_spacing=0.5,
-    control_radius=0.015,
-    labels_margin=1,
-    linewidth=1.0,
-    not_radius=0.03,
-    gate_offset=0.05,
-    mgate_width=0.1,
-    swap_delta=0.02,
-    x_offset=0.05,
-    wire_height=1,
-)
+_DEFAULT_PLOT_PARAMS = {
+    'fontsize': 14.0,
+    'column_spacing': 0.5,
+    'control_radius': 0.015,
+    'labels_margin': 1,
+    'linewidth': 1.0,
+    'not_radius': 0.03,
+    'gate_offset': 0.05,
+    'mgate_width': 0.1,
+    'swap_delta': 0.02,
+    'x_offset': 0.05,
+    'wire_height': 1,
+}
 
 # ==============================================================================
 
@@ -110,7 +110,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
     else:
         if list(drawing_order) != list(qubit_lines):
             raise RuntimeError('Qubit IDs in drawing_order do not match ' + 'qubit IDs in qubit_lines!')
-        if list(sorted(drawing_order.values())) != list(range(len(drawing_order))):
+        if sorted(drawing_order.values()) != list(range(len(drawing_order))):
             raise RuntimeError(
                 'Indices of qubit wires in drawing_order must be between 0 and {}!'.format(len(drawing_order))
             )
@@ -179,7 +179,7 @@ def gate_width(axes, gate_str, plot_params):
         0,
         gate_str,
         visible=True,
-        bbox=dict(edgecolor='k', facecolor='w', fill=True, lw=1.0),
+        bbox={'edgecolor': 'k', 'facecolor': 'w', 'fill': True, 'lw': 1.0},
         fontsize=14,
     )
     obj.figure.canvas.draw()

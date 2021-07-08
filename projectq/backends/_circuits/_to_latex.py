@@ -109,7 +109,7 @@ def get_default_settings():
     Returns:
         settings (dict): Default circuit settings
     """
-    settings = dict()
+    settings = {}
     settings['gate_shadow'] = True
     settings['lines'] = {
         'style': 'very thin',

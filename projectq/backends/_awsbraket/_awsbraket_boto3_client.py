@@ -37,9 +37,9 @@ class AWSBraket:
 
     def __init__(self):
         """Initialize a session with the AWS Braket Web APIs."""
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
-        self._credentials = dict()
+        self._credentials = {}
         self._s3_folder = []
 
     def authenticate(self, credentials=None):
@@ -82,7 +82,7 @@ class AWSBraket:
                    version 'version', because it seems that no device version is available by now
         """
         # TODO: refresh region_names if more regions get devices available
-        self.backends = dict()
+        self.backends = {}
         region_names = ['us-west-1', 'us-east-1']
         for region in region_names:
             client = boto3.client(
@@ -239,7 +239,7 @@ class AWSBraket:
                 measurementsProbabilities (dict): The measurements with their probabilities
             """
             total_mes = len(measurements)
-            unique_mes = [list(x) for x in set(tuple(x) for x in measurements)]
+            unique_mes = [list(x) for x in {tuple(x) for x in measurements}]
             total_unique_mes = len(unique_mes)
             len_qubits = len(unique_mes[0])
             measurements_probabilities = {}

@@ -101,7 +101,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
         self._s3_folder = s3_folder
         self._num_retries = num_retries
         self._interval = interval
-        self._probabilities = dict()
+        self._probabilities = {}
         self._circuit = ""
         self._measured_ids = []
         self._allocated_qubits = set()
@@ -272,7 +272,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
         )
 
         if self._clear:
-            self._probabilities = dict()
+            self._probabilities = {}
             self._clear = False
             self._circuit = ""
             self._allocated_qubits = set()
@@ -371,7 +371,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
 
-        probability_dict = dict()
+        probability_dict = {}
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):

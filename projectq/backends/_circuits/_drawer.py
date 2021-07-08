@@ -143,9 +143,9 @@ class CircuitDrawer(BasicEngine):
         super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
-        self._qubit_lines = dict()
+        self._qubit_lines = {}
         self._free_lines = []
-        self._map = dict()
+        self._map = {}
 
         # Order in which qubit lines are drawn
         self._drawing_order = []
@@ -263,7 +263,7 @@ class CircuitDrawer(BasicEngine):
             ordered(bool): flag if the gates should be drawn in the order they were added to the circuit
             draw_gates_in_parallel(bool): flag if parallel gates should be drawn parallel (True), or not (False)
         """
-        qubit_lines = dict()
+        qubit_lines = {}
 
         for line in range(len(self._qubit_lines)):
             new_line = self._map[line]

@@ -203,7 +203,7 @@ def test_aqt_backend_functional_test(monkeypatch):
         backend.get_probabilities([])
 
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res

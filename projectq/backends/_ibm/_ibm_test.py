@@ -123,7 +123,7 @@ def test_ibm_sent_error(monkeypatch):
     monkeypatch.setattr(_ibm, "send", mock_send)
     backend = _ibm.IBMBackend(verbose=True)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -142,7 +142,7 @@ def test_ibm_sent_error(monkeypatch):
 def test_ibm_sent_error_2(monkeypatch):
     backend = _ibm.IBMBackend(verbose=True)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -220,7 +220,7 @@ def test_ibm_retrieve(monkeypatch):
     monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
     backend = _ibm.IBMBackend(retrieve_execution="ab1s2", num_runs=1000)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -341,7 +341,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res

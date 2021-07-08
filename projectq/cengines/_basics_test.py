@@ -111,15 +111,13 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     # Test uniqueness of ids
     assert (
         len(
-            set(
-                [
-                    qubit[0].id,
-                    not_dirty_qubit[0].id,
-                    dirty_qubit[0].id,
-                    qureg[0].id,
-                    qureg[1].id,
-                ]
-            )
+            {
+                qubit[0].id,
+                not_dirty_qubit[0].id,
+                dirty_qubit[0].id,
+                qureg[0].id,
+                qureg[1].id,
+            }
         )
         == 5
     )

@@ -72,7 +72,7 @@ class LoopEngine(BasicEngine):
         #      and deallocated within the loop body.
         # value: list contain reference to each weakref qubit with this qubit
         #        id either within control_qubits or qubits.
-        self._refs_to_local_qb = dict()
+        self._refs_to_local_qb = {}
         self._next_engines_support_loop_tag = False
 
     def run(self):

@@ -124,10 +124,10 @@ def test_return_new_mapping(different_backend_ids):
     assert new_mapping == possible_solution_1 or new_mapping == possible_solution_2
     eng.flush()
     if different_backend_ids:
-        transformed_sol1 = dict()
+        transformed_sol1 = {}
         for logical_id, mapped_id in possible_solution_1.items():
             transformed_sol1[logical_id] = map_to_backend_ids[mapped_id]
-        transformed_sol2 = dict()
+        transformed_sol2 = {}
         for logical_id, mapped_id in possible_solution_2.items():
             transformed_sol2[logical_id] = map_to_backend_ids[mapped_id]
         assert mapper.current_mapping == transformed_sol1 or mapper.current_mapping == transformed_sol2
@@ -152,8 +152,8 @@ def test_return_swaps_random(num_rows, num_columns, seed, none_old, none_new):
     num_qubits = num_rows * num_columns
     old_chain = random.sample(range(num_qubits), num_qubits)
     new_chain = random.sample(range(num_qubits), num_qubits)
-    old_mapping = dict()
-    new_mapping = dict()
+    old_mapping = {}
+    new_mapping = {}
     for i in range(num_qubits):
         old_mapping[old_chain[i]] = i
         new_mapping[new_chain[i]] = i
@@ -251,9 +251,9 @@ def test_send_possible_commands_allocate(different_backend_ids):
     qb0 = WeakQubitRef(engine=None, idx=0)
     cmd0 = Command(engine=None, gate=Allocate, qubits=([qb0],), controls=[], tags=[])
     mapper._stored_commands = [cmd0]
-    mapper._currently_allocated_ids = set([10])
+    mapper._currently_allocated_ids = {10}
     # not in mapping:
-    mapper.current_mapping = dict()
+    mapper.current_mapping = {}
     assert len(backend.received_commands) == 0
     mapper._send_possible_commands()
     assert len(backend.received_commands) == 0
@@ -272,7 +272,7 @@ def test_send_possible_commands_allocate(different_backend_ids):
         tags=[LogicalQubitIDTag(0)],
     )
     assert backend.received_commands[0] == received_cmd
-    assert mapper._currently_allocated_ids == set([10, 0])
+    assert mapper._currently_allocated_ids == {10, 0}
 
 
 @pytest.mark.parametrize("different_backend_ids", [False, True])
@@ -288,8 +288,8 @@ def test_send_possible_commands_deallocate(different_backend_ids):
     qb0 = WeakQubitRef(engine=None, idx=0)
     cmd0 = Command(engine=None, gate=Deallocate, qubits=([qb0],), controls=[], tags=[])
     mapper._stored_commands = [cmd0]
-    mapper.current_mapping = dict()
-    mapper._currently_allocated_ids = set([10])
+    mapper.current_mapping = {}
+    mapper._currently_allocated_ids = {10}
     # not yet allocated:
     mapper._send_possible_commands()
     assert len(backend.received_commands) == 0
@@ -300,8 +300,8 @@ def test_send_possible_commands_deallocate(different_backend_ids):
     mapper._send_possible_commands()
     assert len(backend.received_commands) == 1
     assert len(mapper._stored_commands) == 0
-    assert mapper.current_mapping == dict()
-    assert mapper._currently_allocated_ids == set([10])
+    assert mapper.current_mapping == {}
+    assert mapper._currently_allocated_ids == {10}
 
 
 @pytest.mark.parametrize("different_backend_ids", [False, True])
@@ -390,7 +390,7 @@ def test_run_and_receive(num_optimization_steps, different_backend_ids):
     mapper.receive([cmd_flush])
     assert mapper._stored_commands == []
     assert len(backend.received_commands) == 10
-    assert mapper._currently_allocated_ids == set([0, 2, 3])
+    assert mapper._currently_allocated_ids == {0, 2, 3}
     if different_backend_ids:
         assert (
             mapper.current_mapping == {0: 21, 2: 3, 3: 0}
@@ -408,7 +408,7 @@ def test_run_and_receive(num_optimization_steps, different_backend_ids):
     cmd9 = Command(None, X, qubits=([qb0],), controls=[qb3])
     mapper.storage = 1
     mapper.receive([cmd9])
-    assert mapper._currently_allocated_ids == set([0, 2, 3])
+    assert mapper._currently_allocated_ids == {0, 2, 3}
     assert mapper._stored_commands == []
     assert len(mapper.current_mapping) == 3
     assert 0 in mapper.current_mapping

@@ -45,28 +45,26 @@ class IBM5QubitMapper(BasicMapperEngine):
         Resets the mapping.
         """
         super().__init__()
-        self.current_mapping = dict()
+        self.current_mapping = {}
         self._reset()
         self._cmds = []
-        self._interactions = dict()
+        self._interactions = {}
 
         if connections is None:
             # general connectivity easier for testing functions
-            self.connections = set(
-                [
-                    (0, 1),
-                    (1, 0),
-                    (1, 2),
-                    (1, 3),
-                    (1, 4),
-                    (2, 1),
-                    (2, 3),
-                    (2, 4),
-                    (3, 1),
-                    (3, 4),
-                    (4, 3),
-                ]
-            )
+            self.connections = {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            }
         else:
             self.connections = connections
 
@@ -82,7 +80,7 @@ class IBM5QubitMapper(BasicMapperEngine):
     def _reset(self):
         """Reset the mapping parameters so the next circuit can be mapped."""
         self._cmds = []
-        self._interactions = dict()
+        self._interactions = {}
 
     def _determine_cost(self, mapping):
         """
@@ -137,7 +135,7 @@ class IBM5QubitMapper(BasicMapperEngine):
                         best_mapping = mapping
             if best_cost is None:
                 raise RuntimeError("Circuit cannot be mapped without using Swaps. Mapping failed.")
-            self._interactions = dict()
+            self._interactions = {}
             self.current_mapping = best_mapping
 
         for cmd in self._cmds:

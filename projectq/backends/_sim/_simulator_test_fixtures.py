@@ -26,7 +26,7 @@ def mapper(request):
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
                 super().__init__()
-                self.current_mapping = dict()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:

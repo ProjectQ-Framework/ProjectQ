@@ -44,7 +44,7 @@ class IBMQ(Session):
     def __init__(self, **kwargs):
         """Initialize a session with the IBM QE's APIs."""
         super().__init__(**kwargs)
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
 
     def get_list_devices(self, verbose=False):
@@ -63,7 +63,7 @@ class IBMQ(Session):
         request = super().get(urljoin(_API_URL, list_device_url), **argument)
         request.raise_for_status()
         r_json = request.json()
-        self.backends = dict()
+        self.backends = {}
         for obj in r_json:
             self.backends[obj['backend_name']] = {
                 'nq': obj['n_qubits'],

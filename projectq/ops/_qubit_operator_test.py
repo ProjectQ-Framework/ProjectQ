@@ -79,7 +79,7 @@ def test_init_str_identity():
 
 def test_init_bad_term():
     with pytest.raises(ValueError):
-        qo.QubitOperator(list())
+        qo.QubitOperator([])
 
 
 def test_init_bad_coefficient():

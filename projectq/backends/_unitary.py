@@ -92,7 +92,7 @@ class UnitarySimulator(BasicEngine):
     def __init__(self):
         """Initialize a UnitarySimulator object."""
         super().__init__()
-        self._qubit_map = dict()
+        self._qubit_map = {}
         self._unitary = [1]
         self._num_qubits = 0
         self._is_valid = True

@@ -38,7 +38,7 @@ class AQT(Session):
     def __init__(self):
         """Initialize an AQT session with AQT's APIs."""
         super().__init__()
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
         self.token = None
 
@@ -54,7 +54,7 @@ class AQT(Session):
             AQT portal always up to date
         """
         # TODO: update once the API for getting online devices is available
-        self.backends = dict()
+        self.backends = {}
         self.backends['aqt_simulator'] = {'nq': 11, 'version': '0.0.1', 'url': 'sim/'}
         self.backends['aqt_simulator_noise'] = {
             'nq': 11,

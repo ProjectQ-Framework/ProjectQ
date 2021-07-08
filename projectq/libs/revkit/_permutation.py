@@ -89,5 +89,5 @@ class PermutationOracle:  # pylint: disable=too-few-public-methods
         """Check whether permutation is valid."""
         # permutation must start from 0, has no duplicates and all elements are
         # consecutive
-        if sorted(list(set(self.permutation))) != list(range(len(self.permutation))):
+        if sorted(set(self.permutation)) != list(range(len(self.permutation))):
             raise AttributeError("Invalid permutation (does it start from 0?)")

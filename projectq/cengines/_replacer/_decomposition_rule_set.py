@@ -30,7 +30,7 @@ class DecompositionRuleSet:
             modules (iterable[ModuleWithDecompositionRuleSet]): A list of things with an
                 "all_defined_decomposition_rules" property containing decomposition rules to add to the rule set.
         """
-        self.decompositions = dict()
+        self.decompositions = {}
 
         if rules:
             self.add_decomposition_rules(rules)
