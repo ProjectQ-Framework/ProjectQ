@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contain a CommandModifier engine that can be used to apply a user-defined transformation to all incoming commands.
+A CommandModifier engine that can be used to apply a user-defined transformation to all incoming commands.
 
 A CommandModifier engine can be used to, e.g., modify the tags of all commands which pass by (see the
 AutoReplacer for an example).

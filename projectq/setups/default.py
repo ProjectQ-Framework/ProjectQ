@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Define the default setup which provides an `engine_list` for the `MainEngine`.
+The default setup which provides an `engine_list` for the `MainEngine`.
 
 It contains `LocalOptimizers` and an `AutoReplacer` which uses most of the decompositions rules defined in
 projectq.setups.decompositions

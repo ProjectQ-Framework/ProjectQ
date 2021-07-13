@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define BasicQubit, Qubit, WeakQubit and Qureg classes.
+Definition of BasicQubit, Qubit, WeakQubit and Qureg classes.
 
 A Qureg represents a list of Qubit or WeakQubit objects.
 A Qubit represents a (logical-level) qubit with a unique index provided by the MainEngine. Qubit objects are

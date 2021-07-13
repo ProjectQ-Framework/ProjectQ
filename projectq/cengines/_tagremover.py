@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contain the TagRemover compiler engine.
+The TagRemover compiler engine.
 
 A TagRemover engine removes temporary command tags (such as Compute/Uncompute), thus enabling optimization across meta
 statements (loops after unrolling, compute/uncompute, ...)

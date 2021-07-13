@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain a local optimizer engine."""
+"""A local optimizer engine."""
 
 import warnings
 

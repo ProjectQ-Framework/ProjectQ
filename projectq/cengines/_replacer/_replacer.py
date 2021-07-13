@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Contain the definition of a few compiler engines that handle command filtering and replacement.
+Definitions of a few compiler engines that handle command filtering and replacement.
 
 Contains an AutoReplacer compiler engine which uses engine.is_available to determine whether a command can be
 executed. If not, it uses the loaded setup (e.g., default) to find an appropriate decomposition.
@@ -32,7 +32,7 @@ class NoGateDecompositionError(Exception):
 
 class InstructionFilter(BasicEngine):
     """
-    Define a compiler engine that implements a user-defined is_available() method.
+    A compiler engine that implements a user-defined is_available() method.
 
     The InstructionFilter is a compiler engine which changes the behavior of is_available according to a filter
     function. All commands are passed to this function, which then returns whether this command can be executed (True)
@@ -79,7 +79,7 @@ class InstructionFilter(BasicEngine):
 
 class AutoReplacer(BasicEngine):
     """
-    Define a compiler engine to automatically replace certain commands.
+    A compiler engine to automatically replace certain commands.
 
     The AutoReplacer is a compiler engine which uses engine.is_available in order to determine which commands need to
     be replaced/decomposed/compiled further. The loaded setup is used to find decomposition rules appropriate for each

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define quantum number math gates for ProjectQ."""
+"""Quantum number math gates for ProjectQ."""
 
 from projectq.ops import BasicMathGate
 

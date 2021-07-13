@@ -12,7 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""Contain a compiler engine to add mapping information."""
+
+"""A compiler engine to add mapping information."""
+
 from ._basicmapper import BasicMapperEngine
 
 

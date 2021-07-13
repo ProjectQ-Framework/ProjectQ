@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define Compute, Uncompute and CustomUncompute.
+Definition of Compute, Uncompute and CustomUncompute.
 
 Contains Compute, Uncompute, and CustomUncompute classes which can be used to annotate Compute / Action / Uncompute
 sections, facilitating the conditioning of the entire operation on the value of a qubit / register (only Action needs

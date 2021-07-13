@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain the main engine of every compiler engine pipeline, called MainEngine."""
+"""The main engine of every compiler engine pipeline, called MainEngine."""
 
 import atexit
 import sys

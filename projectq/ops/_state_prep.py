@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain the definition of the state preparation gate."""
+"""Definition of the state preparation gate."""
 
 from ._basics import BasicGate
 

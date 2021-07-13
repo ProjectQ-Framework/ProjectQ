@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Define a setup for IonQ trapped ion devices.
+A setup for IonQ trapped ion devices.
 
 Defines a setup allowing to compile code for IonQ trapped ion devices:
 ->The 11 qubit device

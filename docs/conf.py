@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ProjectQ'
-copyright = '2017, ProjectQ'  # pylint: disable=redefined-builtin
+copyright = '2017-2021, ProjectQ'  # pylint: disable=redefined-builtin
 author = 'ProjectQ'
 
 # The version info for the project you're documenting, acts as replacement for

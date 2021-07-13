@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define a few shortcuts for certain gates.
+A few shortcuts for certain gates.
 
 These include:
 * CNOT = C(NOT)

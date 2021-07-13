@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define exception classes for projectq.backends."""
+"""Exception classes for projectq.backends."""
 
 
 class DeviceTooSmall(Exception):

@@ -13,11 +13,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contain the definitions of some of the most basic quantum gates.
+Definitions of some of the most basic quantum gates.
 
-Defines the BasicGate class, the base class of all gates, the
-BasicRotationGate class, the SelfInverseGate, the FastForwardingGate, the
-ClassicalInstruction gate, and the BasicMathGate class.
+Defines the BasicGate class, the base class of all gates, the BasicRotationGate class, the SelfInverseGate, the
+FastForwardingGate, the ClassicalInstruction gate, and the BasicMathGate class.
 
 Gates overload the | operator to allow the following syntax:
 
@@ -29,8 +28,8 @@ Gates overload the | operator to allow the following syntax:
     Gate | qubit
     Gate | (qubit,)
 
-This means that for more than one quantum argument (right side of | ), a tuple
-needs to be made explicitely, while for one argument it is optional.
+This means that for more than one quantum argument (right side of | ), a tuple needs to be made explicitely, while for
+one argument it is optional.
 """
 
 import math
@@ -239,7 +238,7 @@ class BasicGate:
 
 class MatrixGate(BasicGate):
     """
-    Define a gate class whose instances are defined by a matrix.
+    A gate class whose instances are defined by a matrix.
 
     Note:
         Use this gate class only for gates acting on a small numbers of qubits.  In general, consider instead using
@@ -322,7 +321,7 @@ class SelfInverseGate(BasicGate):  # pylint: disable=abstract-method
 
 class BasicRotationGate(BasicGate):
     """
-    Defines a base class of a rotation gate.
+    Base class of for all rotation gates.
 
     A rotation gate has a continuous parameter (the angle), labeled 'angle' / self.angle. Its inverse is the same gate
     with the negated argument.  Rotation gates of the same class can be merged by adding the angles.  The continuous
@@ -422,7 +421,7 @@ class BasicRotationGate(BasicGate):
 
 class BasicPhaseGate(BasicGate):
     """
-    Defines a base class of a phase gate.
+    Base class for all phase gates.
 
     A phase gate has a continuous parameter (the angle), labeled 'angle' / self.angle. Its inverse is the same gate
     with the negated argument.  Phase gates of the same class can be merged by adding the angles.  The continuous

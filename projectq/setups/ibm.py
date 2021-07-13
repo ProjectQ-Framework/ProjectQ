@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define a setup for IBM quantum chips.
+A setup for IBM quantum chips.
 
 Defines a setup allowing to compile code for the IBM quantum chips:
 * Any 5 qubit devices

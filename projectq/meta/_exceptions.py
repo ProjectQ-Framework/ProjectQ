@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Define exception classes for projectq.meta."""
+"""Exception classes for projectq.meta."""
 
 
 class QubitManagementError(Exception):

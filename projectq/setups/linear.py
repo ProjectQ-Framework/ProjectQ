@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define a setup to compile to qubits placed in a linear chain or a circle.
+A setup to compile to qubits placed in a linear chain or a circle.
 
 It provides the `engine_list` for the `MainEngine`. This engine list contains an AutoReplacer with most of the gate
 decompositions of ProjectQ, which are used to decompose a circuit into only two qubit gates and arbitrary single qubit

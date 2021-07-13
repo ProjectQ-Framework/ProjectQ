@@ -50,7 +50,7 @@ class LoopTag:  # pylint: disable=too-few-public-methods
 
 class LoopEngine(BasicEngine):
     """
-    Define a compiler engine to represent executing part of the code multiple times.
+    A compiler engine to represent executing part of the code multiple times.
 
     Stores all commands and, when done, executes them num times if no loop tag handler engine is available.  If there
     is one, it adds a loop_tag to the commands and sends them on.

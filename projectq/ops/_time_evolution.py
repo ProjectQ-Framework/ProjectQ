@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain the definition of the time evolution gate."""
+"""Definition of the time evolution gate."""
 
 import copy
 

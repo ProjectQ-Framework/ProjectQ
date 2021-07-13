@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Define the apply_command function and the Command class.
+The apply_command function and the Command class.
 
 When a gate is applied to qubits, e.g.,
 

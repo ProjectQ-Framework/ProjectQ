@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Define a setup for AQT trapped ion devices.
+A setup for AQT trapped ion devices.
 
 Defines a setup allowing to compile code for the AQT trapped ion devices:
 ->The 4 qubits device

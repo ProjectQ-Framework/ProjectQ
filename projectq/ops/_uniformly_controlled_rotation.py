@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain uniformly controlled rotation gate classes."""
+"""Definition of uniformly controlled Ry- and Rz-rotation gates."""
 
 import math
 

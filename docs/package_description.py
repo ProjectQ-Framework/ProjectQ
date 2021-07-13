@@ -21,7 +21,7 @@ import pkgutil
 
 
 class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
-    """Define a package description class."""
+    """A package description class."""
 
     package_list = []
 

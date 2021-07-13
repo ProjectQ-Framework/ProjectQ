@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Define a setup for AWS Braket devices.
+A setup for AWS Braket devices.
 
 Defines a setup allowing to compile code for the AWS Braket devices:
 ->The 11 qubits IonQ device

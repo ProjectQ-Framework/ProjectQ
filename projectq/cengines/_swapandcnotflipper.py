@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contain a compiler engine which flips the directionality of CNOTs according to the given connectivity graph.
+A compiler engine which flips the directionality of CNOTs according to the given connectivity graph.
 
 It also translates Swap gates to CNOTs if necessary.
 """

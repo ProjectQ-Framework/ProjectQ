@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Contain a (slow) Python simulator.
+A (slow) Python simulator.
 
 Please compile the c++ simulator for large-scale simulations.
 """

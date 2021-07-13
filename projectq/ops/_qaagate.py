@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contain the definition of the quantum amplitude amplification gate."""
+"""Definition of the quantum amplitude amplification gate."""
 
 from ._basics import BasicGate
 

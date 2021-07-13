@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Defines LogicalQubitIDTag to annotate a MeasureGate for mapped qubits."""
+"""Definition of LogicalQubitIDTag to annotate a MeasureGate for mapped qubits."""
 
 
 class LogicalQubitIDTag:  # pylint: disable=too-few-public-methods

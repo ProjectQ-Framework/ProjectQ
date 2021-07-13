@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 """
-Contain the projectq interface to a C++-based simulator.
+The ProjectQ interface to a C++-based simulator.
 
 The C++ simulator has to be built first. If the C++ simulator is not exported to python, a (slow) python
 implementation is used as an alternative.
