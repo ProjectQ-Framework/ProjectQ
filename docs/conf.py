@@ -420,7 +420,7 @@ def linkcode_resolve(domain, info):
         except AttributeError:
             return None
 
-    # Only require relative path projectq/relative_path
+    # Calculate the relative path of the object with respect to the root directory (ie. projectq/some/path/to/a/file.py)
     projectq_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '..')) + os.path.sep
     idx = len(projectq_path)
     relative_path = filepath[idx:]
