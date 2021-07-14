@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2021-07-14
+
 ### Added
 
-- UnitarySimulator backend for computing the unitary transformation corresponding to a quantum circuit.
+-   UnitarySimulator backend for computing the unitary transformation corresponding to a quantum circuit.
 
 ### Changed
+
 ### Deprecated
+
 ### Fixed
 
 -   Prevent infinite recursion errors when too many compiler engines are added to the MainEngine
@@ -33,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Fix GitHub workflow for publishing a new release
-
 
 ## [0.6.0] - 2021-06-23
 
@@ -66,17 +69,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Use `setuptools-scm` for versioning
+
 -   Added `.editorconfig` file
+
 -   Added `pyproject.toml` and `setup.cfg`
+
 -   Added CHANGELOG.md
+
 -   Added support for GitHub Actions
     -   Build and testing on various plaforms and compilers
     -   Automatic draft of new release
     -   Automatic publication of new release once ready
     -   Automatic upload of releases artifacts to PyPi and GitHub
+
 -   Added pre-commit configuration file
 
 -   Updated cibuildwheels action to v1.11.1
+
 -   Updated thomaseizinger/create-pull-request action to v1.1.0
 
 ## [0.5.1] - 2019-02-15
@@ -117,6 +126,8 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.7.0...HEAD
+
+[0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.6.1...0.7.0
 
 [0.6.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.5.1...0.6.0
