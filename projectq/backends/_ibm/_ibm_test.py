@@ -14,20 +14,24 @@
 #   limitations under the License.
 """Tests for projectq.backends._ibm._ibm.py."""
 
-import pytest
 import math
+
+import pytest
+
 from projectq.backends._ibm import _ibm
-from projectq.cengines import MainEngine, BasicMapperEngine, DummyEngine
+from projectq.cengines import BasicMapperEngine, DummyEngine, MainEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
+    CNOT,
+    NOT,
     All,
     Allocate,
     Barrier,
     Command,
     Deallocate,
     Entangle,
+    H,
     Measure,
-    NOT,
     Rx,
     Ry,
     Rz,
@@ -38,8 +42,6 @@ from projectq.ops import (
     X,
     Y,
     Z,
-    H,
-    CNOT,
 )
 from projectq.setups import restrictedgateset
 from projectq.types import WeakQubitRef
@@ -121,7 +123,7 @@ def test_ibm_sent_error(monkeypatch):
     monkeypatch.setattr(_ibm, "send", mock_send)
     backend = _ibm.IBMBackend(verbose=True)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -140,7 +142,7 @@ def test_ibm_sent_error(monkeypatch):
 def test_ibm_sent_error_2(monkeypatch):
     backend = _ibm.IBMBackend(verbose=True)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -218,7 +220,7 @@ def test_ibm_retrieve(monkeypatch):
     monkeypatch.setattr(_ibm, "retrieve", mock_retrieve)
     backend = _ibm.IBMBackend(retrieve_execution="ab1s2", num_runs=1000)
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
@@ -339,7 +341,7 @@ def test_ibm_backend_functional_test(monkeypatch):
     with pytest.raises(RuntimeError):
         backend.get_probabilities([])
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res

@@ -23,6 +23,7 @@ from ._awsbraket_boto3_client_test_fixtures import *  # noqa: F401,F403
 _has_boto3 = True
 try:
     import botocore
+
     from projectq.backends._awsbraket import _awsbraket_boto3_client
 except ImportError:
     _has_boto3 = False

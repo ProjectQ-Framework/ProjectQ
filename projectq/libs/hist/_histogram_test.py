@@ -13,15 +13,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import pytest
 import matplotlib
 import matplotlib.pyplot as plt  # noqa: F401
+import pytest
 
 from projectq import MainEngine
-from projectq.ops import H, C, X, Measure, All, AllocateQubitGate, FlushGate
-from projectq.cengines import DummyEngine, BasicEngine
 from projectq.backends import Simulator
+from projectq.cengines import BasicEngine, DummyEngine
 from projectq.libs.hist import histogram
+from projectq.ops import All, AllocateQubitGate, C, FlushGate, H, Measure, X
 
 
 @pytest.fixture(scope="module")

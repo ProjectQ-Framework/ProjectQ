@@ -13,14 +13,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Contains a compiler engine which flips the directionality of CNOTs according
-to the given connectivity graph. It also translates Swap gates to CNOTs if
-necessary.
+A compiler engine which flips the directionality of CNOTs according to the given connectivity graph.
+
+It also translates Swap gates to CNOTs if necessary.
 """
 from copy import deepcopy
 
 from projectq.meta import get_control_count
-from projectq.ops import All, NOT, CNOT, H, Swap
+from projectq.ops import CNOT, NOT, All, H, Swap
 
 from ._basics import BasicEngine, ForwarderEngine
 from ._cmdmodifier import CommandModifier
@@ -28,11 +28,10 @@ from ._cmdmodifier import CommandModifier
 
 class SwapAndCNOTFlipper(BasicEngine):
     """
-    Flips CNOTs and translates Swaps to CNOTs where necessary.
+    Flip CNOTs and translates Swaps to CNOTs where necessary.
 
     Warning:
-        This engine assumes that CNOT and Hadamard gates are supported by
-        the following engines.
+        This engine assumes that CNOT and Hadamard gates are supported by the following engines.
 
     Warning:
         This engine cannot be used as a backend.
@@ -43,18 +42,15 @@ class SwapAndCNOTFlipper(BasicEngine):
         Initialize the engine.
 
         Args:
-            connectivity (set): Set of tuples (c, t) where if (c, t) is an
-                element of the set means that a CNOT can be performed between
-                the physical ids (c, t) with c being the control and t being
-                the target qubit.
+            connectivity (set): Set of tuples (c, t) where if (c, t) is an element of the set means that a CNOT can be
+                performed between the physical ids (c, t) with c being the control and t being the target qubit.
         """
         super().__init__()
         self.connectivity = connectivity
 
     def is_available(self, cmd):
         """
-        Check if the IBM backend can perform the Command cmd and return True
-        if so.
+        Check if the IBM backend can perform the Command cmd and return True if so.
 
         Args:
             cmd (Command): The command to check
@@ -120,14 +116,13 @@ class SwapAndCNOTFlipper(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receives a command list and if the command is a CNOT gate, it flips
-        it using Hadamard gates if necessary; if it is a Swap gate, it
-        decomposes it using 3 CNOTs. All other gates are simply sent to the
-        next engine.
+        Receive a list of commands.
+
+        Receive a command list and if the command is a CNOT gate, it flips it using Hadamard gates if necessary; if it
+        is a Swap gate, it decomposes it using 3 CNOTs. All other gates are simply sent to the next engine.
 
         Args:
-            command_list (list of Command objects): list of commands to
-                receive.
+            command_list (list of Command objects): list of commands to receive.
         """
         for cmd in command_list:
             if self._needs_flipping(cmd):

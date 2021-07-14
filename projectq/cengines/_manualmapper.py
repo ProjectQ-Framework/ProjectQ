@@ -12,9 +12,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a compiler engine to add mapping information
-"""
+
+"""A compiler engine to add mapping information."""
+
 from ._basicmapper import BasicMapperEngine
 
 
@@ -29,8 +29,9 @@ class ManualMapper(BasicMapperEngine):
 
     def __init__(self, map_fun=lambda x: x):
         """
-        Initialize the mapper to a given mapping. If no mapping function is provided, the qubit id is used as the
-        location.
+        Initialize the mapper to a given mapping.
+
+        If no mapping function is provided, the qubit id is used as the location.
 
         Args:
             map_fun (function): Function which, given the qubit id, returns an integer describing the physical
@@ -38,7 +39,7 @@ class ManualMapper(BasicMapperEngine):
         """
         super().__init__()
         self.map = map_fun
-        self.current_mapping = dict()
+        self.current_mapping = {}
 
     def receive(self, command_list):
         """

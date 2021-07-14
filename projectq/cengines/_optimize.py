@@ -12,19 +12,20 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a local optimizer engine.
-"""
+
+"""A local optimizer engine."""
 
 import warnings
 
-from projectq.ops import FlushGate, FastForwardingGate, NotMergeable
+from projectq.ops import FastForwardingGate, FlushGate, NotMergeable
 
 from ._basics import BasicEngine
 
 
 class LocalOptimizer(BasicEngine):
     """
+    Circuit optimization compiler engine.
+
     LocalOptimizer is a compiler engine which optimizes locally (merging rotations, cancelling gates with their
     inverse) in a local window of user- defined size.
 
@@ -42,7 +43,7 @@ class LocalOptimizer(BasicEngine):
             cache_size (int): Number of gates to cache per qubit, before sending on the first gate.
         """
         super().__init__()
-        self._l = dict()  # dict of lists containing operations for each qubit
+        self._l = {}  # dict of lists containing operations for each qubit
 
         if m:
             warnings.warn(
@@ -55,9 +56,7 @@ class LocalOptimizer(BasicEngine):
 
     # sends n gate operations of the qubit with index idx
     def _send_qubit_pipeline(self, idx, n_gates):
-        """
-        Send n gate operations of the qubit with index idx to the next engine.
-        """
+        """Send n gate operations of the qubit with index idx to the next engine."""
         il = self._l[idx]  # pylint: disable=invalid-name
         for i in range(min(n_gates, len(il))):  # loop over first n operations
             # send all gates before n-qubit gate for other qubits involved
@@ -89,8 +88,9 @@ class LocalOptimizer(BasicEngine):
 
     def _get_gate_indices(self, idx, i, qubit_ids):
         """
-        Return all indices of a command, each index corresponding to the command's index in one of the qubits' command
-        lists.
+        Return all indices of a command.
+
+        Each index corresponding to the command's index in one of the qubits' command lists.
 
         Args:
             idx (int): qubit index
@@ -116,6 +116,8 @@ class LocalOptimizer(BasicEngine):
 
     def _optimize(self, idx, lim=None):
         """
+        Gate cancellation routine.
+
         Try to remove identity gates using the is_identity function, then merge or even cancel successive gates using
         the get_merged and get_inverse functions of the gate (see, e.g., BasicRotationGate).
 
@@ -197,10 +199,7 @@ class LocalOptimizer(BasicEngine):
         return limit
 
     def _check_and_send(self):
-        """
-        Check whether a qubit pipeline must be sent on and, if so,
-        optimize the pipeline and then send it on.
-        """
+        """Check whether a qubit pipeline must be sent on and, if so, optimize the pipeline and then send it on."""
         for i in self._l:
             if (
                 len(self._l[i]) >= self._cache_size
@@ -212,17 +211,14 @@ class LocalOptimizer(BasicEngine):
                     self._send_qubit_pipeline(i, len(self._l[i]) - self._cache_size + 1)
                 elif len(self._l[i]) > 0 and isinstance(self._l[i][-1].gate, FastForwardingGate):
                     self._send_qubit_pipeline(i, len(self._l[i]))
-        new_dict = dict()
+        new_dict = {}
         for idx in self._l:
             if len(self._l[idx]) > 0:
                 new_dict[idx] = self._l[idx]
         self._l = new_dict
 
     def _cache_cmd(self, cmd):
-        """
-        Cache a command, i.e., inserts it into the command lists of all qubits
-        involved.
-        """
+        """Cache a command, i.e., inserts it into the command lists of all qubits involved."""
         # are there qubit ids that haven't been added to the list?
         idlist = [qubit.id for sublist in cmd.all_qubits for qubit in sublist]
 
@@ -236,20 +232,22 @@ class LocalOptimizer(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive commands from the previous engine and cache them.
-        If a flush gate arrives, the entire buffer is sent on.
+        Receive a list of commands.
+
+        Receive commands from the previous engine and cache them.  If a flush gate arrives, the entire buffer is sent
+        on.
         """
         for cmd in command_list:
             if cmd.gate == FlushGate():  # flush gate --> optimize and flush
                 for idx in self._l:
                     self._optimize(idx)
                     self._send_qubit_pipeline(idx, len(self._l[idx]))
-                new_dict = dict()
+                new_dict = {}
                 for idx in self._l:
                     if len(self._l[idx]) > 0:  # pragma: no cover
                         new_dict[idx] = self._l[idx]
                 self._l = new_dict
-                if self._l != dict():  # pragma: no cover
+                if self._l != {}:  # pragma: no cover
                     raise RuntimeError('Internal compiler error: qubits remaining in LocalOptimizer after a flush!')
                 self.send([cmd])
             else:

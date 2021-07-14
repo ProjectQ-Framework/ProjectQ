@@ -14,7 +14,7 @@
 #   limitations under the License.
 """Tests for projectq.ops._state_prep."""
 
-from projectq.ops import _state_prep, X
+from projectq.ops import X, _state_prep
 
 
 def test_equality_and_hash():

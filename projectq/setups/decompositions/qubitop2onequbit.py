@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a decomposition rule for a unitary QubitOperator to one qubit gates.
-"""
+
+"""Register a decomposition rule for a unitary QubitOperator to one qubit gates."""
 
 import cmath
 

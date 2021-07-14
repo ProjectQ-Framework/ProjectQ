@@ -19,19 +19,17 @@ import math
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
+from projectq.cengines import DummyEngine, _optimize
 from projectq.ops import (
     CNOT,
+    AllocateQubitGate,
+    ClassicalInstructionGate,
+    FastForwardingGate,
     H,
     Rx,
     Ry,
-    AllocateQubitGate,
     X,
-    FastForwardingGate,
-    ClassicalInstructionGate,
 )
-
-from projectq.cengines import _optimize
 
 
 def test_local_optimizer_init_api_change():

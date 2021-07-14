@@ -16,6 +16,7 @@
 
 import pytest
 
+import projectq.setups.decompositions.sqrtswap2cnot as sqrtswap2cnot
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
@@ -24,10 +25,8 @@ from projectq.cengines import (
     DummyEngine,
     InstructionFilter,
 )
-from projectq.ops import All, Measure, SqrtSwap, Command
+from projectq.ops import All, Command, Measure, SqrtSwap
 from projectq.types import WeakQubitRef
-
-import projectq.setups.decompositions.sqrtswap2cnot as sqrtswap2cnot
 
 
 def _decomp_gates(eng, cmd):

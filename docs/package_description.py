@@ -13,15 +13,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Module containing some helper classes for generating the documentation"""
+"""Module containing some helper classes for generating the documentation."""
 
+import importlib
 import inspect
-import sys
-import os
+import pkgutil
 
 
 class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
-    """Class representing a package description"""
+    """A package description class."""
 
     package_list = []
 
@@ -35,27 +35,24 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
         helper_submodules=None,
     ):
         """
+        Initialize a PackageDescription object.
+
         Args:
             name (str): Name of ProjectQ module
             desc (str): (optional) Description of module
-            module_special_members (str): (optional) Special members to include
-                in the documentation of the module
-            submodule_special_members (str): (optional) Special members to
-                include in the documentation of submodules
-            submodules_desc (str): (optional) Description to print out before
-                the list of submodules
-            helper_submodules (list): (optional) List of tuples for helper
-                sub-modules to include in the documentation.
-                Tuples are (section_title, submodukle_name,
-                            automodule_properties)
+            module_special_members (str): (optional) Special members to include in the documentation of the module
+            submodule_special_members (str): (optional) Special members to include in the documentation of submodules
+            submodules_desc (str): (optional) Description to print out before the list of submodules
+            helper_submodules (list): (optional) List of tuples for helper sub-modules to include in the
+                documentation.
+                Tuples are (section_title, submodukle_name, automodule_properties)
         """
-
         self.name = pkg_name
         self.desc = desc
         if pkg_name not in PackageDescription.package_list:
             PackageDescription.package_list.append(pkg_name)
 
-        self.module = sys.modules['projectq.{}'.format(self.name)]
+        self.module = importlib.import_module('projectq.{}'.format(self.name))
         self.module_special_members = module_special_members
 
         self.submodule_special_members = submodule_special_members
@@ -63,15 +60,14 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
 
         self.helper_submodules = helper_submodules
 
-        module_root = os.path.dirname(self.module.__file__)
-        sub = [
-            (name, obj)
-            for name, obj in inspect.getmembers(
-                self.module,
-                lambda obj: inspect.ismodule(obj) and hasattr(obj, '__file__') and module_root in obj.__file__,
-            )
-            if pkg_name[0] != '_'
-        ]
+        sub = []
+        for _, module_name, _ in pkgutil.iter_modules(self.module.__path__, self.module.__name__ + '.'):
+            if not module_name.endswith('_test'):
+                try:
+                    idx = len(self.module.__name__) + 1
+                    sub.append((module_name[idx:], importlib.import_module(module_name)))
+                except ImportError:
+                    pass
 
         self.subpackages = []
         self.submodules = []
@@ -99,9 +95,7 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
         self.members.sort(key=lambda x: x[0].lower())
 
     def get_ReST(self):  # pylint: disable=invalid-name,too-many-branches,too-many-statements
-        """
-        Conversion to ReST formatted string.
-        """
+        """Conversion to ReST formatted string."""
         new_lines = []
         new_lines.append(self.name)
         new_lines.append('=' * len(self.name))

@@ -16,14 +16,13 @@
 
 import pytest
 
-from projectq import MainEngine
-from projectq.cengines import InstructionFilter, AutoReplacer, DecompositionRuleSet
-from projectq.backends import Simulator
-from projectq.ops import All, BasicMathGate, ClassicalInstructionGate, Measure, X
-
 import projectq.libs.math
-from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
+from projectq import MainEngine
+from projectq.backends import Simulator
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, InstructionFilter
 from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
+from projectq.ops import All, BasicMathGate, ClassicalInstructionGate, Measure, X
+from projectq.setups.decompositions import qft2crandhadamard, swap2cnot
 
 
 def init(engine, quint, value):

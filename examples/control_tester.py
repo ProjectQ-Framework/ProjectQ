@@ -14,13 +14,15 @@
 #   limitations under the License.
 # pylint: skip-file
 
+"""Example of using the control state for control qubits."""
 
 from projectq.cengines import MainEngine
 from projectq.meta import Control
-from projectq.ops import All, X, Measure, CtrlAll
+from projectq.ops import All, CtrlAll, Measure, X
 
 
 def run_circuit(eng, circuit_num):
+    """Run the quantum circuit."""
     qubit = eng.allocate_qureg(2)
     ctrl_fail = eng.allocate_qureg(3)
     ctrl_success = eng.allocate_qureg(3)

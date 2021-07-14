@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines a setup to compile to qubits placed in 2-D grid.
+A setup to compile to qubits placed in 2-D grid.
 
 It provides the `engine_list` for the `MainEngine`. This engine list contains an AutoReplacer with most of the gate
 decompositions of ProjectQ, which are used to decompose a circuit into only two qubit gates and arbitrary single qubit
@@ -30,7 +30,7 @@ from ._utils import get_engine_list_linear_grid_base
 
 def get_engine_list(num_rows, num_columns, one_qubit_gates="any", two_qubit_gates=(CNOT, Swap)):
     """
-    Returns an engine list to compile to a 2-D grid of qubits.
+    Return an engine list to compile to a 2-D grid of qubits.
 
     Note:
         If you choose a new gate set for which the compiler does not yet have standard rules, it raises an

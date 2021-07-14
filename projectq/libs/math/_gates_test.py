@@ -17,22 +17,22 @@
 from projectq.libs.math import (
     AddConstant,
     AddConstantModN,
-    MultiplyByConstantModN,
-    SubConstant,
-    SubConstantModN,
     AddQuantum,
-    SubtractQuantum,
     ComparatorQuantum,
     DivideQuantum,
+    MultiplyByConstantModN,
     MultiplyQuantum,
+    SubConstant,
+    SubConstantModN,
+    SubtractQuantum,
 )
 
 from ._gates import (
     AddQuantumGate,
-    SubtractQuantumGate,
-    MultiplyQuantumGate,
-    DivideQuantumGate,
     ComparatorQuantumGate,
+    DivideQuantumGate,
+    MultiplyQuantumGate,
+    SubtractQuantumGate,
 )
 
 

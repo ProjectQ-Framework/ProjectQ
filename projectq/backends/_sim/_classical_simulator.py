@@ -12,13 +12,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-A simulator that only permits classical operations, for faster/easier testing.
-"""
+
+"""A simulator that only permits classical operations, for faster/easier testing."""
 
 from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import XGate, BasicMathGate, Measure, FlushGate, Allocate, Deallocate
+from projectq.ops import Allocate, BasicMathGate, Deallocate, FlushGate, Measure, XGate
 from projectq.types import WeakQubitRef
 
 
@@ -31,13 +30,14 @@ class ClassicalSimulator(BasicEngine):
     """
 
     def __init__(self):
-        BasicEngine.__init__(self)
+        """Initialize a ClassicalSimulator object."""
+        super().__init__()
         self._state = 0
         self._bit_positions = {}
 
     def _convert_logical_to_mapped_qubit(self, qubit):
         """
-        Converts a qubit from a logical to a mapped qubit if there is a mapper.
+        Convert a qubit from a logical to a mapped qubit if there is a mapper.
 
         Args:
             qubit (projectq.types.Qubit): Logical quantum bit
@@ -51,7 +51,7 @@ class ClassicalSimulator(BasicEngine):
 
     def read_bit(self, qubit):
         """
-        Reads a bit.
+        Read a bit.
 
         Note:
             If there is a mapper present in the compiler, this function automatically converts from logical qubits to
@@ -67,7 +67,11 @@ class ClassicalSimulator(BasicEngine):
         return self._read_mapped_bit(qubit)
 
     def _read_mapped_bit(self, mapped_qubit):
-        """Internal use only. Does not change logical to mapped qubits."""
+        """
+        Read a mapped bit value.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
         return (self._state >> self._bit_positions[mapped_qubit.id]) & 1
 
     def write_bit(self, qubit, value):
@@ -86,7 +90,11 @@ class ClassicalSimulator(BasicEngine):
         self._write_mapped_bit(qubit, value)
 
     def _write_mapped_bit(self, mapped_qubit, value):
-        """Internal use only. Does not change logical to mapped qubits."""
+        """
+        Write a mapped bit value.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
         pos = self._bit_positions[mapped_qubit.id]
         if value:
             self._state |= 1 << pos
@@ -95,7 +103,7 @@ class ClassicalSimulator(BasicEngine):
 
     def _mask(self, qureg):
         """
-        Returns a mask, to compare against the state, with bits from the register set to 1 and other bits set to 0.
+        Return a mask, to compare against the state, with bits from the register set to 1 and other bits set to 0.
 
         Args:
             qureg (projectq.types.Qureg): The bits whose positions should be set.
@@ -110,7 +118,7 @@ class ClassicalSimulator(BasicEngine):
 
     def read_register(self, qureg):
         """
-        Reads a group of bits as a little-endian integer.
+        Read a group of bits as a little-endian integer.
 
         Note:
             If there is a mapper present in the compiler, this function automatically converts from logical qubits to
@@ -129,7 +137,11 @@ class ClassicalSimulator(BasicEngine):
         return self._read_mapped_register(new_qureg)
 
     def _read_mapped_register(self, mapped_qureg):
-        """Internal use only. Does not change logical to mapped qubits."""
+        """
+        Read a value to some mapped quantum register.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
         mask = 0
         for i, qubit in enumerate(mapped_qureg):
             mask |= self._read_mapped_bit(qubit) << i
@@ -137,7 +149,7 @@ class ClassicalSimulator(BasicEngine):
 
     def write_register(self, qureg, value):
         """
-        Sets a group of bits to store a little-endian integer value.
+        Set a group of bits to store a little-endian integer value.
 
         Note:
             If there is a mapper present in the compiler, this function automatically converts from logical qubits to
@@ -153,13 +165,18 @@ class ClassicalSimulator(BasicEngine):
         self._write_mapped_register(new_qureg, value)
 
     def _write_mapped_register(self, mapped_qureg, value):
-        """Internal use only. Does not change logical to mapped qubits."""
+        """
+        Write a value to some mapped quantum register.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
         if value < 0 or value >= 1 << len(mapped_qureg):
             raise ValueError("Value won't fit in register.")
         for i, mapped_qubit in enumerate(mapped_qureg):
             self._write_mapped_bit(mapped_qubit, (value >> i) & 1)
 
     def is_available(self, cmd):
+        """Test whether a Command is supported by a compiler engine."""
         return (
             cmd.gate == Measure
             or cmd.gate == Allocate
@@ -168,7 +185,11 @@ class ClassicalSimulator(BasicEngine):
         )
 
     def receive(self, command_list):
-        """Forward all commands to the next engine."""
+        """
+        Receive a list of commands.
+
+        This implementation simply forwards all commands to the next engine.
+        """
         for cmd in command_list:
             self._handle(cmd)
         if not self.is_last_engine:

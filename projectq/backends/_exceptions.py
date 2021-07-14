@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Error classes used by the IonQBackend and IonQ http client."""
+"""Exception classes for projectq.backends."""
 
 
 class DeviceTooSmall(Exception):
@@ -24,27 +24,21 @@ class DeviceOfflineError(Exception):
     """Raised when a device is required but is currently offline."""
 
 
+class DeviceNotHandledError(Exception):
+    """Exception raised if a selected device cannot handle the circuit or is not supported by ProjectQ."""
+
+
 class RequestTimeoutError(Exception):
-    """Raised if a request to IonQ's Job creation API times out."""
+    """Raised if a request to the job creation API times out."""
 
 
 class JobSubmissionError(Exception):
-    """Raised when the IonQ Job creation API contains an error of some kind."""
+    """Raised when the job creation API contains an error of some kind."""
 
 
 class InvalidCommandError(Exception):
-    """Raised if the IonQBackend engine encounters an invalid command."""
+    """Raised if the backend encounters an invalid command."""
 
 
 class MidCircuitMeasurementError(Exception):
     """Raised when a mid-circuit measurement is detected on a qubit."""
-
-
-__all__ = [
-    'JobSubmissionError',
-    'DeviceOfflineError',
-    'DeviceTooSmall',
-    'RequestTimeoutError',
-    'InvalidCommandError',
-    'MidCircuitMeasurementError',
-]

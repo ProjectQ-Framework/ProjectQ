@@ -13,32 +13,34 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines a setup allowing to compile code for the IBM quantum chips:
-->Any 5 qubit devices
-->the ibmq online simulator
-->the melbourne 15 qubit device
+A setup for IBM quantum chips.
 
-It provides the `engine_list` for the `MainEngine' based on the requested
-device.  Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be
-translated in the backend in the U1/U2/U3/CX gate set.
+Defines a setup allowing to compile code for the IBM quantum chips:
+* Any 5 qubit devices
+* the ibmq online simulator
+* the melbourne 15 qubit device
+
+It provides the `engine_list` for the `MainEngine' based on the requested device.
+
+Decompose the circuit into a Rx/Ry/Rz/H/CNOT gate set that will be translated in the backend in the U1/U2/U3/CX gate
+set.
 """
 
-from projectq.setups import restrictedgateset
-from projectq.ops import Rx, Ry, Rz, H, CNOT, Barrier
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
+from projectq.backends._ibm._ibm_http_client import show_devices
 from projectq.cengines import (
-    LocalOptimizer,
-    IBM5QubitMapper,
-    SwapAndCNOTFlipper,
     BasicMapperEngine,
     GridMapper,
+    IBM5QubitMapper,
+    LocalOptimizer,
+    SwapAndCNOTFlipper,
 )
-from projectq.backends._ibm._ibm_http_client import show_devices
+from projectq.ops import CNOT, Barrier, H, Rx, Ry, Rz
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):
-    """
-    Return the default list of compiler engine for the IBM QE platform
-    """
+    """Return the default list of compiler engine for the IBM QE platform."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -61,7 +63,7 @@ def get_engine_list(token=None, device=None):
         # Note: Manual Mapper doesn't work, because its map is updated only if
         # gates are applied if gates in the register are not used, then it
         # will lead to state errors
-        res = dict()
+        res = {}
         for i in range(devices[device]['nq']):
             res[i] = i
         mapper.current_mapping = res
@@ -112,18 +114,8 @@ def get_engine_list(token=None, device=None):
     return setup
 
 
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
-
-
-class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit"""
-
-
 def list2set(coupling_list):
-    """
-    Convert a list() to a set()
-    """
+    """Convert a list() to a set()."""
     result = []
     for element in coupling_list:
         result.append(tuple(element))

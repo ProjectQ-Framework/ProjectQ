@@ -14,12 +14,10 @@
 #   limitations under the License.
 """Tests for projectq.cengines._basicmapper.py."""
 
-from projectq.cengines import DummyEngine
+from projectq.cengines import DummyEngine, _basicmapper
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import Allocate, BasicGate, Command, Deallocate, FlushGate, Measure
 from projectq.types import WeakQubitRef
-
-from projectq.cengines import _basicmapper
 
 
 def test_basic_mapper_engine_send_cmd_with_mapped_ids():

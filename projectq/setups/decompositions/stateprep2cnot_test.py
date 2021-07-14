@@ -15,18 +15,17 @@
 """Tests for projectq.setups.decompositions.stateprep2cnot."""
 
 import cmath
-from copy import deepcopy
 import math
+from copy import deepcopy
 
 import numpy as np
 import pytest
 
 import projectq
-from projectq.ops import All, Command, Measure, Ry, Rz, StatePreparation, Ph
+import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
+from projectq.ops import All, Command, Measure, Ph, Ry, Rz, StatePreparation
 from projectq.setups import restrictedgateset
 from projectq.types import WeakQubitRef
-
-import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 
 
 def test_invalid_arguments():

@@ -35,8 +35,11 @@
 #   * real_device_online_setup
 # ==============================================================================
 
-from io import StringIO
+"""Define test fixtures for the AWSBraket HTTP client."""
+
 import json
+from io import StringIO
+
 import pytest
 
 try:
@@ -44,8 +47,10 @@ try:
 except ImportError:
 
     class StreamingBody:
+        """Dummy implementation of a StreamingBody."""
+
         def __init__(self, raw_stream, content_length):
-            pass
+            """Initialize a dummy StreamingBody."""
 
 
 # ==============================================================================
@@ -53,11 +58,13 @@ except ImportError:
 
 @pytest.fixture
 def arntask():
+    """Define an ARNTask test setup."""
     return 'arn:aws:braket:us-east-1:id:taskuuid'
 
 
 @pytest.fixture
 def creds():
+    """Credentials test setup."""
     return {
         'AWS_ACCESS_KEY_ID': 'aws_access_key_id',
         'AWS_SECRET_KEY': 'aws_secret_key',
@@ -66,11 +73,13 @@ def creds():
 
 @pytest.fixture
 def s3_folder():
-    return ['S3Bucket', "S3Directory"]
+    """S3 folder value test setup."""
+    return ['S3Bucket', 'S3Directory']
 
 
 @pytest.fixture
 def info():
+    """Info value test setup."""
     return {
         'circuit': '{"braketSchemaHeader":'
         '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
@@ -86,6 +95,7 @@ def info():
 
 @pytest.fixture
 def results_json():
+    """Results test setup."""
     return json.dumps(
         {
             "braketSchemaHeader": {
@@ -106,6 +116,7 @@ def results_json():
 
 @pytest.fixture
 def results_dict(results_json):
+    """Results dict test setup."""
     body = StreamingBody(StringIO(results_json), len(results_json))
     return {
         'ResponseMetadata': {
@@ -118,11 +129,13 @@ def results_dict(results_json):
 
 @pytest.fixture
 def res_completed():
+    """Completed results test setup."""
     return {"000": 0.1, "010": 0.4, "110": 0.1, "001": 0.1, "111": 0.3}
 
 
 @pytest.fixture
 def search_value():
+    """Search value test setup."""
     return {
         "devices": [
             {
@@ -159,6 +172,7 @@ def search_value():
 
 @pytest.fixture
 def device_value_devicecapabilities():
+    """Device capabilities value test setup."""
     return json.dumps(
         {
             "braketSchemaHeader": {
@@ -219,6 +233,7 @@ def device_value_devicecapabilities():
 
 @pytest.fixture
 def device_value(device_value_devicecapabilities):
+    """Device value test setup."""
     return {
         "deviceName": "Aspen-8",
         "deviceType": "QPU",
@@ -230,6 +245,7 @@ def device_value(device_value_devicecapabilities):
 
 @pytest.fixture
 def devicelist_result():
+    """Device list value test setup."""
     return {
         'name1': {
             'coupling_map': {},
@@ -284,16 +300,19 @@ def devicelist_result():
 
 @pytest.fixture
 def show_devices_setup(creds, search_value, device_value, devicelist_result):
+    """Show devices value test setup."""
     return creds, search_value, device_value, devicelist_result
 
 
 @pytest.fixture
 def retrieve_setup(arntask, creds, device_value, res_completed, results_dict):
+    """Retrieve value test setup."""
     return arntask, creds, device_value, res_completed, results_dict
 
 
 @pytest.fixture(params=["qpu", "sim"])
 def retrieve_devicetypes_setup(request, arntask, creds, results_json, device_value_devicecapabilities):
+    """Retrieve device types value test setup."""
     if request.param == "qpu":
         body_qpu = StreamingBody(StringIO(results_json), len(results_json))
         results_dict = {
@@ -358,6 +377,7 @@ def retrieve_devicetypes_setup(request, arntask, creds, results_json, device_val
 
 @pytest.fixture
 def send_too_many_setup(creds, s3_folder, search_value, device_value):
+    """Send too many value test setup."""
     info_too_much = {
         'circuit': '{"braketSchemaHeader":'
         '{"name": "braket.ir.jaqcd.program", "version": "1"}, '
@@ -383,6 +403,7 @@ def real_device_online_setup(
     res_completed,
     results_json,
 ):
+    """Real device online value test setup."""
     qtarntask = {'quantumTaskArn': arntask}
     body = StreamingBody(StringIO(results_json), len(results_json))
     results_dict = {
@@ -407,4 +428,5 @@ def real_device_online_setup(
 
 @pytest.fixture
 def send_that_error_setup(creds, s3_folder, info, search_value, device_value):
+    """Send error value test setup."""
     return creds, s3_folder, info, search_value, device_value

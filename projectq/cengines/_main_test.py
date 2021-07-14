@@ -18,11 +18,9 @@ import weakref
 
 import pytest
 
-from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
+from projectq.cengines import BasicMapperEngine, DummyEngine, LocalOptimizer, _main
 from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H
-
-from projectq.cengines import _main
 
 
 def test_main_engine_init():

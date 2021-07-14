@@ -12,17 +12,19 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Back-end to run quantum program on AQT's API."""
+
+"""Back-end to run quantum program on AQT's API."""
 
 import math
 import random
 
 from projectq.cengines import BasicEngine
-from projectq.meta import get_control_count, LogicalQubitIDTag
-from projectq.ops import Rx, Ry, Rxx, Measure, Allocate, Barrier, Deallocate, FlushGate
+from projectq.meta import LogicalQubitIDTag, get_control_count
+from projectq.ops import Allocate, Barrier, Deallocate, FlushGate, Measure, Rx, Rxx, Ry
 from projectq.types import WeakQubitRef
 
-from ._aqt_http_client import send, retrieve
+from .._exceptions import InvalidCommandError
+from ._aqt_http_client import retrieve, send
 
 
 # _rearrange_result & _format_counts imported and modified from qiskit
@@ -44,8 +46,10 @@ def _format_counts(samples, length):
 
 class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """
-    The AQT Backend class, which stores the circuit, transforms it to the
-    appropriate data format, and sends the circuit through the AQT API.
+    Backend for building circuits and submitting them to the AQT API.
+
+    The AQT Backend class, which stores the circuit, transforms it to the appropriate data format, and sends the
+    circuit through the AQT API.
     """
 
     def __init__(
@@ -63,24 +67,19 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         Initialize the Backend object.
 
         Args:
-            use_hardware (bool): If True, the code is run on the AQT quantum
-                chip (instead of using the AQT simulator)
-            num_runs (int): Number of runs to collect statistics.
-                (default is 100, max is usually around 200)
-            verbose (bool): If True, statistics are printed, in addition to
-                the measurement result being registered (at the end of the
-                circuit).
+            use_hardware (bool): If True, the code is run on the AQT quantum chip (instead of using the AQT simulator)
+            num_runs (int): Number of runs to collect statistics.  (default is 100, max is usually around 200)
+            verbose (bool): If True, statistics are printed, in addition to the measurement result being registered
+                (at the end of the circuit).
             token (str): AQT user API token.
             device (str): name of the AQT device to use. simulator By default
-            num_retries (int): Number of times to retry to obtain
-                results from the AQT API. (default is 3000)
-            interval (float, int): Number of seconds between successive
-                attempts to obtain results from the AQT API.
+            num_retries (int): Number of times to retry to obtain results from the AQT API. (default is 3000)
+            interval (float, int): Number of seconds between successive attempts to obtain results from the AQT API.
                 (default is 1)
-            retrieve_execution (int): Job ID to retrieve instead of re-
-                running the circuit (e.g., if previous run timed out).
+            retrieve_execution (int): Job ID to retrieve instead of re- running the circuit (e.g., if previous run
+                timed out).
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._reset()
         if use_hardware:
             self.device = device
@@ -92,7 +91,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         self._token = token
         self._num_retries = num_retries
         self._interval = interval
-        self._probabilities = dict()
+        self._probabilities = {}
         self._circuit = []
         self._mapper = []
         self._measured_ids = []
@@ -130,7 +129,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             cmd: Command to store
         """
         if self._clear:
-            self._probabilities = dict()
+            self._probabilities = {}
             self._clear = False
             self._circuit = []
             self._allocated_qubits = set()
@@ -168,16 +167,16 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             return
         if gate == Barrier:
             return
-        raise Exception('Invalid command: ' + str(cmd))
+        raise InvalidCommandError('Invalid command: ' + str(cmd))
 
     def _logical_to_physical(self, qb_id):
         """
         Return the physical location of the qubit with the given logical id.
+
         If no mapper is present then simply returns the qubit ID.
 
         Args:
-            qb_id (int): ID of the logical qubit whose position should be
-                returned.
+            qb_id (int): ID of the logical qubit whose position should be returned.
         """
         try:
             mapping = self.main_engine.mapper.current_mapping
@@ -199,29 +198,30 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_probabilities(self, qureg):
         """
-        Return the list of basis states with corresponding probabilities.
-        If input qureg is a subset of the register used for the experiment,
-        then returns the projected probabilities over the other states.
-        The measured bits are ordered according to the supplied quantum
-        register, i.e., the left-most bit in the state-string corresponds to
-        the first qubit in the supplied quantum register.
+        Return the probability of the outcome `bit_string` when measuring the quantum register `qureg`.
+
+        Return the list of basis states with corresponding probabilities.  If input qureg is a subset of the register
+        used for the experiment, then returns the projected probabilities over the other states.  The measured bits
+        are ordered according to the supplied quantum register, i.e., the left-most bit in the state-string
+        corresponds to the first qubit in the supplied quantum register.
+
         Warning:
             Only call this function after the circuit has been executed!
+
         Args:
-            qureg (list<Qubit>): Quantum register determining the order of the
-                qubits.
+            qureg (list<Qubit>): Quantum register determining the order of the qubits.
+
         Returns:
-            probability_dict (dict): Dictionary mapping n-bit strings to
-            probabilities.
+            probability_dict (dict): Dictionary mapping n-bit strings to probabilities.
+
         Raises:
-            RuntimeError: If no data is available (i.e., if the circuit has
-                not been executed). Or if a qubit was supplied which was not
-                present in the circuit (might have gotten optimized away).
+            RuntimeError: If no data is available (i.e., if the circuit has not been executed). Or if a qubit was
+                supplied which was not present in the circuit (might have gotten optimized away).
         """
         if len(self._probabilities) == 0:
             raise RuntimeError("Please, run the circuit first!")
 
-        probability_dict = dict()
+        probability_dict = {}
         for state in self._probabilities:
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
@@ -236,8 +236,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         Run the circuit.
 
-        Send the circuit via the AQT API using the provided user
-        token / ask for the user token.
+        Send the circuit via the AQT API using the provided user token / ask for the user token.
         """
         # finally: measurements
         # NOTE AQT DOESN'T SEEM TO HAVE MEASUREMENT INSTRUCTIONS (no
@@ -303,7 +302,9 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until completion. Upon flush, send the data to the
+        Receive a list of commands.
+
+        Receive a command list and, for each command, stores it until completion. Upon flush, send the data to the
         AQT API.
 
         Args:

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Compute, Uncompute, CustomUncompute.
+Definition of Compute, Uncompute and CustomUncompute.
 
 Contains Compute, Uncompute, and CustomUncompute classes which can be used to annotate Compute / Action / Uncompute
 sections, facilitating the conditioning of the entire operation on the value of a qubit / register (only Action needs
@@ -25,41 +25,28 @@ from copy import deepcopy
 from projectq.cengines import BasicEngine, CommandModifier
 from projectq.ops import Allocate, Deallocate
 
-from ._util import insert_engine, drop_engine_after
-
-
-class QubitManagementError(Exception):
-    """Exception raised when the lifetime of a qubit is problematic within a loop"""
+from ._exceptions import QubitManagementError
+from ._util import drop_engine_after, insert_engine
 
 
 class NoComputeSectionError(Exception):
-    """
-    Exception raised if uncompute is called but no compute section found.
-    """
+    """Exception raised if uncompute is called but no compute section found."""
 
 
-class ComputeTag:
-    """
-    Compute meta tag.
-    """
+class ComputeTag:  # pylint: disable=too-few-public-methods
+    """Compute meta tag."""
 
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, ComputeTag)
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
-
-class UncomputeTag:
-    """
-    Uncompute meta tag.
-    """
+class UncomputeTag:  # pylint: disable=too-few-public-methods
+    """Uncompute meta tag."""
 
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, UncomputeTag)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 def _add_uncompute_tag(cmd):
@@ -74,16 +61,11 @@ def _add_uncompute_tag(cmd):
 
 
 class ComputeEngine(BasicEngine):
-    """
-    Adds Compute-tags to all commands and stores them (to later uncompute them
-    automatically)
-    """
+    """Add Compute-tags to all commands and stores them (to later uncompute them automatically)."""
 
     def __init__(self):
-        """
-        Initialize a ComputeEngine.
-        """
-        BasicEngine.__init__(self)
+        """Initialize a ComputeEngine."""
+        super().__init__()
         self._l = []
         self._compute = True
         # Save all qubit ids from qubits which are created or destroyed.
@@ -99,7 +81,6 @@ class ComputeEngine(BasicEngine):
         during uncompute. If a qubit has been allocated and deallocated during compute, then a new qubit is allocated
         and deallocated during uncompute.
         """
-
         # No qubits allocated during Compute section -> do standard uncompute
         if len(self._allocated_qubit_ids) == 0:
             self.send([_add_uncompute_tag(cmd.get_inverse()) for cmd in reversed(self._l)])
@@ -133,7 +114,7 @@ class ComputeEngine(BasicEngine):
             return
         # There was at least one qubit allocated and deallocated within
         # compute section. Handle uncompute in most general case
-        new_local_id = dict()
+        new_local_id = {}
         for cmd in reversed(self._l):
             if cmd.gate == Deallocate:
                 if not cmd.qubits[0][0].id in ids_local_to_compute:  # pragma: no cover
@@ -217,6 +198,8 @@ class ComputeEngine(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         If in compute-mode, receive commands and store deepcopy of each cmd.  Add ComputeTag to received cmd and send
         it on. Otherwise, send all received commands directly to next_engine.
 
@@ -238,21 +221,19 @@ class ComputeEngine(BasicEngine):
 
 
 class UncomputeEngine(BasicEngine):
-    """
-    Adds Uncompute-tags to all commands.
-    """
+    """Adds Uncompute-tags to all commands."""
 
     def __init__(self):
-        """
-        Initialize a UncomputeEngine.
-        """
-        BasicEngine.__init__(self)
+        """Initialize a UncomputeEngine."""
+        super().__init__()
         # Save all qubit ids from qubits which are created or destroyed.
         self._allocated_qubit_ids = set()
         self._deallocated_qubit_ids = set()
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         Receive commands and add an UncomputeTag to their tags.
 
         Args:
@@ -328,10 +309,12 @@ class Compute:
         self._compute_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         self._compute_eng = ComputeEngine()
         insert_engine(self.engine, self._compute_eng)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # notify ComputeEngine that the compute section is done
         self._compute_eng.end_compute()
         self._compute_eng = None
@@ -369,6 +352,7 @@ class CustomUncompute:
         self._uncompute_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         # first, remove the compute engine
         compute_eng = self.engine.next_engine
         if not isinstance(compute_eng, ComputeEngine):
@@ -386,6 +370,7 @@ class CustomUncompute:
         insert_engine(self.engine, self._uncompute_eng)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # If an error happens in this context, qubits might not have been
         # deallocated because that code section was not yet executed,
         # so don't check and raise an additional error.

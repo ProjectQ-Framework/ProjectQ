@@ -20,24 +20,23 @@ import copy
 
 import pytest
 
+import projectq.backends._circuits._drawer as _drawer
+import projectq.backends._circuits._to_latex as _to_latex
 from projectq import MainEngine
+from projectq.meta import Control
 from projectq.ops import (
-    BasicGate,
-    H,
-    X,
     CNOT,
-    Measure,
-    Z,
-    Swap,
-    SqrtX,
-    SqrtSwap,
+    BasicGate,
     C,
+    H,
+    Measure,
+    SqrtSwap,
+    SqrtX,
+    Swap,
+    X,
+    Z,
     get_inverse,
 )
-from projectq.meta import Control
-
-import projectq.backends._circuits._to_latex as _to_latex
-import projectq.backends._circuits._drawer as _drawer
 
 
 def test_tolatex():

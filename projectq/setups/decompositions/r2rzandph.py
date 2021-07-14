@@ -21,7 +21,7 @@ phase gate.
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Control
-from projectq.ops import Ph, Rz, R
+from projectq.ops import Ph, R, Rz
 
 
 def _decompose_R(cmd):  # pylint: disable=invalid-name

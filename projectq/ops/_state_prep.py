@@ -13,19 +13,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contains the definition of the state preparation gate"""
+"""Definition of the state preparation gate."""
 
 from ._basics import BasicGate
 
 
 class StatePreparation(BasicGate):
-    """
-    Gate for transforming qubits in state |0> to any desired quantum state.
-    """
+    """Gate for transforming qubits in state |0> to any desired quantum state."""
 
     def __init__(self, final_state):
         """
-        Initialize StatePreparation gate.
+        Initialize a StatePreparation gate.
 
         Example:
             .. code-block:: python
@@ -34,28 +32,26 @@ class StatePreparation(BasicGate):
                 StatePreparation([0.5, -0.5j, -0.5, 0.5]) | qureg
 
         Note:
-            final_state[k] is taken to be the amplitude of the computational
-            basis state whose string is equal to the binary representation
-            of k.
+            final_state[k] is taken to be the amplitude of the computational basis state whose string is equal to the
+            binary representation of k.
 
         Args:
-            final_state(list[complex]): wavefunction of the desired
-                                        quantum state. len(final_state) must
-                                        be 2**len(qureg). Must be normalized!
+            final_state(list[complex]): wavefunction of the desired quantum state. len(final_state) must be
+                                        2**len(qureg). Must be normalized!
         """
-        BasicGate.__init__(self)
+        super().__init__()
         self.final_state = list(final_state)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "StatePreparation"
 
     def __eq__(self, other):
+        """Equal operator."""
         if isinstance(other, self.__class__):
             return self.final_state == other.final_state
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash("StatePreparation(" + str(self.final_state) + ")")

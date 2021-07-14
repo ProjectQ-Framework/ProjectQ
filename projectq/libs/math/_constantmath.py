@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Module containing constant math quantum operations"""
+"""Module containing constant math quantum operations."""
 
 import math
 
@@ -22,21 +22,20 @@ try:
 except ImportError:  # pragma: no cover
     from fractions import gcd
 
-from projectq.ops import R, X, Swap, CNOT, QFT
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute
-from ._gates import AddConstant, SubConstant, AddConstantModN, SubConstantModN
+from projectq.meta import Compute, Control, CustomUncompute, Uncompute
+from projectq.ops import CNOT, QFT, R, Swap, X
+
+from ._gates import AddConstant, AddConstantModN, SubConstant, SubConstantModN
 
 
 # Draper's addition by constant https://arxiv.org/abs/quant-ph/0008033
 def add_constant(eng, constant, quint):
     """
-    Adds a classical constant c to the quantum integer (qureg) quint using
-    Draper addition.
+    Add a classical constant c to the quantum integer (qureg) quint using Draper addition.
 
-    Note: Uses the Fourier-transform adder from
-          https://arxiv.org/abs/quant-ph/0008033.
+    Note:
+        Uses the Fourier-transform adder from https://arxiv.org/abs/quant-ph/0008033.
     """
-
     with Compute(eng):
         QFT | quint
 
@@ -51,9 +50,9 @@ def add_constant(eng, constant, quint):
 # Modular adder by Beauregard https://arxiv.org/abs/quant-ph/0205095
 def add_constant_modN(eng, constant, N, quint):  # pylint: disable=invalid-name
     """
-    Adds a classical constant c to a quantum integer (qureg) quint modulo N
-    using Draper addition and the construction from
-    https://arxiv.org/abs/quant-ph/0205095.
+    Add a classical constant c to a quantum integer (qureg) quint modulo N using Draper addition.
+
+    This function uses Draper addition and the construction from https://arxiv.org/abs/quant-ph/0205095.
     """
     if constant < 0 or constant > N:
         raise ValueError('Pre-condition failed: 0 <= constant < N')
@@ -82,7 +81,9 @@ def add_constant_modN(eng, constant, N, quint):  # pylint: disable=invalid-name
 # from https://arxiv.org/abs/quant-ph/0205095
 def mul_by_constant_modN(eng, constant, N, quint_in):  # pylint: disable=invalid-name
     """
-    Multiplies a quantum integer by a classical number a modulo N, i.e.,
+    Multiply a quantum integer by a classical number a modulo N.
+
+    i.e.,
 
     |x> -> |a*x mod N>
 
@@ -113,9 +114,7 @@ def mul_by_constant_modN(eng, constant, N, quint_in):  # pylint: disable=invalid
 
 
 def inv_mod_N(a, N):  # pylint: disable=invalid-name
-    """
-    Calculate the inverse of a modulo N
-    """
+    """Calculate the inverse of a modulo N."""
     # pylint: disable=invalid-name
     s = 0
     old_s = 1

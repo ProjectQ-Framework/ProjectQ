@@ -16,17 +16,17 @@
 "Tests for projectq.setups.trapped_ion_decomposer.py."
 
 import projectq
-from projectq.ops import Rx, Ry, Rz, H, X, CNOT, Measure, Rxx, ClassicalInstructionGate
 from projectq.cengines import (
-    MainEngine,
-    DummyEngine,
     AutoReplacer,
-    TagRemover,
-    InstructionFilter,
-    DecompositionRuleSet,
     DecompositionRule,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+    MainEngine,
+    TagRemover,
 )
 from projectq.meta import get_control_count
+from projectq.ops import CNOT, ClassicalInstructionGate, H, Measure, Rx, Rxx, Ry, Rz, X
 
 from . import restrictedgateset
 from .trapped_ion_decomposer import chooser_Ry_reducer, get_engine_list

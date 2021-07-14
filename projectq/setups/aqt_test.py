@@ -21,21 +21,19 @@ def test_aqt_mapper_in_cengines(monkeypatch):
     import projectq.setups.aqt
 
     def mock_show_devices(*args, **kwargs):
-        connections = set(
-            [
-                (0, 1),
-                (1, 0),
-                (1, 2),
-                (1, 3),
-                (1, 4),
-                (2, 1),
-                (2, 3),
-                (2, 4),
-                (3, 1),
-                (3, 4),
-                (4, 3),
-            ]
-        )
+        connections = {
+            (0, 1),
+            (1, 0),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (2, 1),
+            (2, 3),
+            (2, 4),
+            (3, 1),
+            (3, 4),
+            (4, 3),
+        }
         return {'aqt_simulator': {'coupling_map': connections, 'version': '0.0.0', 'nq': 32}}
 
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)
@@ -47,21 +45,19 @@ def test_aqt_errors(monkeypatch):
     import projectq.setups.aqt
 
     def mock_show_devices(*args, **kwargs):
-        connections = set(
-            [
-                (0, 1),
-                (1, 0),
-                (1, 2),
-                (1, 3),
-                (1, 4),
-                (2, 1),
-                (2, 3),
-                (2, 4),
-                (3, 1),
-                (3, 4),
-                (4, 3),
-            ]
-        )
+        connections = {
+            (0, 1),
+            (1, 0),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (2, 1),
+            (2, 3),
+            (2, 4),
+            (3, 1),
+            (3, 4),
+            (4, 3),
+        }
         return {'aqt_imaginary': {'coupling_map': connections, 'version': '0.0.0', 'nq': 6}}
 
     monkeypatch.setattr(projectq.setups.aqt, "show_devices", mock_show_devices)

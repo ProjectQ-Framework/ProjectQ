@@ -13,16 +13,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Definition of some mathematical quantum operations"""
+"""Definition of some mathematical quantum operations."""
 
-from projectq.ops import All, X, CNOT
 from projectq.meta import Control
+from projectq.ops import CNOT, All, X
+
 from ._gates import AddQuantum, SubtractQuantum
 
 
 def add_quantum(eng, quint_a, quint_b, carry=None):
     """
-    Adds two quantum integers, i.e.,
+    Add two quantum integers.
+
+    i.e.,
 
     |a0...a(n-1)>|b(0)...b(n-1)>|c> -> |a0...a(n-1)>|b+a(0)...b+a(n)>
 
@@ -82,7 +85,9 @@ def add_quantum(eng, quint_a, quint_b, carry=None):
 
 def subtract_quantum(eng, quint_a, quint_b):
     """
-    Subtracts two quantum integers, i.e.,
+    Subtract two quantum integers.
+
+    i.e.,
 
     |a>|b> -> |a>|b-a>
 
@@ -140,7 +145,7 @@ def subtract_quantum(eng, quint_a, quint_b):
 
 def inverse_add_quantum_carry(eng, quint_a, quint_b):
     """
-    Inverse of quantum addition with carry
+    Inverse of quantum addition with carry.
 
     Args:
         eng (MainEngine): ProjectQ MainEngine
@@ -164,7 +169,9 @@ def inverse_add_quantum_carry(eng, quint_a, quint_b):
 
 def comparator(eng, quint_a, quint_b, comp):
     """
-    Compares the size of two quantum integers, i.e,
+    Compare the size of two quantum integers.
+
+    i.e,
 
     if a>b: |a>|b>|c> -> |a>|b>|c+1>
 
@@ -227,7 +234,9 @@ def comparator(eng, quint_a, quint_b, comp):
 
 def quantum_conditional_add(eng, quint_a, quint_b, conditional):
     """
-    Adds up two quantum integers if conditional is high, i.e.,
+    Add up two quantum integers if conditional is high.
+
+    i.e.,
 
     |a>|b>|c> -> |a>|b+a>|c>
     (without a carry out qubit)
@@ -285,7 +294,9 @@ def quantum_conditional_add(eng, quint_a, quint_b, conditional):
 
 def quantum_division(eng, dividend, remainder, divisor):
     """
-    Performs restoring integer division, i.e.,
+    Perform restoring integer division.
+
+    i.e.,
 
     |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
 
@@ -340,7 +351,9 @@ def quantum_division(eng, dividend, remainder, divisor):
 
 def inverse_quantum_division(eng, remainder, quotient, divisor):
     """
-    Performs the inverse of a restoring integer division, i.e.,
+    Perform the inverse of a restoring integer division.
+
+    i.e.,
 
     |remainder>|quotient>|divisor> ->  |dividend>|remainder(0)>|divisor>
 
@@ -373,7 +386,9 @@ def inverse_quantum_division(eng, remainder, quotient, divisor):
 
 def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):  # pylint: disable=invalid-name
     """
-    Adds up two quantum integers if the control qubit is |1>, i.e.,
+    Add up two quantum integers if the control qubit is |1>.
+
+    i.e.,
 
     |a>|b>|ctrl>|z(0)z(1)> -> |a>|s(0)...s(n-1)>|ctrl>|s(n)z(1)>
     (where s denotes the sum of a and b)
@@ -448,7 +463,9 @@ def quantum_conditional_add_carry(eng, quint_a, quint_b, ctrl, z):  # pylint: di
 
 def quantum_multiplication(eng, quint_a, quint_b, product):
     """
-    Multiplies two quantum integers, i.e,
+    Multiplies two quantum integers.
+
+    i.e,
 
     |a>|b>|0> -> |a>|b>|a*b>
 
@@ -498,7 +515,9 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
 
 def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
     """
-    Inverse of the multiplication of two quantum integers, i.e,
+    Inverse of the multiplication of two quantum integers.
+
+    i.e,
 
     |a>|b>|a*b> -> |a>|b>|0>
 

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-This file defines BasicQubit, Qubit, WeakQubit and Qureg.
+Definition of BasicQubit, Qubit, WeakQubit and Qureg classes.
 
 A Qureg represents a list of Qubit or WeakQubit objects.
 A Qubit represents a (logical-level) qubit with a unique index provided by the MainEngine. Qubit objects are
@@ -51,21 +51,15 @@ class BasicQubit:
         self.engine = engine
 
     def __str__(self):
-        """
-        Return string representation of this qubit.
-        """
+        """Return string representation of this qubit."""
         return str(self.id)
 
     def __bool__(self):
-        """
-        Access the result of a previous measurement and return False / True (0 / 1)
-        """
+        """Access the result of a previous measurement and return False / True (0 / 1)."""
         return self.engine.main_engine.get_measurement_result(self)
 
     def __int__(self):
-        """
-        Access the result of a previous measurement and return as integer (0 / 1).
-        """
+        """Access the result of a previous measurement and return as integer (0 / 1)."""
         return int(bool(self))
 
     def __eq__(self, other):
@@ -78,9 +72,6 @@ class BasicQubit:
         if self.id == -1:
             return self is other
         return isinstance(other, BasicQubit) and self.id == other.id and self.engine == other.engine
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __hash__(self):
         """
@@ -104,9 +95,7 @@ class Qubit(BasicQubit):
     """
 
     def __del__(self):
-        """
-        Destroy the qubit and deallocate it (automatically).
-        """
+        """Destroy the qubit and deallocate it (automatically)."""
         if self.id == -1:
             return
         # If a user directly calls this function, then the qubit gets id == -1 but stays in active_qubits as it is not
@@ -185,9 +174,7 @@ class Qureg(list):
         )
 
     def __str__(self):
-        """
-        Get string representation of a quantum register.
-        """
+        """Get string representation of a quantum register."""
         if len(self) == 0:
             return "Qureg[]"
 
@@ -210,15 +197,11 @@ class Qureg(list):
 
     @property
     def engine(self):
-        """
-        Return owning engine.
-        """
+        """Return owning engine."""
         return self[0].engine
 
     @engine.setter
     def engine(self, eng):
-        """
-        Set owning engine.
-        """
+        """Set owning engine."""
         for qb in self:
             qb.engine = eng

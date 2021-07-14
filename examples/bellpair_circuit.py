@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example implementation of a quantum circuit generating a Bell pair state."""
+
 import matplotlib.pyplot as plt
+from teleport import create_bell_pair
 
 from projectq import MainEngine
 from projectq.backends import CircuitDrawer
-from projectq.setups.default import get_engine_list
 from projectq.libs.hist import histogram
-
-from teleport import create_bell_pair
+from projectq.setups.default import get_engine_list
 
 # create a main compiler engine
 drawing_engine = CircuitDrawer()

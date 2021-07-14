@@ -18,10 +18,15 @@ Tests for the controlstate decomposition rule.
 """
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine, AutoReplacer, InstructionFilter, DecompositionRuleSet
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
+)
 from projectq.meta import Control, has_negative_control
 from projectq.ops import X
-from projectq.setups.decompositions import controlstate, cnot2cz
+from projectq.setups.decompositions import cnot2cz, controlstate
 
 
 def filter_func(eng, cmd):

@@ -12,14 +12,13 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a decomposition for the Ry gate into an Rz and Rx(pi/2) gate.
-"""
+
+"""Register a decomposition for the Ry gate into an Rz and Rx(pi/2) gate."""
 
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
+from projectq.meta import Compute, Control, Uncompute, get_control_count
 from projectq.ops import Rx, Ry, Rz
 
 

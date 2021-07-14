@@ -17,11 +17,9 @@
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import H, CNOT, All
-
-from projectq.cengines import _ibm5qubitmapper, SwapAndCNOTFlipper
 from projectq.backends import IBMBackend
+from projectq.cengines import DummyEngine, SwapAndCNOTFlipper, _ibm5qubitmapper
+from projectq.ops import CNOT, All, H
 
 
 def test_ibm5qubitmapper_is_available(monkeypatch):
@@ -35,7 +33,7 @@ def test_ibm5qubitmapper_is_available(monkeypatch):
 
 
 def test_ibm5qubitmapper_invalid_circuit():
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(
         backend=backend,
@@ -55,7 +53,7 @@ def test_ibm5qubitmapper_invalid_circuit():
 
 
 def test_ibm5qubitmapper_valid_circuit1():
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(
         backend=backend,
@@ -77,7 +75,7 @@ def test_ibm5qubitmapper_valid_circuit1():
 
 
 def test_ibm5qubitmapper_valid_circuit2():
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(
         backend=backend,
@@ -99,7 +97,7 @@ def test_ibm5qubitmapper_valid_circuit2():
 
 
 def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     backend = DummyEngine(save_commands=True)
 
     class FakeIBMBackend(IBMBackend):
@@ -131,7 +129,7 @@ def test_ibm5qubitmapper_valid_circuit2_ibmqx4():
 
 def test_ibm5qubitmapper_optimizeifpossible():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     eng = MainEngine(
         backend=backend,
         engine_list=[
@@ -173,7 +171,7 @@ def test_ibm5qubitmapper_optimizeifpossible():
 
 def test_ibm5qubitmapper_toomanyqubits():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)])
+    connectivity = {(2, 1), (4, 2), (2, 0), (3, 2), (3, 4), (1, 0)}
     eng = MainEngine(
         backend=backend,
         engine_list=[

@@ -14,16 +14,15 @@
 #   limitations under the License.
 """Tests for projectq.meta._compute.py"""
 
-import pytest
 import types
 import weakref
 
-from projectq import MainEngine
-from projectq.cengines import DummyEngine, CompareEngine
-from projectq.ops import H, Rx, Ry, Deallocate, Allocate, CNOT, NOT, FlushGate
-from projectq.meta import DirtyQubitTag
+import pytest
 
-from projectq.meta import _compute
+from projectq import MainEngine
+from projectq.cengines import CompareEngine, DummyEngine
+from projectq.meta import DirtyQubitTag, _compute
+from projectq.ops import CNOT, NOT, Allocate, Deallocate, FlushGate, H, Rx, Ry
 
 
 def test_compute_tag():

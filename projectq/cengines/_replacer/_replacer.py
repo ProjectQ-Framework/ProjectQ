@@ -12,25 +12,28 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains an AutoReplacer compiler engine which uses engine.is_available to
-determine whether a command can be executed. If not, it uses the loaded setup
-(e.g., default) to find an appropriate decomposition.
 
-The InstructionFilter can be used to further specify which gates to
-replace/keep.
+"""
+Definitions of a few compiler engines that handle command filtering and replacement.
+
+Contains an AutoReplacer compiler engine which uses engine.is_available to determine whether a command can be
+executed. If not, it uses the loaded setup (e.g., default) to find an appropriate decomposition.
+
+The InstructionFilter can be used to further specify which gates to replace/keep.
 """
 
-from projectq.cengines import BasicEngine, ForwarderEngine, CommandModifier
+from projectq.cengines import BasicEngine, CommandModifier, ForwarderEngine
 from projectq.ops import FlushGate, get_inverse
 
 
 class NoGateDecompositionError(Exception):
-    """Exception raised when no gate decomposition rule can be found"""
+    """Exception raised when no gate decomposition rule can be found."""
 
 
 class InstructionFilter(BasicEngine):
     """
+    A compiler engine that implements a user-defined is_available() method.
+
     The InstructionFilter is a compiler engine which changes the behavior of is_available according to a filter
     function. All commands are passed to this function, which then returns whether this command can be executed (True)
     or needs replacement (False).
@@ -38,6 +41,8 @@ class InstructionFilter(BasicEngine):
 
     def __init__(self, filterfun):
         """
+        Initialize an InstructionFilter object.
+
         Initializer: The provided filterfun returns True for all commands which do not need replacement and False for
         commands that do.
 
@@ -45,11 +50,13 @@ class InstructionFilter(BasicEngine):
             filterfun (function): Filter function which returns True for available commands, and False
                 otherwise. filterfun will be called as filterfun(self, cmd).
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._filterfun = filterfun
 
     def is_available(self, cmd):
         """
+        Test whether a Command is supported by a compiler engine.
+
         Specialized implementation of BasicBackend.is_available: Forwards this call to the filter function given to
         the constructor.
 
@@ -60,7 +67,9 @@ class InstructionFilter(BasicEngine):
 
     def receive(self, command_list):
         """
-        Forward all commands to the next engine.
+        Receive a list of commands.
+
+        This implementation simply forwards all commands to the next engine.
 
         Args:
             command_list (list<Command>): List of commands to receive.
@@ -70,6 +79,8 @@ class InstructionFilter(BasicEngine):
 
 class AutoReplacer(BasicEngine):
     """
+    A compiler engine to automatically replace certain commands.
+
     The AutoReplacer is a compiler engine which uses engine.is_available in order to determine which commands need to
     be replaced/decomposed/compiled further. The loaded setup is used to find decomposition rules appropriate for each
     command (e.g., setups.default).
@@ -104,12 +115,14 @@ class AutoReplacer(BasicEngine):
                 return decomp_list[0]
             repl = AutoReplacer(decomposition_chooser)
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._decomp_chooser = decomposition_chooser
         self.decomposition_rule_set = decomposition_rule_se
 
     def _process_command(self, cmd):  # pylint: disable=too-many-locals,too-many-branches
         """
+        Process a command.
+
         Check whether a command cmd can be handled by further engines and, if not, replace it using the decomposition
         rules loaded with the setup (e.g., setups.default).
 
@@ -205,9 +218,10 @@ class AutoReplacer(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous compiler engine and, if
-        necessary, replace/decompose the gates according to the decomposition
-        rules in the loaded setup.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous compiler engine and, if necessary, replace/decompose the gates
+        according to the decomposition rules in the loaded setup.
 
         Args:
             command_list (list<Command>): List of commands to handle.

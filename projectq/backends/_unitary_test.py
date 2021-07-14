@@ -18,27 +18,28 @@ Contains the tests for the UnitarySimulator
 """
 
 import itertools
+
 import numpy as np
 import pytest
 from scipy.stats import unitary_group
 
-from projectq.cengines import MainEngine, DummyEngine, NotYetMeasuredError
+from projectq.cengines import DummyEngine, MainEngine, NotYetMeasuredError
+from projectq.meta import Control, LogicalQubitIDTag
 from projectq.ops import (
-    BasicGate,
-    MatrixGate,
+    CNOT,
     All,
-    Measure,
     Allocate,
-    Deallocate,
+    BasicGate,
     Command,
-    X,
-    Y,
+    Deallocate,
+    H,
+    MatrixGate,
+    Measure,
     Rx,
     Rxx,
-    H,
-    CNOT,
+    X,
+    Y,
 )
-from projectq.meta import Control, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 from ._unitary import UnitarySimulator

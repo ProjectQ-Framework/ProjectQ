@@ -14,15 +14,14 @@
 #   limitations under the License.
 """Tests for projectq.meta._dagger.py"""
 
-import pytest
 import types
+
+import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import CNOT, X, Rx, H, Allocate, Deallocate
-from projectq.meta import DirtyQubitTag
-
-from projectq.meta import _dagger
+from projectq.meta import DirtyQubitTag, _dagger
+from projectq.ops import CNOT, Allocate, Deallocate, H, Rx, X
 
 
 def test_dagger_with_dirty_qubits():

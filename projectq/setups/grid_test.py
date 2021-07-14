@@ -17,11 +17,10 @@
 import pytest
 
 import projectq
+import projectq.setups.grid as grid_setup
 from projectq.cengines import DummyEngine, GridMapper
 from projectq.libs.math import AddConstant
-from projectq.ops import BasicGate, CNOT, H, Measure, Rx, Rz, Swap, X
-
-import projectq.setups.grid as grid_setup
+from projectq.ops import CNOT, BasicGate, H, Measure, Rx, Rz, Swap, X
 
 
 def test_mapper_present_and_correct_params():

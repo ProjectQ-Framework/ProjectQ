@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""RevKit support for control function oracles"""
+"""RevKit support for control function oracles."""
 
 
 from projectq.ops import BasicGate
@@ -23,7 +23,7 @@ from ._utils import _exec
 
 class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
     """
-    Synthesizes a negation controlled by an arbitrary control function.
+    Synthesize a negation controlled by an arbitrary control function.
 
     This creates a circuit for a NOT gate which is controlled by an arbitrary
     Boolean control function.  The control function is provided as integer
@@ -32,7 +32,6 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
     the value for function can be, e.g., ``0b11101000``, ``0xe8``, or ``232``.
 
     Example:
-
         This example creates a circuit that causes to invert qubit ``d``,
         the majority-of-three function evaluates to true for the control
         qubits ``a``, ``b``, and ``c``.
@@ -44,7 +43,7 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
 
     def __init__(self, function, **kwargs):
         """
-        Initializes a control function oracle.
+        Initialize a control function oracle.
 
         Args:
             function (int): Function truth table.
@@ -75,7 +74,7 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
 
     def __or__(self, qubits):
         """
-        Applies control function to qubits (and synthesizes circuit).
+        Apply control function to qubits (and synthesizes circuit).
 
         Args:
             qubits (tuple<Qureg>): Qubits to which the control function is
@@ -117,9 +116,7 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
         _exec(revkit.to_projectq(mct=True), qs)
 
     def _check_function(self):
-        """
-        Checks whether function is valid.
-        """
+        """Check whether function is valid."""
         # function must be positive. We check in __or__ whether function is
         # too large
         if self.function < 0:

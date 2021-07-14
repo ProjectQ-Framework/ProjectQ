@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Registers decomposition for the TimeEvolution gates.
+Register decomposition for the TimeEvolution gates.
 
 An exact straight forward decomposition of a TimeEvolution gate is possible
 if the hamiltonian has only one term or if all the terms commute with each
@@ -22,14 +22,12 @@ other in which case one can implement each term individually.
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import TimeEvolution, QubitOperator, H, CNOT, Rz, Rx, Ry
+from projectq.meta import Compute, Control, Uncompute
+from projectq.ops import CNOT, H, QubitOperator, Rx, Ry, Rz, TimeEvolution
 
 
 def _recognize_time_evolution_commuting_terms(cmd):
-    """
-    Recognize all TimeEvolution gates with >1 terms but which all commute.
-    """
+    """Recognize all TimeEvolution gates with >1 terms but which all commute."""
     hamiltonian = cmd.gate.hamiltonian
     if len(hamiltonian.terms) == 1:
         return False
@@ -61,7 +59,7 @@ def _recognize_time_evolution_individual_terms(cmd):
 
 def _decompose_time_evolution_individual_terms(cmd):  # pylint: disable=too-many-branches
     """
-    Implements a TimeEvolution gate with a hamiltonian having only one term.
+    Implement a TimeEvolution gate with a hamiltonian having only one term.
 
     To implement exp(-i * t * hamiltonian), where the hamiltonian is only one
     term, e.g., hamiltonian = X0 x Y1 X Z2, we first perform local

@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a decomposition to achieve a SqrtSwap gate.
-"""
+
+"""Register a decomposition to achieve a SqrtSwap gate."""
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Control, Uncompute
@@ -23,7 +22,6 @@ from projectq.ops import CNOT, SqrtSwap, SqrtX
 
 def _decompose_sqrtswap(cmd):
     """Decompose (controlled) swap gates."""
-
     if len(cmd.qubits) != 2:
         raise ValueError('SqrtSwap gate requires two quantum registers')
     if not (len(cmd.qubits[0]) == 1 and len(cmd.qubits[1]) == 1):

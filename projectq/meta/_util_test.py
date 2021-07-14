@@ -18,7 +18,6 @@ import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 
-
 from . import _util
 
 

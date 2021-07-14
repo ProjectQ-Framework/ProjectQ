@@ -18,7 +18,6 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-
 from projectq.libs.revkit import PermutationOracle
 
 # run this test only if RevKit Python module can be loaded

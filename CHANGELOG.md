@@ -16,9 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Prevent infinite recursion errors when too many compiler engines are added to the MainEngine
+-   Error in testing the decomposition for the phase estimation gate
+-   Make all docstrings PEP257 compliant
 
 ### Removed
+
+-   Some compatibility code for Python 2.x
+
 ### Repository
+
+-   Added `isort` to the list of pre-commit hooks
+-   Added `flake8-docstrings` to the flake8 checks to ensure PEP257 compliance for docstrings
 
 ## [0.6.1] - 2021-06-23
 

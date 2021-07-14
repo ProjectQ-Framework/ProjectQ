@@ -12,41 +12,49 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Back-end to run quantum program on AQT cloud platform"""
+
+"""Back-end to run quantum program on AQT cloud platform."""
 
 import getpass
 import signal
 import time
 
 import requests
-from requests.compat import urljoin
 from requests import Session
+from requests.compat import urljoin
+
+from .._exceptions import DeviceOfflineError, DeviceTooSmall, RequestTimeoutError
 
 # An AQT token can be requested at:
 # https://gateway-portal.aqt.eu/
+
 
 _API_URL = 'https://gateway.aqt.eu/marmot/'
 
 
 class AQT(Session):
-    """Class managing the session to AQT's APIs"""
+    """Class managing the session to AQT's APIs."""
 
     def __init__(self):
+        """Initialize an AQT session with AQT's APIs."""
         super().__init__()
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
         self.token = None
 
     def update_devices_list(self, verbose=False):
         """
+        Update the internal device list.
+
         Returns:
             (list): list of available devices
 
-        Up to my knowledge there is no proper API call for online devices,
-        so we just assume that the list from AQT portal always up to date
+        Note:
+            Up to my knowledge there is no proper API call for online devices, so we just assume that the list from
+            AQT portal always up to date
         """
         # TODO: update once the API for getting online devices is available
-        self.backends = dict()
+        self.backends = {}
         self.backends['aqt_simulator'] = {'nq': 11, 'version': '0.0.1', 'url': 'sim/'}
         self.backends['aqt_simulator_noise'] = {
             'nq': 11,
@@ -60,7 +68,7 @@ class AQT(Session):
 
     def is_online(self, device):
         """
-        Check whether a device is currently online
+        Check whether a device is currently online.
 
         Args:
             device (str): name of the aqt device to use
@@ -72,7 +80,7 @@ class AQT(Session):
 
     def can_run_experiment(self, info, device):
         """
-        check if the device is big enough to run the code
+        Check if the device is big enough to run the code.
 
         Args:
             info (dict): dictionary sent by the backend containing the code to
@@ -87,6 +95,8 @@ class AQT(Session):
 
     def authenticate(self, token=None):
         """
+        Authenticate with the AQT Web API.
+
         Args:
             token (str): AQT user API token.
         """
@@ -96,7 +106,7 @@ class AQT(Session):
         self.token = token
 
     def run(self, info, device):
-        """Run a quantum circuit"""
+        """Run a quantum circuit."""
         argument = {
             'data': info['circuit'],
             'access_token': self.token,
@@ -114,9 +124,7 @@ class AQT(Session):
     def get_result(  # pylint: disable=too-many-arguments
         self, device, execution_id, num_retries=3000, interval=1, verbose=False
     ):
-        """
-        Get the result of an execution
-        """
+        """Get the result of an execution."""
         if verbose:
             print("Waiting for results. [Job ID: {}]".format(execution_id))
 
@@ -153,21 +161,12 @@ class AQT(Session):
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception("Timeout. The ID of your submitted job is {}.".format(execution_id))
-
-
-class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit"""
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
 
 def show_devices(verbose=False):
     """
-    Access the list of available devices and their properties (ex: for setup
-    configuration)
+    Access the list of available devices and their properties (ex: for setup configuration).
 
     Args:
         verbose (bool): If True, additional information is printed
@@ -182,7 +181,7 @@ def show_devices(verbose=False):
 
 def retrieve(device, token, jobid, num_retries=3000, interval=1, verbose=False):  # pylint: disable=too-many-arguments
     """
-    Retrieves a previously run job by its ID.
+    Retrieve a previously run job by its ID.
 
     Args:
         device (str): Device on which the code was run / is running.
@@ -208,15 +207,14 @@ def send(
     verbose=False,
 ):  # pylint: disable=too-many-arguments
     """
-    Sends cicruit through the AQT API and runs the quantum circuit.
+    Send cicruit through the AQT API and runs the quantum circuit.
 
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the aqt device. Simulator chosen by default
         token (str): AQT user API token.
-        verbose (bool): If True, additional information is printed, such as
-            measurement statistics. Otherwise, the backend simply registers
-            one measurement result (same behavior as the projectq Simulator).
+        verbose (bool): If True, additional information is printed, such as measurement statistics. Otherwise, the
+            backend simply registers one measurement result (same behavior as the projectq Simulator).
 
     Returns:
         (list) samples form the AQT server

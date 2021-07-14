@@ -16,27 +16,26 @@
 
 import cmath
 import math
+
 import numpy as np
 import pytest
 
-from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.ops import (
-    T,
-    Y,
-    NotInvertible,
-    Entangle,
-    Rx,
-    FastForwardingGate,
-    Command,
+    All,
     C,
     ClassicalInstructionGate,
-    All,
+    Command,
+    Entangle,
+    FastForwardingGate,
+    NotInvertible,
+    Rx,
+    T,
+    Y,
+    _metagates,
 )
-from projectq.types import WeakQubitRef
-
-from projectq.ops import _metagates
+from projectq.types import Qubit, WeakQubitRef
 
 
 def test_tensored_gate_invalid():

@@ -20,8 +20,8 @@ import pytest
 import requests
 from requests.compat import urljoin
 
+from projectq.backends._exceptions import JobSubmissionError, RequestTimeoutError
 from projectq.backends._ionq import _ionq_http_client
-from projectq.backends._ionq._ionq_exc import JobSubmissionError, RequestTimeoutError
 
 
 # Insure that no HTTP request can be made in all tests in this module

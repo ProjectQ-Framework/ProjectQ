@@ -15,26 +15,25 @@
 """Tests for projectq.cengines._basics.py."""
 
 import types
+
 import pytest
+
+from projectq import MainEngine
+from projectq.cengines import DummyEngine, InstructionFilter, _basics
+from projectq.meta import DirtyQubitTag
+from projectq.ops import (
+    AllocateQubitGate,
+    ClassicalInstructionGate,
+    DeallocateQubitGate,
+    FastForwardingGate,
+    H,
+)
+from projectq.types import Qubit
 
 # try:
 #     import mock
 # except ImportError:
 #     from unittest import mock
-
-from projectq import MainEngine
-from projectq.types import Qubit
-from projectq.cengines import DummyEngine, InstructionFilter
-from projectq.meta import DirtyQubitTag
-from projectq.ops import (
-    AllocateQubitGate,
-    DeallocateQubitGate,
-    H,
-    FastForwardingGate,
-    ClassicalInstructionGate,
-)
-
-from projectq.cengines import _basics
 
 
 def test_basic_engine_init():
@@ -112,15 +111,13 @@ def test_basic_engine_allocate_and_deallocate_qubit_and_qureg():
     # Test uniqueness of ids
     assert (
         len(
-            set(
-                [
-                    qubit[0].id,
-                    not_dirty_qubit[0].id,
-                    dirty_qubit[0].id,
-                    qureg[0].id,
-                    qureg[1].id,
-                ]
-            )
+            {
+                qubit[0].id,
+                not_dirty_qubit[0].id,
+                dirty_qubit[0].id,
+                qureg[0].id,
+                qureg[1].id,
+            }
         )
         == 5
     )

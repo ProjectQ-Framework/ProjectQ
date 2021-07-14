@@ -29,23 +29,25 @@ import time
 import boto3
 import botocore
 
+from .._exceptions import DeviceOfflineError, DeviceTooSmall, RequestTimeoutError
+
 
 class AWSBraket:
-    """
-    Manage a session between ProjectQ and AWS Braket service.
-    """
+    """Manage a session between ProjectQ and AWS Braket service."""
 
     def __init__(self):
-        self.backends = dict()
+        """Initialize a session with the AWS Braket Web APIs."""
+        self.backends = {}
         self.timeout = 5.0
-        self._credentials = dict()
+        self._credentials = {}
         self._s3_folder = []
 
     def authenticate(self, credentials=None):
         """
+        Authenticate with AWSBraket Web APIs.
+
         Args:
-            credentials (dict): mapping the AWS key credentials as the
-                AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+            credentials (dict): mapping the AWS key credentials as the AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         """
         if credentials is None:  # pragma: no cover
             credentials['AWS_ACCESS_KEY_ID'] = getpass.getpass(prompt="Enter AWS_ACCESS_KEY_ID: ")
@@ -55,9 +57,10 @@ class AWSBraket:
 
     def get_s3_folder(self, s3_folder=None):
         """
+        Get the S3 bucket that contains the results.
+
         Args:
-           s3_folder (list): contains the S3 bucket and directory to store the
-           results.
+           s3_folder (list): contains the S3 bucket and directory to store the results.
         """
         if s3_folder is None:  # pragma: no cover
             s3_bucket = input("Enter the S3 Bucket configured in Braket: ")
@@ -68,20 +71,18 @@ class AWSBraket:
 
     def get_list_devices(self, verbose=False):
         """
-        Get the list of available devices with their basic properties
+        Get the list of available devices with their basic properties.
 
         Args:
             verbose (bool): print the returned dictionnary if True
 
         Returns:
-            (dict) backends dictionary by deviceName, containing the qubit size
-                   'nq', the coupling map 'coupling_map' if applicable (IonQ
-                   Device as an ion device is having full connectivity) and the
-                   Schema Header version 'version', because it seems that no
-                   device version is available by now
+            (dict) backends dictionary by deviceName, containing the qubit size 'nq', the coupling map 'coupling_map'
+                   if applicable (IonQ Device as an ion device is having full connectivity) and the Schema Header
+                   version 'version', because it seems that no device version is available by now
         """
         # TODO: refresh region_names if more regions get devices available
-        self.backends = dict()
+        self.backends = {}
         region_names = ['us-west-1', 'us-east-1']
         for region in region_names:
             client = boto3.client(
@@ -156,15 +157,13 @@ class AWSBraket:
         Check if the device is big enough to run the code.
 
         Args:
-            info (dict): dictionary sent by the backend containing the code to
-                run
+            info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the device to use
 
         Returns:
             (tuple): (bool) True if device is big enough, False otherwise (int)
                      maximum number of qubit available on the device (int)
                      number of qubit needed for the circuit
-
         """
         nb_qubit_max = self.backends[device]['nq']
         nb_qubit_needed = info['nq']
@@ -175,14 +174,11 @@ class AWSBraket:
         Run the quantum code to the AWS Braket selected device.
 
         Args:
-            info (dict): dictionary sent by the backend containing the code to
-                run
+            info (dict): dictionary sent by the backend containing the code to run
             device (str): name of the device to use
 
         Returns:
             task_arn (str): The Arn of the task
-
-
         """
         argument = {
             'circ': info['circuit'],
@@ -220,9 +216,7 @@ class AWSBraket:
         return response['quantumTaskArn']
 
     def get_result(self, execution_id, num_retries=30, interval=1, verbose=False):  # pylint: disable=too-many-locals
-        """
-        Get the result of an execution
-        """
+        """Get the result of an execution."""
         if verbose:
             print("Waiting for results. [Job Arn: {}]".format(execution_id))
 
@@ -233,18 +227,19 @@ class AWSBraket:
 
         def _calculate_measurement_probs(measurements):
             """
-            Calculate the measurement probabilities based on the
-            list of measurements for a job sent to a SV1 Braket simulator
+            Calculate the measurement probabilities .
+
+            Calculate the measurement probabilities based on the list of measurements for a job sent to a SV1 Braket
+            simulator.
 
             Args:
                 measurements (list): list of measurements
 
             Returns:
-                measurementsProbabilities (dict): The measurements
-                with their probabilities
+                measurementsProbabilities (dict): The measurements with their probabilities
             """
             total_mes = len(measurements)
-            unique_mes = [list(x) for x in set(tuple(x) for x in measurements)]
+            unique_mes = [list(x) for x in {tuple(x) for x in measurements}]
             total_unique_mes = len(unique_mes)
             len_qubits = len(unique_mes[0])
             measurements_probabilities = {}
@@ -315,29 +310,19 @@ class AWSBraket:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception(
+        raise RequestTimeoutError(
             "Timeout. "
             "The Arn of your submitted job is {} and the status "
             "of the job is {}.".format(execution_id, status)
         )
 
 
-class DeviceTooSmall(Exception):
-    """Exception raised if the device is too small to run the circuit"""
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
-
-
 def show_devices(credentials=None, verbose=False):
     """
-    Access the list of available devices and their properties (ex: for setup
-    configuration)
+    Access the list of available devices and their properties (ex: for setup configuration).
 
     Args:
-        credentials (dict): Dictionary storing the AWS credentials with
-            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        credentials (dict): Dictionary storing the AWS credentials with keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         verbose (bool): If True, additional information is printed
 
     Returns:
@@ -353,16 +338,14 @@ def show_devices(credentials=None, verbose=False):
 
 def retrieve(credentials, task_arn, num_retries=30, interval=1, verbose=False):
     """
-    Retrieves a job/task by its Arn.
+    Retrieve a job/task by its Arn.
 
     Args:
-        credentials (dict): Dictionary storing the AWS credentials with
-            keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        credentials (dict): Dictionary storing the AWS credentials with keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
         task_arn (str): The Arn of the task to retreive
 
     Returns:
-        (dict) measurement probabilities from the result
-        stored in the S3 folder
+        (dict) measurement probabilities from the result stored in the S3 folder
     """
     try:
         awsbraket_session = AWSBraket()
@@ -385,22 +368,18 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
     info, device, credentials, s3_folder, num_retries=30, interval=1, verbose=False
 ):
     """
-    Sends cicruit through the Boto3 SDK and runs the quantum circuit.
+    Send cicruit through the Boto3 SDK and runs the quantum circuit.
 
     Args:
         info(dict): Contains representation of the circuit to run.
         device (str): name of the AWS Braket device.
-        credentials (dict): Dictionary storing the AWS credentials with keys
-            AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-        s3_folder (list): Contains the S3 bucket and directory to store the
-            results.
-        verbose (bool): If True, additional information is printed, such as
-            measurement statistics. Otherwise, the backend simply registers one
-            measurement result (same behavior as the projectq Simulator).
+        credentials (dict): Dictionary storing the AWS credentials with keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
+        s3_folder (list): Contains the S3 bucket and directory to store the results.
+        verbose (bool): If True, additional information is printed, such as measurement statistics. Otherwise, the
+            backend simply registers one measurement result (same behavior as the projectq Simulator).
 
     Returns:
         (list) samples from the AWS Braket device
-
     """
     try:
         awsbraket_session = AWSBraket()

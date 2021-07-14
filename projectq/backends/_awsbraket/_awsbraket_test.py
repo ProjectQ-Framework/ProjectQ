@@ -14,50 +14,48 @@
 #   limitations under the License.
 """ Test for projectq.backends._awsbraket._awsbraket.py"""
 
-import pytest
-
 import copy
 import math
+
+import pytest
+
 from projectq import MainEngine
-
-
-from projectq.types import WeakQubitRef
 from projectq.cengines import (
-    BasicMapperEngine,
-    DummyEngine,
     AutoReplacer,
+    BasicMapperEngine,
     DecompositionRuleSet,
+    DummyEngine,
 )
 from projectq.cengines._replacer import NoGateDecompositionError
-
 from projectq.ops import (
-    R,
-    Swap,
+    CNOT,
+    NOT,
+    All,
+    Allocate,
+    Barrier,
+    C,
+    Command,
+    Deallocate,
+    Entangle,
     H,
+    MatrixGate,
+    Measure,
+    Ph,
+    R,
     Rx,
     Ry,
     Rz,
     S,
     Sdag,
+    SqrtX,
+    Swap,
     T,
     Tdag,
     X,
     Y,
     Z,
-    CNOT,
-    SqrtX,
-    MatrixGate,
-    Entangle,
-    Ph,
-    NOT,
-    C,
-    Measure,
-    Allocate,
-    Deallocate,
-    Barrier,
-    All,
-    Command,
 )
+from projectq.types import WeakQubitRef
 
 from ._awsbraket_test_fixtures import *  # noqa: F401,F403
 
@@ -66,6 +64,7 @@ from ._awsbraket_test_fixtures import *  # noqa: F401,F403
 _has_boto3 = True
 try:
     import botocore
+
     from projectq.backends._awsbraket import _awsbraket
 except ImportError:
     _has_boto3 = False
@@ -85,7 +84,7 @@ def mapper(request):
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
                 super().__init__()
-                self.current_mapping = dict()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:
@@ -489,7 +488,7 @@ def test_awsbraket_retrieve(mocker, retrieve_setup):
     backend = _awsbraket.AWSBraketBackend(retrieve_execution=arntask, credentials=creds, num_retries=2, verbose=True)
 
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res
