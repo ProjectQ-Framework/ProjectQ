@@ -12,9 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers decomposition for UnformlyControlledRy and UnformlyControlledRz.
-"""
+
+"""Register decomposition for UnformlyControlledRy and UnformlyControlledRz."""
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Control, CustomUncompute

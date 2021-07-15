@@ -16,7 +16,7 @@
 
 import pytest
 
-from projectq.backends._ionq._ionq_exc import DeviceOfflineError
+from projectq.backends._exceptions import DeviceOfflineError
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
 
 

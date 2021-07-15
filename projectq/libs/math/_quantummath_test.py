@@ -15,23 +15,20 @@
 
 import pytest
 
-from projectq import MainEngine
-from projectq.cengines import InstructionFilter, AutoReplacer, DecompositionRuleSet
-from projectq.backends import Simulator
-from projectq.ops import All, BasicMathGate, ClassicalInstructionGate, Measure, X
-
-from projectq.setups.decompositions import swap2cnot
-
 import projectq.libs.math
+from projectq import MainEngine
+from projectq.backends import Simulator
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, InstructionFilter
 from projectq.libs.math import (
     AddQuantum,
-    SubtractQuantum,
     ComparatorQuantum,
     DivideQuantum,
     MultiplyQuantum,
+    SubtractQuantum,
 )
-
-from projectq.meta import Control, Compute, Uncompute, Dagger
+from projectq.meta import Compute, Control, Dagger, Uncompute
+from projectq.ops import All, BasicMathGate, ClassicalInstructionGate, Measure, X
+from projectq.setups.decompositions import swap2cnot
 
 
 def print_all_probabilities(eng, qureg):

@@ -27,9 +27,9 @@ from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
     Allocate,
     AllocateQubitGate,
+    Command,
     Deallocate,
     DeallocateQubitGate,
-    Command,
     FlushGate,
     Swap,
 )
@@ -40,7 +40,7 @@ from ._basicmapper import BasicMapperEngine
 
 def return_swap_depth(swaps):
     """
-    Returns the circuit depth to execute these swaps.
+    Return the circuit depth to execute these swaps.
 
     Args:
         swaps(list of tuples): Each tuple contains two integers representing the two IDs of the qubits involved in the
@@ -48,7 +48,7 @@ def return_swap_depth(swaps):
     Returns:
         Circuit depth to execute these swaps.
     """
-    depth_of_qubits = dict()
+    depth_of_qubits = {}
     for qb0_id, qb1_id in swaps:
         if qb0_id not in depth_of_qubits:
             depth_of_qubits[qb0_id] = 0
@@ -62,7 +62,7 @@ def return_swap_depth(swaps):
 
 class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attributes
     """
-    Maps a quantum circuit to a linear chain of nearest neighbour interactions.
+    Map a quantum circuit to a linear chain of nearest neighbour interactions.
 
     Maps a quantum circuit to a linear chain of qubits with nearest neighbour interactions using Swap gates. It
     supports open or cyclic boundary conditions.
@@ -99,20 +99,18 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         self.cyclic = cyclic
         self.storage = storage
         # Storing commands
-        self._stored_commands = list()
+        self._stored_commands = []
         # Logical qubit ids for which the Allocate gate has already been
         # processed and sent to the next engine but which are not yet
         # deallocated:
         self._currently_allocated_ids = set()
         # Statistics:
         self.num_mappings = 0
-        self.depth_of_swaps = dict()
-        self.num_of_swaps_per_mapping = dict()
+        self.depth_of_swaps = {}
+        self.num_of_swaps_per_mapping = {}
 
     def is_available(self, cmd):
-        """
-        Only allows 1 or two qubit gates.
-        """
+        """Only allows 1 or two qubit gates."""
         num_qubits = 0
         for qureg in cmd.all_qubits:
             num_qubits += len(qureg)
@@ -121,7 +119,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
     @staticmethod
     def return_new_mapping(num_qubits, cyclic, currently_allocated_ids, stored_commands, current_mapping):
         """
-        Builds a mapping of qubits to a linear chain.
+        Build a mapping of qubits to a linear chain.
 
         It goes through stored_commands and tries to find a mapping to apply these gates on a first come first served
         basis.  More compilicated scheme could try to optimize to apply as many gates as possible between the Swaps.
@@ -150,7 +148,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         segments = []
         # neighbour_ids only used to speedup the lookup process if qubits
         # are already connected. key: qubit_id, value: set of neighbour ids
-        neighbour_ids = dict()
+        neighbour_ids = {}
         for qubit_id in active_qubits:
             neighbour_ids[qubit_id] = set()
 
@@ -208,7 +206,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         num_qubits, cyclic, qubit0, qubit1, active_qubits, segments, neighbour_ids
     ):
         """
-        Processes a two qubit gate.
+        Process a two qubit gate.
 
         It either removes the two qubits from active_qubits if the gate is not possible or updates the segements such
         that the gate is possible.
@@ -316,7 +314,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         num_qubits, segments, allocated_qubits, current_mapping
     ):
         """
-        Combines the individual segments into a new mapping.
+        Combine the individual segments into a new mapping.
 
         It tries to minimize the number of swaps to go from the old mapping in self.current_mapping to the new mapping
         which it returns. The strategy is to map a segment to the same region where most of the qubits are
@@ -393,7 +391,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
             current_position_to_fill += best_padding + len(best_segment)
             num_unused_qubits -= best_padding
         # Create mapping
-        new_mapping = dict()
+        new_mapping = {}
         for pos, logical_id in enumerate(new_chain):
             if logical_id is not None:
                 new_mapping[logical_id] = pos
@@ -401,7 +399,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
 
     def _odd_even_transposition_sort_swaps(self, old_mapping, new_mapping):
         """
-        Returns the swap operation for an odd-even transposition sort.
+        Return the swap operation for an odd-even transposition sort.
 
         See https://en.wikipedia.org/wiki/Odd-even_sort for more info.
 
@@ -451,7 +449,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
 
     def _send_possible_commands(self):  # pylint: disable=too-many-branches
         """
-        Sends the stored commands possible without changing the mapping.
+        Send the stored commands possible without changing the mapping.
 
         Note: self.current_mapping must exist already
         """
@@ -523,7 +521,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
 
     def _run(self):  # pylint: disable=too-many-locals,too-many-branches
         """
-        Creates a new mapping and executes possible gates.
+        Create a new mapping and executes possible gates.
 
         It first allocates all 0, ..., self.num_qubits-1 mapped qubit ids, if they are not already used because we
         might need them all for the swaps. Then it creates a new map, swaps all the qubits to the new map, executes
@@ -531,7 +529,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         """
         num_of_stored_commands_before = len(self._stored_commands)
         if not self.current_mapping:
-            self.current_mapping = dict()
+            self.current_mapping = {}
         else:
             self._send_possible_commands()
             if len(self._stored_commands) == 0:
@@ -595,7 +593,9 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until we do a mapping (FlushGate or Cache of stored
+        Receive a list of commands.
+
+        Receive a command list and, for each command, stores it until we do a mapping (FlushGate or Cache of stored
         commands is full).
 
         Args:

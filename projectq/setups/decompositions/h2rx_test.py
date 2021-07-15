@@ -26,7 +26,7 @@ from projectq.cengines import (
     InstructionFilter,
 )
 from projectq.meta import Control
-from projectq.ops import Measure, H, HGate
+from projectq.ops import H, HGate, Measure
 
 from . import h2rx
 

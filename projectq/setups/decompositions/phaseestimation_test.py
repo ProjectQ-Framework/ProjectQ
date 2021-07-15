@@ -16,23 +16,18 @@
 "Tests for projectq.setups.decompositions.phaseestimation.py."
 
 import cmath
+
 import numpy as np
-from flaky import flaky
 import pytest
+from flaky import flaky
 
-from projectq.backends import Simulator
-from projectq.cengines import (
-    AutoReplacer,
-    DecompositionRuleSet,
-    MainEngine,
-)
-
-from projectq.ops import X, H, All, Measure, Tensor, Ph, CNOT, StatePreparation, QPE
-
-from projectq.setups.decompositions import phaseestimation as pe
-from projectq.setups.decompositions import qft2crandhadamard as dqft
 import projectq.setups.decompositions.stateprep2cnot as stateprep2cnot
 import projectq.setups.decompositions.uniformlycontrolledr2cnot as ucr2cnot
+from projectq.backends import Simulator
+from projectq.cengines import AutoReplacer, DecompositionRuleSet, MainEngine
+from projectq.ops import CNOT, QPE, All, H, Measure, Ph, StatePreparation, Tensor, X
+from projectq.setups.decompositions import phaseestimation as pe
+from projectq.setups.decompositions import qft2crandhadamard as dqft
 
 
 @flaky(max_runs=5, min_passes=2)
@@ -44,8 +39,9 @@ def test_simple_test_X_eigenvectors():
             AutoReplacer(rule_set),
         ],
     )
+    N = 150
     results = np.array([])
-    for i in range(150):
+    for i in range(N):
         autovector = eng.allocate_qureg(1)
         X | autovector
         H | autovector
@@ -62,8 +58,8 @@ def test_simple_test_X_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.5).sum()
-    assert num_phase / 100.0 >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
-        num_phase / 100.0,
+    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
+        num_phase / N,
         0.35,
     )
 
@@ -77,8 +73,9 @@ def test_Ph_eigenvectors():
             AutoReplacer(rule_set),
         ],
     )
+    N = 150
     results = np.array([])
-    for i in range(150):
+    for i in range(N):
         autovector = eng.allocate_qureg(1)
         theta = cmath.pi * 2.0 * 0.125
         unit = Ph(theta)
@@ -94,8 +91,8 @@ def test_Ph_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / 100.0 >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
-        num_phase / 100.0,
+    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
+        num_phase / N,
         0.35,
     )
 
@@ -115,8 +112,9 @@ def test_2qubitsPh_andfunction_eigenvectors():
             AutoReplacer(rule_set),
         ],
     )
+    N = 150
     results = np.array([])
-    for i in range(150):
+    for i in range(N):
         autovector = eng.allocate_qureg(2)
         X | autovector[0]
         ancillas = eng.allocate_qureg(3)
@@ -131,8 +129,8 @@ def test_2qubitsPh_andfunction_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / 100.0 >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (
-        num_phase / 100.0,
+    assert num_phase / N >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (
+        num_phase / N,
         0.34,
     )
 
@@ -145,10 +143,11 @@ def test_X_no_eigenvectors():
             AutoReplacer(rule_set),
         ],
     )
+    N = 100
     results = np.array([])
     results_plus = np.array([])
     results_minus = np.array([])
-    for i in range(100):
+    for i in range(N):
         autovector = eng.allocate_qureg(1)
         amplitude0 = (np.sqrt(2) + np.sqrt(6)) / 4.0
         amplitude1 = (np.sqrt(2) - np.sqrt(6)) / 4.0
@@ -176,8 +175,8 @@ def test_X_no_eigenvectors():
         eng.flush()
 
     total = len(results_plus) + len(results_minus)
-    plus_probability = len(results_plus) / 100.0
-    assert total == pytest.approx(100, abs=5)
+    plus_probability = len(results_plus) / N
+    assert total == pytest.approx(N, abs=5)
     assert plus_probability == pytest.approx(
         1.0 / 4.0, abs=1e-1
     ), "Statistics on |+> probability are not correct (%f vs. %f)" % (

@@ -14,7 +14,7 @@
 #   limitations under the License.
 """Tests for projectq.ops._qpegate."""
 
-from projectq.ops import _qpegate, X
+from projectq.ops import X, _qpegate
 
 
 def test_qpe_str():

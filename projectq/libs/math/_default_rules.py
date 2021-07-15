@@ -12,48 +12,37 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Registers a few default replacement rules for Shor's algorithm to work
-(see Examples).
-"""
 
-from projectq.meta import Control
+"""Registers a few default replacement rules for Shor's algorithm to work (see Examples)."""
+
 from projectq.cengines import DecompositionRule
+from projectq.meta import Control
 
+from ._constantmath import add_constant, add_constant_modN, mul_by_constant_modN
 from ._gates import (
     AddConstant,
     AddConstantModN,
-    MultiplyByConstantModN,
     AddQuantum,
-    SubtractQuantum,
     ComparatorQuantum,
     DivideQuantum,
+    MultiplyByConstantModN,
     MultiplyQuantum,
-)
-
-from ._gates import (
+    SubtractQuantum,
     _InverseAddQuantumGate,
     _InverseDivideQuantumGate,
     _InverseMultiplyQuantumGate,
 )
-
-from ._constantmath import (
-    add_constant,
-    add_constant_modN,
-    mul_by_constant_modN,
-)
-
 from ._quantummath import (
     add_quantum,
-    subtract_quantum,
-    inverse_add_quantum_carry,
     comparator,
-    quantum_conditional_add,
-    quantum_division,
+    inverse_add_quantum_carry,
     inverse_quantum_division,
-    quantum_conditional_add_carry,
-    quantum_multiplication,
     inverse_quantum_multiplication,
+    quantum_conditional_add,
+    quantum_conditional_add_carry,
+    quantum_division,
+    quantum_multiplication,
+    subtract_quantum,
 )
 
 

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contains uniformly controlled rotation gates"""
+"""Definition of uniformly controlled Ry- and Rz-rotation gates."""
 
 import math
 
@@ -46,7 +46,8 @@ class UniformlyControlledRy(BasicGate):
     """
 
     def __init__(self, angles):
-        BasicGate.__init__(self)
+        """Construct a UniformlyControlledRy gate."""
+        super().__init__()
         rounded_angles = []
         for angle in angles:
             new_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
@@ -56,15 +57,18 @@ class UniformlyControlledRy(BasicGate):
         self.angles = rounded_angles
 
     def get_inverse(self):
+        """Return the inverse of this rotation gate (negate the angles, return new object)."""
         return self.__class__([-1 * angle for angle in self.angles])
 
     def get_merged(self, other):
+        """Return self merged with another gate."""
         if isinstance(other, self.__class__):
             new_angles = [angle1 + angle2 for (angle1, angle2) in zip(self.angles, other.angles)]
             return self.__class__(new_angles)
         raise NotMergeable()
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "UniformlyControlledRy(" + str(self.angles) + ")"
 
     def __eq__(self, other):
@@ -73,10 +77,8 @@ class UniformlyControlledRy(BasicGate):
             return self.angles == other.angles
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
 
@@ -101,12 +103,12 @@ class UniformlyControlledRz(BasicGate):
         list in which case the gate corresponds to an Rz.
 
     Args:
-        angles(list[float]): Rotation angles. Rz(angles[k]) is applied
-                             conditioned on the control qubits being in state
-                             k.
+        angles(list[float]): Rotation angles. Rz(angles[k]) is applied conditioned on the control qubits being in
+                             state k.
     """
 
     def __init__(self, angles):
+        """Construct a UniformlyControlledRz gate."""
         super().__init__()
         rounded_angles = []
         for angle in angles:
@@ -117,15 +119,18 @@ class UniformlyControlledRz(BasicGate):
         self.angles = rounded_angles
 
     def get_inverse(self):
+        """Return the inverse of this rotation gate (negate the angles, return new object)."""
         return self.__class__([-1 * angle for angle in self.angles])
 
     def get_merged(self, other):
+        """Return self merged with another gate."""
         if isinstance(other, self.__class__):
             new_angles = [angle1 + angle2 for (angle1, angle2) in zip(self.angles, other.angles)]
             return self.__class__(new_angles)
         raise NotMergeable()
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "UniformlyControlledRz(" + str(self.angles) + ")"
 
     def __eq__(self, other):
@@ -134,8 +139,6 @@ class UniformlyControlledRz(BasicGate):
             return self.angles == other.angles
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))

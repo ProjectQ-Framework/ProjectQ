@@ -15,8 +15,8 @@
 
 "Tests for projectq.setups.decompositions.arb1qubit2rzandry.py."
 
-from cmath import exp
 import math
+from cmath import exp
 
 import numpy as np
 import pytest
@@ -29,6 +29,7 @@ from projectq.cengines import (
     InstructionFilter,
     MainEngine,
 )
+from projectq.meta import Control
 from projectq.ops import (
     BasicGate,
     ClassicalInstructionGate,
@@ -41,7 +42,6 @@ from projectq.ops import (
     Rz,
     X,
 )
-from projectq.meta import Control
 
 from . import arb1qubit2rzandry as arb1q
 

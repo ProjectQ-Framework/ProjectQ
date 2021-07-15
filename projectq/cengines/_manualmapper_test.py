@@ -15,11 +15,9 @@
 """Tests for projectq.cengines._manualmapper.py."""
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import H, Measure, All
+from projectq.cengines import DummyEngine, ManualMapper
 from projectq.meta import LogicalQubitIDTag
-
-from projectq.cengines import ManualMapper
+from projectq.ops import All, H, Measure
 
 
 def test_manualmapper_mapping():

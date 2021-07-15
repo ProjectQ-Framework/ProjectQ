@@ -19,19 +19,29 @@ import copy
 import numpy
 import pytest
 import scipy
-from scipy import sparse as sps
 import scipy.sparse.linalg
+from scipy import sparse as sps
 
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import (
-    DummyEngine,
     AutoReplacer,
-    InstructionFilter,
     DecompositionRuleSet,
+    DummyEngine,
+    InstructionFilter,
 )
 from projectq.meta import Control
-from projectq.ops import QubitOperator, TimeEvolution, ClassicalInstructionGate, Ph, Rx, Ry, All, Measure, Command
+from projectq.ops import (
+    All,
+    ClassicalInstructionGate,
+    Command,
+    Measure,
+    Ph,
+    QubitOperator,
+    Rx,
+    Ry,
+    TimeEvolution,
+)
 from projectq.types import WeakQubitRef
 
 from . import time_evolution as te
@@ -143,7 +153,7 @@ def test_decompose_individual_terms_invalid():
     qb1 = WeakQubitRef(eng, idx=1)
     op1 = QubitOperator("X0 Y1", 0.5)
     op2 = op1 + QubitOperator("Y2 X4", -0.5)
-    op3 = QubitOperator(tuple(), 0.5)
+    op3 = QubitOperator((), 0.5)
     op4 = QubitOperator("X0 Y0", 0.5)
 
     with pytest.raises(ValueError):

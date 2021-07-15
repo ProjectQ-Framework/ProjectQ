@@ -19,27 +19,29 @@ and the C++ simulator as backends.
 
 import copy
 import math
+import random
+
 import numpy
 import pytest
-import random
 import scipy
 import scipy.sparse
 import scipy.sparse.linalg
 
 from projectq import MainEngine
+from projectq.backends import Simulator
 from projectq.cengines import (
-    BasicEngine,
     BasicMapperEngine,
     DummyEngine,
     LocalOptimizer,
     NotYetMeasuredError,
 )
+from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.ops import (
+    CNOT,
     All,
     Allocate,
     BasicGate,
     BasicMathGate,
-    CNOT,
     Command,
     H,
     MatrixGate,
@@ -55,10 +57,7 @@ from projectq.ops import (
     Y,
     Z,
 )
-from projectq.meta import Control, Dagger, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
-
-from projectq.backends import Simulator
 
 
 def test_is_cpp_simulator_present():
@@ -104,8 +103,8 @@ def mapper(request):
 
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
-                BasicEngine.__init__(self)
-                self.current_mapping = dict()
+                super().__init__()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:
@@ -126,7 +125,7 @@ def mapper(request):
 
 class Mock1QubitGate(MatrixGate):
     def __init__(self):
-        MatrixGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
     @property
@@ -137,7 +136,7 @@ class Mock1QubitGate(MatrixGate):
 
 class Mock6QubitGate(MatrixGate):
     def __init__(self):
-        MatrixGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
     @property
@@ -148,7 +147,7 @@ class Mock6QubitGate(MatrixGate):
 
 class MockNoMatrixGate(BasicGate):
     def __init__(self):
-        BasicGate.__init__(self)
+        super().__init__()
         self.cnt = 0
 
 
@@ -264,7 +263,7 @@ def test_simulator_measure_mapped_qubit(sim):
 
 class Plus2Gate(BasicMathGate):
     def __init__(self):
-        BasicMathGate.__init__(self, lambda x: (x + 2,))
+        super().__init__(lambda x: (x + 2,))
 
 
 def test_simulator_emulation(sim):
@@ -746,8 +745,8 @@ def test_simulator_constant_math_emulation():
     results = [[[1, 1, 0, 0, 0]], [[0, 1, 0, 0, 0]], [[0, 1, 1, 1, 0]]]
 
     import projectq.backends._sim._simulator as _sim
-    from projectq.backends._sim._pysim import Simulator as PySim
     from projectq.backends._sim._cppsim import Simulator as CppSim
+    from projectq.backends._sim._pysim import Simulator as PySim
     from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
 
     def gate_filter(eng, cmd):
@@ -781,7 +780,6 @@ def test_simulator_constant_math_emulation():
     _sim.FALLBACK_TO_PYSIM = True
     pysim = Simulator()
     pysim._simulator = PySim(1)
-    # run_simulation(pysim)
 
     for result in results:
         ref = result[0]

@@ -73,7 +73,7 @@ def test_basic_qubit_hash():
     assert a == c and hash(a) == hash(c)
 
     # For performance reasons, low ids should not collide.
-    assert len(set(hash(_qubit.BasicQubit(fake_engine, e)) for e in range(100))) == 100
+    assert len({hash(_qubit.BasicQubit(fake_engine, e)) for e in range(100)}) == 100
 
     # Important that weakref.WeakSet in projectq.cengines._main.py works.
     # When id is -1, expect reference equality.

@@ -17,15 +17,17 @@
 import pytest
 
 import projectq
+import projectq.setups.restrictedgateset as restrictedgateset
 from projectq.cengines import DummyEngine
 from projectq.libs.math import AddConstant, AddConstantModN, MultiplyByConstantModN
+from projectq.meta import Control
 from projectq.ops import (
-    BasicGate,
     CNOT,
+    QFT,
+    BasicGate,
     CRz,
     H,
     Measure,
-    QFT,
     QubitOperator,
     Rx,
     Rz,
@@ -34,9 +36,6 @@ from projectq.ops import (
     Toffoli,
     X,
 )
-from projectq.meta import Control
-
-import projectq.setups.restrictedgateset as restrictedgateset
 
 
 def test_parameter_any():

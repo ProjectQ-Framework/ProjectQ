@@ -25,8 +25,8 @@ Warning:
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.ops import H, R, QFT
 from projectq.meta import Control
+from projectq.ops import QFT, H, R
 
 
 def _decompose_QFT(cmd):  # pylint: disable=invalid-name

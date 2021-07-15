@@ -12,7 +12,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
+A setup for AWS Braket devices.
+
 Defines a setup allowing to compile code for the AWS Braket devices:
 ->The 11 qubits IonQ device
 ->The 32 qubits Rigetti device
@@ -23,31 +26,30 @@ device.  Decompose the circuit into the available gate set for each device
 that will be used in the backend.
 """
 
-from projectq.setups import restrictedgateset
+from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
 from projectq.ops import (
-    R,
-    Swap,
+    Barrier,
     H,
+    R,
     Rx,
     Ry,
     Rz,
     S,
     Sdag,
+    SqrtX,
+    Swap,
     T,
     Tdag,
     X,
     Y,
     Z,
-    SqrtX,
-    Barrier,
 )
-from projectq.backends._awsbraket._awsbraket_boto3_client import show_devices
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(credentials=None, device=None):
-    """
-    Return the default list of compiler engine for the AWS Braket platform.
-    """
+    """Return the default list of compiler engine for the AWS Braket platform."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -84,8 +86,4 @@ def get_engine_list(credentials=None, device=None):
             other_gates=(Barrier,),
         )
         return setup
-    raise RuntimeError('Unsupported device type: {}!'.format(device))  # pragma: no cover
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
+    raise DeviceNotHandledError('Unsupported device type: {}!'.format(device))  # pragma: no cover

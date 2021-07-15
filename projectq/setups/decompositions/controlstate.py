@@ -14,21 +14,20 @@
 #   limitations under the License.
 
 """
-Register a decomposition to replace turn negatively controlled qubits into positively controlled qubits by applying X
-gates.
+Register a decomposition to replace turn negatively controlled qubits into positively controlled qubits.
+
+This achived by applying X gates to selected qubits.
 """
 
 from copy import deepcopy
+
 from projectq.cengines import DecompositionRule
 from projectq.meta import Compute, Uncompute, has_negative_control
 from projectq.ops import BasicGate, X
 
 
 def _decompose_controlstate(cmd):
-    """
-    Decompose commands with control qubits in negative state (ie. control
-    qubits with state '0' instead of '1')
-    """
+    """Decompose commands with control qubits in negative state (ie. control qubits with state '0' instead of '1')."""
     with Compute(cmd.engine):
         for state, ctrl in zip(cmd.control_state, cmd.control_qubits):
             if state == '0':

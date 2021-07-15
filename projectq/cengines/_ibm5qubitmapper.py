@@ -12,15 +12,14 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a compiler engine to map to the 5-qubit IBM chip
-"""
+
+"""Contains a compiler engine to map to the 5-qubit IBM chip."""
+
 import itertools
 
-from projectq.ops import FlushGate, NOT, Allocate
-from projectq.meta import get_control_count
 from projectq.backends import IBMBackend
-
+from projectq.meta import get_control_count
+from projectq.ops import NOT, Allocate, FlushGate
 
 from ._basicmapper import BasicMapperEngine
 
@@ -35,9 +34,8 @@ class IBM5QubitMapper(BasicMapperEngine):
         The mapper has to be run once on the entire circuit.
 
     Warning:
-        If the provided circuit cannot be mapped to the hardware layout
-        without performing Swaps, the mapping procedure
-        **raises an Exception**.
+        If the provided circuit cannot be mapped to the hardware layout without performing Swaps, the mapping
+        procedure **raises an Exception**.
     """
 
     def __init__(self, connections=None):
@@ -47,35 +45,32 @@ class IBM5QubitMapper(BasicMapperEngine):
         Resets the mapping.
         """
         super().__init__()
-        self.current_mapping = dict()
+        self.current_mapping = {}
         self._reset()
         self._cmds = []
-        self._interactions = dict()
+        self._interactions = {}
 
         if connections is None:
             # general connectivity easier for testing functions
-            self.connections = set(
-                [
-                    (0, 1),
-                    (1, 0),
-                    (1, 2),
-                    (1, 3),
-                    (1, 4),
-                    (2, 1),
-                    (2, 3),
-                    (2, 4),
-                    (3, 1),
-                    (3, 4),
-                    (4, 3),
-                ]
-            )
+            self.connections = {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 1),
+                (2, 3),
+                (2, 4),
+                (3, 1),
+                (3, 4),
+                (4, 3),
+            }
         else:
             self.connections = connections
 
     def is_available(self, cmd):
         """
-        Check if the IBM backend can perform the Command cmd and return True
-        if so.
+        Check if the IBM backend can perform the Command cmd and return True if so.
 
         Args:
             cmd (Command): The command to check
@@ -83,25 +78,21 @@ class IBM5QubitMapper(BasicMapperEngine):
         return IBMBackend().is_available(cmd)
 
     def _reset(self):
-        """
-        Reset the mapping parameters so the next circuit can be mapped.
-        """
+        """Reset the mapping parameters so the next circuit can be mapped."""
         self._cmds = []
-        self._interactions = dict()
+        self._interactions = {}
 
     def _determine_cost(self, mapping):
         """
-        Determines the cost of the circuit with the given mapping.
+        Determine the cost of the circuit with the given mapping.
 
         Args:
-            mapping (dict): Dictionary with key, value pairs where keys are
-                logical qubit ids and the corresponding value is the physical
-                location on the IBM Q chip.
+            mapping (dict): Dictionary with key, value pairs where keys are logical qubit ids and the corresponding
+                value is the physical location on the IBM Q chip.
         Returns:
-            Cost measure taking into account CNOT directionality or None
-            if the circuit cannot be executed given the mapping.
+            Cost measure taking into account CNOT directionality or None if the circuit cannot be executed given the
+            mapping.
         """
-
         cost = 0
         for tpl in self._interactions:
             ctrl_id = tpl[0]
@@ -117,13 +108,12 @@ class IBM5QubitMapper(BasicMapperEngine):
 
     def _run(self):
         """
-        Runs all stored gates.
+        Run all stored gates.
 
         Raises:
             Exception:
-                If the mapping to the IBM backend cannot be performed or if
-                the mapping was already determined but more CNOTs get sent
-                down the pipeline.
+                If the mapping to the IBM backend cannot be performed or if the mapping was already determined but
+                more CNOTs get sent down the pipeline.
         """
         if len(self.current_mapping) > 0 and max(self.current_mapping.values()) > 4:
             raise RuntimeError(
@@ -145,7 +135,7 @@ class IBM5QubitMapper(BasicMapperEngine):
                         best_mapping = mapping
             if best_cost is None:
                 raise RuntimeError("Circuit cannot be mapped without using Swaps. Mapping failed.")
-            self._interactions = dict()
+            self._interactions = {}
             self.current_mapping = best_mapping
 
         for cmd in self._cmds:
@@ -178,18 +168,18 @@ class IBM5QubitMapper(BasicMapperEngine):
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        completion.
+        Receive a list of commands.
+
+        Receive a command list and, for each command, stores it until completion.
 
         Args:
             command_list (list of Command objects): list of commands to
                 receive.
 
         Raises:
-            Exception: If mapping the CNOT gates to 1 qubit would require
-                Swaps. The current version only supports remapping of CNOT
-                gates without performing any Swaps due to the large costs
-                associated with Swapping given the CNOT constraints.
+            Exception: If mapping the CNOT gates to 1 qubit would require Swaps. The current version only supports
+                remapping of CNOT gates without performing any Swaps due to the large costs associated with Swapping
+                given the CNOT constraints.
         """
         for cmd in command_list:
             self._store(cmd)

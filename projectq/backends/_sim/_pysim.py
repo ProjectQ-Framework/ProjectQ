@@ -12,14 +12,16 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
-Contains a (slow) Python simulator.
+A (slow) Python simulator.
 
 Please compile the c++ simulator for large-scale simulations.
 """
 
-import random
 import os
+import random
+
 import numpy as _np
 
 _USE_REFCHECK = True
@@ -46,7 +48,7 @@ class Simulator:
         """
         random.seed(rnd_seed)
         self._state = _np.ones(1, dtype=_np.complex128)
-        self._map = dict()
+        self._map = {}
         self._num_qubits = 0
         print("(Note: This is the (slow) Python simulator.)")
 
@@ -64,8 +66,7 @@ class Simulator:
 
     def measure_qubits(self, ids):
         """
-        Measure the qubits with IDs ids and return a list of measurement
-        outcomes (True/False).
+        Measure the qubits with IDs ids and return a list of measurement outcomes (True/False).
 
         Args:
             ids (list<int>): List of qubit IDs to measure.
@@ -162,7 +163,7 @@ class Simulator:
             newstate[k : k + (1 << pos)] = self._state[i : i + (1 << pos)]  # noqa: E203
             k += 1 << pos
 
-        newmap = dict()
+        newmap = {}
         for key, value in self._map.items():
             if value > pos:
                 newmap[key] = value - 1
@@ -290,7 +291,9 @@ class Simulator:
 
     def get_amplitude(self, bit_string, ids):
         """
-        Return the probability amplitude of the supplied `bit_string`.  The ordering is given by the list of qubit ids.
+        Return the probability amplitude of the supplied `bit_string`.
+
+        The ordering is given by the list of qubit ids.
 
         Args:
             bit_string (list[bool|int]): Computational basis state
@@ -314,8 +317,9 @@ class Simulator:
 
     def emulate_time_evolution(self, terms_dict, time, ids, ctrlids):  # pylint: disable=too-many-locals
         """
-        Applies exp(-i*time*H) to the wave function, i.e., evolves under the Hamiltonian H for a given time. The terms
-        in the Hamiltonian are not required to commute.
+        Apply exp(-i*time*H) to the wave function, i.e., evolves under the Hamiltonian H for a given time.
+
+        The terms in the Hamiltonian are not required to commute.
 
         This function computes the action of the matrix exponential using ideas from Al-Mohy and Higham, 2011.
         TODO: Implement better estimates for s.
@@ -361,7 +365,7 @@ class Simulator:
 
     def apply_controlled_gate(self, matrix, ids, ctrlids):
         """
-        Applies the k-qubit gate matrix m to the qubits with indices ids, using ctrlids as control qubits.
+        Apply the k-qubit gate matrix m to the qubits with indices ids, using ctrlids as control qubits.
 
         Args:
             matrix (list[list]): 2^k x 2^k complex matrix describing the k-qubit gate.
@@ -378,7 +382,7 @@ class Simulator:
 
     def _single_qubit_gate(self, matrix, pos, mask):
         """
-        Applies the single qubit gate matrix m to the qubit at position `pos` using `mask` to identify control qubits.
+        Apply the single qubit gate matrix m to the qubit at position `pos` using `mask` to identify control qubits.
 
         Args:
             matrix (list[list]): 2x2 complex matrix describing the single-qubit gate.
@@ -398,7 +402,7 @@ class Simulator:
 
     def _multi_qubit_gate(self, matrix, pos, mask):  # pylint: disable=too-many-locals
         """
-        Applies the k-qubit gate matrix m to the qubits at `pos` using `mask` to identify control qubits.
+        Apply the k-qubit gate matrix m to the qubits at `pos` using `mask` to identify control qubits.
 
         Args:
             matrix (list[list]): 2^k x 2^k complex matrix describing the k-qubit gate.
@@ -458,11 +462,10 @@ class Simulator:
 
         Args:
             ids (list[int]): Qubit IDs to collapse.
-            values (list[bool]): Measurement outcome for each of the qubit IDs
-                in `ids`.
+            values (list[bool]): Measurement outcome for each of the qubit IDs in `ids`.
+
         Raises:
-            RuntimeError: If probability of outcome is ~0 or unknown qubits
-                are provided.
+            RuntimeError: If probability of outcome is ~0 or unknown qubits are provided.
         """
         if len(ids) != len(values):
             raise ValueError('The number of ids and values do not match!')
@@ -493,12 +496,15 @@ class Simulator:
 
     def run(self):
         """
-        Dummy function to implement the same interface as the c++ simulator.
+        Provide a dummy implementation for running a quantum circuit.
+
+        Only defined to provide the same interface as the c++ simulator.
         """
 
     def _apply_term(self, term, ids, ctrlids=None):
         """
-        Applies a QubitOperator term to the state vector.
+        Apply a QubitOperator term to the state vector.
+
         (Helper function for time evolution & expectation)
 
         Args:

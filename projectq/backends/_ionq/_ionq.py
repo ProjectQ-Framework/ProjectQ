@@ -13,7 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-""" Back-end to run quantum programs using IonQ hardware."""
+"""Back-end to run quantum programs using IonQ hardware."""
+
 import random
 
 from projectq.cengines import BasicEngine
@@ -45,8 +46,8 @@ from projectq.ops import (
 )
 from projectq.types import WeakQubitRef
 
+from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 from . import _ionq_http_client as http_client
-from ._ionq_exc import InvalidCommandError, MidCircuitMeasurementError
 
 GATE_MAP = {
     XGate: 'x',
@@ -95,27 +96,25 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         interval=1,
         retrieve_execution=None,
     ):  # pylint: disable=too-many-arguments
-        """Constructor for the IonQBackend.
+        """
+        Initialize an IonQBackend object.
 
         Args:
-            use_hardware (bool, optional): Whether or not to use real IonQ
-                hardware or just a simulator. If False, the ionq_simulator is
-                used regardless of the value of ``device``. Defaults to False.
+            use_hardware (bool, optional): Whether or not to use real IonQ hardware or just a simulator. If False, the
+                ionq_simulator is used regardless of the value of ``device``. Defaults to False.
             num_runs (int, optional): Number of times to run circuits. Defaults to 100.
-            verbose (bool, optional): If True, print statistics after job
-                results have been collected. Defaults to False.
+            verbose (bool, optional): If True, print statistics after job results have been collected. Defaults to
+                False.
             token (str, optional): An IonQ API token. Defaults to None.
-            device (str, optional): Device to run jobs on.
-                Supported devices are ``'ionq_qpu'`` or ``'ionq_simulator'``.
-                Defaults to ``'ionq_simulator'``.
-            num_retries (int, optional): Number of times to retry fetching a
-                job after it has been submitted. Defaults to 3000.
-            interval (int, optional): Number of seconds to wait inbetween
-                result fetch retries. Defaults to 1.
-            retrieve_execution (str, optional): An IonQ API Job ID.
-                If provided, a job with this ID will be fetched. Defaults to None.
+            device (str, optional): Device to run jobs on.  Supported devices are ``'ionq_qpu'`` or
+                ``'ionq_simulator'``.  Defaults to ``'ionq_simulator'``.
+            num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
+                to 3000.
+            interval (int, optional): Number of seconds to wait inbetween result fetch retries. Defaults to 1.
+            retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
+                fetched. Defaults to None.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self.device = device if use_hardware else 'ionq_simulator'
         self._num_runs = num_runs
         self._verbose = verbose
@@ -124,12 +123,13 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         self._interval = interval
         self._circuit = []
         self._measured_ids = []
-        self._probabilities = dict()
+        self._probabilities = {}
         self._retrieve_execution = retrieve_execution
         self._clear = True
 
     def is_available(self, cmd):
-        """Test if this backend is available to process the provided command.
+        """
+        Test if this backend is available to process the provided command.
 
         Args:
             cmd (Command): A command to process.
@@ -160,14 +160,12 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         return False
 
     def _reset(self):
-        """Reset this backend.
-
-        .. NOTE::
-
-            This sets ``_clear = True``, which will trigger state cleanup
-            on the next call to ``_store``.
         """
+        Reset this backend.
 
+        Note:
+            This sets ``_clear = True``, which will trigger state cleanup on the next call to ``_store``.
+        """
         # Lastly, reset internal state for measured IDs and circuit body.
         self._circuit = []
         self._clear = True
@@ -185,7 +183,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         if self._clear:
             self._measured_ids = []
-            self._probabilities = dict()
+            self._probabilities = {}
             self._clear = False
 
         # No-op/Meta gates.
@@ -269,13 +267,11 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         return probs[state]
 
     def get_probabilities(self, qureg):
-        """Given the provided qubit register, determine the probability of
-        each possible outcome.
+        """
+        Given the provided qubit register, determine the probability of each possible outcome.
 
-        .. NOTE::
-
-            This method should only be called *after* a circuit has been
-            run and its results are available.
+        Note:
+            This method should only be called *after* a circuit has been run and its results are available.
 
         Args:
             qureg (Qureg): A ProjectQ Qureg object.

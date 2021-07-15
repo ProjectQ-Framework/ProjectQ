@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
-from projectq import MainEngine
-from projectq.backends import CircuitDrawer
+"""Example if drawing of a quantum teleportation circuit."""
 
 import teleport
+
+from projectq import MainEngine
+from projectq.backends import CircuitDrawer
 
 if __name__ == "__main__":
     # create a main compiler engine with a simulator backend:
@@ -15,7 +17,7 @@ if __name__ == "__main__":
 
     # we just want to draw the teleportation circuit
     def create_state(eng, qb):
-        pass
+        """Create a quantum state."""
 
     # run the teleport and then, let Bob try to uncompute his qubit:
     teleport.run_teleport(eng, create_state, verbose=False)

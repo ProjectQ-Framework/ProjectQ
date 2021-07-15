@@ -17,6 +17,7 @@
 import pytest
 
 from projectq.ops import BasicRotationGate
+
 from . import DecompositionRule, ThisIsNotAGateClassError
 
 

@@ -15,10 +15,8 @@
 """Tests for projectq.cengines._cmdmodifier.py."""
 
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import H, FastForwardingGate, ClassicalInstructionGate
-
-from projectq.cengines import _cmdmodifier
+from projectq.cengines import DummyEngine, _cmdmodifier
+from projectq.ops import ClassicalInstructionGate, FastForwardingGate, H
 
 
 def test_command_modifier():

@@ -13,6 +13,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
+Definition of the basic set of quantum gates.
+
 Contains definitions of standard gates such as
 * Hadamard (H)
 * Pauli-X (X / NOT)
@@ -41,32 +43,33 @@ and meta gates, i.e.,
 * FlipBits
 """
 
-import math
 import cmath
+import math
 
 import numpy as np
 
 from ._basics import (
     BasicGate,
-    SelfInverseGate,
-    BasicRotationGate,
     BasicPhaseGate,
+    BasicRotationGate,
     ClassicalInstructionGate,
     FastForwardingGate,
+    SelfInverseGate,
 )
 from ._command import apply_command
 from ._metagates import get_inverse
 
 
 class HGate(SelfInverseGate):
-    """Hadamard gate class"""
+    """Hadamard gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "H"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return 1.0 / cmath.sqrt(2.0) * np.matrix([[1, 1], [1, -1]])
 
 
@@ -75,14 +78,15 @@ H = HGate()
 
 
 class XGate(SelfInverseGate):
-    """Pauli-X gate class"""
+    """Pauli-X gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "X"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[0, 1], [1, 0]])
 
 
@@ -91,14 +95,15 @@ X = NOT = XGate()
 
 
 class YGate(SelfInverseGate):
-    """Pauli-Y gate class"""
+    """Pauli-Y gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Y"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[0, -1j], [1j, 0]])
 
 
@@ -107,14 +112,15 @@ Y = YGate()
 
 
 class ZGate(SelfInverseGate):
-    """Pauli-Z gate class"""
+    """Pauli-Z gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Z"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[1, 0], [0, -1]])
 
 
@@ -123,14 +129,15 @@ Z = ZGate()
 
 
 class SGate(BasicGate):
-    """S gate class"""
+    """S gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[1, 0], [0, 1j]])
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "S"
 
 
@@ -141,14 +148,15 @@ Sdag = Sdagger = get_inverse(S)
 
 
 class TGate(BasicGate):
-    """T gate class"""
+    """T gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[1, 0], [0, cmath.exp(1j * cmath.pi / 4)]])
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "T"
 
 
@@ -159,20 +167,19 @@ Tdag = Tdagger = get_inverse(T)
 
 
 class SqrtXGate(BasicGate):
-    """Square-root X gate class"""
+    """Square-root X gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return 0.5 * np.matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]])
 
     def tex_str(self):  # pylint: disable=no-self-use
-        """
-        Return the Latex string representation of a SqrtXGate.
-        """
+        """Return the Latex string representation of a SqrtXGate."""
         return r'$\sqrt{X}$'
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "SqrtX"
 
 
@@ -181,18 +188,20 @@ SqrtX = SqrtXGate()
 
 
 class SwapGate(SelfInverseGate):
-    """Swap gate class (swaps 2 qubits)"""
+    """Swap gate class (swaps 2 qubits)."""
 
     def __init__(self):
-        SelfInverseGate.__init__(self)
+        """Initialize a Swap gate."""
+        super().__init__()
         self.interchangeable_qubit_indices = [[0, 1]]
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Swap"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         # fmt: off
         return np.matrix([[1, 0, 0, 0],
                           [0, 0, 1, 0],
@@ -206,18 +215,20 @@ Swap = SwapGate()
 
 
 class SqrtSwapGate(BasicGate):
-    """Square-root Swap gate class"""
+    """Square-root Swap gate class."""
 
     def __init__(self):
-        BasicGate.__init__(self)
+        """Initialize a SqrtSwap gate."""
+        super().__init__()
         self.interchangeable_qubit_indices = [[0, 1]]
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "SqrtSwap"
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [1, 0, 0, 0],
@@ -234,11 +245,13 @@ SqrtSwap = SqrtSwapGate()
 
 class EntangleGate(BasicGate):
     """
-    Entangle gate (Hadamard on first qubit, followed by CNOTs applied to all
-    other qubits).
+    Entangle gate class.
+
+    (Hadamard on first qubit, followed by CNOTs applied to all other qubits).
     """
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Entangle"
 
 
@@ -247,20 +260,20 @@ Entangle = EntangleGate()
 
 
 class Ph(BasicPhaseGate):
-    """Phase gate (global phase)"""
+    """Phase gate (global phase)."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[cmath.exp(1j * self.angle), 0], [0, cmath.exp(1j * self.angle)]])
 
 
 class Rx(BasicRotationGate):
-    """RotationX gate class"""
+    """RotationX gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [math.cos(0.5 * self.angle), -1j * math.sin(0.5 * self.angle)],
@@ -270,11 +283,11 @@ class Rx(BasicRotationGate):
 
 
 class Ry(BasicRotationGate):
-    """RotationY gate class"""
+    """RotationY gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [math.cos(0.5 * self.angle), -math.sin(0.5 * self.angle)],
@@ -284,11 +297,11 @@ class Ry(BasicRotationGate):
 
 
 class Rz(BasicRotationGate):
-    """RotationZ gate class"""
+    """RotationZ gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [cmath.exp(-0.5 * 1j * self.angle), 0],
@@ -298,11 +311,11 @@ class Rz(BasicRotationGate):
 
 
 class Rxx(BasicRotationGate):
-    """RotationXX gate class"""
+    """RotationXX gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [cmath.cos(0.5 * self.angle), 0, 0, -1j * cmath.sin(0.5 * self.angle)],
@@ -314,11 +327,11 @@ class Rxx(BasicRotationGate):
 
 
 class Ryy(BasicRotationGate):
-    """RotationYY gate class"""
+    """RotationYY gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [cmath.cos(0.5 * self.angle), 0, 0, 1j * cmath.sin(0.5 * self.angle)],
@@ -330,11 +343,11 @@ class Ryy(BasicRotationGate):
 
 
 class Rzz(BasicRotationGate):
-    """RotationZZ gate class"""
+    """RotationZZ gate class."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix(
             [
                 [cmath.exp(-0.5 * 1j * self.angle), 0, 0, 0],
@@ -346,11 +359,11 @@ class Rzz(BasicRotationGate):
 
 
 class R(BasicPhaseGate):
-    """Phase-shift gate (equivalent to Rz up to a global phase)"""
+    """Phase-shift gate (equivalent to Rz up to a global phase)."""
 
     @property
     def matrix(self):
-        """Access to the matrix property of this gate"""
+        """Access to the matrix property of this gate."""
         return np.matrix([[1, 0], [0, cmath.exp(1j * self.angle)]])
 
 
@@ -373,6 +386,7 @@ class FlushGate(FastForwardingGate):
     """
 
     def __str__(self):
+        """Return a string representation of the object."""
         return ""
 
 
@@ -380,14 +394,18 @@ class MeasureGate(FastForwardingGate):
     """Measurement gate class (for single qubits)."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Measure"
 
     def __or__(self, qubits):
         """
-        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be
-        applied to any number of quantum registers. Now the MeasureGate/Measure
-        is strictly a single qubit gate. In the coming releases the backward
-        compatibility will be removed!
+        Operator| overload which enables the syntax Gate | qubits.
+
+        Previously (ProjectQ <= v0.3.6) MeasureGate/Measure was allowed to be applied to any number of quantum
+        registers. Now the MeasureGate/Measure is strictly a single qubit gate.
+
+        Raises:
+            RuntimeError: Since ProjectQ v0.6.0 if the gate is applied to multiple qubits.
         """
         num_qubits = 0
         for qureg in self.make_tuple_of_qureg(qubits):
@@ -404,12 +422,14 @@ Measure = MeasureGate()
 
 
 class AllocateQubitGate(ClassicalInstructionGate):
-    """Qubit allocation gate class"""
+    """Qubit allocation gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Allocate"
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return DeallocateQubitGate()
 
 
@@ -418,12 +438,14 @@ Allocate = AllocateQubitGate()
 
 
 class DeallocateQubitGate(FastForwardingGate):
-    """Qubit deallocation gate class"""
+    """Qubit deallocation gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Deallocate"
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return Allocate
 
 
@@ -432,12 +454,14 @@ Deallocate = DeallocateQubitGate()
 
 
 class AllocateDirtyQubitGate(ClassicalInstructionGate):
-    """Dirty qubit allocation gate class"""
+    """Dirty qubit allocation gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "AllocateDirty"
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return Deallocate
 
 
@@ -446,12 +470,14 @@ AllocateDirty = AllocateDirtyQubitGate()
 
 
 class BarrierGate(BasicGate):
-    """Barrier gate class"""
+    """Barrier gate class."""
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "Barrier"
 
     def get_inverse(self):
+        """Return the inverse of this gate."""
         return Barrier
 
 
@@ -460,11 +486,11 @@ Barrier = BarrierGate()
 
 
 class FlipBits(SelfInverseGate):
-    """Gate for flipping qubits by means of XGates"""
+    """Gate for flipping qubits by means of XGates."""
 
     def __init__(self, bits_to_flip):
         """
-        Initialize FlipBits gate.
+        Initialize a FlipBits gate.
 
         Example:
             .. code-block:: python
@@ -473,15 +499,12 @@ class FlipBits(SelfInverseGate):
                 FlipBits([0, 1]) | qureg
 
         Args:
-            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1,
-               True/False, or string of 0/1 identifying the qubits to flip.
-               In case of int, the bits to flip are determined from the
-               binary digits, with the least significant bit corresponding
-               to qureg[0]. If bits_to_flip is negative, exactly all qubits
-               which would not be flipped for the input -bits_to_flip-1 are
-               flipped, i.e., bits_to_flip=-1 flips all qubits.
+            bits_to_flip(list[int]|list[bool]|str|int): int or array of 0/1, True/False, or string of 0/1 identifying
+               the qubits to flip.  In case of int, the bits to flip are determined from the binary digits, with the
+               least significant bit corresponding to qureg[0]. If bits_to_flip is negative, exactly all qubits which
+               would not be flipped for the input -bits_to_flip-1 are flipped, i.e., bits_to_flip=-1 flips all qubits.
         """
-        SelfInverseGate.__init__(self)
+        super().__init__()
         if isinstance(bits_to_flip, int):
             self.bits_to_flip = bits_to_flip
         else:
@@ -491,9 +514,11 @@ class FlipBits(SelfInverseGate):
                 self.bits_to_flip = (self.bits_to_flip << 1) | bit
 
     def __str__(self):
+        """Return a string representation of the object."""
         return "FlipBits(" + str(self.bits_to_flip) + ")"
 
     def __or__(self, qubits):
+        """Operator| overload which enables the syntax Gate | qubits."""
         quregs_tuple = self.make_tuple_of_qureg(qubits)
         if len(quregs_tuple) > 1:
             raise ValueError(
@@ -507,9 +532,11 @@ class FlipBits(SelfInverseGate):
                     XGate() | qubit
 
     def __eq__(self, other):
+        """Equal operator."""
         if isinstance(other, self.__class__):
             return self.bits_to_flip == other.bits_to_flip
         return False
 
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(self.__str__())

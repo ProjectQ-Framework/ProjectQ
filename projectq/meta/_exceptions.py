@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._default_rules import all_defined_decomposition_rules
-from ._gates import (
-    AddConstant,
-    AddConstantModN,
-    AddQuantum,
-    ComparatorQuantum,
-    DivideQuantum,
-    MultiplyByConstantModN,
-    MultiplyQuantum,
-    SubConstant,
-    SubConstantModN,
-    SubtractQuantum,
-)
+"""Exception classes for projectq.meta."""
+
+
+class QubitManagementError(Exception):
+    """
+    Exception raised when the lifetime of a qubit is problematic within a context manager.
+
+    This may occur within Loop, Dagger or Compute regions.
+    """

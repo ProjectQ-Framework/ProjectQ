@@ -20,7 +20,7 @@ Decomposes the Toffoli gate using Hadamard, T, Tdag, and CNOT gates.
 
 from projectq.cengines import DecompositionRule
 from projectq.meta import get_control_count
-from projectq.ops import NOT, CNOT, T, Tdag, H
+from projectq.ops import CNOT, NOT, H, T, Tdag
 
 
 def _decompose_toffoli(cmd):

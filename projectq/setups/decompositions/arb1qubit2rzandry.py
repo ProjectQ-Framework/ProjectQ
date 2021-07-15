@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Registers the Z-Y decomposition for an arbitrary one qubit gate.
+Register the Z-Y decomposition for an arbitrary one qubit gate.
 
 See paper "Elementary gates for quantum computing" by Adriano Barenco et al.,
 arXiv:quant-ph/9503016v1. (Note: They use different gate definitions!)
@@ -55,8 +55,7 @@ def _recognize_arb1qubit(cmd):
 
 def _test_parameters(matrix, a, b_half, c_half, d_half):  # pylint: disable=invalid-name
     """
-    It builds matrix U with parameters (a, b/2, c/2, d/2) and compares against
-    matrix.
+    Build matrix U with parameters (a, b/2, c/2, d/2) and compares against matrix.
 
     U = [[exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)],
          [exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]]
@@ -86,14 +85,14 @@ def _test_parameters(matrix, a, b_half, c_half, d_half):  # pylint: disable=inva
 
 def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-statements
     """
-    Given a 2x2 unitary matrix, find the parameters
-    a, b/2, c/2, and d/2 such that
+    Find decomposition parameters.
+
+    Given a 2x2 unitary matrix, find the parameters a, b/2, c/2, and d/2 such that
     matrix == [[exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)],
                [exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]]
 
     Note:
-    If the matrix is element of SU(2) (determinant == 1), then
-    we can choose a = 0.
+        If the matrix is element of SU(2) (determinant == 1), then we can choose a = 0.
 
     Args:
         matrix(list): 2x2 unitary matrix

@@ -12,7 +12,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """
+A setup for AQT trapped ion devices.
+
 Defines a setup allowing to compile code for the AQT trapped ion devices:
 ->The 4 qubits device
 ->The 11 qubits simulator
@@ -23,17 +26,15 @@ device.  Decompose the circuit into a Rx/Ry/Rxx gate set that will be
 translated in the backend in the Rx/Ry/MS gate set.
 """
 
-from projectq.setups import restrictedgateset
-from projectq.ops import Rx, Ry, Rxx, Barrier
-from projectq.cengines import BasicMapperEngine
-
 from projectq.backends._aqt._aqt_http_client import show_devices
+from projectq.backends._exceptions import DeviceNotHandledError, DeviceOfflineError
+from projectq.cengines import BasicMapperEngine
+from projectq.ops import Barrier, Rx, Rxx, Ry
+from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):
-    """
-    Return the default list of compiler engine for the AQT plaftorm
-    """
+    """Return the default list of compiler engine for the AQT plaftorm."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..
@@ -49,7 +50,7 @@ def get_engine_list(token=None, device=None):
         # Note: Manual Mapper doesn't work, because its map is updated only if
         # gates are applied if gates in the register are not used, then it
         # will lead to state errors
-        res = dict()
+        res = {}
         for i in range(devices[device]['nq']):
             res[i] = i
         mapper.current_mapping = res
@@ -65,11 +66,3 @@ def get_engine_list(token=None, device=None):
     setup = restrictedgateset.get_engine_list(one_qubit_gates=(Rx, Ry), two_qubit_gates=(Rxx,), other_gates=(Barrier,))
     setup.extend(aqt_setup)
     return setup
-
-
-class DeviceOfflineError(Exception):
-    """Exception raised if a selected device is currently offline"""
-
-
-class DeviceNotHandledError(Exception):
-    """Exception raised if a selected device is cannot handle the circuit"""

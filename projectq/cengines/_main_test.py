@@ -18,11 +18,9 @@ import weakref
 
 import pytest
 
-from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
+from projectq.cengines import BasicMapperEngine, DummyEngine, LocalOptimizer, _main
 from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H
-
-from projectq.cengines import _main
 
 
 def test_main_engine_init():
@@ -71,6 +69,18 @@ def test_main_engine_init_defaults():
     default_engines = projectq.setups.default.get_engine_list()
     for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
+
+
+def test_main_engine_too_many_compiler_engines():
+    old = _main._N_ENGINES_THRESHOLD
+    _main._N_ENGINES_THRESHOLD = 3
+
+    _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine()])
+
+    with pytest.raises(ValueError):
+        _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine(), DummyEngine()])
+
+    _main._N_ENGINES_THRESHOLD = old
 
 
 def test_main_engine_init_mapper():

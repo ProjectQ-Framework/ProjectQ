@@ -27,11 +27,11 @@ from projectq.cengines import (
 )
 from projectq.meta import Control
 from projectq.ops import (
+    QFT,
     All,
     ClassicalInstructionGate,
     Measure,
     Ph,
-    QFT,
     Rx,
     Ry,
     X,

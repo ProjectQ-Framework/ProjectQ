@@ -14,9 +14,7 @@
 #   limitations under the License.
 """Tests for projectq.ops._shortcuts."""
 
-from projectq.ops import ControlledGate, Rz
-
-from projectq.ops import _shortcuts
+from projectq.ops import ControlledGate, Rz, _shortcuts
 
 
 def test_crz():

@@ -14,9 +14,10 @@
 #   limitations under the License.
 """Tests for projectq.setup.awsbraket."""
 
-import pytest
-from unittest.mock import patch
 import json
+from unittest.mock import patch
+
+import pytest
 
 # ==============================================================================
 

@@ -13,14 +13,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Defines the parent class from which all mappers should be derived.
+The parent class from which all mappers should be derived.
 
 There is only one engine currently allowed to be derived from BasicMapperEngine. This allows the simulator to
 automatically translate logical qubit ids to mapped ids.
 """
 from copy import deepcopy
 
-from projectq.meta import drop_engine_after, insert_engine, LogicalQubitIDTag
+from projectq.meta import LogicalQubitIDTag, drop_engine_after, insert_engine
 from projectq.ops import MeasureGate
 
 from ._basics import BasicEngine
@@ -37,21 +37,18 @@ class BasicMapperEngine(BasicEngine):
     """
 
     def __init__(self):
+        """Initialize a BasicMapperEngine object."""
         super().__init__()
         self._current_mapping = None
 
     @property
     def current_mapping(self):
-        """
-        Access the current mapping
-        """
+        """Access the current mapping."""
         return deepcopy(self._current_mapping)
 
     @current_mapping.setter
     def current_mapping(self, current_mapping):
-        """
-        Set the current mapping
-        """
+        """Set the current mapping."""
         self._current_mapping = current_mapping
 
     def _send_cmd_with_mapped_ids(self, cmd):
@@ -86,6 +83,11 @@ class BasicMapperEngine(BasicEngine):
             self.send([new_cmd])
 
     def receive(self, command_list):
-        """Forward all commands to the next engine."""
+        """
+        Receive a list of commands.
+
+        This implementation simply forwards all commands to the next compiler engine while adjusting the qubit IDs of
+        measurement gates.
+        """
         for cmd in command_list:
             self._send_cmd_with_mapped_ids(cmd)

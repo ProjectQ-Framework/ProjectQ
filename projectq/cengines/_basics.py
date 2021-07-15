@@ -13,22 +13,22 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Module containing the basic definition of a compiler engine"""
+"""Module containing the basic definition of a compiler engine."""
 
-from projectq.ops import Allocate, Deallocate
+from projectq.ops import Allocate, Command, Deallocate
 from projectq.types import Qubit, Qureg, WeakQubitRef
-from projectq.ops import Command
 
 
 class LastEngineException(Exception):
     """
-    Exception thrown when the last engine tries to access the next one. (Next engine does not exist)
+    Exception thrown when the last engine tries to access the next one. (Next engine does not exist).
 
     The default implementation of isAvailable simply asks the next engine whether the command is available. An engine
     which legally may be the last engine, this behavior needs to be adapted (see BasicEngine.isAvailable).
     """
 
     def __init__(self, engine):
+        """Initialize the exception."""
         super().__init__(
             (
                 "\nERROR: Sending to next engine failed. {} as last engine?\nIf this is legal, please override"
@@ -39,9 +39,10 @@ class LastEngineException(Exception):
 
 class BasicEngine:
     """
-    Basic compiler engine: All compiler engines are derived from this class.  It provides basic functionality such as
-    qubit allocation/deallocation and functions that provide information about the engine's position (e.g., next
-    engine).
+    Basic compiler engine: All compiler engines are derived from this class.
+
+    It provides basic functionality such as qubit allocation/deallocation and functions that provide information about
+    the engine's position (e.g., next engine).
 
     This information is provided by the MainEngine, which initializes all further engines.
 
@@ -63,8 +64,10 @@ class BasicEngine:
 
     def is_available(self, cmd):
         """
-        Default implementation of is_available: Ask the next engine whether a command is available, i.e., whether it
-        can be executed by the next engine(s).
+        Test whether a Command is supported by a compiler engine.
+
+        Default implementation of is_available: Ask the next engine whether a command is available, i.e., whether it can
+        be executed by the next engine(s).
 
         Args:
             cmd (Command): Command for which to check availability.
@@ -81,21 +84,16 @@ class BasicEngine:
 
     def allocate_qubit(self, dirty=False):
         """
-        Return a new qubit as a list containing 1 qubit object (quantum
-        register of size 1).
+        Return a new qubit as a list containing 1 qubit object (quantum register of size 1).
 
-        Allocates a new qubit by getting a (new) qubit id from the MainEngine,
-        creating the qubit object, and then sending an AllocateQubit command
-        down the pipeline. If dirty=True, the fresh qubit can be replaced by
-        a pre-allocated one (in an unknown, dirty, initial state). Dirty qubits
-        must be returned to their initial states before they are deallocated /
-        freed.
+        Allocates a new qubit by getting a (new) qubit id from the MainEngine, creating the qubit object, and then
+        sending an AllocateQubit command down the pipeline. If dirty=True, the fresh qubit can be replaced by a
+        pre-allocated one (in an unknown, dirty, initial state). Dirty qubits must be returned to their initial states
+        before they are deallocated / freed.
 
-        All allocated qubits are added to the MainEngine's set of active
-        qubits as weak references. This allows proper clean-up at the end of
-        the Python program (using atexit), deallocating all qubits which are
-        still alive. Qubit ids of dirty qubits are registered in MainEngine's
-        dirty_qubits set.
+        All allocated qubits are added to the MainEngine's set of active qubits as weak references. This allows proper
+        clean-up at the end of the Python program (using atexit), deallocating all qubits which are still alive. Qubit
+        ids of dirty qubits are registered in MainEngine's dirty_qubits set.
 
         Args:
             dirty (bool): If True, indicates that the allocated qubit may be
@@ -108,7 +106,9 @@ class BasicEngine:
         qb = Qureg([Qubit(self, new_id)])
         cmd = Command(self, Allocate, (qb,))
         if dirty:
-            from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
+            from projectq.meta import (  # pylint: disable=import-outside-toplevel
+                DirtyQubitTag,
+            )
 
             if self.is_meta_tag_supported(DirtyQubitTag):
                 cmd.tags += [DirtyQubitTag()]
@@ -130,8 +130,9 @@ class BasicEngine:
 
     def deallocate_qubit(self, qubit):
         """
-        Deallocate a qubit (and sends the deallocation command down the pipeline). If the qubit was allocated as a
-        dirty qubit, add DirtyQubitTag() to Deallocate command.
+        Deallocate a qubit (and sends the deallocation command down the pipeline).
+
+        If the qubit was allocated as a dirty qubit, add DirtyQubitTag() to Deallocate command.
 
         Args:
             qubit (BasicQubit): Qubit to deallocate.
@@ -141,7 +142,9 @@ class BasicEngine:
         if qubit.id == -1:
             raise ValueError("Already deallocated.")
 
-        from projectq.meta import DirtyQubitTag  # pylint: disable=import-outside-toplevel
+        from projectq.meta import (  # pylint: disable=import-outside-toplevel
+            DirtyQubitTag,
+        )
 
         is_dirty = qubit.id in self.main_engine.dirty_qubits
         self.send(
@@ -159,7 +162,7 @@ class BasicEngine:
 
     def is_meta_tag_supported(self, meta_tag):
         """
-        Check if there is a compiler engine handling the meta tag
+        Check if there is a compiler engine handling the meta tag.
 
         Args:
             engine: First engine to check (then iteratively calls getNextEngine)
@@ -180,10 +183,7 @@ class BasicEngine:
         return False
 
     def send(self, command_list):
-        """
-        Forward the list of commands to the next engine in the pipeline.
-        """
-
+        """Forward the list of commands to the next engine in the pipeline."""
         self.next_engine.receive(command_list)
 
 

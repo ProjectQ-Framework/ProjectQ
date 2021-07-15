@@ -15,10 +15,9 @@
 """
 Defines a setup to compile to a restricted gate set.
 
-It provides the `engine_list` for the `MainEngine`. This engine list contains
-an AutoReplacer with most of the gate decompositions of ProjectQ, which are
-used to decompose a circuit into a restricted gate set (with some limitions
-on the choice of gates).
+It provides the `engine_list` for the `MainEngine`. This engine list contains an AutoReplacer with most of the gate
+decompositions of ProjectQ, which are used to decompose a circuit into a restricted gate set (with some limitions on
+the choice of gates).
 """
 
 import inspect
@@ -33,20 +32,13 @@ from projectq.cengines import (
     LocalOptimizer,
     TagRemover,
 )
-from projectq.ops import (
-    BasicGate,
-    ClassicalInstructionGate,
-    CNOT,
-    ControlledGate,
-)
+from projectq.ops import CNOT, BasicGate, ClassicalInstructionGate, ControlledGate
 
-from ._utils import one_and_two_qubit_gates, high_level_gates
+from ._utils import high_level_gates, one_and_two_qubit_gates
 
 
 def default_chooser(cmd, decomposition_list):  # pylint: disable=unused-argument
-    """
-    Default chooser function for the AutoReplacer compiler engine.
-    """
+    """Provide the default chooser function for the AutoReplacer compiler engine."""
     return decomposition_list[0]
 
 
@@ -57,21 +49,17 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
     compiler_chooser=default_chooser,
 ):
     """
-    Returns an engine list to compile to a restricted gate set.
+    Return an engine list to compile to a restricted gate set.
 
     Note:
-        If you choose a new gate set for which the compiler does not yet have
-        standard rules, it raises an `NoGateDecompositionError` or a
-        `RuntimeError: maximum recursion depth exceeded...`. Also note that
-        even the gate sets which work might not yet be optimized. So make sure
-        to double check and potentially extend the decomposition rules.
-        This implemention currently requires that the one qubit gates must
-        contain Rz and at least one of {Ry(best), Rx, H} and the two qubit
-        gate must contain CNOT (recommended) or CZ.
+        If you choose a new gate set for which the compiler does not yet have standard rules, it raises an
+        `NoGateDecompositionError` or a `RuntimeError: maximum recursion depth exceeded...`. Also note that even the
+        gate sets which work might not yet be optimized. So make sure to double check and potentially extend the
+        decomposition rules.  This implemention currently requires that the one qubit gates must contain Rz and at
+        least one of {Ry(best), Rx, H} and the two qubit gate must contain CNOT (recommended) or CZ.
 
     Note:
-        Classical instructions gates such as e.g. Flush and Measure are
-        automatically allowed.
+        Classical instructions gates such as e.g. Flush and Measure are automatically allowed.
 
     Example:
         get_engine_list(one_qubit_gates=(Rz, Ry, Rx, H),
@@ -79,28 +67,21 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
                         other_gates=(TimeEvolution,))
 
     Args:
-        one_qubit_gates: "any" allows any one qubit gate, otherwise provide a
-                         tuple of the allowed gates. If the gates are
-                         instances of a class (e.g. X), it allows all gates
-                         which are equal to it. If the gate is a class (Rz),
-                         it allows all instances of this class. Default is
-                         "any"
-        two_qubit_gates: "any" allows any two qubit gate, otherwise provide a
-                         tuple of the allowed gates. If the gates are
-                         instances of a class (e.g. CNOT), it allows all gates
-                         which are equal to it. If the gate is a class, it
-                         allows all instances of this class.
+        one_qubit_gates: "any" allows any one qubit gate, otherwise provide a tuple of the allowed gates. If the gates
+                         are instances of a class (e.g. X), it allows all gates which are equal to it. If the gate is
+                         a class (Rz), it allows all instances of this class.
+                         Default is "any"
+        two_qubit_gates: "any" allows any two qubit gate, otherwise provide a tuple of the allowed gates. If the gates
+                         are instances of a class (e.g. CNOT), it allows all gates which are equal to it. If the gate
+                         is a class, it allows all instances of this class.
                          Default is (CNOT,).
-        other_gates:     A tuple of the allowed gates. If the gates are
-                         instances of a class (e.g. QFT), it allows all gates
-                         which are equal to it. If the gate is a class, it
-                         allows all instances of this class.
-        compiler_chooser:function selecting the decomposition to use in the
-                         Autoreplacer engine
+        other_gates: A tuple of the allowed gates. If the gates are instances of a class (e.g. QFT), it allows all
+                         gates which are equal to it. If the gate is a class, it allows all instances of this class.
+        compiler_chooser:function selecting the decomposition to use in the Autoreplacer engine
+
     Raises:
-        TypeError: If input is for the gates is not "any" or a tuple. Also if
-                   element within tuple is not a class or instance of BasicGate
-                   (e.g. CRz which is a shortcut function)
+        TypeError: If input is for the gates is not "any" or a tuple. Also if element within tuple is not a class or
+                   instance of BasicGate (e.g. CRz which is a shortcut function)
 
     Returns:
         A list of suitable compiler engines.

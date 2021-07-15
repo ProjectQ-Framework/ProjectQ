@@ -26,7 +26,7 @@ from projectq.cengines import (
     InstructionFilter,
 )
 from projectq.meta import Control
-from projectq.ops import All, CNOT, CZ, Measure, X, Z
+from projectq.ops import CNOT, CZ, All, Measure, X, Z
 
 from . import cnot2rxx
 

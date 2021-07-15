@@ -14,20 +14,19 @@
 #   limitations under the License.
 
 import pytest
-from projectq.cengines import BasicEngine, BasicMapperEngine
+
+from projectq.cengines import BasicMapperEngine
 
 
 @pytest.fixture(params=["mapper", "no_mapper"])
 def mapper(request):
-    """
-    Adds a mapper which changes qubit ids by adding 1
-    """
+    """Add a mapper which changes qubit ids by adding 1."""
     if request.param == "mapper":
 
         class TrivialMapper(BasicMapperEngine):
             def __init__(self):
-                BasicEngine.__init__(self)
-                self.current_mapping = dict()
+                super().__init__()
+                self.current_mapping = {}
 
             def receive(self, command_list):
                 for cmd in command_list:

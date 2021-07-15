@@ -18,12 +18,11 @@ Tests for projectq.backends.circuits._drawer.py.
 
 import pytest
 
-from projectq import MainEngine
-from projectq.ops import H, X, CNOT, Measure, Command
-from projectq.types import WeakQubitRef
-
 import projectq.backends._circuits._drawer as _drawer
-from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
+from projectq import MainEngine
+from projectq.backends._circuits._drawer import CircuitDrawer, CircuitItem
+from projectq.ops import CNOT, Command, H, Measure, X
+from projectq.types import WeakQubitRef
 
 
 @pytest.mark.parametrize("ordered", [False, True])

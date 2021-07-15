@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
 
+"""Example of a 4-qubit phase function."""
+
 from projectq.cengines import MainEngine
-from projectq.ops import All, H, X, Measure
-from projectq.meta import Compute, Uncompute
 from projectq.libs.revkit import PhaseOracle
+from projectq.meta import Compute, Uncompute
+from projectq.ops import All, H, Measure, X
 
 
 # phase function
 def f(a, b, c, d):
+    """Phase function."""
     return (a and b) ^ (c and d)
 
 

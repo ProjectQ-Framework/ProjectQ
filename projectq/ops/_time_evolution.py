@@ -13,10 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contains the definition of the time evolution gate"""
+"""Definition of the time evolution gate."""
 
 import copy
-
 
 from ._basics import BasicGate, NotMergeable
 from ._command import apply_command
@@ -25,7 +24,7 @@ from ._qubit_operator import QubitOperator
 
 
 class NotHermitianOperatorError(Exception):
-    """Error raised if an operator is non-hermitian"""
+    """Error raised if an operator is non-hermitian."""
 
 
 class TimeEvolution(BasicGate):
@@ -67,7 +66,7 @@ class TimeEvolution(BasicGate):
             TypeError: If time is not a numeric type and hamiltonian is not a QubitOperator.
             NotHermitianOperatorError: If the input hamiltonian is not hermitian (only real coefficients).
         """
-        BasicGate.__init__(self)
+        super().__init__()
         if not isinstance(time, (float, int)):
             raise TypeError("time needs to be a (real) numeric type.")
         if not isinstance(hamiltonian, QubitOperator):
@@ -81,9 +80,7 @@ class TimeEvolution(BasicGate):
                 raise NotHermitianOperatorError("hamiltonian must be hermitian and hence only have real coefficients.")
 
     def get_inverse(self):
-        """
-        Return the inverse gate.
-        """
+        """Return the inverse gate."""
         return TimeEvolution(self.time * -1.0, self.hamiltonian)
 
     def get_merged(self, other):
@@ -130,7 +127,9 @@ class TimeEvolution(BasicGate):
 
     def __or__(self, qubits):
         """
-        Operator| overload which enables the following syntax:
+        Operator| overload which enables the syntax Gate | qubits.
+
+        In particular, enable the following syntax:
 
         .. code-block:: python
 
@@ -142,7 +141,6 @@ class TimeEvolution(BasicGate):
         Unlike other gates, this gate is only allowed to be applied to one quantum register or one qubit.
 
         Example:
-
         .. code-block:: python
 
             wavefunction = eng.allocate_qureg(5)
@@ -184,8 +182,8 @@ class TimeEvolution(BasicGate):
         # create new TimeEvolution gate with rescaled qubit indices in
         # self.hamiltonian which are ordered from
         # 0,...,len(non_trivial_qubits) - 1
-        new_index = dict()
-        non_trivial_qubits = sorted(list(non_trivial_qubits))
+        new_index = {}
+        non_trivial_qubits = sorted(non_trivial_qubits)
         for i, qubit in enumerate(non_trivial_qubits):
             new_index[qubit] = i
         new_hamiltonian = QubitOperator()
@@ -202,9 +200,6 @@ class TimeEvolution(BasicGate):
         """Not implemented as this object is a floating point type."""
         return NotImplemented
 
-    def __ne__(self, other):
-        """Not implemented as this object is a floating point type."""
-        return NotImplemented
-
     def __str__(self):
+        """Return a string representation of the object."""
         return "exp({0} * ({1}))".format(-1j * self.time, self.hamiltonian)

@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-""" HTTP Client for the IonQ API. """
+"""HTTP Client for the IonQ API."""
 
 import getpass
 import json
@@ -24,7 +24,7 @@ import requests
 from requests import Session
 from requests.compat import urljoin
 
-from ._ionq_exc import (
+from .._exceptions import (
     DeviceOfflineError,
     DeviceTooSmall,
     JobSubmissionError,
@@ -38,8 +38,9 @@ class IonQ(Session):
     """A requests.Session based HTTP client for the IonQ API."""
 
     def __init__(self, verbose=False):
+        """Initialize an session with IonQ's APIs."""
         super().__init__()
-        self.backends = dict()
+        self.backends = {}
         self.timeout = 5.0
         self.token = None
         self._verbose = verbose
@@ -61,7 +62,8 @@ class IonQ(Session):
             print(self.backends)
 
     def is_online(self, device):
-        """Check if a given device is online.
+        """
+        Check if a given device is online.
 
         Args:
             device (str): An IonQ device name.
@@ -73,8 +75,7 @@ class IonQ(Session):
 
     def can_run_experiment(self, info, device):
         """
-        Determine whether or not the desired device has enough allocatable
-        qubits to run something.
+        Determine whether or not the desired device has enough allocatable qubits to run something.
 
         This returns a three-element tuple with whether or not the experiment
         can be run, the max number of qubits possible, and the number of qubits
@@ -165,7 +166,8 @@ class IonQ(Session):
         )
 
     def get_result(self, device, execution_id, num_retries=3000, interval=1):
-        """Given a backend and ID, fetch the results for this job's execution.
+        """
+        Given a backend and ID, fetch the results for this job's execution.
 
         The return dictionary should have at least:
 
@@ -190,7 +192,6 @@ class IonQ(Session):
         Returns:
             dict: A dict of job data for an engine to consume.
         """
-
         if self._verbose:  # pragma: no cover
             print("Waiting for results. [Job ID: {}]".format(execution_id))
 

@@ -12,18 +12,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a compiler engine which generates matplotlib figures describing the
-circuit.
-"""
 
-from builtins import input
-import re
+"""Contain a compiler engine which generates matplotlib figures describing the circuit."""
+
 import itertools
+import re
+from builtins import input
 
-from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import FlushGate, Measure, Allocate, Deallocate
+from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
+from projectq.ops import Allocate, Deallocate, FlushGate, Measure
+
 from ._plot import to_draw
 
 # ==============================================================================
@@ -53,43 +52,37 @@ def _format_gate_str(cmd):
 
 
 class CircuitDrawerMatplotlib(BasicEngine):
-    """
-    CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library
-    for drawing quantum circuits
-    """
+    """CircuitDrawerMatplotlib is a compiler engine which using Matplotlib library for drawing quantum circuits."""
 
     def __init__(self, accept_input=False, default_measure=0):
         """
-        Initialize a circuit drawing engine(mpl)
+        Initialize a circuit drawing engine(mpl).
 
         Args:
-            accept_input (bool): If accept_input is true, the printer queries
-                the user to input measurement results if the CircuitDrawerMPL
-                is the last engine. Otherwise, all measurements yield the
-                result default_measure (0 or 1).
-            default_measure (bool): Default value to use as measurement
-                results if accept_input is False and there is no underlying
-                backend to register real measurement results.
+            accept_input (bool): If accept_input is true, the printer queries the user to input measurement results if
+                the CircuitDrawerMPL is the last engine. Otherwise, all measurements yield the result default_measure
+                (0 or 1).
+            default_measure (bool): Default value to use as measurement results if accept_input is False and there is
+                no underlying backend to register real measurement results.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
-        self._map = dict()
+        self._map = {}
         self._qubit_lines = {}
 
     def is_available(self, cmd):
         """
-        Specialized implementation of is_available: Returns True if the
-        CircuitDrawerMatplotlib is the last engine
+        Test whether a Command is supported by a compiler engine.
+
+        Specialized implementation of is_available: Returns True if the CircuitDrawerMatplotlib is the last engine
         (since it can print any command).
 
         Args:
-            cmd (Command): Command for which to check availability (all
-                Commands can be printed).
+            cmd (Command): Command for which to check availability (all Commands can be printed).
 
         Returns:
-            availability (bool): True, unless the next engine cannot handle
-            the Command (if there is a next engine).
+            availability (bool): True, unless the next engine cannot handle the Command (if there is a next engine).
         """
         try:
             # Multi-qubit gates may fail at drawing time if the target qubits
@@ -100,11 +93,10 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
     def _process(self, cmd):  # pylint: disable=too-many-branches
         """
-        Process the command cmd and stores it in the internal storage
+        Process the command cmd and stores it in the internal storage.
 
-        Queries the user for measurement input if a measurement command
-        arrives if accept_input was set to True. Otherwise, it uses the
-        default_measure parameter to register the measurement outcome.
+        Queries the user for measurement input if a measurement command arrives if accept_input was set to
+        True. Otherwise, it uses the default_measure parameter to register the measurement outcome.
 
         Args:
             cmd (Command): Command to add to the circuit diagram.
@@ -165,12 +157,13 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, print the
-        commands, and then send them on to the next engine.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous engine, print the commands, and then send them on to the next
+        engine.
 
         Args:
-            command_list (list<Command>): List of Commands to print (and
-                potentially send on to the next engine).
+            command_list (list<Command>): List of Commands to print (and potentially send on to the next engine).
         """
         for cmd in command_list:
             if not isinstance(cmd.gate, FlushGate):
@@ -181,25 +174,21 @@ class CircuitDrawerMatplotlib(BasicEngine):
 
     def draw(self, qubit_labels=None, drawing_order=None, **kwargs):
         """
-        Generates and returns the plot of the quantum circuit stored so far
+        Generate and returns the plot of the quantum circuit stored so far.
 
         Args:
-            qubit_labels (dict): label for each wire in the output figure.
-                Keys: qubit IDs, Values: string to print out as label for
-                that particular qubit wire.
-            drawing_order (dict): position of each qubit in the output
-                graphic. Keys: qubit IDs, Values: position of qubit on the
-                qubit line in the graphic.
-            **kwargs (dict): additional parameters are used to update
-                the default plot parameters
+            qubit_labels (dict): label for each wire in the output figure.  Keys: qubit IDs, Values: string to print
+                out as label for that particular qubit wire.
+            drawing_order (dict): position of each qubit in the output graphic. Keys: qubit IDs, Values: position of
+                qubit on the qubit line in the graphic.
+            **kwargs (dict): additional parameters are used to update the default plot parameters
 
         Returns:
             A tuple containing the matplotlib figure and axes objects
 
         Note:
-            Additional keyword arguments can be passed to this
-            function in order to further customize the figure output
-            by matplotlib (default value in parentheses):
+            Additional keyword arguments can be passed to this function in order to further customize the figure
+            output by matplotlib (default value in parentheses):
 
               - fontsize (14): Font size in pt
               - column_spacing (.5): Vertical spacing between two

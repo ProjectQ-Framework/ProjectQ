@@ -14,18 +14,17 @@
 #   limitations under the License.
 """Tests for projectq.ops._command."""
 
-from copy import deepcopy
-import sys
 import math
+import sys
+from copy import deepcopy
+
 import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.meta import ComputeTag, canonical_ctrl_state
-from projectq.ops import BasicGate, Rx, NotMergeable, CtrlAll
+from projectq.ops import BasicGate, CtrlAll, NotMergeable, Rx, _command
 from projectq.types import Qubit, Qureg, WeakQubitRef
-
-from projectq.ops import _command
 
 
 @pytest.fixture

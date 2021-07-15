@@ -14,20 +14,14 @@
 #   limitations under the License.
 """Tests for projectq.ops._gates."""
 
-import math
 import cmath
+import math
+
 import numpy as np
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import (
-    All,
-    FlipBits,
-    get_inverse,
-    Measure,
-)
-
-from projectq.ops import _gates
+from projectq.ops import All, FlipBits, Measure, _gates, get_inverse
 
 
 def test_h_gate():

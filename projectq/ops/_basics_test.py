@@ -19,13 +19,10 @@ import math
 import numpy as np
 import pytest
 
-from projectq.types import Qubit, Qureg
-from projectq.ops import Command, X
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.types import WeakQubitRef
-
-from projectq.ops import _basics
+from projectq.ops import Command, X, _basics
+from projectq.types import Qubit, Qureg, WeakQubitRef
 
 
 @pytest.fixture
@@ -314,7 +311,7 @@ def test_basic_math_gate():
 
     class MyMultiplyGate(_basics.BasicMathGate):
         def __init__(self):
-            _basics.BasicMathGate.__init__(self, my_math_function)
+            super().__init__(my_math_function)
 
     gate = MyMultiplyGate()
     assert str(gate) == 'MATH'

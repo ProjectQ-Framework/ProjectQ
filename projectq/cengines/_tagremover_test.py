@@ -17,11 +17,9 @@
 import pytest
 
 from projectq import MainEngine
+from projectq.cengines import DummyEngine, _tagremover
 from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import Command, H
-from projectq.cengines import DummyEngine
-
-from projectq.cengines import _tagremover
 
 
 def test_tagremover_default():

@@ -20,8 +20,10 @@
 
     Then run the tests simply with '--mpl'
 """
-import pytest
 from copy import deepcopy
+
+import pytest
+
 import projectq.backends._circuits._plot as _plot
 
 # ==============================================================================

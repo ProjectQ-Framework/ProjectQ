@@ -57,8 +57,6 @@ build-backend = "setuptools.build_meta"
         '.*_test.py',
         '.*_fixtures.py',
         '.*flycheck.*.py',
-        'docs/.*',
-        'examples/.*',
     ]
 
     extension-pkg-whitelist = [
@@ -101,6 +99,10 @@ addopts = '-pno:warnings'
 testpaths = ['projectq']
 ignore-glob = ['*flycheck*.py']
 mock_use_standalone_module = true
+
+[tool.isort]
+
+profile = "black"
 
 [tool.setuptools_scm]
 

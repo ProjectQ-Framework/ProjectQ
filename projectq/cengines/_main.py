@@ -12,21 +12,20 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains the main engine of every compiler engine pipeline, called MainEngine.
-"""
+
+"""The main engine of every compiler engine pipeline, called MainEngine."""
 
 import atexit
 import sys
 import traceback
 import weakref
 
+from projectq.backends import Simulator
 from projectq.ops import Command, FlushGate
 from projectq.types import WeakQubitRef
-from projectq.backends import Simulator
 
-from ._basics import BasicEngine
 from ._basicmapper import BasicMapperEngine
+from ._basics import BasicEngine
 
 
 class NotYetMeasuredError(Exception):
@@ -34,17 +33,22 @@ class NotYetMeasuredError(Exception):
 
 
 class UnsupportedEngineError(Exception):
-    """Exception raised when a non-supported compiler engine is encountered"""
+    """Exception raised when a non-supported compiler engine is encountered."""
 
 
 class _ErrorEngine:  # pylint: disable=too-few-public-methods
     """
+    Fake compiler engine class.
+
     Fake compiler engine class only used to ensure gracious failure when an exception occurs in the MainEngine
     constructor.
     """
 
     def receive(self, command_list):  # pylint: disable=unused-argument
-        """No-op"""
+        """No-op."""
+
+
+_N_ENGINES_THRESHOLD = 100
 
 
 class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
@@ -61,10 +65,13 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         dirty_qubits (Set): Containing all dirty qubit ids
         backend (BasicEngine): Access the back-end.
         mapper (BasicMapperEngine): Access to the mapper if there is one.
-
+        n_engines (int): Current number of compiler engines in the engine list
+        n_engines_max (int): Maximum number of compiler engines allowed in the engine list. Defaults to 100.
     """
 
-    def __init__(self, backend=None, engine_list=None, verbose=False):
+    def __init__(  # pylint: disable=too-many-statements,too-many-branches
+        self, backend=None, engine_list=None, verbose=False
+    ):
         """
         Initialize the main compiler engine and all compiler engines.
 
@@ -114,10 +121,11 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__()
         self.active_qubits = weakref.WeakSet()
-        self._measurements = dict()
+        self._measurements = {}
         self.dirty_qubits = set()
         self.verbose = verbose
         self.main_engine = self
+        self.n_engines_max = _N_ENGINES_THRESHOLD
 
         if backend is None:
             backend = Simulator()
@@ -164,7 +172,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         engine_list = engine_list + [backend]
 
         # Test that user did not supply twice the same engine instance
-        num_different_engines = len(set(id(item) for item in engine_list))
+        num_different_engines = len({id(item) for item in engine_list})
         if len(engine_list) != num_different_engines:
             self.next_engine = _ErrorEngine()
             raise UnsupportedEngineError(
@@ -173,6 +181,10 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 " separate instances of a compiler engine if it is needed\n"
                 " twice.\n"
             )
+
+        self.n_engines = len(engine_list)
+        if self.n_engines > self.n_engines_max:
+            raise ValueError('Too many compiler engines added to the MainEngine!')
 
         self._qubit_idx = int(0)
         for i in range(len(engine_list) - 1):
@@ -213,7 +225,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def set_measurement_result(self, qubit, value):
         """
-        Register a measurement result
+        Register a measurement result.
 
         The engine being responsible for measurement results needs to register these results with the master engine
         such that they are available when the user calls an int() or bool() conversion operator on a measured qubit.
@@ -226,8 +238,9 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_measurement_result(self, qubit):
         """
-        Return the classical value of a measured qubit, given that an engine registered this result previously (see
-        setMeasurementResult).
+        Return the classical value of a measured qubit, given that an engine registered this result previously.
+
+        See also setMeasurementResult.
 
         Args:
             qubit (BasicQubit): Qubit of which to get the measurement result.
@@ -255,7 +268,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
     def get_new_qubit_id(self):
         """
-        Returns a unique qubit id to be used for the next qubit allocation.
+        Return a unique qubit id to be used for the next qubit allocation.
 
         Returns:
             new_qubit_id (int): New unique qubit id.

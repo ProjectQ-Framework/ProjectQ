@@ -12,22 +12,22 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains a compiler engine which prints commands to stdout prior to sending them on to the next engines (see
-CommandPrinter).
-"""
-import sys
 
+"""Contains a compiler engine which prints commands to stdout prior to sending them on to the next engines."""
+
+import sys
 from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
+from projectq.meta import LogicalQubitIDTag, get_control_count
 from projectq.ops import FlushGate, Measure
-from projectq.meta import get_control_count, LogicalQubitIDTag
 from projectq.types import WeakQubitRef
 
 
 class CommandPrinter(BasicEngine):
     """
+    Compiler engine that prints command to the standard output.
+
     CommandPrinter is a compiler engine which prints commands to stdout prior to sending them on to the next compiler
     engine.
     """
@@ -42,13 +42,15 @@ class CommandPrinter(BasicEngine):
             default_measure (bool): Default measurement result (if accept_input is False).
             in_place (bool): If in_place is true, all output is written on the same line of the terminal.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._accept_input = accept_input
         self._default_measure = default_measure
         self._in_place = in_place
 
     def is_available(self, cmd):
         """
+        Test whether a Command is supported by a compiler engine.
+
         Specialized implementation of is_available: Returns True if the CommandPrinter is the last engine (since it
         can print any command).
 
@@ -64,6 +66,8 @@ class CommandPrinter(BasicEngine):
 
     def _print_cmd(self, cmd):
         """
+        Print a command.
+
         Print a command or, if the command is a measurement instruction and the CommandPrinter is the last engine in
         the engine pipeline: Query the user for the measurement result (if accept_input = True) / Set the result to 0
         (if it's False).
@@ -102,6 +106,8 @@ class CommandPrinter(BasicEngine):
 
     def receive(self, command_list):
         """
+        Receive a list of commands.
+
         Receive a list of commands from the previous engine, print the
         commands, and then send them on to the next engine.
 

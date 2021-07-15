@@ -14,14 +14,15 @@
 #   limitations under the License.
 """Tests for projectq.backends._aqt._aqt.py."""
 
-import pytest
 import math
+
+import pytest
 
 from projectq import MainEngine
 from projectq.backends._aqt import _aqt
-from projectq.types import WeakQubitRef
-from projectq.cengines import DummyEngine, BasicMapperEngine
+from projectq.cengines import BasicMapperEngine, DummyEngine
 from projectq.ops import (
+    NOT,
     All,
     Allocate,
     Barrier,
@@ -29,11 +30,10 @@ from projectq.ops import (
     Deallocate,
     Entangle,
     Measure,
-    NOT,
     Rx,
+    Rxx,
     Ry,
     Rz,
-    Rxx,
     S,
     Sdag,
     T,
@@ -42,6 +42,7 @@ from projectq.ops import (
     Y,
     Z,
 )
+from projectq.types import WeakQubitRef
 
 
 # Insure that no HTTP request can be made in all tests in this module
@@ -202,7 +203,7 @@ def test_aqt_backend_functional_test(monkeypatch):
         backend.get_probabilities([])
 
     mapper = BasicMapperEngine()
-    res = dict()
+    res = {}
     for i in range(4):
         res[i] = i
     mapper.current_mapping = res

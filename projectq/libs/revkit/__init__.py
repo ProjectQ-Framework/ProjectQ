@@ -15,6 +15,6 @@
 
 """Module containing code to interface with RevKit"""
 
-from ._permutation import PermutationOracle
 from ._control_function import ControlFunctionOracle
+from ._permutation import PermutationOracle
 from ._phase import PhaseOracle
