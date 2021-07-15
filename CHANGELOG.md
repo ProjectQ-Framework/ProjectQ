@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+### Changed
+### Deprecated
+### Fixed
+### Removed
+### Repository
+
 ## [0.7.0] - 2021-07-14
 
 ### Added
 
--   UnitarySimulator backend for computing the unitary transformation corresponding to a quantum circuit.
+-   UnitarySimulator backend for computing the unitary transformation corresponding to a quantum circuit
 
 ### Changed
+
+-   Moved some exceptions classes into their own files to avoid code duplication
 
 ### Deprecated
 
@@ -21,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Prevent infinite recursion errors when too many compiler engines are added to the MainEngine
 -   Error in testing the decomposition for the phase estimation gate
+-   Fixed small issue with matplotlib drawing backend
 -   Make all docstrings PEP257 compliant
 
 ### Removed
@@ -30,7 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Added `isort` to the list of pre-commit hooks
--   Added `flake8-docstrings` to the flake8 checks to ensure PEP257 compliance for docstrings
+-   Added some more flake8 plugins to the list used by `pre-commit`:
+    + flake8-breakpoint
+    + flake8-comprehensions
+    + flake8-docstrings
+    + flake8-eradicate
+    + flake8-mutable
 
 ## [0.6.1] - 2021-06-23
 
@@ -126,8 +141,12 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...HEAD
 
-[0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.6.1...0.7.0
+[0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.6.1...v0.7.0
 
-[0.6.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.5.1...0.6.0
+[0.6.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.5.1...v0.6.0
+
+[0.5.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.5.0...v0.5.1
+
+[0.5.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.4.2...v0.5.0
