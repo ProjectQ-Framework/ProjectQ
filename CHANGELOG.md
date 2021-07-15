@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Repository
 
+-   Fix release tag location in GitHub Action workflow
+
 ## [0.7.0] - 2021-07-14
 
 ### Added
