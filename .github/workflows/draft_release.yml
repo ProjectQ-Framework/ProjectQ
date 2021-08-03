@@ -47,7 +47,7 @@ jobs:
       run: git flow release publish ${{ github.event.inputs.version }}
 
     - name: Create pull request
-      uses: thomaseizinger/create-pull-request@1.1.0
+      uses: thomaseizinger/create-pull-request@1.2.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
