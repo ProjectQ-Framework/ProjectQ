@@ -47,6 +47,7 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
     two_qubit_gates=(CNOT,),
     other_gates=(),
     compiler_chooser=default_chooser,
+    apply_commutation=True
 ):
     """
     Return an engine list to compile to a restricted gate set.
@@ -64,7 +65,9 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
     Example:
         get_engine_list(one_qubit_gates=(Rz, Ry, Rx, H),
                         two_qubit_gates=(CNOT,),
-                        other_gates=(TimeEvolution,))
+                        other_gates=(TimeEvolution,)
+                        compiler_chooser=chooser_Ry_reducer,
+                        apply_commutation=True)
 
     Args:
         one_qubit_gates: "any" allows any one qubit gate, otherwise provide a tuple of the allowed gates. If the gates
@@ -77,8 +80,9 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
                          Default is (CNOT,).
         other_gates: A tuple of the allowed gates. If the gates are instances of a class (e.g. QFT), it allows all
                          gates which are equal to it. If the gate is a class, it allows all instances of this class.
-        compiler_chooser:function selecting the decomposition to use in the Autoreplacer engine
-
+        compiler_chooser:function selecting the decomposition to use in the Autoreplacer engine.
+        apply_commutation: tells the LocalOptimizer engine whether to consider
+                        commutation rules during optimization.
     Raises:
         TypeError: If input is for the gates is not "any" or a tuple. Also if element within tuple is not a class or
                    instance of BasicGate (e.g. CRz which is a shortcut function)
@@ -177,13 +181,13 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
         AutoReplacer(rule_set, compiler_chooser),
         TagRemover(),
         InstructionFilter(high_level_gates),
-        LocalOptimizer(5),
+        LocalOptimizer(5, apply_commutation=apply_commutation),
         AutoReplacer(rule_set, compiler_chooser),
         TagRemover(),
         InstructionFilter(one_and_two_qubit_gates),
-        LocalOptimizer(5),
+        LocalOptimizer(5, apply_commutation=apply_commutation),
         AutoReplacer(rule_set, compiler_chooser),
         TagRemover(),
         InstructionFilter(low_level_gates),
-        LocalOptimizer(5),
+        LocalOptimizer(5, apply_commutation=apply_commutation),
     ]

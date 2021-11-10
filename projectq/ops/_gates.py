@@ -48,6 +48,7 @@ import math
 
 import numpy as np
 
+from ._metagates import C
 from ._basics import (
     BasicGate,
     BasicPhaseGate,
@@ -58,6 +59,7 @@ from ._basics import (
 )
 from ._command import apply_command
 from ._metagates import get_inverse
+from ._relative_command import RelativeCommand
 
 
 class HGate(SelfInverseGate):
@@ -89,6 +91,19 @@ class XGate(SelfInverseGate):
         """Access to the matrix property of this gate."""
         return np.matrix([[0, 1], [1, 0]])
 
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls
+
+        Args:
+            n (int): The number of controls on this gate. """
+        if (n == 1):
+            # i.e. this is a CNOT gate (one control)
+            # We define the qubit with the NOT as qb0, the qubit with
+            # the control as qb1, then all next qbs are labelled 2,3 etc.
+            return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(2,), relative_ctrl_idcs=(0,)), RelativeCommand(H,(0,))]]
+        else:
+            return [] # don't change _commutable_circuit_list
 
 #: Shortcut (instance of) :class:`projectq.ops.XGate`
 X = NOT = XGate()
@@ -145,7 +160,6 @@ class SGate(BasicGate):
 S = SGate()
 #: Inverse (and shortcut) of :class:`projectq.ops.SGate`
 Sdag = Sdagger = get_inverse(S)
-
 
 class TGate(BasicGate):
     """T gate class."""
@@ -297,7 +311,16 @@ class Ry(BasicRotationGate):
 
 
 class Rz(BasicRotationGate):
-    """RotationZ gate class."""
+    """ RotationZ gate class."""
+
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls
+
+        Args:
+            n (int): The number of controls on this gate. """
+
+        return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
 
     @property
     def matrix(self):
@@ -311,7 +334,11 @@ class Rz(BasicRotationGate):
 
 
 class Rxx(BasicRotationGate):
-    """RotationXX gate class."""
+    """ RotationXX gate class."""
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
 
     @property
     def matrix(self):
@@ -327,7 +354,11 @@ class Rxx(BasicRotationGate):
 
 
 class Ryy(BasicRotationGate):
-    """RotationYY gate class."""
+    """ RotationYY gate class."""
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
 
     @property
     def matrix(self):
@@ -343,7 +374,11 @@ class Ryy(BasicRotationGate):
 
 
 class Rzz(BasicRotationGate):
-    """RotationZZ gate class."""
+    """ RotationZZ gate class."""
+
+    def __init__(self, angle):
+        BasicRotationGate.__init__(self, angle)
+        self.interchangeable_qubit_indices = [[0, 1]]
 
     @property
     def matrix(self):
@@ -359,7 +394,15 @@ class Rzz(BasicRotationGate):
 
 
 class R(BasicPhaseGate):
-    """Phase-shift gate (equivalent to Rz up to a global phase)."""
+    """ Phase-shift gate (equivalent to Rz up to a global phase) """
+
+    def get_commutable_circuit_list(self, n=0):
+        """ Sets _commutable_circuit_list for C(NOT, n) where
+        n is the number of controls
+
+        Args:
+            n (int): The number of controls on this gate. """
+        return [[RelativeCommand(H,(0,)), RelativeCommand(C(NOT),(0,), relative_ctrl_idcs=(1,)), RelativeCommand(H,(0,))],]
 
     @property
     def matrix(self):
@@ -540,3 +583,17 @@ class FlipBits(SelfInverseGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(self.__str__())
+
+# Define commutation relations
+
+def set_commutation_relations(commuting_gates):
+    for klass in commuting_gates:
+        klass._commutable_gates.update(commuting_gates)
+        klass._commutable_gates.discard(klass)
+
+set_commutation_relations([XGate, SqrtXGate, Rx, Rxx, Ph])
+set_commutation_relations([YGate, Ry, Ryy, Ph])
+set_commutation_relations([ZGate, SGate, TGate, Rz, Rzz, Ph, R])
+
+for klass in [HGate, EntangleGate, SwapGate]:
+    set_commutation_relations([klass, Ph])

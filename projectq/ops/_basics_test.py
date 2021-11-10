@@ -15,7 +15,18 @@
 """Tests for projectq.ops._basics."""
 
 import math
+import sys
+import numpy as np
+import pytest
 
+from projectq.types import Qubit, Qureg
+from projectq.ops import Command, X, NOT
+from projectq import MainEngine
+from projectq.cengines import DummyEngine
+
+from projectq.ops import _basics
+from projectq.ops import _gates
+from projectq.ops import _metagates
 import numpy as np
 import pytest
 
@@ -350,3 +361,19 @@ def test_matrix_gate():
     assert X == gate3
     assert str(gate3) == "MatrixGate([[0, 1], [1, 0]])"
     assert hash(gate3) == hash("MatrixGate([[0, 1], [1, 0]])")
+
+
+def test_is_commutable():
+    """ At the gate level is_commutable can return
+    true or false. Test that is_commutable is working
+    as expected. """
+    gate1 = _basics.BasicRotationGate(math.pi)
+    gate2 = _basics.MatrixGate()
+    gate3 = _basics.BasicRotationGate(math.pi)
+    assert not gate1.is_commutable(gate2)
+    assert not gate1.is_commutable(gate3)
+    gate4 = _gates.Rz(math.pi)
+    gate5 = _gates.H
+    gate6 = _metagates.C(NOT)
+    assert not gate4.is_commutable(gate5)
+    assert not gate4.is_commutable(gate6)
