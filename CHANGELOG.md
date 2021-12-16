@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Repository
 
--   Update `thomaseizinger/create-pull-request` GiHub action to v1.3.0
+-   Update `thomaseizinger/keep-a-changelog-new-release` GiHub action to v1.3.0
+-   Update `thomaseizinger/create-pull-request` GiHub action to v1.2.2
 
 ## [0.7.0] - 2021-07-14
 
