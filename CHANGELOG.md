@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Deprecated
 ### Fixed
+
+-   Fix compiler flags cleanup function for use on CI
+
 ### Removed
 ### Repository
 
