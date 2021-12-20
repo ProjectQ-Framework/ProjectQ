@@ -465,20 +465,41 @@ class BuildExt(build_ext):
         raise BuildFailed()
 
     def _cleanup_compiler_flags(self):
-        compiler = self.compiler.compiler[0]
-        compiler_so = self.compiler.compiler_so[0]
+        status_msgs('INFO: Performing compiler flags cleanup')
+        compiler_exe = self.compiler.compiler[0]
+        compiler_exe_so = self.compiler.compiler_so[0]
         linker_so = self.compiler.linker_so[0]
         compiler_flags = set(self.compiler.compiler[1:])
         compiler_so_flags = set(self.compiler.compiler_so[1:])
         linker_so_flags = set(self.compiler.linker_so[1:])
-        common_flags = compiler_flags & compiler_so_flags & linker_so_flags
 
-        self.compiler.compiler = [compiler] + list(compiler_flags - common_flags)
-        self.compiler.compiler_so = [compiler_so] + list(compiler_so_flags - common_flags)
-        self.compiler.linker_so = [linker_so] + list(linker_so_flags - common_flags)
+        all_common_flags = compiler_flags & compiler_so_flags & linker_so_flags
+        common_compiler_flags = (compiler_flags & compiler_so_flags) - all_common_flags
+
+        compiler_flags = compiler_flags - common_compiler_flags - all_common_flags
+        compiler_so_flags = compiler_so_flags - common_compiler_flags - all_common_flags
 
         flags = []
-        for flag in common_flags:
+        for flag in common_compiler_flags:
+            compiler = type(self.compiler)()
+            compiler.set_executable('compiler', compiler_exe)
+            compiler.set_executable('compiler_so', compiler_exe_so)
+
+            compiler.debug_print(f'INFO: trying out {flag}')
+            if compiler_test(compiler, flag):
+                flags.append(flag)
+            else:
+                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+
+        self.compiler.compiler = [compiler_exe] + list(compiler_flags)
+        self.compiler.compiler_so = [compiler_exe_so] + list(compiler_so_flags)
+        self.compiler.linker_so = [linker_so] + list(linker_so_flags - all_common_flags)
+
+        self.compiler.compiler.extend(flags)
+        self.compiler.compiler_so.extend(flags)
+
+        flags = []
+        for flag in all_common_flags:
             if compiler_test(self.compiler, flag):
                 flags.append(flag)
             else:
