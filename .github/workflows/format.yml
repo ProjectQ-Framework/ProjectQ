@@ -21,10 +21,14 @@ jobs:
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - uses: actions/setup-python@v2
-    - uses: pre-commit/action@v2.0.3
-      with:
-        # Slow hooks are marked with manual - slow is okay here, run them too
-        extra_args: --hook-stage manual --all-files
+
+    - name: Install pre-commit
+      run: python3 -m pip install --upgrade pre-commit
+
+    - name: Run pre-commit
+      run: |
+          # Slow hooks are marked with manual - slow is okay here, run them too
+          pre-commit run --hook-stage manual --all-files
 
   clang-tidy:
     name: Clang-Tidy
