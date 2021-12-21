@@ -135,6 +135,7 @@ jobs:
         apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
         python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
         python3-pytest python3-pytest-cov python3-flaky
+        libomp-dev
         --no-install-recommends
 
     - name: Prepare Python env

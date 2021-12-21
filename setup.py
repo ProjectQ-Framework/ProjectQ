@@ -98,7 +98,14 @@ def status_msgs(*msgs):
 
 
 def compiler_test(
-    compiler, flagname=None, link=False, include='', body='', postargs=None
+    compiler,
+    flagname=None,
+    link_executable=False,
+    link_shared_lib=False,
+    include='',
+    body='',
+    compile_postargs=None,
+    link_postargs=None,
 ):  # pylint: disable=too-many-arguments
     """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
@@ -107,24 +114,29 @@ def compiler_test(
         fname = temp.name
     ret = True
 
-    if postargs is None:
-        postargs = [flagname] if flagname is not None else None
+    if compile_postargs is None:
+        compile_postargs = [flagname] if flagname is not None else None
     elif flagname is not None:
-        postargs.append(flagname)
+        compile_postargs.append(flagname)
 
     try:
-        exec_name = os.path.join(tempfile.mkdtemp(), 'test')
-
         if compiler.compiler_type == 'msvc':
             olderr = os.dup(sys.stderr.fileno())
             err = open('err.txt', 'w')  # pylint: disable=consider-using-with
             os.dup2(err.fileno(), sys.stderr.fileno())
 
-        obj_file = compiler.compile([fname], extra_postargs=postargs)
+        obj_file = compiler.compile([fname], extra_postargs=compile_postargs)
         if not os.path.exists(obj_file[0]):
             raise RuntimeError('')
-        if link:
-            compiler.link_executable(obj_file, exec_name, extra_postargs=postargs)
+        if link_executable:
+            exec_name = os.path.join(tempfile.mkdtemp(), 'test')
+            compiler.link_executable(obj_file, exec_name, extra_postargs=link_postargs)
+        elif link_shared_lib:
+            if sys.platform == 'win32':
+                lib_name = os.path.join(tempfile.mkdtemp(), 'test.dll')
+            else:
+                lib_name = os.path.join(tempfile.mkdtemp(), 'test.so')
+            compiler.link_shared_lib(obj_file, lib_name, extra_postargs=link_postargs)
 
         if compiler.compiler_type == 'msvc':
             err.close()
@@ -362,13 +374,13 @@ class BuildExt(build_ext):
             return
 
         kwargs = {
-            'link': True,
+            'link_shared_lib': True,
             'include': '#include <omp.h>',
             'body': 'int a = omp_get_num_threads(); ++a;',
         }
 
         for flag in ['-openmp', '-fopenmp', '-qopenmp', '/Qopenmp']:
-            if compiler_test(self.compiler, flag, **kwargs):
+            if compiler_test(self.compiler, flag, link_postargs=[flag], **kwargs):
                 self.opts.append(flag)
                 self.link_opts.append(flag)
                 return
@@ -383,7 +395,7 @@ class BuildExt(build_ext):
                 # from HomeBrew
                 if llvm_root in compiler_root:
                     l_arg = '-L{}/lib'.format(llvm_root)
-                    if compiler_test(self.compiler, flag, postargs=[l_arg], **kwargs):
+                    if compiler_test(self.compiler, flag, link_postargs=[l_arg, flag], **kwargs):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
                         return
@@ -404,7 +416,7 @@ class BuildExt(build_ext):
                     c_arg = '-I' + inc_dir
                     l_arg = '-L' + lib_dir
 
-                    if compiler_test(self.compiler, flag, postargs=[c_arg, l_arg], **kwargs):
+                    if compiler_test(self.compiler, flag, compile_postargs=[c_arg], link_postargs=[l_arg], **kwargs):
                         self.compiler.add_include_dir(inc_dir)
                         self.compiler.add_library_dir(lib_dir)
                         return
@@ -424,7 +436,6 @@ class BuildExt(build_ext):
             if compiler_test(
                 self.compiler,
                 flagname=flag,
-                link=False,
                 include='#include <immintrin.h>',
                 body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;',
             ):
@@ -482,11 +493,10 @@ class BuildExt(build_ext):
         flags = []
         for flag in common_compiler_flags:
             compiler = type(self.compiler)()
-            compiler.set_executable('compiler', compiler_exe)
-            compiler.set_executable('compiler_so', compiler_exe_so)
+            compiler.set_executables(compiler=compiler_exe, compiler_so=compiler_exe_so, linker_so=linker_so)
 
             compiler.debug_print(f'INFO: trying out {flag}')
-            if compiler_test(compiler, flag):
+            if compiler_test(compiler, flag, link_shared_lib=True, compile_postargs=['-fPIC']):
                 flags.append(flag)
             else:
                 important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
