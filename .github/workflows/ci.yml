@@ -116,6 +116,7 @@ jobs:
     env:
       CC: clang
       CXX: clang++
+      LDSHARED: clang
       PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang < 10) && 1 || 0 }}
 
     name: "🐍 3 • Clang ${{ matrix.clang }} • x64"
