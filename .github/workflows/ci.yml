@@ -28,6 +28,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -126,6 +127,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -171,6 +173,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -238,6 +241,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -287,6 +291,7 @@ jobs:
         restore-keys: ${{ runner.os }}-doc-pip-
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -320,6 +325,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
