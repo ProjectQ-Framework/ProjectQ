@@ -31,6 +31,7 @@ jobs:
           ref: 'master'
 
       - name: Get history and tags for SCM versioning to work
+        if: ${{ !env.ACT }}
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*

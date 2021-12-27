@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Fix compiler flags cleanup function for use on CI
--   Fix `ci.yml` to allow execution of GitHub Actions locally using `act`
+-   Fix workflow YAML to allow execution of GitHub Actions locally using `act`
 
 ### Removed
 ### Repository
