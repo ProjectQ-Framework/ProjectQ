@@ -106,13 +106,12 @@ def compiler_test(
     body='',
     compile_postargs=None,
     link_postargs=None,
-):  # pylint: disable=too-many-arguments
+):  # pylint: disable=too-many-arguments,too-many-branches
     """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
     with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
         temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
         fname = temp.name
-    ret = True
 
     if compile_postargs is None:
         compile_postargs = [flagname] if flagname is not None else None
@@ -129,8 +128,7 @@ def compiler_test(
         if not os.path.exists(obj_file[0]):
             raise RuntimeError('')
         if link_executable:
-            exec_name = os.path.join(tempfile.mkdtemp(), 'test')
-            compiler.link_executable(obj_file, exec_name, extra_postargs=link_postargs)
+            compiler.link_executable(obj_file, os.path.join(tempfile.mkdtemp(), 'test'), extra_postargs=link_postargs)
         elif link_shared_lib:
             if sys.platform == 'win32':
                 lib_name = os.path.join(tempfile.mkdtemp(), 'test.dll')
@@ -145,9 +143,11 @@ def compiler_test(
                 if err_file.readlines():
                     raise RuntimeError('')
     except (CompileError, LinkError, RuntimeError):
-        ret = False
-    os.unlink(fname)
-    return ret
+        return False
+    else:
+        return True
+    finally:
+        os.unlink(fname)
 
 
 def _fix_macosx_header_paths(*args):
