@@ -25,6 +25,13 @@ jobs:
     - name: Install pre-commit
       run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
 
+    - name: Cache wheels
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
+        restore-keys: pre-commit-
+
     - name: Run pre-commit
       run: |
           # Slow hooks are marked with manual - slow is okay here, run them too
