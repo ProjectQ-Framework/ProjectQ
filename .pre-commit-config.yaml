@@ -73,7 +73,7 @@ repos:
         files: ^(.*_test\.py)$
 
   - repo: https://github.com/pre-commit/mirrors-pylint
-    rev: 'v3.0.0a4'
+    rev: 'v3.0.0a3'
     hooks:
       - id: pylint
         args: ['--score=n']

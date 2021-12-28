@@ -25,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Update pre-commit hook `PyCQA/isort` to v5.10.1
 -   Update pre-commit hook `psf/black` to v21.12b0
 -   Update pre-commit hook `PyCQA/flake8` to v4.0.1
--   Update pre-commit hook `pre-commit/mirrors-pylint` to v3.0.0a4
 -   Update pre-commit hook `mgedmin/check-manifest` to v0.47
 
 ## [0.7.0] - 2021-07-14
