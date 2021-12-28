@@ -23,7 +23,7 @@ jobs:
     - uses: actions/setup-python@v2
 
     - name: Install pre-commit
-      run: python3 -m pip install --upgrade pre-commit
+      run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
 
     - name: Run pre-commit
       run: |
