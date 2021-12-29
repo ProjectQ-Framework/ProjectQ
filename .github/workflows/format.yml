@@ -25,7 +25,7 @@ jobs:
     - name: Install pre-commit
       run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
 
-    - name: Cache wheels
+    - name: Cache pre-commit hooks
       uses: actions/cache@v2
       with:
         path: ~/.cache/pre-commit
