@@ -20,6 +20,7 @@ jobs:
         - 3.7
         - 3.8
         - 3.9
+        - '3.10'
 
     name: "🐍 ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
     runs-on: ${{ matrix.runs-on }}
