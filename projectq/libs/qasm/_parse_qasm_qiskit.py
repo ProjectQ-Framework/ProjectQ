@@ -12,9 +12,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Define function to read OpenQASM file format (using Qiskit). """
 
-from qiskit.circuit import QuantumCircuit, Clbit
+"""Function definitions to read OpenQASM file format (using Qiskit)."""
+
+from qiskit.circuit import Clbit, QuantumCircuit
 
 from projectq.ops import All, Measure
 
@@ -145,7 +146,6 @@ def read_qasm_file(eng, filename):
     Note:
         At this time, we support most of OpenQASM 2.0 and some of 3.0, although the latter is still experimental.
     """
-
     circuit = QuantumCircuit.from_qasm_file(filename)
 
     return _convert_qiskit_circuit(eng, circuit)

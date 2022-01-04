@@ -12,25 +12,24 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Helper module to parse expressions
-"""
+
+"""Helper module to parse expressions."""
 
 import math
-from numbers import Number
 import operator
+from numbers import Number
 
 from pyparsing import (
-    Literal,
-    Word,
-    Group,
-    Forward,
-    ZeroOrMore,
-    alphas,
-    alphanums,
-    Regex,
     CaselessKeyword,
+    Forward,
+    Group,
+    Literal,
+    Regex,
     Suppress,
+    Word,
+    ZeroOrMore,
+    alphanums,
+    alphas,
     delimitedList,
     pyparsing_common,
 )
@@ -66,7 +65,7 @@ def push_unary_minus(toks):
 
 class ExprParser:
     """
-    Expression parser
+    Expression parser.
 
     Grammar:
         expop   :: '^'
@@ -80,8 +79,9 @@ class ExprParser:
     """
 
     def __init__(self):
+        """Initialize an ExprParser object."""
         # pylint: disable = too-many-locals
-        self.var_dict = dict()
+        self.var_dict = {}
 
         # use CaselessKeyword for e and pi, to avoid accidentally matching
         # functions that start with 'e' or 'pi' (such as 'exp'); Keyword
@@ -149,8 +149,7 @@ class ExprParser:
         Set the internal variable dictionary.
 
         Args:
-            var_dict (dict): Dictionary of variables with their corresponding
-                value for substitution.
+            var_dict (dict): Dictionary of variables with their corresponding value for substitution.
         """
         self.var_dict = var_dict
 
@@ -158,8 +157,7 @@ class ExprParser:
         """
         Evaluate an expression containing a variable.
 
-        Name matching keys in the internal variable dictionary have their
-        values substituted.
+        Name matching keys in the internal variable dictionary have their values substituted.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -265,6 +263,6 @@ def eval_expr(expr_str, var_dict=None):
     global EXPR_STACK
     EXPR_STACK = []
 
-    _parser.set_var_dict(var_dict if var_dict else dict())
+    _parser.set_var_dict(var_dict if var_dict else {})
     _parser.parse(expr_str)
     return evaluate_stack(EXPR_STACK[:])

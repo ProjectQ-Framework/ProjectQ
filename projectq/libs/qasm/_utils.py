@@ -12,35 +12,31 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """Some helper utilities."""
 
-from projectq.ops import ControlledGate, SwapGate, BasicGate
+from projectq.ops import BasicGate, ControlledGate, SwapGate
 
 # ==============================================================================
 
 
 class OpaqueGate(BasicGate):
-    """
-    Gate representing an opaque gate type.
-    """
+    """Gate representing an opaque gate type."""
 
     def __init__(self, name, params):
         """
-        Constructor
+        Initialize an OpaqueGate object.
 
         Args:
             name (str): Name/type of the quantum gate
             params (list,tuple): Parameter for the gate (may be empty)
         """
-
         super().__init__()
         self.name = name
         self.params = params
 
     def __str__(self):
-        """
-        String conversion.
-        """
+        """Return the string representation of an OpaqueGate."""
         # TODO: This is a bit crude...
         if self.params:
             return 'Opaque({})({})'.format(self.name, ','.join(self.params))

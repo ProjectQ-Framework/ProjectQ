@@ -13,27 +13,27 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Contains some helper variables for the Qiskit conversion functions"""
+"""Definition of helper variables for the Qiskit conversion functions."""
 
 from projectq.ops import (
-    Barrier,
-    HGate,
-    SGate,
-    Sdagger,
-    TGate,
-    Tdagger,
-    XGate,
-    YGate,
-    ZGate,
-    Rx,
-    Ry,
-    Rz,
-    SwapGate,
-    Toffoli,
-    C,
     CNOT,
     U2,
     U3,
+    Barrier,
+    C,
+    HGate,
+    Rx,
+    Ry,
+    Rz,
+    Sdagger,
+    SGate,
+    SwapGate,
+    Tdagger,
+    TGate,
+    Toffoli,
+    XGate,
+    YGate,
+    ZGate,
 )
 
 # ==============================================================================

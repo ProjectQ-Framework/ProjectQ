@@ -12,51 +12,48 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains the main engine of every compiler engine pipeline, called MainEngine.
-"""
+"""Contains the main engine of every compiler engine pipeline, called MainEngine."""
 
-from copy import deepcopy
 import operator as op
+from copy import deepcopy
+
 from pyparsing import (
-    Literal,
-    Word,
-    Group,
-    Or,
     CharsNotIn,
-    Optional,
-    OneOrMore,
-    ZeroOrMore,
-    nestedExpr,
-    Suppress,
-    removeQuotes,
     Empty,
+    Group,
+    Literal,
+    OneOrMore,
+    Optional,
+    Or,
+    Suppress,
+    Word,
+    ZeroOrMore,
+    alphanums,
+    alphas,
     cppStyleComment,
     cStyleComment,
     dblQuotedString,
-    alphas,
-    alphanums,
+    nestedExpr,
     pyparsing_common,
+    removeQuotes,
 )
 
 from projectq.ops import All, Measure
 
 from ._pyparsing_expr import eval_expr
 from ._qiskit_conv import gates_conv_table
-from ._utils import apply_gate, OpaqueGate
+from ._utils import OpaqueGate, apply_gate
 
 # ==============================================================================
 
-_QISKIT_VARS = dict()
-_BITS_VARS = dict()
-_CUSTOM_GATES = dict()
-_OPAQUE_GATES = dict()
+_QISKIT_VARS = {}
+_BITS_VARS = {}
+_CUSTOM_GATES = {}
+_OPAQUE_GATES = {}
 
 
 class CommonTokens:
-    """
-    Some general tokens
-    """
+    """Some general tokens."""
 
     # pylint: disable = too-few-public-methods
 
@@ -77,16 +74,20 @@ class CommonTokens:
 
 
 class QASMVersionOp:
-    """
-    OpenQASM version.
-    """
+    """OpenQASM version."""
 
     def __init__(self, toks):
+        """
+        Initialize a QASMVersionOp object.
+
+        Args:
+            toks (pyparsing.Tokens): Pyparsing tokens
+        """
         self.version = toks[0]
 
     def eval(self, _):
         """
-        Evaluate a QASMVersionOp
+        Evaluate a QASMVersionOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -94,20 +95,16 @@ class QASMVersionOp:
         # pylint: disable=unused-argument
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return 'QASMVersionOp({})'.format(self.version)
 
 
 class IncludeOp:
-    """
-    Include file operation.
-    """
+    """Include file operation."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize an IncludeOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -116,7 +113,7 @@ class IncludeOp:
 
     def eval(self, _):
         """
-        Evaluate a IncludeOp
+        Evaluate a IncludeOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -127,9 +124,7 @@ class IncludeOp:
             raise RuntimeError('Invalid cannot read: {}! (unsupported)'.format(self.fname))
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return 'IncludeOp({})'.format(self.fname)
 
 
@@ -137,13 +132,11 @@ class IncludeOp:
 
 
 class QubitProxy:
-    """
-    Qubit access proxy class
-    """
+    """Qubit access proxy class."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize a QubitProxy object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -157,7 +150,7 @@ class QubitProxy:
 
     def eval(self, _):
         """
-        Evaluate a QubitProxy
+        Evaluate a QubitProxy.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -167,9 +160,7 @@ class QubitProxy:
         return _QISKIT_VARS[self.name]
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         if self.index is not None:
             return 'Qubit({}[{}])'.format(self.name, self.index)
         return 'Qubit({})'.format(self.name)
@@ -179,15 +170,13 @@ class QubitProxy:
 
 
 class VarDeclOp:
-    """
-    Variable declaration operation.
-    """
+    """Variable declaration operation."""
 
     # pylint: disable = too-few-public-methods
 
     def __init__(self, type_t, nbits, name, init):
         """
-        Constructor
+        Initialize a VarDeclOp object.
 
         Args:
             type_t (str): Type of variable
@@ -201,9 +190,7 @@ class VarDeclOp:
         self.init = init
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         if self.init:
             return "{}({}, {}, {}) = {}".format(self.__class__.__name__, self.type_t, self.nbits, self.name, self.init)
 
@@ -214,15 +201,13 @@ class VarDeclOp:
 
 
 class QVarOp(VarDeclOp):
-    """
-    Quantum variable declaration operation.
-    """
+    """Quantum variable declaration operation."""
 
     # pylint: disable = too-few-public-methods
 
     def eval(self, eng):
         """
-        Evaluate a QVarOp
+        Evaluate a QVarOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -237,15 +222,13 @@ class QVarOp(VarDeclOp):
 
 
 class CVarOp(VarDeclOp):
-    """
-    Classical variable declaration operation.
-    """
+    """Classical variable declaration operation."""
 
     # pylint: disable = too-few-public-methods
 
     def eval(self, _):
         """
-        Evaluate a CVarOp
+        Evaluate a CVarOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -276,13 +259,11 @@ class CVarOp(VarDeclOp):
 
 
 class GateDefOp:
-    """
-    Operation representing a gate definition.
-    """
+    """Operation representing a gate definition."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize a GateDefOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -296,7 +277,7 @@ class GateDefOp:
 
     def eval(self, _):
         """
-        Evaluate a GateDefOp
+        Evaluate a GateDefOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -304,9 +285,7 @@ class GateDefOp:
         _CUSTOM_GATES[self.name] = (self.params, self.qparams, self.body)
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return "GateDefOp({}, {}, {})\n\t{}".format(self.name, self.params, self.qparams, self.body)
 
 
@@ -314,11 +293,11 @@ class GateDefOp:
 
 
 class MeasureOp:
-    """Measurement operations (OpenQASM 2.0 & 3.0)"""
+    """Measurement operations (OpenQASM 2.0 & 3.0)."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize a MeasureOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -336,7 +315,7 @@ class MeasureOp:
 
     def eval(self, eng):
         """
-        Evaluate a MeasureOp
+        Evaluate a MeasureOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -365,9 +344,7 @@ class MeasureOp:
                 bits[idx] = bool(qubit)
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return 'MeasureOp({}, {})'.format(self.qubits, self.bits)
 
 
@@ -375,13 +352,11 @@ class MeasureOp:
 
 
 class OpaqueDefOp:
-    """
-    Opaque gate definition operation.
-    """
+    """Opaque gate definition operation."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize an OpaqueDefOp object.
 
         Args:
             name (str): Name/type of gat
@@ -393,7 +368,7 @@ class OpaqueDefOp:
 
     def eval(self, _):
         """
-        Evaluate a OpaqueDefOp
+        Evaluate a OpaqueDefOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -401,9 +376,7 @@ class OpaqueDefOp:
         _OPAQUE_GATES[self.name] = OpaqueGate(self.name, self.params)
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         if self.params:
             return 'OpaqueOp({}, {})'.format(self.name, self.params)
         return 'OpaqueOp({})'.format(self.name)
@@ -413,13 +386,11 @@ class OpaqueDefOp:
 
 
 class GateOp:
-    """
-    Gate applied to qubits operation.
-    """
+    """Gate applied to qubits operation."""
 
     def __init__(self, s, loc, toks):
         """
-        Constructor
+        Initialize a GateOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -436,7 +407,7 @@ class GateOp:
 
     def eval(self, eng):  # pylint: disable=too-many-branches
         """
-        Evaluate a GateOp
+        Evaluate a GateOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -492,9 +463,7 @@ class GateOp:
             raise RuntimeError('Unknown gate: {}'.format(gate_str))
 
     def __repr__(self):  # pragma: nocover
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return 'GateOp({}, {}, {})'.format(self.name, self.params, self.qubits)
 
 
@@ -502,13 +471,11 @@ class GateOp:
 
 
 class AssignOp:  # pragma: nocover
-    """
-    Variable assignment operation (OpenQASM 3.0 only)
-    """
+    """Variable assignment operation (OpenQASM 3.0 only)."""
 
     def __init__(self, toks):
         """
-        Constructor
+        Initialize an AssignOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -518,7 +485,7 @@ class AssignOp:  # pragma: nocover
 
     def eval(self, _):
         """
-        Evaluate a AssignOp
+        Evaluate a AssignOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -533,9 +500,7 @@ class AssignOp:  # pragma: nocover
         return 0
 
     def __repr__(self):
-        """
-        Mainly for debugging
-        """
+        """Mainly for debugging."""
         return 'AssignOp({},{})'.format(self.var, self.value)
 
 
@@ -559,9 +524,7 @@ def _parse_if_conditional(if_str):
 
 
 class IfOp:
-    """
-    Operation representing a conditional expression (if-expr).
-    """
+    """Operation representing a conditional expression (if-expr)."""
 
     greater = Literal('>').addParseAction(lambda: op.gt)
     greater_equal = Literal('>=').addParseAction(lambda: op.ge)
@@ -576,7 +539,7 @@ class IfOp:
 
     def __init__(self, if_str, loc, toks):
         """
-        Constructor
+        Initialize an IfOp object.
 
         Args:
             toks (pyparsing.Tokens): Pyparsing tokens
@@ -598,7 +561,7 @@ class IfOp:
 
     def eval(self, eng):
         """
-        Evaluate a IfOp
+        Evaluate a IfOp.
 
         Args:
             eng (projectq.BasicEngine): ProjectQ MainEngine to use
@@ -620,6 +583,7 @@ class IfOp:
                 gate.eval(eng)
 
     def __repr__(self):  # pragma: nocover
+        """Mainly for debugging."""
         return "IfExpr({} {} {}) {{ {} }}".format(self.bit, self.binary_op, self.comp_expr, self.body)
 
 
@@ -628,13 +592,11 @@ class IfOp:
 
 def create_var_decl(toks):
     """
-    Callback function to create either a classical or quantum variable
-    operation.
+    Create either a classical or a quantum variable operation.
 
-        Args:
-            toks (pyparsing.Tokens): Pyparsing tokens
+    Args:
+        toks (pyparsing.Tokens): Pyparsing tokens
     """
-
     type_t = toks[0]
 
     names = []
@@ -697,7 +659,7 @@ def create_var_decl(toks):
 
 def parse_expr(expr_str):
     """
-    Callback function to parse an (mathematical) expression.
+    Parse a mathematical expression.
 
     Args:
         expr_str (str): Expression to evaluate
@@ -709,11 +671,10 @@ def parse_expr(expr_str):
 
 
 class QiskitParser:
-    """
-    Qiskit parser class
-    """
+    """Qiskit parser class."""
 
     def __init__(self):
+        """Initialize a QiskitParser object."""
         # pylint: disable = too-many-locals
         # ----------------------------------------------------------------------
         # Punctuation marks
@@ -899,7 +860,7 @@ class QiskitParser:
 
     def parse_str(self, qasm_str):
         """
-        Parse a QASM string
+        Parse a QASM string.
 
         Args:
             qasm_str (str): QASM string
@@ -908,7 +869,7 @@ class QiskitParser:
 
     def parse_file(self, fname):
         """
-        Parse a QASM file
+        Parse a QASM file.
 
         Args:
             fname (str): Filename
@@ -917,16 +878,14 @@ class QiskitParser:
 
 
 def _reset():
-    """
-    Reset internal variables
-    """
+    """Reset internal variables."""
     # pylint: disable = invalid-name, global-statement
     global _QISKIT_VARS, _BITS_VARS, _CUSTOM_GATES, _OPAQUE_GATES
 
-    _QISKIT_VARS = dict()
-    _BITS_VARS = dict()
-    _CUSTOM_GATES = dict()
-    _OPAQUE_GATES = dict()
+    _QISKIT_VARS = {}
+    _BITS_VARS = {}
+    _CUSTOM_GATES = {}
+    _OPAQUE_GATES = {}
 
 
 # ==============================================================================
@@ -938,19 +897,16 @@ parser = QiskitParser()
 
 def read_qasm_str(eng, qasm_str):
     """
-    Read an OpenQASM (2.0, 3.0 is experimental) string and convert it to
-    ProjectQ commands.
+    Read an OpenQASM (2.0, 3.0 is experimental) string and convert it to ProjectQ commands.
 
-    This version of the function uses pyparsing in order to parse the *.qasm
-    file.
+    This version of the function uses pyparsing in order to parse the *.qasm file.
 
     Args:
         eng (MainEngine): MainEngine to use for creating qubits and commands.
         filename (string): Path to *.qasm file
 
     Note:
-        At this time, we support most of OpenQASM 2.0 and some of 3.0,
-        although the latter is still experimental.
+        At this time, we support most of OpenQASM 2.0 and some of 3.0, although the latter is still experimental.
     """
     _reset()
     for operation in parser.parse_str(qasm_str).asList():
@@ -963,23 +919,19 @@ def read_qasm_str(eng, qasm_str):
 
 def read_qasm_file(eng, filename):
     """
-    Read an OpenQASM (2.0, 3.0 is experimental) and convert it to ProjectQ
-    Commands.
+    Read an OpenQASM (2.0, 3.0 is experimental) and convert it to ProjectQ Commands.
 
-    This version of the function uses pyparsing in order to parse the *.qasm
-    file.
+    This version of the function uses pyparsing in order to parse the *.qasm file.
 
     Args:
         eng (MainEngine): MainEngine to use for creating qubits and commands.
         filename (string): Path to *.qasm file
 
     Note:
-        At this time, we support most of OpenQASM 2.0 and some of 3.0,
-        although the latter is still experimental.
+        At this time, we support most of OpenQASM 2.0 and some of 3.0, although the latter is still experimental.
 
-        Also note that we do not try to enforce 100% conformity to the
-        OpenQASM standard while parsing QASM code. The parser may allow some
-        syntax that are actually banned by the standard.
+        Also note that we do not try to enforce 100% conformity to the OpenQASM standard while parsing QASM code. The
+        parser may allow some syntax that are actually banned by the standard.
     """
     _reset()
     for operation in parser.parse_file(filename).asList():

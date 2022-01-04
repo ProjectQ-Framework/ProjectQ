@@ -76,7 +76,6 @@ def _angle_to_str(angle, symbols):
     return f"({str(angle)})"
 
 
-
 class BasicGate:
     """Base class of all gates. (Don't use it directly but derive from it)."""
 
@@ -488,10 +487,7 @@ class U3Gate(BasicGate):
         )
 
     def get_inverse(self):
-        """
-        Return the inverse of this rotation gate (negate the angle, return new
-        object).
-        """
+        """Return the inverse of this rotation gate (negate the angle, return new object)."""
         if (self.theta, self.phi, self.lamda) == (0, 0, 0):
             return self.__class__(0, 0, 0)
         return self.__class__(-self.theta + 4 * math.pi, -self.phi + 4 * math.pi, -self.lamda + 4 * math.pi)
@@ -523,16 +519,12 @@ class U3Gate(BasicGate):
             return (self.theta, self.phi, self.lamda) == (other.theta, other.phi, other.lamda)
         return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __hash__(self):
+        """Compute the hash of the object."""
         return hash(str(self))
 
     def is_identity(self):
-        """
-        Return True if the gate is equivalent to an Identity gate
-        """
+        """Return True if the gate is equivalent to an Identity gate."""
         return (
             (self.theta == 0.0 or self.theta == 4 * math.pi)
             and (self.phi == 0.0 or self.phi == 4 * math.pi)

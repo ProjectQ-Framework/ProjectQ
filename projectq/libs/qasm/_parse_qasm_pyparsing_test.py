@@ -14,18 +14,20 @@
 #   limitations under the License.
 
 import platform
-import pytest
 import tempfile
 
-from projectq.ops import AllocateQubitGate, XGate, MeasureGate, HGate, SGate, TGate
-from projectq.cengines import MainEngine, DummyEngine
+import pytest
+
 from projectq.backends import CommandPrinter
+from projectq.cengines import DummyEngine, MainEngine
+from projectq.ops import AllocateQubitGate, HGate, MeasureGate, SGate, TGate, XGate
 
 # ==============================================================================
 
 _has_pyparsing = True
 try:
     import pyparsing  # noqa: F401
+
     from ._parse_qasm_pyparsing import read_qasm_file, read_qasm_str
 except ImportError:
     _has_pyparsing = False

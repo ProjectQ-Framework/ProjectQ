@@ -12,43 +12,40 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Backend to convert ProjectQ commands to OpenQASM. """
+"""Backend to convert ProjectQ commands to OpenQASM."""
 
 from copy import deepcopy
 
 from projectq.cengines import BasicEngine
 from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
-    X,
     NOT,
-    Y,
-    Z,
-    T,
-    Tdag,
-    S,
-    Sdag,
+    Allocate,
+    Barrier,
+    Deallocate,
+    FlushGate,
     H,
+    Measure,
     Ph,
     R,
     Rx,
     Ry,
     Rz,
+    S,
+    Sdag,
     Swap,
-    Measure,
-    Allocate,
-    Deallocate,
-    Barrier,
-    FlushGate,
+    T,
+    Tdag,
+    X,
+    Y,
+    Z,
 )
-
 
 # ==============================================================================
 
 
 class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
-    """
-    Engine to convert ProjectQ commands to OpenQASM format (either string or file)
-    """
+    """Engine to convert ProjectQ commands to OpenQASM format (either string or file)."""
 
     def __init__(
         self,
@@ -87,8 +84,8 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
         self._qubit_id_mapping_redux = qubit_id_mapping_redux
 
         self._output = []
-        self._qreg_dict = dict()
-        self._creg_dict = dict()
+        self._qreg_dict = {}
+        self._creg_dict = {}
         self._reg_index = 0
         self._available_indices = []
 
@@ -96,9 +93,7 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
 
     @property
     def qasm(self):
-        """
-        Access to the QASM representation of the circuit.
-        """
+        """Access to the QASM representation of the circuit."""
         return self._output
 
     def is_available(self, cmd):
@@ -146,8 +141,7 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
 
     def receive(self, command_list):
         """
-        Receives a command list and, for each command, stores it until
-        completion.
+        Receives a command list and, for each command, stores it until completion.
 
         Args:
             command_list: List of commands to execute
@@ -309,9 +303,7 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
         self._output.append('include "stdgates.inc";')
 
     def _reset_after_flush(self):
-        """
-        Reset the internal quantum circuit after a FlushGate
-        """
+        """Reset the internal quantum circuit after a FlushGate."""
         if not self._collate_callback:
             self._output.append('# ' + '=' * 80)
         else:
