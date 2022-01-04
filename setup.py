@@ -426,13 +426,18 @@ class BuildExt(build_ext):
         important_msgs('WARNING: compiler does not support OpenMP!')
 
     def _configure_intrinsics(self):
-        for flag in [
+        flags = [
             '-march=native',
             '-mavx2',
             '/arch:AVX2',
             '/arch:CORE-AVX2',
             '/arch:AVX',
-        ]:
+        ]
+
+        if os.environ.get('DISABLE_PROJECTQ_ARCH_NATIVE'):
+            flags = flags[1:]
+
+        for flag in flags:
             if compiler_test(
                 self.compiler,
                 flagname=flag,
