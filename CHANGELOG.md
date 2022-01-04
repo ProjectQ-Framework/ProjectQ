@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Repository
 
+-   Add configuration for CIBuildWheel in `pyproject.toml`
 -   Update `thomaseizinger/keep-a-changelog-new-release` GiHub action to v1.3.0
 -   Update `thomaseizinger/create-pull-request` GiHub action to v1.2.2
 -   Update pre-commit hook `pre-commit/pre-commit-hooks` to v4.1.0
