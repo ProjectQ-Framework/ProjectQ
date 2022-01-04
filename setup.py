@@ -434,7 +434,7 @@ class BuildExt(build_ext):
             '/arch:AVX',
         ]
 
-        if os.environ.get('DISABLE_PROJECTQ_ARCH_NATIVE'):
+        if os.environ.get('PROJECTQ_DISABLE_ARCH_NATIVE'):
             flags = flags[1:]
 
         for flag in flags:
@@ -666,10 +666,10 @@ if not cpython:
         'WARNING: C/C++ extensions are not supported on some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
-elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
+elif os.environ.get('PROJECTQ_DISABLE_CEXT'):
     run_setup(False)
     important_msgs(
-        'DISABLE_PROJECTQ_CEXT is set; not attempting to build C/C++ extensions.',
+        'PROJECTQ_DISABLE_CEXT is set; not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
     )
 
@@ -677,6 +677,9 @@ else:
     try:
         run_setup(True)
     except BuildFailed as exc:
+        if os.environ.get('PROJECTQ_CI_BUILD'):
+            raise exc
+
         important_msgs(
             exc.cause,
             'WARNING: Some C/C++ extensions could not be compiled, '

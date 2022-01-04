@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Added environment variable to avoid -march=native when building ProjectQ
+-   Added environment variable to force build failure if extensions do not compile on CI
 
 ### Changed
 ### Deprecated

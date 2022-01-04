@@ -120,7 +120,7 @@ archs = ['auto64']
 build-frontend = 'build'
 build-verbosity = 1
 skip = 'pp*'
-environment = { DISABLE_PROJECTQ_ARCH_NATIVE='1' }
+environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1' }
 
 before-test = [
     'cd {package}',
