@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fix compiler flags cleanup function for use on CI
 -   Fix workflow YAML to allow execution of GitHub Actions locally using `act`
 -   GitHub action using deprecated and vulnerable `pre-commit` version
+-   Fixed issue with `gen_reqfile` command if `--include-extras` is not provided
 
 ### Removed
 ### Repository

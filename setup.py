@@ -586,7 +586,7 @@ class GenerateRequirementFile(Command):
 
     def finalize_options(self):
         """Finalize this command's options."""
-        include_extras = self.include_extras.split(',')
+        include_extras = self.include_extras.split(',') if self.include_extras else []
 
         try:
             for name, pkgs in self.distribution.extras_require.items():
