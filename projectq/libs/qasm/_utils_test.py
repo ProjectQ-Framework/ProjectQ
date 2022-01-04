@@ -16,10 +16,31 @@
 
 import pytest
 
-from projectq.types import WeakQubitRef
 from projectq.cengines import DummyEngine
-from projectq.ops import X, Y, Z, T, Tdagger, S, Sdagger, H, Ph, R, Rx, Ry, Rz, U2, U3, Swap, Toffoli, Barrier, C
-from ._utils import apply_gate, OpaqueGate
+from projectq.ops import (
+    U2,
+    U3,
+    Barrier,
+    C,
+    H,
+    Ph,
+    R,
+    Rx,
+    Ry,
+    Rz,
+    S,
+    Sdagger,
+    Swap,
+    T,
+    Tdagger,
+    Toffoli,
+    X,
+    Y,
+    Z,
+)
+from projectq.types import WeakQubitRef
+
+from ._utils import OpaqueGate, apply_gate
 
 # ==============================================================================
 

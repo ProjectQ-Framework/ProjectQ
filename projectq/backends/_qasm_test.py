@@ -14,35 +14,37 @@
 #   limitations under the License.
 """Tests for projectq.cengines._openqasm.py."""
 
+import re
+
 import pytest
 
-import re
-from projectq.cengines import MainEngine, DummyEngine
+from projectq.cengines import DummyEngine, MainEngine
 from projectq.meta import Control
 from projectq.ops import (
-    X,
     NOT,
-    Y,
-    Z,
-    T,
-    Tdagger,
-    S,
-    Sdagger,
+    All,
+    Allocate,
+    Barrier,
+    Command,
+    Deallocate,
+    Entangle,
     H,
+    Measure,
     Ph,
     R,
     Rx,
     Ry,
     Rz,
-    Allocate,
-    Deallocate,
-    Measure,
-    Barrier,
-    Entangle,
-    Command,
-    All,
+    S,
+    Sdagger,
+    T,
+    Tdagger,
+    X,
+    Y,
+    Z,
 )
 from projectq.types import WeakQubitRef
+
 from ._qasm import OpenQASMBackend
 
 # ==============================================================================
