@@ -119,7 +119,7 @@ column_limit = 120
 archs = ['auto64']
 build-frontend = 'build'
 build-verbosity = 1
-skip = 'pp*'
+skip = 'pp* *-musllinux*'
 environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1' }
 
 before-test = [
