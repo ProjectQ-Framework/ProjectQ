@@ -29,7 +29,7 @@ ProjectQ comes with a high-performance quantum simulator written in C++. Please 
 .. note::
     The setup will try to build a C++-Simulator, which is much faster than the Python implementation. If the C++ compilation were to fail, the setup will install a pure Python implementation of the simulator instead. The Python simulator should work fine for small examples (e.g., running Shor's algorithm for factoring 15 or 21).
 
-    If you want to skip the installation of the C++-Simulator altogether, you can define the ``DISABLE_PROJECTQ_CEXT`` environment variable to avoid any compilation steps.
+    If you want to skip the installation of the C++-Simulator altogether, you can define the ``PROJECTQ_DISABLE_CEXT`` environment variable to avoid any compilation steps.
 
 .. note::
     If building the C++-Simulator does not work out of the box, consider specifying a different compiler. For example:

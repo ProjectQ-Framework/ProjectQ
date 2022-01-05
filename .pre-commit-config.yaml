@@ -23,7 +23,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -44,13 +44,13 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.9.1
+    rev: 5.10.1
     hooks:
       - id: isort
         name: isort (python)
 
   - repo: https://github.com/psf/black
-    rev: 21.5b1
+    rev: 21.12b0
     hooks:
       - id: black
         language_version: python3
@@ -58,7 +58,7 @@ repos:
         stages: [manual]
 
   - repo: https://gitlab.com/PyCQA/flake8
-    rev: 3.9.2
+    rev: 4.0.1
     hooks:
       - id: flake8
         name: flake8-strict
@@ -82,7 +82,7 @@ repos:
         additional_dependencies: [pybind11>=2.6, numpy, requests, boto3, matplotlib, networkx, sympy]
 
   - repo: https://github.com/mgedmin/check-manifest
-    rev: '0.46'
+    rev: '0.47'
     hooks:
       - id: check-manifest
         additional_dependencies: ['setuptools-scm', 'pybind11>=2.6']

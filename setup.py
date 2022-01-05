@@ -98,33 +98,43 @@ def status_msgs(*msgs):
 
 
 def compiler_test(
-    compiler, flagname=None, link=False, include='', body='', postargs=None
-):  # pylint: disable=too-many-arguments
+    compiler,
+    flagname=None,
+    link_executable=False,
+    link_shared_lib=False,
+    include='',
+    body='',
+    compile_postargs=None,
+    link_postargs=None,
+):  # pylint: disable=too-many-arguments,too-many-branches
     """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
     with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
         temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
         fname = temp.name
-    ret = True
 
-    if postargs is None:
-        postargs = [flagname] if flagname is not None else None
+    if compile_postargs is None:
+        compile_postargs = [flagname] if flagname is not None else None
     elif flagname is not None:
-        postargs.append(flagname)
+        compile_postargs.append(flagname)
 
     try:
-        exec_name = os.path.join(tempfile.mkdtemp(), 'test')
-
         if compiler.compiler_type == 'msvc':
             olderr = os.dup(sys.stderr.fileno())
             err = open('err.txt', 'w')  # pylint: disable=consider-using-with
             os.dup2(err.fileno(), sys.stderr.fileno())
 
-        obj_file = compiler.compile([fname], extra_postargs=postargs)
+        obj_file = compiler.compile([fname], extra_postargs=compile_postargs)
         if not os.path.exists(obj_file[0]):
             raise RuntimeError('')
-        if link:
-            compiler.link_executable(obj_file, exec_name, extra_postargs=postargs)
+        if link_executable:
+            compiler.link_executable(obj_file, os.path.join(tempfile.mkdtemp(), 'test'), extra_postargs=link_postargs)
+        elif link_shared_lib:
+            if sys.platform == 'win32':
+                lib_name = os.path.join(tempfile.mkdtemp(), 'test.dll')
+            else:
+                lib_name = os.path.join(tempfile.mkdtemp(), 'test.so')
+            compiler.link_shared_lib(obj_file, lib_name, extra_postargs=link_postargs)
 
         if compiler.compiler_type == 'msvc':
             err.close()
@@ -133,9 +143,11 @@ def compiler_test(
                 if err_file.readlines():
                     raise RuntimeError('')
     except (CompileError, LinkError, RuntimeError):
-        ret = False
-    os.unlink(fname)
-    return ret
+        return False
+    else:
+        return True
+    finally:
+        os.unlink(fname)
 
 
 def _fix_macosx_header_paths(*args):
@@ -362,13 +374,13 @@ class BuildExt(build_ext):
             return
 
         kwargs = {
-            'link': True,
+            'link_shared_lib': True,
             'include': '#include <omp.h>',
             'body': 'int a = omp_get_num_threads(); ++a;',
         }
 
         for flag in ['-openmp', '-fopenmp', '-qopenmp', '/Qopenmp']:
-            if compiler_test(self.compiler, flag, **kwargs):
+            if compiler_test(self.compiler, flag, link_postargs=[flag], **kwargs):
                 self.opts.append(flag)
                 self.link_opts.append(flag)
                 return
@@ -383,7 +395,7 @@ class BuildExt(build_ext):
                 # from HomeBrew
                 if llvm_root in compiler_root:
                     l_arg = '-L{}/lib'.format(llvm_root)
-                    if compiler_test(self.compiler, flag, postargs=[l_arg], **kwargs):
+                    if compiler_test(self.compiler, flag, link_postargs=[l_arg, flag], **kwargs):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
                         return
@@ -404,7 +416,7 @@ class BuildExt(build_ext):
                     c_arg = '-I' + inc_dir
                     l_arg = '-L' + lib_dir
 
-                    if compiler_test(self.compiler, flag, postargs=[c_arg, l_arg], **kwargs):
+                    if compiler_test(self.compiler, flag, compile_postargs=[c_arg], link_postargs=[l_arg], **kwargs):
                         self.compiler.add_include_dir(inc_dir)
                         self.compiler.add_library_dir(lib_dir)
                         return
@@ -414,17 +426,21 @@ class BuildExt(build_ext):
         important_msgs('WARNING: compiler does not support OpenMP!')
 
     def _configure_intrinsics(self):
-        for flag in [
+        flags = [
             '-march=native',
             '-mavx2',
             '/arch:AVX2',
             '/arch:CORE-AVX2',
             '/arch:AVX',
-        ]:
+        ]
+
+        if os.environ.get('PROJECTQ_DISABLE_ARCH_NATIVE'):
+            flags = flags[1:]
+
+        for flag in flags:
             if compiler_test(
                 self.compiler,
                 flagname=flag,
-                link=False,
                 include='#include <immintrin.h>',
                 body='__m256d neg = _mm256_set1_pd(1.0); (void)neg;',
             ):
@@ -465,20 +481,40 @@ class BuildExt(build_ext):
         raise BuildFailed()
 
     def _cleanup_compiler_flags(self):
-        compiler = self.compiler.compiler[0]
-        compiler_so = self.compiler.compiler_so[0]
+        status_msgs('INFO: Performing compiler flags cleanup')
+        compiler_exe = self.compiler.compiler[0]
+        compiler_exe_so = self.compiler.compiler_so[0]
         linker_so = self.compiler.linker_so[0]
         compiler_flags = set(self.compiler.compiler[1:])
         compiler_so_flags = set(self.compiler.compiler_so[1:])
         linker_so_flags = set(self.compiler.linker_so[1:])
-        common_flags = compiler_flags & compiler_so_flags & linker_so_flags
 
-        self.compiler.compiler = [compiler] + list(compiler_flags - common_flags)
-        self.compiler.compiler_so = [compiler_so] + list(compiler_so_flags - common_flags)
-        self.compiler.linker_so = [linker_so] + list(linker_so_flags - common_flags)
+        all_common_flags = compiler_flags & compiler_so_flags & linker_so_flags
+        common_compiler_flags = (compiler_flags & compiler_so_flags) - all_common_flags
+
+        compiler_flags = compiler_flags - common_compiler_flags - all_common_flags
+        compiler_so_flags = compiler_so_flags - common_compiler_flags - all_common_flags
 
         flags = []
-        for flag in common_flags:
+        for flag in common_compiler_flags:
+            compiler = type(self.compiler)()
+            compiler.set_executables(compiler=compiler_exe, compiler_so=compiler_exe_so, linker_so=linker_so)
+
+            compiler.debug_print(f'INFO: trying out {flag}')
+            if compiler_test(compiler, flag, link_shared_lib=True, compile_postargs=['-fPIC']):
+                flags.append(flag)
+            else:
+                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+
+        self.compiler.compiler = [compiler_exe] + list(compiler_flags)
+        self.compiler.compiler_so = [compiler_exe_so] + list(compiler_so_flags)
+        self.compiler.linker_so = [linker_so] + list(linker_so_flags - all_common_flags)
+
+        self.compiler.compiler.extend(flags)
+        self.compiler.compiler_so.extend(flags)
+
+        flags = []
+        for flag in all_common_flags:
             if compiler_test(self.compiler, flag):
                 flags.append(flag)
             else:
@@ -555,7 +591,7 @@ class GenerateRequirementFile(Command):
 
     def finalize_options(self):
         """Finalize this command's options."""
-        include_extras = self.include_extras.split(',')
+        include_extras = self.include_extras.split(',') if self.include_extras else []
 
         try:
             for name, pkgs in self.distribution.extras_require.items():
@@ -630,10 +666,10 @@ if not cpython:
         'WARNING: C/C++ extensions are not supported on some features are disabled (e.g. C++ simulator).',
         'Plain-Python build succeeded.',
     )
-elif os.environ.get('DISABLE_PROJECTQ_CEXT'):
+elif os.environ.get('PROJECTQ_DISABLE_CEXT'):
     run_setup(False)
     important_msgs(
-        'DISABLE_PROJECTQ_CEXT is set; not attempting to build C/C++ extensions.',
+        'PROJECTQ_DISABLE_CEXT is set; not attempting to build C/C++ extensions.',
         'Plain-Python build succeeded.',
     )
 
@@ -641,6 +677,9 @@ else:
     try:
         run_setup(True)
     except BuildFailed as exc:
+        if os.environ.get('PROJECTQ_CI_BUILD'):
+            raise exc
+
         important_msgs(
             exc.cause,
             'WARNING: Some C/C++ extensions could not be compiled, '
