@@ -120,7 +120,7 @@ archs = ['auto64']
 build-frontend = 'build'
 build-verbosity = 1
 skip = 'pp* *-musllinux*'
-environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1' }
+environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1', OMP_NUM_THREADS='1' }
 
 before-test = [
     'cd {package}',
@@ -128,7 +128,7 @@ before-test = [
     'python -m pip install -r requirements.txt --only-binary :all:',
 ]
 
-test-command = 'python3 {package}/examples/grover.py'
+test-command = 'python {package}/examples/grover.py'
 
 # Normal options, etc.
 manylinux-x86_64-image = 'manylinux2014'
