@@ -153,7 +153,7 @@ jobs:
       - name: Prepare Python env
         run: |
           python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
           cat requirements.txt
           python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -204,7 +204,7 @@ jobs:
       - name: Prepare Python env
         run: |
           python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
           cat requirements.txt
           python3 -m pip install -r requirements.txt --prefer-binary
 
