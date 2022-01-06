@@ -8,13 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+-   Added environment variable to avoid -march=native when building ProjectQ
+-   Added environment variable to force build failure if extensions do not compile on CI
+
 ### Changed
 ### Deprecated
 ### Fixed
+
+-   Fix compiler flags cleanup function for use on CI
+-   Fix workflow YAML to allow execution of GitHub Actions locally using `act`
+-   GitHub action using deprecated and vulnerable `pre-commit` version
+-   Fixed issue with `gen_reqfile` command if `--include-extras` is not provided
+
 ### Removed
 ### Repository
 
--   Update `thomaseizinger/create-pull-request` GiHub action to v1.3.0
+-   Add configuration for CIBuildWheel in `pyproject.toml`
+-   Update `dangoslen/changelog-enforcer` GitHub action to v3
+-   Update `thomaseizinger/keep-a-changelog-new-release` GiHub action to v1.3.0
+-   Update `thomaseizinger/create-pull-request` GiHub action to v1.2.2
+-   Update pre-commit hook `pre-commit/pre-commit-hooks` to v4.1.0
+-   Update pre-commit hook `PyCQA/isort` to v5.10.1
+-   Update pre-commit hook `psf/black` to v21.12b0
+-   Update pre-commit hook `PyCQA/flake8` to v4.0.1
+-   Update pre-commit hook `mgedmin/check-manifest` to v0.47
 
 ## [0.7.0] - 2021-07-14
 

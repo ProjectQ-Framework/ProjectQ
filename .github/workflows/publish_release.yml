@@ -31,6 +31,7 @@ jobs:
           ref: 'master'
 
       - name: Get history and tags for SCM versioning to work
+        if: ${{ !env.ACT }}
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -69,19 +70,24 @@ jobs:
 
       # ========================================================================
 
-      - name: Build source distribution
+      - uses: actions/setup-python@v2
+
+      - name: Install Python packages
+        run: python3 -m pip install -U pip setuptools build wheel
+
+      - name: Build source distribution (Linux)
         if: runner.os == 'Linux'
-        run: python3 setup.py sdist -d wheelhouse
+        run: python3 -m build --sdist
 
       - name: Check metadata
         run: |
           python3 -m pip install twine --prefer-binary
-          python3 -m twine check wheelhouse/*
+          python3 -m twine check dist/*
 
       - uses: actions/upload-artifact@v2
         with:
-          name: packages
-          path: ./wheelhouse/*
+          name: pypy_wheels
+          path: ./dist/*
 
 
   release:
@@ -134,8 +140,10 @@ jobs:
           ref: 'master'
 
       # ------------------------------------------------------------------------
-      # Downloads all to directories matching the artifact names
+
       - uses: actions/download-artifact@v2
+        with:
+          name: pypy_wheels
 
       # Code below inspired from this action:
       # - uses: taiki-e/create-gh-release-action@v1
@@ -160,7 +168,7 @@ jobs:
           if [[ "${tag}" =~ ^v?[0-9\.]+-[a-zA-Z_0-9\.-]+(\+[a-zA-Z_0-9\.-]+)?$ ]]; then
             prerelease="--prerelease"
           fi
-          gh release create "v${RELEASE_VERSION}" ${prerelease:-} --title "ProjectQ v${RELEASE_VERSION}" --notes "${notes:-}" packages/*
+          gh release create "v${RELEASE_VERSION}" ${prerelease:-} --title "ProjectQ v${RELEASE_VERSION}" --notes "${notes:-}" pypy_wheels/*
 
 
   upload_to_pypi:
@@ -170,15 +178,16 @@ jobs:
     steps:
     - uses: actions/setup-python@v2
 
-    # Downloads all to directories matching the artifact names
     - uses: actions/download-artifact@v2
+      with:
+        name: pypy_wheels
 
     - name: Publish standard package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
-        packages_dir: packages/
+        packages_dir: pypy_wheels/
 
   master_to_develop_pr:
     name: Merge master back into develop
@@ -188,7 +197,7 @@ jobs:
       - upload_to_pypi
     steps:
       - name: Merge master into develop branch
-        uses: thomaseizinger/create-pull-request@1.2.1
+        uses: thomaseizinger/create-pull-request@1.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
