@@ -168,9 +168,9 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/0.7.1...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...HEAD
 
-[0.7.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...0.7.1
+[0.7.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...v0.7.1
 
 [0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.6.1...v0.7.0
 
