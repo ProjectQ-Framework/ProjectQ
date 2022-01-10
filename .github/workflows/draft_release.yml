@@ -3,10 +3,9 @@ name: "Draft new release"
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release'
+      tag:
+        description: 'Tag to prepare (format: vXX.YY.ZZ)'
         required: true
-
 jobs:
   new-release:
     name: "Draft a new release"
@@ -23,12 +22,12 @@ jobs:
         git flow init --default --tag v
 
     - name: Create release branch
-      run: git flow release start ${{ github.event.inputs.version }}
+      run: git flow release start ${{ github.event.inputs.tag }}
 
     - name: Update changelog
-      uses: thomaseizinger/keep-a-changelog-new-release@1.2.1
+      uses: thomaseizinger/keep-a-changelog-new-release@1.3.0
       with:
-        version: ${{ github.event.inputs.version }}
+        version: ${{ github.event.inputs.tag }}
 
     - name: Initialize mandatory git config
       run: |
@@ -39,21 +38,21 @@ jobs:
       id: make-commit
       run: |
         git add CHANGELOG.md
-        git commit --message "Preparing release v${{ github.event.inputs.version }}"
+        git commit --message "Preparing release v${{ github.event.inputs.tag }}"
 
         echo "::set-output name=commit::$(git rev-parse HEAD)"
 
     - name: Push new branch
-      run: git flow release publish ${{ github.event.inputs.version }}
+      run: git flow release publish ${{ github.event.inputs.tag }}
 
     - name: Create pull request
-      uses: thomaseizinger/create-pull-request@1.1.0
+      uses: thomaseizinger/create-pull-request@1.2.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        head: release/${{ github.event.inputs.version }}
+        head: release/${{ github.event.inputs.tag }}
         base: master
-        title: Release version ${{ github.event.inputs.version }}
+        title: Release version ${{ github.event.inputs.tag }}
         reviewers: ${{ github.actor }}
         # Write a nice message to the user.
         # We are claiming things here based on the `publish-new-release.yml` workflow.

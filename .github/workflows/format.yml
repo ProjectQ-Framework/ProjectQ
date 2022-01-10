@@ -16,14 +16,26 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Get history and tags for SCM versioning to work
+      if: ${{ !env.ACT }}
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - uses: actions/setup-python@v2
-    - uses: pre-commit/action@v2.0.3
+
+    - name: Install pre-commit
+      run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
+
+    - name: Cache pre-commit hooks
+      uses: actions/cache@v2
       with:
-        # Slow hooks are marked with manual - slow is okay here, run them too
-        extra_args: --hook-stage manual --all-files
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
+        restore-keys: pre-commit-
+
+    - name: Run pre-commit
+      run: |
+          # Slow hooks are marked with manual - slow is okay here, run them too
+          pre-commit run --hook-stage manual --all-files
 
   clang-tidy:
     name: Clang-Tidy
