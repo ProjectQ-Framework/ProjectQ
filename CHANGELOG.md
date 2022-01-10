@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Add configuration for CIBuildWheel in `pyproject.toml`
+-   Remove use of deprecated images `windows-2016` in GitHub workflows
 -   Re-add build of Python binary wheels in release publishing GitHub workflow
 -   Update `dangoslen/changelog-enforcer` GitHub action to v3
 -   Update `thomaseizinger/keep-a-changelog-new-release` GiHub action to v1.3.0
