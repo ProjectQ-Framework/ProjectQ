@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2022-01-10
+
 ### Added
 
 -   Added environment variable to avoid -march=native when building ProjectQ
 -   Added environment variable to force build failure if extensions do not compile on CI
 
 ### Changed
+
 ### Deprecated
+
 ### Fixed
 
 -   Fix compiler flags cleanup function for use on CI
@@ -22,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed issue with `gen_reqfile` command if `--include-extras` is not provided
 
 ### Removed
+
 ### Repository
 
 -   Add configuration for CIBuildWheel in `pyproject.toml`
@@ -63,11 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Added `isort` to the list of pre-commit hooks
 -   Added some more flake8 plugins to the list used by `pre-commit`:
-    + flake8-breakpoint
-    + flake8-comprehensions
-    + flake8-docstrings
-    + flake8-eradicate
-    + flake8-mutable
+    -   flake8-breakpoint
+    -   flake8-comprehensions
+    -   flake8-docstrings
+    -   flake8-eradicate
+    -   flake8-mutable
 
 ## [0.6.1] - 2021-06-23
 
@@ -163,7 +168,9 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...HEAD
+
+[0.7.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...v0.7.1
 
 [0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.6.1...v0.7.0
 
