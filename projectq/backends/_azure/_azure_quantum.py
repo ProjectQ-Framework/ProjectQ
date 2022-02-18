@@ -15,7 +15,8 @@
 
 """Back-end to run quantum programs using Azure Quantum."""
 
-import random
+import math
+import numpy as np
 
 from projectq.types import WeakQubitRef
 from projectq.cengines import BasicEngine
@@ -26,7 +27,9 @@ from projectq.ops import (
     DaggeredGate,
     Deallocate,
     FlushGate,
+    H,
     HGate,
+    NOT,
     Measure,
     R,
     Rx,
@@ -46,13 +49,14 @@ from projectq.ops import (
     ZGate,
 )
 
-from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
-
 from ._azure_quantum_client import send, retrieve
-from ._exceptions import InvalidAzureQuantumProvider
+
+from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 
 try:
     from azure.quantum import Workspace
+    from azure.quantum.target import Target, IonQ, Honeywell
+    from azure.quantum.target.target_factory import TargetFactory
 except ImportError:  # pragma: no cover
     raise ImportError(
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
@@ -74,6 +78,7 @@ GATE_MAP = {
     Rzz: 'zz',
     SwapGate: 'swap',
 }
+
 SUPPORTED_GATES = tuple(GATE_MAP.keys())
 
 
@@ -94,14 +99,19 @@ def _rearrange_result(input_result, length):
 class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """Backend for building circuits and submitting them to the Azure Quantum."""
 
+    DEFAULT_TARGETS = {
+        "ionq": IonQ,
+        "honeywell": Honeywell
+    }
+
     def __init__(
         self,
         use_hardware=False,
         num_runs=100,
         verbose=False,
-        provider='ionq',
+        workspace=None,
         target_name='ionq.simulator',
-        num_retries=3000,
+        num_retries=100,
         interval=1,
         retrieve_execution=None,
         **kwargs
@@ -110,72 +120,53 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Initialize an Azure Quantum Backend object.
 
         Args:
-            use_hardware (bool, optional): Whether or not to use real hardware or just a simulator. If False, the
-                ```ionq.simulator``` is used regardless of the value of ```device``. Defaults to False.
+            use_hardware (bool, optional): Whether or not to use real hardware or just a simulator. If False,
+            regardless of the value of ```device```, ```ionq.simulator``` used for ionq provider and
+                ```honeywell.hqs-lt-s1-apival``` used for honeywell backend. Defaults to False.
             num_runs (int, optional): Number of times to run circuits. Defaults to 100.
             verbose (bool, optional): If True, print statistics after job results have been collected. Defaults to
                 False.
-            provider (str, optional): Provider to run jobs on. Defaults to ```ionq```.
+            workspace (Workspace, optional): Azure Quantum workspace. If workspace is None, kwargs will be used to
+                create Workspace object.
             target_name (str, optional): Target to run jobs on. Defaults to ```ionq.simulator```.
             num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
-                to 3000.
+                to 100.
             interval (int, optional): Number of seconds to wait inbetween result fetch retries. Defaults to 1.
             retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
                 fetched. Defaults to None.
         """
         super().__init__()
-        self.provider = provider
-        if use_hardware:
-            self.target_name = target_name
+
+        if target_name in IonQ.target_names:
+            self._provider_id = 'ionq'
+        elif target_name in Honeywell.target_names:
+            self._provider_id = 'honeywell'
         else:
-            if provider == 'ionq':
-                self.target_name = 'ionq.simulator'
-            elif provider == 'honeywell':
-                self.target_name = 'honeywell.hqs-lt-s1-apival'
-            else:
-                raise InvalidAzureQuantumProvider()
+            raise ValueError('Invalid target_name {0}.'.format(target_name))
+
+        if use_hardware:
+            self._target_name = target_name
+        else:
+            if self._provider_id == 'ionq':
+                self._target_name = 'ionq.simulator'
+            elif self._provider_id == 'honeywell':
+                self._target_name = 'honeywell.hqs-lt-s1-apival'
+
+        if workspace is None:
+            workspace = Workspace(**kwargs)
+
+        workspace.append_user_agent('projectq')
+        self._workspace = workspace
+
         self._num_runs = num_runs
         self._verbose = verbose
         self._num_retries = num_retries
         self._interval = interval
         self._retrieve_execution = retrieve_execution
-        self._workspace = Workspace(**kwargs)
         self._circuit = []
         self._measured_ids = []
         self._probabilities = {}
         self._clear = True
-
-    def is_available(self, cmd):
-        """
-        Test if this backend is available to process the provided command.
-
-        Args:
-            cmd (Command): A command to process.
-
-        Returns:
-            bool: If this backend can process the command.
-        """
-        gate = cmd.gate
-
-        # Metagates.
-        if gate in (Measure, Allocate, Deallocate, Barrier):
-            return True
-
-        if has_negative_control(cmd):
-            return False
-
-        # CNOT gates.
-        # NOTE: IonQ supports up to 7 control qubits
-        num_ctrl_qubits = get_control_count(cmd)
-        if 0 < num_ctrl_qubits <= 7:
-            return isinstance(gate, (XGate,))
-
-        # Gates witout control bits.
-        if num_ctrl_qubits == 0:
-            supported = isinstance(gate, SUPPORTED_GATES)
-            supported_transpose = gate in (Sdag, Tdag)
-            return supported or supported_transpose
-        return False
 
     def _reset(self):
         """
@@ -188,7 +179,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._circuit = []
         self._clear = True
 
-    def _store(self, cmd):
+    def _store_ionq_json(self, cmd):
         """Interpret the ProjectQ command as a circuit instruction and store it.
 
         Args:
@@ -268,6 +259,155 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         self._circuit.append(gate_dict)
 
+    def _store_qasm(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
+        """
+        Temporarily store the command cmd.
+
+        Translates the command and stores it in a local variable (self._cmds).
+
+        Args:
+            cmd: Command to store
+        """
+        if self.main_engine.mapper is None:
+            raise RuntimeError('No mapper is present in the compiler engine list!')
+
+        if self._clear:
+            self._probabilities = {}
+            self._clear = False
+            self.qasm = ""
+            self._json = []
+            self._allocated_qubits = set()
+
+        gate = cmd.gate
+        if gate == Allocate:
+            self._allocated_qubits.add(cmd.qubits[0][0].id)
+            return
+
+        if gate == Deallocate:
+            return
+
+        if gate == Measure:
+            logical_id = None
+            for tag in cmd.tags:
+                if isinstance(tag, LogicalQubitIDTag):
+                    logical_id = tag.logical_qubit_id
+                    break
+            if logical_id is None:
+                raise RuntimeError('No LogicalQubitIDTag found in command!')
+            self._measured_ids += [logical_id]
+        elif gate == NOT and get_control_count(cmd) == 1:
+            ctrl_pos = cmd.control_qubits[0].id
+            qb_pos = cmd.qubits[0][0].id
+            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+            self._json.append({'qubits': [ctrl_pos, qb_pos], 'name': 'cx'})
+        elif gate == Barrier:
+            qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
+            self.qasm += "\nbarrier "
+            qb_str = ""
+            for pos in qb_pos:
+                qb_str += "q[{}], ".format(pos)
+            self.qasm += qb_str[:-2] + ";"
+            self._json.append({'qubits': qb_pos, 'name': 'barrier'})
+        elif isinstance(gate, (Rx, Ry, Rz)):
+            qb_pos = cmd.qubits[0][0].id
+            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
+            u_name = {'Rx': 'u3', 'Ry': 'u3', 'Rz': 'u1'}
+            u_angle = {
+                'Rx': [gate.angle, -math.pi / 2, math.pi / 2],
+                'Ry': [gate.angle, 0, 0],
+                'Rz': [gate.angle],
+            }
+            gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
+            gate_name = u_name[str(gate)[0:2]]
+            params = u_angle[str(gate)[0:2]]
+            self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
+            self._json.append({'qubits': [qb_pos], 'name': gate_name, 'params': params})
+        elif gate == H:
+            qb_pos = cmd.qubits[0][0].id
+            self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
+            self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
+        else:
+            raise InvalidCommandError(
+                'Command not authorized. You should run the circuit with the appropriate ibm setup.'
+            )
+
+    def _store(self, cmd):
+        if self._provider_id == 'ionq':
+            self._store_ionq_json(cmd)
+        elif self._provider_id == 'honeywell':
+            self._store_qasm(cmd)
+
+    def is_available(self, cmd):
+        """
+        Test if this backend is available to process the provided command.
+
+        Args:
+            cmd (Command): A command to process.
+
+        Returns:
+            bool: If this backend can process the command.
+        """
+        gate = cmd.gate
+
+        # Metagates.
+        if gate in (Measure, Allocate, Deallocate, Barrier):
+            return True
+
+        if has_negative_control(cmd):
+            return False
+
+        # CNOT gates.
+        # NOTE: IonQ supports up to 7 control qubits
+        num_ctrl_qubits = get_control_count(cmd)
+        if 0 < num_ctrl_qubits <= 7:
+            return isinstance(gate, (XGate,))
+
+        # Gates witout control bits.
+        if num_ctrl_qubits == 0:
+            supported = isinstance(gate, SUPPORTED_GATES)
+            supported_transpose = gate in (Sdag, Tdag)
+            return supported or supported_transpose
+        return False
+
+    @property
+    def _target_factory(self):
+        target_factory = TargetFactory(
+            base_cls=Target,
+            workspace=self._workspace,
+            default_targets=AzureQuantumBackend.DEFAULT_TARGETS
+        )
+
+        return target_factory
+
+    @property
+    def _target(self):
+        return self._target_factory.get_targets(
+            name=self._target_name,
+            provider_id=self._provider_id
+        )
+
+    @property
+    def current_availability(self):
+        """Current availability for given provider."""
+        return self._target.current_availability
+
+    @property
+    def average_queue_time(self):
+        """Average queue time for given target."""
+        return self._target.average_queue_time
+
+    def estimate_cost(self):
+        """Estimate cost for the circuit this object has built during engine execution."""
+        input_data = {
+            'qubits': len(self._measured_ids),
+            'circuit': self._circuit
+        }
+
+        return self._target.estimate_cost(
+            circuit=input_data,
+            num_shots=self._num_runs
+        )
+
     def get_probability(self, state, qureg):
         """Shortcut to get a specific state's probability.
 
@@ -321,65 +461,55 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             return
 
         if self._retrieve_execution is None:
+            num_qubits = len(self._measured_ids)
             qubit_mapping = self.main_engine.mapper.current_mapping
-            measured_ids = self._measured_ids[:]
-            info = {
-                'circuit': self._circuit,
-                'nq': len(qubit_mapping.keys()),
-                'num_shots': self._num_runs,
-                'meas_mapped': [qubit_mapping[qubit_id] for qubit_id in measured_ids],
-                'meas_qubit_ids': measured_ids,
+            meas_map = [qubit_mapping[qubit_id] for qubit_id in self._measured_ids]
+
+            input_data = {
+                'qubits': len(self._measured_ids),
+                'circuit': self._circuit
             }
+
+            metadata = {
+                'num_qubits': num_qubits,
+                'meas_map': meas_map
+            }
+
             res = send(
-                info,
-                workspace=self._workspace,
-                provider=self.provider,
-                target_name=self.target_name,
+                input_data=input_data,
+                metadata=metadata,
+                num_shots=self._num_runs,
+                target=self._target,
+                provider=self._provider_id,
                 num_retries=self._num_retries,
                 interval=self._interval,
-                verbose=self._verbose,
+                verbose=self._verbose
             )
+
             if res is None:
-                raise RuntimeError('Failed to submit job to the server!')
+                raise RuntimeError('Failed to submit job to the Azure Quantum!')
         else:
             res = retrieve(
-                workspace=self._workspace,
-                provider=self.provider,
-                target_name=self.target_name,
+                target=self._target,
                 job_id=self._retrieve_execution,
                 num_retries=self._num_retries,
                 interval=self._interval,
-                verbose=self._verbose,
+                verbose=self._verbose
             )
             if res is None:
-                raise RuntimeError("Failed to retrieve job with id: '{}'!".format(self._retrieve_execution))
-            self._measured_ids = measured_ids = res['meas_qubit_ids']
+                raise RuntimeError(
+                    "Failed to retrieve job from Azure Quantum with id: '{}'!".format(self._retrieve_execution)
+                )
 
-        # Determine random outcome from probable states.
-        random_outcome = random.random()
-        p_sum = 0.0
-        measured = ""
-        star = ""
-        num_measured = len(measured_ids)
-        probable_outcomes = res['output_probs']
-        states = probable_outcomes.keys()
-        self._probabilities = {}
-        for idx, state_int in enumerate(states):
-            state = _rearrange_result(int(state_int), num_measured)
-            probability = probable_outcomes[state_int]
-            p_sum += probability
-            if p_sum >= random_outcome and measured == "" or (idx == len(states) - 1):
-                measured = state
-                star = "*"
-            self._probabilities[state] = probability
-            if self._verbose and probability > 0:  # pragma: no cover
-                print(state + " with p = " + str(probability) + star)
+        self._probabilities = {
+            _rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
+        }
 
-        # Register measurement results
-        for idx, qubit_id in enumerate(measured_ids):
-            result = int(measured[idx])
-            qubit_ref = WeakQubitRef(self.main_engine, qubit_id)
-            self.main_engine.set_measurement_result(qubit_ref, result)
+        # Set a single measurement result
+        bitstring = np.random.choice(list(self._probabilities.keys()), p=list(self._probabilities.values()))
+        for qid in self._measured_ids:
+            qubit_ref = WeakQubitRef(self.main_engine, qid)
+            self.main_engine.set_measurement_result(qubit_ref, bitstring[qid])
 
     def receive(self, command_list):
         """Receive a command list from the ProjectQ engine pipeline.

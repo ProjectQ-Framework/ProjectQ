@@ -13,12 +13,28 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Exception classes for projectq.backends._azure."""
+
+# Todo:
+
+def test_use_hardware():
+    assert True
 
 
-class InvalidAzureQuantumProvider(Exception):
-    """Raised when Azure Quantum provider is invalid."""
+def test_target():
+    assert True
 
 
-class InvalidAzureQuantumTarget(Exception):
-    """Raised when Azure Quantum target is invalid."""
+def test_current_availability():
+    assert True
+
+
+def test_average_queue_time():
+    assert True
+
+
+def test_estimate_cost():
+    assert True
+
+
+def test_run():
+    assert True
