@@ -50,6 +50,7 @@ from projectq.ops import (
 )
 
 from ._azure_quantum_client import send, retrieve
+from ._exceptions import AzureQuantumTargetNotFoundError
 
 from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 
@@ -141,8 +142,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             self._provider_id = 'ionq'
         elif target_name in Honeywell.target_names:
             self._provider_id = 'honeywell'
-        else:
-            raise ValueError('Invalid target_name {0}.'.format(target_name))
+        else:  # pragma: no cover
+            raise AzureQuantumTargetNotFoundError('Target {0} does not exit.'.format(target_name))
 
         if use_hardware:
             self._target_name = target_name
@@ -167,6 +168,9 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._measured_ids = []
         self._probabilities = {}
         self._clear = True
+        self._allocated_qubits = set()
+        self.qasm = ""
+        self._json = []
 
     def _reset(self):
         """
@@ -332,10 +336,12 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             )
 
     def _store(self, cmd):
-        if self._provider_id == 'ionq':
-            self._store_ionq_json(cmd)
-        elif self._provider_id == 'honeywell':
-            self._store_qasm(cmd)
+        self._store_ionq_json(cmd)
+        self._store_qasm(cmd)
+        # if self._provider_id == 'ionq':
+        #     self._store_ionq_json(cmd)
+        # elif self._provider_id == 'honeywell':
+        #     self._store_qasm(cmd)
 
     def is_available(self, cmd):
         """
@@ -381,10 +387,18 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
     @property
     def _target(self):
-        return self._target_factory.get_targets(
+        target = self._target_factory.get_targets(
             name=self._target_name,
             provider_id=self._provider_id
         )
+
+        if type(target) is list and len(target) == 0:  # pragma: no cover
+            raise AzureQuantumTargetNotFoundError(
+                'Target {} is not available on workspace {}.'.format(
+                    self._target_name, self._workspace.name)
+            )
+
+        return target
 
     @property
     def current_availability(self):
@@ -454,6 +468,35 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             probability_dict[mapped_state] = probability_dict.get(mapped_state, 0) + probability
         return probability_dict
 
+    @property
+    def _input_data(self):
+        qubit_mapping = self.main_engine.mapper.current_mapping
+        qubits = len(qubit_mapping.keys())
+
+        if self._provider_id == 'ionq':
+            return {
+                "qubits": qubits,
+                "circuit": self._circuit,
+            }
+        elif self._provider_id == 'honeywell':
+            for measured_id in self._measured_ids:
+                qb_loc = self.main_engine.mapper.current_mapping[measured_id]
+                self.qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
+
+            self.qasm = self.qasm.replace("u2(0,pi/2)", "h")
+            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self.qasm}\n"
+
+    @property
+    def _metadata(self):
+        qubit_mapping = self.main_engine.mapper.current_mapping
+        num_qubits = len(qubit_mapping.keys())
+        meas_map = [qubit_mapping[qubit_id] for qubit_id in self._measured_ids]
+
+        return {
+            "num_qubits": num_qubits,
+            "meas_map": meas_map
+        }
+
     def _run(self):  # pylint: disable=too-many-locals
         """Run the circuit this object has built during engine execution."""
         # Nothing to do with an empty circuit.
@@ -461,23 +504,9 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             return
 
         if self._retrieve_execution is None:
-            num_qubits = len(self._measured_ids)
-            qubit_mapping = self.main_engine.mapper.current_mapping
-            meas_map = [qubit_mapping[qubit_id] for qubit_id in self._measured_ids]
-
-            input_data = {
-                'qubits': len(self._measured_ids),
-                'circuit': self._circuit
-            }
-
-            metadata = {
-                'num_qubits': num_qubits,
-                'meas_map': meas_map
-            }
-
             res = send(
-                input_data=input_data,
-                metadata=metadata,
+                input_data=self._input_data,
+                metadata=self._metadata,
                 num_shots=self._num_runs,
                 target=self._target,
                 provider=self._provider_id,
