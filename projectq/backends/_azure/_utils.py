@@ -115,7 +115,7 @@ def _is_available_honeywell(cmd):
 
     # TODO: NEEDED CONFORMATION- How many control qubits Honeywell supports?
     if 0 < num_ctrl_qubits <= 2:
-        return isinstance(gate, (XGate, ZGate))  # TODO: NEEDED CONFORMATION- Any count difference CX and CZ?
+        return isinstance(gate, (XGate, ZGate))  # TODO: NEEDED CONFORMATION- Any control count difference CX and CZ?
 
     # Gates without control bits.
     if num_ctrl_qubits == 0:
@@ -146,7 +146,7 @@ def convert_cmd_to_ionq_format(cmd):
 
     # No-op/Meta gates.
     if isinstance(gate, BarrierGate):
-        return
+        return  # TODO: Handle return type `None`
 
     # Process the Command's gate type
     gate_type = type(gate)
