@@ -15,7 +15,6 @@
 
 """Back-end to run quantum programs using Azure Quantum."""
 
-import math
 import numpy as np
 
 from projectq.types import WeakQubitRef
@@ -49,10 +48,10 @@ from projectq.ops import (
     ZGate,
 )
 
+from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
+
 from ._azure_quantum_client import send, retrieve
 from ._exceptions import AzureQuantumTargetNotFoundError
-
-from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 
 try:
     from azure.quantum import Workspace
@@ -62,6 +61,9 @@ except ImportError:  # pragma: no cover
     raise ImportError(
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
     )
+
+IONQ_PROVIDER_ID = 'ionq'
+HONEYWELL_PROVIDER_ID = 'honeywell'
 
 GATE_MAP = {
     XGate: 'x',
@@ -101,8 +103,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
     """Backend for building circuits and submitting them to the Azure Quantum."""
 
     DEFAULT_TARGETS = {
-        "ionq": IonQ,
-        "honeywell": Honeywell
+        IONQ_PROVIDER_ID: IonQ,
+        HONEYWELL_PROVIDER_ID: Honeywell
     }
 
     def __init__(
@@ -139,18 +141,18 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         super().__init__()
 
         if target_name in IonQ.target_names:
-            self._provider_id = 'ionq'
+            self._provider_id = IONQ_PROVIDER_ID
         elif target_name in Honeywell.target_names:
-            self._provider_id = 'honeywell'
+            self._provider_id = HONEYWELL_PROVIDER_ID
         else:  # pragma: no cover
             raise AzureQuantumTargetNotFoundError('Target {0} does not exit.'.format(target_name))
 
         if use_hardware:
             self._target_name = target_name
         else:
-            if self._provider_id == 'ionq':
+            if self._provider_id == IONQ_PROVIDER_ID:
                 self._target_name = 'ionq.simulator'
-            elif self._provider_id == 'honeywell':
+            elif self._provider_id == HONEYWELL_PROVIDER_ID:
                 self._target_name = 'honeywell.hqs-lt-s1-apival'
 
         if workspace is None:
@@ -165,12 +167,11 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._interval = interval
         self._retrieve_execution = retrieve_execution
         self._circuit = []
+        self._qasm = ""
         self._measured_ids = []
         self._probabilities = {}
-        self._clear = True
         self._allocated_qubits = set()
-        self.qasm = ""
-        self._json = []
+        self._clear = True
 
     def _reset(self):
         """
@@ -278,8 +279,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         if self._clear:
             self._probabilities = {}
             self._clear = False
-            self.qasm = ""
-            self._json = []
+            self._qasm = ""
             self._allocated_qubits = set()
 
         gate = cmd.gate
@@ -302,46 +302,32 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
-            self._json.append({'qubits': [ctrl_pos, qb_pos], 'name': 'cx'})
+            self._qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
-            self.qasm += "\nbarrier "
+            self._qasm += "\nbarrier "
             qb_str = ""
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
-            self.qasm += qb_str[:-2] + ";"
-            self._json.append({'qubits': qb_pos, 'name': 'barrier'})
+            self._qasm += qb_str[:-2] + ";"
         elif isinstance(gate, (Rx, Ry, Rz)):
             qb_pos = cmd.qubits[0][0].id
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
-            u_name = {'Rx': 'u3', 'Ry': 'u3', 'Rz': 'u1'}
-            u_angle = {
-                'Rx': [gate.angle, -math.pi / 2, math.pi / 2],
-                'Ry': [gate.angle, 0, 0],
-                'Rz': [gate.angle],
-            }
             gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
-            gate_name = u_name[str(gate)[0:2]]
-            params = u_angle[str(gate)[0:2]]
-            self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
-            self._json.append({'qubits': [qb_pos], 'name': gate_name, 'params': params})
+            self._qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
         elif gate == H:
             qb_pos = cmd.qubits[0][0].id
-            self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
-            self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
+            self._qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
         else:
             raise InvalidCommandError(
                 'Command not authorized. You should run the circuit with the appropriate ibm setup.'
             )
 
     def _store(self, cmd):
-        self._store_ionq_json(cmd)
-        self._store_qasm(cmd)
-        # if self._provider_id == 'ionq':
-        #     self._store_ionq_json(cmd)
-        # elif self._provider_id == 'honeywell':
-        #     self._store_qasm(cmd)
+        if self._provider_id == IONQ_PROVIDER_ID:
+            self._store_ionq_json(cmd)
+        elif self._provider_id == HONEYWELL_PROVIDER_ID:
+            self._store_qasm(cmd)
 
     def is_available(self, cmd):
         """
@@ -378,7 +364,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
     @property
     def _target_factory(self):
         target_factory = TargetFactory(
-            base_cls=Target,
+            base_cls=Target,  # noqa
             workspace=self._workspace,
             default_targets=AzureQuantumBackend.DEFAULT_TARGETS
         )
@@ -402,25 +388,13 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
     @property
     def current_availability(self):
-        """Current availability for given provider."""
+        """Current availability for given target."""
         return self._target.current_availability
 
     @property
     def average_queue_time(self):
         """Average queue time for given target."""
         return self._target.average_queue_time
-
-    def estimate_cost(self):
-        """Estimate cost for the circuit this object has built during engine execution."""
-        input_data = {
-            'qubits': len(self._measured_ids),
-            'circuit': self._circuit
-        }
-
-        return self._target.estimate_cost(
-            circuit=input_data,
-            num_shots=self._num_runs
-        )
 
     def get_probability(self, state, qureg):
         """Shortcut to get a specific state's probability.
@@ -473,18 +447,18 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         qubit_mapping = self.main_engine.mapper.current_mapping
         qubits = len(qubit_mapping.keys())
 
-        if self._provider_id == 'ionq':
+        if self._provider_id == IONQ_PROVIDER_ID:
             return {
                 "qubits": qubits,
                 "circuit": self._circuit,
             }
-        elif self._provider_id == 'honeywell':
+        elif self._provider_id == HONEYWELL_PROVIDER_ID:
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-                self.qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
+                self._qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
 
-            self.qasm = self.qasm.replace("u2(0,pi/2)", "h")
-            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self.qasm}\n"
+            self._qasm = self._qasm.replace("u2(0,pi/2)", "h")
+            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._qasm}\n"
 
     @property
     def _metadata(self):
@@ -497,10 +471,19 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             "meas_map": meas_map
         }
 
+    def estimate_cost(self):
+        """Estimate cost for the circuit this object has built during engine execution."""
+        return self._target.estimate_cost(
+            circuit=self._input_data,  # noqa
+            num_shots=self._num_runs  # noqa
+        )  # noqa
+
     def _run(self):  # pylint: disable=too-many-locals
         """Run the circuit this object has built during engine execution."""
         # Nothing to do with an empty circuit.
-        if len(self._circuit) == 0:
+        if self._provider_id == IONQ_PROVIDER_ID and len(self._circuit) == 0:
+            return
+        elif self._provider_id == HONEYWELL_PROVIDER_ID and len(self._qasm) == 0:
             return
 
         if self._retrieve_execution is None:
@@ -509,7 +492,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 metadata=self._metadata,
                 num_shots=self._num_runs,
                 target=self._target,
-                provider=self._provider_id,
                 num_retries=self._num_retries,
                 interval=self._interval,
                 verbose=self._verbose
@@ -519,15 +501,15 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 raise RuntimeError('Failed to submit job to the Azure Quantum!')
         else:
             res = retrieve(
-                target=self._target,
                 job_id=self._retrieve_execution,
+                target=self._target,
                 num_retries=self._num_retries,
                 interval=self._interval,
                 verbose=self._verbose
             )
             if res is None:
                 raise RuntimeError(
-                    "Failed to retrieve job from Azure Quantum with id: '{}'!".format(self._retrieve_execution)
+                    "Failed to retrieve job from Azure Quantum with job id: '{}'!".format(self._retrieve_execution)
                 )
 
         self._probabilities = {

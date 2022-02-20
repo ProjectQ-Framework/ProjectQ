@@ -19,17 +19,17 @@ from .._exceptions import (
 )
 
 
-def get_results(
+def _get_results(
     job,
     num_retries=100,
     interval=1,
     verbose=False
 ):
     if verbose:  # pragma: no cover
-        print("Waiting for results. [Job ID: {}]".format(job.id))
+        print("- Waiting for results. [Job ID: {}]".format(job.id))
 
     try:
-        return job.get_results(timeout_secs=num_retries*interval)
+        return job.get_results(timeout_secs=num_retries * interval)
     except TimeoutError:
         raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(job.id))
 
@@ -46,8 +46,8 @@ def send(
     """Submit a job to the Azure Quantum.
 
     Args:
-        input_data (dict):
-        num_shots (list):
+        input_data (dict): Input data for Quantum job.
+        num_shots (list): Number of runs.
         target (Target), The target to run this on.
         num_retries (int, optional): Number of times to retry while the job is
             not finished. Defaults to 100.
@@ -61,7 +61,7 @@ def send(
             processing.
 
     Returns:
-        dict: An intermediate dict representation of an IonQ job result.
+        dict: An intermediate dict representation of an Azure Quantum job result.
     """
 
     if target.current_availability != 'Available':  # pragma: no cover
@@ -76,10 +76,7 @@ def send(
         **kwargs
     )
 
-    if verbose:  # pragma: no cover
-        print("- Waiting for results...")
-
-    res = get_results(
+    res = _get_results(
         job=job,
         num_retries=num_retries,
         interval=interval,
@@ -93,8 +90,8 @@ def send(
 
 
 def retrieve(
-    target,
     job_id,
+    target,
     num_retries=100,
     interval=1,
     verbose=False
@@ -102,8 +99,8 @@ def retrieve(
     """Retrieve a job from Azure Quantum.
 
     Args:
-        target (Target), The target to run this on.
-        job_id (str), Job Id of Azure Quantum job.
+        job_id (str), Azure Quantum job id.
+        target (Target), The target job runs on.
         num_retries (int, optional): Number of times to retry while the job is
             not finished. Defaults to 100.
         interval (int, optional): Sleep interval between retries, in seconds.
@@ -112,15 +109,12 @@ def retrieve(
             Defaults to False.
 
     Returns:
-        dict: An intermediate dict representation of an IonQ job result.
+        dict: An intermediate dict representation of an Azure Quantum job result.
     """
 
     job = target.workspace.get_job(job_id=job_id)
 
-    if verbose:  # pragma: no cover
-        print("- Waiting for results...")
-
-    res = get_results(
+    res = _get_results(
         job=job,
         num_retries=num_retries,
         interval=interval,
