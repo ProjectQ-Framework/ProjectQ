@@ -45,7 +45,9 @@ from ._utils import (
     IONQ_PROVIDER_ID,
     HONEYWELL_PROVIDER_ID,
     IONQ_GATE_MAP,
-    is_available
+    is_available,
+    convert_cmd_to_ionq_format,
+    convert_cmd_to_qasm_format
 )
 
 from ._exceptions import AzureQuantumTargetNotFoundError
@@ -157,6 +159,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._circuit = None
         self._clear = True
 
+    # TODO: Remove this method
     def _store_ionq_json(self, cmd):
         if not self._circuit:
             self._circuit = []
@@ -226,6 +229,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         self._circuit.append(gate_dict)
 
+    # TODO: Remove this method
     def _store_qasm(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
         if self.main_engine.mapper is None:
             raise RuntimeError('No mapper is present in the compiler engine list!')
@@ -284,12 +288,37 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         if self._clear:
             self._probabilities = {}
             self._clear = False
-            self._circuit = ""
+            self._circuit = None
+
+        gate = cmd.gate
+
+        # No-op/Meta gates.
+        if gate in (Allocate, Deallocate):
+            return
+
+        if gate == Measure:
+            logical_id = None
+            for tag in cmd.tags:
+                if isinstance(tag, LogicalQubitIDTag):
+                    logical_id = tag.logical_qubit_id
+                    break
+
+            if logical_id is None:
+                raise RuntimeError('No LogicalQubitIDTag found in command!')
+
+            self._measured_ids.append(logical_id)
+            return
 
         if self._provider_id == IONQ_PROVIDER_ID:
-            self._store_ionq_json(cmd)
+            if not self._circuit:
+                self._circuit = []
+            ionq_cmd = convert_cmd_to_ionq_format(cmd)
+            self._circuit.append(ionq_cmd)
+
+            # TODO: make sure there are no existing measurements on qubits involved
         elif self._provider_id == HONEYWELL_PROVIDER_ID:
             self._store_qasm(cmd)
+            # TODO: use convert method from utils
 
     def is_available(self, cmd):
         """
