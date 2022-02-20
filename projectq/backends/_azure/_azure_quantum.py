@@ -26,7 +26,6 @@ from projectq.ops import (
     DaggeredGate,
     Deallocate,
     FlushGate,
-    H,
     HGate,
     NOT,
     Measure,
@@ -36,21 +35,19 @@ from projectq.ops import (
     Ry,
     Ryy,
     Rz,
-    Rzz,
-    Sdag,
-    SGate,
-    SqrtXGate,
-    SwapGate,
-    Tdag,
-    TGate,
-    XGate,
-    YGate,
-    ZGate,
+    Rzz
 )
 
 from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 
 from ._azure_quantum_client import send, retrieve
+from ._utils import (
+    IONQ_PROVIDER_ID,
+    HONEYWELL_PROVIDER_ID,
+    IONQ_GATE_MAP,
+    is_available
+)
+
 from ._exceptions import AzureQuantumTargetNotFoundError
 
 try:
@@ -61,28 +58,6 @@ except ImportError:  # pragma: no cover
     raise ImportError(
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
     )
-
-IONQ_PROVIDER_ID = 'ionq'
-HONEYWELL_PROVIDER_ID = 'honeywell'
-
-GATE_MAP = {
-    XGate: 'x',
-    YGate: 'y',
-    ZGate: 'z',
-    HGate: 'h',
-    Rx: 'rx',
-    Ry: 'ry',
-    Rz: 'rz',
-    SGate: 's',
-    TGate: 't',
-    SqrtXGate: 'v',
-    Rxx: 'xx',
-    Ryy: 'yy',
-    Rzz: 'zz',
-    SwapGate: 'swap',
-}
-
-SUPPORTED_GATES = tuple(GATE_MAP.keys())
 
 
 def _rearrange_result(input_result, length):
@@ -166,11 +141,9 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._num_retries = num_retries
         self._interval = interval
         self._retrieve_execution = retrieve_execution
-        self._circuit = []
-        self._qasm = ""
+        self._circuit = None
         self._measured_ids = []
         self._probabilities = {}
-        self._allocated_qubits = set()
         self._clear = True
 
     def _reset(self):
@@ -181,28 +154,17 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             This sets ``_clear = True``, which will trigger state cleanup on the next call to ``_store``.
         """
         # Lastly, reset internal state for measured IDs and circuit body.
-        self._circuit = []
+        self._circuit = None
         self._clear = True
 
     def _store_ionq_json(self, cmd):
-        """Interpret the ProjectQ command as a circuit instruction and store it.
+        if not self._circuit:
+            self._circuit = []
 
-        Args:
-            cmd (Command): A command to process.
-
-        Raises:
-            InvalidCommandError: If the command can not be interpreted.
-            MidCircuitMeasurementError: If this command would result in a
-                mid-circuit qubit measurement.
-        """
-        if self._clear:
-            self._measured_ids = []
-            self._probabilities = {}
-            self._clear = False
+        gate = cmd.gate
 
         # No-op/Meta gates.
         # NOTE: self.main_engine.mapper takes care qubit allocation/mapping.
-        gate = cmd.gate
         if gate in (Allocate, Deallocate, Barrier):
             return
 
@@ -219,10 +181,10 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         # Process the Command's gate type:
         gate_type = type(gate)
-        gate_name = GATE_MAP.get(gate_type)
+        gate_name = IONQ_GATE_MAP.get(gate_type)
         # Daggered gates get special treatment.
         if isinstance(gate, DaggeredGate):
-            gate_name = GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
+            gate_name = IONQ_GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
 
         # Unable to determine a gate mapping here, so raise out.
         if gate_name is None:
@@ -265,29 +227,15 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._circuit.append(gate_dict)
 
     def _store_qasm(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
-        """
-        Temporarily store the command cmd.
-
-        Translates the command and stores it in a local variable (self._cmds).
-
-        Args:
-            cmd: Command to store
-        """
         if self.main_engine.mapper is None:
             raise RuntimeError('No mapper is present in the compiler engine list!')
 
-        if self._clear:
-            self._probabilities = {}
-            self._clear = False
-            self._qasm = ""
-            self._allocated_qubits = set()
+        if not self._circuit:
+            self._circuit = ""
 
         gate = cmd.gate
-        if gate == Allocate:
-            self._allocated_qubits.add(cmd.qubits[0][0].id)
-            return
 
-        if gate == Deallocate:
+        if gate in (Allocate, Deallocate):
             return
 
         if gate == Measure:
@@ -302,28 +250,42 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self._qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+            self._circuit += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
-            self._qasm += "\nbarrier "
+            self._circuit += "\nbarrier "
             qb_str = ""
             for pos in qb_pos:
                 qb_str += "q[{}], ".format(pos)
-            self._qasm += qb_str[:-2] + ";"
+            self._circuit += qb_str[:-2] + ";"
         elif isinstance(gate, (Rx, Ry, Rz)):
             qb_pos = cmd.qubits[0][0].id
             u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
             gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
-            self._qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
-        elif gate == H:
+            self._circuit += "\n{} q[{}];".format(gate_qasm, qb_pos)
+        elif isinstance(gate, HGate):
             qb_pos = cmd.qubits[0][0].id
-            self._qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
+            self._circuit += "\nh q[{}];".format(qb_pos)
         else:
             raise InvalidCommandError(
-                'Command not authorized. You should run the circuit with the appropriate ibm setup.'
+                'Command not authorized. You should run the circuit with the appropriate Azure Quantum setup.'
             )
 
     def _store(self, cmd):
+        """
+        Temporarily store the command cmd.
+
+        Translates the command and stores it in a local variable (self._cmds).
+
+        Args:
+            cmd: Command to store
+        """
+
+        if self._clear:
+            self._probabilities = {}
+            self._clear = False
+            self._circuit = ""
+
         if self._provider_id == IONQ_PROVIDER_ID:
             self._store_ionq_json(cmd)
         elif self._provider_id == HONEYWELL_PROVIDER_ID:
@@ -339,27 +301,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Returns:
             bool: If this backend can process the command.
         """
-        gate = cmd.gate
-
-        # Metagates.
-        if gate in (Measure, Allocate, Deallocate, Barrier):
-            return True
-
-        if has_negative_control(cmd):
-            return False
-
-        # CNOT gates.
-        # NOTE: IonQ supports up to 7 control qubits
-        num_ctrl_qubits = get_control_count(cmd)
-        if 0 < num_ctrl_qubits <= 7:
-            return isinstance(gate, (XGate,))
-
-        # Gates witout control bits.
-        if num_ctrl_qubits == 0:
-            supported = isinstance(gate, SUPPORTED_GATES)
-            supported_transpose = gate in (Sdag, Tdag)
-            return supported or supported_transpose
-        return False
+        return is_available(self._provider_id, cmd)
 
     @property
     def _target_factory(self):
@@ -450,15 +392,14 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         if self._provider_id == IONQ_PROVIDER_ID:
             return {
                 "qubits": qubits,
-                "circuit": self._circuit,
+                "circuit": self._circuit
             }
         elif self._provider_id == HONEYWELL_PROVIDER_ID:
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-                self._qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
+                self._circuit += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
 
-            self._qasm = self._qasm.replace("u2(0,pi/2)", "h")
-            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._qasm}\n"
+            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._circuit}\n"
 
     @property
     def _metadata(self):
@@ -481,9 +422,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
     def _run(self):  # pylint: disable=too-many-locals
         """Run the circuit this object has built during engine execution."""
         # Nothing to do with an empty circuit.
-        if self._provider_id == IONQ_PROVIDER_ID and len(self._circuit) == 0:
-            return
-        elif self._provider_id == HONEYWELL_PROVIDER_ID and len(self._qasm) == 0:
+        if not self._circuit:
             return
 
         if self._retrieve_execution is None:
@@ -526,7 +465,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         """Receive a command list from the ProjectQ engine pipeline.
 
         If a given command is a "flush" operation, the pending circuit will be
-        submitted to IonQ's API for processing.
+        submitted to Azure Quantum for processing.
 
         Args:
             command_list (list[Command]): A list of ProjectQ Command objects.
