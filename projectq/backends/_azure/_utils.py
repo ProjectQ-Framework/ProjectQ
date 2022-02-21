@@ -15,12 +15,9 @@
 
 from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
-    AllocateQubitGate,
     BarrierGate,
     DaggeredGate,
-    DeallocateQubitGate,
     HGate,
-    MeasureGate,
     R,
     Rx,
     Rxx,
@@ -83,7 +80,7 @@ HONEYWELL_GATE_MAP = {
 HONEYWELL_SUPPORTED_GATES = tuple(HONEYWELL_GATE_MAP.keys())
 
 
-def _is_available_ionq(cmd):
+def is_available_ionq(cmd):
     gate = cmd.gate
 
     if has_negative_control(cmd):
@@ -104,7 +101,7 @@ def _is_available_ionq(cmd):
     return False
 
 
-def _is_available_honeywell(cmd):
+def is_available_honeywell(cmd):
     gate = cmd.gate
 
     # TODO: NEEDED CONFORMATION- Does Honeywell support negatively controlled qubits?
@@ -126,27 +123,12 @@ def _is_available_honeywell(cmd):
     return False
 
 
-def is_available(provider_id, cmd):
-    gate = cmd.gate
-
-    # Metagates.
-    if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
-        return True
-
-    if provider_id == IONQ_PROVIDER_ID:
-        return _is_available_ionq(cmd)
-    elif provider_id == HONEYWELL_PROVIDER_ID:
-        return _is_available_honeywell(cmd)
-
-    return False
-
-
-def convert_cmd_to_ionq_format(cmd):
+def to_json_format(cmd):
     gate = cmd.gate
 
     # No-op/Meta gates.
     if isinstance(gate, BarrierGate):
-        return  # TODO: Handle return type `None`
+        return
 
     # Process the Command's gate type
     gate_type = type(gate)
@@ -184,7 +166,7 @@ def convert_cmd_to_ionq_format(cmd):
     return gate_dict
 
 
-def convert_cmd_to_qasm_format(cmd):
+def to_qasm_format(cmd):
     gate = cmd.gate
 
     if isinstance(gate, BarrierGate):
@@ -209,3 +191,17 @@ def convert_cmd_to_qasm_format(cmd):
         raise InvalidCommandError(
             'Command not authorized. You should run the circuit with the appropriate Azure Quantum setup.'
         )
+
+
+def rearrange_result(input_result, length):
+    """Turn ``input_result`` from an integer into a bit-string.
+
+    Args:
+        input_result (int): An integer representation of qubit states.
+        length (int): The total number of bits (for padding, if needed).
+
+    Returns:
+        str: A bit-string representation of ``input_result``.
+    """
+    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
+    return ''.join(bin_input)[::-1]

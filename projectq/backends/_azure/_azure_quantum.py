@@ -19,35 +19,24 @@ import numpy as np
 
 from projectq.types import WeakQubitRef
 from projectq.cengines import BasicEngine
-from projectq.meta import LogicalQubitIDTag, get_control_count, has_negative_control
+from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
-    Allocate,
-    Barrier,
-    DaggeredGate,
-    Deallocate,
+    AllocateQubitGate,
+    BarrierGate,
+    DeallocateQubitGate,
     FlushGate,
-    HGate,
-    NOT,
-    Measure,
-    R,
-    Rx,
-    Rxx,
-    Ry,
-    Ryy,
-    Rz,
-    Rzz
+    MeasureGate
 )
-
-from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
 
 from ._azure_quantum_client import send, retrieve
 from ._utils import (
     IONQ_PROVIDER_ID,
     HONEYWELL_PROVIDER_ID,
-    IONQ_GATE_MAP,
-    is_available,
-    convert_cmd_to_ionq_format,
-    convert_cmd_to_qasm_format
+    is_available_ionq,
+    is_available_honeywell,
+    to_json_format,
+    to_qasm_format,
+    rearrange_result
 )
 
 from ._exceptions import AzureQuantumTargetNotFoundError
@@ -60,20 +49,6 @@ except ImportError:  # pragma: no cover
     raise ImportError(
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
     )
-
-
-def _rearrange_result(input_result, length):
-    """Turn ``input_result`` from an integer into a bit-string.
-
-    Args:
-        input_result (int): An integer representation of qubit states.
-        length (int): The total number of bits (for padding, if needed).
-
-    Returns:
-        str: A bit-string representation of ``input_result``.
-    """
-    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
-    return ''.join(bin_input)[::-1]
 
 
 class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
@@ -159,122 +134,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         self._circuit = None
         self._clear = True
 
-    # TODO: Remove this method
-    def _store_ionq_json(self, cmd):
-        if not self._circuit:
-            self._circuit = []
-
-        gate = cmd.gate
-
-        # No-op/Meta gates.
-        # NOTE: self.main_engine.mapper takes care qubit allocation/mapping.
-        if gate in (Allocate, Deallocate, Barrier):
-            return
-
-        # Create a measurement.
-        if gate == Measure:
-            logical_id = cmd.qubits[0][0].id
-            for tag in cmd.tags:
-                if isinstance(tag, LogicalQubitIDTag):
-                    logical_id = tag.logical_qubit_id
-                    break
-            # Add the qubit id
-            self._measured_ids.append(logical_id)
-            return
-
-        # Process the Command's gate type:
-        gate_type = type(gate)
-        gate_name = IONQ_GATE_MAP.get(gate_type)
-        # Daggered gates get special treatment.
-        if isinstance(gate, DaggeredGate):
-            gate_name = IONQ_GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
-
-        # Unable to determine a gate mapping here, so raise out.
-        if gate_name is None:
-            raise InvalidCommandError('Invalid command: ' + str(cmd))
-
-        # Now make sure there are no existing measurements on qubits involved
-        #   in this operation.
-        targets = [qb.id for qureg in cmd.qubits for qb in qureg]
-        controls = [qb.id for qb in cmd.control_qubits]
-        if len(self._measured_ids) > 0:
-
-            # Check any qubits we are trying to operate on.
-            gate_qubits = set(targets) | set(controls)
-
-            # If any of them have already been measured...
-            already_measured = gate_qubits & set(self._measured_ids)
-
-            # Boom!
-            if len(already_measured) > 0:
-                err = (
-                    'Mid-circuit measurement is not supported. '
-                    'The following qubits have already been measured: {}.'.format(list(already_measured))
-                )
-                raise MidCircuitMeasurementError(err)
-
-        # Initialize the gate dict:
-        gate_dict = {
-            'gate': gate_name,
-            'targets': targets,
-        }
-
-        # Check if we have a rotation
-        if isinstance(gate, (R, Rx, Ry, Rz, Rxx, Ryy, Rzz)):
-            gate_dict['rotation'] = gate.angle
-
-        # Set controls
-        if len(controls) > 0:
-            gate_dict['controls'] = controls
-
-        self._circuit.append(gate_dict)
-
-    # TODO: Remove this method
-    def _store_qasm(self, cmd):  # pylint: disable=too-many-branches,too-many-statements
-        if self.main_engine.mapper is None:
-            raise RuntimeError('No mapper is present in the compiler engine list!')
-
-        if not self._circuit:
-            self._circuit = ""
-
-        gate = cmd.gate
-
-        if gate in (Allocate, Deallocate):
-            return
-
-        if gate == Measure:
-            logical_id = None
-            for tag in cmd.tags:
-                if isinstance(tag, LogicalQubitIDTag):
-                    logical_id = tag.logical_qubit_id
-                    break
-            if logical_id is None:
-                raise RuntimeError('No LogicalQubitIDTag found in command!')
-            self._measured_ids += [logical_id]
-        elif gate == NOT and get_control_count(cmd) == 1:
-            ctrl_pos = cmd.control_qubits[0].id
-            qb_pos = cmd.qubits[0][0].id
-            self._circuit += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
-        elif gate == Barrier:
-            qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
-            self._circuit += "\nbarrier "
-            qb_str = ""
-            for pos in qb_pos:
-                qb_str += "q[{}], ".format(pos)
-            self._circuit += qb_str[:-2] + ";"
-        elif isinstance(gate, (Rx, Ry, Rz)):
-            qb_pos = cmd.qubits[0][0].id
-            u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
-            gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
-            self._circuit += "\n{} q[{}];".format(gate_qasm, qb_pos)
-        elif isinstance(gate, HGate):
-            qb_pos = cmd.qubits[0][0].id
-            self._circuit += "\nh q[{}];".format(qb_pos)
-        else:
-            raise InvalidCommandError(
-                'Command not authorized. You should run the circuit with the appropriate Azure Quantum setup.'
-            )
-
     def _store(self, cmd):
         """
         Temporarily store the command cmd.
@@ -292,11 +151,12 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         gate = cmd.gate
 
-        # No-op/Meta gates.
-        if gate in (Allocate, Deallocate):
+        # No-op/Meta gates
+        if isinstance(gate, (AllocateQubitGate, DeallocateQubitGate)):
             return
 
-        if gate == Measure:
+        # Measurement
+        if isinstance(gate, MeasureGate):
             logical_id = None
             for tag in cmd.tags:
                 if isinstance(tag, LogicalQubitIDTag):
@@ -312,13 +172,19 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         if self._provider_id == IONQ_PROVIDER_ID:
             if not self._circuit:
                 self._circuit = []
-            ionq_cmd = convert_cmd_to_ionq_format(cmd)
-            self._circuit.append(ionq_cmd)
+
+            json_cmd = to_json_format(cmd)
+            if json_cmd:
+                self._circuit.append(json_cmd)
 
             # TODO: make sure there are no existing measurements on qubits involved
         elif self._provider_id == HONEYWELL_PROVIDER_ID:
-            self._store_qasm(cmd)
-            # TODO: use convert method from utils
+            if not self._circuit:
+                self._circuit = ''
+
+            qasm_cmd = to_qasm_format(cmd)
+            if qasm_cmd:
+                self._circuit += '\n{0}'.format(qasm_cmd)
 
     def is_available(self, cmd):
         """
@@ -330,7 +196,18 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Returns:
             bool: If this backend can process the command.
         """
-        return is_available(self._provider_id, cmd)
+        gate = cmd.gate
+
+        # Meta gates.
+        if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
+            return True
+
+        if self._provider_id == IONQ_PROVIDER_ID:
+            return is_available_ionq(cmd)
+        elif self._provider_id == HONEYWELL_PROVIDER_ID:
+            return is_available_honeywell(cmd)
+
+        return False
 
     @property
     def _target_factory(self):
@@ -481,7 +358,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 )
 
         self._probabilities = {
-            _rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
+            rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
         }
 
         # Set a single measurement result

@@ -16,5 +16,9 @@
 
 # Todo:
 
-def test_use_hardware():
+def test_is_available_ionq():
+    assert True
+
+
+def test_is_available_honeywell():
     assert True
