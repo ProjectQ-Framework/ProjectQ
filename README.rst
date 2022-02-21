@@ -175,6 +175,39 @@ IonQ from IonQ and the state vector simulator SV1:
        python3 -m pip install -ve .[braket]
 
 
+**Running a quantum program on a Azure Quantum provided device**
+
+To run a program on devices provided by the `Azure Quantum <https://azure.microsoft.com/en-us/services/quantum/>`_.
+
+Use `AzureQuantumBackend` to run ProjectQ circuits on hardware devices and simulator devices from providers `IonQ` and `Quantinuum`.
+
+.. code-block:: python
+
+    from projectq.backends import AzureQuantumBackend
+
+    azure_quantum_backend = AzureQuantumBackend(
+        use_hardware=False,
+        target_name='ionq.simulator',
+        resource_id='<resource-id>',
+        location='<location>',
+        verbose=True
+    )
+
+.. note::
+
+   In order to use the AzureQuantumBackend, you need to install ProjectQ with the 'azure-quantum' extra requirement:
+
+   .. code-block:: bash
+
+       python3 -m pip install projectq[azure-quantum]
+
+   or
+
+   .. code-block:: bash
+
+       cd /path/to/projectq/source/code
+       python3 -m pip install -ve .[azure-quantum]
+
 **Running a quantum program on IonQ devices**
 
 To run a program on the IonQ trapped ion hardware, use the `IonQBackend` and its corresponding setup.
