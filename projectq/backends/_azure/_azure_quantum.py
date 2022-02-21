@@ -29,7 +29,7 @@ from projectq.ops import (
 )
 
 from ._azure_quantum_client import send, retrieve
-from ._utils import (
+from ._util import (
     IONQ_PROVIDER_ID,
     HONEYWELL_PROVIDER_ID,
     is_available_ionq,

@@ -87,6 +87,15 @@ HONEYWELL_SUPPORTED_GATES = tuple(HONEYWELL_GATE_MAP.keys())
 
 
 def is_available_ionq(cmd):
+    """
+    Test if IonQ backend is available to process the provided command.
+
+    Args:
+        cmd (Command): A command to process.
+
+    Returns:
+        bool: If this backend can process the command.
+    """
     gate = cmd.gate
 
     # Meta gates
@@ -112,6 +121,15 @@ def is_available_ionq(cmd):
 
 
 def is_available_honeywell(cmd):
+    """
+    Test if Honeywell backend is available to process the provided command.
+
+    Args:
+        cmd (Command): A command to process.
+
+    Returns:
+        bool: If this backend can process the command.
+    """
     gate = cmd.gate
 
     # Meta gates
@@ -138,6 +156,15 @@ def is_available_honeywell(cmd):
 
 
 def to_json_format(cmd):
+    """
+    Convert ProjectQ command to JSON format.
+
+    Args:
+        cmd (Command): A command to process.
+
+    Returns:
+        dict: dict format of given command.
+    """
     # Invalid command, raise out
     if not is_available_ionq(cmd):
         raise InvalidCommandError(
@@ -175,6 +202,15 @@ def to_json_format(cmd):
 
 
 def to_qasm_format(cmd):
+    """
+    Convert ProjectQ command to QASM format.
+
+    Args:
+        cmd (Command): A command to process.
+
+    Returns:
+        dict: qasm format of given command.
+    """
     # Invalid command, raise out
     if not is_available_honeywell(cmd):
         raise InvalidCommandError(
