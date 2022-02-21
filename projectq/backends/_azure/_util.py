@@ -163,9 +163,9 @@ def to_json_format(cmd):
         cmd (Command): A command to process.
 
     Returns:
-        dict: dict format of given command.
+        dict: JSON format of given command.
     """
-    # Invalid command, raise out
+    # Invalid command, raise exception
     if not is_available_ionq(cmd):
         raise InvalidCommandError(
             'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
@@ -177,7 +177,7 @@ def to_json_format(cmd):
     gate_type = type(gate)
     gate_name = IONQ_GATE_MAP.get(gate_type)
 
-    # Daggered gates get special treatment.
+    # Daggered gates get special treatment
     if isinstance(gate, DaggeredGate):
         gate_name = gate_name + 'i'
 
@@ -209,9 +209,9 @@ def to_qasm_format(cmd):
         cmd (Command): A command to process.
 
     Returns:
-        dict: qasm format of given command.
+        dict: QASM format of given command.
     """
-    # Invalid command, raise out
+    # Invalid command, raise exception
     if not is_available_honeywell(cmd):
         raise InvalidCommandError(
             'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
