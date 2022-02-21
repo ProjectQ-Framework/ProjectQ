@@ -15,8 +15,11 @@
 
 from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
+    AllocateQubitGate,
     BarrierGate,
+    DeallocateQubitGate,
     DaggeredGate,
+    MeasureGate,
     HGate,
     R,
     Rx,
@@ -26,10 +29,12 @@ from projectq.ops import (
     Rz,
     Rzz,
     Sdag,
+    Sdagger,
     SGate,
     SqrtXGate,
     SwapGate,
     Tdag,
+    Tdagger,
     TGate,
     XGate,
     YGate,
@@ -58,11 +63,12 @@ IONQ_GATE_MAP = {
     XGate: 'x',
     YGate: 'y',
     ZGate: 'z',
-}  # excluding controlled and conjugate-transpose gates
+}  # excluding controlled, conjugate-transpose and meta gates
 
 IONQ_SUPPORTED_GATES = tuple(IONQ_GATE_MAP.keys())
 
 HONEYWELL_GATE_MAP = {
+    BarrierGate: 'barrier',
     HGate: 'h',
     Rx: 'rx',
     Rxx: 'xx',
@@ -75,13 +81,17 @@ HONEYWELL_GATE_MAP = {
     XGate: 'x',
     YGate: 'y',
     ZGate: 'z'
-}  # excluding controlled and conjugate-transpose gates
+}  # excluding controlled, conjugate-transpose and meta gates
 
 HONEYWELL_SUPPORTED_GATES = tuple(HONEYWELL_GATE_MAP.keys())
 
 
 def is_available_ionq(cmd):
     gate = cmd.gate
+
+    # Meta gates
+    if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
+        return True
 
     if has_negative_control(cmd):
         return False
@@ -95,7 +105,7 @@ def is_available_ionq(cmd):
     # Gates without control bits.
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, IONQ_SUPPORTED_GATES)
-        supported_transpose = gate in (Sdag, Tdag)  # TODO: Add support for transpose of square-root-of-not (vi) gate
+        supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
         return supported or supported_transpose
 
     return False
@@ -104,33 +114,39 @@ def is_available_ionq(cmd):
 def is_available_honeywell(cmd):
     gate = cmd.gate
 
+    # Meta gates
+    if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
+        return True
+
     # TODO: NEEDED CONFORMATION- Does Honeywell support negatively controlled qubits?
     if has_negative_control(cmd):
         return False
 
     num_ctrl_qubits = get_control_count(cmd)
 
-    # TODO: NEEDED CONFORMATION- How many control qubits Honeywell supports?
+    # TODO: NEEDED CONFORMATION- Is this logic correct for Honeywell?
     if 0 < num_ctrl_qubits <= 2:
-        return isinstance(gate, (XGate, ZGate))  # TODO: NEEDED CONFORMATION- Any control count difference CX and CZ?
+        return isinstance(gate, (XGate, ZGate))
 
     # Gates without control bits.
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, HONEYWELL_SUPPORTED_GATES)
-        supported_transpose = gate in (Sdag, Tdag)  # TODO: Add support for transpose of square-root-of-not (vi) gate
+        supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
         return supported or supported_transpose
 
     return False
 
 
 def to_json_format(cmd):
+    # Invalid command, raise out
+    if not is_available_ionq(cmd):
+        raise InvalidCommandError(
+            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
+        )
+
     gate = cmd.gate
 
-    # No-op/Meta gates.
-    if isinstance(gate, BarrierGate):
-        return
-
-    # Process the Command's gate type
+    # Process the cmd gate type
     gate_type = type(gate)
     gate_name = IONQ_GATE_MAP.get(gate_type)
 
@@ -138,18 +154,10 @@ def to_json_format(cmd):
     if isinstance(gate, DaggeredGate):
         gate_name = gate_name + 'i'
 
-    # Unable to determine a gate mapping here, so raise out.
-    if gate_name is None:
-        raise InvalidCommandError(
-            'Command not authorized. You should run the circuit with the appropriate Azure Quantum setup.'
-        )
-
-    # Now make sure there are no existing measurements on qubits involved
-    #   in this operation.
     targets = [qb.id for qureg in cmd.qubits for qb in qureg]
     controls = [qb.id for qb in cmd.control_qubits]
 
-    # Initialize the gate dict:
+    # Initialize the gate dict
     gate_dict = {
         'gate': gate_name,
         'targets': targets,
@@ -167,29 +175,67 @@ def to_json_format(cmd):
 
 
 def to_qasm_format(cmd):
+    # Invalid command, raise out
+    if not is_available_honeywell(cmd):
+        raise InvalidCommandError(
+            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
+        )
+
     gate = cmd.gate
 
+    # Process the cmd gate type
+    gate_type = type(gate)
+    gate_name = HONEYWELL_GATE_MAP.get(gate_type)
+
+    # Daggered gates get special treatment
+    if isinstance(gate, DaggeredGate):
+        gate_name = gate_name + 'dg'
+
+    # Controlled gates get special treatment as well
+    if get_control_count(cmd) > 0:
+        gate_name = 'c' + gate_name
+
+    targets = [qb.id for qureg in cmd.qubits for qb in qureg]
+    controls = [qb.id for qb in cmd.control_qubits]
+
+    # Barrier gate
     if isinstance(gate, BarrierGate):
-        qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
         qb_str = ""
-        for pos in qb_pos:
+        for pos in targets:
             qb_str += "q[{}], ".format(pos)
-        return "barrier " + qb_str[:-2] + ";"
-    elif isinstance(gate, XGate) and get_control_count(cmd) == 1:
-        ctrl_pos = cmd.control_qubits[0].id
-        qb_pos = cmd.qubits[0][0].id
-        return "cx q[{}], q[{}];".format(ctrl_pos, qb_pos)
-    elif isinstance(gate, (Rx, Ry, Rz)):
-        qb_pos = cmd.qubits[0][0].id
-        u_strs = {'Rx': 'u3({}, -pi/2, pi/2)', 'Ry': 'u3({}, 0, 0)', 'Rz': 'u1({})'}
-        gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
-        return "{} q[{}];".format(gate_qasm, qb_pos)
-    elif isinstance(gate, HGate):
-        qb_pos = cmd.qubits[0][0].id
-        return "h q[{}];".format(qb_pos)
+        return "{} {};".format(gate_name, qb_str[:-2])
+
+    # Controlled gates
+    elif len(controls) > 0:
+        # 1-Controlled gates
+        if len(controls) == 1:
+            return "{} q[{}], q[{}];".format(gate_name, controls[0], targets[0])
+
+        # 2-Controlled gates
+        if len(controls) == 1:
+            return "{} q[{}], q[{}], q[{}], q[{}];".format(
+                gate_name, controls[0], controls[1], targets[0], targets[1])
+
+    # Single qubit gates
+    elif len(targets) == 1:
+        # Standard gates
+        if isinstance(gate, (XGate, YGate, ZGate, SGate, TGate)):
+            return "{} q[{}];".format(gate_name, targets[0])
+
+        # Rotational gates
+        if isinstance(gate, (Rx, Ry, Rz)):
+            return "{}({}) q[{}];".format(gate_name, gate.angle, targets[0])
+
+    # Double qubit gates
+    elif len(targets) == 2:
+        # Rotational gates
+        if isinstance(gate, (Rxx, Ryy, Rzz)):
+            return "{}({}) q[{}] q[{}];".format(gate_name, gate.angle, targets[0], targets[1])
+
+    # Invalid command
     else:
         raise InvalidCommandError(
-            'Command not authorized. You should run the circuit with the appropriate Azure Quantum setup.'
+            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
         )
 
 

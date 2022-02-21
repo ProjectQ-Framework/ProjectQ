@@ -196,12 +196,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Returns:
             bool: If this backend can process the command.
         """
-        gate = cmd.gate
-
-        # Meta gates.
-        if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
-            return True
-
         if self._provider_id == IONQ_PROVIDER_ID:
             return is_available_ionq(cmd)
         elif self._provider_id == HONEYWELL_PROVIDER_ID:
