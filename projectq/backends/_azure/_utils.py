@@ -191,10 +191,6 @@ def to_qasm_format(cmd):
     if isinstance(gate, DaggeredGate):
         gate_name = gate_name + 'dg'
 
-    # Controlled gates get special treatment as well
-    if get_control_count(cmd) > 0:
-        gate_name = 'c' + gate_name
-
     targets = [qb.id for qureg in cmd.qubits for qb in qureg]
     controls = [qb.id for qb in cmd.control_qubits]
 
@@ -207,6 +203,8 @@ def to_qasm_format(cmd):
 
     # Controlled gates
     elif len(controls) > 0:
+        gate_name = 'c' + gate_name
+
         # 1-Controlled gates
         if len(controls) == 1:
             return "{} q[{}], q[{}];".format(gate_name, controls[0], targets[0])
@@ -226,7 +224,7 @@ def to_qasm_format(cmd):
         if isinstance(gate, (Rx, Ry, Rz)):
             return "{}({}) q[{}];".format(gate_name, gate.angle, targets[0])
 
-    # Double qubit gates
+    # Two qubit gates
     elif len(targets) == 2:
         # Rotational gates
         if isinstance(gate, (Rxx, Ryy, Rzz)):
