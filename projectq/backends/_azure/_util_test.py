@@ -13,12 +13,98 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import math
 
-# Todo:
+from projectq.cengines import DummyEngine, MainEngine
+from projectq.ops import (
+    Allocate,
+    Barrier,
+    Command,
+    Deallocate,
+    H,
+    Measure,
+    NOT,
+    Rx,
+    Rxx,
+    Ry,
+    Ryy,
+    Rz,
+    Rzz,
+    S,
+    Sdag,
+    Sdagger,
+    SqrtX,
+    Swap,
+    T,
+    Tdag,
+    Tdagger,
+    X,
+    Y,
+    Z
+)
 
-def test_is_available_ionq():
+from projectq.backends._azure._util import (
+    IONQ_SUPPORTED_GATES,
+    HONEYWELL_SUPPORTED_GATES,
+    is_available_ionq,
+    is_available_honeywell,
+    to_json,
+    to_qasm
+)
+
+
+def test_is_available_ionq_success_cases():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qubit1 = eng.allocate_qubit()
+    qubit2 = eng.allocate_qubit()
+
+    # Rotational gates
+    for gate in (Rx, Ry, Rz, Rxx, Ryy, Rzz):
+        cmd = Command(eng, gate(math.pi/2), (qubit1,))
+        assert is_available_ionq(cmd), 'Failing on {} gate'.format(gate)
+
+    # Shortcut gates (Single qubit)
+    for gate in (NOT, X, Y, Z, H, S, T, Sdag, Sdagger, Tdag, Tdagger, SqrtX):
+        cmd = Command(eng, gate, (qubit1,))
+        assert is_available_ionq(cmd), 'Failing on {} gate'.format(gate)
+
+    # Shortcut gates (Two qubit)
+    for gate in (Swap, ):
+        cmd = Command(eng, gate, (qubit1, qubit2))
+        assert is_available_ionq(cmd), 'Failing on {} gate'.format(gate)
+
+    # Meta gates
+    for gate in (Measure, Allocate, Deallocate, Barrier):
+        cmd = Command(eng, gate, (qubit1,))
+        assert is_available_ionq(cmd), 'Failing on {} gate'.format(gate)
+
+    # Daggered gates
+    for gate in (Sdag, Sdagger, Tdag, Tdagger):
+        cmd = Command(eng, gate, (qubit1,))
+        assert is_available_ionq(cmd), 'Failing on {} gate'.format(gate)
+
+    # Controlled gates
+    for i in range(1, 8):
+        qureg = eng.allocate_qureg(i)
+        cmd = Command(eng, X, (qubit1,), controls=qureg)
+        assert is_available_ionq(cmd), 'Failing on {}-Controlled X gate'.format(i)
+
+
+def test_is_available_ionq_failure_cases():
     assert True
 
 
-def test_is_available_honeywell():
+def test_is_available_honeywell_success_cases():
+    assert True
+
+
+def test_is_available_honeywell_failure_cases():
+    assert True
+
+
+def test_to_json():
+    assert True
+
+
+def test_to_qasm():
     assert True

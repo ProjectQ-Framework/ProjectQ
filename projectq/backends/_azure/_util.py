@@ -111,7 +111,7 @@ def is_available_ionq(cmd):
     if 0 < num_ctrl_qubits <= 7:
         return isinstance(gate, (XGate,))
 
-    # Gates without control bits.
+    # Gates without control bits
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, IONQ_SUPPORTED_GATES)
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
@@ -155,7 +155,7 @@ def is_available_honeywell(cmd):
     return False
 
 
-def to_json_format(cmd):
+def to_json(cmd):
     """
     Convert ProjectQ command to JSON format.
 
@@ -201,7 +201,7 @@ def to_json_format(cmd):
     return gate_dict
 
 
-def to_qasm_format(cmd):
+def to_qasm(cmd):
     """
     Convert ProjectQ command to QASM format.
 

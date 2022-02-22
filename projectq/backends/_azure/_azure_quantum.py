@@ -22,7 +22,6 @@ from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import (
     AllocateQubitGate,
-    BarrierGate,
     DeallocateQubitGate,
     FlushGate,
     MeasureGate
@@ -34,8 +33,8 @@ from ._util import (
     HONEYWELL_PROVIDER_ID,
     is_available_ionq,
     is_available_honeywell,
-    to_json_format,
-    to_qasm_format,
+    to_json,
+    to_qasm,
     rearrange_result
 )
 
@@ -173,7 +172,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             if not self._circuit:
                 self._circuit = []
 
-            json_cmd = to_json_format(cmd)
+            json_cmd = to_json(cmd)
             if json_cmd:
                 self._circuit.append(json_cmd)
 
@@ -182,7 +181,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             if not self._circuit:
                 self._circuit = ''
 
-            qasm_cmd = to_qasm_format(cmd)
+            qasm_cmd = to_qasm(cmd)
             if qasm_cmd:
                 self._circuit += '\n{0}'.format(qasm_cmd)
 
