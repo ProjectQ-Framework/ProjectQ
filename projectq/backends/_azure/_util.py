@@ -17,6 +17,8 @@ from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
     AllocateQubitGate,
     BarrierGate,
+    CNOT,
+    CX,
     DeallocateQubitGate,
     DaggeredGate,
     MeasureGate,
@@ -114,8 +116,9 @@ def is_available_ionq(cmd):
     # Gates without control bits
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, IONQ_SUPPORTED_GATES)
+        supported_shortcut = gate in (CNOT, CX)
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
-        return supported or supported_transpose
+        return supported or supported_shortcut or supported_transpose
 
     return False
 
@@ -149,8 +152,9 @@ def is_available_honeywell(cmd):
     # Gates without control bits.
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, HONEYWELL_SUPPORTED_GATES)
+        supported_shortcut = gate in (CNOT, CX)
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
-        return supported or supported_transpose
+        return supported or supported_shortcut or supported_transpose
 
     return False
 
