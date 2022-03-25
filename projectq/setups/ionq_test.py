@@ -18,7 +18,7 @@ import pytest
 
 from projectq.backends._exceptions import DeviceOfflineError
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
-
+from projectq.backends._ionq._ionq_http_client import IonQ
 
 def test_basic_ionq_mapper(monkeypatch):
     import projectq.setups.ionq
@@ -26,7 +26,11 @@ def test_basic_ionq_mapper(monkeypatch):
     def mock_show_devices(*args, **kwargs):
         return {'dummy': {'nq': 3, 'target': 'dummy'}}
 
-    monkeypatch.setattr(projectq.setups.ionq, 'show_devices', mock_show_devices)
+    monkeypatch.setattr(
+        IonQ,
+        'show_devices',
+        mock_show_devices,
+    )
     engine_list = projectq.setups.ionq.get_engine_list(device='dummy')
     assert len(engine_list) > 1
     mapper = engine_list[-1]
@@ -40,8 +44,12 @@ def test_ionq_errors(monkeypatch):
 
     def mock_show_devices(*args, **kwargs):
         return {'dummy': {'nq': 3, 'target': 'dummy'}}
-
-    monkeypatch.setattr(projectq.setups.ionq, 'show_devices', mock_show_devices)
+    
+    monkeypatch.setattr(
+        IonQ,
+        'show_devices',
+        mock_show_devices,
+    )
 
     with pytest.raises(DeviceOfflineError):
         projectq.setups.ionq.get_engine_list(device='simulator')

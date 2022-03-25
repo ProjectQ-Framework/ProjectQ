@@ -47,6 +47,11 @@ class IonQ(Session):
 
     def update_devices_list(self):
         """Update the list of devices this backend can support."""
+        self.authenticate(self.token)
+        req = super().get(urljoin(_API_URL, 'backends'))
+        req.raise_for_status()
+        r_json = req.json()
+        # Legacy backends, kept for backward compatibility.
         self.backends = {
             'ionq_simulator': {
                 'nq': 29,
@@ -57,6 +62,8 @@ class IonQ(Session):
                 'target': 'qpu',
             },
         }
+        for backend in r_json:
+            self.backends[backend["backend"]] = { "nq": backend["qubits"], "target": backend["backend"]}
         if self._verbose:  # pragma: no cover
             print('- List of IonQ devices available:')
             print(self.backends)
@@ -241,18 +248,17 @@ class IonQ(Session):
         raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
 
-def show_devices(verbose=False):
-    """Show the currently available device list for the IonQ provider.
+    def show_devices(self, verbose=False):
+        """Show the currently available device list for the IonQ provider.
 
-    Args:
-        verbose (bool): If True, additional information is printed
+        Args:
+            verbose (bool): If True, additional information is printed
 
-    Returns:
-        list: list of available devices and their properties.
-    """
-    ionq_session = IonQ(verbose=verbose)
-    ionq_session.update_devices_list()
-    return ionq_session.backends
+        Returns:
+            list: list of available devices and their properties.
+        """
+        self.update_devices_list()
+        return self.backends
 
 
 def retrieve(
@@ -398,6 +404,5 @@ def send(
 __all__ = [
     'send',
     'retrieve',
-    'show_devices',
     'IonQ',
 ]

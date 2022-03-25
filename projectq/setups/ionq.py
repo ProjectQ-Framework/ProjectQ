@@ -21,7 +21,7 @@ Defines a setup allowing to compile code for IonQ trapped ion devices:
 ->The 29 qubits simulator
 """
 from projectq.backends._exceptions import DeviceOfflineError
-from projectq.backends._ionq._ionq_http_client import show_devices
+from projectq.backends._ionq._ionq_http_client import IonQ
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper
 from projectq.ops import (
     Barrier,
@@ -47,7 +47,8 @@ from projectq.setups import restrictedgateset
 
 def get_engine_list(token=None, device=None):
     """Return the default list of compiler engine for the IonQ platform."""
-    devices = show_devices(token)
+    ionQ = IonQ()
+    devices = ionQ.show_devices(token)
     if not device or device not in devices:
         raise DeviceOfflineError("Error checking engine list: no '{}' devices available".format(device))
 
