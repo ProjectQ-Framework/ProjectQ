@@ -248,7 +248,7 @@ class IonQ(Session):
         raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
 
-    def show_devices(self, verbose=False):
+    def show_devices(self):
         """Show the currently available device list for the IonQ provider.
 
         Args:
