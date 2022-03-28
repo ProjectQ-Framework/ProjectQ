@@ -58,11 +58,28 @@ def test_is_online(monkeypatch):
         assert urljoin(_api_url, 'backends') == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
-            return_value=[{"backend":"qpu.s11","status":"available","qubits":11,"average_queue_time":3253287,"last_updated":1647863473555,"characterization_url":"/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82"},{"backend":"simulator","status":"available","qubits":19,"average_queue_time":1499,"last_updated":1627065490042}],)
+            return_value=[
+                {
+                    "backend": "qpu.s11",
+                    "status": "available",
+                    "qubits": 11,
+                    "average_queue_time": 3253287,
+                    "last_updated": 1647863473555,
+                    "characterization_url": "/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82",
+                },
+                {
+                    "backend": "simulator",
+                    "status": "available",
+                    "qubits": 19,
+                    "average_queue_time": 1499,
+                    "last_updated": 1627065490042,
+                },
+            ],
+        )
         return mock_response
-    
+
     monkeypatch.setattr('requests.sessions.Session.get', mock_get)
-    
+
     ionq_session = _ionq_http_client.IonQ()
     ionq_session.authenticate('not none')
     ionq_session.update_devices_list()
@@ -77,11 +94,28 @@ def test_show_devices(monkeypatch):
         assert urljoin(_api_url, 'backends') == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
-            return_value=[{"backend":"qpu.s11","status":"available","qubits":11,"average_queue_time":3253287,"last_updated":1647863473555,"characterization_url":"/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82"},{"backend":"simulator","status":"available","qubits":19,"average_queue_time":1499,"last_updated":1627065490042}],)
+            return_value=[
+                {
+                    "backend": "qpu.s11",
+                    "status": "available",
+                    "qubits": 11,
+                    "average_queue_time": 3253287,
+                    "last_updated": 1647863473555,
+                    "characterization_url": "/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82",
+                },
+                {
+                    "backend": "simulator",
+                    "status": "available",
+                    "qubits": 19,
+                    "average_queue_time": 1499,
+                    "last_updated": 1627065490042,
+                },
+            ],
+        )
         return mock_response
-    
+
     monkeypatch.setattr('requests.sessions.Session.get', mock_get)
-    
+
     ionq_session = _ionq_http_client.IonQ()
     ionq_session.authenticate('not none')
     device_list = ionq_session.show_devices()

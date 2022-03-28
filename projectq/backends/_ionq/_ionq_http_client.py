@@ -63,7 +63,7 @@ class IonQ(Session):
             },
         }
         for backend in r_json:
-            self.backends[backend["backend"]] = { "nq": backend["qubits"], "target": backend["backend"]}
+            self.backends[backend["backend"]] = {"nq": backend["qubits"], "target": backend["backend"]}
         if self._verbose:  # pragma: no cover
             print('- List of IonQ devices available:')
             print(self.backends)
@@ -246,7 +246,6 @@ class IonQ(Session):
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
         raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
-
 
     def show_devices(self):
         """Show the currently available device list for the IonQ provider.
