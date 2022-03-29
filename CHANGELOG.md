@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Repository
 
+-   Fix issues with building on CentOS 7 & 8
 -   Update `Lucas-C/pre-commit-hooks` hook to v1.1.13
 -   Update `flake8` hook to v4.0.1
 -   Update `pylint` hook to v3.0.0a4
