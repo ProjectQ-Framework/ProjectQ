@@ -70,7 +70,7 @@ def test_factoring(sim):
 
     H | ctrl_qubit
     with Control(eng, ctrl_qubit):
-        MultiplyByConstantModN(pow(a, 2 ** 7, N), N) | x
+        MultiplyByConstantModN(pow(a, 2**7, N), N) | x
 
     H | ctrl_qubit
     eng.flush()

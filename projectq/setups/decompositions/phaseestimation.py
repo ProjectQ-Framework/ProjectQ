@@ -108,10 +108,10 @@ def _decompose_QPE(cmd):  # pylint: disable=invalid-name
         # If U is a function
         for i, ancilla in enumerate(qpe_ancillas):
             with Control(eng, ancilla):
-                unitary(system_qubits, time=2 ** i)
+                unitary(system_qubits, time=2**i)
     else:
         for i, ancilla in enumerate(qpe_ancillas):
-            ipower = int(2 ** i)
+            ipower = int(2**i)
             with Loop(eng, ipower):
                 with Control(eng, ancilla):
                     unitary | system_qubits

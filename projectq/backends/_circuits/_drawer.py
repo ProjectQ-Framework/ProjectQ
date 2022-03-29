@@ -265,10 +265,10 @@ class CircuitDrawer(BasicEngine):
         """
         qubit_lines = {}
 
-        for line in range(len(self._qubit_lines)):
+        for line, qubit_line in self._qubit_lines.items():
             new_line = self._map[line]
             qubit_lines[new_line] = []
-            for cmd in self._qubit_lines[line]:
+            for cmd in qubit_line:
                 lines = [self._map[qb_id] for qb_id in cmd.lines]
                 ctrl_lines = [self._map[qb_id] for qb_id in cmd.ctrl_lines]
                 gate = cmd.gate

@@ -110,7 +110,7 @@ class Simulator(BasicEngine):
         try:
             matrix = cmd.gate.matrix
             # Allow up to 5-qubit gates
-            if len(matrix) > 2 ** 5:
+            if len(matrix) > 2**5:
                 return False
             return True
         except AttributeError:
@@ -402,7 +402,7 @@ class Simulator(BasicEngine):
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
             self._simulator.emulate_time_evolution(op, time, qubitids, ctrlids)
-        elif len(cmd.gate.matrix) <= 2 ** 5:
+        elif len(cmd.gate.matrix) <= 2**5:
             matrix = cmd.gate.matrix
             ids = [qb.id for qureg in cmd.qubits for qb in qureg]
             if not 2 ** len(ids) == len(cmd.gate.matrix):

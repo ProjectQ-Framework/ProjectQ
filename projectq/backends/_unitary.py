@@ -145,7 +145,7 @@ class UnitarySimulator(BasicEngine):
 
         try:
             gate_mat = cmd.gate.matrix
-            if len(gate_mat) > 2 ** 6:
+            if len(gate_mat) > 2**6:
                 warnings.warn("Potentially large matrix gate encountered! ({} qubits)".format(math.log2(len(gate_mat))))
             return True
         except AttributeError:
@@ -231,8 +231,8 @@ class UnitarySimulator(BasicEngine):
                     "previous unitary can be accessed in history"
                 )
                 self._history.append(self._unitary)
-                self._unitary = np.identity(2 ** self._num_qubits, dtype=complex)
-                self._state = np.array([1] + ([0] * (2 ** self._num_qubits - 1)), dtype=complex)
+                self._unitary = np.identity(2**self._num_qubits, dtype=complex)
+                self._state = np.array([1] + ([0] * (2**self._num_qubits - 1)), dtype=complex)
                 self._is_valid = True
 
             self._is_flushed = False
@@ -242,7 +242,7 @@ class UnitarySimulator(BasicEngine):
                 self._num_qubits,
             )
             for mask in mask_list:
-                cache = np.identity(2 ** self._num_qubits, dtype=complex)
+                cache = np.identity(2**self._num_qubits, dtype=complex)
                 cache[np.ix_(mask, mask)] = cmd.gate.matrix
                 self._unitary = cache @ self._unitary
 

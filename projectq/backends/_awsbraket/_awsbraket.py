@@ -172,49 +172,43 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             if get_control_count(cmd) == 1:
                 return isinstance(gate, (R, ZGate, XGate, SwapGate))
             if get_control_count(cmd) == 0:
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            R,
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        R,
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
 
         if self.device == 'IonQ Device':
             if get_control_count(cmd) == 1:
                 return isinstance(gate, XGate)
             if get_control_count(cmd) == 0:
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SqrtXGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SqrtXGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
 
         if self.device == 'SV1':
             if get_control_count(cmd) == 2:
@@ -224,26 +218,23 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             if get_control_count(cmd) == 0:
                 # TODO: add MatrixGate to cover the unitary operation
                 # TODO: Missing XY gate in ProjectQ
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            R,
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SqrtXGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        R,
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SqrtXGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
         return False
 
     def _reset(self):
@@ -372,13 +363,12 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             raise RuntimeError("Please, run the circuit first!")
 
         probability_dict = {}
-        for state in self._probabilities:
+        for state, probability in self._probabilities.items():
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
                 if self._logical_to_physical(qubit.id) >= len(state):  # pragma: no cover
                     raise IndexError('Physical ID {} > length of internal probabilities array'.format(qubit.id))
                 mapped_state[i] = state[self._logical_to_physical(qubit.id)]
-            probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             if mapped_state not in probability_dict:
                 probability_dict[mapped_state] = probability

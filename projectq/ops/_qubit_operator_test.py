@@ -367,7 +367,7 @@ def test_mul_multiple_terms():
     op += qo.QubitOperator(((1, 'Z'), (3, 'X'), (8, 'Z')), 1.2)
     op += qo.QubitOperator(((1, 'Z'), (3, 'Y'), (9, 'Z')), 1.4j)
     res = op * op
-    correct = qo.QubitOperator((), 0.5 ** 2 + 1.2 ** 2 + 1.4j ** 2)
+    correct = qo.QubitOperator((), 0.5**2 + 1.2**2 + 1.4j**2)
     correct += qo.QubitOperator(((1, 'Y'), (3, 'Z')), 2j * 1j * 0.5 * 1.2)
     assert res.isclose(correct)
 

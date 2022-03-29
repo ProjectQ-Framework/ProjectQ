@@ -172,14 +172,10 @@ def test_command_interchangeable_qubit_indices(main_engine):
     qubit5 = Qureg([Qubit(main_engine, 5)])
     input_tuple = (qubit4, qubit5, qubit3, qubit2, qubit1, qubit0)
     cmd = _command.Command(main_engine, gate, input_tuple)
-    assert (
-        cmd.interchangeable_qubit_indices
-        == [
-            [0, 4, 5],
-            [1, 2],
-        ]
-        or cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]]
-    )
+    assert cmd.interchangeable_qubit_indices == [
+        [0, 4, 5],
+        [1, 2],
+    ] or cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]]
 
 
 @pytest.mark.parametrize(
