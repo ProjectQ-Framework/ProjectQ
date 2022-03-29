@@ -250,9 +250,6 @@ class IonQ(Session):
     def show_devices(self):
         """Show the currently available device list for the IonQ provider.
 
-        Args:
-            verbose (bool): If True, additional information is printed
-
         Returns:
             list: list of available devices and their properties.
         """
