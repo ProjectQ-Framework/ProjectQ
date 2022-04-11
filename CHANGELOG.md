@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Added IonQ dynamic backends fetch.
+
 ### Repository
 
 -   Fix issues with building on CentOS 7 & 8
