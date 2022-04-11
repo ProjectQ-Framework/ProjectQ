@@ -142,7 +142,7 @@ class Mock6QubitGate(MatrixGate):
     @property
     def matrix(self):
         self.cnt += 1
-        return numpy.eye(2 ** 6)
+        return numpy.eye(2**6)
 
 
 class MockNoMatrixGate(BasicGate):
@@ -317,7 +317,7 @@ def test_simulator_kqubit_gate(sim):
     class LargerGate(BasicGate):
         @property
         def matrix(self):
-            return numpy.eye(2 ** 6)
+            return numpy.eye(2**6)
 
     with pytest.raises(Exception):
         LargerGate() | (qureg + qubit)
@@ -353,7 +353,7 @@ def test_simulator_probability(sim, mapper):
     eng.flush()
     bits = [0, 0, 1, 0, 1, 0]
     for i in range(6):
-        assert eng.backend.get_probability(bits[:i], qubits[:i]) == pytest.approx(0.5 ** i)
+        assert eng.backend.get_probability(bits[:i], qubits[:i]) == pytest.approx(0.5**i)
     extra_qubit = eng.allocate_qubit()
     with pytest.raises(RuntimeError):
         eng.backend.get_probability([0], extra_qubit)

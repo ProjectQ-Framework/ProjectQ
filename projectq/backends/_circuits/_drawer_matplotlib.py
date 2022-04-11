@@ -144,7 +144,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
         # considering the qubit axes that are between the topmost and
         # bottommost qubit axes of the current command.
         if len(targets) + len(controls) > 1:
-            max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
+            max_depth = max(len(line) for qubit_id, line in self._qubit_lines.items())
 
         for qb_id in itertools.chain(targets, controls):
             depth = len(self._qubit_lines[qb_id])
@@ -206,9 +206,9 @@ class CircuitDrawerMatplotlib(BasicEngine):
               - wire_height (1): Vertical spacing between two qubit
                 wires (roughly in inches)
         """
-        max_depth = max(len(self._qubit_lines[qubit_id]) for qubit_id in self._qubit_lines)
-        for qubit_id in self._qubit_lines:
-            depth = len(self._qubit_lines[qubit_id])
+        max_depth = max(len(line) for qubit_id, line in self._qubit_lines.items())
+        for qubit_id, line in self._qubit_lines.items():
+            depth = len(line)
             if depth < max_depth:
                 self._qubit_lines[qubit_id] += [None] * (max_depth - depth)
 
