@@ -241,7 +241,7 @@ class LocalOptimizer(BasicEngine):
         for cmd in command_list:
             if cmd.gate == FlushGate():  # flush gate --> optimize and flush
                 # NB: self.optimize(i) modifies self._l
-                for idx in self._l: # pylint: disable=consider-using-dict-items
+                for idx in self._l:  # pylint: disable=consider-using-dict-items
                     self._optimize(idx)
                     self._send_qubit_pipeline(idx, len(self._l[idx]))
                 new_dict = {}
