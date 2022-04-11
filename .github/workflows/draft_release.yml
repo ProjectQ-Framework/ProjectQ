@@ -38,7 +38,7 @@ jobs:
       id: make-commit
       run: |
         git add CHANGELOG.md
-        git commit --message "Preparing release v${{ github.event.inputs.tag }}"
+        git commit --message "Preparing release ${{ github.event.inputs.tag }}"
 
         echo "::set-output name=commit::$(git rev-parse HEAD)"
 
