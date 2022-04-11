@@ -53,18 +53,74 @@ def test_authenticate_prompt_requires_token(monkeypatch):
     assert str(excinfo.value) == 'An authentication token is required!'
 
 
-def test_is_online():
+def test_is_online(monkeypatch):
+    def mock_get(_self, path, *args, **kwargs):
+        assert urljoin(_api_url, 'backends') == path
+        mock_response = mock.MagicMock()
+        mock_response.json = mock.MagicMock(
+            return_value=[
+                {
+                    "backend": "qpu.s11",
+                    "status": "available",
+                    "qubits": 11,
+                    "average_queue_time": 3253287,
+                    "last_updated": 1647863473555,
+                    "characterization_url": "/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82",
+                },
+                {
+                    "backend": "simulator",
+                    "status": "available",
+                    "qubits": 19,
+                    "average_queue_time": 1499,
+                    "last_updated": 1627065490042,
+                },
+            ],
+        )
+        return mock_response
+
+    monkeypatch.setattr('requests.sessions.Session.get', mock_get)
+
     ionq_session = _ionq_http_client.IonQ()
     ionq_session.authenticate('not none')
     ionq_session.update_devices_list()
     assert ionq_session.is_online('ionq_simulator')
     assert ionq_session.is_online('ionq_qpu')
+    assert ionq_session.is_online('qpu.s11')
     assert not ionq_session.is_online('ionq_unknown')
 
 
-def test_show_devices():
-    device_list = _ionq_http_client.show_devices()
+def test_show_devices(monkeypatch):
+    def mock_get(_self, path, *args, **kwargs):
+        assert urljoin(_api_url, 'backends') == path
+        mock_response = mock.MagicMock()
+        mock_response.json = mock.MagicMock(
+            return_value=[
+                {
+                    "backend": "qpu.s11",
+                    "status": "available",
+                    "qubits": 11,
+                    "average_queue_time": 3253287,
+                    "last_updated": 1647863473555,
+                    "characterization_url": "/characterizations/48ccd423-2913-45e0-a669-e0f676abeb82",
+                },
+                {
+                    "backend": "simulator",
+                    "status": "available",
+                    "qubits": 19,
+                    "average_queue_time": 1499,
+                    "last_updated": 1627065490042,
+                },
+            ],
+        )
+        return mock_response
+
+    monkeypatch.setattr('requests.sessions.Session.get', mock_get)
+
+    ionq_session = _ionq_http_client.IonQ()
+    ionq_session.authenticate('not none')
+    device_list = ionq_session.show_devices()
     assert isinstance(device_list, dict)
+    assert len(device_list) == 4
     for info in device_list.values():
         assert 'nq' in info
         assert 'target' in info

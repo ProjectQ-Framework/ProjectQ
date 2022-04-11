@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.2] - 2022-04-11
+
+### Changed
+
+-   Added IonQ dynamic backends fetch.
+
+### Repository
+
+-   Fix issues with building on CentOS 7 & 8
+-   Update `pre-commit/pre-commit-hooks` to v4.2.0
+-   Update `Lucas-C/pre-commit-hooks` hook to v1.1.13
+-   Update `flake8` hook to v4.0.1
+-   Update `pylint` hook to v3.0.0a4
+-   Update `black` hook to v22.3.0
+-   Update `check-manifest` to v0.48
+
 ## [0.7.1] - 2022-01-10
 
 ### Added
@@ -168,7 +184,9 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...HEAD
+
+[v0.7.2]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...v0.7.2
 
 [0.7.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...v0.7.1
 

@@ -83,18 +83,18 @@ class CompareEngine(BasicEngine):
         """Equal operator."""
         if not isinstance(other, CompareEngine) or len(self._l) != len(other._l):
             return False
-        for i in range(len(self._l)):
-            if len(self._l[i]) != len(other._l[i]):
+        for i, _li in enumerate(self._l):
+            if len(_li) != len(other._l[i]):
                 return False
-            for j in range(len(self._l[i])):
-                if not _compare_cmds(self._l[i][j], other._l[i][j]):
+            for j, _lij in enumerate(_li):
+                if not _compare_cmds(_lij, other._l[i][j]):
                     return False
         return True
 
     def __str__(self):
         """Return a string representation of the object."""
         string = ""
-        for qubit_id in range(len(self._l)):
+        for qubit_id, _l in enumerate(self._l):
             string += "Qubit {0} : ".format(qubit_id)
             for command in self._l[qubit_id]:
                 string += str(command) + ", "

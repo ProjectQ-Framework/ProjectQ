@@ -256,7 +256,7 @@ class AddQuantumGate(BasicMathGate):
         def math_fun(a):  # pylint: disable=invalid-name
             a[1] = a[0] + a[1]
             if len(bin(a[1])[2:]) > n_qubits:
-                a[1] = a[1] % (2 ** n_qubits)
+                a[1] = a[1] % (2**n_qubits)
 
                 if len(a) == 3:
                     # Flip the last bit of the carry register

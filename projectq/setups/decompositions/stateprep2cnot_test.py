@@ -55,7 +55,7 @@ def test_state_preparation(n_qubits, zeros):
     qureg = eng.allocate_qureg(n_qubits)
     eng.flush()
 
-    f_state = [0.2 + 0.1 * x * cmath.exp(0.1j + 0.2j * x) for x in range(2 ** n_qubits)]
+    f_state = [0.2 + 0.1 * x * cmath.exp(0.1j + 0.2j * x) for x in range(2**n_qubits)]
     if zeros:
         for i in range(2 ** (n_qubits - 1)):
             f_state[i] = 0
