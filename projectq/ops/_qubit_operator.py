@@ -187,8 +187,7 @@ class QubitOperator(BasicGate):
             abs_tol(float): Absolute tolerance, must be at least 0.0
         """
         new_terms = {}
-        for term in self.terms:
-            coeff = self.terms[term]
+        for term, coeff in self.terms.items():
             if abs(coeff.imag) <= abs_tol:
                 coeff = coeff.real
             if abs(coeff) > abs_tol:
@@ -374,9 +373,9 @@ class QubitOperator(BasicGate):
         # Handle QubitOperator.
         if isinstance(multiplier, QubitOperator):  # pylint: disable=too-many-nested-blocks
             result_terms = {}
-            for left_term in self.terms:
-                for right_term in multiplier.terms:
-                    new_coefficient = self.terms[left_term] * multiplier.terms[right_term]
+            for left_term, left_coeff in self.terms.items():
+                for right_term, right_coeff in multiplier.terms.items():
+                    new_coefficient = left_coeff * right_coeff
 
                     # Loop through local operators and create new sorted list
                     # of representing the product local operator:
@@ -564,8 +563,8 @@ class QubitOperator(BasicGate):
         if not self.terms:
             return '0'
         string_rep = ''
-        for term in self.terms:
-            tmp_string = '{}'.format(self.terms[term])
+        for term, coeff in self.terms.items():
+            tmp_string = '{}'.format(coeff)
             if term == ():
                 tmp_string += ' I'
             for operator in term:

@@ -42,7 +42,7 @@ from . import (
 def print_all_probabilities(eng, qureg):
     i = 0
     y = len(qureg)
-    while i < (2 ** y):
+    while i < (2**y):
         qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
         qubit_list = qubit_list[::-1]
         prob = eng.backend.get_probability(qubit_list, qureg)

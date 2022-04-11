@@ -70,7 +70,7 @@ def main():
 
     # Output the final state of the qubits (assuming they all start in state |0>)
     print('The final state of the qubits is:')
-    print(eng.backend.unitary @ np.array([1] + ([0] * (2 ** n_qubits - 1))))
+    print(eng.backend.unitary @ np.array([1] + ([0] * (2**n_qubits - 1))))
     print('\n')
 
     # Show the unitaries separated by measurement:

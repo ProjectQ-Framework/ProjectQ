@@ -36,7 +36,7 @@ def _decompose_state_preparation(cmd):  # pylint: disable=too-many-locals
     num_qubits = len(cmd.qubits[0])
     qureg = cmd.qubits[0]
     final_state = cmd.gate.final_state
-    if len(final_state) != 2 ** num_qubits:
+    if len(final_state) != 2**num_qubits:
         raise ValueError("Length of final_state is invalid.")
     norm = 0.0
     for amplitude in final_state:
@@ -78,8 +78,8 @@ def _decompose_state_preparation(cmd):  # pylint: disable=too-many-locals
                     if a0 == 0 and a1 == 0:
                         angles.append(0)
                     else:
-                        angles.append(-2.0 * math.acos(a0 / math.sqrt(a0 ** 2 + a1 ** 2)))
-                    abs_of_next_blocks.append(math.sqrt(a0 ** 2 + a1 ** 2))
+                        angles.append(-2.0 * math.acos(a0 / math.sqrt(a0**2 + a1**2)))
+                    abs_of_next_blocks.append(math.sqrt(a0**2 + a1**2))
                 UniformlyControlledRy(angles) | (
                     qureg[(qubit_idx + 1) :],  # noqa: E203
                     qubit,

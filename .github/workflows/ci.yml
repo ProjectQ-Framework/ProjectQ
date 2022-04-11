@@ -228,12 +228,18 @@ jobs:
           /var/cache/dnf/
         key: ${{ runner.os }}-centos${{ matrix.centos }}-yum-${{ secrets.yum_cache }}
 
+    - name: Fix repository URLs (CentOS 8 only)
+      if: matrix.centos == 8
+      run: |
+        sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+        sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
     - name: Add Python 3 and other dependencies
       run: yum update -y && yum install -y python3-devel gcc-c++ make
 
     - name: Setup Endpoint repository (CentOS 7 only)
       if: matrix.centos == 7
-      run: yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.7-1.x86_64.rpm
+      run: yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
 
     - name: Install Git > 2.18
       run: yum install -y git
