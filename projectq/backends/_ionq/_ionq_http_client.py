@@ -31,7 +31,8 @@ from .._exceptions import (
     RequestTimeoutError,
 )
 
-_API_URL = 'https://api.ionq.co/v0.1/jobs/'
+_API_URL = 'https://api.ionq.co/v0.2/'
+_JOB_API_URL = urljoin([API_URL, 'jobs')
 
 
 class IonQ(Session):
@@ -148,7 +149,7 @@ class IonQ(Session):
 
         # _API_URL[:-1] strips the trailing slash.
         # TODO: Add comprehensive error parsing for non-200 responses.
-        req = super().post(_API_URL[:-1], json=argument)
+        req = super().post(_JOB_API_URL[:-1], json=argument)
         req.raise_for_status()
 
         # Process the response.
@@ -211,7 +212,7 @@ class IonQ(Session):
 
         try:
             for retries in range(num_retries):
-                req = super().get(urljoin(_API_URL, execution_id))
+                req = super().get(urljoin(_JOB_API_URL, execution_id))
                 req.raise_for_status()
                 r_json = req.json()
                 status = r_json['status']
