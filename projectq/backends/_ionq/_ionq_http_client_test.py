@@ -29,7 +29,6 @@ def no_requests(monkeypatch):
     monkeypatch.delattr('requests.sessions.Session.request')
 
 
-
 def test_authenticate():
     ionq_session = _ionq_http_client.IonQ()
     ionq_session.authenticate('NotNone')
