@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+-   Fixed IonQ dynamic backends fetch, which relied on an incorrect path.
+
 ## [v0.7.2] - 2022-04-11
 
 ### Changed
