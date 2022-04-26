@@ -18,7 +18,6 @@ from unittest import mock
 
 import pytest
 import requests
-from requests.compat import urljoin
 
 from projectq.backends._exceptions import JobSubmissionError, RequestTimeoutError
 from projectq.backends._ionq import _ionq_http_client
@@ -53,7 +52,7 @@ def test_authenticate_prompt_requires_token(monkeypatch):
 
 def test_is_online(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'api.ionq.co/backends' == path
+        assert 'https://api.ionq.co/v0.2/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -89,7 +88,7 @@ def test_is_online(monkeypatch):
 
 def test_show_devices(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'api.ionq.co/v0.2/backends' == path
+        assert 'https://api.ionq.co/v0.2/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
