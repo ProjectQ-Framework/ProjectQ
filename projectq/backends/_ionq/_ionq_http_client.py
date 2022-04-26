@@ -32,7 +32,7 @@ from .._exceptions import (
 )
 
 _API_URL = 'https://api.ionq.co/v0.2/'
-_JOB_API_URL = urljoin([API_URL, 'jobs')
+_JOB_API_URL = urljoin(API_URL, 'jobs')
 
 
 class IonQ(Session):
