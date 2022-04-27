@@ -18,7 +18,6 @@ from unittest import mock
 
 import pytest
 import requests
-from requests.compat import urljoin
 
 from projectq.backends._exceptions import JobSubmissionError, RequestTimeoutError
 from projectq.backends._ionq import _ionq_http_client
@@ -28,9 +27,6 @@ from projectq.backends._ionq import _ionq_http_client
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     monkeypatch.delattr('requests.sessions.Session.request')
-
-
-_api_url = 'https://api.ionq.co/v0.1/jobs/'
 
 
 def test_authenticate():
@@ -55,7 +51,7 @@ def test_authenticate_prompt_requires_token(monkeypatch):
 
 def test_is_online(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'backends') == path
+        assert 'https://api.ionq.co/v0.2/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -91,7 +87,7 @@ def test_is_online(monkeypatch):
 
 def test_show_devices(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'backends') == path
+        assert 'https://api.ionq.co/v0.2/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -187,7 +183,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     }
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == _api_url[:-1]
+        assert path == 'https://api.ionq.co/v0.2/jobs'
         assert 'json' in kwargs
         assert expected_request == kwargs['json']
         mock_response = mock.MagicMock()
@@ -201,7 +197,7 @@ def test_send_real_device_online_verbose(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'new-job-id') == path
+        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -433,7 +429,7 @@ def test_send_api_errors_are_raised(monkeypatch, expected_err, err_data):
     )
 
     def mock_post(_self, path, **kwargs):
-        assert _api_url[:-1] == path
+        assert path == 'https://api.ionq.co/v0.2/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(return_value=err_data)
         return mock_response
@@ -472,7 +468,7 @@ def test_timeout_exception(monkeypatch):
     )
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == _api_url[:-1]
+        assert path == 'https://api.ionq.co/v0.2/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -483,7 +479,7 @@ def test_timeout_exception(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'new-job-id') == path
+        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -533,7 +529,7 @@ def test_retrieve(monkeypatch, token):
     request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'old-job-id') == path
+        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
         json_response = {
             'id': 'old-job-id',
             'status': 'running',
@@ -591,7 +587,7 @@ def test_retrieve_that_errors_are_caught(monkeypatch):
     request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert urljoin(_api_url, 'old-job-id') == path
+        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
         json_response = {
             'id': 'old-job-id',
             'status': 'running',
