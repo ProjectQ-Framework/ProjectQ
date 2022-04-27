@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.3] - 2022-04-27
+
 -   Fixed IonQ dynamic backends fetch, which relied on an incorrect path.
 
 ## [v0.7.2] - 2022-04-11
@@ -186,7 +188,9 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...HEAD
+
+[v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
 
 [v0.7.2]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...v0.7.2
 
