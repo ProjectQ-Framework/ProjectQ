@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Repository
+
+-   Update `docker/setup-qemu-action` GitHub action to v2
+
 ## [v0.7.3] - 2022-04-27
 
 ### Fixed
