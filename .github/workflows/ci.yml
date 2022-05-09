@@ -243,8 +243,8 @@ jobs:
 
     - name: Install Git > 2.18
       run: |
-      yum install -y git
-      git config --global --add safe.directory /__w/ProjectQ/ProjectQ
+        yum install -y git
+        git config --global --add safe.directory /__w/ProjectQ/ProjectQ
 
     - uses: actions/checkout@v2
 
