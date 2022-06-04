@@ -45,9 +45,9 @@ from projectq.ops import (
     Z
 )
 
-from projectq.backends._azure._util import (
+from projectq.backends._azure._util import (  # noqa
     is_available_ionq,
-    is_available_honeywell,
+    is_available_quantinuum,
     to_json,
     to_qasm
 )
@@ -99,7 +99,7 @@ def test_is_available_ionq_failure_cases():
     assert not is_available_ionq(cmd), 'Failing on 8-Controlled X gate'
 
 
-def test_is_available_honeywell_success_cases():
+def test_is_available_quantinuum_success_cases():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
     qubit2 = eng.allocate_qubit()
@@ -107,42 +107,42 @@ def test_is_available_honeywell_success_cases():
     # Rotational gates
     for gate in (Rx, Ry, Rz, Rxx, Ryy, Rzz):
         cmd = Command(eng, gate(math.pi / 2), (qubit1,))
-        assert is_available_honeywell(cmd), 'Failing on {} gate'.format(gate)
+        assert is_available_quantinuum(cmd), 'Failing on {} gate'.format(gate)
 
     # Shortcut gates (Single qubit)
     for gate in (NOT, X, Y, Z, H, S, T):
         cmd = Command(eng, gate, (qubit1,))
-        assert is_available_honeywell(cmd), 'Failing on {} gate'.format(gate)
+        assert is_available_quantinuum(cmd), 'Failing on {} gate'.format(gate)
 
     # Shortcut gates (Two qubit)
     for gate in (CNOT, CX):
         cmd = Command(eng, gate, (qubit1, qubit2))
-        assert is_available_honeywell(cmd), 'Failing on {} gate'.format(gate)
+        assert is_available_quantinuum(cmd), 'Failing on {} gate'.format(gate)
 
     # Meta gates
     for gate in (Measure, Allocate, Deallocate, Barrier):
         cmd = Command(eng, gate, (qubit1,))
-        assert is_available_honeywell(cmd), 'Failing on {} gate'.format(gate)
+        assert is_available_quantinuum(cmd), 'Failing on {} gate'.format(gate)
 
     # Daggered gates
     for gate in (Sdag, Sdagger, Tdag, Tdagger):
         cmd = Command(eng, gate, (qubit1,))
-        assert is_available_honeywell(cmd), 'Failing on {} gate'.format(gate)
+        assert is_available_quantinuum(cmd), 'Failing on {} gate'.format(gate)
 
     # Controlled gates
     for i in range(1, 3):
         qureg = eng.allocate_qureg(i)
         cmd = Command(eng, X, (qubit1,), controls=qureg)
-        assert is_available_honeywell(cmd), 'Failing on {}-Controlled X gate'.format(i)
+        assert is_available_quantinuum(cmd), 'Failing on {}-Controlled X gate'.format(i)
 
 
-def test_is_available_honeywell_failure_cases():
+def test_is_available_quantinuum_failure_cases():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qubit1 = eng.allocate_qubit()
 
     qureg = eng.allocate_qureg(3)
     cmd = Command(eng, X, (qubit1,), controls=qureg)
-    assert not is_available_honeywell(cmd), 'Failing on 3-Controlled X gate'
+    assert not is_available_quantinuum(cmd), 'Failing on 3-Controlled X gate'
 
 
 def test_to_json():

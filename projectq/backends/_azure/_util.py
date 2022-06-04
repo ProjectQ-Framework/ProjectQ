@@ -47,7 +47,7 @@ from .._exceptions import InvalidCommandError
 
 
 IONQ_PROVIDER_ID = 'ionq'
-HONEYWELL_PROVIDER_ID = 'honeywell'
+QUANTINUUM_PROVIDER_ID = 'quantinuum'
 
 # https://docs.ionq.com/#section/Supported-Gates
 IONQ_GATE_MAP = {
@@ -69,7 +69,7 @@ IONQ_GATE_MAP = {
 
 IONQ_SUPPORTED_GATES = tuple(IONQ_GATE_MAP.keys())
 
-HONEYWELL_GATE_MAP = {
+QUANTINUUM_GATE_MAP = {
     BarrierGate: 'barrier',
     HGate: 'h',
     Rx: 'rx',
@@ -85,7 +85,7 @@ HONEYWELL_GATE_MAP = {
     ZGate: 'z'
 }  # excluding controlled, conjugate-transpose and meta gates
 
-HONEYWELL_SUPPORTED_GATES = tuple(HONEYWELL_GATE_MAP.keys())
+QUANTINUUM_SUPPORTED_GATES = tuple(QUANTINUUM_GATE_MAP.keys())
 
 
 def is_available_ionq(cmd):
@@ -123,9 +123,9 @@ def is_available_ionq(cmd):
     return False
 
 
-def is_available_honeywell(cmd):
+def is_available_quantinuum(cmd):
     """
-    Test if Honeywell backend is available to process the provided command.
+    Test if Quantinuum backend is available to process the provided command.
 
     Args:
         cmd (Command): A command to process.
@@ -139,19 +139,19 @@ def is_available_honeywell(cmd):
     if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
         return True
 
-    # TODO: NEEDED CONFORMATION- Does Honeywell support negatively controlled qubits?
+    # TODO: NEEDED CONFORMATION- Does Quantinuum support negatively controlled qubits?
     if has_negative_control(cmd):
         return False
 
     num_ctrl_qubits = get_control_count(cmd)
 
-    # TODO: NEEDED CONFORMATION- Is this logic correct for Honeywell?
+    # TODO: NEEDED CONFORMATION- Does Quantinuum support more than 2 control gates?
     if 0 < num_ctrl_qubits <= 2:
         return isinstance(gate, (XGate, ZGate))
 
     # Gates without control bits.
     if num_ctrl_qubits == 0:
-        supported = isinstance(gate, HONEYWELL_SUPPORTED_GATES)
+        supported = isinstance(gate, QUANTINUUM_SUPPORTED_GATES)
         supported_shortcut = gate in (CNOT, CX)
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
         return supported or supported_shortcut or supported_transpose
@@ -216,7 +216,7 @@ def to_qasm(cmd):
         dict: QASM format of given command.
     """
     # Invalid command, raise exception
-    if not is_available_honeywell(cmd):
+    if not is_available_quantinuum(cmd):
         raise InvalidCommandError(
             'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
         )
@@ -225,7 +225,7 @@ def to_qasm(cmd):
 
     # Process the cmd gate type
     gate_type = type(gate)
-    gate_name = HONEYWELL_GATE_MAP.get(gate_type)
+    gate_name = QUANTINUUM_GATE_MAP.get(gate_type)
 
     # Daggered gates get special treatment
     if isinstance(gate, DaggeredGate):

@@ -30,9 +30,9 @@ from projectq.ops import (
 from ._azure_quantum_client import send, retrieve
 from ._util import (
     IONQ_PROVIDER_ID,
-    HONEYWELL_PROVIDER_ID,
+    QUANTINUUM_PROVIDER_ID,
     is_available_ionq,
-    is_available_honeywell,
+    is_available_quantinuum,
     to_json,
     to_qasm,
     rearrange_result
@@ -42,7 +42,7 @@ from ._exceptions import AzureQuantumTargetNotFoundError
 
 try:
     from azure.quantum import Workspace
-    from azure.quantum.target import Target, IonQ, Honeywell
+    from azure.quantum.target import Target, IonQ, Quantinuum
     from azure.quantum.target.target_factory import TargetFactory
 except ImportError:  # pragma: no cover
     raise ImportError(
@@ -55,7 +55,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
     DEFAULT_TARGETS = {
         IONQ_PROVIDER_ID: IonQ,
-        HONEYWELL_PROVIDER_ID: Honeywell
+        QUANTINUUM_PROVIDER_ID: Quantinuum
     }
 
     def __init__(
@@ -76,7 +76,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Args:
             use_hardware (bool, optional): Whether or not to use real hardware or just a simulator. If False,
             regardless of the value of ```device```, ```ionq.simulator``` used for ionq provider and
-                ```honeywell.hqs-lt-s1-apival``` used for honeywell backend. Defaults to False.
+                ```quantinuum.hqs-lt-s1-apival``` used for Quantinuum backend. Defaults to False.
             num_runs (int, optional): Number of times to run circuits. Defaults to 100.
             verbose (bool, optional): If True, print statistics after job results have been collected. Defaults to
                 False.
@@ -93,8 +93,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         if target_name in IonQ.target_names:
             self._provider_id = IONQ_PROVIDER_ID
-        elif target_name in Honeywell.target_names:
-            self._provider_id = HONEYWELL_PROVIDER_ID
+        elif target_name in Quantinuum.target_names:
+            self._provider_id = QUANTINUUM_PROVIDER_ID
         else:  # pragma: no cover
             raise AzureQuantumTargetNotFoundError('Target {0} does not exit.'.format(target_name))
 
@@ -103,8 +103,11 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         else:
             if self._provider_id == IONQ_PROVIDER_ID:
                 self._target_name = 'ionq.simulator'
-            elif self._provider_id == HONEYWELL_PROVIDER_ID:
-                self._target_name = 'honeywell.hqs-lt-s1-apival'
+            elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+                if target_name == 'quantinuum.hqs-lt-s1':
+                    self._target_name = 'quantinuum.hqs-lt-s1-apival'
+                else:
+                    self._target_name = target_name
 
         if workspace is None:
             workspace = Workspace(**kwargs)
@@ -177,7 +180,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 self._circuit.append(json_cmd)
 
             # TODO: make sure there are no existing measurements on qubits involved
-        elif self._provider_id == HONEYWELL_PROVIDER_ID:
+        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             if not self._circuit:
                 self._circuit = ''
 
@@ -197,8 +200,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         """
         if self._provider_id == IONQ_PROVIDER_ID:
             return is_available_ionq(cmd)
-        elif self._provider_id == HONEYWELL_PROVIDER_ID:
-            return is_available_honeywell(cmd)
+        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+            return is_available_quantinuum(cmd)
 
         return False
 
@@ -293,7 +296,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 "qubits": qubits,
                 "circuit": self._circuit
             }
-        elif self._provider_id == HONEYWELL_PROVIDER_ID:
+        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
                 self._circuit += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
@@ -311,11 +314,12 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             "meas_map": meas_map
         }
 
-    def estimate_cost(self):
+    def estimate_cost(self, **kwargs):
         """Estimate cost for the circuit this object has built during engine execution."""
         return self._target.estimate_cost(
             circuit=self._input_data,  # noqa
-            num_shots=self._num_runs  # noqa
+            num_shots=self._num_runs,  # noqa
+            **kwargs  # noqa
         )  # noqa
 
     def _run(self):  # pylint: disable=too-many-locals
