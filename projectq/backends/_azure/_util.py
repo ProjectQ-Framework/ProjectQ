@@ -17,6 +17,7 @@ from projectq.meta import get_control_count, has_negative_control
 from projectq.ops import (
     AllocateQubitGate,
     BarrierGate,
+    ControlledGate,
     CNOT,
     CX,
     DeallocateQubitGate,
@@ -177,8 +178,13 @@ def to_json(cmd):
 
     gate = cmd.gate
 
-    # Process the cmd gate type
-    gate_type = type(gate)
+    if isinstance(gate, ControlledGate):
+        gate_type = type(gate)
+    elif isinstance(gate, DaggeredGate):
+        gate_type = type(gate.get_inverse())
+    else:
+        gate_type = type(gate)
+
     gate_name = IONQ_GATE_MAP.get(gate_type)
 
     # Daggered gates get special treatment
@@ -191,7 +197,7 @@ def to_json(cmd):
     # Initialize the gate dict
     gate_dict = {
         'gate': gate_name,
-        'targets': targets,
+        'targets': targets
     }
 
     # Check if we have a rotation
@@ -222,9 +228,14 @@ def to_qasm(cmd):
         )
 
     gate = cmd.gate
+    
+    if isinstance(gate, ControlledGate):
+        gate_type = type(gate)
+    elif isinstance(gate, DaggeredGate):
+        gate_type = type(gate.get_inverse())
+    else:
+        gate_type = type(gate)
 
-    # Process the cmd gate type
-    gate_type = type(gate)
     gate_name = QUANTINUUM_GATE_MAP.get(gate_type)
 
     # Daggered gates get special treatment
