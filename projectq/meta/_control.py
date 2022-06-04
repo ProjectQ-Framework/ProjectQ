@@ -66,7 +66,7 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         if len(converted_str) != num_qubits:
             raise ValueError(
                 'Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
-                    ctrl_state, converted_str, num_qubits, 2 ** num_qubits - 1
+                    ctrl_state, converted_str, num_qubits, 2**num_qubits - 1
                 )
             )
         return converted_str

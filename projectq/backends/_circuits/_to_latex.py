@@ -423,7 +423,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 tikz_code.append(connections)
 
             if not draw_gates_in_parallel:
-                for _line in range(len(self.pos)):
+                for _line, _ in enumerate(self.pos):
                     if _line != line:
                         self.pos[_line] = self.pos[line]
 

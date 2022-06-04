@@ -205,7 +205,7 @@ class Simulator:
                 qb_locs[-1].append(self._map[qubit_id])
 
         newstate = _np.zeros_like(self._state)
-        for i in range(0, len(self._state)):
+        for i, state in enumerate(self._state):
             if (mask & i) == mask:
                 arg_list = [0] * len(qb_locs)
                 for qr_i, qr_loc in enumerate(qb_locs):
@@ -218,9 +218,9 @@ class Simulator:
                     for qb_i, qb_loc in enumerate(qr_loc):
                         if not ((new_i >> qb_loc) & 1) == ((res[qr_i] >> qb_i) & 1):
                             new_i ^= 1 << qb_loc
-                newstate[new_i] = self._state[i]
+                newstate[new_i] = state
             else:
-                newstate[i] = self._state[i]
+                newstate[i] = state
 
         self._state = newstate
 
@@ -286,7 +286,7 @@ class Simulator:
         probability = 0.0
         for i, state in enumerate(self._state):
             if (i & mask) == bit_str:
-                probability += state.real ** 2 + state.imag ** 2
+                probability += state.real**2 + state.imag**2
         return probability
 
     def get_amplitude(self, bit_string, ids):
@@ -482,13 +482,13 @@ class Simulator:
             mask |= 1 << pos
             val |= int(values[i]) << pos
         nrm = 0.0
-        for i in range(len(self._state)):
+        for i, state in enumerate(self._state):
             if (mask & i) == val:
-                nrm += _np.abs(self._state[i]) ** 2
+                nrm += _np.abs(state) ** 2
         if nrm < 1.0e-12:
             raise RuntimeError("collapse_wavefunction(): Invalid collapse! Probability is ~0.")
         inv_nrm = 1.0 / _np.sqrt(nrm)
-        for i in range(len(self._state)):
+        for i in range(len(self._state)):  # pylint: disable=consider-using-enumerate
             if (mask & i) != val:
                 self._state[i] = 0.0
             else:

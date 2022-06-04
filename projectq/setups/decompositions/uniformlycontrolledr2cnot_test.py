@@ -102,7 +102,7 @@ def test_uniformly_controlled_ry(n, gate_classes):
         0.01,
         0.99,
     ]
-    angles = random_angles[: 2 ** n]
+    angles = random_angles[: 2**n]
     for basis_state_index in range(0, 2 ** (n + 1)):
         basis_state = [0] * 2 ** (n + 1)
         basis_state[basis_state_index] = 1.0

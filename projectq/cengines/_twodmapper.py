@@ -423,8 +423,7 @@ class GridMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attrib
             active_ids.add(logical_id)
 
         new_stored_commands = []
-        for i in range(len(self._stored_commands)):
-            cmd = self._stored_commands[i]
+        for i, cmd in enumerate(self._stored_commands):
             if len(active_ids) == 0:
                 new_stored_commands += self._stored_commands[i:]
                 break

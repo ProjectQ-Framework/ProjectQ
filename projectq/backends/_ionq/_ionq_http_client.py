@@ -31,7 +31,8 @@ from .._exceptions import (
     RequestTimeoutError,
 )
 
-_API_URL = 'https://api.ionq.co/v0.1/jobs/'
+_API_URL = 'https://api.ionq.co/v0.2/'
+_JOB_API_URL = urljoin(_API_URL, 'jobs/')
 
 
 class IonQ(Session):
@@ -47,6 +48,11 @@ class IonQ(Session):
 
     def update_devices_list(self):
         """Update the list of devices this backend can support."""
+        self.authenticate(self.token)
+        req = super().get(urljoin(_API_URL, 'backends'))
+        req.raise_for_status()
+        r_json = req.json()
+        # Legacy backends, kept for backward compatibility.
         self.backends = {
             'ionq_simulator': {
                 'nq': 29,
@@ -57,6 +63,8 @@ class IonQ(Session):
                 'target': 'qpu',
             },
         }
+        for backend in r_json:
+            self.backends[backend["backend"]] = {"nq": backend["qubits"], "target": backend["backend"]}
         if self._verbose:  # pragma: no cover
             print('- List of IonQ devices available:')
             print(self.backends)
@@ -141,7 +149,7 @@ class IonQ(Session):
 
         # _API_URL[:-1] strips the trailing slash.
         # TODO: Add comprehensive error parsing for non-200 responses.
-        req = super().post(_API_URL[:-1], json=argument)
+        req = super().post(_JOB_API_URL[:-1], json=argument)
         req.raise_for_status()
 
         # Process the response.
@@ -204,7 +212,7 @@ class IonQ(Session):
 
         try:
             for retries in range(num_retries):
-                req = super().get(urljoin(_API_URL, execution_id))
+                req = super().get(urljoin(_JOB_API_URL, execution_id))
                 req.raise_for_status()
                 r_json = req.json()
                 status = r_json['status']
@@ -240,19 +248,14 @@ class IonQ(Session):
 
         raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
 
+    def show_devices(self):
+        """Show the currently available device list for the IonQ provider.
 
-def show_devices(verbose=False):
-    """Show the currently available device list for the IonQ provider.
-
-    Args:
-        verbose (bool): If True, additional information is printed
-
-    Returns:
-        list: list of available devices and their properties.
-    """
-    ionq_session = IonQ(verbose=verbose)
-    ionq_session.update_devices_list()
-    return ionq_session.backends
+        Returns:
+            list: list of available devices and their properties.
+        """
+        self.update_devices_list()
+        return self.backends
 
 
 def retrieve(
@@ -398,6 +401,5 @@ def send(
 __all__ = [
     'send',
     'retrieve',
-    'show_devices',
     'IonQ',
 ]

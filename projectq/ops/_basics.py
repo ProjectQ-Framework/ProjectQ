@@ -43,7 +43,7 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command
 
 ANGLE_PRECISION = 12
-ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
+ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
 RTOL = 1e-10
 ATOL = 1e-12
 

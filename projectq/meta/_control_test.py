@@ -35,7 +35,7 @@ def test_canonical_representation():
         assert _control.canonical_ctrl_state(0, num_qubits) == '0' * num_qubits
 
     num_qubits = 4
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         state = '{0:0b}'.format(i).zfill(num_qubits)
         assert _control.canonical_ctrl_state(i, num_qubits) == state[::-1]
         assert _control.canonical_ctrl_state(state, num_qubits) == state
