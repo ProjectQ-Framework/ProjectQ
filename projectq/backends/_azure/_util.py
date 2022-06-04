@@ -73,11 +73,11 @@ QUANTINUUM_GATE_MAP = {
     BarrierGate: 'barrier',
     HGate: 'h',
     Rx: 'rx',
-    Rxx: 'xx',
+    Rxx: 'rxx',
     Ry: 'ry',
-    Ryy: 'yy',
+    Ryy: 'ryy',
     Rz: 'rz',
-    Rzz: 'zz',
+    Rzz: 'rzz',
     SGate: 's',
     TGate: 't',
     XGate: 'x',
@@ -268,7 +268,7 @@ def to_qasm(cmd):
     elif len(targets) == 2:
         # Rotational gates
         if isinstance(gate, (Rxx, Ryy, Rzz)):
-            return "{}({}) q[{}] q[{}];".format(gate_name, gate.angle, targets[0], targets[1])
+            return "{}({}) q[{}], q[{}];".format(gate_name, gate.angle, targets[0], targets[1])
 
     # Invalid command
     else:

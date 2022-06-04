@@ -297,11 +297,13 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 "circuit": self._circuit
             }
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+            measurement_gates = ""
+
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-                self._circuit += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
+                measurement_gates += "measure q[{0}] -> c[{0}];\n".format(qb_loc)
 
-            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._circuit}\n"
+            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._circuit}\n{measurement_gates}"
 
     @property
     def _metadata(self):
