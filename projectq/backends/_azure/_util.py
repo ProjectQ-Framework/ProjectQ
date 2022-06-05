@@ -18,8 +18,6 @@ from projectq.ops import (
     AllocateQubitGate,
     BarrierGate,
     ControlledGate,
-    CNOT,
-    CX,
     DeallocateQubitGate,
     DaggeredGate,
     MeasureGate,
@@ -276,23 +274,27 @@ def to_qasm(cmd):
             qb_str += "q[{}], ".format(pos)
         return "{} {};".format(gate_name, qb_str[:-2])
 
+    # Daggered gates
+    elif gate in (Sdag, Sdagger, Tdag, Tdagger):
+        return "{} q[{}];".format(gate_name, targets[0])
+
     # Controlled gates
     elif len(controls) > 0:
-        gate_name = 'c' + gate_name
-
         # 1-Controlled gates
         if len(controls) == 1:
+            gate_name = 'c' + gate_name
             return "{} q[{}], q[{}];".format(gate_name, controls[0], targets[0])
 
         # 2-Controlled gates
-        if len(controls) == 1:
-            return "{} q[{}], q[{}], q[{}], q[{}];".format(
-                gate_name, controls[0], controls[1], targets[0], targets[1])
+        if len(controls) == 2:
+            gate_name = 'cc' + gate_name
+            return "{} q[{}], q[{}], q[{}];".format(
+                gate_name, controls[0], controls[1], targets[0])
 
     # Single qubit gates
     elif len(targets) == 1:
         # Standard gates
-        if isinstance(gate, (XGate, YGate, ZGate, SGate, TGate)):
+        if isinstance(gate, (HGate, XGate, YGate, ZGate, SGate, TGate)):
             return "{} q[{}];".format(gate_name, targets[0])
 
         # Rotational gates
