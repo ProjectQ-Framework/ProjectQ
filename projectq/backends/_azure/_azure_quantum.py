@@ -321,7 +321,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         return self._target.estimate_cost(
             circuit=self._input_data,  # noqa
             num_shots=self._num_runs,  # noqa
-            **kwargs  # noqa
+            **kwargs
         )  # noqa
 
     def _run(self):  # pylint: disable=too-many-locals

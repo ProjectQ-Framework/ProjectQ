@@ -19,6 +19,8 @@ from azure.identity import ClientSecretCredential
 from projectq.backends import AzureQuantumBackend
 from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
 
+import pytest
+
 
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
@@ -43,84 +45,46 @@ def create_workspace(**kwargs):
     return workspace
 
 
-def test_azure_quantum_ionq_target():
+@pytest.mark.parametrize(
+    "use_hardware, target_name, expected_provider_id, expected_target_name",
+    [
+        (False, 'ionq.simulator', 'ionq', 'ionq.simulator'),
+        (True, 'ionq.qpu', 'ionq', 'ionq.qpu'),
+        (False, 'ionq.qpu', 'ionq', 'ionq.simulator')
+    ],
+)
+def test_azure_quantum_ionq_target(use_hardware, target_name, expected_provider_id, expected_target_name):
     workspace = create_workspace()
 
-    # sim and use_hardware is false
     backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='ionq.simulator',
+        use_hardware=use_hardware,
+        target_name=target_name,
         workspace=workspace
     )
-    assert backend._provider_id == 'ionq'
-    assert backend._target_name == 'ionq.simulator'
-
-    # qpu and use_hardware is true
-    backend = AzureQuantumBackend(
-        use_hardware=True,
-        target_name='ionq.qpu',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'ionq'
-    assert backend._target_name == 'ionq.qpu'
-
-    # qpu and use_hardware is false
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='ionq.qpu',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'ionq'
-    assert backend._target_name == 'ionq.simulator'
+    assert backend._provider_id == expected_provider_id
+    assert backend._target_name == expected_target_name
 
 
-def test_azure_quantum_quantinuum_target():
+@pytest.mark.parametrize(
+    "use_hardware, target_name, expected_provider_id, expected_target_name",
+    [
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 'quantinuum.hqs-lt-s1-apival'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim'),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 'quantinuum.hqs-lt-s1'),
+        (False, 'quantinuum.hqs-lt-s1', 'quantinuum', 'quantinuum.hqs-lt-s1-apival'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim')
+    ],
+)
+def test_azure_quantum_quantinuum_target(use_hardware, target_name, expected_provider_id, expected_target_name):
     workspace = create_workspace()
 
-    # apival and use_hardware is false
     backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='quantinuum.hqs-lt-s1-apival',
+        use_hardware=use_hardware,
+        target_name=target_name,
         workspace=workspace
     )
-    assert backend._provider_id == 'quantinuum'
-    assert backend._target_name == 'quantinuum.hqs-lt-s1-apival'
-
-    # apival and use_hardware is false
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='quantinuum.hqs-lt-s1-sim',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'quantinuum'
-    assert backend._target_name == 'quantinuum.hqs-lt-s1-sim'
-
-    # qpu and use_hardware is true
-    backend = AzureQuantumBackend(
-        use_hardware=True,
-        target_name='quantinuum.hqs-lt-s1',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'quantinuum'
-    assert backend._target_name == 'quantinuum.hqs-lt-s1'
-
-    # qpu and use_hardware is false
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='quantinuum.hqs-lt-s1',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'quantinuum'
-    assert backend._target_name == 'quantinuum.hqs-lt-s1-apival'
-
-    # sim and use_hardware is false
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='quantinuum.hqs-lt-s1-sim',
-        workspace=workspace
-    )
-    assert backend._provider_id == 'quantinuum'
-    assert backend._target_name == 'quantinuum.hqs-lt-s1-sim'
+    assert backend._provider_id == expected_provider_id
+    assert backend._target_name == expected_target_name
 
 
 def test_azure_quantum_invalid_target():
@@ -137,7 +101,17 @@ def test_azure_quantum_invalid_target():
         assert True
 
 
-def test_estimate_cost():
+@pytest.mark.parametrize(
+    "target_name, expected_result",
+    [
+        ('ionq.simulator', 1.0),
+        ('ionq.qpu', 10.0),
+        ('quantinuum.hqs-lt-s1-apival', 1.0),
+        ('quantinuum.hqs-lt-s1-sim', 1.0),
+        ('quantinuum.hqs-lt-s1', 10.0),
+    ],
+)
+def test_estimate_cost(target_name, expected_result):
     assert True
 
 
