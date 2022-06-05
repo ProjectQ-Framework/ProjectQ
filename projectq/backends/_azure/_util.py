@@ -101,14 +101,17 @@ def is_available_ionq(cmd):
     """
     gate = cmd.gate
 
-    # Meta gates
-    if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
-        return True
-
     if has_negative_control(cmd):
         return False
 
-    num_ctrl_qubits = get_control_count(cmd)
+    if isinstance(gate, ControlledGate):
+        num_ctrl_qubits = gate._n  # noqa
+    else:
+        num_ctrl_qubits = get_control_count(cmd)
+
+    # Get base gate wrapped in ControlledGate classes
+    while isinstance(gate, ControlledGate):
+        gate = gate._gate  # noqa
 
     # NOTE: IonQ supports up to 7 control qubits
     if 0 < num_ctrl_qubits <= 7:
@@ -117,9 +120,9 @@ def is_available_ionq(cmd):
     # Gates without control bits
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, IONQ_SUPPORTED_GATES)
-        supported_shortcut = gate in (CNOT, CX)
+        supported_meta = isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate))
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
-        return supported or supported_shortcut or supported_transpose
+        return supported or supported_meta or supported_transpose
 
     return False
 
@@ -136,15 +139,18 @@ def is_available_quantinuum(cmd):
     """
     gate = cmd.gate
 
-    # Meta gates
-    if isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate)):
-        return True
-
     # TODO: NEEDED CONFORMATION- Does Quantinuum support negatively controlled qubits?
     if has_negative_control(cmd):
         return False
 
-    num_ctrl_qubits = get_control_count(cmd)
+    if isinstance(gate, ControlledGate):
+        num_ctrl_qubits = gate._n  # noqa
+    else:
+        num_ctrl_qubits = get_control_count(cmd)
+
+    # Get base gate wrapped in ControlledGate classes
+    while isinstance(gate, ControlledGate):
+        gate = gate._gate  # noqa
 
     # TODO: NEEDED CONFORMATION- Does Quantinuum support more than 2 control gates?
     if 0 < num_ctrl_qubits <= 2:
@@ -153,9 +159,9 @@ def is_available_quantinuum(cmd):
     # Gates without control bits.
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, QUANTINUUM_SUPPORTED_GATES)
-        supported_shortcut = gate in (CNOT, CX)
+        supported_meta = isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate))
         supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
-        return supported or supported_shortcut or supported_transpose
+        return supported or supported_meta or supported_transpose
 
     return False
 
@@ -179,7 +185,10 @@ def to_json(cmd):
     gate = cmd.gate
 
     if isinstance(gate, ControlledGate):
-        gate_type = type(gate)
+        inner_gate = gate._gate  # noqa
+        while isinstance(inner_gate, ControlledGate):
+            inner_gate = inner_gate._gate  # noqa
+        gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
     else:
@@ -191,8 +200,14 @@ def to_json(cmd):
     if isinstance(gate, DaggeredGate):
         gate_name = gate_name + 'i'
 
-    targets = [qb.id for qureg in cmd.qubits for qb in qureg]
-    controls = [qb.id for qb in cmd.control_qubits]
+    # Controlled gates get special treatment too
+    if isinstance(gate, ControlledGate):
+        all_qubits = [qb.id for qureg in cmd.qubits for qb in qureg]
+        controls = all_qubits[:gate._n]  # noqa
+        targets = all_qubits[gate._n:]  # noqa
+    else:
+        controls = [qb.id for qb in cmd.control_qubits]
+        targets = [qb.id for qureg in cmd.qubits for qb in qureg]
 
     # Initialize the gate dict
     gate_dict = {
@@ -228,9 +243,12 @@ def to_qasm(cmd):
         )
 
     gate = cmd.gate
-    
+
     if isinstance(gate, ControlledGate):
-        gate_type = type(gate)
+        inner_gate = gate._gate  # noqa
+        while isinstance(inner_gate, ControlledGate):
+            inner_gate = inner_gate._gate  # noqa
+        gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
     else:
@@ -242,8 +260,14 @@ def to_qasm(cmd):
     if isinstance(gate, DaggeredGate):
         gate_name = gate_name + 'dg'
 
-    targets = [qb.id for qureg in cmd.qubits for qb in qureg]
-    controls = [qb.id for qb in cmd.control_qubits]
+    # Controlled gates get special treatment too
+    if isinstance(gate, ControlledGate):
+        all_qubits = [qb.id for qureg in cmd.qubits for qb in qureg]
+        controls = all_qubits[:gate._n]  # noqa
+        targets = all_qubits[gate._n:]  # noqa
+    else:
+        controls = [qb.id for qb in cmd.control_qubits]
+        targets = [qb.id for qureg in cmd.qubits for qb in qureg]
 
     # Barrier gate
     if isinstance(gate, BarrierGate):
