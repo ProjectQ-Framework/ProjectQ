@@ -46,8 +46,8 @@ def send(
     """Submit a job to the Azure Quantum.
 
     Args:
-        input_data (dict): Input data for Quantum job.
-        num_shots (list): Number of runs.
+        input_data (any): Input data for Quantum job.
+        num_shots (int): Number of runs.
         target (Target), The target to run this on.
         num_retries (int, optional): Number of times to retry while the job is
             not finished. Defaults to 100.

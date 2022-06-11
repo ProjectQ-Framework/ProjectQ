@@ -86,8 +86,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             target_name (str, optional): Target to run jobs on. Defaults to ```ionq.simulator```.
             num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
                 to 100.
-            interval (int, optional): Number of seconds to wait inbetween result fetch retries. Defaults to 1.
-            retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
+            interval (int, optional): Number of seconds to wait in between result fetch retries. Defaults to 1.
+            retrieve_execution (str, optional): An Azure Quantum Job ID. If provided, a job with this ID will be
                 fetched. Defaults to None.
         """
         super().__init__()
