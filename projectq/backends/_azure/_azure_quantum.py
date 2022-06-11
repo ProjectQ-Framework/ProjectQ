@@ -16,6 +16,7 @@
 """Back-end to run quantum programs using Azure Quantum."""
 
 import numpy as np
+from collections import Counter
 
 from projectq.types import WeakQubitRef
 from projectq.cengines import BasicEngine
@@ -351,14 +352,21 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 interval=self._interval,
                 verbose=self._verbose
             )
+
             if res is None:
                 raise RuntimeError(
                     "Failed to retrieve job from Azure Quantum with job id: '{}'!".format(self._retrieve_execution)
                 )
 
-        self._probabilities = {
-            rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
-        }
+        if self._provider_id == IONQ_PROVIDER_ID:
+            self._probabilities = {
+                rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
+            }
+        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+            histogram = Counter(res["c"])
+            self._probabilities = {
+                k: v / self._num_runs for k, v in histogram.items()
+            }
 
         # Set a single measurement result
         bitstring = np.random.choice(list(self._probabilities.keys()), p=list(self._probabilities.values()))
