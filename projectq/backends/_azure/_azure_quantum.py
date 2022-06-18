@@ -362,6 +362,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             self._probabilities = {
                 rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
             }
+        # TODO: Fix this
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             histogram = Counter(res["c"])
             self._probabilities = {

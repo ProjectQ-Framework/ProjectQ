@@ -14,14 +14,12 @@
 #   limitations under the License.
 
 from unittest import mock
-from azure.quantum import Workspace
-from azure.identity import ClientSecretCredential
 
-from projectq import MainEngine
 from projectq.ops import H, CX, All, Measure
-from projectq.cengines import BasicMapperEngine
+from projectq.cengines import MainEngine, BasicMapperEngine
 from projectq.backends import AzureQuantumBackend
 from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
+import projectq.backends._azure._azure_quantum
 
 import pytest
 
@@ -29,32 +27,75 @@ import pytest
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
 
-def create_workspace():
-    return mock.MagicMock()
+def mock_target_status(
+    target_id,
+    current_availability,
+    average_queue_time
+):
+    target_status = mock.MagicMock()
+
+    target_status.id = target_id
+    target_status.current_availability = current_availability
+    target_status.average_queue_time = average_queue_time
+
+    return target_status
+
+
+# TODO: Improve mock workspace
+def mock_workspace(
+    target_id,
+    provider_id,
+    current_availability='Available',
+    average_queue_time=1000
+):
+    workspace = mock.MagicMock()
+
+    workspace.name = 'testWorkspace'
+    workspace.resource_group = 'testResourceGroup'
+    workspace.subscription_id = ZERO_GUID
+    workspace.user_agent = 'projectq'
+
+    workspace._get_target_status.return_value = (  # noqa
+        [(
+            provider_id,
+            mock_target_status(
+                target_id=target_id,
+                current_availability=current_availability,
+                average_queue_time=average_queue_time
+            )
+        )]
+    )
+
+    return workspace
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name, expected_provider_id, expected_target_name",
+    "use_hardware, target_name, provider_id, expected_target_name",
     [
         (False, 'ionq.simulator', 'ionq', 'ionq.simulator'),
         (True, 'ionq.qpu', 'ionq', 'ionq.qpu'),
         (False, 'ionq.qpu', 'ionq', 'ionq.simulator')
     ],
 )
-def test_azure_quantum_ionq_target(use_hardware, target_name, expected_provider_id, expected_target_name):
-    workspace = create_workspace()
+def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expected_target_name):
+    # region mock dependencies
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
         workspace=workspace
     )
 
-    assert backend._provider_id == expected_provider_id
     assert backend._target_name == expected_target_name
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name, expected_provider_id, expected_target_name",
+    "use_hardware, target_name, provider_id, expected_target_name",
     [
         (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 'quantinuum.hqs-lt-s1-apival'),
         (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim'),
@@ -63,20 +104,30 @@ def test_azure_quantum_ionq_target(use_hardware, target_name, expected_provider_
         (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim')
     ],
 )
-def test_azure_quantum_quantinuum_target(use_hardware, target_name, expected_provider_id, expected_target_name):
-    workspace = create_workspace()
+def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id, expected_target_name):
+    # region mock dependencies
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
         workspace=workspace
     )
 
-    assert backend._provider_id == expected_provider_id
     assert backend._target_name == expected_target_name
 
 
 def test_azure_quantum_invalid_target():
-    workspace = create_workspace()
+    # region mock dependencies
+    workspace = mock_workspace(
+        target_id='ionq.simulator',
+        provider_id='ionq'
+    )
+    # endregion mock dependencies
 
     try:
         AzureQuantumBackend(
@@ -90,51 +141,91 @@ def test_azure_quantum_invalid_target():
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name, expected_result",
+    "use_hardware, target_name, provider_id, current_availability",
     [
-        (False, 'ionq.simulator', 1.0),
-        (True, 'ionq.qpu', 10.0),
-        (False, 'quantinuum.hqs-lt-s1-apival', 1.0),
-        (False, 'quantinuum.hqs-lt-s1-sim', 1.0),
-        (True, 'quantinuum.hqs-lt-s1', 10.0),
+        (False, 'ionq.simulator', 'ionq', 'Available'),
+        (True, 'ionq.qpu', 'ionq', 'Available'),
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 'Available'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'Unavailable'),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 'Degraded'),
     ],
 )
-def test_estimate_cost(use_hardware, target_name, expected_result):
-    workspace = create_workspace()
+def test_current_availability(use_hardware, target_name, provider_id, current_availability):
+    # region mock dependencies
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id,
+        current_availability=current_availability
+    )
+    # endregion mock dependencies
+
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
         workspace=workspace
     )
 
-    # TODO:
-    assert True
+    assert backend.current_availability == current_availability
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name",
+    "use_hardware, target_name, provider_id, average_queue_time",
     [
-        (False, 'ionq.simulator'),
-        (True, 'ionq.qpu')
+        (False, 'ionq.simulator', 'ionq', 76298),
+        (True, 'ionq.qpu', 'ionq', 58260),
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 73524),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 15729),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 27405),
     ],
 )
-def test_run_ionq(use_hardware, target_name):
-    # mock send method from quantum client
-    mock_send = mock.patch('projectq.backends._azure._util.send')
-    mock_send.return_value = {
-        'histogram': {
-            '0': 0.125,
-            '1': 0.125,
-            '2': 0.125,
-            '3': 0.125,
-            '4': 0.125,
-            '5': 0.125,
-            '6': 0.125,
-            '7': 0.125
-        }
-    }
+def test_average_queue_time(use_hardware, target_name, provider_id, average_queue_time):
+    # region mock dependencies
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id,
+        average_queue_time=average_queue_time
+    )
+    # endregion mock dependencies
 
-    workspace = create_workspace()
+    backend = AzureQuantumBackend(
+        use_hardware=use_hardware,
+        target_name=target_name,
+        workspace=workspace
+    )
+
+    assert backend.average_queue_time == average_queue_time
+
+
+@pytest.mark.parametrize(
+    "use_hardware, target_name, provider_id",
+    [
+        (False, 'ionq.simulator', 'ionq'),
+        (True, 'ionq.qpu', 'ionq')
+    ],
+)
+def test_run_ionq(use_hardware, target_name, provider_id):
+    # region mock dependencies
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'histogram': {
+                '0': 0.125,
+                '1': 0.125,
+                '2': 0.125,
+                '3': 0.125,
+                '4': 0.125,
+                '5': 0.125,
+                '6': 0.125,
+                '7': 0.125
+            }
+        }
+    )
+
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
@@ -143,7 +234,7 @@ def test_run_ionq(use_hardware, target_name):
     )
 
     mapper = BasicMapperEngine()
-    max_qubits = 2
+    max_qubits = 3
 
     mapping = {}
     for i in range(max_qubits):
@@ -153,14 +244,16 @@ def test_run_ionq(use_hardware, target_name):
 
     main_engine = MainEngine(
         backend=backend,
-        engine_list=[mapper]
+        engine_list=[mapper],
+        verbose=True
     )
 
-    circuit = main_engine.allocate_qureg(2)
-    q0, q1 = circuit
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
 
-    H | q0
-    CX | (q0, q1)
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
     All(Measure) | circuit
 
     main_engine.flush()
@@ -179,27 +272,34 @@ def test_run_ionq(use_hardware, target_name):
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name",
+    "use_hardware, target_name, provider_id",
     [
-        (False, 'quantinuum.hqs-lt-s1-apival'),
-        (False, 'quantinuum.hqs-lt-s1-sim'),
-        (True, 'quantinuum.hqs-lt-s1'),
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum'),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum'),
     ],
 )
-def test_run_quantinuum(use_hardware, target_name):
-    # mock send method from quantum client
-    mock_send = mock.patch('projectq.backends._azure._util.send')
-    mock_send.return_value = {
-        'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000', '101',
-              '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000', '101', '101',
-              '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100', '110', '011', '010',
-              '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011', '111', '101', '101', '001',
-              '011', '110', '001', '010', '001', '110', '101', '000', '010', '001', '011', '100', '110', '100', '110',
-              '101', '110', '111', '110', '001', '011', '101', '111', '011', '100', '111', '100', '001', '111', '111',
-              '100', '100', '110', '101', '100', '110', '100', '000', '011', '000']
-    }
+def test_run_quantinuum(use_hardware, target_name, provider_id):
+    # region mock dependencies
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
+                  '101', '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000',
+                  '101', '101', '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100',
+                  '110', '011', '010', '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011',
+                  '111', '101', '101', '001', '011', '110', '001', '010', '001', '110', '101', '000', '010', '001',
+                  '011', '100', '110', '100', '110', '101', '110', '111', '110', '001', '011', '101', '111', '011',
+                  '100', '111', '100', '001', '111', '111', '100', '100', '110', '101', '100', '110', '100', '000',
+                  '011', '000']
+        }
+    )
 
-    workspace = create_workspace()
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
@@ -208,7 +308,7 @@ def test_run_quantinuum(use_hardware, target_name):
     )
 
     mapper = BasicMapperEngine()
-    max_qubits = 2
+    max_qubits = 3
 
     mapping = {}
     for i in range(max_qubits):
@@ -218,14 +318,16 @@ def test_run_quantinuum(use_hardware, target_name):
 
     main_engine = MainEngine(
         backend=backend,
-        engine_list=[mapper]
+        engine_list=[mapper],
+        verbose=True
     )
 
-    circuit = main_engine.allocate_qureg(2)
-    q0, q1 = circuit
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
 
-    H | q0
-    CX | (q0, q1)
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
     All(Measure) | circuit
 
     main_engine.flush()
@@ -244,23 +346,83 @@ def test_run_quantinuum(use_hardware, target_name):
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name",
+    "use_hardware, target_name, provider_id",
     [
-        (False, 'ionq.simulator'),
-        (True, 'ionq.qpu')
+        (False, 'ionq.simulator', 'ionq'),
+        (True, 'ionq.qpu', 'ionq')
     ],
 )
-def test_run_ionq_retrieve_execution(use_hardware, target_name):
+def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
+    # region mock dependencies
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'histogram': {
+                '0': 0.125,
+                '1': 0.125,
+                '2': 0.125,
+                '3': 0.125,
+                '4': 0.125,
+                '5': 0.125,
+                '6': 0.125,
+                '7': 0.125
+            }
+        }
+    )
+
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
+    backend = AzureQuantumBackend(
+        use_hardware=use_hardware,
+        target_name=target_name,
+        workspace=workspace,
+        retrieve_execution='job1',
+        verbose=True
+    )
+
+    # TODO: Add testcases
     assert True
 
 
 @pytest.mark.parametrize(
-    "use_hardware, target_name",
+    "use_hardware, target_name, provider_id",
     [
-        (False, 'quantinuum.hqs-lt-s1-apival'),
-        (False, 'quantinuum.hqs-lt-s1-sim'),
-        (True, 'quantinuum.hqs-lt-s1'),
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum'),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum'),
     ],
 )
-def test_run_quantinuum_retrieve_execution(use_hardware, target_name):
+def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_id):
+    # region mock dependencies
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
+                  '101', '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000',
+                  '101', '101', '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100',
+                  '110', '011', '010', '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011',
+                  '111', '101', '101', '001', '011', '110', '001', '010', '001', '110', '101', '000', '010', '001',
+                  '011', '100', '110', '100', '110', '101', '110', '111', '110', '001', '011', '101', '111', '011',
+                  '100', '111', '100', '001', '111', '111', '100', '100', '110', '101', '100', '110', '100', '000',
+                  '011', '000']
+        }
+    )
+
+    workspace = mock_workspace(
+        target_id=target_name,
+        provider_id=provider_id
+    )
+    # endregion mock dependencies
+
+    backend = AzureQuantumBackend(
+        use_hardware=use_hardware,
+        target_name=target_name,
+        workspace=workspace,
+        retrieve_execution='job1',
+        verbose=True
+    )
+
+    # TODO: Add testcases
     assert True
