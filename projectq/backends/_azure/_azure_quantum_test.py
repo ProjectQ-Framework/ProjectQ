@@ -15,11 +15,11 @@
 
 from unittest import mock
 
+import projectq.backends._azure._azure_quantum
 from projectq.ops import H, CX, All, Measure
 from projectq.cengines import MainEngine, BasicMapperEngine
 from projectq.backends import AzureQuantumBackend
 from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
-import projectq.backends._azure._azure_quantum
 
 import pytest
 
@@ -354,7 +354,7 @@ def test_run_quantinuum(use_hardware, target_name, provider_id):
 )
 def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     # region mock dependencies
-    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+    projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'histogram': {
                 '0': 0.125,
@@ -379,12 +379,46 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
         use_hardware=use_hardware,
         target_name=target_name,
         workspace=workspace,
-        retrieve_execution='job1',
+        retrieve_execution=ZERO_GUID,
         verbose=True
     )
 
-    # TODO: Add testcases
-    assert True
+    mapper = BasicMapperEngine()
+    max_qubits = 3
+
+    mapping = {}
+    for i in range(max_qubits):
+        mapping[i] = i
+
+    mapper.current_mapping = mapping
+
+    main_engine = MainEngine(
+        backend=backend,
+        engine_list=[mapper],
+        verbose=True
+    )
+
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
+
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
+    All(Measure) | circuit
+
+    main_engine.flush()
+
+    result = backend.get_probabilities(circuit)
+    assert result == {
+        '000': 0.125,
+        '100': 0.125,
+        '010': 0.125,
+        '110': 0.125,
+        '001': 0.125,
+        '101': 0.125,
+        '011': 0.125,
+        '111': 0.125
+    }
 
 
 @pytest.mark.parametrize(
@@ -397,7 +431,7 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
 )
 def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_id):
     # region mock dependencies
-    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+    projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
                   '101', '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000',
@@ -420,9 +454,43 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
         use_hardware=use_hardware,
         target_name=target_name,
         workspace=workspace,
-        retrieve_execution='job1',
+        retrieve_execution=ZERO_GUID,
         verbose=True
     )
 
-    # TODO: Add testcases
-    assert True
+    mapper = BasicMapperEngine()
+    max_qubits = 3
+
+    mapping = {}
+    for i in range(max_qubits):
+        mapping[i] = i
+
+    mapper.current_mapping = mapping
+
+    main_engine = MainEngine(
+        backend=backend,
+        engine_list=[mapper],
+        verbose=True
+    )
+
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
+
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
+    All(Measure) | circuit
+
+    main_engine.flush()
+
+    result = backend.get_probabilities(circuit)
+    assert result == {
+        '010': 0.07,
+        '100': 0.19,
+        '110': 0.18,
+        '000': 0.12,
+        '101': 0.12,
+        '111': 0.11,
+        '011': 0.1,
+        '001': 0.11
+    }
