@@ -14,6 +14,7 @@
 #   limitations under the License.
 
 from projectq.meta import get_control_count, has_negative_control
+from projectq.ops import get_inverse
 from projectq.ops import (
     AllocateQubitGate,
     BarrierGate,
@@ -30,12 +31,10 @@ from projectq.ops import (
     Rz,
     Rzz,
     Sdag,
-    Sdagger,
     SGate,
     SqrtXGate,
     SwapGate,
     Tdag,
-    Tdagger,
     TGate,
     XGate,
     YGate,
@@ -86,6 +85,9 @@ QUANTINUUM_GATE_MAP = {
 
 QUANTINUUM_SUPPORTED_GATES = tuple(QUANTINUUM_GATE_MAP.keys())
 
+V = SqrtXGate()
+Vdag = get_inverse(V)
+
 
 def is_available_ionq(cmd):
     """
@@ -119,7 +121,8 @@ def is_available_ionq(cmd):
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, IONQ_SUPPORTED_GATES)
         supported_meta = isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate))
-        supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
+        supported_transpose = gate in (Sdag, Tdag, Vdag)
+
         return supported or supported_meta or supported_transpose
 
     return False
@@ -158,7 +161,7 @@ def is_available_quantinuum(cmd):
     if num_ctrl_qubits == 0:
         supported = isinstance(gate, QUANTINUUM_SUPPORTED_GATES)
         supported_meta = isinstance(gate, (MeasureGate, AllocateQubitGate, DeallocateQubitGate, BarrierGate))
-        supported_transpose = gate in (Sdag, Sdagger, Tdag, Tdagger)  # TODO: Add transpose of square-root-of-not (vi)
+        supported_transpose = gate in (Sdag, Tdag)
         return supported or supported_meta or supported_transpose
 
     return False
@@ -176,9 +179,7 @@ def to_json(cmd):
     """
     # Invalid command, raise exception
     if not is_available_ionq(cmd):
-        raise InvalidCommandError(
-            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
-        )
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
     gate = cmd.gate
 
@@ -236,9 +237,7 @@ def to_qasm(cmd):
     """
     # Invalid command, raise exception
     if not is_available_quantinuum(cmd):
-        raise InvalidCommandError(
-            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
-        )
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
     gate = cmd.gate
 
@@ -253,6 +252,9 @@ def to_qasm(cmd):
         gate_type = type(gate)
 
     gate_name = QUANTINUUM_GATE_MAP.get(gate_type)
+
+    if not gate_name:
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
     # Daggered gates get special treatment
     if isinstance(gate, DaggeredGate):
@@ -275,7 +277,7 @@ def to_qasm(cmd):
         return "{} {};".format(gate_name, qb_str[:-2])
 
     # Daggered gates
-    elif gate in (Sdag, Sdagger, Tdag, Tdagger):
+    elif gate in (Sdag, Tdag):
         return "{} q[{}];".format(gate_name, targets[0])
 
     # Controlled gates
@@ -309,9 +311,7 @@ def to_qasm(cmd):
 
     # Invalid command
     else:
-        raise InvalidCommandError(
-            'Command not available. You should run the circuit with the appropriate Azure Quantum setup.'
-        )
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
 
 def rearrange_result(input_result, length):

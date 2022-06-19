@@ -51,7 +51,8 @@ from projectq.backends._azure._util import (  # noqa
     is_available_ionq,
     is_available_quantinuum,
     to_json,
-    to_qasm
+    to_qasm,
+    Vdag
 )
 
 import pytest
@@ -75,6 +76,7 @@ import pytest
         (Sdagger, True),
         (Tdag, True),
         (Tdagger, True),
+        (Vdag, True),
         (Measure, True),
         (Allocate, True),
         (Deallocate, True),
@@ -186,7 +188,8 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
         (Allocate, True),
         (Deallocate, True),
         (Barrier, True),
-        (SqrtX, False)
+        (SqrtX, False),
+        (Vdag, False)
     ]
 )
 def test_quantinuum_is_available_single_qubit_gates(single_qubit_gate, expected_result):
@@ -296,7 +299,8 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
         (Sdagger, {'gate': 'si', 'targets': [0]}),
         (Tdag, {'gate': 'ti', 'targets': [0]}),
         (Tdagger, {'gate': 'ti', 'targets': [0]}),
-        (SqrtX, {'gate': 'v', 'targets': [0]})
+        (SqrtX, {'gate': 'v', 'targets': [0]}),
+        (Vdag, {'gate': 'vi', 'targets': [0]})
     ]
 )
 def test_to_json_single_qubit_gates(single_qubit_gate, expected_result):
