@@ -140,7 +140,6 @@ def is_available_quantinuum(cmd):
     """
     gate = cmd.gate
 
-    # TODO: NEEDED CONFORMATION- Does Quantinuum support negatively controlled qubits?
     if has_negative_control(cmd):
         return False
 
@@ -252,9 +251,6 @@ def to_qasm(cmd):
         gate_type = type(gate)
 
     gate_name = QUANTINUUM_GATE_MAP.get(gate_type)
-
-    if not gate_name:
-        raise InvalidCommandError('Invalid command:', str(cmd))
 
     # Daggered gates get special treatment
     if isinstance(gate, DaggeredGate):

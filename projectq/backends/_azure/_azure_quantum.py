@@ -180,7 +180,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             if json_cmd:
                 self._circuit.append(json_cmd)
 
-            # TODO: make sure there are no existing measurements on qubits involved
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             if not self._circuit:
                 self._circuit = ''
