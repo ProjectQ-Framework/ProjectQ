@@ -41,30 +41,62 @@ def mock_target_status(
     return target_status
 
 
-# TODO: Improve mock workspace
-def mock_workspace(
-    target_id,
-    provider_id,
-    current_availability='Available',
-    average_queue_time=1000
-):
-    workspace = mock.MagicMock()
+def mock_provider_statuses():
+    ionq_provider_status = mock.MagicMock()
+    ionq_provider_status.id = 'ionq'
+    ionq_provider_status.targets = [
+        mock_target_status(
+            target_id='ionq.simulator',
+            current_availability='Available',
+            average_queue_time=1000
+        ),
+        mock_target_status(
+            target_id='ionq.qpu',
+            current_availability='Available',
+            average_queue_time=2000
+        )
+    ]
 
-    workspace.name = 'testWorkspace'
-    workspace.resource_group = 'testResourceGroup'
-    workspace.subscription_id = ZERO_GUID
-    workspace.user_agent = 'projectq'
+    quantinuum_provider_status = mock.MagicMock()
+    quantinuum_provider_status.id = 'quantinuum'
+    quantinuum_provider_status.targets = [
+        mock_target_status(
+            target_id='quantinuum.hqs-lt-s1-apival',
+            current_availability='Available',
+            average_queue_time=3000
+        ),
+        mock_target_status(
+            target_id='quantinuum.hqs-lt-s1-sim',
+            current_availability='Available',
+            average_queue_time=4000
+        ),
+        mock_target_status(
+            target_id='quantinuum.hqs-lt-s1',
+            current_availability='Degraded',
+            average_queue_time=5000
+        )
+    ]
 
-    workspace._get_target_status.return_value = (  # noqa
-        [(
-            provider_id,
-            mock_target_status(
-                target_id=target_id,
-                current_availability=current_availability,
-                average_queue_time=average_queue_time
-            )
-        )]
+    return [
+        ionq_provider_status, quantinuum_provider_status
+    ]
+
+
+def mock_workspace():
+    from azure.quantum import Workspace
+
+    workspace = Workspace(
+        subscription_id=ZERO_GUID,
+        resource_group='testResourceGroup',
+        name='testWorkspace',
+        location='East US'
     )
+
+    workspace.append_user_agent('projectq')
+
+    workspace._client = mock.MagicMock()
+    workspace._client.providers = mock.MagicMock()  # noqa
+    workspace._client.providers.get_status.return_value = mock_provider_statuses()  # noqa
 
     return workspace
 
@@ -78,12 +110,7 @@ def mock_workspace(
     ],
 )
 def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expected_target_name):
-    # region mock dependencies
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -105,12 +132,7 @@ def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expec
     ],
 )
 def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id, expected_target_name):
-    # region mock dependencies
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -122,12 +144,7 @@ def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id,
 
 
 def test_azure_quantum_invalid_target():
-    # region mock dependencies
-    workspace = mock_workspace(
-        target_id='ionq.simulator',
-        provider_id='ionq'
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     try:
         AzureQuantumBackend(
@@ -146,18 +163,12 @@ def test_azure_quantum_invalid_target():
         (False, 'ionq.simulator', 'ionq', 'Available'),
         (True, 'ionq.qpu', 'ionq', 'Available'),
         (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 'Available'),
-        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'Unavailable'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'Available'),
         (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 'Degraded'),
     ],
 )
 def test_current_availability(use_hardware, target_name, provider_id, current_availability):
-    # region mock dependencies
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id,
-        current_availability=current_availability
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -171,21 +182,15 @@ def test_current_availability(use_hardware, target_name, provider_id, current_av
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id, average_queue_time",
     [
-        (False, 'ionq.simulator', 'ionq', 76298),
-        (True, 'ionq.qpu', 'ionq', 58260),
-        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 73524),
-        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 15729),
-        (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 27405),
+        (False, 'ionq.simulator', 'ionq', 1000),
+        (True, 'ionq.qpu', 'ionq', 2000),
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum', 3000),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 4000),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 5000),
     ],
 )
 def test_average_queue_time(use_hardware, target_name, provider_id, average_queue_time):
-    # region mock dependencies
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id,
-        average_queue_time=average_queue_time
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -204,7 +209,6 @@ def test_average_queue_time(use_hardware, target_name, provider_id, average_queu
     ],
 )
 def test_run_ionq(use_hardware, target_name, provider_id):
-    # region mock dependencies
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
             'histogram': {
@@ -220,11 +224,7 @@ def test_run_ionq(use_hardware, target_name, provider_id):
         }
     )
 
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -280,7 +280,6 @@ def test_run_ionq(use_hardware, target_name, provider_id):
     ],
 )
 def test_run_quantinuum(use_hardware, target_name, provider_id):
-    # region mock dependencies
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
             'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
@@ -294,11 +293,7 @@ def test_run_quantinuum(use_hardware, target_name, provider_id):
         }
     )
 
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -345,6 +340,43 @@ def test_run_quantinuum(use_hardware, target_name, provider_id):
     }
 
 
+def test_run_no_circuit():
+    workspace = mock_workspace()
+
+    backend = AzureQuantumBackend(
+        use_hardware=False,
+        target_name='ionq.simulator',
+        workspace=workspace,
+        verbose=True
+    )
+
+    mapper = BasicMapperEngine()
+    max_qubits = 3
+
+    mapping = {}
+    for i in range(max_qubits):
+        mapping[i] = i
+
+    mapper.current_mapping = mapping
+
+    main_engine = MainEngine(
+        backend=backend,
+        engine_list=[mapper],
+        verbose=True
+    )
+
+    circuit = main_engine.allocate_qureg(3)
+
+    main_engine.flush()
+
+    try:
+        _ = backend.get_probabilities(circuit)
+
+        assert False, 'Expected RuntimeError, run without any circuit'
+    except RuntimeError:
+        assert True
+
+
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [
@@ -353,7 +385,6 @@ def test_run_quantinuum(use_hardware, target_name, provider_id):
     ],
 )
 def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
-    # region mock dependencies
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'histogram': {
@@ -369,11 +400,7 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
         }
     )
 
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
@@ -430,7 +457,6 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     ],
 )
 def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_id):
-    # region mock dependencies
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
@@ -444,11 +470,7 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
         }
     )
 
-    workspace = mock_workspace(
-        target_id=target_name,
-        provider_id=provider_id
-    )
-    # endregion mock dependencies
+    workspace = mock_workspace()
 
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,

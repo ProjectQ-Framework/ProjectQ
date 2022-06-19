@@ -87,7 +87,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
                 to 100.
             interval (int, optional): Number of seconds to wait in between result fetch retries. Defaults to 1.
-            retrieve_execution (str, optional): An Azure Quantum Job ID. If provided, a job with this ID will be
+            retrieve_execution (str, optional): An Azure Quantum Job ID. If provided, a job result with this ID will be
                 fetched. Defaults to None.
         """
         super().__init__()
@@ -304,7 +304,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
                 measurement_gates += "measure q[{0}] -> c[{0}];\n".format(qb_loc)
 
-            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];{self._circuit}\n{measurement_gates}"
+            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];" \
+                   f"{self._circuit}\n{measurement_gates}"
 
     @property
     def _metadata(self):
@@ -362,7 +363,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             self._probabilities = {
                 rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
             }
-        # TODO: Fix this
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             histogram = Counter(res["c"])
             self._probabilities = {
