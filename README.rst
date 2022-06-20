@@ -27,7 +27,7 @@ targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
 
--  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, or IonQ service provided devices
+-  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, Azure Quantum, or IonQ service provided devices
 -  simulate quantum programs on classical computers
 -  emulate quantum programs at a higher level of abstraction (e.g.,
    mimicking the action of large oracles instead of compiling them to

@@ -76,8 +76,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         Args:
             use_hardware (bool, optional): Whether or not to use real hardware or just a simulator. If False,
-            regardless of the value of ```device```, ```ionq.simulator``` used for ionq provider and
-                ```quantinuum.hqs-lt-s1-apival``` used for Quantinuum backend. Defaults to False.
+            regardless of the value of ```target_name```, ```ionq.simulator``` used for IonQ provider and
+                ```quantinuum.hqs-lt-s1-apival``` used for Quantinuum provider. Defaults to False.
             num_runs (int, optional): Number of times to run circuits. Defaults to 100.
             verbose (bool, optional): If True, print statistics after job results have been collected. Defaults to
                 False.
@@ -254,7 +254,11 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             raise ValueError('Desired state and register must be the same length!')
 
         probs = self.get_probabilities(qureg)
-        return probs[state]
+
+        try:
+            return probs[state]
+        except KeyError:
+            return 0.0
 
     def get_probabilities(self, qureg):
         """
