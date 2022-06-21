@@ -21,6 +21,8 @@ from projectq.cengines import MainEngine, BasicMapperEngine
 from projectq.backends import AzureQuantumBackend
 from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
 
+from azure.quantum import Workspace
+
 import pytest
 
 
@@ -83,8 +85,6 @@ def mock_provider_statuses():
 
 
 def mock_workspace():
-    from azure.quantum import Workspace
-
     workspace = Workspace(
         subscription_id=ZERO_GUID,
         resource_group='testResourceGroup',
@@ -208,18 +208,18 @@ def test_average_queue_time(use_hardware, target_name, provider_id, average_queu
         (True, 'ionq.qpu', 'ionq')
     ],
 )
-def test_run_ionq(use_hardware, target_name, provider_id):
+def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
             'histogram': {
-                '0': 0.125,
-                '1': 0.125,
-                '2': 0.125,
-                '3': 0.125,
-                '4': 0.125,
-                '5': 0.125,
-                '6': 0.125,
-                '7': 0.125
+                '0': 0.5,
+                '1': 0.0,
+                '2': 0.0,
+                '3': 0.0,
+                '4': 0.0,
+                '5': 0.0,
+                '6': 0.0,
+                '7': 0.5
             }
         }
     )
@@ -260,14 +260,14 @@ def test_run_ionq(use_hardware, target_name, provider_id):
 
     result = backend.get_probabilities(circuit)
     assert result == {
-        '000': 0.125,
-        '100': 0.125,
-        '010': 0.125,
-        '110': 0.125,
-        '001': 0.125,
-        '101': 0.125,
-        '011': 0.125,
-        '111': 0.125
+        '000': 0.5,
+        '100': 0.0,
+        '010': 0.0,
+        '110': 0.0,
+        '001': 0.0,
+        '101': 0.0,
+        '011': 0.0,
+        '111': 0.5
     }
 
 
@@ -279,17 +279,19 @@ def test_run_ionq(use_hardware, target_name, provider_id):
         (True, 'quantinuum.hqs-lt-s1', 'quantinuum'),
     ],
 )
-def test_run_quantinuum(use_hardware, target_name, provider_id):
+def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
-            'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
-                  '101', '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000',
-                  '101', '101', '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100',
-                  '110', '011', '010', '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011',
-                  '111', '101', '101', '001', '011', '110', '001', '010', '001', '110', '101', '000', '010', '001',
-                  '011', '100', '110', '100', '110', '101', '110', '111', '110', '001', '011', '101', '111', '011',
-                  '100', '111', '100', '001', '111', '111', '100', '100', '110', '101', '100', '110', '100', '000',
-                  '011', '000']
+            'c': [
+                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
+                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
+                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
+                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
+                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '111', '000'
+            ]
         }
     )
 
@@ -329,15 +331,144 @@ def test_run_quantinuum(use_hardware, target_name, provider_id):
 
     result = backend.get_probabilities(circuit)
     assert result == {
-        '010': 0.07,
-        '100': 0.19,
-        '110': 0.18,
-        '000': 0.12,
-        '101': 0.12,
-        '111': 0.11,
-        '011': 0.1,
-        '001': 0.11
+        '000': 0.41,
+        '111': 0.59
     }
+
+
+@pytest.mark.parametrize(
+    "use_hardware, target_name, provider_id",
+    [
+        (False, 'ionq.simulator', 'ionq'),
+        (True, 'ionq.qpu', 'ionq')
+    ],
+)
+def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'histogram': {
+                '0': 0.5,
+                '1': 0.0,
+                '2': 0.0,
+                '3': 0.0,
+                '4': 0.0,
+                '5': 0.0,
+                '6': 0.0,
+                '7': 0.5
+            }
+        }
+    )
+
+    workspace = mock_workspace()
+
+    backend = AzureQuantumBackend(
+        use_hardware=use_hardware,
+        target_name=target_name,
+        workspace=workspace,
+        verbose=True
+    )
+
+    mapper = BasicMapperEngine()
+    max_qubits = 3
+
+    mapping = {}
+    for i in range(max_qubits):
+        mapping[i] = i
+
+    mapper.current_mapping = mapping
+
+    main_engine = MainEngine(
+        backend=backend,
+        engine_list=[mapper],
+        verbose=True
+    )
+
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
+
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
+    All(Measure) | circuit
+
+    main_engine.flush()
+
+    assert backend.get_probability('000', circuit) == 0.5
+    assert backend.get_probability('001', circuit) == 0.0
+    assert backend.get_probability('010', circuit) == 0.0
+    assert backend.get_probability('011', circuit) == 0.0
+    assert backend.get_probability('100', circuit) == 0.0
+    assert backend.get_probability('101', circuit) == 0.0
+    assert backend.get_probability('110', circuit) == 0.0
+    assert backend.get_probability('111', circuit) == 0.5
+
+
+@pytest.mark.parametrize(
+    "use_hardware, target_name, provider_id",
+    [
+        (False, 'quantinuum.hqs-lt-s1-apival', 'quantinuum'),
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum'),
+        (True, 'quantinuum.hqs-lt-s1', 'quantinuum'),
+    ],
+)
+def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={
+            'c': [
+                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
+                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
+                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
+                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
+                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '111', '000'
+            ]
+        }
+    )
+
+    workspace = mock_workspace()
+
+    backend = AzureQuantumBackend(
+        use_hardware=use_hardware,
+        target_name=target_name,
+        workspace=workspace,
+        verbose=True
+    )
+
+    mapper = BasicMapperEngine()
+    max_qubits = 3
+
+    mapping = {}
+    for i in range(max_qubits):
+        mapping[i] = i
+
+    mapper.current_mapping = mapping
+
+    main_engine = MainEngine(
+        backend=backend,
+        engine_list=[mapper],
+        verbose=True
+    )
+
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
+
+    H | q0  # noqa
+    CX | (q0, q1)  # noqa
+    CX | (q1, q2)  # noqa
+    All(Measure) | circuit
+
+    main_engine.flush()
+
+    assert backend.get_probability('000', circuit) == 0.41
+    assert backend.get_probability('001', circuit) == 0.0
+    assert backend.get_probability('010', circuit) == 0.0
+    assert backend.get_probability('011', circuit) == 0.0
+    assert backend.get_probability('100', circuit) == 0.0
+    assert backend.get_probability('101', circuit) == 0.0
+    assert backend.get_probability('110', circuit) == 0.0
+    assert backend.get_probability('111', circuit) == 0.59
 
 
 def test_run_no_circuit():
@@ -388,14 +519,14 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'histogram': {
-                '0': 0.125,
-                '1': 0.125,
-                '2': 0.125,
-                '3': 0.125,
-                '4': 0.125,
-                '5': 0.125,
-                '6': 0.125,
-                '7': 0.125
+                '0': 0.5,
+                '1': 0.0,
+                '2': 0.0,
+                '3': 0.0,
+                '4': 0.0,
+                '5': 0.0,
+                '6': 0.0,
+                '7': 0.5
             }
         }
     )
@@ -437,14 +568,14 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
 
     result = backend.get_probabilities(circuit)
     assert result == {
-        '000': 0.125,
-        '100': 0.125,
-        '010': 0.125,
-        '110': 0.125,
-        '001': 0.125,
-        '101': 0.125,
-        '011': 0.125,
-        '111': 0.125
+        '000': 0.5,
+        '100': 0.0,
+        '010': 0.0,
+        '110': 0.0,
+        '001': 0.0,
+        '101': 0.0,
+        '011': 0.0,
+        '111': 0.5
     }
 
 
@@ -459,14 +590,16 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
 def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
-            'c': ['010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000',
-                  '101', '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000',
-                  '101', '101', '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100',
-                  '110', '011', '010', '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011',
-                  '111', '101', '101', '001', '011', '110', '001', '010', '001', '110', '101', '000', '010', '001',
-                  '011', '100', '110', '100', '110', '101', '110', '111', '110', '001', '011', '101', '111', '011',
-                  '100', '111', '100', '001', '111', '111', '100', '100', '110', '101', '100', '110', '100', '000',
-                  '011', '000']
+            'c': [
+                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
+                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
+                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
+                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
+                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
+                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
+                '111', '000'
+            ]
         }
     )
 
@@ -507,12 +640,6 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
 
     result = backend.get_probabilities(circuit)
     assert result == {
-        '010': 0.07,
-        '100': 0.19,
-        '110': 0.18,
-        '000': 0.12,
-        '101': 0.12,
-        '111': 0.11,
-        '011': 0.1,
-        '001': 0.11
+        '000': 0.41,
+        '111': 0.59
     }
