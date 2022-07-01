@@ -58,6 +58,14 @@ from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
+try:
+    import setuptools_scm  # noqa: F401  # pylint: disable=unused-import
+
+    _HAS_SETUPTOOLS_SCM = True
+except ImportError:
+    _HAS_SETUPTOOLS_SCM = False
+
+
 # ==============================================================================
 # Helper functions and classes
 
@@ -644,6 +652,11 @@ def run_setup(with_cext):
         kwargs['ext_modules'] = ext_modules
     else:
         kwargs['ext_modules'] = []
+
+    # NB: Workaround for people calling setup.py without a proper environment containing setuptools-scm
+    #     This can typically be the case when calling the `gen_reqfile` or `clang_tidy`commands
+    if not _HAS_SETUPTOOLS_SCM:
+        kwargs['version'] = '0.0.0'
 
     setup(
         cmdclass={
