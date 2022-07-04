@@ -16,7 +16,6 @@ Tests for projectq.backends._printer.py.
 """
 
 import io
-import sys
 
 import pytest
 
