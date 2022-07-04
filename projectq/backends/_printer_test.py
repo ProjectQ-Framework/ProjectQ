@@ -15,6 +15,9 @@
 Tests for projectq.backends._printer.py.
 """
 
+import io
+import sys
+
 import pytest
 
 from projectq import MainEngine
@@ -46,11 +49,15 @@ def test_command_printer_is_available():
 def test_command_printer_accept_input(monkeypatch):
     cmd_printer = _printer.CommandPrinter()
     eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
-    monkeypatch.setattr(_printer, "input", lambda x: 1)
+
+    number_input = io.StringIO('1\n')
+    monkeypatch.setattr('sys.stdin', number_input)
     qubit = eng.allocate_qubit()
     Measure | qubit
     assert int(qubit) == 1
-    monkeypatch.setattr(_printer, "input", lambda x: 0)
+
+    number_input = io.StringIO('0\n')
+    monkeypatch.setattr('sys.stdin', number_input)
     qubit = eng.allocate_qubit()
     NOT | qubit
     Measure | qubit

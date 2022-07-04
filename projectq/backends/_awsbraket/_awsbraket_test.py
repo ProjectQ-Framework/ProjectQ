@@ -318,6 +318,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_sv1(ctrl_singlequbit
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_negative_control():
     backend = _awsbraket.AWSBraketBackend()
 

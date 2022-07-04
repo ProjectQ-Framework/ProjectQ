@@ -26,6 +26,22 @@ from . import _drawer_matplotlib as _drawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib
 
 
+class MockInputFunction:
+    def __init__(self, return_value=None):
+        self.return_value = return_value
+        self._orig_input_fn = __builtins__['input']
+
+    def _mock_input_fn(self, prompt):
+        print(prompt + str(self.return_value))
+        return self.return_value
+
+    def __enter__(self):
+        __builtins__['input'] = self._mock_input_fn
+
+    def __exit__(self, type, value, traceback):
+        __builtins__['input'] = self._orig_input_fn
+
+
 def test_drawer_measurement():
     drawer = CircuitDrawerMatplotlib(default_measure=0)
     eng = MainEngine(drawer, [])
@@ -43,12 +59,9 @@ def test_drawer_measurement():
     eng = MainEngine(drawer, [])
     qubit = eng.allocate_qubit()
 
-    old_input = _drawer.input
-
-    _drawer.input = lambda x: '1'
-    Measure | qubit
-    assert int(qubit) == 1
-    _drawer.input = old_input
+    with MockInputFunction(return_value='1'):
+        Measure | qubit
+        assert int(qubit) == 1
 
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
