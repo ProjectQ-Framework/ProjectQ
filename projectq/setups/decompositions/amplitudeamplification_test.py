@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +89,7 @@ def test_simple_grover():
 
     assert total_prob_after == pytest.approx(
         theoretical_prob, abs=1e-6
-    ), "The obtained probability is less than expected %f vs. %f" % (
+    ), "The obtained probability is less than expected {:f} vs. {:f}".format(
         total_prob_after,
         theoretical_prob,
     )
@@ -172,7 +171,7 @@ def test_complex_aa():
 
     assert total_prob_after == pytest.approx(
         theoretical_prob, abs=1e-2
-    ), "The obtained probability is less than expected %f vs. %f" % (
+    ), "The obtained probability is less than expected {:f} vs. {:f}".format(
         total_prob_after,
         theoretical_prob,
     )

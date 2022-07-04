@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +81,7 @@ class QubitOperator(BasicGate):
 
         eng = projectq.MainEngine()
         qureg = eng.allocate_qureg(6)
-        QubitOperator('X0 X5', 1.j) | qureg # Applies X to qubit 0 and 5 with an additional global phase of 1.j
+        QubitOperator('X0 X5', 1.0j) | qureg  # Applies X to qubit 0 and 5 with an additional global phase of 1.j
 
 
     Attributes:
@@ -105,8 +104,7 @@ class QubitOperator(BasicGate):
         Example:
             .. code-block:: python
 
-                ham = ((QubitOperator('X0 Y3', 0.5)
-                        + 0.6 * QubitOperator('X0 Y3')))
+                ham = QubitOperator('X0 Y3', 0.5) + 0.6 * QubitOperator('X0 Y3')
                 # Equivalently
                 ham2 = QubitOperator('X0 Y3', 0.5)
                 ham2 += 0.6 * QubitOperator('X0 Y3')
@@ -247,9 +245,9 @@ class QubitOperator(BasicGate):
 
             eng = projectq.MainEngine()
             qureg = eng.allocate_qureg(6)
-            QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
-                                                 # with an additional global
-                                                 # phase of 1.j
+            QubitOperator('X0 X5', 1.0j) | qureg  # Applies X to qubit 0 and 5
+            # with an additional global
+            # phase of 1.j
 
         While in the above example the QubitOperator gate is applied to 6
         qubits, it only acts non-trivially on the two qubits qureg[0] and
@@ -259,7 +257,7 @@ class QubitOperator(BasicGate):
 
         .. code-block:: python
 
-            QubitOperator('X0 X1', 1.j) | [qureg[0], qureg[5]]
+            QubitOperator('X0 X1', 1.0j) | [qureg[0], qureg[5]]
 
         which is only a two qubit gate.
 
@@ -564,19 +562,19 @@ class QubitOperator(BasicGate):
             return '0'
         string_rep = ''
         for term, coeff in self.terms.items():
-            tmp_string = '{}'.format(coeff)
+            tmp_string = f'{coeff}'
             if term == ():
                 tmp_string += ' I'
             for operator in term:
                 if operator[1] == 'X':
-                    tmp_string += ' X{}'.format(operator[0])
+                    tmp_string += f' X{operator[0]}'
                 elif operator[1] == 'Y':
-                    tmp_string += ' Y{}'.format(operator[0])
+                    tmp_string += f' Y{operator[0]}'
                 elif operator[1] == 'Z':
-                    tmp_string += ' Z{}'.format(operator[0])
+                    tmp_string += f' Z{operator[0]}'
                 else:  # pragma: no cover
                     raise ValueError('Internal compiler error: operator must be one of X, Y, Z!')
-            string_rep += '{} +\n'.format(tmp_string)
+            string_rep += f'{tmp_string} +\n'
         return string_rep[:-3]
 
     def __repr__(self):

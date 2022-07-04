@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -169,14 +168,14 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         elif gate == NOT and get_control_count(cmd) == 1:
             ctrl_pos = cmd.control_qubits[0].id
             qb_pos = cmd.qubits[0][0].id
-            self.qasm += "\ncx q[{}], q[{}];".format(ctrl_pos, qb_pos)
+            self.qasm += f"\ncx q[{ctrl_pos}], q[{qb_pos}];"
             self._json.append({'qubits': [ctrl_pos, qb_pos], 'name': 'cx'})
         elif gate == Barrier:
             qb_pos = [qb.id for qr in cmd.qubits for qb in qr]
             self.qasm += "\nbarrier "
             qb_str = ""
             for pos in qb_pos:
-                qb_str += "q[{}], ".format(pos)
+                qb_str += f"q[{pos}], "
             self.qasm += qb_str[:-2] + ";"
             self._json.append({'qubits': qb_pos, 'name': 'barrier'})
         elif isinstance(gate, (Rx, Ry, Rz)):
@@ -191,11 +190,11 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             gate_qasm = u_strs[str(gate)[0:2]].format(gate.angle)
             gate_name = u_name[str(gate)[0:2]]
             params = u_angle[str(gate)[0:2]]
-            self.qasm += "\n{} q[{}];".format(gate_qasm, qb_pos)
+            self.qasm += f"\n{gate_qasm} q[{qb_pos}];"
             self._json.append({'qubits': [qb_pos], 'name': gate_name, 'params': params})
         elif gate == H:
             qb_pos = cmd.qubits[0][0].id
-            self.qasm += "\nu2(0,pi/2) q[{}];".format(qb_pos)
+            self.qasm += f"\nu2(0,pi/2) q[{qb_pos}];"
             self._json.append({'qubits': [qb_pos], 'name': 'u2', 'params': [0, 3.141592653589793]})
         else:
             raise InvalidCommandError(
@@ -307,7 +306,7 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             measured = ""
             for state in counts:
                 probability = counts[state] * 1.0 / self._num_runs
-                state = "{0:b}".format(int(state, 0))
+                state = f"{int(state, 0):b}"
                 state = state.zfill(max_qubit_id)
                 # states in ibmq are right-ordered, so need to reverse state string
                 state = state[::-1]

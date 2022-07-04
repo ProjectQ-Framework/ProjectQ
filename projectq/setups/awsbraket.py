@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,4 +85,4 @@ def get_engine_list(credentials=None, device=None):
             other_gates=(Barrier,),
         )
         return setup
-    raise DeviceNotHandledError('Unsupported device type: {}!'.format(device))  # pragma: no cover
+    raise DeviceNotHandledError(f'Unsupported device type: {device}!')  # pragma: no cover

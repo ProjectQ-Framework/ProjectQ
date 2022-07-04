@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example of running a quantum circuit using the AQT APIs."""

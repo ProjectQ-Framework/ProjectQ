@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,7 +257,7 @@ def test_unitary_functional_measurement():
     eng.flush()
     All(Measure) | qubits
 
-    bit_value_sum = sum([int(qubit) for qubit in qubits])
+    bit_value_sum = sum(int(qubit) for qubit in qubits)
     assert bit_value_sum == 0 or bit_value_sum == 5
 
     qb1 = WeakQubitRef(engine=eng, idx=qubits[0].id)

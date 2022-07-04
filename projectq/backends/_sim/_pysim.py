@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -331,9 +330,9 @@ class Simulator:
             ctrlids (list): A list of control qubit IDs.
         """
         # Determine the (normalized) trace, which is nonzero only for identity terms:
-        trace = sum([c for (t, c) in terms_dict if len(t) == 0])
+        trace = sum(c for (t, c) in terms_dict if len(t) == 0)
         terms_dict = [(t, c) for (t, c) in terms_dict if len(t) > 0]
-        op_nrm = abs(time) * sum([abs(c) for (_, c) in terms_dict])
+        op_nrm = abs(time) * sum(abs(c) for (_, c) in terms_dict)
         # rescale the operator by s:
         scale = int(op_nrm + 1.0)
         correction = _np.exp(-1j * time * trace / float(scale))

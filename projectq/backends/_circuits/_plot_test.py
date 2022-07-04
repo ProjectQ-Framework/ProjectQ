@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ import projectq.backends._circuits._plot as _plot
 # ==============================================================================
 
 
-class PseudoCanvas(object):
+class PseudoCanvas:
     def __init__(self):
         pass
 
@@ -40,19 +39,19 @@ class PseudoCanvas(object):
         return
 
 
-class PseudoFigure(object):
+class PseudoFigure:
     def __init__(self):
         self.canvas = PseudoCanvas()
         self.dpi = 1
 
 
-class PseudoBBox(object):
+class PseudoBBox:
     def __init__(self, width, height):
         self.width = width
         self.height = height
 
 
-class PseudoText(object):
+class PseudoText:
     def __init__(self, text):
         self.text = text
         self.figure = PseudoFigure()
@@ -64,7 +63,7 @@ class PseudoText(object):
         pass
 
 
-class PseudoTransform(object):
+class PseudoTransform:
     def __init__(self):
         pass
 
@@ -75,7 +74,7 @@ class PseudoTransform(object):
         return bbox
 
 
-class PseudoAxes(object):
+class PseudoAxes:
     def __init__(self):
         self.figure = PseudoFigure()
         self.transData = PseudoTransform()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -259,7 +258,7 @@ class Compute:
             with Compute(eng):
                 do_something(qubits)
             action(qubits)
-            Uncompute(eng) # runs inverse of the compute section
+            Uncompute(eng)  # runs inverse of the compute section
 
     Warning:
         If qubits are allocated within the compute section, they must either be uncomputed and deallocated within that
@@ -279,7 +278,7 @@ class Compute:
             do_something_else(qubits)
 
             Uncompute(eng)  # will allocate a new ancilla (with a different id)
-                            # and then deallocate it again
+            # and then deallocate it again
 
         .. code-block:: python
 
@@ -400,7 +399,7 @@ def Uncompute(engine):  # pylint: disable=invalid-name
             with Compute(eng):
                 do_something(qubits)
             action(qubits)
-            Uncompute(eng) # runs inverse of the compute section
+            Uncompute(eng)  # runs inverse of the compute section
     """
     compute_eng = engine.next_engine
     if not isinstance(compute_eng, ComputeEngine):

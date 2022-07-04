@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -367,7 +366,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
                 if self._logical_to_physical(qubit.id) >= len(state):  # pragma: no cover
-                    raise IndexError('Physical ID {} > length of internal probabilities array'.format(qubit.id))
+                    raise IndexError(f'Physical ID {qubit.id} > length of internal probabilities array')
                 mapped_state[i] = state[self._logical_to_physical(qubit.id)]
             mapped_state = "".join(mapped_state)
             if mapped_state not in probability_dict:

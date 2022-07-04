@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,7 +103,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and not result_ready[0]
             and request_num[0] == 5
@@ -116,7 +115,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and result_ready[0]
             and request_num[0] == 7
@@ -552,7 +551,7 @@ def test_timeout_exception(monkeypatch):
                 ],
                 200,
             )
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(execution_id)
+        job_url = f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}"
         if args[1] == urljoin(_API_URL, job_url):
             tries[0] += 1
             return MockResponse({"status": "RUNNING"}, 200)
@@ -563,7 +562,7 @@ def test_timeout_exception(monkeypatch):
         # STEP5
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
         ):
             return MockResponse({"status": "RUNNING"}, 200)
 
@@ -760,7 +759,7 @@ def test_retrieve(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and request_num[0] < 1
         ):
@@ -768,7 +767,7 @@ def test_retrieve(monkeypatch):
             return MockResponse({"status": "RUNNING"}, 200)
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
         ):
             return MockResponse({"status": "COMPLETED"}, 200)
         # STEP6

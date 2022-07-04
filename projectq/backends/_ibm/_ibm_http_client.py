@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -219,12 +218,12 @@ class IBMQ(Session):
         job_status_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/' + execution_id
 
         if verbose:
-            print("Waiting for results. [Job ID: {}]".format(execution_id))
+            print(f"Waiting for results. [Job ID: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The ID of your submitted job is {execution_id}.")
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
@@ -277,14 +276,14 @@ class IBMQ(Session):
                     self.get_list_devices()
                     if not self.is_online(device):
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of your submitted job is {}.".format(execution_id)
+                            f"Device went offline. The ID of your submitted job is {execution_id}."
                         )
 
         finally:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception("Timeout. The ID of your submitted job is {}.".format(execution_id))
+        raise Exception(f"Timeout. The ID of your submitted job is {execution_id}.")
 
 
 def show_devices(token=None, verbose=False):
@@ -376,7 +375,7 @@ def send(
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         execution_id = ibmq_session.run(info, device)
         if verbose:
             print("- Waiting for results...")

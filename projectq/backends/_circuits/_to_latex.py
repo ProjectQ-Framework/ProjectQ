@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +61,7 @@ def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
     Example:
         .. code-block:: python
 
-            settings['gates']['HGate'] = {'width': .5, 'offset': .15}
+            settings['gates']['HGate'] = {'width': 0.5, 'offset': 0.15}
 
     The default settings can be acquired using the get_default_settings() function, and written using write_settings().
 
@@ -327,7 +326,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 circuit[_line] = circuit[_line][1:]
 
             all_lines = lines + ctrl_lines
-            pos = max([self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1)])
+            pos = max(self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1))
             for _line in range(min(all_lines), max(all_lines) + 1):
                 self.pos[_line] = pos + self._gate_pre_offset(gate)
 
@@ -340,7 +339,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 add_str = self._x_gate(lines, ctrl_lines)
                 # and make the target qubit quantum if one of the controls is
                 if not self.is_quantum[lines[0]]:
-                    if sum([self.is_quantum[i] for i in ctrl_lines]) > 0:
+                    if sum(self.is_quantum[i] for i in ctrl_lines) > 0:
                         self.is_quantum[lines[0]] = True
             elif gate == Z and len(ctrl_lines) > 0:
                 add_str = self._cz_gate(lines + ctrl_lines)
@@ -385,7 +384,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
                 id_str = ""
                 if self.settings['gates']['AllocateQubitGate']['draw_id']:
-                    id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
+                    id_str = f"^{{\\textcolor{{red}}{{{cmds[i].id}}}}}"
                 xpos = self.pos[line]
                 try:
                     if self.settings['gates']['AllocateQubitGate']['allocate_at_zero']:
@@ -449,7 +448,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            width = "{}cm".format(0.5 * gate_width)
+            width = f"{0.5 * gate_width}cm"
             blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
             trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
             tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
@@ -487,8 +486,8 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         )
 
         # add two vertical lines to connect circled 1/2
-        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(self._op(lines[0]), op_mid)
-        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(op_mid, self._op(lines[1]))
+        gate_str += f"\n\\draw ({self._op(lines[0])}) edge[edgestyle] ({op_mid});"
+        gate_str += f"\n\\draw ({op_mid}) edge[edgestyle] ({self._op(lines[1])});"
 
         if len(ctrl_lines) > 0:
             for ctrl in ctrl_lines:
@@ -526,7 +525,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            width = "{}cm".format(0.5 * gate_width)
+            width = f"{0.5 * gate_width}cm"
             blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
             trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
             tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
@@ -722,7 +721,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         """
         if op is None:
             op = self.op_count[line]
-        return "line{}_gate{}".format(line, op + offset)
+        return f"line{line}_gate{op + offset}"
 
     def _line(self, point1, point2, double=False, line=None):  # pylint: disable=too-many-locals,unused-argument
         """
@@ -755,7 +754,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
             shift = "yshift={}cm"
 
         if quantum:
-            return "\n\\draw ({}) edge[edgestyle] ({});".format(op1, op2)
+            return f"\n\\draw ({op1}) edge[edgestyle] ({op2});"
 
         if point2 > point1:
             loc1, loc2 = loc2, loc1

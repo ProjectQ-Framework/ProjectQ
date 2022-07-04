@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +57,7 @@ def test_simple_test_X_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.5).sum()
-    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
+    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
         num_phase / N,
         0.35,
     )
@@ -91,7 +90,7 @@ def test_Ph_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct (%f vs. %f)" % (
+    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
         num_phase / N,
         0.35,
     )
@@ -129,7 +128,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / N >= 0.34, "Statistics phase calculation are not correct (%f vs. %f)" % (
+    assert num_phase / N >= 0.34, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
         num_phase / N,
         0.34,
     )
@@ -179,7 +178,7 @@ def test_X_no_eigenvectors():
     assert total == pytest.approx(N, abs=5)
     assert plus_probability == pytest.approx(
         1.0 / 4.0, abs=1e-1
-    ), "Statistics on |+> probability are not correct (%f vs. %f)" % (
+    ), "Statistics on |+> probability are not correct ({:f} vs. {:f})".format(
         plus_probability,
         1.0 / 4.0,
     )

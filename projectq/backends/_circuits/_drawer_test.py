@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,7 +107,7 @@ def test_drawer_qubitmapping():
         drawer.set_qubit_locations({0: 1, 1: 0})
 
 
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         self.cmd = cmd
         self.called = True

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Showcase most of the quantum gates available in ProjectQ."""
@@ -95,12 +94,12 @@ def zoo_profile():
     # generate latex code to draw the circuit
     s = drawing_engine.get_latex()
     prefix = 'zoo'
-    with open('{}.tex'.format(prefix), 'w') as f:
+    with open(f'{prefix}.tex', 'w') as f:
         f.write(s)
 
     # compile latex source code and open pdf file
-    os.system('pdflatex {}.tex'.format(prefix))
-    openfile('{}.pdf'.format(prefix))
+    os.system(f'pdflatex {prefix}.tex')
+    openfile(f'{prefix}.pdf')
 
 
 def openfile(filename):

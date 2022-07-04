@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,7 +94,7 @@ class CompareEngine(BasicEngine):
         """Return a string representation of the object."""
         string = ""
         for qubit_id, _l in enumerate(self._l):
-            string += "Qubit {0} : ".format(qubit_id)
+            string += f"Qubit {qubit_id} : "
             for command in self._l[qubit_id]:
                 string += str(command) + ", "
             string = string[:-2] + "\n"

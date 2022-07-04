@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -331,7 +330,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 verbose=self._verbose,
             )
             if res is None:
-                raise RuntimeError("Failed to retrieve job with id: '{}'!".format(self._retrieve_execution))
+                raise RuntimeError(f"Failed to retrieve job with id: '{self._retrieve_execution}'!")
             self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.

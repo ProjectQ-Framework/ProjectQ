@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # -*- codingf53: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #

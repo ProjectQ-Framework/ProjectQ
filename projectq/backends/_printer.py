@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 """Contains a compiler engine which prints commands to stdout prior to sending them on to the next engines."""
 
 import sys
-from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import LogicalQubitIDTag, get_control_count

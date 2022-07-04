@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,12 +217,12 @@ class AWSBraket:
     def get_result(self, execution_id, num_retries=30, interval=1, verbose=False):  # pylint: disable=too-many-locals
         """Get the result of an execution."""
         if verbose:
-            print("Waiting for results. [Job Arn: {}]".format(execution_id))
+            print(f"Waiting for results. [Job Arn: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The Arn of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The Arn of your submitted job is {execution_id}.")
 
         def _calculate_measurement_probs(measurements):
             """
@@ -282,7 +281,7 @@ class AWSBraket:
                     )
                     s3result = client_s3.get_object(Bucket=bucket, Key=resultsojectname)
                     if verbose:
-                        print("Results obtained. [Status: {}]".format(status))
+                        print(f"Results obtained. [Status: {status}]")
                     result_content = json.loads(s3result['Body'].read())
 
                     if devicetype_used == 'QPU':
@@ -295,7 +294,7 @@ class AWSBraket:
                         "The failure reason was: {}.".format(status, quantum_task['failureReason'])
                     )
                 if status == 'CANCELLING':
-                    raise Exception("The job received a CANCEL operation: {}.".format(status))
+                    raise Exception(f"The job received a CANCEL operation: {status}.")
                 time.sleep(interval)
                 # NOTE: Be aware that AWS is billing if a lot of API calls are
                 # executed, therefore the num_repetitions is set to a small
@@ -411,9 +410,9 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         task_arn = awsbraket_session.run(info, device)
-        print("Your task Arn is: {}. Make note of that for future reference".format(task_arn))
+        print(f"Your task Arn is: {task_arn}. Make note of that for future reference")
 
         if verbose:
             print("- Waiting for results...")

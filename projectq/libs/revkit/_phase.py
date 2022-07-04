@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +37,7 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
 
         .. code-block:: python
 
-            PhaseOracle(0x8e) | (a, b, c)
+            PhaseOracle(0x8E) | (a, b, c)
     """
 
     def __init__(self, function, **kwargs):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,7 +113,7 @@ class IonQ(Session):
             token = getpass.getpass(prompt='IonQ apiKey > ')
         if not token:
             raise RuntimeError('An authentication token is required!')
-        self.headers.update({'Authorization': 'apiKey {}'.format(token)})
+        self.headers.update({'Authorization': f'apiKey {token}'})
         self.token = token
 
     def run(self, info, device):
@@ -201,12 +200,12 @@ class IonQ(Session):
             dict: A dict of job data for an engine to consume.
         """
         if self._verbose:  # pragma: no cover
-            print("Waiting for results. [Job ID: {}]".format(execution_id))
+            print(f"Waiting for results. [Job ID: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The ID of your submitted job is {execution_id}.")
 
         signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
@@ -232,7 +231,7 @@ class IonQ(Session):
                 # Otherwise, make sure it is in a known healthy state.
                 if status not in ('ready', 'running', 'submitted'):
                     # TODO: Add comprehensive API error processing here.
-                    raise Exception("Error while running the code: {}.".format(status))
+                    raise Exception(f"Error while running the code: {status}.")
 
                 # Sleep, then check availability before trying again.
                 time.sleep(interval)
@@ -246,7 +245,7 @@ class IonQ(Session):
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
+        raise RequestTimeoutError(f"Timeout. The ID of your submitted job is {execution_id}.")
 
     def show_devices(self):
         """Show the currently available device list for the IonQ provider.
@@ -359,7 +358,7 @@ def send(
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:  # pragma: no cover
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         execution_id = ionq_session.run(info, device)
         if verbose:  # pragma: no cover
             print("- Waiting for results...")

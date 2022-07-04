@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,26 +78,26 @@ class BasicGate:
 
             .. code-block:: python
 
-                ExampleGate | (a,b,c,d,e)
+                ExampleGate | (a, b, c, d, e)
 
             where a and b are interchangeable. Then, call this function as follows:
 
             .. code-block:: python
 
-                self.set_interchangeable_qubit_indices([[0,1]])
+                self.set_interchangeable_qubit_indices([[0, 1]])
 
             As another example, consider
 
             .. code-block:: python
 
-                ExampleGate2 | (a,b,c,d,e)
+                ExampleGate2 | (a, b, c, d, e)
 
             where a and b are interchangeable and, in addition, c, d, and e are interchangeable among
             themselves. Then, call this function as
 
             .. code-block:: python
 
-                self.set_interchangeable_qubit_indices([[0,1],[2,3,4]])
+                self.set_interchangeable_qubit_indices([[0, 1], [2, 3, 4]])
         """
         self.interchangeable_qubit_indices = []
 
@@ -545,7 +544,7 @@ class BasicMathGate(BasicGate):
     .. code-block:: python
 
         def add(x):
-            return (x+a,)
+            return (x + a,)
 
     upon initialization. More generally, the function takes integers as parameters and returns a tuple / list of
     outputs, each entry corresponding to the function input. As an example, consider out-of-place multiplication,
@@ -554,8 +553,8 @@ class BasicMathGate(BasicGate):
 
     .. code-block:: python
 
-        def multiply(a,b,c)
-            return (a,b,c+a*b)
+        def multiply(a, b, c):
+            return (a, b, c + a * b)
     """
 
     def __init__(self, math_fun):
@@ -569,8 +568,10 @@ class BasicMathGate(BasicGate):
         Example:
             .. code-block:: python
 
-                def add(a,b):
-                    return (a,a+b)
+                def add(a, b):
+                    return (a, a + b)
+
+
                 super().__init__(add)
 
         If the gate acts on, e.g., fixed point numbers, the number of bits per register is also required in order to
@@ -587,9 +588,11 @@ class BasicMathGate(BasicGate):
 
                 def get_math_function(self, qubits):
                     n = len(qubits[0])
-                    scal = 2.**n
+                    scal = 2.0**n
+
                     def math_fun(a):
                         return (int(scal * (math.sin(math.pi * a / scal))),)
+
                     return math_fun
 
         """

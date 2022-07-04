@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,6 +112,8 @@ class AutoReplacer(BasicEngine):
 
             def decomposition_chooser(cmd, decomp_list):
                 return decomp_list[0]
+
+
             repl = AutoReplacer(decomposition_chooser)
         """
         super().__init__()

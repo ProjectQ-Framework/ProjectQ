@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,7 +145,7 @@ class UnitarySimulator(BasicEngine):
         try:
             gate_mat = cmd.gate.matrix
             if len(gate_mat) > 2**6:
-                warnings.warn("Potentially large matrix gate encountered! ({} qubits)".format(math.log2(len(gate_mat))))
+                warnings.warn(f"Potentially large matrix gate encountered! ({math.log2(len(gate_mat))} qubits)")
             return True
         except AttributeError:
             return False

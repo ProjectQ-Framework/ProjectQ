@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +56,7 @@ def test_drawer_measurement():
         eng.backend._process(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         self.cmd = cmd
         self.called = True
@@ -112,9 +111,9 @@ class MyGate(BasicGate):
         self.params = args
 
     def __str__(self):
-        param_str = '{}'.format(self.params[0])
+        param_str = f'{self.params[0]}'
         for param in self.params[1:]:
-            param_str += ',{}'.format(param)
+            param_str += f',{param}'
         return str(self.__class__.__name__) + "(" + param_str + ")"
 
 
