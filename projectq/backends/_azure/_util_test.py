@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,6 +12,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+"""Tests for projectq.backends._azure._utils.py."""
 
 import math
 
@@ -324,7 +326,13 @@ def test_to_json_single_qubit_gates(single_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     qb0 = WeakQubitRef(engine=eng, idx=0)
 
-    assert to_json(Command(eng, single_qubit_gate, ([qb0],))) == expected_result
+    actual_result = to_json(Command(eng, single_qubit_gate, ([qb0],)))
+
+    assert len(actual_result) == len(expected_result)
+    assert actual_result['gate'] == expected_result['gate']
+    assert actual_result['targets'] == expected_result['targets']
+    if 'rotation' in expected_result:
+        assert actual_result['rotation'] == pytest.approx(expected_result['rotation'])
 
 
 @pytest.mark.parametrize(
@@ -352,7 +360,13 @@ def test_to_json_two_qubit_gates(two_qubit_gate, expected_result):
     qb0 = WeakQubitRef(engine=eng, idx=0)
     qb1 = WeakQubitRef(engine=eng, idx=1)
 
-    assert to_json(Command(eng, two_qubit_gate, ([qb0], [qb1]))) == expected_result
+    actual_result = to_json(Command(eng, two_qubit_gate, ([qb0], [qb1])))
+
+    assert len(actual_result) == len(expected_result)
+    assert actual_result['gate'] == expected_result['gate']
+    assert actual_result['targets'] == expected_result['targets']
+    if 'rotation' in expected_result:
+        assert actual_result['rotation'] == pytest.approx(expected_result['rotation'])
 
 
 @pytest.mark.parametrize(

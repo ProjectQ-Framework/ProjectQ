@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,10 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Tests for projectq.backends._azure._azure_quantum.py."""
+
 from unittest import mock
 
 import pytest
-from azure.quantum import Workspace
+
+try:
+    from azure.quantum import Workspace
+except ImportError:
+    raise ImportError(
+        "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
+    )
 
 import projectq.backends._azure._azure_quantum
 from projectq.backends import AzureQuantumBackend
@@ -68,8 +76,8 @@ def mock_workspace():
     workspace.append_user_agent('projectq')
 
     workspace._client = mock.MagicMock()
-    workspace._client.providers = mock.MagicMock()  # pylint: disable=protected-access
-    workspace._client.providers.get_status.return_value = mock_provider_statuses()  # pylint: disable=protected-access
+    workspace._client.providers = mock.MagicMock()
+    workspace._client.providers.get_status.return_value = mock_provider_statuses()
 
     return workspace
 
@@ -189,7 +197,16 @@ def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {'000': 0.5, '100': 0.0, '010': 0.0, '110': 0.0, '001': 0.0, '101': 0.0, '011': 0.0, '111': 0.5}
+
+    assert len(result) == 8
+    assert result['000'] == pytest.approx(0.5)
+    assert result['001'] == 0.0
+    assert result['010'] == 0.0
+    assert result['011'] == 0.0
+    assert result['100'] == 0.0
+    assert result['101'] == 0.0
+    assert result['110'] == 0.0
+    assert result['111'] == pytest.approx(0.5)
 
 
 @pytest.mark.parametrize(
@@ -334,7 +351,10 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {'000': 0.41, '111': 0.59}
+
+    assert len(result) == 2
+    assert result['000'] == pytest.approx(0.41)
+    assert result['111'] == pytest.approx(0.59)
 
 
 @pytest.mark.parametrize(
@@ -371,14 +391,14 @@ def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
 
     main_engine.flush()
 
-    assert backend.get_probability('000', circuit) == 0.5
+    assert backend.get_probability('000', circuit) == pytest.approx(0.5)
     assert backend.get_probability('001', circuit) == 0.0
     assert backend.get_probability('010', circuit) == 0.0
     assert backend.get_probability('011', circuit) == 0.0
     assert backend.get_probability('100', circuit) == 0.0
     assert backend.get_probability('101', circuit) == 0.0
     assert backend.get_probability('110', circuit) == 0.0
-    assert backend.get_probability('111', circuit) == 0.5
+    assert backend.get_probability('111', circuit) == pytest.approx(0.5)
 
 
 @pytest.mark.parametrize(
@@ -522,14 +542,14 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
 
     main_engine.flush()
 
-    assert backend.get_probability('000', circuit) == 0.41
+    assert backend.get_probability('000', circuit) == pytest.approx(0.41)
     assert backend.get_probability('001', circuit) == 0.0
     assert backend.get_probability('010', circuit) == 0.0
     assert backend.get_probability('011', circuit) == 0.0
     assert backend.get_probability('100', circuit) == 0.0
     assert backend.get_probability('101', circuit) == 0.0
     assert backend.get_probability('110', circuit) == 0.0
-    assert backend.get_probability('111', circuit) == 0.59
+    assert backend.get_probability('111', circuit) == pytest.approx(0.59)
 
 
 def test_run_no_circuit():
@@ -601,7 +621,16 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {'000': 0.5, '100': 0.0, '010': 0.0, '110': 0.0, '001': 0.0, '101': 0.0, '011': 0.0, '111': 0.5}
+
+    assert len(result) == 8
+    assert result['000'] == pytest.approx(0.5)
+    assert result['001'] == 0.0
+    assert result['010'] == 0.0
+    assert result['011'] == 0.0
+    assert result['100'] == 0.0
+    assert result['101'] == 0.0
+    assert result['110'] == 0.0
+    assert result['111'] == pytest.approx(0.5)
 
 
 @pytest.mark.parametrize(
@@ -752,4 +781,7 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {'000': 0.41, '111': 0.59}
+
+    assert len(result) == 2
+    assert result['000'] == pytest.approx(0.41)
+    assert result['111'] == pytest.approx(0.59)

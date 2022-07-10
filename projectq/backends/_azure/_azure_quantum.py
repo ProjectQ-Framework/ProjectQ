@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ from collections import Counter
 
 import numpy as np
 
+from projectq.backends._ionq._ionq import _rearrange_result
 from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, MeasureGate
@@ -31,7 +32,6 @@ from ._util import (
     QUANTINUUM_PROVIDER_ID,
     is_available_ionq,
     is_available_quantinuum,
-    rearrange_result,
     to_json,
     to_qasm,
 )
@@ -68,7 +68,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         Args:
             use_hardware (bool, optional): Whether or not to use real hardware or just a simulator. If False,
-            regardless of the value of ```target_name```, ```ionq.simulator``` used for IonQ provider and
+                regardless of the value of ```target_name```, ```ionq.simulator``` used for IonQ provider and
                 ```quantinuum.hqs-lt-s1-apival``` used for Quantinuum provider. Defaults to False.
             num_runs (int, optional): Number of times to run circuits. Defaults to 100.
             verbose (bool, optional): If True, print statistics after job results have been collected. Defaults to
@@ -88,7 +88,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             self._provider_id = IONQ_PROVIDER_ID
         elif target_name in Quantinuum.target_names:
             self._provider_id = QUANTINUUM_PROVIDER_ID
-        else:  # pragma: no cover
+        else:
             raise AzureQuantumTargetNotFoundError('Target {0} does not exit.'.format(target_name))
 
         if use_hardware:
@@ -136,7 +136,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Translates the command and stores it in a local variable (self._cmds).
 
         Args:
-            cmd: Command to store
+            cmd (Command): Command to store
         """
         if self._clear:
             self._probabilities = {}
@@ -241,10 +241,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         probs = self.get_probabilities(qureg)
 
-        try:
-            return probs[state]
-        except KeyError:
-            return 0.0
+        return probs.get(state, 0.0)
 
     def get_probabilities(self, qureg):
         """
@@ -345,7 +342,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         if self._provider_id == IONQ_PROVIDER_ID:
             self._probabilities = {
-                rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
+                _rearrange_result(int(k), len(self._measured_ids)): v for k, v in res["histogram"].items()
             }
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             histogram = Counter(res["c"])
