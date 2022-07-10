@@ -15,4 +15,14 @@
 
 """ProjectQ module for supporting the Azure Quantum platform"""
 
-from ._azure_quantum import AzureQuantumBackend
+try:
+    from ._azure_quantum import AzureQuantumBackend
+except ImportError:  # pragma: no cover
+
+    class AzureQuantumBackend:
+        """Dummy class"""
+
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
+            )

@@ -15,38 +15,33 @@
 
 """Back-end to run quantum programs using Azure Quantum."""
 
-import numpy as np
 from collections import Counter
 
-from projectq.types import WeakQubitRef
+import numpy as np
+
 from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import (
-    AllocateQubitGate,
-    DeallocateQubitGate,
-    FlushGate,
-    MeasureGate
-)
+from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, MeasureGate
+from projectq.types import WeakQubitRef
 
-from ._azure_quantum_client import send, retrieve
+from ._azure_quantum_client import retrieve, send
+from ._exceptions import AzureQuantumTargetNotFoundError
 from ._util import (
     IONQ_PROVIDER_ID,
     QUANTINUUM_PROVIDER_ID,
     is_available_ionq,
     is_available_quantinuum,
+    rearrange_result,
     to_json,
     to_qasm,
-    rearrange_result
 )
-
-from ._exceptions import AzureQuantumTargetNotFoundError
 
 try:
     from azure.quantum import Workspace
-    from azure.quantum.target import Target, IonQ, Quantinuum
+    from azure.quantum.target import IonQ, Quantinuum, Target
     from azure.quantum.target.target_factory import TargetFactory
 except ImportError:  # pragma: no cover
-    raise ImportError(
+    raise ImportError(  # pylint: disable=raise-missing-from
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
     )
 
@@ -54,10 +49,7 @@ except ImportError:  # pragma: no cover
 class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
     """Backend for building circuits and submitting them to the Azure Quantum."""
 
-    DEFAULT_TARGETS = {
-        IONQ_PROVIDER_ID: IonQ,
-        QUANTINUUM_PROVIDER_ID: Quantinuum
-    }
+    DEFAULT_TARGETS = {IONQ_PROVIDER_ID: IonQ, QUANTINUUM_PROVIDER_ID: Quantinuum}
 
     def __init__(
         self,
@@ -69,7 +61,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         num_retries=100,
         interval=1,
         retrieve_execution=None,
-        **kwargs
+        **kwargs,
     ):  # pylint: disable=too-many-arguments
         """
         Initialize an Azure Quantum Backend object.
@@ -146,7 +138,6 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         Args:
             cmd: Command to store
         """
-
         if self._clear:
             self._probabilities = {}
             self._clear = False
@@ -200,7 +191,8 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         """
         if self._provider_id == IONQ_PROVIDER_ID:
             return is_available_ionq(cmd)
-        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+
+        if self._provider_id == QUANTINUUM_PROVIDER_ID:
             return is_available_quantinuum(cmd)
 
         return False
@@ -208,36 +200,30 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
     @property
     def _target_factory(self):
         target_factory = TargetFactory(
-            base_cls=Target,  # noqa
-            workspace=self._workspace,
-            default_targets=AzureQuantumBackend.DEFAULT_TARGETS
+            base_cls=Target, workspace=self._workspace, default_targets=AzureQuantumBackend.DEFAULT_TARGETS
         )
 
         return target_factory
 
     @property
     def _target(self):
-        target = self._target_factory.get_targets(
-            name=self._target_name,
-            provider_id=self._provider_id
-        )
+        target = self._target_factory.get_targets(name=self._target_name, provider_id=self._provider_id)
 
-        if type(target) is list and len(target) == 0:  # pragma: no cover
+        if isinstance(target, list) and len(target) == 0:  # pragma: no cover
             raise AzureQuantumTargetNotFoundError(
-                'Target {} is not available on workspace {}.'.format(
-                    self._target_name, self._workspace.name)
+                'Target {} is not available on workspace {}.'.format(self._target_name, self._workspace.name)
             )
 
         return target
 
     @property
     def current_availability(self):
-        """Current availability for given target."""
+        """Get current availability for given target."""
         return self._target.current_availability
 
     @property
     def average_queue_time(self):
-        """Average queue time for given target."""
+        """Get average queue time for given target."""
         return self._target.average_queue_time
 
     def get_probability(self, state, qureg):
@@ -296,19 +282,21 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         qubits = len(qubit_mapping.keys())
 
         if self._provider_id == IONQ_PROVIDER_ID:
-            return {
-                "qubits": qubits,
-                "circuit": self._circuit
-            }
-        elif self._provider_id == QUANTINUUM_PROVIDER_ID:
+            return {"qubits": qubits, "circuit": self._circuit}
+
+        if self._provider_id == QUANTINUUM_PROVIDER_ID:
             measurement_gates = ""
 
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
                 measurement_gates += "measure q[{0}] -> c[{0}];\n".format(qb_loc)
 
-            return f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];" \
-                   f"{self._circuit}\n{measurement_gates}"
+            return (
+                f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];"
+                f"{self._circuit}\n{measurement_gates}"
+            )
+
+        raise RuntimeError("Invalid Azure Quantum target.")
 
     @property
     def _metadata(self):
@@ -316,18 +304,11 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         num_qubits = len(qubit_mapping.keys())
         meas_map = [qubit_mapping[qubit_id] for qubit_id in self._measured_ids]
 
-        return {
-            "num_qubits": num_qubits,
-            "meas_map": meas_map
-        }
+        return {"num_qubits": num_qubits, "meas_map": meas_map}
 
     def estimate_cost(self, **kwargs):
         """Estimate cost for the circuit this object has built during engine execution."""
-        return self._target.estimate_cost(
-            circuit=self._input_data,  # noqa
-            num_shots=self._num_runs,  # noqa
-            **kwargs
-        )  # noqa
+        return self._target.estimate_cost(circuit=self._input_data, num_shots=self._num_runs, **kwargs)
 
     def _run(self):  # pylint: disable=too-many-locals
         """Run the circuit this object has built during engine execution."""
@@ -343,7 +324,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 target=self._target,
                 num_retries=self._num_retries,
                 interval=self._interval,
-                verbose=self._verbose
+                verbose=self._verbose,
             )
 
             if res is None:
@@ -354,7 +335,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 target=self._target,
                 num_retries=self._num_retries,
                 interval=self._interval,
-                verbose=self._verbose
+                verbose=self._verbose,
             )
 
             if res is None:
@@ -368,9 +349,9 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             }
         elif self._provider_id == QUANTINUUM_PROVIDER_ID:
             histogram = Counter(res["c"])
-            self._probabilities = {
-                k: v / self._num_runs for k, v in histogram.items()
-            }
+            self._probabilities = {k: v / self._num_runs for k, v in histogram.items()}
+        else:
+            raise RuntimeError("Invalid Azure Quantum target.")
 
         # Set a single measurement result
         bitstring = np.random.choice(list(self._probabilities.keys()), p=list(self._probabilities.values()))

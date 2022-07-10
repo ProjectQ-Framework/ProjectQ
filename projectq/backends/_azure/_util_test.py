@@ -15,19 +15,27 @@
 
 import math
 
+import pytest
+
+from projectq.backends._azure._util import (
+    Vdag,
+    is_available_ionq,
+    is_available_quantinuum,
+    to_json,
+    to_qasm,
+)
 from projectq.cengines import DummyEngine, MainEngine
-from projectq.types import WeakQubitRef
 from projectq.ops import (
-    Allocate,
-    Barrier,
-    Command,
-    C,
     CNOT,
     CX,
+    NOT,
+    Allocate,
+    Barrier,
+    C,
+    Command,
     Deallocate,
     H,
     Measure,
-    NOT,
     Rx,
     Rxx,
     Ry,
@@ -44,18 +52,9 @@ from projectq.ops import (
     Tdagger,
     X,
     Y,
-    Z
+    Z,
 )
-
-from projectq.backends._azure._util import (  # noqa
-    is_available_ionq,
-    is_available_quantinuum,
-    to_json,
-    to_qasm,
-    Vdag
-)
-
-import pytest
+from projectq.types import WeakQubitRef
 
 
 @pytest.mark.parametrize(
@@ -69,9 +68,9 @@ import pytest
         (S, True),
         (T, True),
         (SqrtX, True),
-        (Rx(math.pi/2), True),
-        (Ry(math.pi/2), True),
-        (Rz(math.pi/2), True),
+        (Rx(math.pi / 2), True),
+        (Ry(math.pi / 2), True),
+        (Rz(math.pi / 2), True),
         (Sdag, True),
         (Sdagger, True),
         (Tdag, True),
@@ -80,8 +79,8 @@ import pytest
         (Measure, True),
         (Allocate, True),
         (Deallocate, True),
-        (Barrier, False)
-    ]
+        (Barrier, False),
+    ],
 )
 def test_ionq_is_available_single_qubit_gates(single_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -97,10 +96,10 @@ def test_ionq_is_available_single_qubit_gates(single_qubit_gate, expected_result
         (Swap, True),
         (CNOT, True),
         (CX, True),
-        (Rxx(math.pi/2), True),
-        (Ryy(math.pi/2), True),
-        (Rzz(math.pi/2), True)
-    ]
+        (Rxx(math.pi / 2), True),
+        (Ryy(math.pi / 2), True),
+        (Rzz(math.pi / 2), True),
+    ],
 )
 def test_ionq_is_available_two_qubit_gates(two_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -133,8 +132,9 @@ def test_ionq_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits
 
     # pass controls as parameter
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert is_available_ionq(cmd) == \
-           expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert is_available_ionq(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(
+        num_ctrl_qubits, base_gate
+    )
 
 
 @pytest.mark.parametrize(
@@ -162,9 +162,17 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
         n_controlled_gate = C(n_controlled_gate)
 
     # pass controls as targets
-    cmd = Command(eng, n_controlled_gate, (qureg, qb0,))
-    assert is_available_ionq(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    cmd = Command(
+        eng,
+        n_controlled_gate,
+        (
+            qureg,
+            qb0,
+        ),
+    )
+    assert is_available_ionq(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(
+        num_ctrl_qubits, base_gate
+    )
 
 
 @pytest.mark.parametrize(
@@ -177,9 +185,9 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
         (H, True),
         (S, True),
         (T, True),
-        (Rx(math.pi/2), True),
-        (Ry(math.pi/2), True),
-        (Rz(math.pi/2), True),
+        (Rx(math.pi / 2), True),
+        (Ry(math.pi / 2), True),
+        (Rz(math.pi / 2), True),
         (Sdag, True),
         (Sdagger, True),
         (Tdag, True),
@@ -189,8 +197,8 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
         (Deallocate, True),
         (Barrier, True),
         (SqrtX, False),
-        (Vdag, False)
-    ]
+        (Vdag, False),
+    ],
 )
 def test_quantinuum_is_available_single_qubit_gates(single_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -205,11 +213,11 @@ def test_quantinuum_is_available_single_qubit_gates(single_qubit_gate, expected_
     [
         (CNOT, True),
         (CX, True),
-        (Rxx(math.pi/2), True),
-        (Ryy(math.pi/2), True),
-        (Rzz(math.pi/2), True),
-        (Swap, False)
-    ]
+        (Rxx(math.pi / 2), True),
+        (Ryy(math.pi / 2), True),
+        (Rzz(math.pi / 2), True),
+        (Swap, False),
+    ],
 )
 def test_quantinuum_is_available_two_qubit_gates(two_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -232,7 +240,7 @@ def test_quantinuum_is_available_two_qubit_gates(two_qubit_gate, expected_result
         (Z, 2, True),
         (Z, 3, False),
         (Y, 1, False),
-    ]
+    ],
 )
 def test_quantinuum_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -240,8 +248,9 @@ def test_quantinuum_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_
     qureg = eng.allocate_qureg(num_ctrl_qubits)
 
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert is_available_quantinuum(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert is_available_quantinuum(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(
+        num_ctrl_qubits, base_gate
+    )
 
 
 @pytest.mark.parametrize(
@@ -256,7 +265,7 @@ def test_quantinuum_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_
         (Z, 2, True),
         (Z, 3, False),
         (Y, 1, False),
-    ]
+    ],
 )
 def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -268,9 +277,17 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
         n_controlled_gate = C(n_controlled_gate)
 
     # pass controls as targets
-    cmd = Command(eng, n_controlled_gate, (qureg, qb0,))
-    assert is_available_quantinuum(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    cmd = Command(
+        eng,
+        n_controlled_gate,
+        (
+            qureg,
+            qb0,
+        ),
+    )
+    assert is_available_quantinuum(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(
+        num_ctrl_qubits, base_gate
+    )
 
 
 @pytest.mark.parametrize(
@@ -286,12 +303,12 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
         (Rx(0), {'gate': 'rx', 'rotation': 0.0, 'targets': [0]}),
         (Ry(0), {'gate': 'ry', 'rotation': 0.0, 'targets': [0]}),
         (Rz(0), {'gate': 'rz', 'rotation': 0.0, 'targets': [0]}),
-        (Rx(math.pi/4), {'gate': 'rx', 'rotation': 0.785398163397, 'targets': [0]}),
-        (Ry(math.pi/4), {'gate': 'ry', 'rotation': 0.785398163397, 'targets': [0]}),
-        (Rz(math.pi/4), {'gate': 'rz', 'rotation': 0.785398163397, 'targets': [0]}),
-        (Rx(math.pi/2), {'gate': 'rx', 'rotation': 1.570796326795, 'targets': [0]}),
-        (Ry(math.pi/2), {'gate': 'ry', 'rotation': 1.570796326795, 'targets': [0]}),
-        (Rz(math.pi/2), {'gate': 'rz', 'rotation': 1.570796326795, 'targets': [0]}),
+        (Rx(math.pi / 4), {'gate': 'rx', 'rotation': 0.785398163397, 'targets': [0]}),
+        (Ry(math.pi / 4), {'gate': 'ry', 'rotation': 0.785398163397, 'targets': [0]}),
+        (Rz(math.pi / 4), {'gate': 'rz', 'rotation': 0.785398163397, 'targets': [0]}),
+        (Rx(math.pi / 2), {'gate': 'rx', 'rotation': 1.570796326795, 'targets': [0]}),
+        (Ry(math.pi / 2), {'gate': 'ry', 'rotation': 1.570796326795, 'targets': [0]}),
+        (Rz(math.pi / 2), {'gate': 'rz', 'rotation': 1.570796326795, 'targets': [0]}),
         (Rx(math.pi), {'gate': 'rx', 'rotation': 3.14159265359, 'targets': [0]}),
         (Ry(math.pi), {'gate': 'ry', 'rotation': 3.14159265359, 'targets': [0]}),
         (Rz(math.pi), {'gate': 'rz', 'rotation': 3.14159265359, 'targets': [0]}),
@@ -300,8 +317,8 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
         (Tdag, {'gate': 'ti', 'targets': [0]}),
         (Tdagger, {'gate': 'ti', 'targets': [0]}),
         (SqrtX, {'gate': 'v', 'targets': [0]}),
-        (Vdag, {'gate': 'vi', 'targets': [0]})
-    ]
+        (Vdag, {'gate': 'vi', 'targets': [0]}),
+    ],
 )
 def test_to_json_single_qubit_gates(single_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -319,16 +336,16 @@ def test_to_json_single_qubit_gates(single_qubit_gate, expected_result):
         (Rxx(0), {'gate': 'xx', 'rotation': 0.0, 'targets': [0, 1]}),
         (Ryy(0), {'gate': 'yy', 'rotation': 0.0, 'targets': [0, 1]}),
         (Rzz(0), {'gate': 'zz', 'rotation': 0.0, 'targets': [0, 1]}),
-        (Rxx(math.pi/4), {'gate': 'xx', 'rotation': 0.785398163397, 'targets': [0, 1]}),
-        (Ryy(math.pi/4), {'gate': 'yy', 'rotation': 0.785398163397, 'targets': [0, 1]}),
-        (Rzz(math.pi/4), {'gate': 'zz', 'rotation': 0.785398163397, 'targets': [0, 1]}),
-        (Rxx(math.pi/2), {'gate': 'xx', 'rotation': 1.570796326795, 'targets': [0, 1]}),
-        (Ryy(math.pi/2), {'gate': 'yy', 'rotation': 1.570796326795, 'targets': [0, 1]}),
-        (Rzz(math.pi/2), {'gate': 'zz', 'rotation': 1.570796326795, 'targets': [0, 1]}),
+        (Rxx(math.pi / 4), {'gate': 'xx', 'rotation': 0.785398163397, 'targets': [0, 1]}),
+        (Ryy(math.pi / 4), {'gate': 'yy', 'rotation': 0.785398163397, 'targets': [0, 1]}),
+        (Rzz(math.pi / 4), {'gate': 'zz', 'rotation': 0.785398163397, 'targets': [0, 1]}),
+        (Rxx(math.pi / 2), {'gate': 'xx', 'rotation': 1.570796326795, 'targets': [0, 1]}),
+        (Ryy(math.pi / 2), {'gate': 'yy', 'rotation': 1.570796326795, 'targets': [0, 1]}),
+        (Rzz(math.pi / 2), {'gate': 'zz', 'rotation': 1.570796326795, 'targets': [0, 1]}),
         (Rxx(math.pi), {'gate': 'xx', 'rotation': 3.14159265359, 'targets': [0, 1]}),
         (Ryy(math.pi), {'gate': 'yy', 'rotation': 3.14159265359, 'targets': [0, 1]}),
-        (Rzz(math.pi), {'gate': 'zz', 'rotation': 3.14159265359, 'targets': [0, 1]})
-    ]
+        (Rzz(math.pi), {'gate': 'zz', 'rotation': 3.14159265359, 'targets': [0, 1]}),
+    ],
 )
 def test_to_json_two_qubit_gates(two_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -357,8 +374,7 @@ def test_to_json_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     qureg = eng.allocate_qureg(num_ctrl_qubits)
 
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert to_json(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
 @pytest.mark.parametrize(
@@ -384,9 +400,15 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
         n_controlled_gate = C(n_controlled_gate)
 
     # pass controls as targets
-    cmd = Command(eng, n_controlled_gate, (qureg, qb0,))
-    assert to_json(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    cmd = Command(
+        eng,
+        n_controlled_gate,
+        (
+            qureg,
+            qb0,
+        ),
+    )
+    assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
 @pytest.mark.parametrize(
@@ -402,12 +424,12 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
         (Rx(0), 'rx(0.0) q[0];'),
         (Ry(0), 'ry(0.0) q[0];'),
         (Rz(0), 'rz(0.0) q[0];'),
-        (Rx(math.pi/4), 'rx(0.785398163397) q[0];'),
-        (Ry(math.pi/4), 'ry(0.785398163397) q[0];'),
-        (Rz(math.pi/4), 'rz(0.785398163397) q[0];'),
-        (Rx(math.pi/2), 'rx(1.570796326795) q[0];'),
-        (Ry(math.pi/2), 'ry(1.570796326795) q[0];'),
-        (Rz(math.pi/2), 'rz(1.570796326795) q[0];'),
+        (Rx(math.pi / 4), 'rx(0.785398163397) q[0];'),
+        (Ry(math.pi / 4), 'ry(0.785398163397) q[0];'),
+        (Rz(math.pi / 4), 'rz(0.785398163397) q[0];'),
+        (Rx(math.pi / 2), 'rx(1.570796326795) q[0];'),
+        (Ry(math.pi / 2), 'ry(1.570796326795) q[0];'),
+        (Rz(math.pi / 2), 'rz(1.570796326795) q[0];'),
         (Rx(math.pi), 'rx(3.14159265359) q[0];'),
         (Ry(math.pi), 'ry(3.14159265359) q[0];'),
         (Rz(math.pi), 'rz(3.14159265359) q[0];'),
@@ -415,7 +437,7 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
         (Sdagger, 'sdg q[0];'),
         (Tdag, 'tdg q[0];'),
         (Tdagger, 'tdg q[0];'),
-    ]
+    ],
 )
 def test_to_qasm_single_qubit_gates(single_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -432,16 +454,16 @@ def test_to_qasm_single_qubit_gates(single_qubit_gate, expected_result):
         (Rxx(0), 'rxx(0.0) q[0], q[1];'),
         (Ryy(0), 'ryy(0.0) q[0], q[1];'),
         (Rzz(0), 'rzz(0.0) q[0], q[1];'),
-        (Rxx(math.pi/4), 'rxx(0.785398163397) q[0], q[1];'),
-        (Ryy(math.pi/4), 'ryy(0.785398163397) q[0], q[1];'),
-        (Rzz(math.pi/4), 'rzz(0.785398163397) q[0], q[1];'),
-        (Rxx(math.pi/2), 'rxx(1.570796326795) q[0], q[1];'),
-        (Ryy(math.pi/2), 'ryy(1.570796326795) q[0], q[1];'),
-        (Rzz(math.pi/2), 'rzz(1.570796326795) q[0], q[1];'),
+        (Rxx(math.pi / 4), 'rxx(0.785398163397) q[0], q[1];'),
+        (Ryy(math.pi / 4), 'ryy(0.785398163397) q[0], q[1];'),
+        (Rzz(math.pi / 4), 'rzz(0.785398163397) q[0], q[1];'),
+        (Rxx(math.pi / 2), 'rxx(1.570796326795) q[0], q[1];'),
+        (Ryy(math.pi / 2), 'ryy(1.570796326795) q[0], q[1];'),
+        (Rzz(math.pi / 2), 'rzz(1.570796326795) q[0], q[1];'),
         (Rxx(math.pi), 'rxx(3.14159265359) q[0], q[1];'),
         (Ryy(math.pi), 'ryy(3.14159265359) q[0], q[1];'),
         (Rzz(math.pi), 'rzz(3.14159265359) q[0], q[1];'),
-    ]
+    ],
 )
 def test_to_qasm_two_qubit_gates(two_qubit_gate, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -457,7 +479,7 @@ def test_to_qasm_two_qubit_gates(two_qubit_gate, expected_result):
         (Barrier, 2, 'barrier q[0], q[1];'),
         (Barrier, 3, 'barrier q[0], q[1], q[2];'),
         (Barrier, 4, 'barrier q[0], q[1], q[2], q[3];'),
-    ]
+    ],
 )
 def test_to_qasm_n_qubit_gates(n_qubit_gate, n, expected_result):
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
@@ -483,8 +505,7 @@ def test_to_qasm_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     qureg = eng.allocate_qureg(num_ctrl_qubits)
 
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert to_qasm(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_qasm(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
 @pytest.mark.parametrize(
@@ -508,6 +529,12 @@ def test_to_qasm_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
         n_controlled_gate = C(n_controlled_gate)
 
     # pass controls as targets
-    cmd = Command(eng, n_controlled_gate, (qureg, qb0,))
-    assert to_qasm(cmd) == expected_result, \
-        'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    cmd = Command(
+        eng,
+        n_controlled_gate,
+        (
+            qureg,
+            qb0,
+        ),
+    )
+    assert to_qasm(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)

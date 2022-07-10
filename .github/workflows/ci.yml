@@ -55,12 +55,12 @@ jobs:
     - name: Generate requirement file (Unix)
       if: runner.os != 'Windows'
       run: |
-        python setup.py gen_reqfile --include-extras=test,braket,revkit
+        python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit
 
     - name: Generate requirement file (Windows)
       if: runner.os == 'Windows'
       run: |
-        python setup.py gen_reqfile --include-extras=test,braket
+        python setup.py gen_reqfile --include-extras=test,azure-quantum,braket
 
     - name: Prepare env
       run: |
@@ -73,11 +73,11 @@ jobs:
 
     - name: Build and install package (Unix)
       if: runner.os != 'Windows'
-      run: python -m pip install -ve .[braket,revkit,test]
+      run: python -m pip install -ve .[azure-quantum,braket,revkit,test]
 
     - name: Build and install package (Windows)
       if: runner.os == 'Windows'
-      run: python -m pip install -ve .[braket,test]
+      run: python -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -142,14 +142,14 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -187,14 +187,14 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -269,11 +269,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |

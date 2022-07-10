@@ -15,9 +15,8 @@
 
 from unittest import mock
 
-from projectq.backends._azure._azure_quantum_client import send, retrieve
+from projectq.backends._azure._azure_quantum_client import retrieve, send
 from projectq.backends._exceptions import DeviceOfflineError
-
 
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
@@ -37,7 +36,7 @@ def test_is_online():
             target=get_mock_target(),
             num_retries=1000,
             interval=1,
-            verbose=True
+            verbose=True,
         )
 
         assert False, 'Device is offline, but no exception is thrown from client.'
@@ -46,44 +45,24 @@ def test_is_online():
 
 
 def test_send_ionq():
-    expected_res = {
-        '0': 0.125,
-        '1': 0.125,
-        '2': 0.125,
-        '3': 0.125,
-        '4': 0.125,
-        '5': 0.125,
-        '6': 0.125,
-        '7': 0.125
-    }
+    expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
     def get_mock_target():
         mock_job = mock.MagicMock()
         mock_job.id = ZERO_GUID
-        mock_job.get_results = mock.MagicMock(
-            return_value=expected_res
-        )
+        mock_job.get_results = mock.MagicMock(return_value=expected_res)
 
         mock_target = mock.MagicMock()
         mock_target.current_availability = 'Available'
-        mock_target.submit = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_target.submit = mock.MagicMock(return_value=mock_job)
 
         return mock_target
 
     input_data = {
         'qubits': 3,
-        'circuit': [
-            {'gate': 'h', 'targets': [0]},
-            {'gate': 'h', 'targets': [1]},
-            {'gate': 'h', 'targets': [2]}
-        ]
+        'circuit': [{'gate': 'h', 'targets': [0]}, {'gate': 'h', 'targets': [1]}, {'gate': 'h', 'targets': [2]}],
     }
-    metadata = {
-        'num_qubits': 3,
-        'meas_map': [0, 1, 2]
-    }
+    metadata = {'num_qubits': 3, 'meas_map': [0, 1, 2]}
 
     try:
         actual_res = send(
@@ -93,7 +72,7 @@ def test_send_ionq():
             target=get_mock_target(),
             num_retries=1000,
             interval=1,
-            verbose=True
+            verbose=True,
         )
 
         assert actual_res == expected_res
@@ -104,28 +83,117 @@ def test_send_ionq():
 def test_send_quantinuum():
     expected_res = {
         'c': [
-            '010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000', '101',
-            '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000', '101', '101',
-            '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100', '110', '011', '010',
-            '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011', '111', '101', '101', '001',
-            '011', '110', '001', '010', '001', '110', '101', '000', '010', '001', '011', '100', '110', '100', '110',
-            '101', '110', '111', '110', '001', '011', '101', '111', '011', '100', '111', '100', '001', '111', '111',
-            '100', '100', '110', '101', '100', '110', '100', '000', '011', '000'
+            '010',
+            '100',
+            '110',
+            '000',
+            '101',
+            '111',
+            '000',
+            '100',
+            '000',
+            '110',
+            '111',
+            '100',
+            '100',
+            '000',
+            '101',
+            '110',
+            '111',
+            '011',
+            '101',
+            '100',
+            '001',
+            '110',
+            '001',
+            '001',
+            '100',
+            '011',
+            '110',
+            '000',
+            '101',
+            '101',
+            '010',
+            '100',
+            '110',
+            '111',
+            '010',
+            '000',
+            '010',
+            '110',
+            '000',
+            '110',
+            '001',
+            '100',
+            '110',
+            '011',
+            '010',
+            '111',
+            '100',
+            '110',
+            '100',
+            '100',
+            '011',
+            '000',
+            '001',
+            '101',
+            '000',
+            '011',
+            '111',
+            '101',
+            '101',
+            '001',
+            '011',
+            '110',
+            '001',
+            '010',
+            '001',
+            '110',
+            '101',
+            '000',
+            '010',
+            '001',
+            '011',
+            '100',
+            '110',
+            '100',
+            '110',
+            '101',
+            '110',
+            '111',
+            '110',
+            '001',
+            '011',
+            '101',
+            '111',
+            '011',
+            '100',
+            '111',
+            '100',
+            '001',
+            '111',
+            '111',
+            '100',
+            '100',
+            '110',
+            '101',
+            '100',
+            '110',
+            '100',
+            '000',
+            '011',
+            '000',
         ]
     }
 
     def get_mock_target():
         mock_job = mock.MagicMock()
         mock_job.id = ZERO_GUID
-        mock_job.get_results = mock.MagicMock(
-            return_value=expected_res
-        )
+        mock_job.get_results = mock.MagicMock(return_value=expected_res)
 
         mock_target = mock.MagicMock()
         mock_target.current_availability = 'Available'
-        mock_target.submit = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_target.submit = mock.MagicMock(return_value=mock_job)
 
         return mock_target
 
@@ -141,10 +209,7 @@ def test_send_quantinuum():
         measure q[2] -> c[2];
 '''
 
-    metadata = {
-        'num_qubits': 3,
-        'meas_map': [0, 1, 2]
-    }
+    metadata = {'num_qubits': 3, 'meas_map': [0, 1, 2]}
 
     try:
         actual_res = send(
@@ -154,7 +219,7 @@ def test_send_quantinuum():
             target=get_mock_target(),
             num_retries=1000,
             interval=1,
-            verbose=True
+            verbose=True,
         )
 
         assert actual_res == expected_res
@@ -163,46 +228,25 @@ def test_send_quantinuum():
 
 
 def test_retrieve_ionq():
-    expected_res = {
-        '0': 0.125,
-        '1': 0.125,
-        '2': 0.125,
-        '3': 0.125,
-        '4': 0.125,
-        '5': 0.125,
-        '6': 0.125,
-        '7': 0.125
-    }
+    expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
     def get_mock_target():
         mock_job = mock.MagicMock()
         mock_job.id = ZERO_GUID
-        mock_job.get_results = mock.MagicMock(
-            return_value=expected_res
-        )
+        mock_job.get_results = mock.MagicMock(return_value=expected_res)
 
         mock_workspace = mock.MagicMock()
-        mock_workspace.get_job = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_workspace.get_job = mock.MagicMock(return_value=mock_job)
 
         mock_target = mock.MagicMock()
         mock_target.current_availability = 'Available'
         mock_target.workspace = mock_workspace
-        mock_target.submit = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_target.submit = mock.MagicMock(return_value=mock_job)
 
         return mock_target
 
     try:
-        actual_res = retrieve(
-            job_id=ZERO_GUID,
-            target=get_mock_target(),
-            num_retries=1000,
-            interval=1,
-            verbose=True
-        )
+        actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
 
         assert actual_res == expected_res
     except DeviceOfflineError:
@@ -212,45 +256,126 @@ def test_retrieve_ionq():
 def test_retrieve_quantinuum():
     expected_res = {
         'c': [
-            '010', '100', '110', '000', '101', '111', '000', '100', '000', '110', '111', '100', '100', '000', '101',
-            '110', '111', '011', '101', '100', '001', '110', '001', '001', '100', '011', '110', '000', '101', '101',
-            '010', '100', '110', '111', '010', '000', '010', '110', '000', '110', '001', '100', '110', '011', '010',
-            '111', '100', '110', '100', '100', '011', '000', '001', '101', '000', '011', '111', '101', '101', '001',
-            '011', '110', '001', '010', '001', '110', '101', '000', '010', '001', '011', '100', '110', '100', '110',
-            '101', '110', '111', '110', '001', '011', '101', '111', '011', '100', '111', '100', '001', '111', '111',
-            '100', '100', '110', '101', '100', '110', '100', '000', '011', '000'
+            '010',
+            '100',
+            '110',
+            '000',
+            '101',
+            '111',
+            '000',
+            '100',
+            '000',
+            '110',
+            '111',
+            '100',
+            '100',
+            '000',
+            '101',
+            '110',
+            '111',
+            '011',
+            '101',
+            '100',
+            '001',
+            '110',
+            '001',
+            '001',
+            '100',
+            '011',
+            '110',
+            '000',
+            '101',
+            '101',
+            '010',
+            '100',
+            '110',
+            '111',
+            '010',
+            '000',
+            '010',
+            '110',
+            '000',
+            '110',
+            '001',
+            '100',
+            '110',
+            '011',
+            '010',
+            '111',
+            '100',
+            '110',
+            '100',
+            '100',
+            '011',
+            '000',
+            '001',
+            '101',
+            '000',
+            '011',
+            '111',
+            '101',
+            '101',
+            '001',
+            '011',
+            '110',
+            '001',
+            '010',
+            '001',
+            '110',
+            '101',
+            '000',
+            '010',
+            '001',
+            '011',
+            '100',
+            '110',
+            '100',
+            '110',
+            '101',
+            '110',
+            '111',
+            '110',
+            '001',
+            '011',
+            '101',
+            '111',
+            '011',
+            '100',
+            '111',
+            '100',
+            '001',
+            '111',
+            '111',
+            '100',
+            '100',
+            '110',
+            '101',
+            '100',
+            '110',
+            '100',
+            '000',
+            '011',
+            '000',
         ]
     }
 
     def get_mock_target():
         mock_job = mock.MagicMock()
         mock_job.id = ZERO_GUID
-        mock_job.get_results = mock.MagicMock(
-            return_value=expected_res
-        )
+        mock_job.get_results = mock.MagicMock(return_value=expected_res)
 
         mock_workspace = mock.MagicMock()
-        mock_workspace.get_job = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_workspace.get_job = mock.MagicMock(return_value=mock_job)
 
         mock_target = mock.MagicMock()
         mock_target.current_availability = 'Available'
         mock_target.workspace = mock_workspace
-        mock_target.submit = mock.MagicMock(
-            return_value=mock_job
-        )
+        mock_target.submit = mock.MagicMock(return_value=mock_job)
 
         return mock_target
 
     try:
-        actual_res = retrieve(
-            job_id=ZERO_GUID,
-            target=get_mock_target(),
-            num_retries=1000,
-            interval=1,
-            verbose=True
-        )
+        actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
 
         assert actual_res == expected_res
     except DeviceOfflineError:

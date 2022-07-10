@@ -13,16 +13,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Utility functions for Azure Quantum."""
+
 from projectq.meta import get_control_count, has_negative_control
-from projectq.ops import get_inverse
 from projectq.ops import (
     AllocateQubitGate,
     BarrierGate,
     ControlledGate,
-    DeallocateQubitGate,
     DaggeredGate,
-    MeasureGate,
+    DeallocateQubitGate,
     HGate,
+    MeasureGate,
     R,
     Rx,
     Rxx,
@@ -38,11 +39,11 @@ from projectq.ops import (
     TGate,
     XGate,
     YGate,
-    ZGate
+    ZGate,
+    get_inverse,
 )
 
 from .._exceptions import InvalidCommandError
-
 
 IONQ_PROVIDER_ID = 'ionq'
 QUANTINUUM_PROVIDER_ID = 'quantinuum'
@@ -80,7 +81,7 @@ QUANTINUUM_GATE_MAP = {
     TGate: 't',
     XGate: 'x',
     YGate: 'y',
-    ZGate: 'z'
+    ZGate: 'z',
 }  # excluding controlled, conjugate-transpose and meta gates
 
 QUANTINUUM_SUPPORTED_GATES = tuple(QUANTINUUM_GATE_MAP.keys())
@@ -105,13 +106,13 @@ def is_available_ionq(cmd):
         return False
 
     if isinstance(gate, ControlledGate):
-        num_ctrl_qubits = gate._n  # noqa
+        num_ctrl_qubits = gate._n  # pylint: disable=protected-access
     else:
         num_ctrl_qubits = get_control_count(cmd)
 
     # Get base gate wrapped in ControlledGate classes
     while isinstance(gate, ControlledGate):
-        gate = gate._gate  # noqa
+        gate = gate._gate  # pylint: disable=protected-access
 
     # NOTE: IonQ supports up to 7 control qubits
     if 0 < num_ctrl_qubits <= 7:
@@ -144,13 +145,13 @@ def is_available_quantinuum(cmd):
         return False
 
     if isinstance(gate, ControlledGate):
-        num_ctrl_qubits = gate._n  # noqa
+        num_ctrl_qubits = gate._n  # pylint: disable=protected-access
     else:
         num_ctrl_qubits = get_control_count(cmd)
 
     # Get base gate wrapped in ControlledGate classes
     while isinstance(gate, ControlledGate):
-        gate = gate._gate  # noqa
+        gate = gate._gate  # pylint: disable=protected-access
 
     # TODO: NEEDED CONFORMATION- Does Quantinuum support more than 2 control gates?
     if 0 < num_ctrl_qubits <= 2:
@@ -183,9 +184,9 @@ def to_json(cmd):
     gate = cmd.gate
 
     if isinstance(gate, ControlledGate):
-        inner_gate = gate._gate  # noqa
+        inner_gate = gate._gate  # pylint: disable=protected-access
         while isinstance(inner_gate, ControlledGate):
-            inner_gate = inner_gate._gate  # noqa
+            inner_gate = inner_gate._gate  # pylint: disable=protected-access
         gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
@@ -201,17 +202,14 @@ def to_json(cmd):
     # Controlled gates get special treatment too
     if isinstance(gate, ControlledGate):
         all_qubits = [qb.id for qureg in cmd.qubits for qb in qureg]
-        controls = all_qubits[:gate._n]  # noqa
-        targets = all_qubits[gate._n:]  # noqa
+        controls = all_qubits[: gate._n]  # pylint: disable=protected-access
+        targets = all_qubits[gate._n :]  # noqa: E203  # pylint: disable=protected-access
     else:
         controls = [qb.id for qb in cmd.control_qubits]
         targets = [qb.id for qureg in cmd.qubits for qb in qureg]
 
     # Initialize the gate dict
-    gate_dict = {
-        'gate': gate_name,
-        'targets': targets
-    }
+    gate_dict = {'gate': gate_name, 'targets': targets}
 
     # Check if we have a rotation
     if isinstance(gate, (R, Rx, Ry, Rz, Rxx, Ryy, Rzz)):
@@ -224,7 +222,7 @@ def to_json(cmd):
     return gate_dict
 
 
-def to_qasm(cmd):
+def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branches
     """
     Convert ProjectQ command to QASM format.
 
@@ -241,9 +239,9 @@ def to_qasm(cmd):
     gate = cmd.gate
 
     if isinstance(gate, ControlledGate):
-        inner_gate = gate._gate  # noqa
+        inner_gate = gate._gate  # pylint: disable=protected-access
         while isinstance(inner_gate, ControlledGate):
-            inner_gate = inner_gate._gate  # noqa
+            inner_gate = inner_gate._gate  # pylint: disable=protected-access
         gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
@@ -259,8 +257,8 @@ def to_qasm(cmd):
     # Controlled gates get special treatment too
     if isinstance(gate, ControlledGate):
         all_qubits = [qb.id for qureg in cmd.qubits for qb in qureg]
-        controls = all_qubits[:gate._n]  # noqa
-        targets = all_qubits[gate._n:]  # noqa
+        controls = all_qubits[: gate._n]  # pylint: disable=protected-access
+        targets = all_qubits[gate._n :]  # noqa: E203  # pylint: disable=protected-access
     else:
         controls = [qb.id for qb in cmd.control_qubits]
         targets = [qb.id for qureg in cmd.qubits for qb in qureg]
@@ -273,11 +271,11 @@ def to_qasm(cmd):
         return "{} {};".format(gate_name, qb_str[:-2])
 
     # Daggered gates
-    elif gate in (Sdag, Tdag):
+    if gate in (Sdag, Tdag):
         return "{} q[{}];".format(gate_name, targets[0])
 
     # Controlled gates
-    elif len(controls) > 0:
+    if len(controls) > 0:
         # 1-Controlled gates
         if len(controls) == 1:
             gate_name = 'c' + gate_name
@@ -286,11 +284,12 @@ def to_qasm(cmd):
         # 2-Controlled gates
         if len(controls) == 2:
             gate_name = 'cc' + gate_name
-            return "{} q[{}], q[{}], q[{}];".format(
-                gate_name, controls[0], controls[1], targets[0])
+            return "{} q[{}], q[{}], q[{}];".format(gate_name, controls[0], controls[1], targets[0])
+
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
     # Single qubit gates
-    elif len(targets) == 1:
+    if len(targets) == 1:
         # Standard gates
         if isinstance(gate, (HGate, XGate, YGate, ZGate, SGate, TGate)):
             return "{} q[{}];".format(gate_name, targets[0])
@@ -299,15 +298,18 @@ def to_qasm(cmd):
         if isinstance(gate, (Rx, Ry, Rz)):
             return "{}({}) q[{}];".format(gate_name, gate.angle, targets[0])
 
+        raise InvalidCommandError('Invalid command:', str(cmd))
+
     # Two qubit gates
-    elif len(targets) == 2:
+    if len(targets) == 2:
         # Rotational gates
         if isinstance(gate, (Rxx, Ryy, Rzz)):
             return "{}({}) q[{}], q[{}];".format(gate_name, gate.angle, targets[0], targets[1])
 
-    # Invalid command
-    else:
         raise InvalidCommandError('Invalid command:', str(cmd))
+
+    # Invalid command
+    raise InvalidCommandError('Invalid command:', str(cmd))
 
 
 def rearrange_result(input_result, length):

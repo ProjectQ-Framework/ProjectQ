@@ -15,25 +15,19 @@
 
 from unittest import mock
 
-import projectq.backends._azure._azure_quantum
-from projectq.ops import H, CX, All, Measure
-from projectq.cengines import MainEngine, BasicMapperEngine
-from projectq.backends import AzureQuantumBackend
-from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
-
+import pytest
 from azure.quantum import Workspace
 
-import pytest
-
+import projectq.backends._azure._azure_quantum
+from projectq.backends import AzureQuantumBackend
+from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
+from projectq.cengines import BasicMapperEngine, MainEngine
+from projectq.ops import CX, All, H, Measure
 
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
 
-def mock_target_status(
-    target_id,
-    current_availability,
-    average_queue_time
-):
+def mock_target_status(target_id, current_availability, average_queue_time):
     target_status = mock.MagicMock()
 
     target_status.id = target_id
@@ -47,56 +41,35 @@ def mock_provider_statuses():
     ionq_provider_status = mock.MagicMock()
     ionq_provider_status.id = 'ionq'
     ionq_provider_status.targets = [
-        mock_target_status(
-            target_id='ionq.simulator',
-            current_availability='Available',
-            average_queue_time=1000
-        ),
-        mock_target_status(
-            target_id='ionq.qpu',
-            current_availability='Available',
-            average_queue_time=2000
-        )
+        mock_target_status(target_id='ionq.simulator', current_availability='Available', average_queue_time=1000),
+        mock_target_status(target_id='ionq.qpu', current_availability='Available', average_queue_time=2000),
     ]
 
     quantinuum_provider_status = mock.MagicMock()
     quantinuum_provider_status.id = 'quantinuum'
     quantinuum_provider_status.targets = [
         mock_target_status(
-            target_id='quantinuum.hqs-lt-s1-apival',
-            current_availability='Available',
-            average_queue_time=3000
+            target_id='quantinuum.hqs-lt-s1-apival', current_availability='Available', average_queue_time=3000
         ),
         mock_target_status(
-            target_id='quantinuum.hqs-lt-s1-sim',
-            current_availability='Available',
-            average_queue_time=4000
+            target_id='quantinuum.hqs-lt-s1-sim', current_availability='Available', average_queue_time=4000
         ),
-        mock_target_status(
-            target_id='quantinuum.hqs-lt-s1',
-            current_availability='Degraded',
-            average_queue_time=5000
-        )
+        mock_target_status(target_id='quantinuum.hqs-lt-s1', current_availability='Degraded', average_queue_time=5000),
     ]
 
-    return [
-        ionq_provider_status, quantinuum_provider_status
-    ]
+    return [ionq_provider_status, quantinuum_provider_status]
 
 
 def mock_workspace():
     workspace = Workspace(
-        subscription_id=ZERO_GUID,
-        resource_group='testResourceGroup',
-        name='testWorkspace',
-        location='East US'
+        subscription_id=ZERO_GUID, resource_group='testResourceGroup', name='testWorkspace', location='East US'
     )
 
     workspace.append_user_agent('projectq')
 
     workspace._client = mock.MagicMock()
-    workspace._client.providers = mock.MagicMock()  # noqa
-    workspace._client.providers.get_status.return_value = mock_provider_statuses()  # noqa
+    workspace._client.providers = mock.MagicMock()  # pylint: disable=protected-access
+    workspace._client.providers.get_status.return_value = mock_provider_statuses()  # pylint: disable=protected-access
 
     return workspace
 
@@ -106,17 +79,13 @@ def mock_workspace():
     [
         (False, 'ionq.simulator', 'ionq', 'ionq.simulator'),
         (True, 'ionq.qpu', 'ionq', 'ionq.qpu'),
-        (False, 'ionq.qpu', 'ionq', 'ionq.simulator')
+        (False, 'ionq.qpu', 'ionq', 'ionq.simulator'),
     ],
 )
 def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expected_target_name):
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
 
     assert backend._target_name == expected_target_name
 
@@ -128,17 +97,13 @@ def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expec
         (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim'),
         (True, 'quantinuum.hqs-lt-s1', 'quantinuum', 'quantinuum.hqs-lt-s1'),
         (False, 'quantinuum.hqs-lt-s1', 'quantinuum', 'quantinuum.hqs-lt-s1-apival'),
-        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim')
+        (False, 'quantinuum.hqs-lt-s1-sim', 'quantinuum', 'quantinuum.hqs-lt-s1-sim'),
     ],
 )
 def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id, expected_target_name):
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
 
     assert backend._target_name == expected_target_name
 
@@ -147,11 +112,7 @@ def test_azure_quantum_invalid_target():
     workspace = mock_workspace()
 
     try:
-        AzureQuantumBackend(
-            use_hardware=False,
-            target_name='invalid-target',
-            workspace=workspace
-        )
+        AzureQuantumBackend(use_hardware=False, target_name='invalid-target', workspace=workspace)
         assert False
     except AzureQuantumTargetNotFoundError:
         assert True
@@ -170,11 +131,7 @@ def test_azure_quantum_invalid_target():
 def test_current_availability(use_hardware, target_name, provider_id, current_availability):
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
 
     assert backend.current_availability == current_availability
 
@@ -192,46 +149,23 @@ def test_current_availability(use_hardware, target_name, provider_id, current_av
 def test_average_queue_time(use_hardware, target_name, provider_id, average_queue_time):
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
 
     assert backend.average_queue_time == average_queue_time
 
 
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
-    [
-        (False, 'ionq.simulator', 'ionq'),
-        (True, 'ionq.qpu', 'ionq')
-    ],
+    [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
 )
 def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
-        return_value={
-            'histogram': {
-                '0': 0.5,
-                '1': 0.0,
-                '2': 0.0,
-                '3': 0.0,
-                '4': 0.0,
-                '5': 0.0,
-                '6': 0.0,
-                '7': 0.5
-            }
-        }
+        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace,
-        verbose=True
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace, verbose=True)
 
     mapper = BasicMapperEngine()
     max_qubits = 3
@@ -242,33 +176,20 @@ def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {
-        '000': 0.5,
-        '100': 0.0,
-        '010': 0.0,
-        '110': 0.0,
-        '001': 0.0,
-        '101': 0.0,
-        '011': 0.0,
-        '111': 0.5
-    }
+    assert result == {'000': 0.5, '100': 0.0, '010': 0.0, '110': 0.0, '001': 0.0, '101': 0.0, '011': 0.0, '111': 0.5}
 
 
 @pytest.mark.parametrize(
@@ -283,26 +204,113 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
             'c': [
-                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
-                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
-                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
-                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
-                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '111', '000'
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
             ]
         }
     )
 
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace,
-        verbose=True
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace, verbose=True)
 
     mapper = BasicMapperEngine()
     max_qubits = 3
@@ -313,60 +321,34 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {
-        '000': 0.41,
-        '111': 0.59
-    }
+    assert result == {'000': 0.41, '111': 0.59}
 
 
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
-    [
-        (False, 'ionq.simulator', 'ionq'),
-        (True, 'ionq.qpu', 'ionq')
-    ],
+    [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
 )
 def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
-        return_value={
-            'histogram': {
-                '0': 0.5,
-                '1': 0.0,
-                '2': 0.0,
-                '3': 0.0,
-                '4': 0.0,
-                '5': 0.0,
-                '6': 0.0,
-                '7': 0.5
-            }
-        }
+        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace,
-        verbose=True
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace, verbose=True)
 
     mapper = BasicMapperEngine()
     max_qubits = 3
@@ -377,18 +359,14 @@ def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
@@ -415,26 +393,113 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={
             'c': [
-                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
-                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
-                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
-                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
-                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '111', '000'
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
             ]
         }
     )
 
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=use_hardware,
-        target_name=target_name,
-        workspace=workspace,
-        verbose=True
-    )
+    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace, verbose=True)
 
     mapper = BasicMapperEngine()
     max_qubits = 3
@@ -445,18 +510,14 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
@@ -474,12 +535,7 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
 def test_run_no_circuit():
     workspace = mock_workspace()
 
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='ionq.simulator',
-        workspace=workspace,
-        verbose=True
-    )
+    backend = AzureQuantumBackend(use_hardware=False, target_name='ionq.simulator', workspace=workspace, verbose=True)
 
     mapper = BasicMapperEngine()
     max_qubits = 3
@@ -490,11 +546,7 @@ def test_run_no_circuit():
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
 
@@ -510,25 +562,11 @@ def test_run_no_circuit():
 
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
-    [
-        (False, 'ionq.simulator', 'ionq'),
-        (True, 'ionq.qpu', 'ionq')
-    ],
+    [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
 )
 def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
-        return_value={
-            'histogram': {
-                '0': 0.5,
-                '1': 0.0,
-                '2': 0.0,
-                '3': 0.0,
-                '4': 0.0,
-                '5': 0.0,
-                '6': 0.0,
-                '7': 0.5
-            }
-        }
+        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
     workspace = mock_workspace()
@@ -538,7 +576,7 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
         target_name=target_name,
         workspace=workspace,
         retrieve_execution=ZERO_GUID,
-        verbose=True
+        verbose=True,
     )
 
     mapper = BasicMapperEngine()
@@ -550,33 +588,20 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {
-        '000': 0.5,
-        '100': 0.0,
-        '010': 0.0,
-        '110': 0.0,
-        '001': 0.0,
-        '101': 0.0,
-        '011': 0.0,
-        '111': 0.5
-    }
+    assert result == {'000': 0.5, '100': 0.0, '010': 0.0, '110': 0.0, '001': 0.0, '101': 0.0, '011': 0.0, '111': 0.5}
 
 
 @pytest.mark.parametrize(
@@ -591,14 +616,106 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
     projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
         return_value={
             'c': [
-                '000', '000', '000', '111', '111', '000', '000', '111', '000', '111', '000', '000', '111', '000',
-                '111', '111', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '000', '111', '111', '111', '111', '111', '111', '111',
-                '000', '000', '111', '000', '111', '111', '000', '000', '000', '000', '000', '111', '000', '111',
-                '000', '111', '111', '111', '111', '111', '111', '111', '000', '111', '000', '111', '111', '111',
-                '111', '000', '000', '000', '000', '111', '111', '000', '111', '111', '000', '000', '111', '000',
-                '111', '000', '111', '000', '111', '111', '000', '111', '000', '111', '111', '111', '000', '111',
-                '111', '000'
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '111',
+                '000',
+                '000',
+                '000',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
+                '111',
+                '000',
+                '111',
+                '111',
+                '111',
+                '000',
+                '111',
+                '111',
+                '000',
             ]
         }
     )
@@ -610,7 +727,7 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
         target_name=target_name,
         workspace=workspace,
         retrieve_execution=ZERO_GUID,
-        verbose=True
+        verbose=True,
     )
 
     mapper = BasicMapperEngine()
@@ -622,24 +739,17 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
 
     mapper.current_mapping = mapping
 
-    main_engine = MainEngine(
-        backend=backend,
-        engine_list=[mapper],
-        verbose=True
-    )
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
 
-    H | q0  # noqa
-    CX | (q0, q1)  # noqa
-    CX | (q1, q2)  # noqa
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
     All(Measure) | circuit
 
     main_engine.flush()
 
     result = backend.get_probabilities(circuit)
-    assert result == {
-        '000': 0.41,
-        '111': 0.59
-    }
+    assert result == {'000': 0.41, '111': 0.59}
