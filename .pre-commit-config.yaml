@@ -42,6 +42,12 @@ repos:
     hooks:
       - id: remove-tabs
 
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.34.0
+    hooks:
+      - id: pyupgrade
+        args: [--py36-plus, --keep-mock]
+
   - repo: https://github.com/PyCQA/isort
     rev: 5.10.1
     hooks:
@@ -62,12 +68,6 @@ repos:
       - id: blacken-docs
         args: [-S, -l, '120']
         additional_dependencies: [black==22.3.0]
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v2.34.0
-    hooks:
-      - id: pyupgrade
-        args: [--py36-plus, --keep-mock]
 
   - repo: https://gitlab.com/PyCQA/flake8
     rev: 3.9.2
