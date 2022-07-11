@@ -270,7 +270,7 @@ class IBMQ(Session):
                 # Note: if stays stuck if 'Validating' mode, then sthg went
                 #       wrong in step 3
                 if r_json['status'] not in acceptable_status:
-                    raise Exception("Error while running the code. Last status: {}.".format(r_json['status']))
+                    raise Exception(f"Error while running the code. Last status: {r_json['status']}.")
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.get_list_devices()
@@ -367,11 +367,8 @@ def send(
         runnable, qmax, qneeded = ibmq_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                (
-                    "The device is too small ({} qubits available) for the code "
-                    + "requested({} qubits needed) Try to look for another "
-                    + "device with more qubits"
-                ).format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code "
+                f"requested({qneeded} qubits needed) Try to look for another device with more qubits"
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:

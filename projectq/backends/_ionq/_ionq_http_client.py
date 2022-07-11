@@ -164,13 +164,7 @@ class IonQ(Session):
             'code': 'UnknownError',
             'error': 'An unknown error occurred!',
         }
-        raise JobSubmissionError(
-            "{}: {} (status={})".format(
-                failure['code'],
-                failure['error'],
-                status,
-            )
-        )
+        raise JobSubmissionError(f"{failure['code']}: {failure['error']} (status={status})")
 
     def get_result(self, device, execution_id, num_retries=3000, interval=1):
         """
@@ -239,7 +233,7 @@ class IonQ(Session):
                     self.update_devices_list()
                     if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of " "your submitted job is {}.".format(execution_id)
+                            f"Device went offline. The ID of your submitted job is {execution_id}."
                         )
         finally:
             if original_sigint_handler is not None:
@@ -336,7 +330,7 @@ def send(
         if verbose:  # pragma: no cover
             print("- Authenticating...")
         if verbose and token is not None:  # pragma: no cover
-            print('user API token: ' + token)
+            print(f"user API token: {token}")
         ionq_session.authenticate(token)
 
         # check if the device is online
@@ -352,9 +346,8 @@ def send(
         runnable, qmax, qneeded = ionq_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                "The device is too small ({} qubits available) for the code "
-                "requested({} qubits needed). Try to look for another device "
-                "with more qubits".format(qmax, qneeded)
+                f'The device is too small ({qmax} qubits available) for the code requested({qneeded} qubits needed).',
+                'Try to look for another device with more qubits',
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:  # pragma: no cover
@@ -381,12 +374,7 @@ def send(
             # Try to parse client errors
             if status_code == 400:
                 err_json = err.response.json()
-                raise JobSubmissionError(
-                    '{}: {}'.format(
-                        err_json['error'],
-                        err_json['message'],
-                    )
-                ) from err
+                raise JobSubmissionError(f"{err_json['error']}: {err_json['message']}") from err
 
         # Else, just print:
         print("- There was an error running your code:")

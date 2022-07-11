@@ -141,7 +141,7 @@ def test_uniformly_controlled_ry(n, gate_classes):
         correct_eng.flush()
 
         for fstate in range(2 ** (n + 1)):
-            binary_state = format(fstate, '0' + str(n + 1) + 'b')
+            binary_state = format(fstate, f"0{n + 1}b")
             test = test_sim.get_amplitude(binary_state, test_qb + test_ctrl_qureg)
             correct = correct_sim.get_amplitude(binary_state, correct_qb + correct_ctrl_qureg)
             assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)

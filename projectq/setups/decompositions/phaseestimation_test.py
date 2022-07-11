@@ -57,10 +57,7 @@ def test_simple_test_X_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.5).sum()
-    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
-        num_phase / N,
-        0.35,
-    )
+    assert num_phase / N >= 0.35, f"Statistics phase calculation are not correct ({num_phase / N:f} vs. {0.35:f})"
 
 
 @flaky(max_runs=5, min_passes=2)
@@ -90,10 +87,7 @@ def test_Ph_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / N >= 0.35, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
-        num_phase / N,
-        0.35,
-    )
+    assert num_phase / N >= 0.35, f"Statistics phase calculation are not correct ({num_phase / N:f} vs. {0.35:f})"
 
 
 def two_qubit_gate(system_q, time):
@@ -128,10 +122,7 @@ def test_2qubitsPh_andfunction_eigenvectors():
         eng.flush()
 
     num_phase = (results == 0.125).sum()
-    assert num_phase / N >= 0.34, "Statistics phase calculation are not correct ({:f} vs. {:f})".format(
-        num_phase / N,
-        0.34,
-    )
+    assert num_phase / N >= 0.34, f"Statistics phase calculation are not correct ({num_phase / N:f} vs. {0.34:f})"
 
 
 def test_X_no_eigenvectors():
@@ -178,10 +169,7 @@ def test_X_no_eigenvectors():
     assert total == pytest.approx(N, abs=5)
     assert plus_probability == pytest.approx(
         1.0 / 4.0, abs=1e-1
-    ), "Statistics on |+> probability are not correct ({:f} vs. {:f})".format(
-        plus_probability,
-        1.0 / 4.0,
-    )
+    ), f"Statistics on |+> probability are not correct ({plus_probability:f} vs. {1.0 / 4.0:f})"
 
 
 def test_string():

@@ -74,13 +74,13 @@ class DaggeredGate(BasicGate):
 
     def __str__(self):
         r"""Return string representation (str(gate) + \"^\dagger\")."""
-        return str(self._gate) + r"^\dagger"
+        return f"{str(self._gate)}^\\dagger"
 
     def tex_str(self):
         """Return the Latex string representation of a Daggered gate."""
         if hasattr(self._gate, 'tex_str'):
-            return self._gate.tex_str() + r"${}^\dagger$"
-        return str(self._gate) + r"${}^\dagger$"
+            return f"{self._gate.tex_str()}${{}}^\\dagger$"
+        return f"{str(self._gate)}${{}}^\\dagger$"
 
     def get_inverse(self):
         """Return the inverse gate (the inverse of the inverse of a gate is the gate itself)."""
@@ -259,7 +259,7 @@ class Tensor(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "Tensor(" + str(self._gate) + ")"
+        return f"Tensor({str(self._gate)})"
 
     def get_inverse(self):
         """Return the inverse of this tensored gate (which is the tensored inverse of the gate)."""

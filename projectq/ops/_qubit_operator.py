@@ -421,7 +421,7 @@ class QubitOperator(BasicGate):
                         result_terms[tmp_key] = new_coefficient
             self.terms = result_terms
             return self
-        raise TypeError('Cannot in-place multiply term of invalid type ' + 'to QubitTerm.')
+        raise TypeError('Cannot in-place multiply term of invalid type to QubitTerm.')
 
     def __mul__(self, multiplier):
         """

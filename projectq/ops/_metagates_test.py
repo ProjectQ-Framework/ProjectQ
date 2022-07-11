@@ -88,7 +88,7 @@ def test_daggered_gate_init():
 
 def test_daggered_gate_str():
     daggered_gate = _metagates.DaggeredGate(Y)
-    assert str(daggered_gate) == str(Y) + r"^\dagger"
+    assert str(daggered_gate) == f"{str(Y)}^\\dagger"
 
 
 def test_daggered_gate_hashable():
@@ -103,13 +103,13 @@ def test_daggered_gate_hashable():
 def test_daggered_gate_tex_str():
     daggered_gate = _metagates.DaggeredGate(Y)
     str_Y = Y.tex_str() if hasattr(Y, 'tex_str') else str(Y)
-    assert daggered_gate.tex_str() == str_Y + r"${}^\dagger$"
+    assert daggered_gate.tex_str() == f"{str_Y}${{}}^\\dagger$"
 
     # test for a gate with tex_str method
     rx = Rx(0.5)
     daggered_rx = _metagates.DaggeredGate(rx)
     str_rx = rx.tex_str() if hasattr(rx, 'tex_str') else str(rx)
-    assert daggered_rx.tex_str() == str_rx + r"${}^\dagger$"
+    assert daggered_rx.tex_str() == f"{str_rx}${{}}^\\dagger$"
 
 
 def test_daggered_gate_get_inverse():
@@ -163,7 +163,7 @@ def test_controlled_gate_init():
 
 def test_controlled_gate_str():
     one_control = _metagates.ControlledGate(Y, 2)
-    assert str(one_control) == "CC" + str(Y)
+    assert str(one_control) == f"CC{str(Y)}"
 
 
 def test_controlled_gate_get_inverse():
@@ -233,7 +233,7 @@ def test_tensor_init():
 
 def test_tensor_str():
     gate = _metagates.Tensor(Y)
-    assert str(gate) == "Tensor(" + str(Y) + ")"
+    assert str(gate) == f"Tensor({str(Y)})"
 
 
 def test_tensor_get_inverse():

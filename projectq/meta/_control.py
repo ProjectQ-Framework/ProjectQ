@@ -64,9 +64,8 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         converted_str = f'{ctrl_state:b}'.zfill(num_qubits)[::-1]
         if len(converted_str) != num_qubits:
             raise ValueError(
-                'Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
-                    ctrl_state, converted_str, num_qubits, 2**num_qubits - 1
-                )
+                f'Control state specified as {ctrl_state} ({converted_str}) is higher than maximum for {num_qubits} '
+                f'qubits: {2 ** num_qubits - 1}'
             )
         return converted_str
 
@@ -74,9 +73,7 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         # If the user inputs bit string, directly use it
         if len(ctrl_state) != num_qubits:
             raise ValueError(
-                'Control state {} has different length than the number of control qubits {}'.format(
-                    ctrl_state, num_qubits
-                )
+                f'Control state {ctrl_state} has different length than the number of control qubits {num_qubits}'
             )
         if not set(ctrl_state).issubset({'0', '1'}):
             raise ValueError(f'Control state {ctrl_state} has string other than 1 and 0')

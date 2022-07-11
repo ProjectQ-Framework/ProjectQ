@@ -289,7 +289,7 @@ class MatrixGate(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "MatrixGate(" + str(self.matrix.tolist()) + ")"
+        return f"MatrixGate({str(self.matrix.tolist())})"
 
     def __hash__(self):
         """Compute the hash of the object."""
@@ -361,9 +361,9 @@ class BasicRotationGate(BasicGate):
                             angle written in radian otherwise.
         """
         if symbols:
-            angle = "(" + str(round(self.angle / math.pi, 3)) + unicodedata.lookup("GREEK SMALL LETTER PI") + ")"
+            angle = f"({str(round(self.angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
         else:
-            angle = "(" + str(self.angle) + ")"
+            angle = f"({str(self.angle)})"
         return str(self.__class__.__name__) + angle
 
     def tex_str(self):
@@ -376,7 +376,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(round(self.angle / math.pi, 3)) + "\\pi}$"
+        return f"{str(self.__class__.__name__)}$_{{{str(round(self.angle / math.pi, 3))}\\pi}}$"
 
     def get_inverse(self):
         """Return the inverse of this rotation gate (negate the angle, return new object)."""
@@ -450,7 +450,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
+        return f"{str(self.__class__.__name__)}({str(self.angle)})"
 
     def tex_str(self):
         """
@@ -462,7 +462,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
+        return f"{str(self.__class__.__name__)}$_{{{str(self.angle)}}}$"
 
     def get_inverse(self):
         """Return the inverse of this rotation gate (negate the angle, return new object)."""

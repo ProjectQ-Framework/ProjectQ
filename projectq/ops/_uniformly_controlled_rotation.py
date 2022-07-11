@@ -68,7 +68,7 @@ class UniformlyControlledRy(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "UniformlyControlledRy(" + str(self.angles) + ")"
+        return f"UniformlyControlledRy({str(self.angles)})"
 
     def __eq__(self, other):
         """Return True if same class, same rotation angles."""
@@ -130,7 +130,7 @@ class UniformlyControlledRz(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "UniformlyControlledRz(" + str(self.angles) + ")"
+        return f"UniformlyControlledRz({str(self.angles)})"
 
     def __eq__(self, other):
         """Return True if same class, same rotation angles."""

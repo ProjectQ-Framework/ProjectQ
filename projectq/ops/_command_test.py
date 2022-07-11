@@ -218,7 +218,7 @@ def test_commmand_add_control_qubits_two(main_engine, state):
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,), qubit1)
     cmd.add_control_qubits(qubit2 + qubit3, state)
     assert cmd.control_qubits[0].id == 1
-    assert cmd.control_state == '1' + canonical_ctrl_state(state, 2)
+    assert cmd.control_state == f"1{canonical_ctrl_state(state, 2)}"
 
 
 def test_command_all_qubits(main_engine):

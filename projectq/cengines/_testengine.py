@@ -96,8 +96,8 @@ class CompareEngine(BasicEngine):
         for qubit_id, _l in enumerate(self._l):
             string += f"Qubit {qubit_id} : "
             for command in self._l[qubit_id]:
-                string += str(command) + ", "
-            string = string[:-2] + "\n"
+                string += f"{str(command)}, "
+            string = f"{string[:-2]}\n"
         return string
 
 

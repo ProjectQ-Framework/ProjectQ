@@ -144,7 +144,7 @@ class AQT(Session):
                 if r_json['status'] == 'finished' or 'samples' in r_json:
                     return r_json['samples']
                 if r_json['status'] != 'running':
-                    raise Exception("Error while running the code: {}.".format(r_json['status']))
+                    raise Exception(f"Error while running the code: {r_json['status']}.")
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.update_devices_list()
@@ -225,7 +225,7 @@ def send(
         if verbose:
             print("- Authenticating...")
         if token is not None:
-            print('user API token: ' + token)
+            print(f"user API token: {token}")
         aqt_session.authenticate(token)
 
         # check if the device is online
@@ -240,9 +240,8 @@ def send(
         runnable, qmax, qneeded = aqt_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                "The device is too small ({} qubits available) for the code "
-                "requested({} qubits needed). Try to look for another device "
-                "with more qubits".format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code requested({qneeded} qubits needed).",
+                "Try to look for another device with more qubits",
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:

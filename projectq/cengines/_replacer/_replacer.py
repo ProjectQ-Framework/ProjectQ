@@ -187,7 +187,7 @@ class AutoReplacer(BasicEngine):
                             break
 
                 if len(decomp_list) == 0:
-                    raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
+                    raise NoGateDecompositionError(f"\nNo replacement found for {str(cmd)}!")
 
                 # use decomposition chooser to determine the best decomposition
                 chosen_decomp = self._decomp_chooser(cmd, decomp_list)

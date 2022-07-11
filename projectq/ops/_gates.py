@@ -514,16 +514,15 @@ class FlipBits(SelfInverseGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "FlipBits(" + str(self.bits_to_flip) + ")"
+        return f"FlipBits({self.bits_to_flip})"
 
     def __or__(self, qubits):
         """Operator| overload which enables the syntax Gate | qubits."""
         quregs_tuple = self.make_tuple_of_qureg(qubits)
         if len(quregs_tuple) > 1:
             raise ValueError(
-                self.__str__() + ' can only be applied to qubits,'
-                'quregs, arrays of qubits, and tuples with one'
-                'individual qubit'
+                f"{str(self)} can only be applied to qubits, quregs, arrays of qubits, "
+                "and tuples with one individual qubit"
             )
         for qureg in quregs_tuple:
             for i, qubit in enumerate(qureg):
@@ -538,4 +537,4 @@ class FlipBits(SelfInverseGate):
 
     def __hash__(self):
         """Compute the hash of the object."""
-        return hash(self.__str__())
+        return hash(str(self))

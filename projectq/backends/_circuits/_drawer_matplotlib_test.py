@@ -127,7 +127,7 @@ class MyGate(BasicGate):
         param_str = f'{self.params[0]}'
         for param in self.params[1:]:
             param_str += f',{param}'
-        return str(self.__class__.__name__) + "(" + param_str + ")"
+        return f"{str(self.__class__.__name__)}({param_str})"
 
 
 def test_drawer_draw():

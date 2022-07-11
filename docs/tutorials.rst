@@ -251,6 +251,6 @@ To check out the ProjectQ syntax in action and to see whether the installation w
     Measure | qubit  # measure the qubit
 
     eng.flush()  # flush all gates (and execute measurements)
-    print("Measured {}".format(int(qubit)))  # output measurement result
+    print(f"Measured {int(qubit)}")  # output measurement result
 
 Which creates random bits (0 or 1).

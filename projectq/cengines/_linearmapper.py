@@ -161,7 +161,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
                     qubit_ids.append(qubit.id)
 
             if len(qubit_ids) > 2 or len(qubit_ids) == 0:
-                raise Exception("Invalid command (number of qubits): " + str(cmd))
+                raise Exception(f"Invalid command (number of qubits): {str(cmd)}")
 
             if isinstance(cmd.gate, AllocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id

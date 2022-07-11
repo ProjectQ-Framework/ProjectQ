@@ -298,13 +298,13 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             json_cmd['angle'] = gate.angle
 
         if isinstance(gate, DaggeredGate):
-            json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type] + 'i'
+            json_cmd['type'] = f"{'c' * num_controls + self._gationary[gate_type]}i"
         elif isinstance(gate, (XGate)) and num_controls > 0:
-            json_cmd['type'] = 'c' * (num_controls - 1) + 'cnot'
+            json_cmd['type'] = f"{'c' * (num_controls - 1)}cnot"
         else:
             json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type]
 
-        self._circuit += json.dumps(json_cmd) + ", "
+        self._circuit += f"{json.dumps(json_cmd)}, "
 
         # TODO: Add unitary for the SV1 simulator as MatrixGate
 
@@ -319,10 +319,8 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             mapping = self.main_engine.mapper.current_mapping
             if qb_id not in mapping:
                 raise RuntimeError(
-                    (
-                        "Unknown qubit id {} in current mapping. Please make sure eng.flush() was called and that the"
-                        "qubit was eliminated during optimization."
-                    ).format(qb_id)
+                    f"Unknown qubit id {qb_id} in current mapping. "
+                    "Please make sure eng.flush() was called and that the qubit was eliminated during optimization."
                 )
             return mapping[qb_id]
         return qb_id
@@ -436,7 +434,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
                 star = "*"
             self._probabilities[state] = probability
             if self._verbose and probability > 0:
-                print(state + " with p = " + str(probability) + star)
+                print(f"{state} with p = {probability}{star}")
 
         # register measurement result
         for qubit_id in self._measured_ids:

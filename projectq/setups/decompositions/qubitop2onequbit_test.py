@@ -95,7 +95,7 @@ def test_qubitop2singlequbit():
     correct_eng.flush()
 
     for fstate in range(2 ** (num_qubits + 1)):
-        binary_state = format(fstate, '0' + str(num_qubits + 1) + 'b')
+        binary_state = format(fstate, f"0{num_qubits + 1}b")
         test = test_eng.backend.get_amplitude(binary_state, test_qureg + test_ctrl_qb)
         correct = correct_eng.backend.get_amplitude(binary_state, correct_qureg + correct_ctrl_qb)
         assert correct == pytest.approx(test, rel=1e-10, abs=1e-10)

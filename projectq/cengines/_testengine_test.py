@@ -27,9 +27,8 @@ def test_compare_engine_str():
     CNOT | (qb0, qb1)
     eng.flush()
     expected = (
-        "Qubit 0 : Allocate | Qureg[0], H | Qureg[0], "
-        + "CX | ( Qureg[0], Qureg[1] )\nQubit 1 : Allocate | Qureg[1],"
-        + " CX | ( Qureg[0], Qureg[1] )\n"
+        "Qubit 0 : Allocate | Qureg[0], H | Qureg[0], CX | ( Qureg[0], Qureg[1] )\n"
+        "Qubit 1 : Allocate | Qureg[1], CX | ( Qureg[0], Qureg[1] )\n"
     )
     assert str(compare_engine) == expected
 

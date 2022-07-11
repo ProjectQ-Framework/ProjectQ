@@ -176,7 +176,7 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             qb_str = ""
             for pos in qb_pos:
                 qb_str += f"q[{pos}], "
-            self.qasm += qb_str[:-2] + ";"
+            self.qasm += f"{qb_str[:-2]};"
             self._json.append({'qubits': qb_pos, 'name': 'barrier'})
         elif isinstance(gate, (Rx, Ry, Rz)):
             qb_pos = cmd.qubits[0][0].id
@@ -212,9 +212,8 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         mapping = self.main_engine.mapper.current_mapping
         if qb_id not in mapping:
             raise RuntimeError(
-                "Unknown qubit id {}. Please make sure "
-                "eng.flush() was called and that the qubit "
-                "was eliminated during optimization.".format(qb_id)
+                f"Unknown qubit id {qb_id}. "
+                "Please make sure eng.flush() was called and that the qubit was eliminated during optimization."
             )
         return mapping[qb_id]
 
@@ -267,7 +266,7 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         # finally: add measurements (no intermediate measurements are allowed)
         for measured_id in self._measured_ids:
             qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-            self.qasm += "\nmeasure q[{0}] -> c[{0}];".format(qb_loc)
+            self.qasm += f"\nmeasure q[{qb_loc}] -> c[{qb_loc}];"
             self._json.append({'qubits': [qb_loc], 'name': 'measure', 'memory': [qb_loc]})
         # return if no operations / measurements have been performed.
         if self.qasm == "":
@@ -317,7 +316,7 @@ class IBMBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                     star = "*"
                 self._probabilities[state] = probability
                 if self._verbose and probability > 0:
-                    print(str(state) + " with p = " + str(probability) + star)
+                    print(f"{str(state)} with p = {probability}{star}")
 
             # register measurement result from IBM
             for qubit_id in self._measured_ids:

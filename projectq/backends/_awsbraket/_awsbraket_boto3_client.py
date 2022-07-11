@@ -268,7 +268,7 @@ class AWSBraket:
                 status = quantum_task['status']
                 bucket = quantum_task['outputS3Bucket']
                 directory = quantum_task['outputS3Directory']
-                resultsojectname = directory + '/results.json'
+                resultsojectname = f"{directory}/results.json"
                 if status == 'COMPLETED':
                     # Get the device type to obtian the correct measurement
                     # structure
@@ -290,8 +290,8 @@ class AWSBraket:
                         return _calculate_measurement_probs(result_content['measurements'])
                 if status == 'FAILED':
                     raise Exception(
-                        "Error while running the code: {}. "
-                        "The failure reason was: {}.".format(status, quantum_task['failureReason'])
+                        f'Error while running the code: {status}. '
+                        f'The failure reason was: {quantum_task["failureReason"]}.'
                     )
                 if status == 'CANCELLING':
                     raise Exception(f"The job received a CANCEL operation: {status}.")
@@ -310,9 +310,7 @@ class AWSBraket:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
         raise RequestTimeoutError(
-            "Timeout. "
-            "The Arn of your submitted job is {} and the status "
-            "of the job is {}.".format(execution_id, status)
+            f"Timeout. The Arn of your submitted job is {execution_id} and the status of the job is {status}."
         )
 
 
@@ -351,7 +349,7 @@ def retrieve(credentials, task_arn, num_retries=30, interval=1, verbose=False):
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
+                print(f"AWS credentials: {credentials['AWS_ACCESS_KEY_ID']}, {credentials['AWS_SECRET_KEY']}")
         awsbraket_session.authenticate(credentials=credentials)
         res = awsbraket_session.get_result(task_arn, num_retries=num_retries, interval=interval, verbose=verbose)
         return res
@@ -385,7 +383,7 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
+                print(f"AWS credentials: {credentials['AWS_ACCESS_KEY_ID']}, {credentials['AWS_SECRET_KEY']}")
         awsbraket_session.authenticate(credentials=credentials)
         awsbraket_session.get_s3_folder(s3_folder=s3_folder)
 
@@ -402,11 +400,8 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         runnable, qmax, qneeded = awsbraket_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                (
-                    "The device is too small ({} qubits available) for the code "
-                    + "requested({} qubits needed) Try to look for another "
-                    + "device with more qubits"
-                ).format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code",
+                f"requested({qneeded} qubits needed). Try to look for another device with more qubits",
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:

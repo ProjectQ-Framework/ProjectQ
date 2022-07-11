@@ -227,7 +227,7 @@ class CircuitDrawer(BasicEngine):
                     if self._accept_input:
                         meas = None
                         while meas not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
+                            prompt = f"Input measurement result (0 or 1) for qubit {str(qubit)}: "
                             meas = input(prompt)
                     else:
                         meas = self._default_measure

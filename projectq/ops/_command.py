@@ -355,6 +355,6 @@ class Command:  # pylint: disable=too-many-instance-attributes
             for qreg in qubits:
                 qstring += str(Qureg(qreg))
                 qstring += ", "
-            qstring = qstring[:-2] + " )"
+            qstring = f"{qstring[:-2]} )"
         cstring = "C" * len(ctrlqubits)
-        return cstring + self.gate.to_string(symbols) + " | " + qstring
+        return f"{cstring + self.gate.to_string(symbols)} | {qstring}"

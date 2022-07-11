@@ -426,7 +426,7 @@ def test_awsbraket_sent_error(mocker, sent_error_setup):
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        {"Error": {"Code": var_error, "Message": f"Msg error for {var_error}"}},
         "create_quantum_task",
     )
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)

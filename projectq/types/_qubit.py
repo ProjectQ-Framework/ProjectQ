@@ -193,7 +193,7 @@ class Qureg(list):
             start_id = qubit_id
             count = 1
 
-        return "Qureg[{}]".format(', '.join(out_list))
+        return f"Qureg[{', '.join(out_list)}]"
 
     @property
     def engine(self):

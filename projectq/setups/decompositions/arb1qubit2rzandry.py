@@ -128,7 +128,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     # Case 2: cos(c/2) == 0:
     elif abs(matrix[0][0]) < TOLERANCE:
@@ -157,7 +157,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     # Case 3: sin(c/2) != 0 and cos(c/2) !=0:
     else:
@@ -195,7 +195,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     return (a, b_half, c_half, d_half)
 

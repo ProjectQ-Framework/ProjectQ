@@ -30,9 +30,9 @@ class LastEngineException(Exception):
         """Initialize the exception."""
         super().__init__(
             (
-                "\nERROR: Sending to next engine failed. {} as last engine?\nIf this is legal, please override"
-                "'isAvailable' to adapt its behavior."
-            ).format(engine.__class__.__name__),
+                f"\nERROR: Sending to next engine failed. {engine.__class__.__name__} as last engine?"
+                "\nIf this is legal, please override 'isAvailable' to adapt its behavior."
+            ),
         )
 
 

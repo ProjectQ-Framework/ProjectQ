@@ -40,9 +40,9 @@ def _format_gate_str(cmd):
                 if len(param) < 8:
                     params_str_list.append(param)
                 else:
-                    params_str_list.append(param[:5] + '...')
+                    params_str_list.append(f"{param[:5]}...")
 
-        gate_name += '(' + ','.join(params_str_list) + ')'
+        gate_name += f"({','.join(params_str_list)})"
     return gate_name
 
 

@@ -55,7 +55,7 @@ Examples
     Measure | qubit  # measure the qubit
 
     eng.flush()  # flush all gates (and execute measurements)
-    print("Measured {}".format(int(qubit)))  # converting a qubit to int or bool gives access to the measurement result
+    print(f"Measured {int(qubit)}")  # converting a qubit to int or bool gives access to the measurement result
 
 
 ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example, a rotation of a qubit around the x-axis is usually specified as:
