@@ -52,4 +52,4 @@ def test_ionq_errors(monkeypatch):
     )
 
     with pytest.raises(DeviceOfflineError):
-        projectq.setups.ionq.get_engine_list(device='simulator')
+        projectq.setups.ionq.get_engine_list(token='TOKEN', device='simulator')
