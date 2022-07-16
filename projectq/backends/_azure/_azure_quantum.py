@@ -19,12 +19,12 @@ from collections import Counter
 
 import numpy as np
 
-from projectq.backends._ionq._ionq import _rearrange_result
 from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
 from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, MeasureGate
 from projectq.types import WeakQubitRef
 
+from .._utils import _rearrange_result
 from ._azure_quantum_client import retrieve, send
 from ._exceptions import AzureQuantumTargetNotFoundError
 from ._util import (
