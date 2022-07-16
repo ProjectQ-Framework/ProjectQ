@@ -19,13 +19,6 @@ import math
 
 import pytest
 
-from projectq.backends._azure._util import (
-    Vdag,
-    is_available_ionq,
-    is_available_quantinuum,
-    to_json,
-    to_qasm,
-)
 from projectq.cengines import DummyEngine, MainEngine
 from projectq.ops import (
     CNOT,
@@ -48,6 +41,7 @@ from projectq.ops import (
     Sdag,
     Sdagger,
     SqrtX,
+    SqrtXGate,
     Swap,
     T,
     Tdag,
@@ -55,10 +49,30 @@ from projectq.ops import (
     X,
     Y,
     Z,
+    get_inverse,
 )
 from projectq.types import WeakQubitRef
 
+_has_azure_quantum = True
+try:
+    import azure.quantum  # noqa: F401
 
+    from projectq.backends._azure._util import (
+        is_available_ionq,
+        is_available_quantinuum,
+        to_json,
+        to_qasm,
+    )
+except ImportError:
+    _has_azure_quantum = False
+
+has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure quantum package is not installed")
+
+V = SqrtXGate()
+Vdag = get_inverse(V)
+
+
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -92,6 +106,7 @@ def test_ionq_is_available_single_qubit_gates(single_qubit_gate, expected_result
     assert is_available_ionq(cmd) == expected_result, 'Failing on {} gate'.format(single_qubit_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "two_qubit_gate, expected_result",
     [
@@ -112,6 +127,7 @@ def test_ionq_is_available_two_qubit_gates(two_qubit_gate, expected_result):
     assert is_available_ionq(cmd) == expected_result, 'Failing on {} gate'.format(two_qubit_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -139,6 +155,7 @@ def test_ionq_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits
     )
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -177,6 +194,7 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
     )
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -210,6 +228,7 @@ def test_quantinuum_is_available_single_qubit_gates(single_qubit_gate, expected_
     assert is_available_quantinuum(cmd) == expected_result, 'Failing on {} gate'.format(single_qubit_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "two_qubit_gate, expected_result",
     [
@@ -230,6 +249,7 @@ def test_quantinuum_is_available_two_qubit_gates(two_qubit_gate, expected_result
     assert is_available_quantinuum(cmd) == expected_result, 'Failing on {} gate'.format(two_qubit_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -255,6 +275,7 @@ def test_quantinuum_is_available_n_controlled_qubits_type_1(base_gate, num_ctrl_
     )
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -292,6 +313,7 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
     )
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -335,6 +357,7 @@ def test_to_json_single_qubit_gates(single_qubit_gate, expected_result):
         assert actual_result['rotation'] == pytest.approx(expected_result['rotation'])
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "two_qubit_gate, expected_result",
     [
@@ -369,6 +392,7 @@ def test_to_json_two_qubit_gates(two_qubit_gate, expected_result):
         assert actual_result['rotation'] == pytest.approx(expected_result['rotation'])
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -391,6 +415,7 @@ def test_to_json_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -425,6 +450,7 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
     assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -460,6 +486,7 @@ def test_to_qasm_single_qubit_gates(single_qubit_gate, expected_result):
     assert to_qasm(Command(eng, single_qubit_gate, ([qb0],))) == expected_result
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "two_qubit_gate, expected_result",
     [
@@ -487,6 +514,7 @@ def test_to_qasm_two_qubit_gates(two_qubit_gate, expected_result):
     assert to_qasm(Command(eng, two_qubit_gate, ([qb0], [qb1]))) == expected_result
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "n_qubit_gate, n, expected_result",
     [
@@ -502,6 +530,7 @@ def test_to_qasm_n_qubit_gates(n_qubit_gate, n, expected_result):
     assert to_qasm(Command(eng, n_qubit_gate, (qureg,))) == expected_result
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [
@@ -522,6 +551,7 @@ def test_to_qasm_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     assert to_qasm(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "base_gate, num_ctrl_qubits, expected_result",
     [

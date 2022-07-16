@@ -17,12 +17,24 @@
 
 from unittest import mock
 
-from projectq.backends._azure._azure_quantum_client import retrieve, send
+import pytest
+
 from projectq.backends._exceptions import DeviceOfflineError
+
+_has_azure_quantum = True
+try:
+    import azure.quantum  # noqa: F401
+
+    from projectq.backends._azure._azure_quantum_client import retrieve, send
+except ImportError:
+    _has_azure_quantum = False
+
+has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure quantum package is not installed")
 
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
 
+@has_azure_quantum
 def test_is_online():
     def get_mock_target():
         mock_target = mock.MagicMock()
@@ -46,6 +58,7 @@ def test_is_online():
         assert True
 
 
+@has_azure_quantum
 def test_send_ionq():
     expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
@@ -82,6 +95,7 @@ def test_send_ionq():
         assert False, 'Device is available, but got DeviceOfflineError exception.'
 
 
+@has_azure_quantum
 def test_send_quantinuum():
     expected_res = {
         'c': [
@@ -229,6 +243,7 @@ def test_send_quantinuum():
         assert False, 'Device is available, but got DeviceOfflineError exception.'
 
 
+@has_azure_quantum
 def test_retrieve_ionq():
     expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
@@ -255,6 +270,7 @@ def test_retrieve_ionq():
         assert False, 'Device is available, but got DeviceOfflineError exception.'
 
 
+@has_azure_quantum
 def test_retrieve_quantinuum():
     expected_res = {
         'c': [

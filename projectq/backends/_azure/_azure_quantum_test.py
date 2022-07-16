@@ -19,18 +19,20 @@ from unittest import mock
 
 import pytest
 
-try:
-    from azure.quantum import Workspace
-except ImportError:
-    raise ImportError(
-        "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
-    )
-
-import projectq.backends._azure._azure_quantum
-from projectq.backends import AzureQuantumBackend
-from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
 from projectq.cengines import BasicMapperEngine, MainEngine
 from projectq.ops import CX, All, H, Measure
+
+_has_azure_quantum = True
+try:
+    from azure.quantum import Workspace
+
+    import projectq.backends._azure._azure_quantum
+    from projectq.backends import AzureQuantumBackend
+    from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
+except ImportError:
+    _has_azure_quantum = False
+
+has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure quantum package is not installed")
 
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
@@ -82,6 +84,7 @@ def mock_workspace():
     return workspace
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id, expected_target_name",
     [
@@ -98,6 +101,7 @@ def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expec
     assert backend._target_name == expected_target_name
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id, expected_target_name",
     [
@@ -116,6 +120,7 @@ def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id,
     assert backend._target_name == expected_target_name
 
 
+@has_azure_quantum
 def test_azure_quantum_invalid_target():
     workspace = mock_workspace()
 
@@ -126,6 +131,7 @@ def test_azure_quantum_invalid_target():
         assert True
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id, current_availability",
     [
@@ -144,6 +150,7 @@ def test_current_availability(use_hardware, target_name, provider_id, current_av
     assert backend.current_availability == current_availability
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id, average_queue_time",
     [
@@ -162,6 +169,7 @@ def test_average_queue_time(use_hardware, target_name, provider_id, average_queu
     assert backend.average_queue_time == average_queue_time
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
@@ -209,6 +217,7 @@ def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
     assert result['111'] == pytest.approx(0.5)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [
@@ -357,6 +366,7 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
     assert result['111'] == pytest.approx(0.59)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
@@ -401,6 +411,7 @@ def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
     assert backend.get_probability('111', circuit) == pytest.approx(0.5)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [
@@ -552,6 +563,7 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
     assert backend.get_probability('111', circuit) == pytest.approx(0.59)
 
 
+@has_azure_quantum
 def test_run_no_circuit():
     workspace = mock_workspace()
 
@@ -580,6 +592,7 @@ def test_run_no_circuit():
         assert True
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
@@ -633,6 +646,7 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     assert result['111'] == pytest.approx(0.5)
 
 
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [
