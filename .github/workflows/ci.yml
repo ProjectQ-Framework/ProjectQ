@@ -64,6 +64,7 @@ jobs:
 
     - name: Prepare env
       run: |
+        python -m pip install -U pip setuptools wheel
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install coveralls
 
@@ -142,6 +143,7 @@ jobs:
 
     - name: Prepare Python env
       run: |
+        python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -187,6 +189,7 @@ jobs:
 
     - name: Prepare Python env
       run: |
+        python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -269,6 +272,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
         python3 -m pip install -r requirements.txt --prefer-binary
 
