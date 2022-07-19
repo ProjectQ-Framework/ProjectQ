@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +24,7 @@ from projectq.ops import CNOT, QFT, All, Allocate, Command, H, Measure, Rz, Rzz,
 from projectq.types import WeakQubitRef
 
 
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         return False
 

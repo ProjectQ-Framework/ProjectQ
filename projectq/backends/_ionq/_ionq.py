@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -195,11 +194,11 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         gate_name = GATE_MAP.get(gate_type)
         # Daggered gates get special treatment.
         if isinstance(gate, DaggeredGate):
-            gate_name = GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
+            gate_name = f"{GATE_MAP[type(gate._gate)]}i"  # pylint: disable=protected-access
 
         # Unable to determine a gate mapping here, so raise out.
         if gate_name is None:
-            raise InvalidCommandError('Invalid command: ' + str(cmd))
+            raise InvalidCommandError(f"Invalid command: {str(cmd)}")
 
         # Now make sure there are no existing measurements on qubits involved
         #   in this operation.
@@ -217,7 +216,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             if len(already_measured) > 0:
                 err = (
                     'Mid-circuit measurement is not supported. '
-                    'The following qubits have already been measured: {}.'.format(list(already_measured))
+                    f'The following qubits have already been measured: {list(already_measured)}.'
                 )
                 raise MidCircuitMeasurementError(err)
 
@@ -318,7 +317,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 verbose=self._verbose,
             )
             if res is None:
-                raise RuntimeError("Failed to retrieve job with id: '{}'!".format(self._retrieve_execution))
+                raise RuntimeError(f"Failed to retrieve job with id: '{self._retrieve_execution}'!")
             self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.
@@ -339,7 +338,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 star = "*"
             self._probabilities[state] = probability
             if self._verbose and probability > 0:  # pragma: no cover
-                print(state + " with p = " + str(probability) + star)
+                print(f"{state} with p = {probability}{star}")
 
         # Register measurement results
         for idx, qubit_id in enumerate(measured_ids):

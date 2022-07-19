@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,8 +102,7 @@ class _Decomposition:  # pylint: disable=too-few-public-methods
 
         .. code-block:: python
 
-            register_decomposition(X.__class__, decompose_toffoli,
-                                   recogn_toffoli)
+            register_decomposition(X.__class__, decompose_toffoli, recogn_toffoli)
 
         Note:
             See projectq.setups.decompositions for more example codes.

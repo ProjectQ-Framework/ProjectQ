@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,11 +108,9 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
         drawing_order = {qubit_id: n_qubits - qubit_id - 1 for qubit_id in list(qubit_lines)}
     else:
         if set(drawing_order) != set(qubit_lines):
-            raise RuntimeError('Qubit IDs in drawing_order do not match ' + 'qubit IDs in qubit_lines!')
+            raise RuntimeError("Qubit IDs in drawing_order do not match qubit IDs in qubit_lines!")
         if set(drawing_order.values()) != set(range(len(drawing_order))):
-            raise RuntimeError(
-                'Indices of qubit wires in drawing_order must be between 0 and {}!'.format(len(drawing_order))
-            )
+            raise RuntimeError(f'Indices of qubit wires in drawing_order must be between 0 and {len(drawing_order)}!')
 
     plot_params = deepcopy(_DEFAULT_PLOT_PARAMS)
     plot_params.update(kwargs)
@@ -357,8 +354,7 @@ def draw_gate(
         else:
             if sorted(targets_order) != list(range(min(targets_order), max(targets_order) + 1)):
                 raise RuntimeError(
-                    'Multi-qubit gate with non-neighbouring qubits!\n'
-                    + 'Gate: {} on wires {}'.format(gate_str, targets_order)
+                    f"Multi-qubit gate with non-neighbouring qubits!\nGate: {gate_str} on wires {targets_order}"
                 )
 
             multi_qubit_gate(

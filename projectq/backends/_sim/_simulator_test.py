@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -228,7 +227,7 @@ def test_simulator_functional_measurement(sim):
 
     All(Measure) | qubits
 
-    bit_value_sum = sum([int(qubit) for qubit in qubits])
+    bit_value_sum = sum(int(qubit) for qubit in qubits)
     assert bit_value_sum == 0 or bit_value_sum == 5
 
     qb1 = WeakQubitRef(engine=eng, idx=qubits[0].id)
@@ -644,7 +643,7 @@ def test_simulator_no_uncompute_exception(sim):
     assert qubit[0].id == -1
 
 
-class MockSimulatorBackend(object):
+class MockSimulatorBackend:
     def __init__(self):
         self.run_cnt = 0
 

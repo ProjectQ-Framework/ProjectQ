@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +46,7 @@ def histogram(backend, qureg):
             qubit_list.append(qb)
 
     if len(qubit_list) > 5:
-        print('Warning: For {0} qubits there are 2^{0} different outcomes'.format(len(qubit_list)))
+        print(f'Warning: For {len(qubit_list)} qubits there are 2^{len(qubit_list)} different outcomes')
         print("The resulting histogram may look bad and/or take too long.")
         print("Consider calling histogram() with a sublist of the qubits.")
 

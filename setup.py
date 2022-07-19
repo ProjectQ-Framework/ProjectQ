@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Some of the setup.py code is inspired or copied from SQLAlchemy
 
 # SQLAlchemy was created by Michael Bayer.
@@ -118,7 +117,7 @@ def compiler_test(
     """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
     with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
-        temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
+        temp.write(f'{include}\nint main (int argc, char **argv) {{ {body} return 0; }}')
         fname = temp.name
 
     if compile_postargs is None:
@@ -147,7 +146,7 @@ def compiler_test(
         if compiler.compiler_type == 'msvc':
             err.close()
             os.dup2(olderr, sys.stderr.fileno())
-            with open('err.txt', 'r') as err_file:
+            with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
     except (CompileError, LinkError, RuntimeError):
@@ -370,7 +369,7 @@ class BuildExt(build_ext):
         # Other compiler tests
 
         status_msgs('Other compiler tests')
-        self.compiler.define_macro('VERSION_INFO', '"{}"'.format(self.distribution.get_version()))
+        self.compiler.define_macro('VERSION_INFO', f'"{self.distribution.get_version()}"')
         if compiler_type == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
             self.opts.append('-fvisibility=hidden')
 
@@ -402,7 +401,7 @@ class BuildExt(build_ext):
                 # Only add the flag if the compiler we are using is the one
                 # from HomeBrew
                 if llvm_root in compiler_root:
-                    l_arg = '-L{}/lib'.format(llvm_root)
+                    l_arg = f'-L{llvm_root}/lib'
                     if compiler_test(self.compiler, flag, link_postargs=[l_arg, flag], **kwargs):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
@@ -419,8 +418,8 @@ class BuildExt(build_ext):
                 # Only add the flag if the compiler we are using is the one
                 # from MacPorts
                 if macports_root in compiler_root:
-                    inc_dir = '{}/include/libomp'.format(macports_root)
-                    lib_dir = '{}/lib/libomp'.format(macports_root)
+                    inc_dir = f'{macports_root}/include/libomp'
+                    lib_dir = f'{macports_root}/lib/libomp'
                     c_arg = '-I' + inc_dir
                     l_arg = '-L' + lib_dir
 
@@ -476,11 +475,11 @@ class BuildExt(build_ext):
                 cxx_standards = [year for year in cxx_standards if year < 17]
 
         for year in cxx_standards:
-            flag = '-std=c++{}'.format(year)
+            flag = f'-std=c++{year}'
             if compiler_test(self.compiler, flag):
                 self.opts.append(flag)
                 return
-            flag = '/Qstd=c++{}'.format(year)
+            flag = f'/Qstd=c++{year}'
             if compiler_test(self.compiler, flag):
                 self.opts.append(flag)
                 return
@@ -512,7 +511,7 @@ class BuildExt(build_ext):
             if compiler_test(compiler, flag, link_shared_lib=True, compile_postargs=['-fPIC']):
                 flags.append(flag)
             else:
-                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+                important_msgs(f'WARNING: ignoring unsupported compiler flag: {flag}')
 
         self.compiler.compiler = [compiler_exe] + list(compiler_flags)
         self.compiler.compiler_so = [compiler_exe_so] + list(compiler_so_flags)
@@ -526,7 +525,7 @@ class BuildExt(build_ext):
             if compiler_test(self.compiler, flag):
                 flags.append(flag)
             else:
-                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+                important_msgs(f'WARNING: ignoring unsupported compiler flag: {flag}')
 
         self.compiler.compiler.extend(flags)
         self.compiler.compiler_so.extend(flags)
@@ -616,13 +615,13 @@ class GenerateRequirementFile(Command):
         with open('requirements.txt', 'w') as req_file:
             try:
                 for pkg in self.distribution.install_requires:
-                    req_file.write('{}\n'.format(pkg))
+                    req_file.write(f'{pkg}\n')
             except TypeError:  # Mostly for old setuptools (< 30.x)
                 for pkg in self.distribution.command_options['options']['install_requires']:
-                    req_file.write('{}\n'.format(pkg))
+                    req_file.write(f'{pkg}\n')
             req_file.write('\n')
             for pkg in self.extra_pkgs:
-                req_file.write('{}\n'.format(pkg))
+                req_file.write(f'{pkg}\n')
 
 
 # ------------------------------------------------------------------------------

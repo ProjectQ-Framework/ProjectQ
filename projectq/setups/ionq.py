@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +51,7 @@ def get_engine_list(token=None, device=None):
         service.authenticate(token=token)
     devices = service.show_devices()
     if not device or device not in devices:
-        raise DeviceOfflineError("Error checking engine list: no '{}' devices available".format(device))
+        raise DeviceOfflineError(f"Error checking engine list: no '{device}' devices available")
 
     #
     # Qubit mapper

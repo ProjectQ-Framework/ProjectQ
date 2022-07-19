@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Update `docker/setup-qemu-action` GitHub action to v2
 -   Fixed CentOS 7 configuration issue
+-   Added two new pre-commit hooks: `blacken-docs` and `pyupgrade`
 -   Remove deprecated `setup_requires` field in setup.cfg
 -   Fixed installation issue with newer versions of `setuptool-scm`and Python¨ 3.6
 

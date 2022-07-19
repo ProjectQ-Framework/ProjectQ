@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +37,7 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
 
         .. code-block:: python
 
-            ControlFunctionOracle(0x8e) | ([a, b, c], d)
+            ControlFunctionOracle(0x8E) | ([a, b, c], d)
     """
 
     def __init__(self, function, **kwargs):
@@ -103,7 +102,7 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
 
         # create truth table from function integer
         hex_length = max(2 ** (len(qs) - 1) // 4, 1)
-        revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
+        revkit.tt(table=f"{self.function:#0{hex_length}x}")
 
         # create reversible circuit from truth table
         self.kwargs.get("synth", revkit.esopbs)()

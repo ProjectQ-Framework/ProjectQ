@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -407,10 +406,8 @@ class Simulator(BasicEngine):
             ids = [qb.id for qureg in cmd.qubits for qb in qureg]
             if not 2 ** len(ids) == len(cmd.gate.matrix):
                 raise Exception(
-                    "Simulator: Error applying {} gate: "
-                    "{}-qubit gate applied to {} qubits.".format(
-                        str(cmd.gate), int(math.log(len(cmd.gate.matrix), 2)), len(ids)
-                    )
+                    f"Simulator: Error applying {str(cmd.gate)} gate: {int(math.log(len(cmd.gate.matrix), 2))}-qubit"
+                    f" gate applied to {len(ids)} qubits."
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
 
@@ -418,8 +415,7 @@ class Simulator(BasicEngine):
                 self._simulator.run()
         else:
             raise Exception(
-                "This simulator only supports controlled k-qubit"
-                " gates with k < 6!\nPlease add an auto-replacer"
+                "This simulator only supports controlled k-qubit gates with k < 6!\nPlease add an auto-replacer"
                 " engine to your list of compiler engines."
             )
 

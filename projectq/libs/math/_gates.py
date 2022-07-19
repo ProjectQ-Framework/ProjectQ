@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +24,9 @@ class AddConstant(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum = eng.allocate_qureg(5) # 5-qubit number
-            X | qunum[1] # qunum is now equal to 2
-            AddConstant(3) | qunum # qunum is now equal to 5
+            qunum = eng.allocate_qureg(5)  # 5-qubit number
+            X | qunum[1]  # qunum is now equal to 2
+            AddConstant(3) | qunum  # qunum is now equal to 5
 
     Important: if you run with conditional and carry, carry needs to
     be a quantum register for the compiler/decomposition to work.
@@ -52,7 +51,7 @@ class AddConstant(BasicMathGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "AddConstant({})".format(self.a)
+        return f"AddConstant({self.a})"
 
     def __eq__(self, other):
         """Equal operator."""
@@ -73,9 +72,9 @@ def SubConstant(a):  # pylint: disable=invalid-name
     Example:
         .. code-block:: python
 
-            qunum = eng.allocate_qureg(5) # 5-qubit number
-            X | qunum[2] # qunum is now equal to 4
-            SubConstant(3) | qunum # qunum is now equal to 1
+            qunum = eng.allocate_qureg(5)  # 5-qubit number
+            X | qunum[2]  # qunum is now equal to 4
+            SubConstant(3) | qunum  # qunum is now equal to 1
     """
     return AddConstant(-a)
 
@@ -89,9 +88,9 @@ class AddConstantModN(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum = eng.allocate_qureg(5) # 5-qubit number
-            X | qunum[1] # qunum is now equal to 2
-            AddConstantModN(3, 4) | qunum # qunum is now equal to 1
+            qunum = eng.allocate_qureg(5)  # 5-qubit number
+            X | qunum[1]  # qunum is now equal to 2
+            AddConstantModN(3, 4) | qunum  # qunum is now equal to 1
 
     .. note::
 
@@ -119,7 +118,7 @@ class AddConstantModN(BasicMathGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "AddConstantModN({}, {})".format(self.a, self.N)
+        return f"AddConstantModN({self.a}, {self.N})"
 
     def get_inverse(self):
         """Return the inverse gate (subtraction of the same number a modulo the same number N)."""
@@ -147,9 +146,9 @@ def SubConstantModN(a, N):  # pylint: disable=invalid-name
     Example:
         .. code-block:: python
 
-            qunum = eng.allocate_qureg(3) # 3-qubit number
-            X | qunum[1] # qunum is now equal to 2
-            SubConstantModN(4,5) | qunum # qunum is now -2 = 6 = 1 (mod 5)
+            qunum = eng.allocate_qureg(3)  # 3-qubit number
+            X | qunum[1]  # qunum is now equal to 2
+            SubConstantModN(4, 5) | qunum  # qunum is now -2 = 6 = 1 (mod 5)
 
     .. note::
 
@@ -171,9 +170,9 @@ class MultiplyByConstantModN(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum = eng.allocate_qureg(5) # 5-qubit number
-            X | qunum[2] # qunum is now equal to 4
-            MultiplyByConstantModN(3,5) | qunum # qunum is now 2.
+            qunum = eng.allocate_qureg(5)  # 5-qubit number
+            X | qunum[2]  # qunum is now equal to 4
+            MultiplyByConstantModN(3, 5) | qunum  # qunum is now 2.
 
     .. note::
 
@@ -203,7 +202,7 @@ class MultiplyByConstantModN(BasicMathGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "MultiplyByConstantModN({}, {})".format(self.a, self.N)
+        return f"MultiplyByConstantModN({self.a}, {self.N})"
 
     def __eq__(self, other):
         """Equal operator."""
@@ -223,12 +222,12 @@ class AddQuantumGate(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum_a = eng.allocate_qureg(5) # 5-qubit number
-            qunum_b = eng.allocate_qureg(5) # 5-qubit number
+            qunum_a = eng.allocate_qureg(5)  # 5-qubit number
+            qunum_b = eng.allocate_qureg(5)  # 5-qubit number
             carry_bit = eng.allocate_qubit()
 
-            X | qunum_a[2] #qunum_a is now equal to 4
-            X | qunum_b[3] #qunum_b is now equal to 8
+            X | qunum_a[2]  # qunum_a is now equal to 4
+            X | qunum_b[3]  # qunum_b is now equal to 8
             AddQuantum | (qunum_a, qunum_b, carry)
             # qunum_a remains 4, qunum_b is now 12 and carry_bit is 0
     """
@@ -303,10 +302,10 @@ class SubtractQuantumGate(BasicMathGate):
     Example:
     .. code-block:: python
 
-            qunum_a = eng.allocate_qureg(5) # 5-qubit number
-            qunum_b = eng.allocate_qureg(5) # 5-qubit number
-            X | qunum_a[2] #qunum_a is now equal to 4
-            X | qunum_b[3] #qunum_b is now equal to 8
+            qunum_a = eng.allocate_qureg(5)  # 5-qubit number
+            qunum_b = eng.allocate_qureg(5)  # 5-qubit number
+            X | qunum_a[2]  # qunum_a is now equal to 4
+            X | qunum_b[3]  # qunum_b is now equal to 8
             SubtractQuantum | (qunum_a, qunum_b)
             # qunum_a remains 4, qunum_b is now 4
 
@@ -353,15 +352,13 @@ class ComparatorQuantumGate(BasicMathGate):
     Example:
         .. code-block:: python
 
-            qunum_a = eng.allocate_qureg(5) # 5-qubit number
-            qunum_b = eng.allocate_qureg(5) # 5-qubit number
+            qunum_a = eng.allocate_qureg(5)  # 5-qubit number
+            qunum_b = eng.allocate_qureg(5)  # 5-qubit number
             compare_bit = eng.allocate_qubit()
-            X | qunum_a[4] #qunum_a is now equal to 16
-            X | qunum_b[3] #qunum_b is now equal to 8
+            X | qunum_a[4]  # qunum_a is now equal to 16
+            X | qunum_b[3]  # qunum_b is now equal to 8
             ComparatorQuantum | (qunum_a, qunum_b, compare_bit)
-            # qunum_a and qunum_b remain 16 and 8, qunum_b is now 12 and
-            compare bit is now 1
-
+            # qunum_a and qunum_b remain 16 and 8, qunum_b is now 12 and compare bit is now 1
     """
 
     def __init__(self):
@@ -416,18 +413,18 @@ class DivideQuantumGate(BasicMathGate):
     Example:
     .. code-block:: python
 
-            qunum_a = eng.allocate_qureg(5) # 5-qubit number
-            qunum_b = eng.allocate_qureg(5) # 5-qubit number
-            qunum_c = eng.allocate_qureg(5) # 5-qubit number
+            qunum_a = eng.allocate_qureg(5)  # 5-qubit number
+            qunum_b = eng.allocate_qureg(5)  # 5-qubit number
+            qunum_c = eng.allocate_qureg(5)  # 5-qubit number
 
-            All(X) | [qunum_a[0],qunum_a[3]] #qunum_a is now equal to 9
-            X | qunum_c[2] #qunum_c is now equal to 4
+            All(X) | [qunum_a[0], qunum_a[3]]  # qunum_a is now equal to 9
+            X | qunum_c[2]  # qunum_c is now equal to 4
 
-            DivideQuantum | (qunum_a, qunum_b,qunum_c)
+            DivideQuantum | (qunum_a, qunum_b, qunum_c)
             # qunum_a is now equal to 1 (remainder), qunum_b is now
             # equal to 2 (quotient) and qunum_c remains 4 (divisor)
 
-            |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
+            # |dividend>|remainder>|divisor> -> |remainder>|quotient>|divisor>
     """
 
     def __init__(self):
@@ -499,13 +496,13 @@ class MultiplyQuantumGate(BasicMathGate):
     Example:
         .. code-block:: python
 
-        qunum_a = eng.allocate_qureg(4)
-        qunum_b = eng.allocate_qureg(4)
-        qunum_c = eng.allocate_qureg(9)
-        X | qunum_a[2] # qunum_a is now 4
-        X | qunum_b[3] # qunum_b is now 8
-        MultiplyQuantum() | (qunum_a, qunum_b, qunum_c)
-        # qunum_a remains 4 and qunum_b remains 8, qunum_c is now equal to 32
+            qunum_a = eng.allocate_qureg(4)
+            qunum_b = eng.allocate_qureg(4)
+            qunum_c = eng.allocate_qureg(9)
+            X | qunum_a[2]  # qunum_a is now 4
+            X | qunum_b[3]  # qunum_b is now 8
+            MultiplyQuantum() | (qunum_a, qunum_b, qunum_c)
+            # qunum_a remains 4 and qunum_b remains 8, qunum_c is now equal to 32
     """
 
     def __init__(self):
