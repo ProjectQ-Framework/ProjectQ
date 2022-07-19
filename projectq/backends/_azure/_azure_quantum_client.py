@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +19,13 @@ from .._exceptions import DeviceOfflineError, RequestTimeoutError
 
 def _get_results(job, num_retries=100, interval=1, verbose=False):
     if verbose:  # pragma: no cover
-        print("- Waiting for results. [Job ID: {}]".format(job.id))
+        print(f"- Waiting for results. [Job ID: {job.id}]")
 
     try:
         return job.get_results(timeout_secs=num_retries * interval)
     except TimeoutError:
         raise RequestTimeoutError(  # pylint: disable=raise-missing-from
-            "Timeout. The ID of your submitted job is {}.".format(job.id)
+            f"Timeout. The ID of your submitted job is {job.id}."
         )
 
 
@@ -58,7 +57,7 @@ def send(
         raise DeviceOfflineError('Device is offline.')
 
     if verbose:  # pragma: no cover
-        print("- Running code: {}".format(input_data))
+        print(f"- Running code: {input_data}")
 
     job = target.submit(circuit=input_data, num_shots=num_shots, **kwargs)
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -267,24 +266,24 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
     if isinstance(gate, BarrierGate):
         qb_str = ""
         for pos in targets:
-            qb_str += "q[{}], ".format(pos)
-        return "{} {};".format(gate_name, qb_str[:-2])
+            qb_str += f"q[{pos}], "
+        return f"{gate_name} {qb_str[:-2]};"
 
     # Daggered gates
     if gate in (Sdag, Tdag):
-        return "{} q[{}];".format(gate_name, targets[0])
+        return f"{gate_name} q[{targets[0]}];"
 
     # Controlled gates
     if len(controls) > 0:
         # 1-Controlled gates
         if len(controls) == 1:
             gate_name = 'c' + gate_name
-            return "{} q[{}], q[{}];".format(gate_name, controls[0], targets[0])
+            return f"{gate_name} q[{controls[0]}], q[{targets[0]}];"
 
         # 2-Controlled gates
         if len(controls) == 2:
             gate_name = 'cc' + gate_name
-            return "{} q[{}], q[{}], q[{}];".format(gate_name, controls[0], controls[1], targets[0])
+            return f"{gate_name} q[{controls[0]}], q[{controls[1]}], q[{targets[0]}];"
 
         raise InvalidCommandError('Invalid command:', str(cmd))
 
@@ -292,11 +291,11 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
     if len(targets) == 1:
         # Standard gates
         if isinstance(gate, (HGate, XGate, YGate, ZGate, SGate, TGate)):
-            return "{} q[{}];".format(gate_name, targets[0])
+            return f"{gate_name} q[{targets[0]}];"
 
         # Rotational gates
         if isinstance(gate, (Rx, Ry, Rz)):
-            return "{}({}) q[{}];".format(gate_name, gate.angle, targets[0])
+            return f"{gate_name}({gate.angle}) q[{targets[0]}];"
 
         raise InvalidCommandError('Invalid command:', str(cmd))
 
@@ -304,7 +303,7 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
     if len(targets) == 2:
         # Rotational gates
         if isinstance(gate, (Rxx, Ryy, Rzz)):
-            return "{}({}) q[{}], q[{}];".format(gate_name, gate.angle, targets[0], targets[1])
+            return f"{gate_name}({gate.angle}) q[{targets[0]}], q[{targets[1]}];"
 
         raise InvalidCommandError('Invalid command:', str(cmd))
 

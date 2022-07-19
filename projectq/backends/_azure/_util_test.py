@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2022 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,7 +102,7 @@ def test_ionq_is_available_single_qubit_gates(single_qubit_gate, expected_result
     qb0 = eng.allocate_qubit()
 
     cmd = Command(eng, single_qubit_gate, (qb0,))
-    assert is_available_ionq(cmd) == expected_result, 'Failing on {} gate'.format(single_qubit_gate)
+    assert is_available_ionq(cmd) == expected_result, f'Failing on {single_qubit_gate} gate'
 
 
 @has_azure_quantum
@@ -124,7 +123,7 @@ def test_ionq_is_available_two_qubit_gates(two_qubit_gate, expected_result):
     qb1 = eng.allocate_qubit()
 
     cmd = Command(eng, two_qubit_gate, (qb0, qb1))
-    assert is_available_ionq(cmd) == expected_result, 'Failing on {} gate'.format(two_qubit_gate)
+    assert is_available_ionq(cmd) == expected_result, f'Failing on {two_qubit_gate} gate'
 
 
 @has_azure_quantum
@@ -225,7 +224,7 @@ def test_quantinuum_is_available_single_qubit_gates(single_qubit_gate, expected_
     qb0 = eng.allocate_qubit()
 
     cmd = Command(eng, single_qubit_gate, (qb0,))
-    assert is_available_quantinuum(cmd) == expected_result, 'Failing on {} gate'.format(single_qubit_gate)
+    assert is_available_quantinuum(cmd) == expected_result, f'Failing on {single_qubit_gate} gate'
 
 
 @has_azure_quantum
@@ -246,7 +245,7 @@ def test_quantinuum_is_available_two_qubit_gates(two_qubit_gate, expected_result
     qb1 = eng.allocate_qubit()
 
     cmd = Command(eng, two_qubit_gate, (qb0, qb1))
-    assert is_available_quantinuum(cmd) == expected_result, 'Failing on {} gate'.format(two_qubit_gate)
+    assert is_available_quantinuum(cmd) == expected_result, f'Failing on {two_qubit_gate} gate'
 
 
 @has_azure_quantum
@@ -412,7 +411,7 @@ def test_to_json_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     qureg = eng.allocate_qureg(num_ctrl_qubits)
 
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_json(cmd) == expected_result, f'Failing on {num_ctrl_qubits}-controlled {base_gate} gate'
 
 
 @has_azure_quantum
@@ -447,7 +446,7 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
             qb0,
         ),
     )
-    assert to_json(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_json(cmd) == expected_result, f'Failing on {num_ctrl_qubits}-controlled {base_gate} gate'
 
 
 @has_azure_quantum
@@ -548,7 +547,7 @@ def test_to_qasm_n_controlled_qubits_type_1(base_gate, num_ctrl_qubits, expected
     qureg = eng.allocate_qureg(num_ctrl_qubits)
 
     cmd = Command(eng, base_gate, (qb0,), controls=qureg)
-    assert to_qasm(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_qasm(cmd) == expected_result, f'Failing on {num_ctrl_qubits}-controlled {base_gate} gate'
 
 
 @has_azure_quantum
@@ -581,4 +580,4 @@ def test_to_qasm_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
             qb0,
         ),
     )
-    assert to_qasm(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(num_ctrl_qubits, base_gate)
+    assert to_qasm(cmd) == expected_result, f'Failing on {num_ctrl_qubits}-controlled {base_gate} gate'

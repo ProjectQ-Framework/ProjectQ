@@ -197,11 +197,7 @@ Use `AzureQuantumBackend` to run ProjectQ circuits on hardware devices and simul
     from projectq.backends import AzureQuantumBackend
 
     azure_quantum_backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='ionq.simulator',
-        resource_id='<resource-id>',
-        location='<location>',
-        verbose=True
+        use_hardware=False, target_name='ionq.simulator', resource_id='<resource-id>', location='<location>', verbose=True
     )
 
 .. note::
