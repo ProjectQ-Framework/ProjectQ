@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +30,9 @@ class UniformlyControlledRy(BasicGate):
     Example:
         .. code-block:: python
 
-        controls = eng.allocate_qureg(2)
-        target = eng.allocate_qubit()
-        UniformlyControlledRy(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
+            controls = eng.allocate_qureg(2)
+            target = eng.allocate_qubit()
+            UniformlyControlledRy(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
 
     Note:
         The first quantum register contains the control qubits. When converting the classical state k of the control
@@ -69,7 +68,7 @@ class UniformlyControlledRy(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "UniformlyControlledRy(" + str(self.angles) + ")"
+        return f"UniformlyControlledRy({str(self.angles)})"
 
     def __eq__(self, other):
         """Return True if same class, same rotation angles."""
@@ -93,9 +92,9 @@ class UniformlyControlledRz(BasicGate):
     Example:
         .. code-block:: python
 
-        controls = eng.allocate_qureg(2)
-        target = eng.allocate_qubit()
-        UniformlyControlledRz(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
+            controls = eng.allocate_qureg(2)
+            target = eng.allocate_qubit()
+            UniformlyControlledRz(angles=[0.1, 0.2, 0.3, 0.4]) | (controls, target)
 
     Note:
         The first quantum register are the contains qubits. When converting the classical state k of the control
@@ -131,7 +130,7 @@ class UniformlyControlledRz(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "UniformlyControlledRz(" + str(self.angles) + ")"
+        return f"UniformlyControlledRz({str(self.angles)})"
 
     def __eq__(self, other):
         """Return True if same class, same rotation angles."""

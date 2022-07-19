@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,12 +125,12 @@ class AQT(Session):
     ):
         """Get the result of an execution."""
         if verbose:
-            print("Waiting for results. [Job ID: {}]".format(execution_id))
+            print(f"Waiting for results. [Job ID: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The ID of your submitted job is {execution_id}.")
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
@@ -145,7 +144,7 @@ class AQT(Session):
                 if r_json['status'] == 'finished' or 'samples' in r_json:
                     return r_json['samples']
                 if r_json['status'] != 'running':
-                    raise Exception("Error while running the code: {}.".format(r_json['status']))
+                    raise Exception(f"Error while running the code: {r_json['status']}.")
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.update_devices_list()
@@ -154,14 +153,14 @@ class AQT(Session):
                     #       available
                     if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of your submitted job is {}.".format(execution_id)
+                            f"Device went offline. The ID of your submitted job is {execution_id}."
                         )
 
         finally:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
+        raise RequestTimeoutError(f"Timeout. The ID of your submitted job is {execution_id}.")
 
 
 def show_devices(verbose=False):
@@ -226,7 +225,7 @@ def send(
         if verbose:
             print("- Authenticating...")
         if token is not None:
-            print('user API token: ' + token)
+            print(f"user API token: {token}")
         aqt_session.authenticate(token)
 
         # check if the device is online
@@ -241,13 +240,12 @@ def send(
         runnable, qmax, qneeded = aqt_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                "The device is too small ({} qubits available) for the code "
-                "requested({} qubits needed). Try to look for another device "
-                "with more qubits".format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code requested({qneeded} qubits needed).",
+                "Try to look for another device with more qubits",
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         execution_id = aqt_session.run(info, device)
         if verbose:
             print("- Waiting for results...")

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +33,7 @@ def test_tagremover_invalid():
 
 def test_tagremover():
     backend = DummyEngine(save_commands=True)
-    tag_remover = _tagremover.TagRemover([type("")])
+    tag_remover = _tagremover.TagRemover([str])
     eng = MainEngine(backend=backend, engine_list=[tag_remover])
     # Create a command_list and check if "NewTag" is removed
     qubit = eng.allocate_qubit()

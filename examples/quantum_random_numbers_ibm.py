@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example of a simple quantum random number generator using IBM's API."""
@@ -22,4 +21,4 @@ Measure | q1
 
 eng.flush()
 # print the result:
-print("Measured: {}".format(int(q1)))
+print(f"Measured: {int(q1)}")

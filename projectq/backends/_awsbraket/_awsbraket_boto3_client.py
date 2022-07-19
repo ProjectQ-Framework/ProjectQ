@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,12 +217,12 @@ class AWSBraket:
     def get_result(self, execution_id, num_retries=30, interval=1, verbose=False):  # pylint: disable=too-many-locals
         """Get the result of an execution."""
         if verbose:
-            print("Waiting for results. [Job Arn: {}]".format(execution_id))
+            print(f"Waiting for results. [Job Arn: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The Arn of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The Arn of your submitted job is {execution_id}.")
 
         def _calculate_measurement_probs(measurements):
             """
@@ -269,7 +268,7 @@ class AWSBraket:
                 status = quantum_task['status']
                 bucket = quantum_task['outputS3Bucket']
                 directory = quantum_task['outputS3Directory']
-                resultsojectname = directory + '/results.json'
+                resultsojectname = f"{directory}/results.json"
                 if status == 'COMPLETED':
                     # Get the device type to obtian the correct measurement
                     # structure
@@ -282,7 +281,7 @@ class AWSBraket:
                     )
                     s3result = client_s3.get_object(Bucket=bucket, Key=resultsojectname)
                     if verbose:
-                        print("Results obtained. [Status: {}]".format(status))
+                        print(f"Results obtained. [Status: {status}]")
                     result_content = json.loads(s3result['Body'].read())
 
                     if devicetype_used == 'QPU':
@@ -291,11 +290,11 @@ class AWSBraket:
                         return _calculate_measurement_probs(result_content['measurements'])
                 if status == 'FAILED':
                     raise Exception(
-                        "Error while running the code: {}. "
-                        "The failure reason was: {}.".format(status, quantum_task['failureReason'])
+                        f'Error while running the code: {status}. '
+                        f'The failure reason was: {quantum_task["failureReason"]}.'
                     )
                 if status == 'CANCELLING':
-                    raise Exception("The job received a CANCEL operation: {}.".format(status))
+                    raise Exception(f"The job received a CANCEL operation: {status}.")
                 time.sleep(interval)
                 # NOTE: Be aware that AWS is billing if a lot of API calls are
                 # executed, therefore the num_repetitions is set to a small
@@ -311,9 +310,7 @@ class AWSBraket:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
         raise RequestTimeoutError(
-            "Timeout. "
-            "The Arn of your submitted job is {} and the status "
-            "of the job is {}.".format(execution_id, status)
+            f"Timeout. The Arn of your submitted job is {execution_id} and the status of the job is {status}."
         )
 
 
@@ -352,7 +349,7 @@ def retrieve(credentials, task_arn, num_retries=30, interval=1, verbose=False):
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
+                print(f"AWS credentials: {credentials['AWS_ACCESS_KEY_ID']}, {credentials['AWS_SECRET_KEY']}")
         awsbraket_session.authenticate(credentials=credentials)
         res = awsbraket_session.get_result(task_arn, num_retries=num_retries, interval=interval, verbose=verbose)
         return res
@@ -386,7 +383,7 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         if verbose:
             print("- Authenticating...")
             if credentials is not None:
-                print("AWS credentials: " + credentials['AWS_ACCESS_KEY_ID'] + ", " + credentials['AWS_SECRET_KEY'])
+                print(f"AWS credentials: {credentials['AWS_ACCESS_KEY_ID']}, {credentials['AWS_SECRET_KEY']}")
         awsbraket_session.authenticate(credentials=credentials)
         awsbraket_session.get_s3_folder(s3_folder=s3_folder)
 
@@ -403,17 +400,14 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         runnable, qmax, qneeded = awsbraket_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                (
-                    "The device is too small ({} qubits available) for the code "
-                    + "requested({} qubits needed) Try to look for another "
-                    + "device with more qubits"
-                ).format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code",
+                f"requested({qneeded} qubits needed). Try to look for another device with more qubits",
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         task_arn = awsbraket_session.run(info, device)
-        print("Your task Arn is: {}. Make note of that for future reference".format(task_arn))
+        print(f"Your task Arn is: {task_arn}. Make note of that for future reference")
 
         if verbose:
             print("- Waiting for results...")

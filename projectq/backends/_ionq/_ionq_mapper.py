@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,10 +41,10 @@ class BoundedQubitMapper(BasicMapperEngine):
         if isinstance(cmd.gate, AllocateQubitGate):
             qubit_id = cmd.qubits[0][0].id
             if qubit_id in current_mapping:
-                raise RuntimeError("Qubit with id {} has already been allocated!".format(qubit_id))
+                raise RuntimeError(f"Qubit with id {qubit_id} has already been allocated!")
 
             if self._qubit_idx >= self.max_qubits:
-                raise RuntimeError("Cannot allocate more than {} qubits!".format(self.max_qubits))
+                raise RuntimeError(f"Cannot allocate more than {self.max_qubits} qubits!")
 
             new_id = self._qubit_idx
             self._qubit_idx += 1

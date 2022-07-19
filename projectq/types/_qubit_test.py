@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +84,7 @@ def test_basic_qubit_hash():
 
 @pytest.fixture
 def mock_main_engine():
-    class MockMainEngine(object):
+    class MockMainEngine:
         def __init__(self):
             self.num_calls = 0
             self.active_qubits = set()

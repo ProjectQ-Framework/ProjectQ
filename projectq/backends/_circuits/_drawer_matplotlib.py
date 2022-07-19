@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +16,6 @@
 
 import itertools
 import re
-from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
@@ -37,14 +35,14 @@ def _format_gate_str(cmd):
         params_str_list = []
         for param in params:
             try:
-                params_str_list.append('{0:.2f}'.format(float(param)))
+                params_str_list.append(f'{float(param):.2f}')
             except ValueError:
                 if len(param) < 8:
                     params_str_list.append(param)
                 else:
-                    params_str_list.append(param[:5] + '...')
+                    params_str_list.append(f"{param[:5]}...")
 
-        gate_name += '(' + ','.join(params_str_list) + ')'
+        gate_name += f"({','.join(params_str_list)})"
     return gate_name
 
 
@@ -120,7 +118,7 @@ class CircuitDrawerMatplotlib(BasicEngine):
                     if self._accept_input:
                         measurement = None
                         while measurement not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for qubit {}: ".format(qubit)
+                            prompt = f"Input measurement result (0 or 1) for qubit {qubit}: "
                             measurement = input(prompt)
                     else:
                         measurement = self._default_measure

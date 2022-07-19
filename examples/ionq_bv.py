@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +36,7 @@ def oracle(qureg, input_size, s):
 
 def run_bv_circuit(eng, input_size, s_int):
     """Run the quantum circuit."""
-    s = ('{0:0' + str(input_size) + 'b}').format(s_int)
+    s = f"{s_int:0{input_size}b}"
     print("Secret string: ", s)
     print("Number of qubits: ", str(input_size + 1))
     circuit = eng.allocate_qureg(input_size + 1)

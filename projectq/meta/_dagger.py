@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +80,8 @@ class Dagger:
     .. code-block:: python
 
         with Dagger(eng):
-            [code to invert]
+            # [code to invert]
+            pass
 
     Warning:
         If the code to invert contains allocation of qubits, those qubits have
@@ -93,7 +93,7 @@ class Dagger:
 
             with Dagger(eng):
                 qb = eng.allocate_qubit()
-                H | qb # qb is still available!!!
+                H | qb  # qb is still available!!!
 
         The **correct way** of handling qubit (de-)allocation is as follows:
 
@@ -102,7 +102,7 @@ class Dagger:
             with Dagger(eng):
                 qb = eng.allocate_qubit()
                 ...
-                del qb # sends deallocate gate (which becomes an allocate)
+                del qb  # sends deallocate gate (which becomes an allocate)
     """
 
     def __init__(self, engine):

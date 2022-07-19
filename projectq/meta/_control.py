@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,12 +61,11 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
 
     if isinstance(ctrl_state, int):
         # If the user inputs an integer, convert it to binary bit string
-        converted_str = '{0:b}'.format(ctrl_state).zfill(num_qubits)[::-1]
+        converted_str = f'{ctrl_state:b}'.zfill(num_qubits)[::-1]
         if len(converted_str) != num_qubits:
             raise ValueError(
-                'Control state specified as {} ({}) is higher than maximum for {} qubits: {}'.format(
-                    ctrl_state, converted_str, num_qubits, 2**num_qubits - 1
-                )
+                f'Control state specified as {ctrl_state} ({converted_str}) is higher than maximum for {num_qubits} '
+                f'qubits: {2 ** num_qubits - 1}'
             )
         return converted_str
 
@@ -75,12 +73,10 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         # If the user inputs bit string, directly use it
         if len(ctrl_state) != num_qubits:
             raise ValueError(
-                'Control state {} has different length than the number of control qubits {}'.format(
-                    ctrl_state, num_qubits
-                )
+                f'Control state {ctrl_state} has different length than the number of control qubits {num_qubits}'
             )
         if not set(ctrl_state).issubset({'0', '1'}):
-            raise ValueError('Control state {} has string other than 1 and 0'.format(ctrl_state))
+            raise ValueError(f'Control state {ctrl_state} has string other than 1 and 0')
         return ctrl_state
 
     raise TypeError('Input must be a string, an integer or an enum value of class State')

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 """Contains a compiler engine which prints commands to stdout prior to sending them on to the next engines."""
 
 import sys
-from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import LogicalQubitIDTag, get_control_count
@@ -85,7 +83,7 @@ class CommandPrinter(BasicEngine):
                     if self._accept_input:
                         meas = None
                         while meas not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
+                            prompt = f"Input measurement result (0 or 1) for qubit {str(qubit)}: "
                             meas = input(prompt)
                     else:
                         meas = self._default_measure
@@ -100,7 +98,7 @@ class CommandPrinter(BasicEngine):
                     self.main_engine.set_measurement_result(qubit, meas)
         else:
             if self._in_place:  # pragma: no cover
-                sys.stdout.write("\0\r\t\x1b[K" + str(cmd) + "\r")
+                sys.stdout.write(f'\x00\r\t\x1b[K{str(cmd)}\r')
             else:
                 print(cmd)
 
