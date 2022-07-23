@@ -201,17 +201,19 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
         return False  # pragma: no cover
 
-    @property
-    def _target_factory(self):
+    @staticmethod
+    def _target_factory(workspace, target_name, provider_id):  # pragma: no cover
         target_factory = TargetFactory(
-            base_cls=Target, workspace=self._workspace, default_targets=AzureQuantumBackend.DEFAULT_TARGETS
+            base_cls=Target, workspace=workspace, default_targets=AzureQuantumBackend.DEFAULT_TARGETS
         )
 
-        return target_factory
+        return target_factory.get_targets(name=target_name, provider_id=provider_id)
 
     @property
     def _target(self):
-        target = self._target_factory.get_targets(name=self._target_name, provider_id=self._provider_id)
+        target = self._target_factory(
+            workspace=self._workspace, target_name=self._target_name, provider_id=self._provider_id
+        )
 
         if isinstance(target, list) and len(target) == 0:  # pragma: no cover
             raise AzureQuantumTargetNotFoundError(
@@ -328,7 +330,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 verbose=self._verbose,
             )
 
-            if res is None:
+            if res is None:  # pragma: no cover
                 raise RuntimeError('Failed to submit job to the Azure Quantum!')
         else:
             res = retrieve(
@@ -339,7 +341,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 verbose=self._verbose,
             )
 
-            if res is None:
+            if res is None:  # pragma: no cover
                 raise RuntimeError(
                     f"Failed to retrieve job from Azure Quantum with job id: '{self._retrieve_execution}'!"
                 )

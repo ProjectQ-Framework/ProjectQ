@@ -37,55 +37,55 @@ has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure qua
 ZERO_GUID = '00000000-0000-0000-0000-000000000000'
 
 
-def mock_target_status(target_id, current_availability, average_queue_time):
-    target_status = mock.MagicMock()
+def mock_target(target_id, current_availability, average_queue_time):
+    target = mock.MagicMock()
 
-    target_status.id = target_id
-    target_status.current_availability = current_availability
-    target_status.average_queue_time = average_queue_time
+    estimate_cost = mock.Mock()
+    estimate_cost.estimated_total = 10
 
-    return target_status
+    target.id = target_id
+    target.current_availability = current_availability
+    target.average_queue_time = average_queue_time
+    target.estimate_cost = mock.MagicMock(return_value=estimate_cost)
+
+    return target
 
 
-def mock_provider_statuses():
-    ionq_provider_status = mock.MagicMock()
-    ionq_provider_status.id = 'ionq'
-    ionq_provider_status.targets = [
-        mock_target_status(target_id='ionq.simulator', current_availability='Available', average_queue_time=1000),
-        mock_target_status(target_id='ionq.qpu', current_availability='Available', average_queue_time=2000),
+def mock_providers():
+    ionq_provider = mock.MagicMock()
+    ionq_provider.id = 'ionq'
+    ionq_provider.targets = [
+        mock_target(target_id='ionq.simulator', current_availability='Available', average_queue_time=1000),
+        mock_target(target_id='ionq.qpu', current_availability='Available', average_queue_time=2000),
     ]
 
-    quantinuum_provider_status = mock.MagicMock()
-    quantinuum_provider_status.id = 'quantinuum'
-    quantinuum_provider_status.targets = [
-        mock_target_status(
-            target_id='quantinuum.hqs-lt-s1-apival', current_availability='Available', average_queue_time=3000
-        ),
-        mock_target_status(
-            target_id='quantinuum.hqs-lt-s1-sim', current_availability='Available', average_queue_time=4000
-        ),
-        mock_target_status(target_id='quantinuum.hqs-lt-s1', current_availability='Degraded', average_queue_time=5000),
+    quantinuum_provider = mock.MagicMock()
+    quantinuum_provider.id = 'quantinuum'
+    quantinuum_provider.targets = [
+        mock_target(target_id='quantinuum.hqs-lt-s1-apival', current_availability='Available', average_queue_time=3000),
+        mock_target(target_id='quantinuum.hqs-lt-s1-sim', current_availability='Available', average_queue_time=4000),
+        mock_target(target_id='quantinuum.hqs-lt-s1', current_availability='Degraded', average_queue_time=5000),
     ]
 
-    return [ionq_provider_status, quantinuum_provider_status]
+    return [ionq_provider, quantinuum_provider]
 
 
-def mock_workspace():
+def mock_target_factory(target_name):
+    for provider in mock_providers():
+        for target in provider.targets:
+            if target.id == target_name:
+                return target
+
+    return []
+
+
+def _get_azure_backend(use_hardware, target_name, retrieve_execution=None):
+    AzureQuantumBackend._target_factory = mock.MagicMock(return_value=mock_target_factory(target_name))
+
     workspace = Workspace(
         subscription_id=ZERO_GUID, resource_group='testResourceGroup', name='testWorkspace', location='East US'
     )
 
-    workspace.append_user_agent('projectq')
-
-    workspace._client = mock.MagicMock()
-    workspace._client.providers = mock.MagicMock()
-    workspace._client.providers.get_status.return_value = mock_provider_statuses()
-
-    return workspace
-
-
-def _get_backend_and_engine(use_hardware, target_name, retrieve_execution=None, max_qubits=3):
-    workspace = mock_workspace()
     backend = AzureQuantumBackend(
         use_hardware=use_hardware,
         target_name=target_name,
@@ -94,6 +94,10 @@ def _get_backend_and_engine(use_hardware, target_name, retrieve_execution=None, 
         verbose=True,
     )
 
+    return backend
+
+
+def _get_main_engine(backend, max_qubits=3):
     mapper = BasicMapperEngine()
 
     mapping = {}
@@ -101,31 +105,9 @@ def _get_backend_and_engine(use_hardware, target_name, retrieve_execution=None, 
         mapping[i] = i
     mapper.current_mapping = mapping
 
-    engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
+    main_engine = MainEngine(backend=backend, engine_list=[mapper], verbose=True)
 
-    return backend, engine
-
-
-@has_azure_quantum
-def test_initialize_azure_backend_without_kwargs():
-    workspace = mock_workspace()
-    backend = AzureQuantumBackend(use_hardware=False, target_name='ionq.simulator', workspace=workspace)
-
-    assert backend._target_name == 'ionq.simulator'
-
-
-@has_azure_quantum
-def test_initialize_azure_backend_with_kwargs():
-    backend = AzureQuantumBackend(
-        use_hardware=False,
-        target_name='ionq.simulator',
-        subscription_id=ZERO_GUID,
-        resource_group='testResourceGroup',
-        name='testWorkspace',
-        location='East US',
-    )
-
-    assert backend._target_name == 'ionq.simulator'
+    return main_engine
 
 
 @has_azure_quantum
@@ -138,8 +120,7 @@ def test_initialize_azure_backend_with_kwargs():
     ],
 )
 def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expected_target_name):
-    workspace = mock_workspace()
-    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
 
     assert backend._target_name == expected_target_name
 
@@ -156,24 +137,36 @@ def test_azure_quantum_ionq_target(use_hardware, target_name, provider_id, expec
     ],
 )
 def test_azure_quantum_quantinuum_target(use_hardware, target_name, provider_id, expected_target_name):
-    workspace = mock_workspace()
-    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
 
     assert backend._target_name == expected_target_name
 
 
 @has_azure_quantum
-def test_azure_quantum_invalid_target():
-    workspace = mock_workspace()
+def test_initialize_azure_backend_using_kwargs():
+    backend = AzureQuantumBackend(
+        use_hardware=False,
+        target_name='ionq.simulator',
+        subscription_id=ZERO_GUID,
+        resource_group='testResourceGroup',
+        name='testWorkspace',
+        location='East US',
+    )
 
+    assert backend._target_name == 'ionq.simulator'
+
+
+@has_azure_quantum
+def test_azure_quantum_invalid_target():
     with pytest.raises(AzureQuantumTargetNotFoundError):
-        AzureQuantumBackend(use_hardware=False, target_name='invalid-target', workspace=workspace)
+        _get_azure_backend(use_hardware=False, target_name='invalid-target')
 
 
 @has_azure_quantum
 def test_is_available_ionq():
     with mock.patch('projectq.backends._azure._azure_quantum.is_available_ionq') as is_available_ionq_patch:
-        _, main_engine = _get_backend_and_engine(use_hardware=False, target_name='ionq.simulator')
+        backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+        main_engine = _get_main_engine(backend=backend)
 
         q0 = main_engine.allocate_qubit()
 
@@ -186,7 +179,8 @@ def test_is_available_ionq():
 @has_azure_quantum
 def test_is_available_quantinuum():
     with mock.patch('projectq.backends._azure._azure_quantum.is_available_quantinuum') as is_available_quantinuum_patch:
-        _, main_engine = _get_backend_and_engine(use_hardware=False, target_name='quantinuum.hqs-lt-s1-sim')
+        backend = _get_azure_backend(use_hardware=False, target_name='quantinuum.hqs-lt-s1-sim')
+        main_engine = _get_main_engine(backend=backend)
 
         q0 = main_engine.allocate_qubit()
 
@@ -208,8 +202,7 @@ def test_is_available_quantinuum():
     ],
 )
 def test_current_availability(use_hardware, target_name, provider_id, current_availability):
-    workspace = mock_workspace()
-    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
 
     assert backend.current_availability == current_availability
 
@@ -226,8 +219,7 @@ def test_current_availability(use_hardware, target_name, provider_id, current_av
     ],
 )
 def test_average_queue_time(use_hardware, target_name, provider_id, average_queue_time):
-    workspace = mock_workspace()
-    backend = AzureQuantumBackend(use_hardware=use_hardware, target_name=target_name, workspace=workspace)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
 
     assert backend.average_queue_time == average_queue_time
 
@@ -242,7 +234,8 @@ def test_run_ionq_get_probabilities(use_hardware, target_name, provider_id):
         return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
-    backend, main_engine = _get_backend_and_engine(use_hardware=use_hardware, target_name=target_name, max_qubits=3)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -384,7 +377,8 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
         }
     )
 
-    backend, main_engine = _get_backend_and_engine(use_hardware=use_hardware, target_name=target_name, max_qubits=3)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -413,7 +407,8 @@ def test_run_ionq_get_probability(use_hardware, target_name, provider_id):
         return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
-    backend, main_engine = _get_backend_and_engine(use_hardware=use_hardware, target_name=target_name, max_qubits=3)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -552,7 +547,8 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
         }
     )
 
-    backend, main_engine = _get_backend_and_engine(use_hardware=use_hardware, target_name=target_name, max_qubits=3)
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -575,12 +571,35 @@ def test_run_quantinuum_get_probability(use_hardware, target_name, provider_id):
 
 
 @has_azure_quantum
+def test_estimate_cost():
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
+    )
+
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    main_engine = _get_main_engine(backend=backend)
+
+    circuit = main_engine.allocate_qureg(3)
+    q0, q1, q2 = circuit
+
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
+    All(Measure) | circuit
+
+    estimate_cost = backend.estimate_cost()
+
+    assert estimate_cost.estimated_total == 10
+
+
+@has_azure_quantum
 def test_run_get_probability_invalid_state():
     projectq.backends._azure._azure_quantum.send = mock.MagicMock(
         return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
-    backend, main_engine = _get_backend_and_engine(use_hardware=False, target_name='ionq.simulator', max_qubits=3)
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -598,7 +617,8 @@ def test_run_get_probability_invalid_state():
 
 @has_azure_quantum
 def test_run_no_circuit():
-    backend, main_engine = _get_backend_and_engine(use_hardware=False, target_name='ionq.simulator', max_qubits=3)
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
 
@@ -618,9 +638,8 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
         return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
     )
 
-    backend, main_engine = _get_backend_and_engine(
-        use_hardware=use_hardware, target_name=target_name, retrieve_execution=ZERO_GUID, max_qubits=3
-    )
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name, retrieve_execution=ZERO_GUID)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -762,9 +781,8 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
         }
     )
 
-    backend, main_engine = _get_backend_and_engine(
-        use_hardware=use_hardware, target_name=target_name, retrieve_execution=ZERO_GUID, max_qubits=3
-    )
+    backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name, retrieve_execution=ZERO_GUID)
+    main_engine = _get_main_engine(backend=backend)
 
     circuit = main_engine.allocate_qureg(3)
     q0, q1, q2 = circuit
@@ -785,7 +803,8 @@ def test_run_quantinuum_retrieve_execution(use_hardware, target_name, provider_i
 
 @has_azure_quantum
 def test_error_no_logical_id_tag():
-    _, main_engine = _get_backend_and_engine(use_hardware=False, target_name='ionq.simulator', max_qubits=3)
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    main_engine = _get_main_engine(backend=backend)
 
     q0 = WeakQubitRef(engine=None, idx=0)
 

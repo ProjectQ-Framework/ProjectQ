@@ -18,7 +18,7 @@ from unittest import mock
 
 import pytest
 
-from projectq.backends._exceptions import DeviceOfflineError
+from .._exceptions import DeviceOfflineError, RequestTimeoutError
 
 _has_azure_quantum = True
 try:
@@ -381,3 +381,35 @@ def test_retrieve_quantinuum():
     actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
 
     assert actual_res == expected_res
+
+
+@has_azure_quantum
+def test_send_timeout_error():
+    def get_mock_target():
+        mock_job = mock.MagicMock()
+        mock_job.id = ZERO_GUID
+        mock_job.get_results = mock.MagicMock()
+        mock_job.get_results.side_effect = TimeoutError()
+
+        mock_target = mock.MagicMock()
+        mock_target.current_availability = 'Available'
+        mock_target.submit = mock.MagicMock(return_value=mock_job)
+
+        return mock_target
+
+    input_data = {
+        'qubits': 3,
+        'circuit': [{'gate': 'h', 'targets': [0]}, {'gate': 'h', 'targets': [1]}, {'gate': 'h', 'targets': [2]}],
+    }
+    metadata = {'num_qubits': 3, 'meas_map': [0, 1, 2]}
+
+    with pytest.raises(RequestTimeoutError):
+        _ = send(
+            input_data=input_data,
+            metadata=metadata,
+            num_shots=100,
+            target=get_mock_target(),
+            num_retries=1000,
+            interval=1,
+            verbose=True,
+        )
