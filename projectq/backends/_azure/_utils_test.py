@@ -56,7 +56,7 @@ _has_azure_quantum = True
 try:
     import azure.quantum  # noqa: F401
 
-    from projectq.backends._azure._util import (
+    from projectq.backends._azure._utils import (
         is_available_ionq,
         is_available_quantinuum,
         to_json,

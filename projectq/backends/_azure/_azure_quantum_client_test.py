@@ -41,7 +41,7 @@ def test_is_online():
 
         return mock_target
 
-    try:
+    with pytest.raises(DeviceOfflineError):
         send(
             input_data={},
             metadata={},
@@ -51,10 +51,6 @@ def test_is_online():
             interval=1,
             verbose=True,
         )
-
-        assert False, 'Device is offline, but no exception is thrown from client.'
-    except DeviceOfflineError:
-        assert True
 
 
 @has_azure_quantum
@@ -78,20 +74,17 @@ def test_send_ionq():
     }
     metadata = {'num_qubits': 3, 'meas_map': [0, 1, 2]}
 
-    try:
-        actual_res = send(
-            input_data=input_data,
-            metadata=metadata,
-            num_shots=100,
-            target=get_mock_target(),
-            num_retries=1000,
-            interval=1,
-            verbose=True,
-        )
+    actual_res = send(
+        input_data=input_data,
+        metadata=metadata,
+        num_shots=100,
+        target=get_mock_target(),
+        num_retries=1000,
+        interval=1,
+        verbose=True,
+    )
 
-        assert actual_res == expected_res
-    except DeviceOfflineError:
-        assert False, 'Device is available, but got DeviceOfflineError exception.'
+    assert actual_res == expected_res
 
 
 @has_azure_quantum
@@ -226,20 +219,17 @@ def test_send_quantinuum():
 
     metadata = {'num_qubits': 3, 'meas_map': [0, 1, 2]}
 
-    try:
-        actual_res = send(
-            input_data=input_data,
-            metadata=metadata,
-            num_shots=100,
-            target=get_mock_target(),
-            num_retries=1000,
-            interval=1,
-            verbose=True,
-        )
+    actual_res = send(
+        input_data=input_data,
+        metadata=metadata,
+        num_shots=100,
+        target=get_mock_target(),
+        num_retries=1000,
+        interval=1,
+        verbose=True,
+    )
 
-        assert actual_res == expected_res
-    except DeviceOfflineError:
-        assert False, 'Device is available, but got DeviceOfflineError exception.'
+    assert actual_res == expected_res
 
 
 @has_azure_quantum
@@ -261,12 +251,9 @@ def test_retrieve_ionq():
 
         return mock_target
 
-    try:
-        actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
+    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
 
-        assert actual_res == expected_res
-    except DeviceOfflineError:
-        assert False, 'Device is available, but got DeviceOfflineError exception.'
+    assert actual_res == expected_res
 
 
 @has_azure_quantum
@@ -391,9 +378,6 @@ def test_retrieve_quantinuum():
 
         return mock_target
 
-    try:
-        actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
+    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
 
-        assert actual_res == expected_res
-    except DeviceOfflineError:
-        assert False, 'Device is available, but got DeviceOfflineError exception.'
+    assert actual_res == expected_res
