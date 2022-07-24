@@ -398,6 +398,32 @@ def test_run_quantinuum_get_probabilities(use_hardware, target_name, provider_id
 
 
 @has_azure_quantum
+def test_run_get_probabilities_unused_qubit():
+    projectq.backends._azure._azure_quantum.send = mock.MagicMock(
+        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
+    )
+
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    main_engine = _get_main_engine(backend=backend, max_qubits=4)
+
+    circuit = main_engine.allocate_qureg(3)
+    unused_qubit = main_engine.allocate_qubit()
+    q0, q1, q2 = circuit
+
+    H | q0
+    CX | (q0, q1)
+    CX | (q1, q2)
+    All(Measure) | circuit
+
+    main_engine.flush()
+
+    result = backend.get_probabilities(unused_qubit)
+
+    assert len(result) == 1
+    assert result['0'] == pytest.approx(1)
+
+
+@has_azure_quantum
 @pytest.mark.parametrize(
     "use_hardware, target_name, provider_id",
     [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],

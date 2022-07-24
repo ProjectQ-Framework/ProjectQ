@@ -52,6 +52,8 @@ from projectq.ops import (
 )
 from projectq.types import WeakQubitRef
 
+from .._exceptions import InvalidCommandError
+
 _has_azure_quantum = True
 try:
     import azure.quantum  # noqa: F401
@@ -194,6 +196,22 @@ def test_ionq_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits
 
 
 @has_azure_quantum
+def test_ionq_is_available_negative_control():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qb0 = eng.allocate_qubit()
+    qureg = eng.allocate_qureg(1)
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg)
+    assert is_available_ionq(cmd), "Failing on negative controlled gate"
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg, control_state='1')
+    assert is_available_ionq(cmd), "Failing on negative controlled gate"
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg, control_state='0')
+    assert not is_available_ionq(cmd), "Failing on negative controlled gate"
+
+
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -310,6 +328,22 @@ def test_quantinuum_is_available_n_controlled_qubits_type_2(base_gate, num_ctrl_
     assert is_available_quantinuum(cmd) == expected_result, 'Failing on {}-controlled {} gate'.format(
         num_ctrl_qubits, base_gate
     )
+
+
+@has_azure_quantum
+def test_quantinuum_is_available_negative_control():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qb0 = eng.allocate_qubit()
+    qureg = eng.allocate_qureg(1)
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg)
+    assert is_available_quantinuum(cmd), "Failing on negative controlled gate"
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg, control_state='1')
+    assert is_available_quantinuum(cmd), "Failing on negative controlled gate"
+
+    cmd = Command(eng, X, qubits=(qb0,), controls=qureg, control_state='0')
+    assert not is_available_quantinuum(cmd), "Failing on negative controlled gate"
 
 
 @has_azure_quantum
@@ -450,6 +484,16 @@ def test_to_json_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
 
 
 @has_azure_quantum
+def test_to_json_invalid_command_gate_not_available():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qb0 = eng.allocate_qubit()
+
+    cmd = Command(eng, Barrier, (qb0,))
+    with pytest.raises(InvalidCommandError):
+        to_json(cmd)
+
+
+@has_azure_quantum
 @pytest.mark.parametrize(
     "single_qubit_gate, expected_result",
     [
@@ -581,3 +625,13 @@ def test_to_qasm_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
         ),
     )
     assert to_qasm(cmd) == expected_result, f'Failing on {num_ctrl_qubits}-controlled {base_gate} gate'
+
+
+@has_azure_quantum
+def test_to_qasm_invalid_command_gate_not_available():
+    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
+    qb0 = eng.allocate_qubit()
+
+    cmd = Command(eng, SqrtX, (qb0,))
+    with pytest.raises(InvalidCommandError):
+        to_qasm(cmd)

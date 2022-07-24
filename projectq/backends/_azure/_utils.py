@@ -109,8 +109,8 @@ def is_available_ionq(cmd):
     else:
         num_ctrl_qubits = get_control_count(cmd)
 
-    # Get base gate wrapped in ControlledGate classes
-    while isinstance(gate, ControlledGate):
+    # Get base gate wrapped in ControlledGate class
+    if isinstance(gate, ControlledGate):
         gate = gate._gate  # pylint: disable=protected-access
 
     # NOTE: IonQ supports up to 7 control qubits
@@ -148,8 +148,8 @@ def is_available_quantinuum(cmd):
     else:
         num_ctrl_qubits = get_control_count(cmd)
 
-    # Get base gate wrapped in ControlledGate classes
-    while isinstance(gate, ControlledGate):
+    # Get base gate wrapped in ControlledGate class
+    if isinstance(gate, ControlledGate):
         gate = gate._gate  # pylint: disable=protected-access
 
     # TODO: NEEDED CONFIRMATION- Does Quantinuum support more than 2 control gates?
@@ -184,8 +184,6 @@ def to_json(cmd):
 
     if isinstance(gate, ControlledGate):
         inner_gate = gate._gate  # pylint: disable=protected-access
-        while isinstance(inner_gate, ControlledGate):
-            inner_gate = inner_gate._gate  # pylint: disable=protected-access
         gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
@@ -239,8 +237,6 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
 
     if isinstance(gate, ControlledGate):
         inner_gate = gate._gate  # pylint: disable=protected-access
-        while isinstance(inner_gate, ControlledGate):
-            inner_gate = inner_gate._gate  # pylint: disable=protected-access
         gate_type = type(inner_gate)
     elif isinstance(gate, DaggeredGate):
         gate_type = type(gate.get_inverse())
@@ -285,7 +281,7 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
             gate_name = 'cc' + gate_name
             return f"{gate_name} q[{controls[0]}], q[{controls[1]}], q[{targets[0]}];"
 
-        raise InvalidCommandError('Invalid command:', str(cmd))
+        raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover
 
     # Single qubit gates
     if len(targets) == 1:
@@ -297,7 +293,7 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
         if isinstance(gate, (Rx, Ry, Rz)):
             return f"{gate_name}({gate.angle}) q[{targets[0]}];"
 
-        raise InvalidCommandError('Invalid command:', str(cmd))
+        raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover
 
     # Two qubit gates
     if len(targets) == 2:
@@ -305,7 +301,7 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
         if isinstance(gate, (Rxx, Ryy, Rzz)):
             return f"{gate_name}({gate.angle}) q[{targets[0]}], q[{targets[1]}];"
 
-        raise InvalidCommandError('Invalid command:', str(cmd))
+        raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover
 
     # Invalid command
-    raise InvalidCommandError('Invalid command:', str(cmd))
+    raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover
