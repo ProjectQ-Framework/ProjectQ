@@ -65,6 +65,7 @@ jobs:
     - name: Prepare env
       run: |
         python -m pip install -U pip setuptools wheel
+        cat requirements.txt
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install coveralls
 
@@ -145,6 +146,7 @@ jobs:
       run: |
         python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
@@ -191,6 +193,7 @@ jobs:
       run: |
         python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
@@ -274,6 +277,7 @@ jobs:
       run: |
         python3 -m pip install -U pip setuptools wheel
         python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Build and install package
