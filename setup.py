@@ -674,6 +674,7 @@ class GenerateRequirementFile(Command):
         self.include_extras = None
         self.include_all_extras = None
         self.extra_pkgs = []
+        self.dependencies = []
 
     def finalize_options(self):
         """Finalize this command's options."""
