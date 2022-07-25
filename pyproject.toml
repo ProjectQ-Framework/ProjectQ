@@ -28,7 +28,6 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-
 dependencies = [
     'matplotlib >= 2.2.3',
     'networkx >= 2',
@@ -38,13 +37,15 @@ dependencies = [
 ]
 
 [project.urls]
-'Home Page' = 'http://www.projectq.ch'
+'Homepage' = 'http://www.projectq.ch'
 'Documentation' = 'https://projectq.readthedocs.io/en/latest/'
 'Issue Tracker' = 'https://github.com/ProjectQ-Framework/ProjectQ/'
 
 [project.optional-dependencies]
 
-braket = ['boto3']
+braket = [
+      'boto3'
+]
 
 revkit = [
      'revkit == 3.0a2.dev2',
