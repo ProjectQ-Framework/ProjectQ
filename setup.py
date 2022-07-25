@@ -465,9 +465,6 @@ class BuildExt(build_ext):
             return
 
         cxx_standards = [17, 14, 11]
-        if sys.version_info[0] < 3:
-            cxx_standards = [year for year in cxx_standards if year < 17]
-
         if sys.platform == 'darwin':
             major_version = int(platform.mac_ver()[0].split('.')[0])
             minor_version = int(platform.mac_ver()[0].split('.')[1])
