@@ -685,13 +685,13 @@ class GenerateRequirementFile(Command):
             if self.include_all_extras or name in include_extras:
                 self.extra_pkgs.extend(pkgs)
 
+        # pylint: disable=attribute-defined-outside-init
         self.dependencies = self.distribution.install_requires
         if not self.dependencies:
             self.dependencies = pyproject_toml['project']['dependencies']
 
     def run(self):
         """Execute this command."""
-
         with open('requirements.txt', 'w') as req_file:
             for pkg in self.dependencies:
                 req_file.write(f'{pkg}\n')
