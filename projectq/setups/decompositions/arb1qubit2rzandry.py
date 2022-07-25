@@ -169,6 +169,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             a = 0  # pylint: disable=invalid-name
         else:
             a = two_a / 2.0  # pylint: disable=invalid-name
+        two_d = 2.0 * cmath.phase(matrix[0][1]) - 2.0 * cmath.phase(matrix[0][0])
         possible_d_half = [
             two_d / 4.0 % (2 * math.pi),
             (two_d / 4.0 + math.pi / 2.0) % (2 * math.pi),
