@@ -16,7 +16,6 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
         python:
-        - 3.6
         - 3.7
         - 3.8
         - 3.9

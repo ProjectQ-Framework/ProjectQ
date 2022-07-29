@@ -52,6 +52,8 @@ from distutils.errors import (
     LinkError,
 )
 from distutils.spawn import find_executable, spawn
+from operator import itemgetter
+from pathlib import Path
 
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
@@ -63,6 +65,86 @@ try:
     _HAS_SETUPTOOLS_SCM = True
 except ImportError:
     _HAS_SETUPTOOLS_SCM = False
+
+try:
+    import tomllib
+
+    def parse_toml(filename):
+        """Parse a TOML file."""
+        with open(str(filename), 'rb') as toml_file:
+            return tomllib.load(toml_file)
+
+except ImportError:
+    try:
+        import toml
+
+        def parse_toml(filename):
+            """Parse a TOML file."""
+            return toml.load(filename)
+
+    except ImportError:
+
+        def _find_toml_section_end(lines, start):
+            """Find the index of the start of the next section."""
+            return (
+                next(filter(itemgetter(1), enumerate(line.startswith('[') for line in lines[start + 1 :])))[0]
+                + start
+                + 1
+            )
+
+        def _parse_list(lines):
+            """Parse a TOML list into a Python list."""
+            # NB: This function expects the TOML list to be formatted like so (ignoring leading and trailing spaces):
+            #     name = [
+            #          '...',
+            #     ]
+            #     Any other format is not supported.
+            name = None
+            elements = []
+
+            for idx, line in enumerate(lines):
+                if name is None and not line.startswith("'"):
+                    name = line.split('=')[0].strip()
+                    continue
+                if line.startswith("]"):
+                    return (name, elements, idx + 1)
+                elements.append(line.rstrip(',').strip("'").strip('"'))
+
+            raise RuntimeError(f'Failed to locate closing "]" for {name}')
+
+        def parse_toml(filename):
+            """Very simple parser routine for pyproject.toml."""
+            result = {'project': {'optional-dependencies': {}}}
+            with open(filename) as toml_file:
+                lines = [line.strip() for line in toml_file.readlines()]
+            lines = [line for line in lines if line and not line.startswith('#')]
+
+            start = lines.index('[project]')
+            project_data = lines[start : _find_toml_section_end(lines, start)]
+
+            start = lines.index('[project.optional-dependencies]')
+            optional_dependencies = lines[start + 1 : _find_toml_section_end(lines, start)]
+
+            idx = 0
+            N = len(project_data)
+            while idx < N:
+                line = project_data[idx]
+                shift = 1
+                if line.startswith('name'):
+                    result['project']['name'] = line.split('=')[1].strip().strip("'")
+                elif line.startswith('dependencies'):
+                    (name, pkgs, shift) = _parse_list(project_data[idx:])
+                    result['project'][name] = pkgs
+                idx += shift
+
+            idx = 0
+            N = len(optional_dependencies)
+            while idx < N:
+                (opt_name, opt_pkgs, shift) = _parse_list(optional_dependencies[idx:])
+                result['project']['optional-dependencies'][opt_name] = opt_pkgs
+                idx += shift
+
+            return result
 
 
 # ==============================================================================
@@ -178,7 +260,7 @@ def _fix_macosx_header_paths(*args):
                 compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH, _MACOSX_XCODE_REF_PATH)
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 
 class BuildFailed(Exception):
@@ -465,9 +547,6 @@ class BuildExt(build_ext):
             return
 
         cxx_standards = [17, 14, 11]
-        if sys.version_info[0] < 3:
-            cxx_standards = [year for year in cxx_standards if year < 17]
-
         if sys.platform == 'darwin':
             major_version = int(platform.mac_ver()[0].split('.')[0])
             minor_version = int(platform.mac_ver()[0].split('.')[1])
@@ -595,30 +674,27 @@ class GenerateRequirementFile(Command):
         self.include_extras = None
         self.include_all_extras = None
         self.extra_pkgs = []
+        self.dependencies = []
 
     def finalize_options(self):
         """Finalize this command's options."""
         include_extras = self.include_extras.split(',') if self.include_extras else []
+        pyproject_toml = parse_toml(Path(__file__).parent / 'pyproject.toml')
 
-        try:
-            for name, pkgs in self.distribution.extras_require.items():
-                if self.include_all_extras or name in include_extras:
-                    self.extra_pkgs.extend(pkgs)
+        for name, pkgs in pyproject_toml['project']['optional-dependencies'].items():
+            if self.include_all_extras or name in include_extras:
+                self.extra_pkgs.extend(pkgs)
 
-        except TypeError:  # Mostly for old setuptools (< 30.x)
-            for name, pkgs in self.distribution.command_options['options.extras_require'].items():
-                if self.include_all_extras or name in include_extras:
-                    self.extra_pkgs.extend(pkgs)
+        # pylint: disable=attribute-defined-outside-init
+        self.dependencies = self.distribution.install_requires
+        if not self.dependencies:
+            self.dependencies = pyproject_toml['project']['dependencies']
 
     def run(self):
         """Execute this command."""
         with open('requirements.txt', 'w') as req_file:
-            try:
-                for pkg in self.distribution.install_requires:
-                    req_file.write(f'{pkg}\n')
-            except TypeError:  # Mostly for old setuptools (< 30.x)
-                for pkg in self.distribution.command_options['options']['install_requires']:
-                    req_file.write(f'{pkg}\n')
+            for pkg in self.dependencies:
+                req_file.write(f'{pkg}\n')
             req_file.write('\n')
             for pkg in self.extra_pkgs:
                 req_file.write(f'{pkg}\n')

@@ -11,13 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   New backend for the Azure Quantum platform
 
+### Changed
+
+-   Support for Python 3.6 and earlier is now deprecated
+-   Moved package metadata into pyproject.toml
+
 ### Repository
 
 -   Update `docker/setup-qemu-action` GitHub action to v2
 -   Fixed CentOS 7 configuration issue
 -   Added two new pre-commit hooks: `blacken-docs` and `pyupgrade`
--   Remove deprecated `setup_requires` field in setup.cfg
--   Fixed installation issue with newer versions of `setuptool-scm`and Python¨ 3.6
 
 ## [v0.7.3] - 2022-04-27
 
