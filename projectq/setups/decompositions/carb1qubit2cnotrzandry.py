@@ -138,12 +138,12 @@ def _recognize_v(matrix):  # pylint: disable=too-many-branches
         (two_b / 2.0 + math.pi) % (2 * math.pi),
     ]
     tmp = math.acos(abs(matrix[1][0]))
-    # yapf: disable
-    possible_c_half = [tmp % (2*math.pi),
-                       (tmp+math.pi) % (2*math.pi),
-                       (-1.*tmp) % (2*math.pi),
-                       (-1.*tmp+math.pi) % (2*math.pi)]
-    # yapf: enable
+    possible_c_half = [
+        tmp % (2 * math.pi),
+        (tmp + math.pi) % (2 * math.pi),
+        (-1.0 * tmp) % (2 * math.pi),
+        (-1.0 * tmp + math.pi) % (2 * math.pi),
+    ]
     for b, c_half in itertools.product(possible_b, possible_c_half):  # pylint: disable=invalid-name
         if _test_parameters(matrix, a, b, c_half):
             return (a, b, c_half)
