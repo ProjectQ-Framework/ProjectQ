@@ -637,6 +637,6 @@ def test_to_qasm_invalid_command_gate_not_available():
         to_qasm(cmd)
 
     # NB: unsupported gate for 2 qubits
-    cmd = Command(None, X, qubits=((qb0,qb1),))
+    cmd = Command(None, X, qubits=((qb0, qb1),))
     with pytest.raises(InvalidCommandError):
         to_qasm(cmd)
