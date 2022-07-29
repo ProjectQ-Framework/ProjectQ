@@ -301,7 +301,7 @@ def to_qasm(cmd):  # pylint: disable=too-many-return-statements,too-many-branche
         if isinstance(gate, (Rxx, Ryy, Rzz)):
             return f"{gate_name}({gate.angle}) q[{targets[0]}], q[{targets[1]}];"
 
-        raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover
+        raise InvalidCommandError('Invalid command:', str(cmd))
 
     # Invalid command
     raise InvalidCommandError('Invalid command:', str(cmd))  # pragma: no cover

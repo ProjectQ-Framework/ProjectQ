@@ -629,9 +629,14 @@ def test_to_qasm_n_controlled_qubits_type_2(base_gate, num_ctrl_qubits, expected
 
 @has_azure_quantum
 def test_to_qasm_invalid_command_gate_not_available():
-    eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
-    qb0 = eng.allocate_qubit()
+    qb0 = WeakQubitRef(None, idx=0)
+    qb1 = WeakQubitRef(None, idx=1)
 
-    cmd = Command(eng, SqrtX, (qb0,))
+    cmd = Command(None, SqrtX, qubits=((qb0,),))
+    with pytest.raises(InvalidCommandError):
+        to_qasm(cmd)
+
+    # NB: unsupported gate for 2 qubits
+    cmd = Command(None, X, qubits=((qb0,qb1),))
     with pytest.raises(InvalidCommandError):
         to_qasm(cmd)
