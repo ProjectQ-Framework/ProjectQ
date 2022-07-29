@@ -859,4 +859,4 @@ def test_error_invalid_provider():
     with pytest.raises(RuntimeError):
         main_engine.backend._input_data
 
-    assert main_engine.backend.is_available(cmd) == False
+    assert not main_engine.backend.is_available(cmd)
