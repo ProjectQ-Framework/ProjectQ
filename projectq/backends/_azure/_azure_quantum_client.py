@@ -53,17 +53,17 @@ def send(
     Returns:
         dict: An intermediate dict representation of an Azure Quantum job result.
     """
-    if target.current_availability != 'Available':  # pragma: no cover
+    if target.current_availability != 'Available':
         raise DeviceOfflineError('Device is offline.')
 
-    if verbose:  # pragma: no cover
+    if verbose:
         print(f"- Running code: {input_data}")
 
     job = target.submit(circuit=input_data, num_shots=num_shots, **kwargs)
 
     res = _get_results(job=job, num_retries=num_retries, interval=interval, verbose=verbose)
 
-    if verbose:  # pragma: no cover
+    if verbose:
         print("- Done.")
 
     return res
@@ -90,7 +90,7 @@ def retrieve(job_id, target, num_retries=100, interval=1, verbose=False):
 
     res = _get_results(job=job, num_retries=num_retries, interval=interval, verbose=verbose)
 
-    if verbose:  # pragma: no cover
+    if verbose:
         print("- Done.")
 
     return res

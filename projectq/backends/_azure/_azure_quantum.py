@@ -180,7 +180,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
             if qasm_cmd:
                 self._circuit += f'\n{qasm_cmd}'
 
-        else:  # pragma: no cover
+        else:
             raise RuntimeError("Invalid Azure Quantum target.")
 
     def is_available(self, cmd):
@@ -199,7 +199,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
         if self._provider_id == QUANTINUUM_PROVIDER_ID:
             return is_available_quantinuum(cmd)
 
-        return False  # pragma: no cover
+        return False
 
     @staticmethod
     def _target_factory(workspace, target_name, provider_id):  # pragma: no cover
@@ -299,7 +299,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 f"{self._circuit}\n{measurement_gates}"
             )
 
-        raise RuntimeError("Invalid Azure Quantum target.")  # pragma: no cover
+        raise RuntimeError("Invalid Azure Quantum target.")
 
     @property
     def _metadata(self):
@@ -341,7 +341,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
                 verbose=self._verbose,
             )
 
-            if res is None:  # pragma: no cover
+            if res is None:
                 raise RuntimeError(
                     f"Failed to retrieve job from Azure Quantum with job id: '{self._retrieve_execution}'!"
                 )

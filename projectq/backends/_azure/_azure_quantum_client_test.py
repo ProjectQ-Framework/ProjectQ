@@ -54,7 +54,8 @@ def test_is_online():
 
 
 @has_azure_quantum
-def test_send_ionq():
+@pytest.mark.parametrize('verbose', (False, True))
+def test_send_ionq(verbose):
     expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
     def get_mock_target():
@@ -81,14 +82,15 @@ def test_send_ionq():
         target=get_mock_target(),
         num_retries=1000,
         interval=1,
-        verbose=True,
+        verbose=verbose,
     )
 
     assert actual_res == expected_res
 
 
 @has_azure_quantum
-def test_send_quantinuum():
+@pytest.mark.parametrize('verbose', (False, True))
+def test_send_quantinuum(verbose):
     expected_res = {
         'c': [
             '010',
@@ -226,14 +228,15 @@ def test_send_quantinuum():
         target=get_mock_target(),
         num_retries=1000,
         interval=1,
-        verbose=True,
+        verbose=verbose,
     )
 
     assert actual_res == expected_res
 
 
 @has_azure_quantum
-def test_retrieve_ionq():
+@pytest.mark.parametrize('verbose', (False, True))
+def test_retrieve_ionq(verbose):
     expected_res = {'0': 0.125, '1': 0.125, '2': 0.125, '3': 0.125, '4': 0.125, '5': 0.125, '6': 0.125, '7': 0.125}
 
     def get_mock_target():
@@ -251,13 +254,14 @@ def test_retrieve_ionq():
 
         return mock_target
 
-    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
+    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=verbose)
 
     assert actual_res == expected_res
 
 
 @has_azure_quantum
-def test_retrieve_quantinuum():
+@pytest.mark.parametrize('verbose', (False, True))
+def test_retrieve_quantinuum(verbose):
     expected_res = {
         'c': [
             '010',
@@ -378,13 +382,14 @@ def test_retrieve_quantinuum():
 
         return mock_target
 
-    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=True)
+    actual_res = retrieve(job_id=ZERO_GUID, target=get_mock_target(), num_retries=1000, interval=1, verbose=verbose)
 
     assert actual_res == expected_res
 
 
 @has_azure_quantum
-def test_send_timeout_error():
+@pytest.mark.parametrize('verbose', (False, True))
+def test_send_timeout_error(verbose):
     def get_mock_target():
         mock_job = mock.MagicMock()
         mock_job.id = ZERO_GUID
@@ -411,5 +416,5 @@ def test_send_timeout_error():
             target=get_mock_target(),
             num_retries=1000,
             interval=1,
-            verbose=True,
+            verbose=verbose,
         )

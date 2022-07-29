@@ -659,10 +659,13 @@ def test_run_no_circuit():
     "use_hardware, target_name, provider_id",
     [(False, 'ionq.simulator', 'ionq'), (True, 'ionq.qpu', 'ionq')],
 )
-def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
-    projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(
-        return_value={'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}
-    )
+@pytest.mark.parametrize(
+    'retrieve_retval',
+    (None, {'histogram': {'0': 0.5, '1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0, '5': 0.0, '6': 0.0, '7': 0.5}}),
+    ids=('retrieve-FAIL', 'retrieve-SUCESS'),
+)
+def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id, retrieve_retval):
+    projectq.backends._azure._azure_quantum.retrieve = mock.MagicMock(return_value=retrieve_retval)
 
     backend = _get_azure_backend(use_hardware=use_hardware, target_name=target_name, retrieve_execution=ZERO_GUID)
     main_engine = _get_main_engine(backend=backend)
@@ -675,19 +678,22 @@ def test_run_ionq_retrieve_execution(use_hardware, target_name, provider_id):
     CX | (q1, q2)
     All(Measure) | circuit
 
-    main_engine.flush()
+    if retrieve_retval is None:
+        with pytest.raises(RuntimeError):
+            main_engine.flush()
+    else:
+        main_engine.flush()
+        result = backend.get_probabilities(circuit)
 
-    result = backend.get_probabilities(circuit)
-
-    assert len(result) == 8
-    assert result['000'] == pytest.approx(0.5)
-    assert result['001'] == 0.0
-    assert result['010'] == 0.0
-    assert result['011'] == 0.0
-    assert result['100'] == 0.0
-    assert result['101'] == 0.0
-    assert result['110'] == 0.0
-    assert result['111'] == pytest.approx(0.5)
+        assert len(result) == 8
+        assert result['000'] == pytest.approx(0.5)
+        assert result['001'] == 0.0
+        assert result['010'] == 0.0
+        assert result['011'] == 0.0
+        assert result['100'] == 0.0
+        assert result['101'] == 0.0
+        assert result['110'] == 0.0
+        assert result['111'] == pytest.approx(0.5)
 
 
 @has_azure_quantum
@@ -836,3 +842,21 @@ def test_error_no_logical_id_tag():
 
     with pytest.raises(RuntimeError):
         main_engine.backend._store(Command(engine=main_engine, gate=Measure, qubits=([q0],)))
+
+
+@has_azure_quantum
+def test_error_invalid_provider():
+    backend = _get_azure_backend(use_hardware=False, target_name='ionq.simulator')
+    backend._provider_id = 'INVALID'  # NB: this is forcing it... should actually never happen in practice
+    main_engine = _get_main_engine(backend=backend)
+
+    q0 = WeakQubitRef(engine=None, idx=0)
+
+    cmd = Command(engine=main_engine, gate=H, qubits=([q0],))
+    with pytest.raises(RuntimeError):
+        main_engine.backend._store(cmd)
+
+    with pytest.raises(RuntimeError):
+        main_engine.backend._input_data
+
+    assert main_engine.backend.is_available(cmd) == False
