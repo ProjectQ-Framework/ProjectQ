@@ -46,6 +46,7 @@ from projectq.ops import (
 from projectq.types import WeakQubitRef
 
 from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
+from .._utils import _rearrange_result
 from . import _ionq_http_client as http_client
 
 GATE_MAP = {
@@ -65,20 +66,6 @@ GATE_MAP = {
     SwapGate: 'swap',
 }
 SUPPORTED_GATES = tuple(GATE_MAP.keys())
-
-
-def _rearrange_result(input_result, length):
-    """Turn ``input_result`` from an integer into a bit-string.
-
-    Args:
-        input_result (int): An integer representation of qubit states.
-        length (int): The total number of bits (for padding, if needed).
-
-    Returns:
-        str: A bit-string representation of ``input_result``.
-    """
-    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
-    return ''.join(bin_input)[::-1]
 
 
 class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes

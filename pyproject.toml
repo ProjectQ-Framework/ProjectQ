@@ -43,6 +43,10 @@ dependencies = [
 
 [project.optional-dependencies]
 
+azure-quantum = [
+      'azure-quantum'
+]
+
 braket = [
       'boto3'
 ]

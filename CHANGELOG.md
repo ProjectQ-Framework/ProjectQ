@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   New backend for the Azure Quantum platform
+
 ### Changed
 
 -   Support for Python 3.6 and earlier is now deprecated

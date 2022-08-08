@@ -23,13 +23,8 @@ from projectq.ops import Allocate, Barrier, Deallocate, FlushGate, Measure, Rx, 
 from projectq.types import WeakQubitRef
 
 from .._exceptions import InvalidCommandError
+from .._utils import _rearrange_result
 from ._aqt_http_client import retrieve, send
-
-
-# _rearrange_result & _format_counts imported and modified from qiskit
-def _rearrange_result(input_result, length):
-    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
-    return ''.join(bin_input)[::-1]
 
 
 def _format_counts(samples, length):

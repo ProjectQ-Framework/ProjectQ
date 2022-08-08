@@ -54,6 +54,14 @@ AWS Braket Backend requires the use of the official AWS SDK for Python, Boto3. T
 
     python -m pip install --user projectq[braket]
 
+**Install Azure Quantum Backend requirement**
+
+Azure Quantum Backend requires the use of the official `Azure Quantum SDK <https://github.com/microsoft/qdk-python>`_ for Python. This is an extra requirement only needed if you plan to use the Azure Quantum Backend. To install ProjectQ inluding this requirement you can include it in the installation instruction as
+
+.. code-block:: bash
+
+    python -m pip install --user projectq[azure-quantum]
+
 
 Detailed instructions and OS-specific hints
 -------------------------------------------
