@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Support for Python 3.6 and earlier is now deprecated
 -   Moved package metadata into pyproject.toml
 
+### Fixed
+
+-   Fixed installation on Apple Silicon with older Python versions (< 3.9)
+
 ### Repository
 
 -   Update `docker/setup-qemu-action` GitHub action to v2
