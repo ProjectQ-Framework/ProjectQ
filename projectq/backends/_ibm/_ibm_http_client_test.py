@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +95,7 @@ def test_send_real_device_online_verbose(monkeypatch):
                 200,
             )
         # STEP2
-        elif args[1] == "/" + execution_id + "/jobUploadUrl" and request_num[0] == 3:
+        elif args[1] == f"/{execution_id}/jobUploadUrl" and request_num[0] == 3:
             request_num[0] += 1
             return MockResponse({"url": "s3_url"}, 200)
         # STEP5
@@ -104,7 +103,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and not result_ready[0]
             and request_num[0] == 5
@@ -116,7 +115,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and result_ready[0]
             and request_num[0] == 7
@@ -128,9 +127,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".format(
-                    execution_id=execution_id
-                ),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl",
             )
             and request_num[0] == 8
         ):
@@ -170,7 +167,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             answer1 = {
                 'objectStorageInfo': {
                     'downloadQObjectUrlEndpoint': 'url_dld_endpoint',
-                    'uploadQobjectUrlEndpoint': '/' + execution_id + '/jobUploadUrl',
+                    'uploadQobjectUrlEndpoint': f"/{execution_id}/jobUploadUrl",
                     'uploadUrl': 'url_upld',
                 },
                 'id': execution_id,
@@ -178,7 +175,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             return MockPostResponse(answer1, 200)
 
         # STEP4
-        elif args[1] == urljoin(_API_URL, jobs_url + "/" + execution_id + "/jobDataUploaded") and request_num[0] == 4:
+        elif args[1] == urljoin(_API_URL, f"{jobs_url}/{execution_id}/jobDataUploaded") and request_num[0] == 4:
             request_num[0] += 1
             return MockPostResponse({}, 200)
 
@@ -187,9 +184,7 @@ def test_send_real_device_online_verbose(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".format(
-                    execution_id=execution_id
-                ),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded",
             )
             and request_num[0] == 10
         ):
@@ -552,18 +547,18 @@ def test_timeout_exception(monkeypatch):
                 ],
                 200,
             )
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format(execution_id)
+        job_url = f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}"
         if args[1] == urljoin(_API_URL, job_url):
             tries[0] += 1
             return MockResponse({"status": "RUNNING"}, 200)
 
         # STEP2
-        elif args[1] == "/" + execution_id + "/jobUploadUrl":
+        elif args[1] == f"/{execution_id}/jobUploadUrl":
             return MockResponse({"url": "s3_url"}, 200)
         # STEP5
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
         ):
             return MockResponse({"status": "RUNNING"}, 200)
 
@@ -593,7 +588,7 @@ def test_timeout_exception(monkeypatch):
             answer1 = {
                 'objectStorageInfo': {
                     'downloadQObjectUrlEndpoint': 'url_dld_endpoint',
-                    'uploadQobjectUrlEndpoint': '/' + execution_id + '/jobUploadUrl',
+                    'uploadQobjectUrlEndpoint': f"/{execution_id}/jobUploadUrl",
                     'uploadUrl': 'url_upld',
                 },
                 'id': execution_id,
@@ -601,7 +596,7 @@ def test_timeout_exception(monkeypatch):
             return MockPostResponse(answer1, 200)
 
         # STEP4
-        elif args[1] == urljoin(_API_URL, jobs_url + "/" + execution_id + "/jobDataUploaded"):
+        elif args[1] == urljoin(_API_URL, f"{jobs_url}/{execution_id}/jobDataUploaded"):
             return MockPostResponse({}, 200)
 
     def mocked_requests_put(*args, **kwargs):
@@ -685,8 +680,8 @@ def test_retrieve_and_device_offline_exception(monkeypatch):
                 ],
                 200,
             )
-        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123e")
-        err_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/{}".format("123ee")
+        job_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/123e"
+        err_url = "Network/ibm-q/Groups/open/Projects/main/Jobs/123ee"
         if args[1] == urljoin(_API_URL, job_url):
             request_num[0] += 1
             return MockResponse({"status": "RUNNING", 'iteration': request_num[0]}, 200)
@@ -760,7 +755,7 @@ def test_retrieve(monkeypatch):
             args[1]
             == urljoin(
                 _API_URL,
-                "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+                f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
             )
             and request_num[0] < 1
         ):
@@ -768,15 +763,13 @@ def test_retrieve(monkeypatch):
             return MockResponse({"status": "RUNNING"}, 200)
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}".format(execution_id=execution_id),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}",
         ):
             return MockResponse({"status": "COMPLETED"}, 200)
         # STEP6
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl".format(
-                execution_id=execution_id
-            ),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloadUrl",
         ):
             return MockResponse({"url": "result_download_url"}, 200)
         # STEP7
@@ -806,9 +799,7 @@ def test_retrieve(monkeypatch):
         # STEP8
         elif args[1] == urljoin(
             _API_URL,
-            "Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded".format(
-                execution_id=execution_id
-            ),
+            f"Network/ibm-q/Groups/open/Projects/main/Jobs/{execution_id}/resultDownloaded",
         ):
             return MockPostResponse({}, 200)
 

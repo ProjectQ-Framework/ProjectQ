@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -262,7 +261,7 @@ def test_send_that_errors_are_caught(mocker, var_error, send_that_error_setup):
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        {"Error": {"Code": var_error, "Message": f"Msg error for {var_error}"}},
         "create_quantum_task",
     )
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)
@@ -289,7 +288,7 @@ def test_retrieve_error_arn_not_exist(mocker, var_error, arntask, creds):
 
     mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task'])
     mock_boto3_client.get_quantum_task.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        {"Error": {"Code": var_error, "Message": f"Msg error for {var_error}"}},
         "get_quantum_task",
     )
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)

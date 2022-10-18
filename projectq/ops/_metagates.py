@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +21,7 @@ Contains meta gates, i.e.,
   Example:
         .. code-block:: python
 
-          Tensor(H) | (qubit1, qubit2) # apply H to qubit #1 and #2
+          Tensor(H) | (qubit1, qubit2)  # apply H to qubit #1 and #2
 
 As well as the meta functions
 * get_inverse (Tries to access the get_inverse member function of a gate and upon failure returns a DaggeredGate)
@@ -75,13 +74,13 @@ class DaggeredGate(BasicGate):
 
     def __str__(self):
         r"""Return string representation (str(gate) + \"^\dagger\")."""
-        return str(self._gate) + r"^\dagger"
+        return f"{str(self._gate)}^\\dagger"
 
     def tex_str(self):
         """Return the Latex string representation of a Daggered gate."""
         if hasattr(self._gate, 'tex_str'):
-            return self._gate.tex_str() + r"${}^\dagger$"
-        return str(self._gate) + r"${}^\dagger$"
+            return f"{self._gate.tex_str()}${{}}^\\dagger$"
+        return f"{str(self._gate)}${{}}^\\dagger$"
 
     def get_inverse(self):
         """Return the inverse gate (the inverse of the inverse of a gate is the gate itself)."""
@@ -108,7 +107,7 @@ def get_inverse(gate):
     Example:
         .. code-block:: python
 
-            get_inverse(H) # returns a Hadamard gate (HGate object)
+            get_inverse(H)  # returns a Hadamard gate (HGate object)
     """
     try:
         return gate.get_inverse()
@@ -128,8 +127,8 @@ def is_identity(gate):
     Example:
         .. code-block:: python
 
-            get_inverse(Rx(2*math.pi)) # returns True
-            get_inverse(Rx(math.pi)) # returns False
+            get_inverse(Rx(2 * math.pi))  # returns True
+            get_inverse(Rx(math.pi))  # returns False
     """
     return gate.is_identity()
 
@@ -147,9 +146,9 @@ class ControlledGate(BasicGate):
     Example:
         .. code-block:: python
 
-            ControlledGate(gate, 2) | (qb0, qb2, qb3) # qb0 & qb2 are controls
-            C(gate, 2) | (qb0, qb2, qb3) # This is much nicer.
-            C(gate, 2) | ([qb0,qb2], qb3) # Is equivalent
+            ControlledGate(gate, 2) | (qb0, qb2, qb3)  # qb0 & qb2 are controls
+            C(gate, 2) | (qb0, qb2, qb3)  # This is much nicer.
+            C(gate, 2) | ([qb0, qb2], qb3)  # Is equivalent
 
     Note:
         Use :func:`C` rather than ControlledGate, i.e.,
@@ -235,7 +234,7 @@ def C(gate, n_qubits=1):
     Example:
         .. code-block:: python
 
-            C(NOT) | (c, q) # equivalent to CNOT | (c, q)
+            C(NOT) | (c, q)  # equivalent to CNOT | (c, q)
     """
     return ControlledGate(gate, n_qubits)
 
@@ -249,8 +248,8 @@ class Tensor(BasicGate):
     Example:
         .. code-block:: python
 
-            Tensor(H) | x # applies H to every qubit in the list of qubits x
-            Tensor(H) | (x,) # alternative to be consistent with other syntax
+            Tensor(H) | x  # applies H to every qubit in the list of qubits x
+            Tensor(H) | (x,)  # alternative to be consistent with other syntax
     """
 
     def __init__(self, gate):
@@ -260,7 +259,7 @@ class Tensor(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "Tensor(" + str(self._gate) + ")"
+        return f"Tensor({str(self._gate)})"
 
     def get_inverse(self):
         """Return the inverse of this tensored gate (which is the tensored inverse of the gate)."""

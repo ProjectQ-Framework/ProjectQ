@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -284,7 +283,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
             qubits, states = list(zip(*data))
             if len(set(states)) != 1:
                 raise IncompatibleControlState(
-                    'Control qubits {} cannot have conflicting control states: {}'.format(list(qubits), states)
+                    f'Control qubits {list(qubits)} cannot have conflicting control states: {states}'
                 )
 
     @property
@@ -356,6 +355,6 @@ class Command:  # pylint: disable=too-many-instance-attributes
             for qreg in qubits:
                 qstring += str(Qureg(qreg))
                 qstring += ", "
-            qstring = qstring[:-2] + " )"
+            qstring = f"{qstring[:-2]} )"
         cstring = "C" * len(ctrlqubits)
-        return cstring + self.gate.to_string(symbols) + " | " + qstring
+        return f"{cstring + self.gate.to_string(symbols)} | {qstring}"

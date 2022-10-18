@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,4 +31,4 @@ class QPE(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return 'QPE({})'.format(str(self.unitary))
+        return f'QPE({str(self.unitary)})'

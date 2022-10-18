@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Some of the setup.py code is inspired or copied from SQLAlchemy
 
 # SQLAlchemy was created by Michael Bayer.
@@ -53,10 +52,100 @@ from distutils.errors import (
     LinkError,
 )
 from distutils.spawn import find_executable, spawn
+from operator import itemgetter
+from pathlib import Path
 
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+try:
+    import setuptools_scm  # noqa: F401  # pylint: disable=unused-import
+
+    _HAS_SETUPTOOLS_SCM = True
+except ImportError:
+    _HAS_SETUPTOOLS_SCM = False
+
+try:
+    import tomllib
+
+    def parse_toml(filename):
+        """Parse a TOML file."""
+        with open(str(filename), 'rb') as toml_file:
+            return tomllib.load(toml_file)
+
+except ImportError:
+    try:
+        import toml
+
+        def parse_toml(filename):
+            """Parse a TOML file."""
+            return toml.load(filename)
+
+    except ImportError:
+
+        def _find_toml_section_end(lines, start):
+            """Find the index of the start of the next section."""
+            return (
+                next(filter(itemgetter(1), enumerate(line.startswith('[') for line in lines[start + 1 :])))[0]
+                + start
+                + 1
+            )
+
+        def _parse_list(lines):
+            """Parse a TOML list into a Python list."""
+            # NB: This function expects the TOML list to be formatted like so (ignoring leading and trailing spaces):
+            #     name = [
+            #          '...',
+            #     ]
+            #     Any other format is not supported.
+            name = None
+            elements = []
+
+            for idx, line in enumerate(lines):
+                if name is None and not line.startswith("'"):
+                    name = line.split('=')[0].strip()
+                    continue
+                if line.startswith("]"):
+                    return (name, elements, idx + 1)
+                elements.append(line.rstrip(',').strip("'").strip('"'))
+
+            raise RuntimeError(f'Failed to locate closing "]" for {name}')
+
+        def parse_toml(filename):
+            """Very simple parser routine for pyproject.toml."""
+            result = {'project': {'optional-dependencies': {}}}
+            with open(filename) as toml_file:
+                lines = [line.strip() for line in toml_file.readlines()]
+            lines = [line for line in lines if line and not line.startswith('#')]
+
+            start = lines.index('[project]')
+            project_data = lines[start : _find_toml_section_end(lines, start)]
+
+            start = lines.index('[project.optional-dependencies]')
+            optional_dependencies = lines[start + 1 : _find_toml_section_end(lines, start)]
+
+            idx = 0
+            N = len(project_data)
+            while idx < N:
+                line = project_data[idx]
+                shift = 1
+                if line.startswith('name'):
+                    result['project']['name'] = line.split('=')[1].strip().strip("'")
+                elif line.startswith('dependencies'):
+                    (name, pkgs, shift) = _parse_list(project_data[idx:])
+                    result['project'][name] = pkgs
+                idx += shift
+
+            idx = 0
+            N = len(optional_dependencies)
+            while idx < N:
+                (opt_name, opt_pkgs, shift) = _parse_list(optional_dependencies[idx:])
+                result['project']['optional-dependencies'][opt_name] = opt_pkgs
+                idx += shift
+
+            return result
+
 
 # ==============================================================================
 # Helper functions and classes
@@ -110,7 +199,7 @@ def compiler_test(
     """Return a boolean indicating whether a flag name is supported on the specified compiler."""
     fname = None
     with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as temp:
-        temp.write('{}\nint main (int argc, char **argv) {{ {} return 0; }}'.format(include, body))
+        temp.write(f'{include}\nint main (int argc, char **argv) {{ {body} return 0; }}')
         fname = temp.name
 
     if compile_postargs is None:
@@ -139,7 +228,7 @@ def compiler_test(
         if compiler.compiler_type == 'msvc':
             err.close()
             os.dup2(olderr, sys.stderr.fileno())
-            with open('err.txt', 'r') as err_file:
+            with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
     except (CompileError, LinkError, RuntimeError):
@@ -171,7 +260,7 @@ def _fix_macosx_header_paths(*args):
                 compiler_args[idx] = item.replace(_MACOSX_DEVTOOLS_REF_PATH, _MACOSX_XCODE_REF_PATH)
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 
 class BuildFailed(Exception):
@@ -362,7 +451,7 @@ class BuildExt(build_ext):
         # Other compiler tests
 
         status_msgs('Other compiler tests')
-        self.compiler.define_macro('VERSION_INFO', '"{}"'.format(self.distribution.get_version()))
+        self.compiler.define_macro('VERSION_INFO', f'"{self.distribution.get_version()}"')
         if compiler_type == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
             self.opts.append('-fvisibility=hidden')
 
@@ -394,7 +483,7 @@ class BuildExt(build_ext):
                 # Only add the flag if the compiler we are using is the one
                 # from HomeBrew
                 if llvm_root in compiler_root:
-                    l_arg = '-L{}/lib'.format(llvm_root)
+                    l_arg = f'-L{llvm_root}/lib'
                     if compiler_test(self.compiler, flag, link_postargs=[l_arg, flag], **kwargs):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
@@ -411,8 +500,8 @@ class BuildExt(build_ext):
                 # Only add the flag if the compiler we are using is the one
                 # from MacPorts
                 if macports_root in compiler_root:
-                    inc_dir = '{}/include/libomp'.format(macports_root)
-                    lib_dir = '{}/lib/libomp'.format(macports_root)
+                    inc_dir = f'{macports_root}/include/libomp'
+                    lib_dir = f'{macports_root}/lib/libomp'
                     c_arg = '-I' + inc_dir
                     l_arg = '-L' + lib_dir
 
@@ -434,6 +523,17 @@ class BuildExt(build_ext):
             '/arch:AVX',
         ]
 
+        if int(os.environ.get('PROJECTQ_NOINTRIN', '0')) or (
+            sys.platform == 'darwin'
+            and platform.machine() == 'arm64'
+            and (sys.version_info.major == 3 and sys.version_info.minor < 9)
+        ):
+            important_msgs(
+                'Either requested no-intrinsics or detected potentially unsupported Python version on '
+                'Apple Silicon: disabling intrinsics'
+            )
+            self.compiler.define_macro('NOINTRIN')
+            return
         if os.environ.get('PROJECTQ_DISABLE_ARCH_NATIVE'):
             flags = flags[1:]
 
@@ -458,9 +558,6 @@ class BuildExt(build_ext):
             return
 
         cxx_standards = [17, 14, 11]
-        if sys.version_info[0] < 3:
-            cxx_standards = [year for year in cxx_standards if year < 17]
-
         if sys.platform == 'darwin':
             major_version = int(platform.mac_ver()[0].split('.')[0])
             minor_version = int(platform.mac_ver()[0].split('.')[1])
@@ -468,11 +565,11 @@ class BuildExt(build_ext):
                 cxx_standards = [year for year in cxx_standards if year < 17]
 
         for year in cxx_standards:
-            flag = '-std=c++{}'.format(year)
+            flag = f'-std=c++{year}'
             if compiler_test(self.compiler, flag):
                 self.opts.append(flag)
                 return
-            flag = '/Qstd=c++{}'.format(year)
+            flag = f'/Qstd=c++{year}'
             if compiler_test(self.compiler, flag):
                 self.opts.append(flag)
                 return
@@ -504,7 +601,7 @@ class BuildExt(build_ext):
             if compiler_test(compiler, flag, link_shared_lib=True, compile_postargs=['-fPIC']):
                 flags.append(flag)
             else:
-                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+                important_msgs(f'WARNING: ignoring unsupported compiler flag: {flag}')
 
         self.compiler.compiler = [compiler_exe] + list(compiler_flags)
         self.compiler.compiler_so = [compiler_exe_so] + list(compiler_so_flags)
@@ -518,7 +615,7 @@ class BuildExt(build_ext):
             if compiler_test(self.compiler, flag):
                 flags.append(flag)
             else:
-                important_msgs('WARNING: ignoring unsupported compiler flag: {}'.format(flag))
+                important_msgs(f'WARNING: ignoring unsupported compiler flag: {flag}')
 
         self.compiler.compiler.extend(flags)
         self.compiler.compiler_so.extend(flags)
@@ -588,33 +685,30 @@ class GenerateRequirementFile(Command):
         self.include_extras = None
         self.include_all_extras = None
         self.extra_pkgs = []
+        self.dependencies = []
 
     def finalize_options(self):
         """Finalize this command's options."""
         include_extras = self.include_extras.split(',') if self.include_extras else []
+        pyproject_toml = parse_toml(Path(__file__).parent / 'pyproject.toml')
 
-        try:
-            for name, pkgs in self.distribution.extras_require.items():
-                if self.include_all_extras or name in include_extras:
-                    self.extra_pkgs.extend(pkgs)
+        for name, pkgs in pyproject_toml['project']['optional-dependencies'].items():
+            if self.include_all_extras or name in include_extras:
+                self.extra_pkgs.extend(pkgs)
 
-        except TypeError:  # Mostly for old setuptools (< 30.x)
-            for name, pkgs in self.distribution.command_options['options.extras_require'].items():
-                if self.include_all_extras or name in include_extras:
-                    self.extra_pkgs.extend(pkgs)
+        # pylint: disable=attribute-defined-outside-init
+        self.dependencies = self.distribution.install_requires
+        if not self.dependencies:
+            self.dependencies = pyproject_toml['project']['dependencies']
 
     def run(self):
         """Execute this command."""
         with open('requirements.txt', 'w') as req_file:
-            try:
-                for pkg in self.distribution.install_requires:
-                    req_file.write('{}\n'.format(pkg))
-            except TypeError:  # Mostly for old setuptools (< 30.x)
-                for pkg in self.distribution.command_options['options']['install_requires']:
-                    req_file.write('{}\n'.format(pkg))
+            for pkg in self.dependencies:
+                req_file.write(f'{pkg}\n')
             req_file.write('\n')
             for pkg in self.extra_pkgs:
-                req_file.write('{}\n'.format(pkg))
+                req_file.write(f'{pkg}\n')
 
 
 # ------------------------------------------------------------------------------
@@ -645,9 +739,12 @@ def run_setup(with_cext):
     else:
         kwargs['ext_modules'] = []
 
+    # NB: Workaround for people calling setup.py without a proper environment containing setuptools-scm
+    #     This can typically be the case when calling the `gen_reqfile` or `clang_tidy`commands
+    if not _HAS_SETUPTOOLS_SCM:
+        kwargs['version'] = '0.0.0'
+
     setup(
-        use_scm_version={'local_scheme': 'no-local-version'},
-        setup_requires=['setuptools_scm'],
         cmdclass={
             'build_ext': BuildExt,
             'clang_tidy': ClangTidy,

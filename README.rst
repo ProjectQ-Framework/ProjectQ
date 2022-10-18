@@ -27,7 +27,7 @@ targeting various types of hardware, a high-performance quantum computer
 simulator with emulation capabilities, and various compiler plug-ins.
 This allows users to
 
--  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, or IonQ service provided devices
+-  run quantum programs on the IBM Quantum Experience chip, AQT devices, AWS Braket, Azure Quantum, or IonQ service provided devices
 -  simulate quantum programs on classical computers
 -  emulate quantum programs at a higher level of abstraction (e.g.,
    mimicking the action of large oracles instead of compiling them to
@@ -43,7 +43,10 @@ Examples
 .. code-block:: python
 
     from projectq import MainEngine  # import the main compiler engine
-    from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
+    from projectq.ops import (
+        H,
+        Measure,
+    )  # import the operations we want to perform (Hadamard and measurement)
 
     eng = MainEngine()  # create a default compiler (the back-end is a simulator)
     qubit = eng.allocate_qubit()  # allocate a quantum register with 1 qubit
@@ -52,7 +55,7 @@ Examples
     Measure | qubit  # measure the qubit
 
     eng.flush()  # flush all gates (and execute measurements)
-    print("Measured {}".format(int(qubit)))  # converting a qubit to int or bool gives access to the measurement result
+    print(f"Measured {int(qubit)}")  # converting a qubit to int or bool gives access to the measurement result
 
 
 ProjectQ features a lean syntax which is close to the mathematical notation used in quantum physics. For example, a rotation of a qubit around the x-axis is usually specified as:
@@ -80,9 +83,7 @@ Instead of simulating a quantum program, one can use our resource counter (as a 
     from projectq.ops import QFT
     from projectq.setups import linear
 
-    compiler_engines = linear.get_engine_list(num_qubits=16,
-                                              one_qubit_gates='any',
-                                              two_qubit_gates=(CNOT, Swap))
+    compiler_engines = linear.get_engine_list(num_qubits=16, one_qubit_gates='any', two_qubit_gates=(CNOT, Swap))
     resource_counter = ResourceCounter()
     eng = MainEngine(backend=resource_counter, engine_list=compiler_engines)
     qureg = eng.allocate_qureg(16)
@@ -112,12 +113,13 @@ To run a program on the IBM Quantum Experience chips, all one has to do is choos
     import projectq.setups.ibm
     from projectq.backends import IBMBackend
 
-    token='MY_TOKEN'
-    device='ibmq_16_melbourne'
-    compiler_engines = projectq.setups.ibm.get_engine_list(token=token,device=device)
-    eng = MainEngine(IBMBackend(token=token, use_hardware=True, num_runs=1024,
-                                verbose=False, device=device),
-                     engine_list=compiler_engines)
+    token = 'MY_TOKEN'
+    device = 'ibmq_16_melbourne'
+    compiler_engines = projectq.setups.ibm.get_engine_list(token=token, device=device)
+    eng = MainEngine(
+        IBMBackend(token=token, use_hardware=True, num_runs=1024, verbose=False, device=device),
+        engine_list=compiler_engines,
+    )
 
 
 **Running a quantum program on AQT devices**
@@ -129,12 +131,13 @@ To run a program on the AQT trapped ion quantum computer, choose the `AQTBackend
     import projectq.setups.aqt
     from projectq.backends import AQTBackend
 
-    token='MY_TOKEN'
-    device='aqt_device'
-    compiler_engines = projectq.setups.aqt.get_engine_list(token=token,device=device)
-    eng = MainEngine(AQTBackend(token=token,use_hardware=True, num_runs=1024,
-                                verbose=False, device=device),
-                     engine_list=compiler_engines)
+    token = 'MY_TOKEN'
+    device = 'aqt_device'
+    compiler_engines = projectq.setups.aqt.get_engine_list(token=token, device=device)
+    eng = MainEngine(
+        AQTBackend(token=token, use_hardware=True, num_runs=1024, verbose=False, device=device),
+        engine_list=compiler_engines,
+    )
 
 
 **Running a quantum program on a AWS Braket provided device**
@@ -150,13 +153,21 @@ IonQ from IonQ and the state vector simulator SV1:
     creds = {
         'AWS_ACCESS_KEY_ID': 'your_aws_access_key_id',
         'AWS_SECRET_KEY': 'your_aws_secret_key',
-        }
+    }
 
     s3_folder = ['S3Bucket', 'S3Directory']
-    device='IonQ'
-    eng = MainEngine(AWSBraketBackend(use_hardware=True, credentials=creds, s3_folder=s3_folder,
-                     num_runs=1024, verbose=False, device=device),
-                     engine_list=[])
+    device = 'IonQ'
+    eng = MainEngine(
+        AWSBraketBackend(
+            use_hardware=True,
+            credentials=creds,
+            s3_folder=s3_folder,
+            num_runs=1024,
+            verbose=False,
+            device=device,
+        ),
+        engine_list=[],
+    )
 
 
 .. note::
@@ -174,6 +185,35 @@ IonQ from IonQ and the state vector simulator SV1:
        cd /path/to/projectq/source/code
        python3 -m pip install -ve .[braket]
 
+
+**Running a quantum program on a Azure Quantum provided device**
+
+To run a program on devices provided by the `Azure Quantum <https://azure.microsoft.com/en-us/services/quantum/>`_.
+
+Use `AzureQuantumBackend` to run ProjectQ circuits on hardware devices and simulator devices from providers `IonQ` and `Quantinuum`.
+
+.. code-block:: python
+
+    from projectq.backends import AzureQuantumBackend
+
+    azure_quantum_backend = AzureQuantumBackend(
+        use_hardware=False, target_name='ionq.simulator', resource_id='<resource-id>', location='<location>', verbose=True
+    )
+
+.. note::
+
+   In order to use the AzureQuantumBackend, you need to install ProjectQ with the 'azure-quantum' extra requirement:
+
+   .. code-block:: bash
+
+       python3 -m pip install projectq[azure-quantum]
+
+   or
+
+   .. code-block:: bash
+
+       cd /path/to/projectq/source/code
+       python3 -m pip install -ve .[azure-quantum]
 
 **Running a quantum program on IonQ devices**
 

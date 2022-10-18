@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2019 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,16 +31,18 @@ class QAA(BasicGate):
     Example:
         .. code-block:: python
 
-           def func_algorithm(eng,system_qubits):
+           def func_algorithm(eng, system_qubits):
                All(H) | system_qubits
 
-           def func_oracle(eng,system_qubits,qaa_ancilla):
+
+           def func_oracle(eng, system_qubits, qaa_ancilla):
                # This oracle selects the state |010> as the one marked
                with Compute(eng):
-                  All(X) | system_qubits[0::2]
+                   All(X) | system_qubits[0::2]
                with Control(eng, system_qubits):
-                  X | qaa_ancilla
+                   X | qaa_ancilla
                Uncompute(eng)
+
 
            system_qubits = eng.allocate_qureg(3)
            # Prepare the qaa_ancilla qubit in the |-> state
@@ -52,7 +53,7 @@ class QAA(BasicGate):
            # Creates the initial state form the Algorithm
            func_algorithm(eng, system_qubits)
            # Apply Quantum Amplitude Amplification the correct number of times
-           num_it = int(math.pi/4.*math.sqrt(1 << 3))
+           num_it = int(math.pi / 4.0 * math.sqrt(1 << 3))
            with Loop(eng, num_it):
                QAA(func_algorithm, func_oracle) | (system_qubits, qaa_ancilla)
 
@@ -78,4 +79,4 @@ class QAA(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(str(self.algorithm.__name__), str(self.oracle.__name__))
+        return f'QAA(Algorithm = {str(self.algorithm.__name__)}, Oracle = {str(self.oracle.__name__)})'

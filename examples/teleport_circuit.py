@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example if drawing of a quantum teleportation circuit."""

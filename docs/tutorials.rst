@@ -54,6 +54,14 @@ AWS Braket Backend requires the use of the official AWS SDK for Python, Boto3. T
 
     python -m pip install --user projectq[braket]
 
+**Install Azure Quantum Backend requirement**
+
+Azure Quantum Backend requires the use of the official `Azure Quantum SDK <https://github.com/microsoft/qdk-python>`_ for Python. This is an extra requirement only needed if you plan to use the Azure Quantum Backend. To install ProjectQ inluding this requirement you can include it in the installation instruction as
+
+.. code-block:: bash
+
+    python -m pip install --user projectq[azure-quantum]
+
 
 Detailed instructions and OS-specific hints
 -------------------------------------------
@@ -239,7 +247,10 @@ To check out the ProjectQ syntax in action and to see whether the installation w
 .. code-block:: python
 
     from projectq import MainEngine  # import the main compiler engine
-    from projectq.ops import H, Measure  # import the operations we want to perform (Hadamard and measurement)
+    from projectq.ops import (
+        H,
+        Measure,
+    )  # import the operations we want to perform (Hadamard and measurement)
 
     eng = MainEngine()  # create a default compiler (the back-end is a simulator)
     qubit = eng.allocate_qubit()  # allocate 1 qubit
@@ -248,6 +259,6 @@ To check out the ProjectQ syntax in action and to see whether the installation w
     Measure | qubit  # measure the qubit
 
     eng.flush()  # flush all gates (and execute measurements)
-    print("Measured {}".format(int(qubit)))  # output measurement result
+    print(f"Measured {int(qubit)}")  # output measurement result
 
 Which creates random bits (0 or 1).

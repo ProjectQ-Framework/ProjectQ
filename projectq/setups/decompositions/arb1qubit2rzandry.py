@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +128,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     # Case 2: cos(c/2) == 0:
     elif abs(matrix[0][0]) < TOLERANCE:
@@ -158,7 +157,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     # Case 3: sin(c/2) != 0 and cos(c/2) !=0:
     else:
@@ -171,22 +170,26 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
         else:
             a = two_a / 2.0  # pylint: disable=invalid-name
         two_d = 2.0 * cmath.phase(matrix[0][1]) - 2.0 * cmath.phase(matrix[0][0])
-        # yapf: disable
-        possible_d_half = [two_d/4. % (2*math.pi),
-                           (two_d/4.+math.pi/2.) % (2*math.pi),
-                           (two_d/4.+math.pi) % (2*math.pi),
-                           (two_d/4.+3./2.*math.pi) % (2*math.pi)]
-        two_b = 2. * cmath.phase(matrix[1][0]) - 2. * cmath.phase(matrix[0][0])
-        possible_b_half = [two_b/4. % (2*math.pi),
-                           (two_b/4.+math.pi/2.) % (2*math.pi),
-                           (two_b/4.+math.pi) % (2*math.pi),
-                           (two_b/4.+3./2.*math.pi) % (2*math.pi)]
+        possible_d_half = [
+            two_d / 4.0 % (2 * math.pi),
+            (two_d / 4.0 + math.pi / 2.0) % (2 * math.pi),
+            (two_d / 4.0 + math.pi) % (2 * math.pi),
+            (two_d / 4.0 + 3.0 / 2.0 * math.pi) % (2 * math.pi),
+        ]
+        two_b = 2.0 * cmath.phase(matrix[1][0]) - 2.0 * cmath.phase(matrix[0][0])
+        possible_b_half = [
+            two_b / 4.0 % (2 * math.pi),
+            (two_b / 4.0 + math.pi / 2.0) % (2 * math.pi),
+            (two_b / 4.0 + math.pi) % (2 * math.pi),
+            (two_b / 4.0 + 3.0 / 2.0 * math.pi) % (2 * math.pi),
+        ]
         tmp = math.acos(abs(matrix[1][1]))
-        possible_c_half = [tmp % (2*math.pi),
-                           (tmp+math.pi) % (2*math.pi),
-                           (-1.*tmp) % (2*math.pi),
-                           (-1.*tmp+math.pi) % (2*math.pi)]
-        # yapf: enable
+        possible_c_half = [
+            tmp % (2 * math.pi),
+            (tmp + math.pi) % (2 * math.pi),
+            (-1.0 * tmp) % (2 * math.pi),
+            (-1.0 * tmp + math.pi) % (2 * math.pi),
+        ]
         found = False
         for b_half, c_half, d_half in itertools.product(possible_b_half, possible_c_half, possible_d_half):
             if _test_parameters(matrix, a, b_half, c_half, d_half):
@@ -196,7 +199,7 @@ def _find_parameters(matrix):  # pylint: disable=too-many-branches,too-many-stat
             raise Exception(
                 "Couldn't find parameters for matrix ",
                 matrix,
-                "This shouldn't happen. Maybe the matrix is " + "not unitary?",
+                "This shouldn't happen. Maybe the matrix is not unitary?",
             )
     return (a, b_half, c_half, d_half)
 

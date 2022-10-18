@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example of a quantum teleportation circuit."""
@@ -65,7 +64,7 @@ def run_teleport(eng, state_creation_function, verbose=False):
     Measure | b1
     msg_to_bob = [int(psi), int(b1)]
     if verbose:
-        print("Alice is sending the message {} to Bob.".format(msg_to_bob))
+        print(f"Alice is sending the message {msg_to_bob} to Bob.")
 
     # Bob may have to apply up to two operation depending on the message sent
     # by Alice:

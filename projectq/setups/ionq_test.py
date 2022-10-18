@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,4 +52,4 @@ def test_ionq_errors(monkeypatch):
     )
 
     with pytest.raises(DeviceOfflineError):
-        projectq.setups.ionq.get_engine_list(device='simulator')
+        projectq.setups.ionq.get_engine_list(token='TOKEN', device='simulator')

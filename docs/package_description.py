@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +51,7 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
         if pkg_name not in PackageDescription.package_list:
             PackageDescription.package_list.append(pkg_name)
 
-        self.module = importlib.import_module('projectq.{}'.format(self.name))
+        self.module = importlib.import_module(f'projectq.{self.name}')
         self.module_special_members = module_special_members
 
         self.submodule_special_members = submodule_special_members
@@ -72,7 +71,7 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
         self.subpackages = []
         self.submodules = []
         for name, obj in sub:
-            if '{}.{}'.format(self.name, name) in PackageDescription.package_list:
+            if f'{self.name}.{name}' in PackageDescription.package_list:
                 self.subpackages.append((name, obj))
             else:
                 self.submodules.append((name, obj))
@@ -115,7 +114,7 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
             new_lines.append('    :maxdepth: 1')
             new_lines.append('')
             for name, _ in self.subpackages:
-                new_lines.append('    projectq.{}.{}'.format(self.name, name))
+                new_lines.append(f'    projectq.{self.name}.{name}')
             new_lines.append('')
         else:
             submodule_has_index = True
@@ -123,11 +122,11 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
             new_lines.append('')
             if self.submodules:
                 for name, _ in self.submodules:
-                    new_lines.append('\tprojectq.{}.{}'.format(self.name, name))
+                    new_lines.append(f'\tprojectq.{self.name}.{name}')
                 new_lines.append('')
             if self.members:
                 for name, _ in self.members:
-                    new_lines.append('\tprojectq.{}.{}'.format(self.name, name))
+                    new_lines.append(f'\tprojectq.{self.name}.{name}')
                 new_lines.append('')
 
         if self.submodules:
@@ -142,27 +141,27 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
                 new_lines.append('.. autosummary::')
                 new_lines.append('')
                 for name, _ in self.submodules:
-                    new_lines.append('    projectq.{}.{}'.format(self.name, name))
+                    new_lines.append(f'    projectq.{self.name}.{name}')
                 new_lines.append('')
 
             for name, _ in self.submodules:
                 new_lines.append(name)
                 new_lines.append('^' * len(new_lines[-1]))
                 new_lines.append('')
-                new_lines.append('.. automodule:: projectq.{}.{}'.format(self.name, name))
+                new_lines.append(f'.. automodule:: projectq.{self.name}.{name}')
                 new_lines.append('    :members:')
                 if self.submodule_special_members:
-                    new_lines.append('    :special-members: {}'.format(self.submodule_special_members))
+                    new_lines.append(f'    :special-members: {self.submodule_special_members}')
                 new_lines.append('    :undoc-members:')
                 new_lines.append('')
 
         new_lines.append('Module contents')
         new_lines.append('-' * len(new_lines[-1]))
         new_lines.append('')
-        new_lines.append('.. automodule:: projectq.{}'.format(self.name))
+        new_lines.append(f'.. automodule:: projectq.{self.name}')
         new_lines.append('    :members:')
         new_lines.append('    :undoc-members:')
-        new_lines.append('    :special-members: {}'.format(self.module_special_members))
+        new_lines.append(f'    :special-members: {self.module_special_members}')
         new_lines.append('    :imported-members:')
         new_lines.append('')
 
@@ -174,9 +173,9 @@ class PackageDescription:  # pylint: disable=too-many-instance-attributes,too-fe
                 new_lines.append(title)
                 new_lines.append('^' * len(title))
                 new_lines.append('')
-                new_lines.append('.. automodule:: projectq.{}.{}'.format(self.name, name))
+                new_lines.append(f'.. automodule:: projectq.{self.name}.{name}')
                 for param in params:
-                    new_lines.append('    {}'.format(param))
+                    new_lines.append(f'    {param}')
                 new_lines.append('')
 
         return new_lines[:-1]

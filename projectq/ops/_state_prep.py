@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,4 +53,4 @@ class StatePreparation(BasicGate):
 
     def __hash__(self):
         """Compute the hash of the object."""
-        return hash("StatePreparation(" + str(self.final_state) + ")")
+        return hash(f"StatePreparation({str(self.final_state)})")

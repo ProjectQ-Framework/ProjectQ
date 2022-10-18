@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +23,8 @@ from projectq.ops import Allocate, Barrier, Deallocate, FlushGate, Measure, Rx, 
 from projectq.types import WeakQubitRef
 
 from .._exceptions import InvalidCommandError
+from .._utils import _rearrange_result
 from ._aqt_http_client import retrieve, send
-
-
-# _rearrange_result & _format_counts imported and modified from qiskit
-def _rearrange_result(input_result, length):
-    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
-    return ''.join(bin_input)[::-1]
 
 
 def _format_counts(samples, length):
@@ -167,7 +161,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             return
         if gate == Barrier:
             return
-        raise InvalidCommandError('Invalid command: ' + str(cmd))
+        raise InvalidCommandError(f"Invalid command: {str(cmd)}")
 
     def _logical_to_physical(self, qb_id):
         """
@@ -182,17 +176,15 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             mapping = self.main_engine.mapper.current_mapping
             if qb_id not in mapping:
                 raise RuntimeError(
-                    "Unknown qubit id {}. Please make sure "
-                    "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id)
+                    f"Unknown qubit id {qb_id}. "
+                    "Please make sure eng.flush() was called and that the qubit was eliminated during optimization."
                 )
             return mapping[qb_id]
         except AttributeError as err:
             if qb_id not in self._mapper:
                 raise RuntimeError(
-                    "Unknown qubit id {}. Please make sure "
-                    "eng.flush() was called and that the qubit "
-                    "was eliminated during optimization.".format(qb_id)
+                    f"Unknown qubit id {qb_id}. Please make sure eng.flush() was called and that the qubit was "
+                    "eliminated during optimization."
                 ) from err
             return qb_id
 
@@ -288,7 +280,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                     star = "*"
                 self._probabilities[state] = probability
                 if self._verbose and probability > 0:
-                    print(str(state) + " with p = " + str(probability) + star)
+                    print(f"{str(state)} with p = {probability}{star}")
 
             # register measurement result from AQT
             for qubit_id in self._measured_ids:

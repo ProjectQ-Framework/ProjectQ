@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -202,4 +201,4 @@ class TimeEvolution(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "exp({0} * ({1}))".format(-1j * self.time, self.hamiltonian)
+        return f"exp({-1j * self.time} * ({self.hamiltonian}))"

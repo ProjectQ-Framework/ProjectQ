@@ -16,7 +16,6 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
         python:
-        - 3.6
         - 3.7
         - 3.8
         - 3.9
@@ -55,15 +54,17 @@ jobs:
     - name: Generate requirement file (Unix)
       if: runner.os != 'Windows'
       run: |
-        python setup.py gen_reqfile --include-extras=test,braket,revkit
+        python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit
 
     - name: Generate requirement file (Windows)
       if: runner.os == 'Windows'
       run: |
-        python setup.py gen_reqfile --include-extras=test,braket
+        python setup.py gen_reqfile --include-extras=test,azure-quantum,braket
 
     - name: Prepare env
       run: |
+        python -m pip install -U pip setuptools wheel
+        cat requirements.txt
         python -m pip install -r requirements.txt --prefer-binary
         python -m pip install coveralls
 
@@ -73,11 +74,11 @@ jobs:
 
     - name: Build and install package (Unix)
       if: runner.os != 'Windows'
-      run: python -m pip install -ve .[braket,revkit,test]
+      run: python -m pip install -ve .[azure-quantum,braket,revkit,test]
 
     - name: Build and install package (Windows)
       if: runner.os == 'Windows'
-      run: python -m pip install -ve .[braket,test]
+      run: python -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -142,14 +143,16 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -U pip setuptools wheel
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -187,14 +190,16 @@ jobs:
 
     - name: Prepare Python env
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -U pip setuptools wheel
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Upgrade pybind11 and flaky
       run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
@@ -242,7 +247,9 @@ jobs:
       run: yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
 
     - name: Install Git > 2.18
-      run: yum install -y git
+      run: |
+        yum install -y git
+        git config --global --add safe.directory /__w/ProjectQ/ProjectQ
 
     - uses: actions/checkout@v2
 
@@ -267,11 +274,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 setup.py gen_reqfile --include-extras=test,braket
+        python3 -m pip install -U pip setuptools wheel
+        python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+        cat requirements.txt
         python3 -m pip install -r requirements.txt --prefer-binary
 
     - name: Build and install package
-      run: python3 -m pip install -ve .[braket,test]
+      run: python3 -m pip install -ve .[azure-quantum,braket,test]
 
     - name: Pytest
       run: |
