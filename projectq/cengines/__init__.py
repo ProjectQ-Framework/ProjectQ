@@ -14,6 +14,8 @@
 
 """ProjectQ module containing all compiler engines."""
 
+from contextlib import contextmanager
+
 from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
 from ._cmdmodifier import CommandModifier  # isort:skip
 from ._basicmapper import BasicMapperEngine  # isort:skip
@@ -33,3 +35,11 @@ from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper
+
+
+@contextmanager
+def flushing(thing):
+    try:
+        yield thing
+    finally:
+        thing.flush()
