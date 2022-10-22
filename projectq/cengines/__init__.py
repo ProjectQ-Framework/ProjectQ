@@ -38,8 +38,19 @@ from ._twodmapper import GridMapper
 
 
 @contextmanager
-def flushing(thing):
+def flushing(engine):
+    """
+    Context manager to flush the given engine at the end of the 'with' context block.
+
+    Example:
+        with flushing(MainEngine()) as eng:
+            qubit = eng.allocate_qubit()
+            ...
+    
+    Calling 'eng.flush()' is no longer needed because the engine will be flushed at the
+    end of the 'with' block even if an exception has been raised within that block.
+    """
     try:
-        yield thing
+        yield engine
     finally:
-        thing.flush()
+        engine.flush()
