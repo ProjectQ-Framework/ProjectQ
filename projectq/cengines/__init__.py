@@ -16,6 +16,12 @@
 
 from contextlib import contextmanager
 
+from ._basicmapper import BasicMapperEngine
+from ._basics import BasicEngine, ForwarderEngine, LastEngineException
+from ._cmdmodifier import CommandModifier
+
+# isort: split
+
 from ._ibm5qubitmapper import IBM5QubitMapper
 from ._linearmapper import LinearMapper, return_swap_depth
 from ._main import MainEngine, NotYetMeasuredError, UnsupportedEngineError
@@ -31,10 +37,6 @@ from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper
-
-from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
-from ._cmdmodifier import CommandModifier  # isort:skip
-from ._basicmapper import BasicMapperEngine  # isort:skip
 
 
 @contextmanager
