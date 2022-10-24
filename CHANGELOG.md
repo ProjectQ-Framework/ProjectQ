@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Update `docker/setup-qemu-action` GitHub action to v2
 -   Fixed CentOS 7 configuration issue
+-   Update GitHub workflow action versions
 -   Added two new pre-commit hooks: `blacken-docs` and `pyupgrade`
 
 ## [v0.7.3] - 2022-04-27
