@@ -16,10 +16,6 @@
 
 from contextlib import contextmanager
 
-from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
-from ._cmdmodifier import CommandModifier  # isort:skip
-from ._basicmapper import BasicMapperEngine  # isort:skip
-
 from ._ibm5qubitmapper import IBM5QubitMapper
 from ._linearmapper import LinearMapper, return_swap_depth
 from ._main import MainEngine, NotYetMeasuredError, UnsupportedEngineError
@@ -36,6 +32,10 @@ from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper
 
+from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
+from ._cmdmodifier import CommandModifier  # isort:skip
+from ._basicmapper import BasicMapperEngine  # isort:skip
+
 
 @contextmanager
 def flushing(engine):
@@ -46,7 +46,7 @@ def flushing(engine):
         with flushing(MainEngine()) as eng:
             qubit = eng.allocate_qubit()
             ...
-    
+
     Calling 'eng.flush()' is no longer needed because the engine will be flushed at the
     end of the 'with' block even if an exception has been raised within that block.
     """
