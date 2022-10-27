@@ -74,7 +74,7 @@ class Simulator(BasicEngine):
             implementation of the kernels.  While this is much slower, it is still good enough to run basic quantum
             algorithms.
 
-            If you need to run large simulations, check out the tutorial in the docs which gives futher hints on how
+            If you need to run large simulations, check out the tutorial in the docs which gives further hints on how
             to build the C++ extension.
         """
         if rnd_seed is None:

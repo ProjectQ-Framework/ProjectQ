@@ -12,6 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for supporting the AQT platform"""
+"""ProjectQ module for supporting the AQT platform."""
 
 from ._aqt import AQTBackend

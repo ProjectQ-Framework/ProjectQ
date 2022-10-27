@@ -248,7 +248,7 @@ class LocalOptimizer(BasicEngine):
                     if len(_l) > 0:  # pragma: no cover
                         new_dict[idx] = _l
                 self._l = new_dict
-                if self._l != {}:  # pragma: no cover
+                if self._l:  # pragma: no cover
                     raise RuntimeError('Internal compiler error: qubits remaining in LocalOptimizer after a flush!')
                 self.send([cmd])
             else:

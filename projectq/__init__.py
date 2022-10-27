@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-ProjectQ - An open source software framework for quantum computing
+ProjectQ - An open source software framework for quantum computing.
 
 Get started:
     Simply import the main compiler engine (from projectq import MainEngine)

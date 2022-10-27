@@ -19,9 +19,10 @@ try:
 except ImportError:  # pragma: no cover
 
     class AzureQuantumBackend:
-        """Dummy class"""
+        """Dummy class."""
 
         def __init__(self, *args, **kwargs):
+            """Initialize dummy class."""
             raise ImportError(
                 "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
             )

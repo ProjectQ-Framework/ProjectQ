@@ -51,7 +51,7 @@ class IBMQ(Session):
         Get the list of available IBM backends with their properties.
 
         Args:
-            verbose (bool): print the returned dictionnary if True
+            verbose (bool): print the returned dictionary if True
 
         Returns:
             (dict) backends dictionary by name device, containing the qubit size 'nq', the coupling map 'coupling_map'

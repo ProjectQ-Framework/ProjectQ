@@ -37,6 +37,8 @@
 
 """Setup.py file."""
 
+# pylint: disable=deprecated-module
+
 import distutils.log
 import os
 import platform
@@ -717,7 +719,7 @@ class GenerateRequirementFile(Command):
 class Distribution(_Distribution):
     """Distribution class."""
 
-    def has_ext_modules(self):  # pylint: disable=no-self-use
+    def has_ext_modules(self):
         """Return whether this distribution has some external modules."""
         # We want to always claim that we have ext_modules. This will be fine
         # if we don't actually have them (such as on PyPy) because nothing

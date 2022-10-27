@@ -12,8 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-The projectq.meta package features meta instructions which help both the user and the compiler in writing/producing
-efficient code. It includes, e.g.,
+Provides meta instructions which help both the user and the compiler in writing/producing efficient code.
+
+It includes, e.g.,
 
 * Loop (with Loop(eng): ...)
 * Compute/Uncompute (with Compute(eng): ..., [...], Uncompute(eng))

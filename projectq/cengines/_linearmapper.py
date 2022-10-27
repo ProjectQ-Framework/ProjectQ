@@ -143,7 +143,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         allocated_qubits = deepcopy(currently_allocated_ids)
         active_qubits = deepcopy(currently_allocated_ids)
         # Segments contains a list of segments. A segment is a list of
-        # neighouring qubit ids
+        # neighbouring qubit ids
         segments = []
         # neighbour_ids only used to speedup the lookup process if qubits
         # are already connected. key: qubit_id, value: set of neighbour ids
@@ -207,7 +207,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         """
         Process a two qubit gate.
 
-        It either removes the two qubits from active_qubits if the gate is not possible or updates the segements such
+        It either removes the two qubits from active_qubits if the gate is not possible or updates the segments such
         that the gate is possible.
 
         Args:
@@ -232,7 +232,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
             active_qubits.discard(qubit0)
             active_qubits.discard(qubit1)
         # qubits are both active and either not yet in a segment or at
-        # the end of segement:
+        # the end of segment:
         else:
             segment_index_qb0 = None
             qb0_is_left_end = None

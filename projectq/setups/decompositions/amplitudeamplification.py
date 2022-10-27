@@ -21,8 +21,8 @@ https://arxiv.org/abs/quant-ph/0005055)
 
 Quantum Amplitude Amplification (QAA) executes the algorithm, but not
 the final measurement required to obtain the marked state(s) with high
-probability. The starting state on wich the QAA algorithm is executed
-is the one resulting of aplying the Algorithm on the |0> state.
+probability. The starting state on which the QAA algorithm is executed
+is the one resulting of applying the algorithm on the |0> state.
 
 Example:
     .. code-block:: python
@@ -92,7 +92,7 @@ def _decompose_QAA(cmd):  # pylint: disable=invalid-name
     oracle(eng, system_qubits, qaa_ancilla)
 
     # Apply the inversion of the Algorithm,
-    # the inversion of the aplitude of |0> and the Algorithm
+    # the inversion of the amplitude of |0> and the Algorithm
 
     with Compute(eng):
         with Dagger(eng):

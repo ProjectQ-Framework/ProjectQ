@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ's decomposition rules."""
+
 from . import (
     amplitudeamplification,
     arb1qubit2rzandry,

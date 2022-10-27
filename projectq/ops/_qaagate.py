@@ -19,14 +19,14 @@ from ._basics import BasicGate
 
 class QAA(BasicGate):
     """
-    Quantum Aplitude Amplification gate.
+    Quantum Amplitude Amplification gate.
 
     (Quick reference https://en.wikipedia.org/wiki/Amplitude_amplification.  Complete reference G. Brassard, P. Hoyer,
     M. Mosca, A. Tapp (2000) Quantum Amplitude Amplification and Estimation https://arxiv.org/abs/quant-ph/0005055)
 
     Quantum Amplitude Amplification (QAA) executes the algorithm, but not the final measurement required to obtain the
-    marked state(s) with high probability. The starting state on wich the QAA algorithm is executed is the one
-    resulting of aplying the Algorithm on the |0> state.
+    marked state(s) with high probability. The starting state on which the QAA algorithm is executed is the one
+    resulting of applying the Algorithm on the |0> state.
 
     Example:
         .. code-block:: python

@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Module containing code to interface with RevKit"""
+"""Module containing code to interface with RevKit."""
 
 from ._control_function import ControlFunctionOracle
 from ._permutation import PermutationOracle

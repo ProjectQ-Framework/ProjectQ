@@ -12,16 +12,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for supporting the AWS Braket platform"""
+"""ProjectQ module for supporting the AWS Braket platform."""
 
 try:
     from ._awsbraket import AWSBraketBackend
 except ImportError:  # pragma: no cover
 
     class AWSBraketBackend:  # pylint: disable=too-few-public-methods
-        """Dummy class"""
+        """Dummy class."""
 
         def __init__(self, *args, **kwargs):
+            """Initialize dummy class."""
             raise RuntimeError(
                 "Failed to import one of the dependencies required to use "
                 "the Amazon Braket Backend.\n"

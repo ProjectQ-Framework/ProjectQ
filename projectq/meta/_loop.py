@@ -88,7 +88,7 @@ class LoopEngine(BasicEngine):
         error_message = (
             "\n Error. Qubits have been allocated in with "
             "Loop(eng, num) context,\n which have not "
-            "explicitely been deallocated in the Loop context.\n"
+            "explicitly been deallocated in the Loop context.\n"
             "Correct usage:\nwith Loop(eng, 5):\n"
             "    qubit = eng.allocate_qubit()\n"
             "    ...\n"

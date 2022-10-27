@@ -43,7 +43,7 @@ class DaggerEngine(BasicEngine):
         if self._deallocated_qubit_ids != self._allocated_qubit_ids:
             raise QubitManagementError(
                 "\n Error. Qubits have been allocated in 'with "
-                + "Dagger(eng)' context,\n which have not explicitely "
+                + "Dagger(eng)' context,\n which have not explicitly "
                 + "been deallocated.\n"
                 + "Correct usage:\n"
                 + "with Dagger(eng):\n"

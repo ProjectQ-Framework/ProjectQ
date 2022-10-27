@@ -307,7 +307,7 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[18].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[19].qubits[0][0].id == qubit_id
     assert backend.received_commands[20].qubits[0][0].id == qubit_id
-    # Test that ancilla qubits should have seperate ids
+    # Test that ancilla qubits should have separate ids
     assert ancilla_uncompt_id != ancilla_compt_id
 
     # Do the same thing with CustomUncompute and compare using the

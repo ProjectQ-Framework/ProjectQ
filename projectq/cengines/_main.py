@@ -321,6 +321,6 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         if deallocate_qubits:
             while [qb for qb in self.active_qubits if qb is not None]:
-                qb = self.active_qubits.pop()
-                qb.__del__()
+                qb = self.active_qubits.pop()  # noqa: F841
+                qb.__del__()  # pylint: disable=unnecessary-dunder-call
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])

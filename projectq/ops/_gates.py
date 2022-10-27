@@ -173,7 +173,7 @@ class SqrtXGate(BasicGate):
         """Access to the matrix property of this gate."""
         return 0.5 * np.matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]])
 
-    def tex_str(self):  # pylint: disable=no-self-use
+    def tex_str(self):
         """Return the Latex string representation of a SqrtXGate."""
         return r'$\sqrt{X}$'
 

@@ -119,4 +119,4 @@ class ControlFunctionOracle:  # pylint: disable=too-few-public-methods
         # function must be positive. We check in __or__ whether function is
         # too large
         if self.function < 0:
-            raise AttributeError("Function must be a postive integer")
+            raise AttributeError("Function must be a positive integer")

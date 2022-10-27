@@ -16,7 +16,7 @@ Definition of BasicQubit, Qubit, WeakQubit and Qureg classes.
 
 A Qureg represents a list of Qubit or WeakQubit objects.
 A Qubit represents a (logical-level) qubit with a unique index provided by the MainEngine. Qubit objects are
-automatically deallocated if they go out of scope and intented to be used within Qureg objects in user code.
+automatically deallocated if they go out of scope and intended to be used within Qureg objects in user code.
 
 Example:
     .. code-block:: python

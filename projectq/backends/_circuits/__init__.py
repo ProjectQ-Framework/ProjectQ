@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for exporting/printing quantum circuits"""
+"""ProjectQ module for exporting/printing quantum circuits."""
 
 from ._drawer import CircuitDrawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib

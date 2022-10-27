@@ -56,7 +56,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return self._is_swap(cmd) or self.next_engine.is_available(cmd)
 
-    def _is_cnot(self, cmd):  # pylint: disable=no-self-use
+    def _is_cnot(self, cmd):
         """
         Check if the command corresponds to a CNOT (controlled NOT gate).
 
@@ -65,7 +65,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1
 
-    def _is_swap(self, cmd):  # pylint: disable=no-self-use
+    def _is_swap(self, cmd):
         """
         Check if the command corresponds to a Swap gate.
 
