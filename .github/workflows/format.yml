@@ -20,13 +20,16 @@ jobs:
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - uses: actions/setup-python@v2
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
     - name: Install pre-commit
       run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
 
     - name: Cache pre-commit hooks
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pre-commit
         key: pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
