@@ -10,40 +10,10 @@ on:
     - "v*"
 
 jobs:
-  pre-commit:
-    name: Format and static analysis
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Get history and tags for SCM versioning to work
-      if: ${{ !env.ACT }}
-      run: |
-        git fetch --prune --unshallow
-        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: Install pre-commit
-      run: python3 -m pip install --upgrade pre-commit 'virtualenv!=20.11'
-
-    - name: Cache pre-commit hooks
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pre-commit
-        key: pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
-        restore-keys: pre-commit-
-
-    - name: Run pre-commit
-      run: |
-          # Slow hooks are marked with manual - slow is okay here, run them too
-          pre-commit run --hook-stage manual --all-files
-
   clang-tidy:
     name: Clang-Tidy
     runs-on: ubuntu-latest
-    container: silkeh/clang:10
+    container: silkeh/clang:14
     env:
       CC: clang
       CXX: clang++
@@ -59,5 +29,5 @@ jobs:
     - name: Upgrade pybind11
       run: python3 -m pip install --upgrade pybind11 --prefer-binary
 
-    - name: Run Clang-Tidy
+    - name: Run clang-tidy
       run: python3 setup.py clang_tidy --warning-as-errors
