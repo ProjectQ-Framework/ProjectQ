@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Python context manager `with flusing(MainEngine()) as eng:`
 
+### Repository
+
+-   Update GitHub workflow action versions
+
 ## [v0.8.0] - 2022-10-18
 
 ### Added

@@ -25,7 +25,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -34,7 +34,7 @@ jobs:
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
     - name: Setup Python ${{ matrix.python }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
         architecture: 'x64'
@@ -45,7 +45,7 @@ jobs:
         echo "::set-output name=dir::$(python -m pip  cache dir)"
 
     - name: Cache wheels
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
@@ -125,7 +125,7 @@ jobs:
     container: "silkeh/clang:${{ matrix.clang }}"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -173,7 +173,7 @@ jobs:
     container: "gcc:${{ matrix.gcc }}"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -226,7 +226,7 @@ jobs:
       run: echo 'keepcache=1' >> /etc/yum.conf
 
     - name: Setup yum cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           /var/cache/yum/
@@ -251,7 +251,7 @@ jobs:
         yum install -y git
         git config --global --add safe.directory /__w/ProjectQ/ProjectQ
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -263,7 +263,7 @@ jobs:
       run: mkdir -p ~/.cache/pip
 
     - name: Cache wheels
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg') }}
@@ -293,13 +293,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Create pip cache dir
       run: mkdir -p ~/.cache/pip
 
     - name: Cache wheels
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-doc-pip-${{ hashFiles('**/setup.cfg') }}
@@ -311,7 +311,7 @@ jobs:
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
 
     - name: Install docs & setup requirements
       run: |
