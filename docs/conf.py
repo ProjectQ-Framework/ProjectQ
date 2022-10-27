@@ -457,7 +457,7 @@ The ProjectQ compiler engines package.
     PackageDescription(
         'libs.math',
         desc='''
-A tiny math library which will be extended thoughout the next weeks. Right now, it only contains the math functions
+A tiny math library which will be extended throughout the next weeks. Right now, it only contains the math functions
 necessary to run Beauregard's implementation of Shor's algorithm.
 ''',
     ),
