@@ -9,12 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-   Python context manager `with flusing(MainEngine()) as eng:`
+
+### Repository
+
+-   Update GitHub workflow action versions
+
+## [v0.8.0] - 2022-10-18
+
+### Added
+
 -   New backend for the Azure Quantum platform
 
 ### Changed
 
 -   Support for Python 3.6 and earlier is now deprecated
 -   Moved package metadata into pyproject.toml
+
+### Fixed
+
+-   Fixed installation on Apple Silicon with older Python versions (&lt; 3.9)
 
 ### Repository
 
@@ -205,9 +219,19 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
+<<<<<<< HEAD
 [Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...HEAD
 
 [v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
+||||||| 41e608d
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...HEAD
+=======
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.8.0...HEAD
+
+[v0.8.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...v0.8.0
+
+[v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
+>>>>>>> master
 
 [v0.7.2]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...v0.7.2
 

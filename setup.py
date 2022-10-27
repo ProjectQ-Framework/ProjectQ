@@ -523,6 +523,17 @@ class BuildExt(build_ext):
             '/arch:AVX',
         ]
 
+        if int(os.environ.get('PROJECTQ_NOINTRIN', '0')) or (
+            sys.platform == 'darwin'
+            and platform.machine() == 'arm64'
+            and (sys.version_info.major == 3 and sys.version_info.minor < 9)
+        ):
+            important_msgs(
+                'Either requested no-intrinsics or detected potentially unsupported Python version on '
+                'Apple Silicon: disabling intrinsics'
+            )
+            self.compiler.define_macro('NOINTRIN')
+            return
         if os.environ.get('PROJECTQ_DISABLE_ARCH_NATIVE'):
             flags = flags[1:]
 
