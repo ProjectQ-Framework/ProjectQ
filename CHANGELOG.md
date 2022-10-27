@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--   Python context manager `with flusing(MainEngine()) as eng:`
+-   Python context manager `with flushing(MainEngine()) as eng:`
 
 ### Repository
 
@@ -177,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added CHANGELOG.md
 
 -   Added support for GitHub Actions
-    -   Build and testing on various plaforms and compilers
+    -   Build and testing on various platforms and compilers
     -   Automatic draft of new release
     -   Automatic publication of new release once ready
     -   Automatic upload of releases artifacts to PyPi and GitHub
