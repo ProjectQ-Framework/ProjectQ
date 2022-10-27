@@ -30,10 +30,10 @@ jobs:
         with:
           platforms: arm64
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event_name != 'workflow_dispatch'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event_name == 'workflow_dispatch'
         with:
           ref: 'master'
@@ -177,10 +177,10 @@ jobs:
       # ------------------------------------------------------------------------
       # Checkout repository to get CHANGELOG
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event_name != 'workflow_dispatch'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event_name == 'workflow_dispatch'
         with:
           ref: 'master'

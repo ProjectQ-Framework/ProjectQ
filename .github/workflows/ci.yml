@@ -25,7 +25,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -117,7 +117,7 @@ jobs:
     container: "silkeh/clang:${{ matrix.clang }}"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -165,7 +165,7 @@ jobs:
     container: "gcc:${{ matrix.gcc }}"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -243,7 +243,7 @@ jobs:
         yum install -y git
         git config --global --add safe.directory /__w/ProjectQ/ProjectQ
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
@@ -285,7 +285,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Create pip cache dir
       run: mkdir -p ~/.cache/pip

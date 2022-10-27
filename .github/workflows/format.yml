@@ -14,7 +14,7 @@ jobs:
     name: Format and static analysis
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Get history and tags for SCM versioning to work
       if: ${{ !env.ACT }}
       run: |
@@ -49,7 +49,7 @@ jobs:
       CXX: clang++
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Prepare env
       run: >
