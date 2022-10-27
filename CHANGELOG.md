@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Introduce pre-commit CI
 -   Update to clang-tidy 14 in GitHub workflow
 -   Update pre-commit hook versions
+-   Added new pre-commit hooks: `pydocstyle`, `doc8`, `codespell` and `yamllint`
 
 ## [v0.8.0] - 2022-10-18
 

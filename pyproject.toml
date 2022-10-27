@@ -155,7 +155,9 @@ ignore = [
     disable = [
          'expression-not-assigned',
          'pointless-statement',
-         'fixme'
+         'fixme',
+         'unspecified-encoding',
+         'R0801',
     ]
 
 
@@ -166,6 +168,11 @@ addopts = '-pno:warnings'
 testpaths = ['projectq']
 ignore-glob = ['*flycheck*.py']
 mock_use_standalone_module = true
+
+[tool.doc8]
+
+verbose = 0
+max_line_length = 120
 
 [tool.isort]
 
