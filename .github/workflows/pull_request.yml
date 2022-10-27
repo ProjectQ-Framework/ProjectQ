@@ -1,7 +1,9 @@
+---
+
 name: PR
 on:
   pull_request:
-      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
   # Enforces the update of a changelog file on every pull request
@@ -9,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/master'
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - id: changelog-enforcer
-      uses: dangoslen/changelog-enforcer@v3
-      with:
-        changeLogPath: 'CHANGELOG.md'
-        skipLabels: 'Skip-Changelog'
+      - id: changelog-enforcer
+        uses: dangoslen/changelog-enforcer@v3
+        with:
+          changeLogPath: 'CHANGELOG.md'
+          skipLabels: 'Skip-Changelog'

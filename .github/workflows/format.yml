@@ -1,3 +1,5 @@
+---
+
 name: Format
 
 on:
@@ -5,9 +7,9 @@ on:
   pull_request:
   push:
     branches:
-    - master
-    - stable
-    - "v*"
+      - master
+      - stable
+      - "v*"
 
 jobs:
   clang-tidy:
@@ -19,15 +21,15 @@ jobs:
       CXX: clang++
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Prepare env
-      run: >
-        apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
-        --no-install-recommends
+      - name: Prepare env
+        run: >
+          apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
+          --no-install-recommends
 
-    - name: Upgrade pybind11
-      run: python3 -m pip install --upgrade pybind11 --prefer-binary
+      - name: Upgrade pybind11
+        run: python3 -m pip install --upgrade pybind11 --prefer-binary
 
-    - name: Run clang-tidy
-      run: python3 setup.py clang_tidy --warning-as-errors
+      - name: Run clang-tidy
+        run: python3 setup.py clang_tidy --warning-as-errors
