@@ -23,7 +23,7 @@ jobs:
           - 3.9
           - '3.10'
 
-    name: "🐍 ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
+    name: "Python ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
     runs-on: ${{ matrix.runs-on }}
 
     steps:
@@ -114,7 +114,7 @@ jobs:
       CXX: clang++
       PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang < 10) && 1 || 0 }}
 
-    name: "🐍 3 • Clang ${{ matrix.clang }} • x64"
+    name: "Python 3 • Clang ${{ matrix.clang }} • x64"
     container: "silkeh/clang:${{ matrix.clang }}"
 
     steps:
@@ -162,7 +162,7 @@ jobs:
           - 7  # C++17 earliest version
           - latest
 
-    name: "🐍 3 • GCC ${{ matrix.gcc }} • x64"
+    name: "Python 3 • GCC ${{ matrix.gcc }} • x64"
     container: "gcc:${{ matrix.gcc }}"
 
     steps:
@@ -211,7 +211,7 @@ jobs:
           - 7  # GCC 4.8
           - 8
 
-    name: "🐍 3 • CentOS ${{ matrix.centos }} • x64"
+    name: "Python 3 • CentOS ${{ matrix.centos }} • x64"
     container: "centos:${{ matrix.centos }}"
 
     steps:
