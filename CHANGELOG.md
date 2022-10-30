@@ -13,14 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Repository
 
--   Update all GitHub workflow action versions
-    +    `actions/cache@v3`
-    +    `actions/checkout@v3`
-    +    `actions/setup-python@v4`
+-   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`
 -   Introduce pre-commit CI
 -   Update to clang-tidy 14 in GitHub workflow
 -   Update pre-commit hook versions
--   Added new pre-commit hooks: `pydocstyle`, `doc8`, `codespell` and `yamllint`
+-   Added new pre-commit hooks: `codespell`, `doc8`, `pydocstyle` and `yamllint`
 
 ## [v0.8.0] - 2022-10-18
 
