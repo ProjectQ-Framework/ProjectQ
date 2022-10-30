@@ -286,10 +286,8 @@ jobs:
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
-          if [ $(git rev-parse --is-shallow-repository) == "true" ]; then
-              git fetch --prune --unshallow
-              git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          fi
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: Cache wheels
         uses: actions/cache@v3
