@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Repository
 
--   Update GitHub workflow action versions
+-   Update all GitHub workflow action versions
 
 ## [v0.8.0] - 2022-10-18
 
