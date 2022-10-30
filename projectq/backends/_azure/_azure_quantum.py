@@ -292,7 +292,7 @@ class AzureQuantumBackend(BasicEngine):  # pylint: disable=too-many-instance-att
 
             for measured_id in self._measured_ids:
                 qb_loc = self.main_engine.mapper.current_mapping[measured_id]
-                measurement_gates += "measure q[{0}] -> c[{0}];\n".format(qb_loc)
+                measurement_gates += f"measure q[{qb_loc}] -> c[{qb_loc}];\n"
 
             return (
                 f"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[{qubits}];\ncreg c[{qubits}];"

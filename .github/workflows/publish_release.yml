@@ -1,3 +1,5 @@
+---
+
 name: "Publish new release"
 
 on:
@@ -15,7 +17,12 @@ jobs:
   packaging:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
+    if: >
+      startsWith(github.ref, 'refs/tags/')
+      || (github.event_name == 'pull_request'
+          && github.event.pull_request.merged == true)
+      || github.event_name == 'workflow_dispatch'
+
     strategy:
       matrix:
         cibw_archs: ["auto64"]
@@ -47,7 +54,10 @@ jobs:
       # ========================================================================
 
       - name: Extract version from branch name (for release branches) (Unix)
-        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/') && runner.os != 'Windows'
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'release/')
+          && runner.os != 'Windows'
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION=${BRANCH_NAME#release/}
@@ -55,7 +65,10 @@ jobs:
           git tag ${VERSION} master
 
       - name: Extract version from branch name (for hotfix branches) (Unix)
-        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/') && runner.os != 'Windows'
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+          && runner.os != 'Windows'
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION=${BRANCH_NAME#hotfix/}
@@ -65,7 +78,10 @@ jobs:
       # ------------------------------------------------------------------------
 
       - name: Extract version from branch name (for release branches) (Windows)
-        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/') && runner.os == 'Windows'
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'release/')
+          && runner.os == 'Windows'
         run: |
           $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           $VERSION = $BRANCH_NAME -replace "release/",""
@@ -73,7 +89,10 @@ jobs:
           git tag ${VERSION} master
 
       - name: Extract version from branch name (for hotfix branches) (Windows)
-        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/') && runner.os == 'Windows'
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+          && runner.os == 'Windows'
         run: |
           $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           $VERSION = $BRANCH_NAME -replace "hotfix/",""
@@ -159,7 +178,7 @@ jobs:
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Extract version from branch name (for release branches)
-        if:  github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/')
+        if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/')
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION=${BRANCH_NAME#release/v}
@@ -200,12 +219,13 @@ jobs:
       - name: Create release
         env:
           target: x86_64-unknown-linux-musl
-          parse_changelog_tag: v0.3.0
+          source_url: https://github.com/taiki-e/parse-changelog/releases/download
+          parse_changelog_tag: v0.5.1
           changelog: CHANGELOG.md
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # https://github.com/taiki-e/parse-changelog
-          curl -LsSf "https://github.com/taiki-e/parse-changelog/releases/download/${parse_changelog_tag}/parse-changelog-${target}.tar.gz" | tar xzf -
+          curl -LsSf "${source_url}/${parse_changelog_tag}/parse-changelog-${target}.tar.gz" | tar xzf -
           notes=$(./parse-changelog "${changelog}" "${RELEASE_VERSION}")
           rm -f ./parse-changelog
 
@@ -214,7 +234,10 @@ jobs:
           fi
 
           mkdir -p wheels pypy_wheels
-          gh release create "v${RELEASE_VERSION}" ${prerelease:-} --title "ProjectQ v${RELEASE_VERSION}" --notes "${notes:-}" pypy_wheels/* wheels/*
+          gh release create "v${RELEASE_VERSION}" ${prerelease:-} \
+            --title "ProjectQ v${RELEASE_VERSION}" \
+            --notes "${notes:-}" \
+            pypy_wheels/* wheels/*
 
 
   upload_to_pypi:
@@ -222,18 +245,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: release
     steps:
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v3
 
-    - name: Publish standard package
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
-        packages_dir: pypy_wheels/
+      - name: Publish standard package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          packages_dir: pypy_wheels/
 
   master_to_develop_pr:
     name: Merge master back into develop
@@ -250,6 +273,7 @@ jobs:
           head: master
           base: develop
           title: Merge master into develop branch
+          # yamllint disable rule:line-length
           body: |
             This PR merges the master branch back into develop.
             This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the develop branch.

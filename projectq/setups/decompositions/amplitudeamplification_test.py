@@ -75,8 +75,8 @@ def test_simple_grover():
     with Loop(eng, num_it):
         QAA(hache_algorithm, simple_oracle) | (system_qubits, control)
 
-    # Get the probabilty of getting the marked state after the AA
-    # to compare with the theoretical probability after teh AA
+    # Get the probability of getting the marked state after the AA
+    # to compare with the theoretical probability after the AA
     eng.flush()
     prob1010101 = eng.backend.get_probability('1010101', system_qubits)
     total_prob_after = prob1010101
@@ -135,7 +135,7 @@ def test_complex_aa():
     # Creates the initial state form the Algorithm
     complex_algorithm(eng, system_qubits)
 
-    # Get the probabilty of getting the marked state before the AA
+    # Get the probability of getting the marked state before the AA
     # to calculate the number of iterations
     eng.flush()
     prob000000 = eng.backend.get_probability('000000', system_qubits)
@@ -153,7 +153,7 @@ def test_complex_aa():
     with Loop(eng, num_it):
         QAA(complex_algorithm, complex_oracle) | (system_qubits, control)
 
-    # Get the probabilty of getting the marked state after the AA
+    # Get the probability of getting the marked state after the AA
     # to compare with the theoretical probability after the AA
     eng.flush()
     prob000000 = eng.backend.get_probability('000000', system_qubits)

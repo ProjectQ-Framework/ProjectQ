@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for supporting the IonQ platform"""
+"""ProjectQ module for supporting the IonQ platform."""
 
 from ._ionq import IonQBackend
 

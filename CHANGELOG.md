@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--   Python context manager `with flusing(MainEngine()) as eng:`
+-   Python context manager `with flushing(MainEngine()) as eng:`
 
 ### Repository
 
--   Update all GitHub workflow action versions
+-   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`
+-   Introduce pre-commit CI
+-   Update to clang-tidy 14 in GitHub workflow
+-   Update pre-commit hook versions
+-   Added new pre-commit hooks: `codespell`, `doc8`, `pydocstyle` and `yamllint`
 
 ## [v0.8.0] - 2022-10-18
 
@@ -170,7 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added CHANGELOG.md
 
 -   Added support for GitHub Actions
-    -   Build and testing on various plaforms and compilers
+    -   Build and testing on various platforms and compilers
     -   Automatic draft of new release
     -   Automatic publication of new release once ready
     -   Automatic upload of releases artifacts to PyPi and GitHub

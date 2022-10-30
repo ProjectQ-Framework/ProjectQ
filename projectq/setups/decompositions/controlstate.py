@@ -15,7 +15,7 @@
 """
 Register a decomposition to replace turn negatively controlled qubits into positively controlled qubits.
 
-This achived by applying X gates to selected qubits.
+This achieved by applying X gates to selected qubits.
 """
 
 from copy import deepcopy

@@ -339,7 +339,7 @@ def send(
 
         # useless for the moment
         if not online:  # pragma: no cover
-            print("The device is offline (for maintenance?). Use the " "simulator instead or try again later.")
+            print("The device is offline (for maintenance?). Use the simulator instead or try again later.")
             raise DeviceOfflineError("Device is offline.")
 
         # check if the device has enough qubit to run the code

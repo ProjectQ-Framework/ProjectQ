@@ -137,7 +137,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
 
         Depending on the device chosen, the operations available differ.
 
-        The operations avialable for the Aspen-8 Rigetti device are:
+        The operations available for the Aspen-8 Rigetti device are:
         - "cz" = Control Z, "xy" = Not available in ProjectQ, "ccnot" = Toffoli (ie. controlled CNOT), "cnot" =
           Control X, "cphaseshift" = Control R, "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available
           in ProjectQ,
@@ -349,7 +349,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             Only call this function after the circuit has been executed!
 
             This is maintained in the same form of IBM and AQT for compatibility but in AWSBraket, a previously
-            executed circuit will store the results in the S3 bucket and it can be retreived at any point in time
+            executed circuit will store the results in the S3 bucket and it can be retrieved at any point in time
             thereafter.
             No circuit execution should be required at the time of retrieving the results and probabilities if the
             circuit has already been executed.

@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-Register the decomposition of an controlled arbitary single qubit gate.
+Register the decomposition of an controlled arbitrary single qubit gate.
 
 See paper "Elementary gates for quantum computing" by Adriano Barenco et al.,
 arXiv:quant-ph/9503016v1. (Note: They use different gate definitions!) or
@@ -156,7 +156,7 @@ def _decompose_carb1qubit(cmd):  # pylint: disable=too-many-branches
 
     See Nielsen and Chuang chapter 4.3.
 
-    An arbitrary one qubit gate matrix can be writen as
+    An arbitrary one qubit gate matrix can be written as
     U = [[exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)],
          [exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]]
     where a,b,c,d are real numbers.
@@ -170,7 +170,7 @@ def _decompose_carb1qubit(cmd):  # pylint: disable=too-many-branches
     the controlled phase C(exp(ia)) can be implemented with single
     qubit gates.
 
-    If the one qubit gate matrix can be writen as
+    If the one qubit gate matrix can be written as
     V = [[-sin(c/2) * exp(j*a), exp(j*(a-b)) * cos(c/2)],
          [exp(j*(a+b)) * cos(c/2), exp(j*a) * sin(c/2)]]
     Then C(V) = C(exp(ja))* E * CNOT * D with

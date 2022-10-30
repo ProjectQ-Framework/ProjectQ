@@ -346,7 +346,7 @@ SubtractQuantum = SubtractQuantumGate()
 
 class ComparatorQuantumGate(BasicMathGate):
     """
-    Flip a compare qubit if the binary value of first imput is higher than the second input.
+    Flip a compare qubit if the binary value of first input is higher than the second input.
 
     The numbers are stored from low- to high-bit, i.e., qunum[0] is the LSB.
     Example:
@@ -363,7 +363,7 @@ class ComparatorQuantumGate(BasicMathGate):
 
     def __init__(self):
         """
-        Initilize a ComparatorQuantumGate object.
+        Initialize a ComparatorQuantumGate object.
 
         Initialize the gate and its base class, BasicMathGate, with the corresponding function, so it can be emulated
         efficiently.

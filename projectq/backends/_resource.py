@@ -14,7 +14,7 @@
 """
 Contain a compiler engine to calculate resource count used by a quantum circuit.
 
-A resrouce counter compiler engine counts the number of calls for each type of gate used in a circuit, in addition to
+A resource counter compiler engine counts the number of calls for each type of gate used in a circuit, in addition to
 the max. number of active qubits.
 """
 

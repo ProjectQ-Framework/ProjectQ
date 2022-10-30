@@ -73,7 +73,7 @@ class AWSBraket:
         Get the list of available devices with their basic properties.
 
         Args:
-            verbose (bool): print the returned dictionnary if True
+            verbose (bool): print the returned dictionary if True
 
         Returns:
             (dict) backends dictionary by deviceName, containing the qubit size 'nq', the coupling map 'coupling_map'
@@ -112,8 +112,7 @@ class AWSBraket:
                             'GateModelParameters'
                         ]['properties']['braketSchemaHeader']['const'],
                     }
-                # Unfortunatelly the Capabilities schemas are not homogeneus
-                # for real devices and simulators
+                # Unfortunately the Capabilities schemas are not homogeneus for real devices and simulators
                 elif result['deviceType'] == 'SIMULATOR':
                     device_capabilities = json.loads(
                         client.get_device(deviceArn=result['deviceArn'])['deviceCapabilities']
@@ -301,7 +300,7 @@ class AWSBraket:
                 # number by default.
                 # For QPU devices the job is always queued and there are some
                 # working hours available.
-                # In addition the results and state is writen in the
+                # In addition the results and state is written in the
                 # results.json file in the S3 Bucket and does not depend on the
                 # status of the device
 
@@ -339,7 +338,8 @@ def retrieve(credentials, task_arn, num_retries=30, interval=1, verbose=False):
 
     Args:
         credentials (dict): Dictionary storing the AWS credentials with keys AWS_ACCESS_KEY_ID and AWS_SECRET_KEY.
-        task_arn (str): The Arn of the task to retreive
+        task_arn (str): The Arn of the task to retrieve
+
 
     Returns:
         (dict) measurement probabilities from the result stored in the S3 folder
@@ -365,7 +365,7 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
     info, device, credentials, s3_folder, num_retries=30, interval=1, verbose=False
 ):
     """
-    Send cicruit through the Boto3 SDK and runs the quantum circuit.
+    Send circuit through the Boto3 SDK and runs the quantum circuit.
 
     Args:
         info(dict): Contains representation of the circuit to run.
@@ -391,7 +391,7 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         awsbraket_session.get_list_devices(verbose)
         online = awsbraket_session.is_online(device)
         if online:
-            print("The job will be queued in any case, plase take this into account")
+            print("The job will be queued in any case, please take this into account")
         else:
             print("The device is not available. Use the simulator instead or try another device.")
             raise DeviceOfflineError("Device is not available.")
@@ -423,7 +423,7 @@ def send(  # pylint: disable=too-many-branches,too-many-arguments,too-many-local
         if error_code == 'DeviceOfflineException':
             print("- There was an error: the device is offline")
         if error_code == 'InternalServiceException':
-            print("- There was an interal Bracket service error")
+            print("- There was an internal Bracket service error")
         if error_code == 'ServiceQuotaExceededException':
             print("- There was an error: the quota on Braket was exceed")
         if error_code == 'ValidationException':

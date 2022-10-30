@@ -21,7 +21,7 @@ QFT included. The following steps measuring the ancillas and computing the
 phase should be executed outside of the QPE.
 
 The decomposition uses as ancillas (qpe_ancillas) the first qubit/qureg in
-the Command and as system qubits teh second qubit/qureg in the Command.
+the Command and as system qubits the second qubit/qureg in the Command.
 
 The unitary operator for which the phase estimation is estimated (unitary)
 is the gate in Command

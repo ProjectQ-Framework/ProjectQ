@@ -208,7 +208,7 @@ def _decompose_arb1qubit(cmd):
     """
     Use Z-Y decomposition of Nielsen and Chuang (Theorem 4.1).
 
-    An arbitrary one qubit gate matrix can be writen as
+    An arbitrary one qubit gate matrix can be written as
     U = [[exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)],
          [exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]]
     where a,b,c,d are real numbers.

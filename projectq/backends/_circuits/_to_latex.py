@@ -447,6 +447,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         # add a circled 1/2
         midpoint = (lines[0] + lines[1]) / 2.0
         pos = self.pos[lines[0]]
+        # pylint: disable=consider-using-f-string
         op_mid = f"line{'{}-{}'.format(*lines)}_gate{self.op_count[lines[0]]}"
         dagger = '^{{\\dagger}}' if daggered else ''
         gate_str += f"\n\\node[xstyle] ({op}) at ({pos},-{midpoint}){{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"

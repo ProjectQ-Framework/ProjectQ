@@ -12,4 +12,4 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module containing libraries expanding the basic functionalities of ProjectQ"""
+"""ProjectQ module containing libraries expanding the basic functionalities of ProjectQ."""

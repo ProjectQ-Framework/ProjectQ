@@ -96,7 +96,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 ``'ionq_simulator'``.  Defaults to ``'ionq_simulator'``.
             num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
                 to 3000.
-            interval (int, optional): Number of seconds to wait inbetween result fetch retries. Defaults to 1.
+            interval (int, optional): Number of seconds to wait in between result fetch retries. Defaults to 1.
             retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
                 fetched. Defaults to None.
         """
@@ -138,7 +138,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         if 0 < num_ctrl_qubits <= 7:
             return isinstance(gate, (XGate,))
 
-        # Gates witout control bits.
+        # Gates without control bits.
         if num_ctrl_qubits == 0:
             supported = isinstance(gate, SUPPORTED_GATES)
             supported_transpose = gate in (Sdag, Tdag)

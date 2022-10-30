@@ -45,7 +45,7 @@ def canonical_ctrl_state(ctrl_state, num_qubits):
         In case of integer values for `ctrl_state`, the least significant bit applies to the first qubit in the qubit
         register, e.g. if ctrl_state == 2, its binary representation if '10' with the least significan bit being 0.
 
-        This means in particular that the followings are equivalent:
+        This means in particular that the following are equivalent:
 
         .. code-block:: python
 

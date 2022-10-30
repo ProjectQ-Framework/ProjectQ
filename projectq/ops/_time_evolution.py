@@ -33,7 +33,7 @@ class TimeEvolution(BasicGate):
     This gate is the unitary time evolution propagator:
     exp(-i * H * t),
     where H is the Hamiltonian of the system and t is the time. Note that -i
-    factor is stored implicitely.
+    factor is stored implicitly.
 
     Example:
         .. code-block:: python

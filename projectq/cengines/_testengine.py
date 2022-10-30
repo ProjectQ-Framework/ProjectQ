@@ -32,7 +32,7 @@ class CompareEngine(BasicEngine):
     Command list comparison compiler engine for testing purposes.
 
     CompareEngine is an engine which saves all commands. It is only intended for testing purposes. Two CompareEngine
-    backends can be compared and return True if they contain the same commmands.
+    backends can be compared and return True if they contain the same commands.
     """
 
     def __init__(self):

@@ -27,7 +27,7 @@ Gates overload the | operator to allow the following syntax:
     Gate | qubit
     Gate | (qubit,)
 
-This means that for more than one quantum argument (right side of | ), a tuple needs to be made explicitely, while for
+This means that for more than one quantum argument (right side of | ), a tuple needs to be made explicitly, while for
 one argument it is optional.
 """
 
@@ -101,7 +101,7 @@ class BasicGate:
         """
         self.interchangeable_qubit_indices = []
 
-    def get_inverse(self):  # pylint: disable=no-self-use
+    def get_inverse(self):
         """
         Return the inverse gate.
 
@@ -112,7 +112,7 @@ class BasicGate:
         """
         raise NotInvertible("BasicGate: No get_inverse() implemented.")
 
-    def get_merged(self, other):  # pylint: disable=no-self-use
+    def get_merged(self, other):
         """
         Return this gate merged with another gate.
 
@@ -158,7 +158,7 @@ class BasicGate:
         qubits = list(qubits)
 
         for i, qubit in enumerate(qubits):
-            if isinstance(qubits[i], BasicQubit):
+            if isinstance(qubit, BasicQubit):
                 qubits[i] = [qubit]
 
         return tuple(qubits)
@@ -230,7 +230,7 @@ class BasicGate:
         """Compute the hash of the object."""
         return hash(str(self))
 
-    def is_identity(self):  # pylint: disable=no-self-use
+    def is_identity(self):
         """Return True if the gate is an identity gate. In this base class, always returns False."""
         return False
 
@@ -274,7 +274,7 @@ class MatrixGate(BasicGate):
         """
         Equal operator.
 
-        Return True only if both gates have a matrix respresentation and the matrices are (approximately)
+        Return True only if both gates have a matrix representation and the matrices are (approximately)
         equal. Otherwise return False.
         """
         if not hasattr(other, 'matrix'):
@@ -415,7 +415,7 @@ class BasicRotationGate(BasicGate):
 
     def is_identity(self):
         """Return True if the gate is equivalent to an Identity gate."""
-        return self.angle == 0.0 or self.angle == 4 * math.pi
+        return self.angle in (0.0, 4 * math.pi)
 
 
 class BasicPhaseGate(BasicGate):

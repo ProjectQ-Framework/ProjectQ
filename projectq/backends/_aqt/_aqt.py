@@ -233,7 +233,7 @@ class AQTBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         # NOTE AQT DOESN'T SEEM TO HAVE MEASUREMENT INSTRUCTIONS (no
         # intermediate measurements are allowed, so implicit at the end)
         # return if no operations.
-        if self._circuit == []:
+        if not self._circuit:
             return
 
         n_qubit = max(self._allocated_qubits) + 1

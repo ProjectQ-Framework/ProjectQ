@@ -53,7 +53,7 @@ class QubitOperator(BasicGate):
 
     A term is an operator acting on n qubits and can be represented as:
 
-    coefficent * local_operator[0] x ... x local_operator[n-1]
+    coefficient * local_operator[0] x ... x local_operator[n-1]
 
     where x is the tensor product. A local operator is a Pauli operator ('I', 'X', 'Y', or 'Z') which acts on one
     qubit. In math notation a term is, for example, 0.5 * 'X0 X5', which means that a Pauli X operator acts on qubit 0
@@ -117,7 +117,7 @@ class QubitOperator(BasicGate):
         Args:
             coefficient (complex float, optional): The coefficient of the first term of this QubitOperator. Default is
                 1.0.
-            term (optional, empy tuple, a tuple of tuples, or a string):
+            term (optional, empty tuple, a tuple of tuples, or a string):
                 1) Default is None which means there are no terms in the QubitOperator hence it is the "zero" Operator
                 2) An empty tuple means there are no non-trivial Pauli operators acting on the qubits hence only
                    identities with a coefficient (which by default is 1.0).

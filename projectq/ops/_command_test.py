@@ -182,7 +182,7 @@ def test_command_interchangeable_qubit_indices(main_engine):
     [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
     ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'],
 )
-def test_commmand_add_control_qubits_one(main_engine, state):
+def test_command_add_control_qubits_one(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
@@ -210,7 +210,7 @@ def test_commmand_add_control_qubits_one(main_engine, state):
         'CtrlAll.Zero',
     ],
 )
-def test_commmand_add_control_qubits_two(main_engine, state):
+def test_command_add_control_qubits_two(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])

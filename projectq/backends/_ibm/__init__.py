@@ -12,6 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""ProjectQ module for supporting the IBM QE platform"""
+"""ProjectQ module for supporting the IBM QE platform."""
 
 from ._ibm import IBMBackend

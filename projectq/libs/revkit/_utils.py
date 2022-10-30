@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-"""Module containing some utility functions"""
+"""Module containing some utility functions."""
 
 # flake8: noqa
 # pylint: skip-file
@@ -21,7 +21,7 @@
 
 def _exec(code, qs):
     """
-    Executes the Python code in 'filename'.
+    Execute the Python code in 'filename'.
 
     Args:
         code (string): ProjectQ code.
