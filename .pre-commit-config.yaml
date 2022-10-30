@@ -26,11 +26,13 @@ repos:
     rev: v4.3.0
     hooks:
       - id: check-added-large-files
+      - id: check-ast
+      - id: check-builtin-literals
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-symlinks
-      - id: check-yaml
       - id: check-toml
+      - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
@@ -115,7 +117,7 @@ repos:
     hooks:
       - id: pylint
         args: ['--score=n']
-        additional_dependencies: [pybind11>=2.6, numpy, requests, boto3, matplotlib, networkx, sympy]
+        additional_dependencies: [pybind11>=2.6, numpy, requests, matplotlib, networkx]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: '0.48'

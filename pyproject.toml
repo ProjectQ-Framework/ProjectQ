@@ -160,6 +160,9 @@ ignore = [
          'R0801',
     ]
 
+    [tool.pylint.typecheck]
+    ignored-modules = ['boto3', 'botocore', 'sympy']
+
 
 [tool.pytest.ini_options]
 
