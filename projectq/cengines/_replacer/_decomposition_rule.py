@@ -54,7 +54,7 @@ class DecompositionRule:  # pylint: disable=too-few-public-methods
                 "\nDid you pass in someGate instead of someGate.__class__?"
             )
         if gate_class == type.__class__:
-                "\nDid you pass in someGate instead of someGate.__class__?"
+            "\nDid you pass in someGate instead of someGate.__class__?"
         if gate_class in (type.__class__, BasicGateMeta):
             raise ThisIsNotAGateClassError(
                 "gate_class is type.__class__ instead of a type of BasicGate."

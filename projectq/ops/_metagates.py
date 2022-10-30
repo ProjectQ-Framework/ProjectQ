@@ -34,6 +34,7 @@ from ._basics import BasicGate, NotInvertible
 class ControlQubitError(Exception):
     """Exception thrown when wrong number of control qubits are supplied."""
 
+
 class DaggeredGate(BasicGate):
     """
     Wrapper class allowing to execute the inverse of a gate, even when it does not define one.
@@ -92,6 +93,7 @@ class DaggeredGate(BasicGate):
     def __hash__(self):
         """Compute the hash of the object."""
         return hash(str(self))
+
 
 def get_inverse(gate):
     """
@@ -220,10 +222,10 @@ class ControlledGate(BasicGate):
         """Compare two ControlledGate objects (return True if equal)."""
         return isinstance(other, self.__class__) and self._gate == other._gate and self._n == other._n
 
-
     @property
     def commutable_circuit_list(self):
         return self._gate.get_commutable_circuit_list(self._n)
+
 
 def C(gate, n_qubits=1):
     """
@@ -239,6 +241,7 @@ def C(gate, n_qubits=1):
             C(NOT) | (c, q)  # equivalent to CNOT | (c, q)
     """
     return ControlledGate(gate, n_qubits)
+
 
 class Tensor(BasicGate):
     """

@@ -1,5 +1,5 @@
-from projectq.ops import H, CNOT
-from projectq.ops import _basics, RelativeCommand
+from projectq.ops import CNOT, H, RelativeCommand, _basics
+
 
 def test_relative_command_equals():
     cmd1 = RelativeCommand(H, 0)

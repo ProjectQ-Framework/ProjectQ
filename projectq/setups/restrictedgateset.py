@@ -46,7 +46,7 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
     two_qubit_gates=(CNOT,),
     other_gates=(),
     compiler_chooser=default_chooser,
-    apply_commutation=True
+    apply_commutation=True,
 ):
     """
     Return an engine list to compile to a restricted gate set.

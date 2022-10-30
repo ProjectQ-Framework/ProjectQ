@@ -14,16 +14,7 @@
 """Tests for projectq.cengines._optimize.py."""
 
 import math
-import pytest
-import math
-from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import (CNOT, H, Rx, Ry, Rz, Rxx, Ryy, Rzz, Measure, AllocateQubitGate, X,
-                          FastForwardingGate, ClassicalInstructionGate, XGate, Ph, X,
-                          SqrtX, Y, Z, S, T, R)
-from projectq.setups import restrictedgateset, trapped_ion_decomposer
 
-from projectq.cengines import _optimize
 import pytest
 
 from projectq import MainEngine
@@ -34,10 +25,24 @@ from projectq.ops import (
     ClassicalInstructionGate,
     FastForwardingGate,
     H,
+    Measure,
+    Ph,
+    R,
     Rx,
+    Rxx,
     Ry,
+    Ryy,
+    Rz,
+    Rzz,
+    S,
+    SqrtX,
+    T,
     X,
+    XGate,
+    Y,
+    Z,
 )
+from projectq.setups import restrictedgateset, trapped_ion_decomposer
 
 
 def test_local_optimizer_init_api_change():
@@ -140,11 +145,12 @@ def test_local_optimizer_cancel_inverse():
     assert received_commands[1].qubits[0][0].id == qb1[0].id
     assert received_commands[1].control_qubits[0].id == qb0[0].id
 
+
 def test_local_optimizer_cancel_separated_inverse():
-    """ Tests the situation where the next command on
+    """Tests the situation where the next command on
     this qubit is an inverse command, but another qubit
     involved is separated from the inverse by only commutable
-    gates. The two commands should cancel. """
+    gates. The two commands should cancel."""
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -161,12 +167,12 @@ def test_local_optimizer_cancel_separated_inverse():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 1
     assert received_commands[0].gate == Rx(0.3)
     assert received_commands[0].qubits[0][0].id == qb1[0].id
+
 
 def test_local_optimizer_mergeable_gates():
     local_optimizer = _optimize.LocalOptimizer(cache_size=4)
@@ -192,8 +198,7 @@ def test_local_optimizer_mergeable_gates():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     # Expect one gate each of Rx, Ry, Rz, Rxx, Ryy, Rzz
     assert len(received_commands) == 6
@@ -203,6 +208,7 @@ def test_local_optimizer_mergeable_gates():
     assert received_commands[3].gate == Rxx(1.0)
     assert received_commands[4].gate == Ryy(1.0)
     assert received_commands[5].gate == Rzz(1.0)
+
 
 def test_local_optimizer_separated_mergeable_gates():
     """Tests the situation where the next command on this qubit
@@ -215,8 +221,8 @@ def test_local_optimizer_separated_mergeable_gates():
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
-    #assert len(backend.received_commands) == 0
-    #Reminder: Rxx and Rx commute
+    # assert len(backend.received_commands) == 0
+    # Reminder: Rxx and Rx commute
     Rxx(0.3) | (qb0, qb1)
     Rx(math.pi) | qb1
     Rxx(0.8) | (qb0, qb1)
@@ -231,18 +237,18 @@ def test_local_optimizer_separated_mergeable_gates():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[0].gate == Rxx(2.3)
     assert received_commands[1].gate == H
-    assert received_commands[2].gate == Rx(math.pi+0.3)
+    assert received_commands[2].gate == Rx(math.pi + 0.3)
     assert received_commands[3].gate == Ry(0.5)
     assert received_commands[0].qubits[0][0].id == qb0[0].id
     assert received_commands[0].qubits[1][0].id == qb1[0].id
     assert received_commands[1].qubits[0][0].id == qb0[0].id
     assert received_commands[2].qubits[0][0].id == qb1[0].id
     assert received_commands[3].qubits[0][0].id == qb1[0].id
+
 
 def test_local_optimizer_identity_gates():
     local_optimizer = _optimize.LocalOptimizer(cache_size=4)
@@ -262,10 +268,11 @@ def test_local_optimizer_identity_gates():
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == Rx(0.5)
 
+
 @pytest.mark.parametrize(["U", "Ru", "Ruu"], [[X, Rx, Rxx], [Y, Ry, Ryy], [Z, Rz, Rzz]])
 def test_local_optimizer_commutable_gates_parameterized_1(U, Ru, Ruu):
-    """ Iterate through gates of the X, Y, Z type and
-        check that they correctly commute with eachother and with Ph.
+    """Iterate through gates of the X, Y, Z type and
+    check that they correctly commute with eachother and with Ph.
     """
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
@@ -296,15 +303,15 @@ def test_local_optimizer_commutable_gates_parameterized_1(U, Ru, Ruu):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 4
+
 
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 @pytest.mark.parametrize("C", [Z, S, T])
 def test_local_optimizer_commutable_gates_parameterized_2(U, C):
-    """ Tests that the Rzz, Ph, Rz, R gates commute through S, T, Z."""
+    """Tests that the Rzz, Ph, Rz, R gates commute through S, T, Z."""
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -319,14 +326,14 @@ def test_local_optimizer_commutable_gates_parameterized_2(U, C):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 3
-    #assert received_commands[0].gate == Ph(0.8)
+    # assert received_commands[0].gate == Ph(0.8)
+
 
 def test_local_optimizer_commutable_gates_SqrtX():
-    """ Tests that the X, Rx, Rxx, Ph gates commute through SqrtX."""
+    """Tests that the X, Rx, Rxx, Ph gates commute through SqrtX."""
     local_optimizer = _optimize.LocalOptimizer(m=5)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -346,14 +353,14 @@ def test_local_optimizer_commutable_gates_SqrtX():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
 
+
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_1(U):
-    """ Example circuit where the Rzs should merge. """
+    """Example circuit where the Rzs should merge."""
     # Rzs should merge
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
@@ -369,16 +376,16 @@ def test_local_optimizer_commutable_circuit_U_example_1(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[0].gate == U(0.3)
     assert len(received_commands) == 4
 
+
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_2(U):
-    """ Us shouldn't merge (Although in theory they should,
-    this would require a new update.) """
+    """Us shouldn't merge (Although in theory they should,
+    this would require a new update.)"""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -393,15 +400,15 @@ def test_local_optimizer_commutable_circuit_U_example_2(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[1].gate == U(0.1)
     assert len(received_commands) == 5
 
+
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_3(U):
-    """ Us should not merge because they are operating on different qubits. """
+    """Us should not merge because they are operating on different qubits."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -416,11 +423,11 @@ def test_local_optimizer_commutable_circuit_U_example_3(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[1].gate == U(0.1)
     assert len(received_commands) == 5
+
 
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_4(U):
@@ -439,11 +446,11 @@ def test_local_optimizer_commutable_circuit_U_example_4(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
+
 
 @pytest.mark.parametrize("U", [Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_5(U):
@@ -462,11 +469,11 @@ def test_local_optimizer_commutable_circuit_U_example_5(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
+
 
 @pytest.mark.parametrize("U", [Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_6(U):
@@ -489,12 +496,12 @@ def test_local_optimizer_commutable_circuit_U_example_6(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
             print(cmd)
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
+
 
 @pytest.mark.parametrize("U", [Rz, R])
 def test_local_optimizer_commutable_circuit_U_example_7(U):
@@ -513,11 +520,11 @@ def test_local_optimizer_commutable_circuit_U_example_7(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert received_commands[0].gate == U(0.1)
     assert len(received_commands) == 5
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_1():
     """This example should commute."""
@@ -536,11 +543,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_1():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 3
     assert received_commands[0].gate == H
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_2():
     """This example should commute."""
@@ -559,11 +566,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_2():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 3
     assert received_commands[0].gate == H
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_3():
     """This example should commute."""
@@ -582,11 +589,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_3():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 3
     assert received_commands[0].gate == H
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_4():
     """This example shouldn't commute because the CNOT is the
@@ -606,11 +613,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_4():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
     assert received_commands[0].gate.__class__ == XGate
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_5():
     """This example shouldn't commute because the CNOT is the
@@ -630,11 +637,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_5():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
     assert received_commands[0].gate.__class__ == XGate
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_6():
     """This example shouldn't commute because the CNOT is the
@@ -654,11 +661,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_6():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
     assert received_commands[0].gate.__class__ == XGate
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_7():
     """This example shouldn't commute because the CNOT is the
@@ -678,11 +685,11 @@ def test_local_optimizer_commutable_circuit_CNOT_example_7():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
     assert received_commands[0].gate.__class__ == XGate
+
 
 def test_local_optimizer_commutable_circuit_CNOT_example_8():
     """This example shouldn't commute because the CNOT is the
@@ -702,17 +709,17 @@ def test_local_optimizer_commutable_circuit_CNOT_example_8():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 5
     assert received_commands[0].gate.__class__ == XGate
+
 
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_CNOT_and_U_example_1(U):
     """This example is to check everything works as expected when
     the commutable circuit is on later commands in the optimizer
-    dictionary. The number of commmands should reduce from 10 to 7. """
+    dictionary. The number of commmands should reduce from 10 to 7."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -733,16 +740,16 @@ def test_local_optimizer_commutable_circuit_CNOT_and_U_example_1(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 7
     assert received_commands[6].gate == H
 
+
 @pytest.mark.parametrize("U", [Ph, Rz, R])
 def test_local_optimizer_commutable_circuit_CNOT_and_U_example_2(U):
-    """ This example is to check everything works as expected when
-    the commutable circuit is on qubits 3, 4, 5. """
+    """This example is to check everything works as expected when
+    the commutable circuit is on qubits 3, 4, 5."""
     local_optimizer = _optimize.LocalOptimizer(m=10)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
@@ -765,40 +772,39 @@ def test_local_optimizer_commutable_circuit_CNOT_and_U_example_2(U):
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 7
     assert received_commands[6].gate == H
 
+
 def test_local_optimizer_apply_commutation_false():
     """Test that the local_optimizer behaves as if commutation isn't an option
-    if you set apply_commutation = False. """
+    if you set apply_commutation = False."""
     local_optimizer = _optimize.LocalOptimizer(m=10, apply_commutation=False)
     backend = DummyEngine(save_commands=True)
     eng = MainEngine(backend=backend, engine_list=[local_optimizer])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
-    Rz(0.1) | qb0 # Rzs next to eachother should merge
+    Rz(0.1) | qb0  # Rzs next to eachother should merge
     Rz(0.4) | qb0
-    Rzz(0.3) | (qb0, qb1) # Rzs either side of Rzz should not merge
+    Rzz(0.3) | (qb0, qb1)  # Rzs either side of Rzz should not merge
     Rz(0.2) | qb0
-    H | qb0 # Hs next to eachother should cancel
+    H | qb0  # Hs next to eachother should cancel
     H | qb0
-    Ry(0.1) | qb1 # Ry should not merge with the Rz on the other side of
-    H | qb0       # a commutable list
+    Ry(0.1) | qb1  # Ry should not merge with the Rz on the other side of
+    H | qb0  # a commutable list
     CNOT | (qb0, qb1)
     H | qb0
     Ry(0.2) | qb1
     Rxx(0.2) | (qb0, qb1)
-    Rx(0.1) | qb1 # Rxxs either side of Rx shouldn't merge
+    Rx(0.1) | qb1  # Rxxs either side of Rx shouldn't merge
     Rxx(0.1) | (qb0, qb1)
     eng.flush()
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 11
     assert received_commands[0].gate == Rz(0.5)

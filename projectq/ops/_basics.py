@@ -39,7 +39,7 @@ import numpy as np
 
 from projectq.types import BasicQubit
 
-from ._command import Command, apply_command, Commutability
+from ._command import Command, Commutability, apply_command
 
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
@@ -67,14 +67,14 @@ class BasicGateMeta(type):
     """
     Meta class for all gates; mainly used to ensure that all gate classes have some basic class variable defined.
     """
-    def __new__(cls, name, bases, attrs):
 
+    def __new__(cls, name, bases, attrs):
         def get_commutable_gates(self):
             return self._commutable_gates
 
-        return super(BasicGateMeta, cls).__new__(cls, name, bases, {**attrs,
-                                                                    get_commutable_gates.__name__: get_commutable_gates,
-                                                                    '_commutable_gates': set()})
+        return super().__new__(
+            cls, name, bases, {**attrs, get_commutable_gates.__name__: get_commutable_gates, '_commutable_gates': set()}
+        )
 
 
 class BasicGate(metaclass=BasicGateMeta):
@@ -85,6 +85,7 @@ class BasicGate(metaclass=BasicGateMeta):
     """
     Base class of all gates. (Don't use it directly but derive from it)
     """
+
     def __init__(self):
         """
         Initialize a basic gate.
@@ -279,7 +280,7 @@ class BasicGate(metaclass=BasicGateMeta):
             commutability (Commutability) : An enum which
                 indicates whether the next gate is commutable,
                 not commutable or maybe commutable.
-             """
+        """
         for gate in self.get_commutable_gates():
             if type(other) is gate:
                 return Commutability.COMMUTABLE

@@ -20,12 +20,18 @@ import numpy as np
 import pytest
 
 from projectq import MainEngine
-from projectq.ops import All, FlipBits, Measure, _gates, get_inverse
-
-
-from projectq.ops import _gates
-from projectq.ops import CNOT, H, C, NOT
-from projectq.ops import RelativeCommand
+from projectq.ops import (
+    CNOT,
+    NOT,
+    All,
+    C,
+    FlipBits,
+    H,
+    Measure,
+    RelativeCommand,
+    _gates,
+    get_inverse,
+)
 
 
 def test_h_gate():
@@ -33,9 +39,7 @@ def test_h_gate():
     assert gate == gate.get_inverse()
     assert str(gate) == "H"
     assert np.array_equal(gate.matrix, 1.0 / math.sqrt(2) * np.matrix([[1, 1], [1, -1]]))
-    assert np.array_equal(
-        gate.matrix, 1.0 / math.sqrt(2) * np.matrix([[1, 1], [1, -1]])
-    )
+    assert np.array_equal(gate.matrix, 1.0 / math.sqrt(2) * np.matrix([[1, 1], [1, -1]]))
     assert isinstance(_gates.H, _gates.HGate)
 
 
@@ -196,9 +200,7 @@ def test_ry_commutation(angle1, angle2):
 @pytest.mark.parametrize("angle", [0, 0.2, 2.1, 4.1, 2 * math.pi, 4 * math.pi])
 def test_rz(angle):
     gate = _gates.Rz(angle)
-    expected_matrix = np.matrix(
-        [[cmath.exp(-0.5 * 1j * angle), 0], [0, cmath.exp(0.5 * 1j * angle)]]
-    )
+    expected_matrix = np.matrix([[cmath.exp(-0.5 * 1j * angle), 0], [0, cmath.exp(0.5 * 1j * angle)]])
     assert gate.matrix.shape == expected_matrix.shape
     assert np.allclose(gate.matrix, expected_matrix)
 

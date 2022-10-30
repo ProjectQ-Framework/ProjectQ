@@ -116,7 +116,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
         self.control_qubits = controls  # property
         self.engine = engine  # property
         self.control_state = control_state  # property
-        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(n=len(self.control_qubits)) # property
+        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(n=len(self.control_qubits))  # property
 
     @property
     def qubits(self):
@@ -381,6 +381,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
         cstring = "C" * len(ctrlqubits)
         return f"{cstring + self.gate.to_string(symbols)} | {qstring}"
 
+
 def overlap(tuple1, tuple2):
     """
     Takes two tuples of lists, flattens them and counts the number
@@ -396,11 +397,12 @@ def overlap(tuple1, tuple2):
     """
     flat_tuple1 = [item for sublist in tuple1 for item in sublist]
     flat_tuple2 = [item for sublist in tuple2 for item in sublist]
-    n=0
+    n = 0
     for element in flat_tuple1:
         if element in flat_tuple2:
-            n+=1
+            n += 1
     return n
+
 
 class Commutability(IntEnum):
     NOT_COMMUTABLE = 0
