@@ -9,11 +9,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-   Python context manager `with flushing(MainEngine()) as eng:`
+
+### Repository
+
+-   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`
+-   Introduce pre-commit CI
+-   Update to clang-tidy 14 in GitHub workflow
+-   Update pre-commit hook versions
+-   Added new pre-commit hooks: `codespell`, `doc8`, `pydocstyle` and `yamllint`
+
+## [v0.8.0] - 2022-10-18
+
+### Added
+
+-   New backend for the Azure Quantum platform
+
+### Changed
+
+-   Support for Python 3.6 and earlier is now deprecated
+-   Moved package metadata into pyproject.toml
+
+### Fixed
+
+-   Fixed installation on Apple Silicon with older Python versions (&lt; 3.9)
+
+### Repository
+
+-   Update `docker/setup-qemu-action` GitHub action to v2
+-   Fixed CentOS 7 configuration issue
+-   Added two new pre-commit hooks: `blacken-docs` and `pyupgrade`
+
+## [v0.7.3] - 2022-04-27
+
+### Fixed
+
+-   Fixed IonQ dynamic backends fetch, which relied on an incorrect path.
+
+## [v0.7.2] - 2022-04-11
+
+### Changed
+
+-   Added IonQ dynamic backends fetch.
+
+### Repository
+
+-   Fix issues with building on CentOS 7 & 8
+-   Update `pre-commit/pre-commit-hooks` to v4.2.0
+-   Update `Lucas-C/pre-commit-hooks` hook to v1.1.13
+-   Update `flake8` hook to v4.0.1
+-   Update `pylint` hook to v3.0.0a4
+-   Update `black` hook to v22.3.0
+-   Update `check-manifest` to v0.48
+
+## [0.7.1] - 2022-01-10
+
+### Added
+
 -   Added environment variable to avoid -march=native when building ProjectQ
 -   Added environment variable to force build failure if extensions do not compile on CI
 
 ### Changed
+
 ### Deprecated
+
 ### Fixed
 
 -   Fix compiler flags cleanup function for use on CI
@@ -22,9 +81,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed issue with `gen_reqfile` command if `--include-extras` is not provided
 
 ### Removed
+
 ### Repository
 
 -   Add configuration for CIBuildWheel in `pyproject.toml`
+-   Remove use of deprecated images `windows-2016` in GitHub workflows
+-   Re-add build of Python binary wheels in release publishing GitHub workflow
 -   Update `dangoslen/changelog-enforcer` GitHub action to v3
 -   Update `thomaseizinger/keep-a-changelog-new-release` GiHub action to v1.3.0
 -   Update `thomaseizinger/create-pull-request` GiHub action to v1.2.2
@@ -61,11 +123,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Added `isort` to the list of pre-commit hooks
 -   Added some more flake8 plugins to the list used by `pre-commit`:
-    + flake8-breakpoint
-    + flake8-comprehensions
-    + flake8-docstrings
-    + flake8-eradicate
-    + flake8-mutable
+    -   flake8-breakpoint
+    -   flake8-comprehensions
+    -   flake8-docstrings
+    -   flake8-eradicate
+    -   flake8-mutable
 
 ## [0.6.1] - 2021-06-23
 
@@ -112,7 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added CHANGELOG.md
 
 -   Added support for GitHub Actions
-    -   Build and testing on various plaforms and compilers
+    -   Build and testing on various platforms and compilers
     -   Automatic draft of new release
     -   Automatic publication of new release once ready
     -   Automatic upload of releases artifacts to PyPi and GitHub
@@ -161,7 +223,23 @@ The ProjectQ v0.5.x release branch is the last one that is guaranteed to work wi
 
 Future releases might introduce changes that will require Python 3.5 (Python 3.4 and earlier have already been declared deprecated at the time of this writing)
 
-[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...HEAD
+<<<<<<< HEAD
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...HEAD
+
+[v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
+||||||| 41e608d
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...HEAD
+=======
+[Unreleased]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.8.0...HEAD
+
+[v0.8.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.3...v0.8.0
+
+[v0.7.3]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.2...v0.7.3
+>>>>>>> master
+
+[v0.7.2]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.1...v0.7.2
+
+[0.7.1]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.7.0...v0.7.1
 
 [0.7.0]: https://github.com/ProjectQ-Framework/ProjectQ/compare/v0.6.1...v0.7.0
 

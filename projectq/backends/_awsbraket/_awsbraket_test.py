@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -319,6 +318,7 @@ def test_awsbraket_backend_is_available_control_singlequbit_sv1(ctrl_singlequbit
     assert aws_backend.is_available(cmd) == is_available_sv1
 
 
+@has_boto3
 def test_awsbraket_backend_is_available_negative_control():
     backend = _awsbraket.AWSBraketBackend()
 
@@ -426,7 +426,7 @@ def test_awsbraket_sent_error(mocker, sent_error_setup):
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
     mock_boto3_client.create_quantum_task.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": var_error, "Message": "Msg error for " + var_error}},
+        {"Error": {"Code": var_error, "Message": f"Msg error for {var_error}"}},
         "create_quantum_task",
     )
     mocker.patch('boto3.client', return_value=mock_boto3_client, autospec=True)

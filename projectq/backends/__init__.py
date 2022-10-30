@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +25,12 @@ This includes:
 * an interface to the IBM Quantum Experience chip (and simulator).
 * an interface to the AQT trapped ion system (and simulator).
 * an interface to the AWS Braket service decives (and simulators)
+* an interface to the Azure Quantum service devices (and simulators)
 * an interface to the IonQ trapped ionq hardware (and simulator).
 """
 from ._aqt import AQTBackend
 from ._awsbraket import AWSBraketBackend
+from ._azure import AzureQuantumBackend
 from ._circuits import CircuitDrawer, CircuitDrawerMatplotlib
 from ._exceptions import DeviceNotHandledError, DeviceOfflineError, DeviceTooSmall
 from ._ibm import IBMBackend

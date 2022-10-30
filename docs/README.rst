@@ -6,12 +6,15 @@ Documentation
     :alt: Documentation Status
 
 
-Our detailed code documentation can be found online at `Read the Docs <http://projectq.readthedocs.io/en/latest/>`__ and gets updated automatically. Besides the latest code documentation, there are also previous and offline versions available for download.
+Our detailed code documentation can be found online at `Read the Docs <http://projectq.readthedocs.io/en/latest/>`__ and
+gets updated automatically. Besides the latest code documentation, there are also previous and offline versions
+available for download.
 
 Building the docs locally
 -------------------------
 
-Before submitting new code, please make sure that the new or changed docstrings render nicely by building the docs manually. To this end, one has to install sphinx and the Read the Docs theme:
+Before submitting new code, please make sure that the new or changed docstrings render nicely by building the docs
+manually. To this end, one has to install sphinx and the Read the Docs theme:
 
 .. code-block:: bash
 

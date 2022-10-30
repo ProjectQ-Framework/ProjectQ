@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,8 +33,8 @@ from projectq.setups.decompositions import swap2cnot
 def print_all_probabilities(eng, qureg):
     i = 0
     y = len(qureg)
-    while i < (2 ** y):
-        qubit_list = [int(x) for x in list(('{0:0b}'.format(i)).zfill(y))]
+    while i < (2**y):
+        qubit_list = [int(x) for x in list((f'{i:0b}').zfill(y))]
         qubit_list = qubit_list[::-1]
         prob = eng.backend.get_probability(qubit_list, qureg)
         if prob != 0.0:

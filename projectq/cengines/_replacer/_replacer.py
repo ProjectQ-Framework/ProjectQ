@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,6 +112,8 @@ class AutoReplacer(BasicEngine):
 
             def decomposition_chooser(cmd, decomp_list):
                 return decomp_list[0]
+
+
             repl = AutoReplacer(decomposition_chooser)
         """
         super().__init__()
@@ -186,7 +187,7 @@ class AutoReplacer(BasicEngine):
                             break
 
                 if len(decomp_list) == 0:
-                    raise NoGateDecompositionError("\nNo replacement found for " + str(cmd) + "!")
+                    raise NoGateDecompositionError(f"\nNo replacement found for {str(cmd)}!")
 
                 # use decomposition chooser to determine the best decomposition
                 chosen_decomp = self._decomp_chooser(cmd, decomp_list)

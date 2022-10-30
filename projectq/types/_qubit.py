@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +16,13 @@ Definition of BasicQubit, Qubit, WeakQubit and Qureg classes.
 
 A Qureg represents a list of Qubit or WeakQubit objects.
 A Qubit represents a (logical-level) qubit with a unique index provided by the MainEngine. Qubit objects are
-automatically deallocated if they go out of scope and intented to be used within Qureg objects in user code.
+automatically deallocated if they go out of scope and intended to be used within Qureg objects in user code.
 
 Example:
     .. code-block:: python
 
         from projectq import MainEngine
+
         eng = MainEngine()
         qubit = eng.allocate_qubit()
 
@@ -189,11 +189,11 @@ class Qureg(list):
                 count += 1
                 continue
 
-            out_list.append('{}-{}'.format(start_id, start_id + count - 1) if count > 1 else '{}'.format(start_id))
+            out_list.append(f'{start_id}-{start_id + count - 1}' if count > 1 else f'{start_id}')
             start_id = qubit_id
             count = 1
 
-        return "Qureg[{}]".format(', '.join(out_list))
+        return f"Qureg[{', '.join(out_list)}]"
 
     @property
     def engine(self):

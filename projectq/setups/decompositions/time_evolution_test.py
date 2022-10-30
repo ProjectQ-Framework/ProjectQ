@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -227,7 +226,7 @@ def test_decompose_individual_terms():
     y_sp = sps.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=complex)
     z_sp = sps.csc_matrix([[1.0, 0.0], [0.0, -1.0]], dtype=complex)
 
-    matrix1 = sps.identity(2 ** 5, format="csc", dtype=complex) * 0.6 * 1.1 * -1.0j
+    matrix1 = sps.identity(2**5, format="csc", dtype=complex) * 0.6 * 1.1 * -1.0j
     step1 = scipy.sparse.linalg.expm(matrix1).dot(init_wavefunction)
     assert numpy.allclose(step1, final_wavefunction1)
 

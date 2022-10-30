@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +53,7 @@ class QubitOperator(BasicGate):
 
     A term is an operator acting on n qubits and can be represented as:
 
-    coefficent * local_operator[0] x ... x local_operator[n-1]
+    coefficient * local_operator[0] x ... x local_operator[n-1]
 
     where x is the tensor product. A local operator is a Pauli operator ('I', 'X', 'Y', or 'Z') which acts on one
     qubit. In math notation a term is, for example, 0.5 * 'X0 X5', which means that a Pauli X operator acts on qubit 0
@@ -82,7 +81,7 @@ class QubitOperator(BasicGate):
 
         eng = projectq.MainEngine()
         qureg = eng.allocate_qureg(6)
-        QubitOperator('X0 X5', 1.j) | qureg # Applies X to qubit 0 and 5 with an additional global phase of 1.j
+        QubitOperator('X0 X5', 1.0j) | qureg  # Applies X to qubit 0 and 5 with an additional global phase of 1.j
 
 
     Attributes:
@@ -105,8 +104,7 @@ class QubitOperator(BasicGate):
         Example:
             .. code-block:: python
 
-                ham = ((QubitOperator('X0 Y3', 0.5)
-                        + 0.6 * QubitOperator('X0 Y3')))
+                ham = QubitOperator('X0 Y3', 0.5) + 0.6 * QubitOperator('X0 Y3')
                 # Equivalently
                 ham2 = QubitOperator('X0 Y3', 0.5)
                 ham2 += 0.6 * QubitOperator('X0 Y3')
@@ -119,7 +117,7 @@ class QubitOperator(BasicGate):
         Args:
             coefficient (complex float, optional): The coefficient of the first term of this QubitOperator. Default is
                 1.0.
-            term (optional, empy tuple, a tuple of tuples, or a string):
+            term (optional, empty tuple, a tuple of tuples, or a string):
                 1) Default is None which means there are no terms in the QubitOperator hence it is the "zero" Operator
                 2) An empty tuple means there are no non-trivial Pauli operators acting on the qubits hence only
                    identities with a coefficient (which by default is 1.0).
@@ -187,8 +185,7 @@ class QubitOperator(BasicGate):
             abs_tol(float): Absolute tolerance, must be at least 0.0
         """
         new_terms = {}
-        for term in self.terms:
-            coeff = self.terms[term]
+        for term, coeff in self.terms.items():
             if abs(coeff.imag) <= abs_tol:
                 coeff = coeff.real
             if abs(coeff) > abs_tol:
@@ -248,9 +245,9 @@ class QubitOperator(BasicGate):
 
             eng = projectq.MainEngine()
             qureg = eng.allocate_qureg(6)
-            QubitOperator('X0 X5', 1.j) | qureg  # Applies X to qubit 0 and 5
-                                                 # with an additional global
-                                                 # phase of 1.j
+            QubitOperator('X0 X5', 1.0j) | qureg  # Applies X to qubit 0 and 5
+            # with an additional global
+            # phase of 1.j
 
         While in the above example the QubitOperator gate is applied to 6
         qubits, it only acts non-trivially on the two qubits qureg[0] and
@@ -260,7 +257,7 @@ class QubitOperator(BasicGate):
 
         .. code-block:: python
 
-            QubitOperator('X0 X1', 1.j) | [qureg[0], qureg[5]]
+            QubitOperator('X0 X1', 1.0j) | [qureg[0], qureg[5]]
 
         which is only a two qubit gate.
 
@@ -374,9 +371,9 @@ class QubitOperator(BasicGate):
         # Handle QubitOperator.
         if isinstance(multiplier, QubitOperator):  # pylint: disable=too-many-nested-blocks
             result_terms = {}
-            for left_term in self.terms:
-                for right_term in multiplier.terms:
-                    new_coefficient = self.terms[left_term] * multiplier.terms[right_term]
+            for left_term, left_coeff in self.terms.items():
+                for right_term, right_coeff in multiplier.terms.items():
+                    new_coefficient = left_coeff * right_coeff
 
                     # Loop through local operators and create new sorted list
                     # of representing the product local operator:
@@ -424,7 +421,7 @@ class QubitOperator(BasicGate):
                         result_terms[tmp_key] = new_coefficient
             self.terms = result_terms
             return self
-        raise TypeError('Cannot in-place multiply term of invalid type ' + 'to QubitTerm.')
+        raise TypeError('Cannot in-place multiply term of invalid type to QubitTerm.')
 
     def __mul__(self, multiplier):
         """
@@ -564,20 +561,20 @@ class QubitOperator(BasicGate):
         if not self.terms:
             return '0'
         string_rep = ''
-        for term in self.terms:
-            tmp_string = '{}'.format(self.terms[term])
+        for term, coeff in self.terms.items():
+            tmp_string = f'{coeff}'
             if term == ():
                 tmp_string += ' I'
             for operator in term:
                 if operator[1] == 'X':
-                    tmp_string += ' X{}'.format(operator[0])
+                    tmp_string += f' X{operator[0]}'
                 elif operator[1] == 'Y':
-                    tmp_string += ' Y{}'.format(operator[0])
+                    tmp_string += f' Y{operator[0]}'
                 elif operator[1] == 'Z':
-                    tmp_string += ' Z{}'.format(operator[0])
+                    tmp_string += f' Z{operator[0]}'
                 else:  # pragma: no cover
                     raise ValueError('Internal compiler error: operator must be one of X, Y, Z!')
-            string_rep += '{} +\n'.format(tmp_string)
+            string_rep += f'{tmp_string} +\n'
         return string_rep[:-3]
 
     def __repr__(self):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +14,6 @@
 
 """Contain a compiler engine which generates TikZ Latex code describing the circuit."""
 
-from builtins import input
 
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
@@ -64,65 +62,66 @@ class CircuitDrawer(BasicEngine):
     .. code-block:: python
 
         circuit_backend = CircuitDrawer()
-        circuit_backend.set_qubit_locations({0: 1, 1: 0}) # swap lines 0 and 1
+        circuit_backend.set_qubit_locations({0: 1, 1: 0})  # swap lines 0 and 1
         eng = MainEngine(circuit_backend)
 
-        ... # run quantum algorithm on this main engine
+        ...  # run quantum algorithm on this main engine
 
-        print(circuit_backend.get_latex()) # prints LaTeX code
+        print(circuit_backend.get_latex())  # prints LaTeX code
 
     To see the qubit IDs in the generated circuit, simply set the `draw_id` option in the settings.json file under
     "gates":"AllocateQubitGate" to True:
 
     .. code-block:: python
 
-        "gates": {
-            "AllocateQubitGate": {
-                "draw_id": True,
-                "height": 0.15,
-                "width": 0.2,
-                "pre_offset": 0.1,
-                "offset": 0.1
-            },
-            ...
+        {
+            "gates": {
+                "AllocateQubitGate": {
+                    "draw_id": True,
+                    "height": 0.15,
+                    "width": 0.2,
+                    "pre_offset": 0.1,
+                    "offset": 0.1,
+                },
+                # ...
+            }
+        }
 
     The settings.json file has the following structure:
 
     .. code-block:: python
 
         {
-            "control": { # settings for control "circle"
-                    "shadow": false,
-                    "size": 0.1
-            },
-            "gate_shadow": true, # enable/disable shadows for all gates
+            "control": {"shadow": false, "size": 0.1},  # settings for control "circle"
+            "gate_shadow": true,  # enable/disable shadows for all gates
             "gates": {
-                    "GateClassString": {
-                        GATE_PROPERTIES
-                    }
-                    "GateClassString2": {
-                        ...
+                "GateClassString": {GATE_PROPERTIES},
+                "GateClassString2": {
+                    # ...
+                },
             },
-            "lines": { # settings for qubit lines
-                    "double_classical": true, # draw double-lines for
-                                              # classical bits
-                    "double_lines_sep": 0.04, # gap between the two lines
-                                              # for double lines
-                    "init_quantum": true, # start out with quantum bits
-                    "style": "very thin" # line style
-            }
+            "lines": {  # settings for qubit lines
+                "double_classical": true,  # draw double-lines for
+                # classical bits
+                "double_lines_sep": 0.04,  # gap between the two lines
+                # for double lines
+                "init_quantum": true,  # start out with quantum bits
+                "style": "very thin",  # line style
+            },
         }
 
     All gates (except for the ones requiring special treatment) support the following properties:
 
     .. code-block:: python
 
-        "GateClassString": {
-            "height": GATE_HEIGHT,
-            "width": GATE_WIDTH
-            "pre_offset": OFFSET_BEFORE_PLACEMENT,
-            "offset": OFFSET_AFTER_PLACEMENT,
-        },
+        {
+            "GateClassString": {
+                "height": GATE_HEIGHT,
+                "width": GATE_WIDTH,
+                "pre_offset": OFFSET_BEFORE_PLACEMENT,
+                "offset": OFFSET_AFTER_PLACEMENT,
+            }
+        }
 
     """
 
@@ -228,7 +227,7 @@ class CircuitDrawer(BasicEngine):
                     if self._accept_input:
                         meas = None
                         while meas not in ('0', '1', 1, 0):
-                            prompt = "Input measurement result (0 or 1) for qubit " + str(qubit) + ": "
+                            prompt = f"Input measurement result (0 or 1) for qubit {str(qubit)}: "
                             meas = input(prompt)
                     else:
                         meas = self._default_measure
@@ -265,10 +264,10 @@ class CircuitDrawer(BasicEngine):
         """
         qubit_lines = {}
 
-        for line in range(len(self._qubit_lines)):
+        for line, qubit_line in self._qubit_lines.items():
             new_line = self._map[line]
             qubit_lines[new_line] = []
-            for cmd in self._qubit_lines[line]:
+            for cmd in qubit_line:
                 lines = [self._map[qb_id] for qb_id in cmd.lines]
                 ctrl_lines = [self._map[qb_id] for qb_id in cmd.ctrl_lines]
                 gate = cmd.gate

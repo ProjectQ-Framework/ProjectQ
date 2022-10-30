@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +41,8 @@ class CommandModifier(BasicEngine):
 
                 def cmd_mod_fun(cmd):
                     cmd.tags += [MyOwnTag()]
+
+
                 compiler_engine = CommandModifier(cmd_mod_fun)
                 ...
         """

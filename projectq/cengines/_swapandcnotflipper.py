@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +56,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return self._is_swap(cmd) or self.next_engine.is_available(cmd)
 
-    def _is_cnot(self, cmd):  # pylint: disable=no-self-use
+    def _is_cnot(self, cmd):
         """
         Check if the command corresponds to a CNOT (controlled NOT gate).
 
@@ -66,7 +65,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         """
         return isinstance(cmd.gate, NOT.__class__) and get_control_count(cmd) == 1
 
-    def _is_swap(self, cmd):  # pylint: disable=no-self-use
+    def _is_swap(self, cmd):
         """
         Check if the command corresponds to a Swap gate.
 
@@ -89,7 +88,7 @@ class SwapAndCNOTFlipper(BasicEngine):
         control = cmd.control_qubits[0].id
         is_possible = (control, target) in self.connectivity
         if not is_possible and (target, control) not in self.connectivity:
-            raise RuntimeError("The provided connectivity does not allow to execute the CNOT gate {}.".format(str(cmd)))
+            raise RuntimeError(f"The provided connectivity does not allow to execute the CNOT gate {str(cmd)}.")
         return not is_possible
 
     def _send_cnot(self, cmd, control, target, flip=False):
@@ -139,9 +138,7 @@ class SwapAndCNOTFlipper(BasicEngine):
                     control = [qubits[1]]
                     target = [qubits[0]]
                 else:
-                    raise RuntimeError(
-                        "The provided connectivity does not allow to execute the Swap gate {}.".format(str(cmd))
-                    )
+                    raise RuntimeError(f"The provided connectivity does not allow to execute the Swap gate {str(cmd)}.")
                 self._send_cnot(cmd, control, target)
                 self._send_cnot(cmd, target, control, True)
                 self._send_cnot(cmd, control, target)

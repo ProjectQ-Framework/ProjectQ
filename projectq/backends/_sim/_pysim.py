@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -205,7 +204,7 @@ class Simulator:
                 qb_locs[-1].append(self._map[qubit_id])
 
         newstate = _np.zeros_like(self._state)
-        for i in range(0, len(self._state)):
+        for i, state in enumerate(self._state):
             if (mask & i) == mask:
                 arg_list = [0] * len(qb_locs)
                 for qr_i, qr_loc in enumerate(qb_locs):
@@ -218,9 +217,9 @@ class Simulator:
                     for qb_i, qb_loc in enumerate(qr_loc):
                         if not ((new_i >> qb_loc) & 1) == ((res[qr_i] >> qb_i) & 1):
                             new_i ^= 1 << qb_loc
-                newstate[new_i] = self._state[i]
+                newstate[new_i] = state
             else:
-                newstate[i] = self._state[i]
+                newstate[i] = state
 
         self._state = newstate
 
@@ -286,7 +285,7 @@ class Simulator:
         probability = 0.0
         for i, state in enumerate(self._state):
             if (i & mask) == bit_str:
-                probability += state.real ** 2 + state.imag ** 2
+                probability += state.real**2 + state.imag**2
         return probability
 
     def get_amplitude(self, bit_string, ids):
@@ -331,9 +330,9 @@ class Simulator:
             ctrlids (list): A list of control qubit IDs.
         """
         # Determine the (normalized) trace, which is nonzero only for identity terms:
-        trace = sum([c for (t, c) in terms_dict if len(t) == 0])
+        trace = sum(c for (t, c) in terms_dict if len(t) == 0)
         terms_dict = [(t, c) for (t, c) in terms_dict if len(t) > 0]
-        op_nrm = abs(time) * sum([abs(c) for (_, c) in terms_dict])
+        op_nrm = abs(time) * sum(abs(c) for (_, c) in terms_dict)
         # rescale the operator by s:
         scale = int(op_nrm + 1.0)
         correction = _np.exp(-1j * time * trace / float(scale))
@@ -482,13 +481,13 @@ class Simulator:
             mask |= 1 << pos
             val |= int(values[i]) << pos
         nrm = 0.0
-        for i in range(len(self._state)):
+        for i, state in enumerate(self._state):
             if (mask & i) == val:
-                nrm += _np.abs(self._state[i]) ** 2
+                nrm += _np.abs(state) ** 2
         if nrm < 1.0e-12:
             raise RuntimeError("collapse_wavefunction(): Invalid collapse! Probability is ~0.")
         inv_nrm = 1.0 / _np.sqrt(nrm)
-        for i in range(len(self._state)):
+        for i in range(len(self._state)):  # pylint: disable=consider-using-enumerate
             if (mask & i) != val:
                 self._state[i] = 0.0
             else:

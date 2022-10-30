@@ -1,18 +1,85 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "pybind11>=2", "setuptools_scm[toml]>=3.4"]
+requires = [
+    'setuptools>=61;python_version>="3.7"',
+    'setuptools>=59;python_version<"3.7"',
+    'wheel',
+    'pybind11>=2',
+    'setuptools_scm[toml]>6;python_version>="3.7"'
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = 'projectq'
+authors = [
+     {name = 'ProjectQ', email = 'info@projectq.ch'}
+]
+description = 'ProjectQ - An open source software framework for quantum computing'
+requires-python = '>= 3.7'
+license = {text= 'Apache License Version 2.0'}
+readme = 'README.rst'
+classifiers = [
+    'License :: OSI Approved :: Apache Software License',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10'
+]
+dynamic = ["version"]
+
+dependencies = [
+    'matplotlib >= 2.2.3',
+    'networkx >= 2',
+    'numpy',
+    'requests',
+    'scipy'
+]
+
+[project.urls]
+'Homepage' = 'http://www.projectq.ch'
+'Documentation' = 'https://projectq.readthedocs.io/en/latest/'
+'Issue Tracker' = 'https://github.com/ProjectQ-Framework/ProjectQ/'
+
+[project.optional-dependencies]
+
+azure-quantum = [
+      'azure-quantum'
+]
+
+braket = [
+      'boto3'
+]
+
+revkit = [
+     'revkit == 3.0a2.dev2',
+      'dormouse'
+]
+
+test = [
+     'flaky',
+     'mock',
+     'pytest >= 6.0',
+     'pytest-cov',
+     'pytest-mock'
+]
+
+docs = [
+     'sphinx',
+     'sphinx_rtd_theme'
+]
 
 # ==============================================================================
 
 [tool.black]
 
     line-length = 120
-    target-version = ['py36','py37','py38']
+    target-version = ['py37','py38','py39','py310']
     skip-string-normalization = true
 
 
 [tool.check-manifest]
-    ignore = [
+ignore = [
     'PKG-INFO',
     '*.egg-info',
     '*.egg-info/*',
@@ -88,8 +155,13 @@ build-backend = "setuptools.build_meta"
     disable = [
          'expression-not-assigned',
          'pointless-statement',
-         'fixme'
+         'fixme',
+         'unspecified-encoding',
+         'R0801',
     ]
+
+    [tool.pylint.typecheck]
+    ignored-modules = ['boto3', 'botocore', 'sympy']
 
 
 [tool.pytest.ini_options]
@@ -99,6 +171,11 @@ addopts = '-pno:warnings'
 testpaths = ['projectq']
 ignore-glob = ['*flycheck*.py']
 mock_use_standalone_module = true
+
+[tool.doc8]
+
+verbose = 0
+max_line_length = 120
 
 [tool.isort]
 
@@ -110,17 +187,13 @@ write_to = 'VERSION.txt'
 write_to_template = '{version}'
 local_scheme = 'no-local-version'
 
-[tool.yapf]
-
-column_limit = 120
-
 [tool.cibuildwheel]
 
 archs = ['auto64']
 build-frontend = 'build'
 build-verbosity = 1
 skip = 'pp* *-musllinux*'
-environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1' }
+environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1', OMP_NUM_THREADS='1' }
 
 before-test = [
     'cd {package}',
@@ -128,7 +201,7 @@ before-test = [
     'python -m pip install -r requirements.txt --only-binary :all:',
 ]
 
-test-command = 'python3 {package}/examples/grover.py'
+test-command = 'python {package}/examples/grover.py'
 
 # Normal options, etc.
 manylinux-x86_64-image = 'manylinux2014'

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +32,7 @@ class CompareEngine(BasicEngine):
     Command list comparison compiler engine for testing purposes.
 
     CompareEngine is an engine which saves all commands. It is only intended for testing purposes. Two CompareEngine
-    backends can be compared and return True if they contain the same commmands.
+    backends can be compared and return True if they contain the same commands.
     """
 
     def __init__(self):
@@ -83,22 +82,22 @@ class CompareEngine(BasicEngine):
         """Equal operator."""
         if not isinstance(other, CompareEngine) or len(self._l) != len(other._l):
             return False
-        for i in range(len(self._l)):
-            if len(self._l[i]) != len(other._l[i]):
+        for i, _li in enumerate(self._l):
+            if len(_li) != len(other._l[i]):
                 return False
-            for j in range(len(self._l[i])):
-                if not _compare_cmds(self._l[i][j], other._l[i][j]):
+            for j, _lij in enumerate(_li):
+                if not _compare_cmds(_lij, other._l[i][j]):
                     return False
         return True
 
     def __str__(self):
         """Return a string representation of the object."""
         string = ""
-        for qubit_id in range(len(self._l)):
-            string += "Qubit {0} : ".format(qubit_id)
+        for qubit_id, _l in enumerate(self._l):
+            string += f"Qubit {qubit_id} : "
             for command in self._l[qubit_id]:
-                string += str(command) + ", "
-            string = string[:-2] + "\n"
+                string += f"{str(command)}, "
+            string = f"{string[:-2]}\n"
         return string
 
 

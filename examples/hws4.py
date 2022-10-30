@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example of a 4-qubit phase function."""
@@ -30,4 +29,4 @@ All(Measure) | qubits
 
 eng.flush()
 
-print("Shift is {}".format(8 * int(x4) + 4 * int(x3) + 2 * int(x2) + int(x1)))
+print(f"Shift is {8 * int(x4) + 4 * int(x3) + 2 * int(x2) + int(x1)}")

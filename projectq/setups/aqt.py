@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +33,7 @@ from projectq.setups import restrictedgateset
 
 
 def get_engine_list(token=None, device=None):
-    """Return the default list of compiler engine for the AQT plaftorm."""
+    """Return the default list of compiler engine for the AQT platform."""
     # Access to the hardware properties via show_devices
     # Can also be extended to take into account gate fidelities, new available
     # gate, etc..

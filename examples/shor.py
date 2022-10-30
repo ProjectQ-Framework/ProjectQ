@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example implementation of Shor's algorithm."""
@@ -12,8 +11,6 @@ try:
     from math import gcd
 except ImportError:
     from fractions import gcd
-
-from builtins import input
 
 import projectq.libs.math
 import projectq.setups.decompositions
@@ -75,12 +72,12 @@ def run_shor(eng, N, a, verbose=False):
             X | ctrl_qubit
 
         if verbose:
-            print("\033[95m{}\033[0m".format(measurements[k]), end="")
+            print(f"\033[95m{measurements[k]}\033[0m", end="")
             sys.stdout.flush()
 
     All(Measure) | x
     # turn the measured values into a number in [0,1)
-    y = sum([(measurements[2 * n - 1 - i] * 1.0 / (1 << (i + 1))) for i in range(2 * n)])
+    y = sum((measurements[2 * n - 1 - i] * 1.0 / (1 << (i + 1))) for i in range(2 * n))
 
     # continued fraction expansion to get denominator (the period?)
     r = Fraction(y).limit_denominator(N - 1).denominator
@@ -130,13 +127,13 @@ if __name__ == "__main__":
         end="",
     )
     N = int(input('\n\tNumber to factor: '))
-    print("\n\tFactoring N = {}: \033[0m".format(N), end="")
+    print(f"\n\tFactoring N = {N}: \033[0m", end="")
 
     # choose a base at random:
     a = int(random.random() * N)
     if not gcd(a, N) == 1:
         print("\n\n\t\033[92mOoops, we were lucky: Chose non relative prime" " by accident :)")
-        print("\tFactor: {}\033[0m".format(gcd(a, N)))
+        print(f"\tFactor: {gcd(a, N)}\033[0m")
     else:
         # run the quantum subroutine
         r = run_shor(eng, N, a, True)
@@ -150,8 +147,8 @@ if __name__ == "__main__":
         if (not f1 * f2 == N) and f1 * f2 > 1 and int(1.0 * N / (f1 * f2)) * f1 * f2 == N:
             f1, f2 = f1 * f2, int(N / (f1 * f2))
         if f1 * f2 == N and f1 > 1 and f2 > 1:
-            print("\n\n\t\033[92mFactors found :-) : {} * {} = {}\033[0m".format(f1, f2, N))
+            print(f"\n\n\t\033[92mFactors found :-) : {f1} * {f2} = {N}\033[0m")
         else:
-            print("\n\n\t\033[91mBad luck: Found {} and {}\033[0m".format(f1, f2))
+            print(f"\n\n\t\033[91mBad luck: Found {f1} and {f2}\033[0m")
 
         print(resource_counter)  # print resource usage

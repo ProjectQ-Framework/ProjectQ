@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,7 @@
 Defines a setup to compile to a restricted gate set.
 
 It provides the `engine_list` for the `MainEngine`. This engine list contains an AutoReplacer with most of the gate
-decompositions of ProjectQ, which are used to decompose a circuit into a restricted gate set (with some limitions on
+decompositions of ProjectQ, which are used to decompose a circuit into a restricted gate set (with some limitations on
 the choice of gates).
 """
 
@@ -56,7 +55,7 @@ def get_engine_list(  # pylint: disable=too-many-branches,too-many-statements
         If you choose a new gate set for which the compiler does not yet have standard rules, it raises an
         `NoGateDecompositionError` or a `RuntimeError: maximum recursion depth exceeded...`. Also note that even the
         gate sets which work might not yet be optimized. So make sure to double check and potentially extend the
-        decomposition rules.  This implemention currently requires that the one qubit gates must contain Rz and at
+        decomposition rules.  This implementation currently requires that the one qubit gates must contain Rz and at
         least one of {Ry(best), Rx, H} and the two qubit gate must contain CNOT (recommended) or CZ.
 
     Note:

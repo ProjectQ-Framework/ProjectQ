@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +51,7 @@ class IBMQ(Session):
         Get the list of available IBM backends with their properties.
 
         Args:
-            verbose (bool): print the returned dictionnary if True
+            verbose (bool): print the returned dictionary if True
 
         Returns:
             (dict) backends dictionary by name device, containing the qubit size 'nq', the coupling map 'coupling_map'
@@ -219,12 +218,12 @@ class IBMQ(Session):
         job_status_url = 'Network/ibm-q/Groups/open/Projects/main/Jobs/' + execution_id
 
         if verbose:
-            print("Waiting for results. [Job ID: {}]".format(execution_id))
+            print(f"Waiting for results. [Job ID: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The ID of your submitted job is {execution_id}.")
 
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
@@ -271,20 +270,20 @@ class IBMQ(Session):
                 # Note: if stays stuck if 'Validating' mode, then sthg went
                 #       wrong in step 3
                 if r_json['status'] not in acceptable_status:
-                    raise Exception("Error while running the code. Last status: {}.".format(r_json['status']))
+                    raise Exception(f"Error while running the code. Last status: {r_json['status']}.")
                 time.sleep(interval)
                 if self.is_online(device) and retries % 60 == 0:
                     self.get_list_devices()
                     if not self.is_online(device):
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of your submitted job is {}.".format(execution_id)
+                            f"Device went offline. The ID of your submitted job is {execution_id}."
                         )
 
         finally:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise Exception("Timeout. The ID of your submitted job is {}.".format(execution_id))
+        raise Exception(f"Timeout. The ID of your submitted job is {execution_id}.")
 
 
 def show_devices(token=None, verbose=False):
@@ -368,15 +367,12 @@ def send(
         runnable, qmax, qneeded = ibmq_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                (
-                    "The device is too small ({} qubits available) for the code "
-                    + "requested({} qubits needed) Try to look for another "
-                    + "device with more qubits"
-                ).format(qmax, qneeded)
+                f"The device is too small ({qmax} qubits available) for the code "
+                f"requested({qneeded} qubits needed) Try to look for another device with more qubits"
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         execution_id = ibmq_session.run(info, device)
         if verbose:
             print("- Waiting for results...")

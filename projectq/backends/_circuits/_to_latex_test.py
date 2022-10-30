@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -175,12 +174,12 @@ def test_body():
     assert code.count("swapstyle") == 36
     # CZ is two phases plus 2 from CNOTs + 2 from cswap + 2 from csqrtswap
     assert code.count("phase") == 8
-    assert code.count("{{{}}}".format(str(H))) == 2  # 2 hadamard gates
+    assert code.count(f"{{{str(H)}}}") == 2  # 2 hadamard gates
     assert code.count("{$\\Ket{0}") == 3  # 3 qubits allocated
     # 1 cnot, 1 not gate, 3 SqrtSwap, 1 inv(SqrtSwap)
     assert code.count("xstyle") == 7
     assert code.count("measure") == 1  # 1 measurement
-    assert code.count("{{{}}}".format(str(Z))) == 1  # 1 Z gate
+    assert code.count(f"{{{str(Z)}}}") == 1  # 1 Z gate
     assert code.count("{red}") == 3
 
 
@@ -378,7 +377,7 @@ def test_qubit_lines_classicalvsquantum2():
         H | action
 
     code = drawer.get_latex()
-    assert code.count("{{{}}}".format(str(H))) == 1  # 1 Hadamard
+    assert code.count(f"{{{str(H)}}}") == 1  # 1 Hadamard
     assert code.count("{$") == 4  # four allocate gates
     assert code.count("node[phase]") == 3  # 3 controls
 
@@ -397,7 +396,7 @@ def test_qubit_lines_classicalvsquantum3():
         H | (action1, action2)
 
     code = drawer.get_latex()
-    assert code.count("{{{}}}".format(str(H))) == 1  # 1 Hadamard
+    assert code.count(f"{{{str(H)}}}") == 1  # 1 Hadamard
     assert code.count("{$") == 7  # 8 allocate gates
     assert code.count("node[phase]") == 3  # 1 control
     # (other controls are within the gate -> are not drawn)

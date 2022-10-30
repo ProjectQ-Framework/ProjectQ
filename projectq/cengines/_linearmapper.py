@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,7 +143,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         allocated_qubits = deepcopy(currently_allocated_ids)
         active_qubits = deepcopy(currently_allocated_ids)
         # Segments contains a list of segments. A segment is a list of
-        # neighouring qubit ids
+        # neighbouring qubit ids
         segments = []
         # neighbour_ids only used to speedup the lookup process if qubits
         # are already connected. key: qubit_id, value: set of neighbour ids
@@ -162,7 +161,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
                     qubit_ids.append(qubit.id)
 
             if len(qubit_ids) > 2 or len(qubit_ids) == 0:
-                raise Exception("Invalid command (number of qubits): " + str(cmd))
+                raise Exception(f"Invalid command (number of qubits): {str(cmd)}")
 
             if isinstance(cmd.gate, AllocateQubitGate):
                 qubit_id = cmd.qubits[0][0].id
@@ -208,7 +207,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         """
         Process a two qubit gate.
 
-        It either removes the two qubits from active_qubits if the gate is not possible or updates the segements such
+        It either removes the two qubits from active_qubits if the gate is not possible or updates the segments such
         that the gate is possible.
 
         Args:
@@ -233,7 +232,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
             active_qubits.discard(qubit0)
             active_qubits.discard(qubit1)
         # qubits are both active and either not yet in a segment or at
-        # the end of segement:
+        # the end of segment:
         else:
             segment_index_qb0 = None
             qb0_is_left_end = None
@@ -458,8 +457,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
             active_ids.add(logical_id)
 
         new_stored_commands = []
-        for i in range(len(self._stored_commands)):
-            cmd = self._stored_commands[i]
+        for i, cmd in enumerate(self._stored_commands):
             if len(active_ids) == 0:
                 new_stored_commands += self._stored_commands[i:]
                 break

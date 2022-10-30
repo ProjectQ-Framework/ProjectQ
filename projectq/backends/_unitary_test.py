@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +70,7 @@ def test_unitary_is_available():
         assert sim.is_available(
             Command(
                 None,
-                MatrixGate(np.identity(2 ** 7)),
+                MatrixGate(np.identity(2**7)),
                 qubits=([qb0, qb1, qb2, qb3, qb4, qb5, qb6],),
             )
         )
@@ -199,7 +198,7 @@ def test_unitary_after_deallocation_or_measurement():
 
 def test_unitary_simulator():
     def create_random_unitary(n):
-        return unitary_group.rvs(2 ** n)
+        return unitary_group.rvs(2**n)
 
     mat1 = create_random_unitary(1)
     mat2 = create_random_unitary(2)
@@ -222,7 +221,7 @@ def test_unitary_simulator():
             with Control(eng, qureg[2], ctrl_state='0'):
                 MatrixGate(mat1) | qureg[0]
 
-    for basis_state in [list(x[::-1]) for x in itertools.product([0, 1], repeat=2 ** n_qubits)][1:]:
+    for basis_state in [list(x[::-1]) for x in itertools.product([0, 1], repeat=2**n_qubits)][1:]:
         ref_eng = MainEngine(engine_list=[], verbose=True)
         ref_qureg = ref_eng.allocate_qureg(n_qubits)
         ref_eng.backend.set_wavefunction(basis_state, ref_qureg)
@@ -231,7 +230,7 @@ def test_unitary_simulator():
         test_eng = MainEngine(backend=UnitarySimulator(), engine_list=[], verbose=True)
         test_qureg = test_eng.allocate_qureg(n_qubits)
 
-        assert np.allclose(test_eng.backend.unitary, np.identity(2 ** n_qubits))
+        assert np.allclose(test_eng.backend.unitary, np.identity(2**n_qubits))
 
         apply_gates(test_eng, test_qureg)
 
@@ -258,7 +257,7 @@ def test_unitary_functional_measurement():
     eng.flush()
     All(Measure) | qubits
 
-    bit_value_sum = sum([int(qubit) for qubit in qubits])
+    bit_value_sum = sum(int(qubit) for qubit in qubits)
     assert bit_value_sum == 0 or bit_value_sum == 5
 
     qb1 = WeakQubitRef(engine=eng, idx=qubits[0].id)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,8 @@ from .._exceptions import (
     RequestTimeoutError,
 )
 
-_API_URL = 'https://api.ionq.co/v0.1/jobs/'
+_API_URL = 'https://api.ionq.co/v0.2/'
+_JOB_API_URL = urljoin(_API_URL, 'jobs/')
 
 
 class IonQ(Session):
@@ -47,6 +47,11 @@ class IonQ(Session):
 
     def update_devices_list(self):
         """Update the list of devices this backend can support."""
+        self.authenticate(self.token)
+        req = super().get(urljoin(_API_URL, 'backends'))
+        req.raise_for_status()
+        r_json = req.json()
+        # Legacy backends, kept for backward compatibility.
         self.backends = {
             'ionq_simulator': {
                 'nq': 29,
@@ -57,6 +62,8 @@ class IonQ(Session):
                 'target': 'qpu',
             },
         }
+        for backend in r_json:
+            self.backends[backend["backend"]] = {"nq": backend["qubits"], "target": backend["backend"]}
         if self._verbose:  # pragma: no cover
             print('- List of IonQ devices available:')
             print(self.backends)
@@ -106,7 +113,7 @@ class IonQ(Session):
             token = getpass.getpass(prompt='IonQ apiKey > ')
         if not token:
             raise RuntimeError('An authentication token is required!')
-        self.headers.update({'Authorization': 'apiKey {}'.format(token)})
+        self.headers.update({'Authorization': f'apiKey {token}'})
         self.token = token
 
     def run(self, info, device):
@@ -141,7 +148,7 @@ class IonQ(Session):
 
         # _API_URL[:-1] strips the trailing slash.
         # TODO: Add comprehensive error parsing for non-200 responses.
-        req = super().post(_API_URL[:-1], json=argument)
+        req = super().post(_JOB_API_URL[:-1], json=argument)
         req.raise_for_status()
 
         # Process the response.
@@ -157,13 +164,7 @@ class IonQ(Session):
             'code': 'UnknownError',
             'error': 'An unknown error occurred!',
         }
-        raise JobSubmissionError(
-            "{}: {} (status={})".format(
-                failure['code'],
-                failure['error'],
-                status,
-            )
-        )
+        raise JobSubmissionError(f"{failure['code']}: {failure['error']} (status={status})")
 
     def get_result(self, device, execution_id, num_retries=3000, interval=1):
         """
@@ -193,18 +194,18 @@ class IonQ(Session):
             dict: A dict of job data for an engine to consume.
         """
         if self._verbose:  # pragma: no cover
-            print("Waiting for results. [Job ID: {}]".format(execution_id))
+            print(f"Waiting for results. [Job ID: {execution_id}]")
 
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
-            raise Exception("Interrupted. The ID of your submitted job is {}.".format(execution_id))
+            raise Exception(f"Interrupted. The ID of your submitted job is {execution_id}.")
 
         signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
         try:
             for retries in range(num_retries):
-                req = super().get(urljoin(_API_URL, execution_id))
+                req = super().get(urljoin(_JOB_API_URL, execution_id))
                 req.raise_for_status()
                 r_json = req.json()
                 status = r_json['status']
@@ -224,7 +225,7 @@ class IonQ(Session):
                 # Otherwise, make sure it is in a known healthy state.
                 if status not in ('ready', 'running', 'submitted'):
                     # TODO: Add comprehensive API error processing here.
-                    raise Exception("Error while running the code: {}.".format(status))
+                    raise Exception(f"Error while running the code: {status}.")
 
                 # Sleep, then check availability before trying again.
                 time.sleep(interval)
@@ -232,27 +233,22 @@ class IonQ(Session):
                     self.update_devices_list()
                     if not self.is_online(device):  # pragma: no cover
                         raise DeviceOfflineError(
-                            "Device went offline. The ID of " "your submitted job is {}.".format(execution_id)
+                            f"Device went offline. The ID of your submitted job is {execution_id}."
                         )
         finally:
             if original_sigint_handler is not None:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-        raise RequestTimeoutError("Timeout. The ID of your submitted job is {}.".format(execution_id))
+        raise RequestTimeoutError(f"Timeout. The ID of your submitted job is {execution_id}.")
 
+    def show_devices(self):
+        """Show the currently available device list for the IonQ provider.
 
-def show_devices(verbose=False):
-    """Show the currently available device list for the IonQ provider.
-
-    Args:
-        verbose (bool): If True, additional information is printed
-
-    Returns:
-        list: list of available devices and their properties.
-    """
-    ionq_session = IonQ(verbose=verbose)
-    ionq_session.update_devices_list()
-    return ionq_session.backends
+        Returns:
+            list: list of available devices and their properties.
+        """
+        self.update_devices_list()
+        return self.backends
 
 
 def retrieve(
@@ -334,7 +330,7 @@ def send(
         if verbose:  # pragma: no cover
             print("- Authenticating...")
         if verbose and token is not None:  # pragma: no cover
-            print('user API token: ' + token)
+            print(f"user API token: {token}")
         ionq_session.authenticate(token)
 
         # check if the device is online
@@ -343,20 +339,19 @@ def send(
 
         # useless for the moment
         if not online:  # pragma: no cover
-            print("The device is offline (for maintenance?). Use the " "simulator instead or try again later.")
+            print("The device is offline (for maintenance?). Use the simulator instead or try again later.")
             raise DeviceOfflineError("Device is offline.")
 
         # check if the device has enough qubit to run the code
         runnable, qmax, qneeded = ionq_session.can_run_experiment(info, device)
         if not runnable:
             print(
-                "The device is too small ({} qubits available) for the code "
-                "requested({} qubits needed). Try to look for another device "
-                "with more qubits".format(qmax, qneeded)
+                f'The device is too small ({qmax} qubits available) for the code requested({qneeded} qubits needed).',
+                'Try to look for another device with more qubits',
             )
             raise DeviceTooSmall("Device is too small.")
         if verbose:  # pragma: no cover
-            print("- Running code: {}".format(info))
+            print(f"- Running code: {info}")
         execution_id = ionq_session.run(info, device)
         if verbose:  # pragma: no cover
             print("- Waiting for results...")
@@ -379,12 +374,7 @@ def send(
             # Try to parse client errors
             if status_code == 400:
                 err_json = err.response.json()
-                raise JobSubmissionError(
-                    '{}: {}'.format(
-                        err_json['error'],
-                        err_json['message'],
-                    )
-                ) from err
+                raise JobSubmissionError(f"{err_json['error']}: {err_json['message']}") from err
 
         # Else, just print:
         print("- There was an error running your code:")
@@ -398,6 +388,5 @@ def send(
 __all__ = [
     'send',
     'retrieve',
-    'show_devices',
     'IonQ',
 ]

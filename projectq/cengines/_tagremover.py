@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +47,7 @@ class TagRemover(BasicEngine):
         elif isinstance(tags, list):
             self._tags = tags
         else:
-            raise TypeError('tags should be a list! Got: {}'.format(tags))
+            raise TypeError(f'tags should be a list! Got: {tags}')
 
     def receive(self, command_list):
         """

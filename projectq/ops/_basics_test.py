@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -181,7 +180,7 @@ def test_basic_rotation_gate_init(input_angle, modulo_angle):
 def test_basic_rotation_gate_str():
     gate = _basics.BasicRotationGate(math.pi)
     assert str(gate) == "BasicRotationGate(3.14159265359)"
-    assert gate.to_string(symbols=True) == u"BasicRotationGate(1.0π)"
+    assert gate.to_string(symbols=True) == "BasicRotationGate(1.0π)"
     assert gate.to_string(symbols=False) == "BasicRotationGate(3.14159265359)"
 
 

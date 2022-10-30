@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +46,7 @@ from projectq.ops import (
 from projectq.types import WeakQubitRef
 
 from .._exceptions import InvalidCommandError, MidCircuitMeasurementError
+from .._utils import _rearrange_result
 from . import _ionq_http_client as http_client
 
 GATE_MAP = {
@@ -66,20 +66,6 @@ GATE_MAP = {
     SwapGate: 'swap',
 }
 SUPPORTED_GATES = tuple(GATE_MAP.keys())
-
-
-def _rearrange_result(input_result, length):
-    """Turn ``input_result`` from an integer into a bit-string.
-
-    Args:
-        input_result (int): An integer representation of qubit states.
-        length (int): The total number of bits (for padding, if needed).
-
-    Returns:
-        str: A bit-string representation of ``input_result``.
-    """
-    bin_input = list(bin(input_result)[2:].rjust(length, '0'))
-    return ''.join(bin_input)[::-1]
 
 
 class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
@@ -110,7 +96,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 ``'ionq_simulator'``.  Defaults to ``'ionq_simulator'``.
             num_retries (int, optional): Number of times to retry fetching a job after it has been submitted. Defaults
                 to 3000.
-            interval (int, optional): Number of seconds to wait inbetween result fetch retries. Defaults to 1.
+            interval (int, optional): Number of seconds to wait in between result fetch retries. Defaults to 1.
             retrieve_execution (str, optional): An IonQ API Job ID.  If provided, a job with this ID will be
                 fetched. Defaults to None.
         """
@@ -152,7 +138,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         if 0 < num_ctrl_qubits <= 7:
             return isinstance(gate, (XGate,))
 
-        # Gates witout control bits.
+        # Gates without control bits.
         if num_ctrl_qubits == 0:
             supported = isinstance(gate, SUPPORTED_GATES)
             supported_transpose = gate in (Sdag, Tdag)
@@ -208,11 +194,11 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         gate_name = GATE_MAP.get(gate_type)
         # Daggered gates get special treatment.
         if isinstance(gate, DaggeredGate):
-            gate_name = GATE_MAP[type(gate._gate)] + 'i'  # pylint: disable=protected-access
+            gate_name = f"{GATE_MAP[type(gate._gate)]}i"  # pylint: disable=protected-access
 
         # Unable to determine a gate mapping here, so raise out.
         if gate_name is None:
-            raise InvalidCommandError('Invalid command: ' + str(cmd))
+            raise InvalidCommandError(f"Invalid command: {str(cmd)}")
 
         # Now make sure there are no existing measurements on qubits involved
         #   in this operation.
@@ -230,7 +216,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             if len(already_measured) > 0:
                 err = (
                     'Mid-circuit measurement is not supported. '
-                    'The following qubits have already been measured: {}.'.format(list(already_measured))
+                    f'The following qubits have already been measured: {list(already_measured)}.'
                 )
                 raise MidCircuitMeasurementError(err)
 
@@ -283,7 +269,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             raise RuntimeError("Please, run the circuit first!")
 
         probability_dict = {}
-        for state in self._probabilities:
+        for state, probability in self._probabilities.items():
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
                 try:
@@ -291,7 +277,6 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 except ValueError:
                     continue
                 mapped_state[i] = state[meas_idx]
-            probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             probability_dict[mapped_state] = probability_dict.get(mapped_state, 0) + probability
         return probability_dict
@@ -332,7 +317,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 verbose=self._verbose,
             )
             if res is None:
-                raise RuntimeError("Failed to retrieve job with id: '{}'!".format(self._retrieve_execution))
+                raise RuntimeError(f"Failed to retrieve job with id: '{self._retrieve_execution}'!")
             self._measured_ids = measured_ids = res['meas_qubit_ids']
 
         # Determine random outcome from probable states.
@@ -353,7 +338,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 star = "*"
             self._probabilities[state] = probability
             if self._verbose and probability > 0:  # pragma: no cover
-                print(state + " with p = " + str(probability) + star)
+                print(f"{state} with p = {probability}{star}")
 
         # Register measurement results
         for idx, qubit_id in enumerate(measured_ids):

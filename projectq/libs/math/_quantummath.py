@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -316,7 +315,7 @@ def quantum_division(eng, dividend, remainder, divisor):
     Quantum Restoring Integer Division from:
     https://arxiv.org/pdf/1609.01241.pdf.
     """
-    # The circuit consits of three parts
+    # The circuit consists of three parts
     # i) leftshift
     # ii) subtraction
     # iii) conditional add operation.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -222,14 +221,10 @@ def test_command_interchangeable_qubit_indices(main_engine):
     qubit5 = Qureg([Qubit(main_engine, 5)])
     input_tuple = (qubit4, qubit5, qubit3, qubit2, qubit1, qubit0)
     cmd = _command.Command(main_engine, gate, input_tuple)
-    assert (
-        cmd.interchangeable_qubit_indices
-        == [
-            [0, 4, 5],
-            [1, 2],
-        ]
-        or cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]]
-    )
+    assert cmd.interchangeable_qubit_indices == [
+        [0, 4, 5],
+        [1, 2],
+    ] or cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]]
 
 
 @pytest.mark.parametrize(
@@ -237,7 +232,7 @@ def test_command_interchangeable_qubit_indices(main_engine):
     [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
     ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'],
 )
-def test_commmand_add_control_qubits_one(main_engine, state):
+def test_command_add_control_qubits_one(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
@@ -265,7 +260,7 @@ def test_commmand_add_control_qubits_one(main_engine, state):
         'CtrlAll.Zero',
     ],
 )
-def test_commmand_add_control_qubits_two(main_engine, state):
+def test_command_add_control_qubits_two(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])
@@ -273,7 +268,7 @@ def test_commmand_add_control_qubits_two(main_engine, state):
     cmd = _command.Command(main_engine, Rx(0.5), (qubit0,), qubit1)
     cmd.add_control_qubits(qubit2 + qubit3, state)
     assert cmd.control_qubits[0].id == 1
-    assert cmd.control_state == '1' + canonical_ctrl_state(state, 2)
+    assert cmd.control_state == f"1{canonical_ctrl_state(state, 2)}"
 
 
 def test_command_all_qubits(main_engine):
@@ -364,8 +359,8 @@ def test_command_to_string(main_engine):
     cmd.add_control_qubits(ctrl_qubit)
     cmd2 = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
 
-    assert cmd.to_string(symbols=True) == u"CRx(0.5π) | ( Qureg[1], Qureg[0] )"
-    assert cmd2.to_string(symbols=True) == u"Rx(0.5π) | Qureg[0]"
+    assert cmd.to_string(symbols=True) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
+    assert cmd2.to_string(symbols=True) == "Rx(0.5π) | Qureg[0]"
     if sys.version_info.major == 3:
         assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
         assert cmd2.to_string(symbols=False) == "Rx(1.570796326795) | Qureg[0]"

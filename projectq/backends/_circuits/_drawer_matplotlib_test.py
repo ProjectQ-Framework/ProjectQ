@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +26,22 @@ from . import _drawer_matplotlib as _drawer
 from ._drawer_matplotlib import CircuitDrawerMatplotlib
 
 
+class MockInputFunction:
+    def __init__(self, return_value=None):
+        self.return_value = return_value
+        self._orig_input_fn = __builtins__['input']
+
+    def _mock_input_fn(self, prompt):
+        print(prompt + str(self.return_value))
+        return self.return_value
+
+    def __enter__(self):
+        __builtins__['input'] = self._mock_input_fn
+
+    def __exit__(self, type, value, traceback):
+        __builtins__['input'] = self._orig_input_fn
+
+
 def test_drawer_measurement():
     drawer = CircuitDrawerMatplotlib(default_measure=0)
     eng = MainEngine(drawer, [])
@@ -44,12 +59,9 @@ def test_drawer_measurement():
     eng = MainEngine(drawer, [])
     qubit = eng.allocate_qubit()
 
-    old_input = _drawer.input
-
-    _drawer.input = lambda x: '1'
-    Measure | qubit
-    assert int(qubit) == 1
-    _drawer.input = old_input
+    with MockInputFunction(return_value='1'):
+        Measure | qubit
+        assert int(qubit) == 1
 
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
@@ -57,7 +69,7 @@ def test_drawer_measurement():
         eng.backend._process(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         self.cmd = cmd
         self.called = True
@@ -112,10 +124,10 @@ class MyGate(BasicGate):
         self.params = args
 
     def __str__(self):
-        param_str = '{}'.format(self.params[0])
+        param_str = f'{self.params[0]}'
         for param in self.params[1:]:
-            param_str += ',{}'.format(param)
-        return str(self.__class__.__name__) + "(" + param_str + ")"
+            param_str += f',{param}'
+        return f"{str(self.__class__.__name__)}({param_str})"
 
 
 def test_drawer_draw():

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ def test_compute_tag():
     tag0 = _compute.ComputeTag()
     tag1 = _compute.ComputeTag()
 
-    class MyTag(object):
+    class MyTag:
         pass
 
     assert not tag0 == MyTag()
@@ -41,7 +40,7 @@ def test_uncompute_tag():
     tag0 = _compute.UncomputeTag()
     tag1 = _compute.UncomputeTag()
 
-    class MyTag(object):
+    class MyTag:
         pass
 
     assert not tag0 == MyTag()
@@ -308,7 +307,7 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[18].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[19].qubits[0][0].id == qubit_id
     assert backend.received_commands[20].qubits[0][0].id == qubit_id
-    # Test that ancilla qubits should have seperate ids
+    # Test that ancilla qubits should have separate ids
     assert ancilla_uncompt_id != ancilla_compt_id
 
     # Do the same thing with CustomUncompute and compare using the

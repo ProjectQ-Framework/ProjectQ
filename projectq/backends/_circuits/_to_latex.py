@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +61,7 @@ def to_latex(circuit, drawing_order=None, draw_gates_in_parallel=True):
     Example:
         .. code-block:: python
 
-            settings['gates']['HGate'] = {'width': .5, 'offset': .15}
+            settings['gates']['HGate'] = {'width': 0.5, 'offset': 0.15}
 
     The default settings can be acquired using the get_default_settings() function, and written using write_settings().
 
@@ -182,27 +181,21 @@ def _header(settings):
     gate_style += "]\n"
 
     gate_style += (
-        "\\tikzstyle{operator}=[basic,minimum size=1.5em]\n"
-        "\\tikzstyle{phase}=[fill=black,shape=circle,"
-        + "minimum size={}".format(settings['control']['size'])
-        + "cm,inner sep=0pt,outer sep=0pt,draw=black"
+        "\\tikzstyle{{operator}}=[basic,minimum size=1.5em]\n"
+        f"\\tikzstyle{{phase}}=[fill=black,shape=circle,minimum size={settings['control']['size']}cm,"
+        "inner sep=0pt,outer sep=0pt,draw=black"
     )
     if settings['control']['shadow']:
         gate_style += ",basicshadow"
     gate_style += (
-        "]\n\\tikzstyle{none}=[inner sep=0pt,outer sep=-.5pt,"
-        "minimum height=0.5cm+1pt]\n"
-        "\\tikzstyle{measure}=[operator,inner sep=0pt,minimum "
-        + "height={}cm, minimum width={}cm]\n".format(
-            settings['gates']['MeasureGate']['height'],
-            settings['gates']['MeasureGate']['width'],
-        )
-        + "\\tikzstyle{xstyle}=[circle,basic,minimum height="
+        "]\n\\tikzstyle{{none}}=[inner sep=0pt,outer sep=-.5pt,minimum height=0.5cm+1pt]\n"
+        "\\tikzstyle{{measure}}=[operator,inner sep=0pt,"
+        f"minimum height={settings['gates']['MeasureGate']['height']}cm,"
+        f"minimum width={settings['gates']['MeasureGate']['width']}cm]\n"
+        "\\tikzstyle{{xstyle}}=[circle,basic,minimum height="
     )
     x_gate_radius = min(settings['gates']['XGate']['height'], settings['gates']['XGate']['width'])
-    gate_style += ("{x_rad}cm,minimum width={x_rad}cm,inner sep=-1pt," "{linestyle}]\n").format(
-        x_rad=x_gate_radius, linestyle=settings['lines']['style']
-    )
+    gate_style += f"{x_gate_radius}cm,minimum width={x_gate_radius}cm,inner sep=-1pt,{settings['lines']['style']}]\n"
     if settings['gate_shadow']:
         gate_style += (
             "\\tikzset{\nshadowed/.style={preaction={transform "
@@ -211,7 +204,7 @@ def _header(settings):
         )
     gate_style += "\\tikzstyle{swapstyle}=["
     gate_style += "inner sep=-1pt, outer sep=-1pt, minimum width=0pt]\n"
-    edge_style = "\\tikzstyle{edgestyle}=[" + settings['lines']['style'] + "]\n"
+    edge_style = f"\\tikzstyle{{edgestyle}}=[{settings['lines']['style']}]\n"
 
     return packages + init + gate_style + edge_style
 
@@ -327,7 +320,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 circuit[_line] = circuit[_line][1:]
 
             all_lines = lines + ctrl_lines
-            pos = max([self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1)])
+            pos = max(self.pos[ll] for ll in range(min(all_lines), max(all_lines) + 1))
             for _line in range(min(all_lines), max(all_lines) + 1):
                 self.pos[_line] = pos + self._gate_pre_offset(gate)
 
@@ -340,7 +333,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 add_str = self._x_gate(lines, ctrl_lines)
                 # and make the target qubit quantum if one of the controls is
                 if not self.is_quantum[lines[0]]:
-                    if sum([self.is_quantum[i] for i in ctrl_lines]) > 0:
+                    if sum(self.is_quantum[i] for i in ctrl_lines) > 0:
                         self.is_quantum[lines[0]] = True
             elif gate == Z and len(ctrl_lines) > 0:
                 add_str = self._cz_gate(lines + ctrl_lines)
@@ -360,32 +353,24 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                     shift1 = 0.36 * height
                     shift2 = 0.1 * width
                     add_str += (
-                        "\n\\node[measure,edgestyle] ({op}) at ({pos}"
-                        ",-{line}) {{}};\n\\draw[edgestyle] ([yshift="
-                        "-{shift1}cm,xshift={shift2}cm]{op}.west) to "
-                        "[out=60,in=180] ([yshift={shift0}cm]{op}."
-                        "center) to [out=0, in=120] ([yshift=-{shift1}"
-                        "cm,xshift=-{shift2}cm]{op}.east);\n"
-                        "\\draw[edgestyle] ([yshift=-{shift1}cm]{op}."
-                        "center) to ([yshift=-{shift2}cm,xshift=-"
-                        "{shift1}cm]{op}.north east);"
-                    ).format(
-                        op=op,
-                        pos=self.pos[_line],
-                        line=_line,
-                        shift0=shift0,
-                        shift1=shift1,
-                        shift2=shift2,
+                        f"\n\\node[measure,edgestyle] ({op}) at ({self.pos[_line]}"
+                        f",-{_line}) {{}};\n\\draw[edgestyle] ([yshift="
+                        f"-{shift1}cm,xshift={shift2}cm]{op}.west) to "
+                        f"[out=60,in=180] ([yshift={shift0}cm]{op}."
+                        f"center) to [out=0, in=120] ([yshift=-{shift1}"
+                        f"cm,xshift=-{shift2}cm]{op}.east);\n"
+                        f"\\draw[edgestyle] ([yshift=-{shift1}cm]{op}."
+                        f"center) to ([yshift=-{shift2}cm,xshift=-"
+                        f"{shift1}cm]{op}.north east);"
                     )
                     self.op_count[_line] += 1
                     self.pos[_line] += self._gate_width(gate) + self._gate_offset(gate)
                     self.is_quantum[_line] = False
             elif gate == Allocate:
                 # draw 'begin line'
-                add_str = "\n\\node[none] ({}) at ({},-{}) {{$\\Ket{{0}}{}$}};"
                 id_str = ""
                 if self.settings['gates']['AllocateQubitGate']['draw_id']:
-                    id_str = "^{{\\textcolor{{red}}{{{}}}}}".format(cmds[i].id)
+                    id_str = f"^{{\\textcolor{{red}}{{{cmds[i].id}}}}}"
                 xpos = self.pos[line]
                 try:
                     if self.settings['gates']['AllocateQubitGate']['allocate_at_zero']:
@@ -397,18 +382,15 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                     xpos + self._gate_offset(gate) + self._gate_width(gate),
                     self.pos[line],
                 )
-                add_str = add_str.format(self._op(line), xpos, line, id_str)
+                add_str = f"\n\\node[none] ({self._op(line)}) at ({xpos},-{line}) {{$\\Ket{{0}}{id_str}$}};"
                 self.op_count[line] += 1
                 self.is_quantum[line] = self.settings['lines']['init_quantum']
             elif gate == Deallocate:
                 # draw 'end of line'
                 op = self._op(line)
-                add_str = "\n\\node[none] ({}) at ({},-{}) {{}};"
-                add_str = add_str.format(op, self.pos[line], line)
-                yshift = str(self._gate_height(gate)) + "cm]"
-                add_str += (
-                    "\n\\draw ([yshift={yshift}{op}.center) edge [edgestyle] ([yshift=-{yshift}{op}.center);"
-                ).format(op=op, yshift=yshift)
+                add_str = f"\n\\node[none] ({op}) at ({self.pos[line]},-{line}) {{}};"
+                yshift = f"{str(self._gate_height(gate))}cm]"
+                add_str += f"\n\\draw ([yshift={yshift}{op}.center) edge [edgestyle] ([yshift=-{yshift}{op}.center);"
                 self.op_count[line] += 1
                 self.pos[line] += self._gate_width(gate) + self._gate_offset(gate)
             else:
@@ -423,7 +405,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 tikz_code.append(connections)
 
             if not draw_gates_in_parallel:
-                for _line in range(len(self.pos)):
+                for _line, _ in enumerate(self.pos):
                     if _line != line:
                         self.pos[_line] = self.pos[line]
 
@@ -449,46 +431,30 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            width = "{}cm".format(0.5 * gate_width)
-            blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
-            trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
-            tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
-            brc = "[xshift={w},yshift=-{w}]{op}.center".format(w=width, op=op)
+            width = f"{0.5 * gate_width}cm"
+            blc = f"[xshift=-{width},yshift=-{width}]{op}.center"
+            trc = f"[xshift={width},yshift={width}]{op}.center"
+            tlc = f"[xshift=-{width},yshift={width}]{op}.center"
+            brc = f"[xshift={width},yshift=-{width}]{op}.center"
             swap_style = "swapstyle,edgestyle"
             if self.settings['gate_shadow']:
                 swap_style += ",shadowed"
             gate_str += (
-                "\n\\node[swapstyle] ({op}) at ({pos},-{line}) {{}};"
-                "\n\\draw[{swap_style}] ({s1})--({s2});\n"
-                "\\draw[{swap_style}] ({s3})--({s4});"
-            ).format(
-                op=op,
-                s1=blc,
-                s2=trc,
-                s3=tlc,
-                s4=brc,
-                line=line,
-                pos=self.pos[line],
-                swap_style=swap_style,
+                f"\n\\node[swapstyle] ({op}) at ({self.pos[line]},-{line}) {{}};"
+                f"\n\\draw[{swap_style}] ({blc})--({trc});\n"
+                f"\\draw[{swap_style}] ({tlc})--({brc});"
             )
-
         # add a circled 1/2
         midpoint = (lines[0] + lines[1]) / 2.0
         pos = self.pos[lines[0]]
-        op_mid = "line{}_gate{}".format('{}-{}'.format(*lines), self.op_count[lines[0]])
-        gate_str += (
-            "\n\\node[xstyle] ({op}) at ({pos},-{line})\
-                {{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"
-        ).format(
-            op=op_mid,
-            line=midpoint,
-            pos=pos,
-            dagger='^{{\\dagger}}' if daggered else '',
-        )
+        # pylint: disable=consider-using-f-string
+        op_mid = f"line{'{}-{}'.format(*lines)}_gate{self.op_count[lines[0]]}"
+        dagger = '^{{\\dagger}}' if daggered else ''
+        gate_str += f"\n\\node[xstyle] ({op}) at ({pos},-{midpoint}){{\\scriptsize $\\frac{{1}}{{2}}{dagger}$}};"
 
         # add two vertical lines to connect circled 1/2
-        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(self._op(lines[0]), op_mid)
-        gate_str += "\n\\draw ({}) edge[edgestyle] ({});".format(op_mid, self._op(lines[1]))
+        gate_str += f"\n\\draw ({self._op(lines[0])}) edge[edgestyle] ({op_mid});"
+        gate_str += f"\n\\draw ({op_mid}) edge[edgestyle] ({self._op(lines[1])});"
 
         if len(ctrl_lines) > 0:
             for ctrl in ctrl_lines:
@@ -526,27 +492,18 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         gate_str = ""
         for line in lines:
             op = self._op(line)
-            width = "{}cm".format(0.5 * gate_width)
-            blc = "[xshift=-{w},yshift=-{w}]{op}.center".format(w=width, op=op)
-            trc = "[xshift={w},yshift={w}]{op}.center".format(w=width, op=op)
-            tlc = "[xshift=-{w},yshift={w}]{op}.center".format(w=width, op=op)
-            brc = "[xshift={w},yshift=-{w}]{op}.center".format(w=width, op=op)
+            width = f"{0.5 * gate_width}cm"
+            blc = f"[xshift=-{width},yshift=-{width}]{op}.center"
+            trc = f"[xshift={width},yshift={width}]{op}.center"
+            tlc = f"[xshift=-{width},yshift={width}]{op}.center"
+            brc = f"[xshift={width},yshift=-{width}]{op}.center"
             swap_style = "swapstyle,edgestyle"
             if self.settings['gate_shadow']:
                 swap_style += ",shadowed"
             gate_str += (
-                "\n\\node[swapstyle] ({op}) at ({pos},-{line}) {{}};"
-                "\n\\draw[{swap_style}] ({s1})--({s2});\n"
-                "\\draw[{swap_style}] ({s3})--({s4});"
-            ).format(
-                op=op,
-                s1=blc,
-                s2=trc,
-                s3=tlc,
-                s4=brc,
-                line=line,
-                pos=self.pos[line],
-                swap_style=swap_style,
+                f"\n\\node[swapstyle] ({op}) at ({self.pos[line]},-{line}) {{}};"
+                f"\n\\draw[{swap_style}] ({blc})--({trc});\n"
+                f"\\draw[{swap_style}] ({tlc})--({brc});"
             )
         gate_str += self._line(lines[0], lines[1])
 
@@ -584,10 +541,10 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         gate_width = self._gate_width(X)
         op = self._op(line)
         gate_str = (
-            "\n\\node[xstyle] ({op}) at ({pos},-{line}) {{}};\n\\draw"
-            "[edgestyle] ({op}.north)--({op}.south);\n\\draw"
-            "[edgestyle] ({op}.west)--({op}.east);"
-        ).format(op=op, line=line, pos=self.pos[line])
+            f"\n\\node[xstyle] ({op}) at ({self.pos[line]},-{line}) {{}};\n\\draw"
+            f"[edgestyle] ({op}.north)--({op}.south);\n\\draw"
+            f"[edgestyle] ({op}.west)--({op}.east);"
+        )
 
         if len(ctrl_lines) > 0:
             for ctrl in ctrl_lines:
@@ -705,8 +662,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
             tex_str (string): Latex string representing a control circle at the
                 given position.
         """
-        phase_str = "\n\\node[phase] ({}) at ({},-{}) {{}};"
-        return phase_str.format(self._op(line), pos, line)
+        return f"\n\\node[phase] ({self._op(line)}) at ({pos},-{line}) {{}};"
 
     def _op(self, line, op=None, offset=0):
         """
@@ -722,7 +678,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         """
         if op is None:
             op = self.op_count[line]
-        return "line{}_gate{}".format(line, op + offset)
+        return f"line{line}_gate{op + offset}"
 
     def _line(self, point1, point2, double=False, line=None):  # pylint: disable=too-many-locals,unused-argument
         """
@@ -755,7 +711,7 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
             shift = "yshift={}cm"
 
         if quantum:
-            return "\n\\draw ({}) edge[edgestyle] ({});".format(op1, op2)
+            return f"\n\\draw ({op1}) edge[edgestyle] ({op2});"
 
         if point2 > point1:
             loc1, loc2 = loc2, loc1
@@ -799,8 +755,9 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
         node_str = "\n\\node[none] ({}) at ({},-{}) {{}};"
         for line in lines:
             node1 = node_str.format(self._op(line), pos, line)
-            node2 = ("\n\\node[none,minimum height={}cm,outer sep=0] ({}) at ({},-{}) {{}};").format(
-                gate_height, self._op(line, offset=1), pos + gate_width / 2.0, line
+            node2 = (
+                "\n\\node[none,minimum height={gate_height}cm,outer sep=0] ({self._op(line, offset=1)}) "
+                f"at ({pos + gate_width / 2.0},-{line}) {{}};"
             )
             node3 = node_str.format(self._op(line, offset=2), pos + gate_width, line)
             tex_str += node1 + node2 + node3
@@ -808,15 +765,9 @@ class _Circ2Tikz:  # pylint: disable=too-few-public-methods
                 tex_str += self._line(self.op_count[line] - 1, self.op_count[line], line=line)
 
         tex_str += (
-            "\n\\draw[operator,edgestyle,outer sep={width}cm] (["
-            "yshift={half_height}cm]{op1}) rectangle ([yshift=-"
-            "{half_height}cm]{op2}) node[pos=.5] {{{name}}};"
-        ).format(
-            width=gate_width,
-            op1=self._op(imin),
-            op2=self._op(imax, offset=2),
-            half_height=0.5 * gate_height,
-            name=name,
+            f"\n\\draw[operator,edgestyle,outer sep={gate_width}cm] (["
+            f"yshift={0.5 * gate_height}cm]{self._op(imin)}) rectangle ([yshift=-"
+            f"{0.5 * gate_height}cm]{self._op(imax, offset=2)}) node[pos=.5] {{{name}}};"
         )
 
         for line in lines:

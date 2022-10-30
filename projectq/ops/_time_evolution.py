@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +33,7 @@ class TimeEvolution(BasicGate):
     This gate is the unitary time evolution propagator:
     exp(-i * H * t),
     where H is the Hamiltonian of the system and t is the time. Note that -i
-    factor is stored implicitely.
+    factor is stored implicitly.
 
     Example:
         .. code-block:: python
@@ -202,4 +201,4 @@ class TimeEvolution(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "exp({0} * ({1}))".format(-1j * self.time, self.hamiltonian)
+        return f"exp({-1j * self.time} * ({self.hamiltonian}))"

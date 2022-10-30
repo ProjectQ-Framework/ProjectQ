@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ Gates overload the | operator to allow the following syntax:
     Gate | qubit
     Gate | (qubit,)
 
-This means that for more than one quantum argument (right side of | ), a tuple needs to be made explicitely, while for
+This means that for more than one quantum argument (right side of | ), a tuple needs to be made explicitly, while for
 one argument it is optional.
 """
 
@@ -43,7 +42,7 @@ from projectq.types import BasicQubit
 from ._command import Command, apply_command, Commutability
 
 ANGLE_PRECISION = 12
-ANGLE_TOLERANCE = 10 ** -ANGLE_PRECISION
+ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
 RTOL = 1e-10
 ATOL = 1e-12
 
@@ -98,30 +97,30 @@ class BasicGate(metaclass=BasicGateMeta):
 
             .. code-block:: python
 
-                ExampleGate | (a,b,c,d,e)
+                ExampleGate | (a, b, c, d, e)
 
             where a and b are interchangeable. Then, call this function as follows:
 
             .. code-block:: python
 
-                self.set_interchangeable_qubit_indices([[0,1]])
+                self.set_interchangeable_qubit_indices([[0, 1]])
 
             As another example, consider
 
             .. code-block:: python
 
-                ExampleGate2 | (a,b,c,d,e)
+                ExampleGate2 | (a, b, c, d, e)
 
             where a and b are interchangeable and, in addition, c, d, and e are interchangeable among
             themselves. Then, call this function as
 
             .. code-block:: python
 
-                self.set_interchangeable_qubit_indices([[0,1],[2,3,4]])
+                self.set_interchangeable_qubit_indices([[0, 1], [2, 3, 4]])
         """
         self.interchangeable_qubit_indices = []
 
-    def get_inverse(self):  # pylint: disable=no-self-use
+    def get_inverse(self):
         """
         Return the inverse gate.
 
@@ -132,7 +131,7 @@ class BasicGate(metaclass=BasicGateMeta):
         """
         raise NotInvertible("BasicGate: No get_inverse() implemented.")
 
-    def get_merged(self, other):  # pylint: disable=no-self-use
+    def get_merged(self, other):
         """
         Return this gate merged with another gate.
 
@@ -193,7 +192,7 @@ class BasicGate(metaclass=BasicGateMeta):
         qubits = list(qubits)
 
         for i, qubit in enumerate(qubits):
-            if isinstance(qubits[i], BasicQubit):
+            if isinstance(qubit, BasicQubit):
                 qubits[i] = [qubit]
 
         return tuple(qubits)
@@ -265,7 +264,7 @@ class BasicGate(metaclass=BasicGateMeta):
         """Compute the hash of the object."""
         return hash(str(self))
 
-    def is_identity(self):  # pylint: disable=no-self-use
+    def is_identity(self):
         """Return True if the gate is an identity gate. In this base class, always returns False."""
         return False
 
@@ -327,7 +326,7 @@ class MatrixGate(BasicGate):
         """
         Equal operator.
 
-        Return True only if both gates have a matrix respresentation and the matrices are (approximately)
+        Return True only if both gates have a matrix representation and the matrices are (approximately)
         equal. Otherwise return False.
         """
         if not hasattr(other, 'matrix'):
@@ -342,7 +341,7 @@ class MatrixGate(BasicGate):
 
     def __str__(self):
         """Return a string representation of the object."""
-        return "MatrixGate(" + str(self.matrix.tolist()) + ")"
+        return f"MatrixGate({str(self.matrix.tolist())})"
 
     def __hash__(self):
         """Compute the hash of the object."""
@@ -414,9 +413,9 @@ class BasicRotationGate(BasicGate):
                             angle written in radian otherwise.
         """
         if symbols:
-            angle = "(" + str(round(self.angle / math.pi, 3)) + unicodedata.lookup("GREEK SMALL LETTER PI") + ")"
+            angle = f"({str(round(self.angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
         else:
-            angle = "(" + str(self.angle) + ")"
+            angle = f"({str(self.angle)})"
         return str(self.__class__.__name__) + angle
 
     def tex_str(self):
@@ -429,7 +428,7 @@ class BasicRotationGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(round(self.angle / math.pi, 3)) + "\\pi}$"
+        return f"{str(self.__class__.__name__)}$_{{{str(round(self.angle / math.pi, 3))}\\pi}}$"
 
     def get_inverse(self):
         """Return the inverse of this rotation gate (negate the angle, return new object)."""
@@ -468,7 +467,7 @@ class BasicRotationGate(BasicGate):
 
     def is_identity(self):
         """Return True if the gate is equivalent to an Identity gate."""
-        return self.angle == 0.0 or self.angle == 4 * math.pi
+        return self.angle in (0.0, 4 * math.pi)
 
 
 class BasicPhaseGate(BasicGate):
@@ -503,7 +502,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]([ANGLE])
         """
-        return str(self.__class__.__name__) + "(" + str(self.angle) + ")"
+        return f"{str(self.__class__.__name__)}({str(self.angle)})"
 
     def tex_str(self):
         """
@@ -515,7 +514,7 @@ class BasicPhaseGate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$_{" + str(self.angle) + "}$"
+        return f"{str(self.__class__.__name__)}$_{{{str(self.angle)}}}$"
 
     def get_inverse(self):
         """Return the inverse of this rotation gate (negate the angle, return new object)."""
@@ -597,7 +596,7 @@ class BasicMathGate(BasicGate):
     .. code-block:: python
 
         def add(x):
-            return (x+a,)
+            return (x + a,)
 
     upon initialization. More generally, the function takes integers as parameters and returns a tuple / list of
     outputs, each entry corresponding to the function input. As an example, consider out-of-place multiplication,
@@ -606,8 +605,8 @@ class BasicMathGate(BasicGate):
 
     .. code-block:: python
 
-        def multiply(a,b,c)
-            return (a,b,c+a*b)
+        def multiply(a, b, c):
+            return (a, b, c + a * b)
     """
 
     def __init__(self, math_fun):
@@ -621,8 +620,10 @@ class BasicMathGate(BasicGate):
         Example:
             .. code-block:: python
 
-                def add(a,b):
-                    return (a,a+b)
+                def add(a, b):
+                    return (a, a + b)
+
+
                 super().__init__(add)
 
         If the gate acts on, e.g., fixed point numbers, the number of bits per register is also required in order to
@@ -639,9 +640,11 @@ class BasicMathGate(BasicGate):
 
                 def get_math_function(self, qubits):
                     n = len(qubits[0])
-                    scal = 2.**n
+                    scal = 2.0**n
+
                     def math_fun(a):
                         return (int(scal * (math.sin(math.pi * a / scal))),)
+
                     return math_fun
 
         """

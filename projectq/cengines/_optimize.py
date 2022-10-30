@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -502,7 +501,8 @@ class LocalOptimizer(BasicEngine):
 
     def _check_and_send(self):
         """Check whether a qubit pipeline must be sent on and, if so, optimize the pipeline and then send it on."""
-        for i in self._l:
+        # NB: self.optimize(i) modifies self._l
+        for i in self._l:  # pylint: disable=consider-using-dict-items
             if (
                 len(self._l[i]) >= self._cache_size
                 or len(self._l[i]) > 0
@@ -514,9 +514,9 @@ class LocalOptimizer(BasicEngine):
                 elif len(self._l[i]) > 0 and isinstance(self._l[i][-1].gate, FastForwardingGate):
                     self._send_qubit_pipeline(i, len(self._l[i]))
         new_dict = {}
-        for idx in self._l:
-            if len(self._l[idx]) > 0:
-                new_dict[idx] = self._l[idx]
+        for idx, _l in self._l.items():
+            if len(_l) > 0:
+                new_dict[idx] = _l
         self._l = new_dict
 
     def _cache_cmd(self, cmd):
@@ -541,15 +541,16 @@ class LocalOptimizer(BasicEngine):
         """
         for cmd in command_list:
             if cmd.gate == FlushGate():  # flush gate --> optimize and flush
-                for idx in self._l:
+                # NB: self.optimize(i) modifies self._l
+                for idx in self._l:  # pylint: disable=consider-using-dict-items
                     self._optimize(idx)
                     self._send_qubit_pipeline(idx, len(self._l[idx]))
                 new_dict = {}
-                for idx in self._l:
-                    if len(self._l[idx]) > 0:  # pragma: no cover
-                        new_dict[idx] = self._l[idx]
+                for idx, _l in self._l.items():
+                    if len(_l) > 0:  # pragma: no cover
+                        new_dict[idx] = _l
                 self._l = new_dict
-                if self._l != {}:  # pragma: no cover
+                if self._l:  # pragma: no cover
                     raise RuntimeError('Internal compiler error: qubits remaining in LocalOptimizer after a flush!')
                 self.send([cmd])
             else:

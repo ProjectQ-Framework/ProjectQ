@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +14,13 @@
 
 """ProjectQ module containing all compiler engines."""
 
+from contextlib import contextmanager
+
 from ._basics import BasicEngine, ForwarderEngine, LastEngineException  # isort:skip
 from ._cmdmodifier import CommandModifier  # isort:skip
 from ._basicmapper import BasicMapperEngine  # isort:skip
+
+# isort: split
 
 from ._ibm5qubitmapper import IBM5QubitMapper
 from ._linearmapper import LinearMapper, return_swap_depth
@@ -34,3 +37,22 @@ from ._swapandcnotflipper import SwapAndCNOTFlipper
 from ._tagremover import TagRemover
 from ._testengine import CompareEngine, DummyEngine
 from ._twodmapper import GridMapper
+
+
+@contextmanager
+def flushing(engine):
+    """
+    Context manager to flush the given engine at the end of the 'with' context block.
+
+    Example:
+        with flushing(MainEngine()) as eng:
+            qubit = eng.allocate_qubit()
+            ...
+
+    Calling 'eng.flush()' is no longer needed because the engine will be flushed at the
+    end of the 'with' block even if an exception has been raised within that block.
+    """
+    try:
+        yield engine
+    finally:
+        engine.flush()

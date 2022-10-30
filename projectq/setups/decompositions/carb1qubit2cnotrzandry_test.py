@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,12 +98,9 @@ def _decomp_gates(eng, cmd):
     return False
 
 
-# yapf: disable
-@pytest.mark.parametrize("gate_matrix", [[[1, 0], [0, -1]],
-                                         [[0, -1j], [1j, 0]]])
+@pytest.mark.parametrize("gate_matrix", [[[1, 0], [0, -1]], [[0, -1j], [1j, 0]]])
 def test_recognize_v(gate_matrix):
     assert carb1q._recognize_v(gate_matrix)
-# yapf: enable
 
 
 @pytest.mark.parametrize("gate_matrix", arb1q_t.create_test_matrices())

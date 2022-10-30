@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +89,8 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
             .. code-block:: python
 
                 from projectq import MainEngine
-                eng = MainEngine() # uses default engine_list and the Simulator
+
+                eng = MainEngine()  # uses default engine_list and the Simulator
 
         Instead of the default `engine_list` one can use, e.g., one of the IBM
         setups which defines a custom `engine_list` useful for one of the IBM
@@ -101,6 +101,7 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
                 import projectq.setups.ibm as ibm_setup
                 from projectq import MainEngine
+
                 eng = MainEngine(engine_list=ibm_setup.get_engine_list())
                 # eng uses the default Simulator backend
 
@@ -109,14 +110,17 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         Example:
             .. code-block:: python
 
-                from projectq.cengines import (TagRemover, AutoReplacer,
-                                               LocalOptimizer,
-                                               DecompositionRuleSet)
+                from projectq.cengines import (
+                    TagRemover,
+                    AutoReplacer,
+                    LocalOptimizer,
+                    DecompositionRuleSet,
+                )
                 from projectq.backends import Simulator
                 from projectq import MainEngine
+
                 rule_set = DecompositionRuleSet()
-                engines = [AutoReplacer(rule_set), TagRemover(),
-                           LocalOptimizer(3)]
+                engines = [AutoReplacer(rule_set), TagRemover(), LocalOptimizer(3)]
                 eng = MainEngine(Simulator(), engines)
         """
         super().__init__()
@@ -250,8 +254,9 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
 
                 from projectq.ops import H, Measure
                 from projectq import MainEngine
+
                 eng = MainEngine()
-                qubit = eng.allocate_qubit() # quantum register of size 1
+                qubit = eng.allocate_qubit()  # quantum register of size 1
                 H | qubit
                 Measure | qubit
                 eng.get_measurement_result(qubit[0]) == int(qubit)
@@ -316,6 +321,6 @@ class MainEngine(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         if deallocate_qubits:
             while [qb for qb in self.active_qubits if qb is not None]:
-                qb = self.active_qubits.pop()
-                qb.__del__()
+                qb = self.active_qubits.pop()  # noqa: F841
+                qb.__del__()  # pylint: disable=unnecessary-dunder-call
         self.receive([Command(self, FlushGate(), ([WeakQubitRef(self, -1)],))])

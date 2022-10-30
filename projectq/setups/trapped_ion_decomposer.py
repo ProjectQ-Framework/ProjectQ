@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +34,7 @@ from projectq.ops import Rx, Rxx, Ry
 from projectq.setups import restrictedgateset
 
 # ------------------chooser_Ry_reducer-------------------#
-# If the qubit is not in the prev_Ry_sign dictionary, then no decomposition
-# occured
+# If the qubit is not in the prev_Ry_sign dictionary, then no decomposition occurred
 # If the value is:
 #  -1 then the last gate applied (during a decomposition!) was Ry(-math.pi/2)
 #   1 then the last gate applied (during a decomposition!) was Ry(+math.pi/2)
@@ -118,8 +116,7 @@ def chooser_Ry_reducer(cmd, decomposition_list):  # pylint: disable=invalid-name
         local_prev_Ry_sign[qubit_id] = 1
         return decomp_rule['P']
 
-    # No decomposition chosen, so use the first decompostion in the list
-    # like the default function
+    # No decomposition chosen, so use the first decomposition in the list like the default function
     return decomposition_list[0]
 
 

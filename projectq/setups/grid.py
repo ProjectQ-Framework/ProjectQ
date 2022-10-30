@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2018 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +35,7 @@ def get_engine_list(num_rows, num_columns, one_qubit_gates="any", two_qubit_gate
         If you choose a new gate set for which the compiler does not yet have standard rules, it raises an
         `NoGateDecompositionError` or a `RuntimeError: maximum recursion depth exceeded...`. Also note that even the
         gate sets which work might not yet be optimized. So make sure to double check and potentially extend the
-        decomposition rules.  This implemention currently requires that the one qubit gates must contain Rz and at
+        decomposition rules. This implementation currently requires that the one qubit gates must contain Rz and at
         least one of {Ry(best), Rx, H} and the two qubit gate must contain CNOT (recommended) or CZ.
 
     Note:

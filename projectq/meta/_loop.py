@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,7 @@ Example:
 
         with Loop(eng, 4):
             H | qb
-        Rz(M_PI/3.) | qb
+        Rz(M_PI / 3.0) | qb
 """
 
 from copy import deepcopy
@@ -89,7 +88,7 @@ class LoopEngine(BasicEngine):
         error_message = (
             "\n Error. Qubits have been allocated in with "
             "Loop(eng, num) context,\n which have not "
-            "explicitely been deallocated in the Loop context.\n"
+            "explicitly been deallocated in the Loop context.\n"
             "Correct usage:\nwith Loop(eng, 5):\n"
             "    qubit = eng.allocate_qubit()\n"
             "    ...\n"
@@ -191,6 +190,7 @@ class Loop:
 
             with Loop(eng, 4):
                 # [quantum gates to be executed 4 times]
+                pass
 
     Warning:
         If the code in the loop contains allocation of qubits, those qubits have to be deleted prior to exiting the
@@ -202,7 +202,7 @@ class Loop:
 
             with Loop(eng, 4):
                 qb = eng.allocate_qubit()
-                H | qb # qb is still available!!!
+                H | qb  # qb is still available!!!
 
         The **correct way** of handling qubit (de-)allocation is as follows:
 
@@ -210,8 +210,8 @@ class Loop:
 
             with Loop(eng, 4):
                 qb = eng.allocate_qubit()
-                ...
-                del qb # sends deallocate gate
+                # ...
+                del qb  # sends deallocate gate
     """
 
     def __init__(self, engine, num):
@@ -227,7 +227,7 @@ class Loop:
 
                 with Loop(eng, 4):
                     H | qb
-                    Rz(M_PI/3.) | qb
+                    Rz(M_PI / 3.0) | qb
         Raises:
             TypeError: If number of iterations (num) is not an integer
             ValueError: If number of iterations (num) is not >= 0

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -138,7 +137,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
 
         Depending on the device chosen, the operations available differ.
 
-        The operations avialable for the Aspen-8 Rigetti device are:
+        The operations available for the Aspen-8 Rigetti device are:
         - "cz" = Control Z, "xy" = Not available in ProjectQ, "ccnot" = Toffoli (ie. controlled CNOT), "cnot" =
           Control X, "cphaseshift" = Control R, "cphaseshift00" "cphaseshift01" "cphaseshift10" = Not available
           in ProjectQ,
@@ -172,49 +171,43 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             if get_control_count(cmd) == 1:
                 return isinstance(gate, (R, ZGate, XGate, SwapGate))
             if get_control_count(cmd) == 0:
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            R,
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        R,
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
 
         if self.device == 'IonQ Device':
             if get_control_count(cmd) == 1:
                 return isinstance(gate, XGate)
             if get_control_count(cmd) == 0:
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SqrtXGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SqrtXGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
 
         if self.device == 'SV1':
             if get_control_count(cmd) == 2:
@@ -224,26 +217,23 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             if get_control_count(cmd) == 0:
                 # TODO: add MatrixGate to cover the unitary operation
                 # TODO: Missing XY gate in ProjectQ
-                return (
-                    isinstance(
-                        gate,
-                        (
-                            R,
-                            Rx,
-                            Ry,
-                            Rz,
-                            XGate,
-                            YGate,
-                            ZGate,
-                            HGate,
-                            SGate,
-                            TGate,
-                            SqrtXGate,
-                            SwapGate,
-                        ),
-                    )
-                    or gate in (Sdag, Tdag)
-                )
+                return isinstance(
+                    gate,
+                    (
+                        R,
+                        Rx,
+                        Ry,
+                        Rz,
+                        XGate,
+                        YGate,
+                        ZGate,
+                        HGate,
+                        SGate,
+                        TGate,
+                        SqrtXGate,
+                        SwapGate,
+                    ),
+                ) or gate in (Sdag, Tdag)
         return False
 
     def _reset(self):
@@ -308,13 +298,13 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             json_cmd['angle'] = gate.angle
 
         if isinstance(gate, DaggeredGate):
-            json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type] + 'i'
+            json_cmd['type'] = f"{'c' * num_controls + self._gationary[gate_type]}i"
         elif isinstance(gate, (XGate)) and num_controls > 0:
-            json_cmd['type'] = 'c' * (num_controls - 1) + 'cnot'
+            json_cmd['type'] = f"{'c' * (num_controls - 1)}cnot"
         else:
             json_cmd['type'] = 'c' * num_controls + self._gationary[gate_type]
 
-        self._circuit += json.dumps(json_cmd) + ", "
+        self._circuit += f"{json.dumps(json_cmd)}, "
 
         # TODO: Add unitary for the SV1 simulator as MatrixGate
 
@@ -329,10 +319,8 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             mapping = self.main_engine.mapper.current_mapping
             if qb_id not in mapping:
                 raise RuntimeError(
-                    (
-                        "Unknown qubit id {} in current mapping. Please make sure eng.flush() was called and that the"
-                        "qubit was eliminated during optimization."
-                    ).format(qb_id)
+                    f"Unknown qubit id {qb_id} in current mapping. "
+                    "Please make sure eng.flush() was called and that the qubit was eliminated during optimization."
                 )
             return mapping[qb_id]
         return qb_id
@@ -361,7 +349,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             Only call this function after the circuit has been executed!
 
             This is maintained in the same form of IBM and AQT for compatibility but in AWSBraket, a previously
-            executed circuit will store the results in the S3 bucket and it can be retreived at any point in time
+            executed circuit will store the results in the S3 bucket and it can be retrieved at any point in time
             thereafter.
             No circuit execution should be required at the time of retrieving the results and probabilities if the
             circuit has already been executed.
@@ -372,13 +360,12 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
             raise RuntimeError("Please, run the circuit first!")
 
         probability_dict = {}
-        for state in self._probabilities:
+        for state, probability in self._probabilities.items():
             mapped_state = ['0'] * len(qureg)
             for i, qubit in enumerate(qureg):
                 if self._logical_to_physical(qubit.id) >= len(state):  # pragma: no cover
-                    raise IndexError('Physical ID {} > length of internal probabilities array'.format(qubit.id))
+                    raise IndexError(f'Physical ID {qubit.id} > length of internal probabilities array')
                 mapped_state[i] = state[self._logical_to_physical(qubit.id)]
-            probability = self._probabilities[state]
             mapped_state = "".join(mapped_state)
             if mapped_state not in probability_dict:
                 probability_dict[mapped_state] = probability
@@ -447,7 +434,7 @@ class AWSBraketBackend(BasicEngine):  # pylint: disable=too-many-instance-attrib
                 star = "*"
             self._probabilities[state] = probability
             if self._verbose and probability > 0:
-                print(state + " with p = " + str(probability) + star)
+                print(f"{state} with p = {probability}{star}")
 
         # register measurement result
         for qubit_id in self._measured_ids:

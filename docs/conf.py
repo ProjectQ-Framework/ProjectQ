@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # projectq documentation build configuration file, created by
 # sphinx-quickstart on Tue Nov 29 11:51:46 2016.
@@ -458,7 +457,7 @@ The ProjectQ compiler engines package.
     PackageDescription(
         'libs.math',
         desc='''
-A tiny math library which will be extended thoughout the next weeks. Right now, it only contains the math functions
+A tiny math library which will be extended throughout the next weeks. Right now, it only contains the math functions
 necessary to run Beauregard's implementation of Shor's algorithm.
 ''',
     ),
@@ -533,6 +532,7 @@ Example:
 
         import projectq.setups.ibm as ibm_setup
         from projectq import MainEngine
+
         eng = MainEngine(engine_list=ibm_setup.get_engine_list())
         # eng uses the default Simulator backend
 
@@ -560,10 +560,10 @@ if not os.path.isdir(docgen_path):
     os.mkdir(docgen_path)
 
 for desc in descriptions:
-    fname = os.path.join(docgen_path, 'projectq.{}.rst'.format(desc.name))
+    fname = os.path.join(docgen_path, f'projectq.{desc.name}.rst')
     lines = None
     if os.path.exists(fname):
-        with open(fname, 'r') as fd:
+        with open(fname) as fd:
             lines = [line[:-1] for line in fd.readlines()]
 
     new_lines = desc.get_ReST()

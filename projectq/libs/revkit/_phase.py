@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +37,7 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
 
         .. code-block:: python
 
-            PhaseOracle(0x8e) | (a, b, c)
+            PhaseOracle(0x8E) | (a, b, c)
     """
 
     def __init__(self, function, **kwargs):
@@ -99,7 +98,7 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
 
         # create truth table from function integer
         hex_length = max(2 ** (len(qs) - 1) // 4, 1)
-        revkit.tt(table="{0:#0{1}x}".format(self.function, hex_length))
+        revkit.tt(table=f"{self.function:#0{hex_length}x}")
 
         # create phase circuit from truth table
         self.kwargs.get("synth", revkit.esopps)()
@@ -116,4 +115,4 @@ class PhaseOracle:  # pylint: disable=too-few-public-methods
         # function must be positive.  We check in __or__ whether function is
         # too large
         if self.function < 0:
-            raise AttributeError("Function must be a postive integer")
+            raise AttributeError("Function must be a positive integer")

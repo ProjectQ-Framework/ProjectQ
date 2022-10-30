@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +74,7 @@ class Simulator(BasicEngine):
             implementation of the kernels.  While this is much slower, it is still good enough to run basic quantum
             algorithms.
 
-            If you need to run large simulations, check out the tutorial in the docs which gives futher hints on how
+            If you need to run large simulations, check out the tutorial in the docs which gives further hints on how
             to build the C++ extension.
         """
         if rnd_seed is None:
@@ -110,7 +109,7 @@ class Simulator(BasicEngine):
         try:
             matrix = cmd.gate.matrix
             # Allow up to 5-qubit gates
-            if len(matrix) > 2 ** 5:
+            if len(matrix) > 2**5:
                 return False
             return True
         except AttributeError:
@@ -402,15 +401,13 @@ class Simulator(BasicEngine):
             qubitids = [qb.id for qb in cmd.qubits[0]]
             ctrlids = [qb.id for qb in cmd.control_qubits]
             self._simulator.emulate_time_evolution(op, time, qubitids, ctrlids)
-        elif len(cmd.gate.matrix) <= 2 ** 5:
+        elif len(cmd.gate.matrix) <= 2**5:
             matrix = cmd.gate.matrix
             ids = [qb.id for qureg in cmd.qubits for qb in qureg]
             if not 2 ** len(ids) == len(cmd.gate.matrix):
                 raise Exception(
-                    "Simulator: Error applying {} gate: "
-                    "{}-qubit gate applied to {} qubits.".format(
-                        str(cmd.gate), int(math.log(len(cmd.gate.matrix), 2)), len(ids)
-                    )
+                    f"Simulator: Error applying {str(cmd.gate)} gate: {int(math.log(len(cmd.gate.matrix), 2))}-qubit"
+                    f" gate applied to {len(ids)} qubits."
                 )
             self._simulator.apply_controlled_gate(matrix.tolist(), ids, [qb.id for qb in cmd.control_qubits])
 
@@ -418,8 +415,7 @@ class Simulator(BasicEngine):
                 self._simulator.run()
         else:
             raise Exception(
-                "This simulator only supports controlled k-qubit"
-                " gates with k < 6!\nPlease add an auto-replacer"
+                "This simulator only supports controlled k-qubit gates with k < 6!\nPlease add an auto-replacer"
                 " engine to your list of compiler engines."
             )
 

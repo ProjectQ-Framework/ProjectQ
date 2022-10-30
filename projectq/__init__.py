@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-ProjectQ - An open source software framework for quantum computing
+ProjectQ - An open source software framework for quantum computing.
 
 Get started:
     Simply import the main compiler engine (from projectq import MainEngine)

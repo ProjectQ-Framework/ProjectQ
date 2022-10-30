@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
 
 """Example of a 6-qubit phase function."""
@@ -44,4 +43,4 @@ All(H) | qubits
 All(Measure) | qubits
 
 # measurement result
-print("Shift is {}".format(sum(int(q) << i for i, q in enumerate(qubits))))
+print(f"Shift is {sum(int(q) << i for i, q in enumerate(qubits))}")

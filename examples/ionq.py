@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +52,7 @@ def run_entangle(eng, num_qubits=3):
     # access the probabilities via the back-end:
     # results = eng.backend.get_probabilities(qureg)
     # for state in results:
-    #     print("Measured {} with p = {}.".format(state, results[state]))
+    #     print(f"Measured {state} with p = {results[state]}.")
     # or plot them directly:
     histogram(eng.backend, qureg)
     plt.show()
