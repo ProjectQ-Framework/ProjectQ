@@ -210,6 +210,13 @@ jobs:
         centos:
           - 7  # GCC 4.8
           - 8
+        include:
+          - centos: 7
+            python_pkg: rh-python38-python-pip rh-python38-python-devel
+            enable_repo: --enablerepo=centos-sclo-rh
+          - centos: 8
+            python_pkg: python38-devel
+
 
     name: "Python 3 • CentOS ${{ matrix.centos }} • x64"
     container: "centos:${{ matrix.centos }}"
@@ -232,12 +239,18 @@ jobs:
           sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
           sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-      - name: Add Python 3 and other dependencies
-        run: yum update -y && yum install -y python3-devel gcc-c++ make
+      - name: Update YUM/DNF
+        run: yum update -y
 
-      - name: Setup Endpoint repository (CentOS 7 only)
+      - name: Enable extra repositories && modify PATH (CentOS 7)
         if: matrix.centos == 7
-        run: yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+        run: |
+          yum install -y centos-release-scl-rh
+          yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+          echo '/opt/rh/rh-python38/root/usr/bin' >> $GITHUB_PATH
+
+      - name: Add Python 3 and other dependencies
+        run: yum install -y ${{ matrix.enable_repo }} ${{ matrix.python_pkg }} gcc-c++ make
 
       - name: Install Git > 2.18
         run: |
@@ -259,11 +272,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg') }}
+          key: ${{ runner.os }}-centos${{ matrix.centos }}-pip-${{ hashFiles('**/setup.cfg', '**/pyproject.toml') }}
           restore-keys: ${{ runner.os }}-centos-pip-
-
-      - name: Update pip
-        run: python3 -m pip install --upgrade pip
 
       - name: Install dependencies
         run: |
@@ -288,16 +298,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Create pip cache dir
-        run: mkdir -p ~/.cache/pip
-
-      - name: Cache wheels
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-doc-pip-${{ hashFiles('**/setup.cfg') }}
-          restore-keys: ${{ runner.os }}-doc-pip-
-
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
@@ -308,6 +308,10 @@ jobs:
         with:
           python-version: '3.x'
           architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            setup.cfg
+            pyproject.toml
 
       - name: Install docs & setup requirements
         run: |
