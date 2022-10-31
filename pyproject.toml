@@ -31,7 +31,7 @@ dynamic = ["version"]
 dependencies = [
     'matplotlib >= 2.2.3',
     'networkx >= 2',
-    'numpy >= 1.17',  # Mainly for Qiskit
+    'numpy >= 1.17',
     'requests',
     'scipy'
 ]
