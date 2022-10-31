@@ -73,7 +73,7 @@ repos:
         require_serial: false
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.1.0
+    rev: v3.2.0
     hooks:
       - id: pyupgrade
         args: [--py37-plus, --keep-mock]
@@ -97,8 +97,8 @@ repos:
         args: [-S, -l, '120']
         additional_dependencies: [black==22.10.0]
 
-  - repo: https://gitlab.com/PyCQA/flake8
-    rev: 3.9.2
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
     hooks:
       - id: flake8
         name: flake8-strict
