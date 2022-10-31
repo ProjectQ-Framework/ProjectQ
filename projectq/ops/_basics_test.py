@@ -250,7 +250,7 @@ def test_u3_gate_init(input_angle, modulo_angle):
 def test_u3_gate_str():
     gate = _basics.U3Gate(math.pi, math.pi, math.pi)
     assert str(gate) == "U3Gate(3.14159265359,3.14159265359,3.14159265359)"
-    assert gate.to_string(symbols=True) == u"U3Gate(1.0π,1.0π,1.0π)"
+    assert gate.to_string(symbols=True) == "U3Gate(1.0π,1.0π,1.0π)"
     assert gate.to_string(symbols=False) == "U3Gate(3.14159265359,3.14159265359,3.14159265359)"
 
 

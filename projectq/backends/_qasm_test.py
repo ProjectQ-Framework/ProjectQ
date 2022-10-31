@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,8 +84,8 @@ def test_qasm_allocate_deallocate(qubit_id_redux):
     assert not backend._available_indices
     qasm = '\n'.join(eng.backend.qasm)
     for i in range(1, 6):
-        assert re.search(r'qubit\s+q{}'.format(i), qasm)
-        assert re.search(r'bit\s+c{}'.format(i), qasm)
+        assert re.search(fr'qubit\s+q{i}', qasm)
+        assert re.search(fr'bit\s+c{i}', qasm)
 
     del qubit
     eng.flush()
@@ -394,10 +393,10 @@ def test_qasm_no_collate():
 
 def test_qasm_name_callback():
     def _qubit(index):
-        return 'qubit_{}'.format(index)
+        return f'qubit_{index}'
 
     def _bit(index):
-        return 'classical_bit_{}'.format(index)
+        return f'classical_bit_{index}'
 
     eng = MainEngine(backend=OpenQASMBackend(qubit_callback=_qubit, bit_callback=_bit), engine_list=[])
 

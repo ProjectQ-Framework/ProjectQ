@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +11,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-"""
-Contains functions/classes to handle OpenQASM
-"""
+
+"""Contains functions/classes to handle OpenQASM."""
 
 try:
     from ._parse_qasm_qiskit import read_qasm_file, read_qasm_str
@@ -28,15 +26,11 @@ except ImportError:  # pragma: no cover
         )
 
         def read_qasm_file(eng, filename):
-            """
-            Dummy implementation
-            """
+            """Invalid implementation."""
             # pylint: disable=unused-argument
             raise RuntimeError(ERROR_MSG)
 
         def read_qasm_str(eng, qasm_str):
-            """
-            Dummy implementation
-            """
+            """Invalid implementation."""
             # pylint: disable=unused-argument
             raise RuntimeError(ERROR_MSG)

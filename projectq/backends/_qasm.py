@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 """Backend to convert ProjectQ commands to OpenQASM."""
 
 from copy import deepcopy
@@ -57,7 +57,7 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
         """
         Initialize an OpenQASMBackend object.
 
-        Contrary to OpenQASM, ProjectQ does not impose the restriction that a programm must start with qubit/bit
+        Contrary to OpenQASM, ProjectQ does not impose the restriction that a program must start with qubit/bit
         allocations and end with some measurements.
 
         The user can configure what happens each time a FlushGate() is encountered by setting the `collate` and
@@ -168,7 +168,7 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
         n_controls = get_control_count(cmd)
 
         def _format_angle(angle):
-            return '({})'.format(angle)
+            return f'({angle})'
 
         _ccontrolled_gates_func = {
             X: 'ccx',
@@ -223,8 +223,8 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
             self._creg_dict[qb_id] = self._gen_bit_name(index)
 
             if add:
-                self._output.append('qubit {};'.format(self._qreg_dict[qb_id]))
-                self._output.append('bit {};'.format(self._creg_dict[qb_id]))
+                self._output.append(f'qubit {self._qreg_dict[qb_id]};')
+                self._output.append(f'bit {self._creg_dict[qb_id]};')
 
         elif gate == Deallocate:
             qb_id = cmd.qubits[0][0].id
@@ -238,16 +238,16 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
             assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
             qb_id = cmd.qubits[0][0].id
 
-            self._output.append('{} = measure {};'.format(self._creg_dict[qb_id], self._qreg_dict[qb_id]))
+            self._output.append(f'{self._creg_dict[qb_id]} = measure {self._qreg_dict[qb_id]};')
 
         elif n_controls == 2:
             targets = [self._qreg_dict[qb.id] for qureg in cmd.qubits for qb in qureg]
             controls = [self._qreg_dict[qb.id] for qb in cmd.control_qubits]
 
             try:
-                self._output.append('{} {};'.format(_ccontrolled_gates_func[gate], ','.join(controls + targets)))
+                self._output.append(f'{_ccontrolled_gates_func[gate]} {",".join(controls + targets)};')
             except KeyError as err:
-                raise RuntimeError('Unable to perform {} gate with n=2 control qubits'.format(gate)) from err
+                raise RuntimeError(f'Unable to perform {gate} gate with n=2 control qubits') from err
 
         elif n_controls == 1:
             target_qureg = [self._qreg_dict[qb.id] for qureg in cmd.qubits for qb in qureg]
@@ -255,12 +255,8 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
             try:
                 if isinstance(gate, Ph):
                     self._output.append(
-                        '{}{} {},{};'.format(
-                            _controlled_gates_func[type(gate)],
-                            _format_angle(-gate.angle / 2.0),
-                            self._qreg_dict[cmd.control_qubits[0].id],
-                            target_qureg[0],
-                        )
+                        f'{_controlled_gates_func[type(gate)]}{_format_angle(-gate.angle / 2.0)} '
+                        f'{self._qreg_dict[cmd.control_qubits[0].id]},{target_qureg[0]};'
                     )
                 elif isinstance(
                     gate,
@@ -270,33 +266,27 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
                     ),
                 ):
                     self._output.append(
-                        '{}{} {},{};'.format(
-                            _controlled_gates_func[type(gate)],
-                            _format_angle(gate.angle),
-                            self._qreg_dict[cmd.control_qubits[0].id],
-                            target_qureg[0],
-                        )
+                        f'{_controlled_gates_func[type(gate)]}{_format_angle(gate.angle)} '
+                        f'{self._qreg_dict[cmd.control_qubits[0].id]},{target_qureg[0]};'
                     )
                 else:
                     self._output.append(
-                        '{} {},{};'.format(
+                        '{} {},{};'.format(  # pylint: disable=consider-using-f-string
                             _controlled_gates_func[gate], self._qreg_dict[cmd.control_qubits[0].id], *target_qureg
                         )
                     )
             except KeyError as err:
-                raise RuntimeError('Unable to perform {} gate with n=1 control qubits'.format(gate)) from err
+                raise RuntimeError(f'Unable to perform {gate} gate with n=1 control qubits') from err
         else:
             target_qureg = [self._qreg_dict[qb.id] for qureg in cmd.qubits for qb in qureg]
             if isinstance(gate, Ph):
-                self._output.append(
-                    '{}{} {};'.format(_gates_func[type(gate)], _format_angle(-gate.angle / 2.0), target_qureg[0])
-                )
+                self._output.append(f'{_gates_func[type(gate)]}{_format_angle(-gate.angle / 2.0)} {target_qureg[0]};')
             elif isinstance(gate, (R, Rx, Ry, Rz)):
-                self._output.append(
-                    '{}{} {};'.format(_gates_func[type(gate)], _format_angle(gate.angle), target_qureg[0])
-                )
+                self._output.append(f'{_gates_func[type(gate)]}{_format_angle(gate.angle)} {target_qureg[0]};')
             else:
-                self._output.append('{} {};'.format(_gates_func[gate], *target_qureg))
+                self._output.append(
+                    '{} {};'.format(_gates_func[gate], *target_qureg)  # pylint: disable=consider-using-f-string
+                )
 
     def _insert_openqasm_header(self):
         self._output.append('OPENQASM 3;')
@@ -311,6 +301,6 @@ class OpenQASMBackend(BasicEngine):  # pylint: disable=too-many-instance-attribu
             self._output.clear()
             self._insert_openqasm_header()
             for qubit_name in self._qreg_dict.values():
-                self._output.append('qubit {};'.format(qubit_name))
+                self._output.append(f'qubit {qubit_name};')
             for bit_name in self._creg_dict.values():
-                self._output.append('bit {};'.format(bit_name))
+                self._output.append(f'bit {bit_name};')

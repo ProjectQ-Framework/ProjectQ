@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +40,7 @@ def apply_op(eng, gate, qubits, bits, bits_map):
     # pylint: disable = expression-not-assigned, protected-access
 
     if bits:
-        # Only measurement gates have clasical bits
+        # Only measurement gates have classical bits
         assert len(qubits) == len(bits)
         All(Measure) | qubits
         eng.flush()

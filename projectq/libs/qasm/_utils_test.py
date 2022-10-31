@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,32 +63,30 @@ def test_opaque_gate():
 @pytest.mark.parametrize(
     'gate, n_qubits',
     (
-        list(
-            map(
-                lambda x: (x, 1),
-                [
-                    X,
-                    Y,
-                    Z,
-                    S,
-                    Sdagger,
-                    T,
-                    Tdagger,
-                    H,
-                    Barrier,
-                    Ph(1.12),
-                    Rx(1.12),
-                    Ry(1.12),
-                    Rz(1.12),
-                    R(1.12),
-                    U2(1.12, 1.12),
-                    U3(1.12, 1.12, 1.12),
-                ],
-            )
-        )
-        + list(map(lambda x: (x, 2), [C(X), C(Y), C(Z), Swap, Barrier]))
-        + list(map(lambda x: (x, 3), [Toffoli, C(Swap), Barrier]))
-        + list(map(lambda x: (x, 10), [Barrier]))
+        [
+            (x, 1)
+            for x in [
+                X,
+                Y,
+                Z,
+                S,
+                Sdagger,
+                T,
+                Tdagger,
+                H,
+                Barrier,
+                Ph(1.12),
+                Rx(1.12),
+                Ry(1.12),
+                Rz(1.12),
+                R(1.12),
+                U2(1.12, 1.12),
+                U3(1.12, 1.12, 1.12),
+            ]
+        ]
+        + [(x, 2) for x in [C(X), C(Y), C(Z), Swap, Barrier]]
+        + [(x, 3) for x in [Toffoli, C(Swap), Barrier]]
+        + [(x, 10) for x in [Barrier]]
     ),
     ids=str,
 )
