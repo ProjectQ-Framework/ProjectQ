@@ -173,7 +173,7 @@ ignore = [
     ]
 
     [tool.pylint.typecheck]
-    ignored-modules = ['boto3', 'botocore', 'sympy']
+    ignored-modules = ['boto3', 'botocore', 'sympy', 'qiskit']
 
 
 [tool.pytest.ini_options]

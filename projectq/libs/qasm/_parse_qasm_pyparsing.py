@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +95,7 @@ class QASMVersionOp:
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return 'QASMVersionOp({})'.format(self.version)
+        return f'QASMVersionOp({self.version})'
 
 
 class IncludeOp:
@@ -121,11 +120,11 @@ class IncludeOp:
         if self.fname in 'qelib1.inc, stdlib.inc':
             pass
         else:  # pragma: nocover
-            raise RuntimeError('Invalid cannot read: {}! (unsupported)'.format(self.fname))
+            raise RuntimeError(f'Invalid cannot read: {self.fname}! (unsupported)')
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return 'IncludeOp({})'.format(self.fname)
+        return f'IncludeOp({self.fname})'
 
 
 # ==============================================================================
@@ -162,8 +161,8 @@ class QubitProxy:
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
         if self.index is not None:
-            return 'Qubit({}[{}])'.format(self.name, self.index)
-        return 'Qubit({})'.format(self.name)
+            return f'Qubit({self.name}[{self.index}])'
+        return f'Qubit({self.name})'
 
 
 # ==============================================================================
@@ -192,9 +191,9 @@ class VarDeclOp:
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
         if self.init:
-            return "{}({}, {}, {}) = {}".format(self.__class__.__name__, self.type_t, self.nbits, self.name, self.init)
+            return f"{self.__class__.__name__}({self.type_t}, {self.nbits}, {self.name}) = {self.init}"
 
-        return "{}({}, {}, {})".format(self.__class__.__name__, self.type_t, self.nbits, self.name)
+        return f"{self.__class__.__name__}({self.type_t}, {self.nbits}, {self.name})"
 
 
 # ------------------------------------------------------------------------------
@@ -215,7 +214,7 @@ class QVarOp(VarDeclOp):
         if self.name not in _QISKIT_VARS:
             _QISKIT_VARS[self.name] = eng.allocate_qureg(self.nbits)
         else:  # pragma: nocover
-            raise RuntimeError('Variable exist already: {}'.format(self.name))
+            raise RuntimeError(f'Variable exist already: {self.name}')
 
 
 # ------------------------------------------------------------------------------
@@ -240,7 +239,7 @@ class CVarOp(VarDeclOp):
             if self.init:  # pragma: nocover
                 init = parse_expr(self.init)
 
-            # The followings are OpenQASM 3.0
+            # The following are OpenQASM 3.0
             if self.type_t in ('const', 'float', 'fixed', 'angle'):  # pragma: nocover
                 _BITS_VARS[self.name] = float(init)
             elif self.type_t in ('int', 'uint'):  # pragma: nocover
@@ -252,7 +251,7 @@ class CVarOp(VarDeclOp):
                 assert self.init is None
                 _BITS_VARS[self.name] = [False] * self.nbits
         else:  # pragma: nocover
-            raise RuntimeError('Variable exist already: {}'.format(self.name))
+            raise RuntimeError(f'Variable exist already: {self.name}')
 
 
 # ==============================================================================
@@ -286,7 +285,7 @@ class GateDefOp:
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return "GateDefOp({}, {}, {})\n\t{}".format(self.name, self.params, self.qparams, self.body)
+        return f"GateDefOp({self.name}, {self.params}, {self.qparams})\n\t{self.body}"
 
 
 # ==============================================================================
@@ -323,8 +322,6 @@ class MeasureOp:
         # pylint: disable = pointless-statement, expression-not-assigned
         # pylint: disable = global-statement
 
-        global _BITS_VARS
-
         qubits = self.qubits.eval(eng)
         if not isinstance(qubits, list):
             Measure | qubits
@@ -345,7 +342,7 @@ class MeasureOp:
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return 'MeasureOp({}, {})'.format(self.qubits, self.bits)
+        return f'MeasureOp({self.qubits}, {self.bits})'
 
 
 # ------------------------------------------------------------------------------
@@ -378,8 +375,8 @@ class OpaqueDefOp:
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
         if self.params:
-            return 'OpaqueOp({}, {})'.format(self.name, self.params)
-        return 'OpaqueOp({})'.format(self.name)
+            return f'OpaqueOp({self.name}, {self.params})'
+        return f'OpaqueOp({self.name})'
 
 
 # ------------------------------------------------------------------------------
@@ -388,7 +385,7 @@ class OpaqueDefOp:
 class GateOp:
     """Gate applied to qubits operation."""
 
-    def __init__(self, s, loc, toks):
+    def __init__(self, string, loc, toks):
         """
         Initialize a GateOp object.
 
@@ -401,7 +398,7 @@ class GateOp:
             self.params = []
             self.qubits = [QubitProxy(qubit) for qubit in toks[1]]
         else:
-            param_str = s[loc : s.find(';', loc)]  # noqa: E203
+            param_str = string[loc : string.find(';', loc)]  # noqa: E203
             self.params = param_str[param_str.find('(') + 1 : param_str.rfind(')')].split(',')  # noqa: E203
             self.qubits = [QubitProxy(qubit) for qubit in toks[2]]
 
@@ -457,14 +454,14 @@ class GateOp:
             _BITS_VARS = bits_vars_bak
         else:  # pragma: nocover
             if self.params:
-                gate_str = '{}({}) | {}'.format(self.name, self.params, self.qubits)
+                gate_str = f'{self.name}({self.params}) | {self.qubits}'
             else:
-                gate_str = '{} | {}'.format(self.name, self.qubits)
-            raise RuntimeError('Unknown gate: {}'.format(gate_str))
+                gate_str = f'{self.name} | {self.qubits}'
+            raise RuntimeError(f'Unknown gate: {gate_str}')
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return 'GateOp({}, {}, {})'.format(self.name, self.params, self.qubits)
+        return f'GateOp({self.name}, {self.params}, {self.qubits})'
 
 
 # ==============================================================================
@@ -496,12 +493,12 @@ class AssignOp:  # pragma: nocover
             value = parse_expr(self.value)
             _BITS_VARS[self.var] = value
         else:
-            raise RuntimeError('The variable {} is not defined!'.format(self.var))
+            raise RuntimeError(f'The variable {self.var} is not defined!')
         return 0
 
     def __repr__(self):
         """Mainly for debugging."""
-        return 'AssignOp({},{})'.format(self.var, self.value)
+        return f'AssignOp({self.var},{self.value})'
 
 
 # ==============================================================================
@@ -520,7 +517,7 @@ def _parse_if_conditional(if_str):
             level -= 1
         if level == 0:
             return if_str[start : start + idx]  # noqa: E203
-    raise RuntimeError('Unbalanced parantheses in {}'.format(if_str))  # pragma: nocover
+    raise RuntimeError(f'Unbalanced parentheses in {if_str}')  # pragma: nocover
 
 
 class IfOp:
@@ -584,7 +581,7 @@ class IfOp:
 
     def __repr__(self):  # pragma: nocover
         """Mainly for debugging."""
-        return "IfExpr({} {} {}) {{ {} }}".format(self.bit, self.binary_op, self.comp_expr, self.body)
+        return f"IfExpr({self.bit} {self.binary_op} {self.comp_expr}) {{ {self.body} }}"
 
 
 # ==============================================================================

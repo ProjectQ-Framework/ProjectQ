@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright 2020 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,8 +38,8 @@ class OpaqueGate(BasicGate):
         """Return the string representation of an OpaqueGate."""
         # TODO: This is a bit crude...
         if self.params:
-            return 'Opaque({})({})'.format(self.name, ','.join(self.params))
-        return 'Opaque({})'.format(self.name)
+            return f'Opaque({self.name})({",".join(self.params)})'
+        return f'Opaque({self.name})'
 
 
 # ==============================================================================
