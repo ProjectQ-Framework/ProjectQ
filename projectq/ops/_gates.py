@@ -54,6 +54,7 @@ from ._basics import (
     ClassicalInstructionGate,
     FastForwardingGate,
     SelfInverseGate,
+    U3Gate,
 )
 from ._command import apply_command
 from ._metagates import get_inverse
@@ -307,6 +308,40 @@ class Rz(BasicRotationGate):
                 [0, cmath.exp(0.5 * 1j * self.angle)],
             ]
         )
+
+
+class U3(U3Gate):
+    """U3 rotation gate class."""
+
+    @property
+    def matrix(self):
+        """Access to the matrix property of this gate."""
+        return np.matrix(
+            [
+                [
+                    cmath.exp(-0.5j * (self.phi + self.lamda)) + math.cos(0.5 * self.theta),
+                    -cmath.exp(-0.5j * (self.phi - self.lamda)) + math.sin(0.5 * self.theta),
+                ],
+                [
+                    cmath.exp(0.5j * (self.phi - self.lamda)) + math.sin(0.5 * self.theta),
+                    cmath.exp(0.5j * (self.phi + self.lamda)) + math.cos(0.5 * self.theta),
+                ],
+            ]
+        )
+
+
+class U2(U3):
+    """U2 rotation gate class."""
+
+    def __init__(self, phi, lamda):
+        """
+        Initialize a U2 gate.
+
+        Args:
+            phi (float): Angle of rotation (saved modulo 4 * pi)
+            lamda (float): Angle of rotation (saved modulo 4 * pi)
+        """
+        super().__init__(math.pi / 2, phi, lamda)
 
 
 class Rxx(BasicRotationGate):

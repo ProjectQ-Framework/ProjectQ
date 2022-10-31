@@ -10,7 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Python context manager `with flushing(MainEngine()) as eng:`
+-   Added OpenQASMBackend to output QASM from ProjectQ circuits
+-   Added projectq.libs.qasm to convert QASM to ProjectQ circuits
 
+### Changed
+### Deprecated
+### Fixed
+### Removed
 ### Repository
 
 -   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`

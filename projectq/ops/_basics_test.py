@@ -212,7 +212,7 @@ def test_basic_rotation_gate_is_identity():
     assert basic_rotation_gate5.is_identity()
 
 
-def test_basic_rotation_gate_comparison_and_hash():
+def test_basic_gate_comparison_and_hash():
     basic_rotation_gate1 = _basics.BasicRotationGate(0.5)
     basic_rotation_gate2 = _basics.BasicRotationGate(0.5)
     basic_rotation_gate3 = _basics.BasicRotationGate(0.5 + 4 * math.pi)
@@ -233,6 +233,89 @@ def test_basic_rotation_gate_comparison_and_hash():
     basic_gate = _basics.BasicGate()
     assert not basic_gate == basic_rotation_gate6
     assert basic_rotation_gate2 != _basics.BasicRotationGate(0.5 + 2 * math.pi)
+
+
+@pytest.mark.parametrize(
+    "input_angle, modulo_angle",
+    [(2.0, 2.0), (17.0, 4.4336293856408275), (-0.5 * math.pi, 3.5 * math.pi), (4 * math.pi, 0)],
+)
+def test_u3_gate_init(input_angle, modulo_angle):
+    # Test internal representation
+    gate = _basics.U3Gate(input_angle, input_angle, input_angle)
+    assert gate.theta == pytest.approx(modulo_angle)
+    assert gate.phi == pytest.approx(modulo_angle)
+    assert gate.lamda == pytest.approx(modulo_angle)
+
+
+def test_u3_gate_str():
+    gate = _basics.U3Gate(math.pi, math.pi, math.pi)
+    assert str(gate) == "U3Gate(3.14159265359,3.14159265359,3.14159265359)"
+    assert gate.to_string(symbols=True) == "U3Gate(1.0π,1.0π,1.0π)"
+    assert gate.to_string(symbols=False) == "U3Gate(3.14159265359,3.14159265359,3.14159265359)"
+
+
+def test_u3_tex_str():
+    gate = _basics.U3Gate(0.5 * math.pi, 0.5 * math.pi, 0.5 * math.pi)
+    assert gate.tex_str() == "U3Gate$(0.5\\pi,0.5\\pi,0.5\\pi)$"
+    gate = _basics.U3Gate(4 * math.pi - 1e-13, 4 * math.pi - 1e-13, 4 * math.pi - 1e-13)
+    assert gate.tex_str() == "U3Gate$(0.0\\pi,0.0\\pi,0.0\\pi)$"
+
+
+@pytest.mark.parametrize("input_angle, inverse_angle", [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5), (0.0, 0)])
+def test_u3_gate_get_inverse(input_angle, inverse_angle):
+    u3_gate = _basics.U3Gate(input_angle, input_angle, input_angle)
+    inverse = u3_gate.get_inverse()
+    assert isinstance(inverse, _basics.U3Gate)
+    assert inverse.theta == pytest.approx(inverse_angle)
+    assert inverse.phi == pytest.approx(inverse_angle)
+    assert inverse.lamda == pytest.approx(inverse_angle)
+
+
+def test_u3_gate_get_merged():
+    basic_gate = _basics.BasicGate()
+    u3_gate1 = _basics.U3Gate(0.5, 0.5, 0.5)
+    u3_gate2 = _basics.U3Gate(1.0, 1.0, 1.0)
+    u3_gate3 = _basics.U3Gate(1.5, 1.5, 1.5)
+    with pytest.raises(_basics.NotMergeable):
+        u3_gate1.get_merged(basic_gate)
+    merged_gate = u3_gate1.get_merged(u3_gate2)
+    assert merged_gate == u3_gate3
+
+
+def test_u3_gate_is_identity():
+    u3_gate1 = _basics.U3Gate(0.0, 0.0, 0.0)
+    u3_gate2 = _basics.U3Gate(1.0 * math.pi, 1.0 * math.pi, 1.0 * math.pi)
+    u3_gate3 = _basics.U3Gate(2.0 * math.pi, 2.0 * math.pi, 2.0 * math.pi)
+    u3_gate4 = _basics.U3Gate(3.0 * math.pi, 3.0 * math.pi, 3.0 * math.pi)
+    u3_gate5 = _basics.U3Gate(4.0 * math.pi, 4.0 * math.pi, 4.0 * math.pi)
+    assert u3_gate1.is_identity()
+    assert not u3_gate2.is_identity()
+    assert not u3_gate3.is_identity()
+    assert not u3_gate4.is_identity()
+    assert u3_gate5.is_identity()
+
+
+def test_u3_gate_comparison_and_hash():
+    u3gate1 = _basics.U3Gate(0.5, 0.5, 0.5)
+    u3gate2 = _basics.U3Gate(0.5, 0.5, 0.5)
+    u3gate3 = _basics.U3Gate(0.5 + 4 * math.pi, 0.5 + 4 * math.pi, 0.5 + 4 * math.pi)
+    assert u3gate1 == u3gate2
+    assert hash(u3gate1) == hash(u3gate2)
+    assert u3gate1 == u3gate3
+    assert hash(u3gate1) == hash(u3gate3)
+    u3gate4 = _basics.U3Gate(0.50000001, 0.50000001, 0.50000001)
+    # Test __ne__:
+    assert u3gate4 != u3gate1
+    # Test one gate close to 4*pi the other one close to 0
+    u3gate5 = _basics.U3Gate(1.0e-13, 1.0e-13, 1.0e-13)
+    u3gate6 = _basics.U3Gate(4 * math.pi - 1.0e-13, 4 * math.pi - 1.0e-13, 4 * math.pi - 1.0e-13)
+    assert u3gate5 == u3gate6
+    assert u3gate6 == u3gate5
+    assert hash(u3gate5) == hash(u3gate6)
+    # Test different types of gates
+    basic_gate = _basics.BasicGate()
+    assert not basic_gate == u3gate6
+    assert u3gate2 != _basics.U3Gate(0.5 + 2 * math.pi, 0.5 + 2 * math.pi, 0.5 + 2 * math.pi)
 
 
 @pytest.mark.parametrize(
