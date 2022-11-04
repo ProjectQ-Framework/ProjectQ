@@ -12,17 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Registers a decomposition for the Rx gate into an Rz gate and Hadamard.
-"""
+"""Register a decomposition for the Rx gate into an Rz gate and Hadamard."""
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
-from projectq.ops import Rx, Rz, H
+from projectq.meta import Compute, Control, Uncompute, get_control_count
+from projectq.ops import H, Rx, Rz
 
 
 def _decompose_rx(cmd):
-    """ Decompose the Rx gate."""
+    """Decompose the Rx gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
@@ -34,12 +32,10 @@ def _decompose_rx(cmd):
         Uncompute(eng)
 
 
-def _recognize_RxNoCtrl(cmd):
-    """ For efficiency reasons only if no control qubits."""
+def _recognize_RxNoCtrl(cmd):  # pylint: disable=invalid-name
+    """For efficiency reasons only if no control qubits."""
     return get_control_count(cmd) == 0
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)
-]
+all_defined_decomposition_rules = [DecompositionRule(Rx, _decompose_rx, _recognize_RxNoCtrl)]

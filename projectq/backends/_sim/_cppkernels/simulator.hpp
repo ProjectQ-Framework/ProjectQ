@@ -268,21 +268,21 @@ public:
         std::swap(tmpBuff1_, newvec);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_addConstant(int a, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {
       emulate_math([a](std::vector<int> &res){for(auto& x: res) x = x + a;}, quregs, ctrl, true);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_addConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {
       emulate_math([a,N](std::vector<int> &res){for(auto& x: res) x = (x + a) % N;}, quregs, ctrl, true);
     }
 
-    // faster version without calling python 
+    // faster version without calling python
     template<class QuReg>
     inline void emulate_math_multiplyByConstantModN(int a, int N, const QuReg& quregs, const std::vector<unsigned>& ctrl)
     {
@@ -455,7 +455,8 @@ public:
 
     void collapse_wavefunction(std::vector<unsigned> const& ids, std::vector<bool> const& values){
         run();
-        assert(ids.size() == values.size());
+        if (ids.size() != values.size())
+            throw(std::length_error("collapse_wavefunction(): ids and values size mismatch"));
         if (!check_ids(ids))
             throw(std::runtime_error("collapse_wavefunction(): Unknown qubit id(s) provided. Try calling eng.flush() before invoking this function."));
         std::size_t mask = 0, val = 0;

@@ -12,14 +12,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Definition of the QFT gate."""
+
 from ._basics import BasicGate
 
 
 class QFTGate(BasicGate):
-    """
-    Quantum Fourier Transform gate.
-    """
+    """Quantum Fourier Transform gate."""
+
     def __str__(self):
+        """Return a string representation of the object."""
         return "QFT"
 
 

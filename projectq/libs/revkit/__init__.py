@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._permutation import PermutationOracle
+"""Module containing code to interface with RevKit."""
+
 from ._control_function import ControlFunctionOracle
+from ._permutation import PermutationOracle
 from ._phase import PhaseOracle

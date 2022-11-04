@@ -1,3 +1,4 @@
+# -*- codingf53: utf-8 -*-
 #   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for barrier.py
 """
@@ -50,7 +50,6 @@ def test_remove_barrier():
     Barrier | qubit
     eng.flush(deallocate_qubits=True)
     # Don't test initial allocate and trailing deallocate and flush gate.
-    count = 0
     for cmd in saving_backend.received_commands[1:-2]:
         assert not cmd.gate == Barrier
     assert len(saving_backend.received_commands[1:-2]) == 1

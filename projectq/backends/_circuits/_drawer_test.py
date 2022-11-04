@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,28 +11,39 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends.circuits._drawer.py.
 """
 
 import pytest
 
-from projectq import MainEngine
-from projectq.cengines import LastEngineException
-from projectq.ops import (H,
-                          X,
-                          CNOT,
-                          Measure)
-from projectq.meta import Control
-
 import projectq.backends._circuits._drawer as _drawer
-from projectq.backends._circuits._drawer import CircuitItem, CircuitDrawer
+from projectq import MainEngine
+from projectq.backends._circuits._drawer import CircuitDrawer, CircuitItem
+from projectq.ops import CNOT, Command, H, Measure, X
+from projectq.types import WeakQubitRef
 
 
-def test_drawer_getlatex():
+class MockInputFunction:
+    def __init__(self, return_value=None):
+        self.return_value = return_value
+        self._orig_input_fn = __builtins__['input']
+
+    def _mock_input_fn(self, prompt):
+        print(prompt + str(self.return_value))
+        return self.return_value
+
+    def __enter__(self):
+        __builtins__['input'] = self._mock_input_fn
+
+    def __exit__(self, type, value, traceback):
+        __builtins__['input'] = self._orig_input_fn
+
+
+@pytest.mark.parametrize("ordered", [False, True])
+def test_drawer_getlatex(ordered):
     old_latex = _drawer.to_latex
-    _drawer.to_latex = lambda x: x
+    _drawer.to_latex = lambda x, drawing_order, draw_gates_in_parallel: x
 
     drawer = CircuitDrawer()
     drawer.set_qubit_locations({0: 1, 1: 0})
@@ -46,13 +57,13 @@ def test_drawer_getlatex():
     X | qureg[0]
     CNOT | (qureg[0], qureg[1])
 
-    lines = drawer2.get_latex()
+    lines = drawer2.get_latex(ordered=ordered)
     assert len(lines) == 2
     assert len(lines[0]) == 4
     assert len(lines[1]) == 3
 
     # check if it was sent on correctly:
-    lines = drawer.get_latex()
+    lines = drawer.get_latex(ordered=ordered)
     assert len(lines) == 2
     assert len(lines[0]) == 3
     assert len(lines[1]) == 4
@@ -77,12 +88,14 @@ def test_drawer_measurement():
     eng = MainEngine(drawer, [])
     qubit = eng.allocate_qubit()
 
-    old_input = _drawer.input
+    with MockInputFunction(return_value='1'):
+        Measure | qubit
+        assert int(qubit) == 1
 
-    _drawer.input = lambda x: '1'
-    Measure | qubit
-    assert int(qubit) == 1
-    _drawer.input = old_input
+    qb1 = WeakQubitRef(engine=eng, idx=1)
+    qb2 = WeakQubitRef(engine=eng, idx=2)
+    with pytest.raises(ValueError):
+        eng.backend._print_cmd(Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
 def test_drawer_qubitmapping():
@@ -101,13 +114,13 @@ def test_drawer_qubitmapping():
             drawer.set_qubit_locations(invalid_mapping)
 
     eng = MainEngine(drawer, [])
-    qubit = eng.allocate_qubit()
+    qubit = eng.allocate_qubit()  # noqa: F841
     # mapping has begun --> can't assign it anymore
     with pytest.raises(RuntimeError):
         drawer.set_qubit_locations({0: 1, 1: 0})
 
 
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         self.cmd = cmd
         self.called = True

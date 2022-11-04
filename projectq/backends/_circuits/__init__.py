@@ -12,5 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._to_latex import to_latex
+"""ProjectQ module for exporting/printing quantum circuits."""
+
 from ._drawer import CircuitDrawer
+from ._drawer_matplotlib import CircuitDrawerMatplotlib
+from ._plot import to_draw
+from ._to_latex import to_latex

@@ -12,5 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from ._simulator import Simulator
+"""ProjectQ module dedicated to simulation."""
+
 from ._classical_simulator import ClassicalSimulator
+from ._simulator import Simulator

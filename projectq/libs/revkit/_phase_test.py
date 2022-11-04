@@ -11,20 +11,16 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for libs.revkit._phase."""
 
+import numpy as np
 import pytest
 
-from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.backends import Simulator
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, Measure
-
 from projectq.libs.revkit import PhaseOracle
-
-import numpy as np
+from projectq.ops import All, H, Measure
 
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
@@ -36,17 +32,16 @@ def test_phase_majority():
 
     qureg = main_engine.allocate_qureg(3)
     All(H) | qureg
-    PhaseOracle(0xe8) | qureg
+    PhaseOracle(0xE8) | qureg
 
     main_engine.flush()
 
-    assert np.array_equal(np.sign(sim.cheat()[1]),
-                          [1., 1., 1., -1., 1., -1., -1., -1.])
+    assert np.array_equal(np.sign(sim.cheat()[1]), [1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0])
     All(Measure) | qureg
 
 
 def test_phase_majority_from_python():
-    dormouse = pytest.importorskip('dormouse')
+    dormouse = pytest.importorskip('dormouse')  # noqa: F841
 
     def maj(a, b, c):
         return (a and b) or (a and c) or (b and c)  # pragma: no cover
@@ -60,14 +55,12 @@ def test_phase_majority_from_python():
 
     main_engine.flush()
 
-    assert np.array_equal(np.sign(sim.cheat()[1]),
-                          [1., 1., 1., -1., 1., -1., -1., -1.])
+    assert np.array_equal(np.sign(sim.cheat()[1]), [1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0])
     All(Measure) | qureg
 
 
 def test_phase_invalid_function():
-    main_engine = MainEngine(backend=DummyEngine(),
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
 
     qureg = main_engine.allocate_qureg(3)
 
@@ -75,7 +68,7 @@ def test_phase_invalid_function():
         PhaseOracle(-42) | qureg
 
     with pytest.raises(AttributeError):
-        PhaseOracle(0xcafe) | qureg
+        PhaseOracle(0xCAFE) | qureg
 
     with pytest.raises(RuntimeError):
-        PhaseOracle(0x8e, synth=lambda: revkit.esopbs()) | qureg
+        PhaseOracle(0x8E, synth=lambda: revkit.esopbs()) | qureg

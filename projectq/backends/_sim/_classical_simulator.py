@@ -12,18 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-A simulator that only permits classical operations, for faster/easier testing.
-"""
+"""A simulator that only permits classical operations, for faster/easier testing."""
 
 from projectq.cengines import BasicEngine
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import (XGate,
-                          BasicMathGate,
-                          Measure,
-                          FlushGate,
-                          Allocate,
-                          Deallocate)
+from projectq.ops import Allocate, BasicMathGate, Deallocate, FlushGate, Measure, XGate
 from projectq.types import WeakQubitRef
 
 
@@ -31,18 +24,19 @@ class ClassicalSimulator(BasicEngine):
     """
     A simple introspective simulator that only permits classical operations.
 
-    Allows allocation, deallocation, measuring (no-op), flushing (no-op),
-    controls, NOTs, and any BasicMathGate. Supports reading/writing directly
-    from/to bits and registers of bits.
+    Allows allocation, deallocation, measuring (no-op), flushing (no-op), controls, NOTs, and any
+    BasicMathGate. Supports reading/writing directly from/to bits and registers of bits.
     """
+
     def __init__(self):
-        BasicEngine.__init__(self)
+        """Initialize a ClassicalSimulator object."""
+        super().__init__()
         self._state = 0
         self._bit_positions = {}
 
     def _convert_logical_to_mapped_qubit(self, qubit):
         """
-        Converts a qubit from a logical to a mapped qubit if there is a mapper.
+        Convert a qubit from a logical to a mapped qubit if there is a mapper.
 
         Args:
             qubit (projectq.types.Qubit): Logical quantum bit
@@ -50,22 +44,17 @@ class ClassicalSimulator(BasicEngine):
         mapper = self.main_engine.mapper
         if mapper is not None:
             if qubit.id not in mapper.current_mapping:
-                raise RuntimeError("Unknown qubit id. "
-                                   "Please make sure you have called "
-                                   "eng.flush().")
-            return WeakQubitRef(qubit.engine,
-                                mapper.current_mapping[qubit.id])
-        else:
-            return qubit
+                raise RuntimeError("Unknown qubit id. Please make sure you have called eng.flush().")
+            return WeakQubitRef(qubit.engine, mapper.current_mapping[qubit.id])
+        return qubit
 
     def read_bit(self, qubit):
         """
-        Reads a bit.
+        Read a bit.
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
 
         Args:
             qubit (projectq.types.Qubit): The bit to read.
@@ -77,18 +66,20 @@ class ClassicalSimulator(BasicEngine):
         return self._read_mapped_bit(qubit)
 
     def _read_mapped_bit(self, mapped_qubit):
-        """ Internal use only. Does not change logical to mapped qubits."""
-        p = self._bit_positions[mapped_qubit.id]
-        return (self._state >> p) & 1
+        """
+        Read a mapped bit value.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
+        return (self._state >> self._bit_positions[mapped_qubit.id]) & 1
 
     def write_bit(self, qubit, value):
         """
         Resets/sets a bit to the given value.
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
 
         Args:
             qubit (projectq.types.Qubit): The bit to write.
@@ -98,38 +89,39 @@ class ClassicalSimulator(BasicEngine):
         self._write_mapped_bit(qubit, value)
 
     def _write_mapped_bit(self, mapped_qubit, value):
-        """ Internal use only. Does not change logical to mapped qubits."""
-        p = self._bit_positions[mapped_qubit.id]
+        """
+        Write a mapped bit value.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
+        pos = self._bit_positions[mapped_qubit.id]
         if value:
-            self._state |= 1 << p
+            self._state |= 1 << pos
         else:
-            self._state &= ~(1 << p)
+            self._state &= ~(1 << pos)
 
     def _mask(self, qureg):
         """
-        Returns a mask, to compare against the state, with bits from the
-        register set to 1 and other bits set to 0.
+        Return a mask, to compare against the state, with bits from the register set to 1 and other bits set to 0.
 
         Args:
-            qureg (projectq.types.Qureg):
-                The bits whose positions should be set.
+            qureg (projectq.types.Qureg): The bits whose positions should be set.
 
         Returns:
             int: The mask.
         """
-        t = 0
-        for q in qureg:
-            t |= 1 << self._bit_positions[q.id]
-        return t
+        mask = 0
+        for qb in qureg:
+            mask |= 1 << self._bit_positions[qb.id]
+        return mask
 
     def read_register(self, qureg):
         """
-        Reads a group of bits as a little-endian integer.
+        Read a group of bits as a little-endian integer.
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
 
         Args:
             qureg (projectq.types.Qureg):
@@ -144,24 +136,26 @@ class ClassicalSimulator(BasicEngine):
         return self._read_mapped_register(new_qureg)
 
     def _read_mapped_register(self, mapped_qureg):
-        """ Internal use only. Does not change logical to mapped qubits."""
-        t = 0
-        for i in range(len(mapped_qureg)):
-            t |= self._read_mapped_bit(mapped_qureg[i]) << i
-        return t
+        """
+        Read a value to some mapped quantum register.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
+        mask = 0
+        for i, qubit in enumerate(mapped_qureg):
+            mask |= self._read_mapped_bit(qubit) << i
+        return mask
 
     def write_register(self, qureg, value):
         """
-        Sets a group of bits to store a little-endian integer value.
+        Set a group of bits to store a little-endian integer value.
 
         Note:
-            If there is a mapper present in the compiler, this function
-            automatically converts from logical qubits to mapped qubits for
-            the qureg argument.
+            If there is a mapper present in the compiler, this function automatically converts from logical qubits to
+            mapped qubits for the qureg argument.
 
         Args:
-            qureg (projectq.types.Qureg):
-                The bits to write, in little-endian order.
+            qureg (projectq.types.Qureg): The bits to write, in little-endian order.
             value (int): The integer value to store. Must fit in the register.
         """
         new_qureg = []
@@ -170,44 +164,52 @@ class ClassicalSimulator(BasicEngine):
         self._write_mapped_register(new_qureg, value)
 
     def _write_mapped_register(self, mapped_qureg, value):
-        """ Internal use only. Does not change logical to mapped qubits."""
+        """
+        Write a value to some mapped quantum register.
+
+        For internal use only. Does not change logical to mapped qubits.
+        """
         if value < 0 or value >= 1 << len(mapped_qureg):
             raise ValueError("Value won't fit in register.")
-        for i in range(len(mapped_qureg)):
-            self._write_mapped_bit(mapped_qureg[i], (value >> i) & 1)
+        for i, mapped_qubit in enumerate(mapped_qureg):
+            self._write_mapped_bit(mapped_qubit, (value >> i) & 1)
 
     def is_available(self, cmd):
-        return (cmd.gate == Measure or
-                cmd.gate == Allocate or
-                cmd.gate == Deallocate or
-                isinstance(cmd.gate, BasicMathGate) or
-                isinstance(cmd.gate, FlushGate) or
-                isinstance(cmd.gate, XGate))
+        """Test whether a Command is supported by a compiler engine."""
+        return (
+            cmd.gate == Measure
+            or cmd.gate == Allocate
+            or cmd.gate == Deallocate
+            or isinstance(cmd.gate, (BasicMathGate, FlushGate, XGate))
+        )
 
     def receive(self, command_list):
+        """
+        Receive a list of commands.
+
+        This implementation simply forwards all commands to the next engine.
+        """
         for cmd in command_list:
             self._handle(cmd)
         if not self.is_last_engine:
             self.send(command_list)
 
-    def _handle(self, cmd):
+    def _handle(self, cmd):  # pylint: disable=too-many-branches,too-many-locals
         if isinstance(cmd.gate, FlushGate):
             return
 
         if cmd.gate == Measure:
-            for qr in cmd.qubits:
-                for qb in qr:
+            for qureg in cmd.qubits:
+                for qubit in qureg:
                     # Check if a mapper assigned a different logical id
                     logical_id_tag = None
                     for tag in cmd.tags:
                         if isinstance(tag, LogicalQubitIDTag):
                             logical_id_tag = tag
-                    log_qb = qb
+                    log_qb = qubit
                     if logical_id_tag is not None:
-                        log_qb = WeakQubitRef(qb.engine,
-                                              logical_id_tag.logical_qubit_id)
-                    self.main_engine.set_measurement_result(
-                        log_qb, self._read_mapped_bit(qb))
+                        log_qb = WeakQubitRef(qubit.engine, logical_id_tag.logical_qubit_id)
+                    self.main_engine.set_measurement_result(log_qb, self._read_mapped_bit(qubit))
             return
 
         if cmd.gate == Allocate:
@@ -219,22 +221,20 @@ class ClassicalSimulator(BasicEngine):
             old_id = cmd.qubits[0][0].id
             pos = self._bit_positions[old_id]
             low = (1 << pos) - 1
+
             self._state = (self._state & low) | ((self._state >> 1) & ~low)
-            self._bit_positions = {
-                k: b - (0 if b < pos else 1)
-                for k, b in self._bit_positions.items()
-            }
+            self._bit_positions = {k: b - (0 if b < pos else 1) for k, b in self._bit_positions.items() if k != old_id}
             return
 
         controls_mask = self._mask(cmd.control_qubits)
         meets_controls = self._state & controls_mask == controls_mask
 
         if isinstance(cmd.gate, XGate):
-            assert len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1
+            if not (len(cmd.qubits) == 1 and len(cmd.qubits[0]) == 1):
+                raise ValueError('The XGate only accepts one qubit!')
             target = cmd.qubits[0][0]
             if meets_controls:
-                self._write_mapped_bit(target,
-                                       not self._read_mapped_bit(target))
+                self._write_mapped_bit(target, not self._read_mapped_bit(target))
             return
 
         if isinstance(cmd.gate, BasicMathGate):
@@ -242,8 +242,7 @@ class ClassicalSimulator(BasicEngine):
                 ins = [self._read_mapped_register(reg) for reg in cmd.qubits]
                 outs = cmd.gate.get_math_function(cmd.qubits)(ins)
                 for reg, out in zip(cmd.qubits, outs):
-                    self._write_mapped_register(reg,
-                                                out & ((1 << len(reg)) - 1))
+                    self._write_mapped_register(reg, out & ((1 << len(reg)) - 1))
             return
 
         raise ValueError("Only support alloc/dealloc/measure/not/math ops.")

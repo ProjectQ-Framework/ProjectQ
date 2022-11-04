@@ -11,18 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._manualmapper.py."""
 
-import pytest
-
 from projectq import MainEngine
-from projectq.cengines import DummyEngine
-from projectq.ops import H, Allocate, Measure, All
+from projectq.cengines import DummyEngine, ManualMapper
 from projectq.meta import LogicalQubitIDTag
-
-from projectq.cengines import ManualMapper
-from projectq.backends import IBMBackend
+from projectq.ops import All, H, Measure
 
 
 def test_manualmapper_mapping():
@@ -31,8 +25,7 @@ def test_manualmapper_mapping():
     def mapping(qubit_id):
         return (qubit_id + 1) & 1
 
-    eng = MainEngine(backend=backend,
-                     engine_list=[ManualMapper(mapping)])
+    eng = MainEngine(backend=backend, engine_list=[ManualMapper(mapping)])
     qb0 = eng.allocate_qubit()
     qb1 = eng.allocate_qubit()
     H | qb0

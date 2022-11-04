@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition for the Entangle gate.
 
@@ -20,22 +19,20 @@ qubit, CNOT gates to all others.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, get_control_count
-from projectq.ops import X, H, Entangle, All
+from projectq.meta import Control
+from projectq.ops import All, Entangle, H, X
 
 
 def _decompose_entangle(cmd):
-    """ Decompose the entangle gate. """
-    qr = cmd.qubits[0]
+    """Decompose the entangle gate."""
+    qureg = cmd.qubits[0]
     eng = cmd.engine
 
     with Control(eng, cmd.control_qubits):
-        H | qr[0]
-        with Control(eng, qr[0]):
-            All(X) | qr[1:]
+        H | qureg[0]
+        with Control(eng, qureg[0]):
+            All(X) | qureg[1:]
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Entangle.__class__, _decompose_entangle)
-]
+all_defined_decomposition_rules = [DecompositionRule(Entangle.__class__, _decompose_entangle)]

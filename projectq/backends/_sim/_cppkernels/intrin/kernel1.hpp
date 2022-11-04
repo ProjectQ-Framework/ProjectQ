@@ -60,4 +60,3 @@ void kernel(V &psi, unsigned id0, M const& m, std::size_t ctrlmask)
         }
     }
 }
-

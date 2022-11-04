@@ -11,27 +11,24 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.meta._compute.py"""
 
-import pytest
 import types
 import weakref
 
-from projectq import MainEngine
-from projectq.cengines import DummyEngine, CompareEngine
-from projectq.ops import H, Rx, Ry, Deallocate, Allocate, CNOT, NOT, FlushGate
-from projectq.types import WeakQubitRef
-from projectq.meta import DirtyQubitTag
+import pytest
 
-from projectq.meta import _compute
+from projectq import MainEngine
+from projectq.cengines import CompareEngine, DummyEngine
+from projectq.meta import DirtyQubitTag, _compute
+from projectq.ops import CNOT, NOT, Allocate, Deallocate, FlushGate, H, Rx, Ry
 
 
 def test_compute_tag():
     tag0 = _compute.ComputeTag()
     tag1 = _compute.ComputeTag()
 
-    class MyTag(object):
+    class MyTag:
         pass
 
     assert not tag0 == MyTag()
@@ -43,7 +40,7 @@ def test_uncompute_tag():
     tag0 = _compute.UncomputeTag()
     tag1 = _compute.UncomputeTag()
 
-    class MyTag(object):
+    class MyTag:
         pass
 
     assert not tag0 == MyTag()
@@ -73,8 +70,7 @@ def test_compute_engine():
     assert backend.received_commands[0].gate == Allocate
     assert backend.received_commands[0].tags == [_compute.ComputeTag()]
     assert backend.received_commands[1].gate == H
-    assert backend.received_commands[1].tags == [_compute.ComputeTag(),
-                                                 "TagAddedLater"]
+    assert backend.received_commands[1].tags == [_compute.ComputeTag(), "TagAddedLater"]
     assert backend.received_commands[2].gate == Rx(0.6)
     assert backend.received_commands[2].tags == [_compute.ComputeTag()]
     assert backend.received_commands[3].gate == Deallocate
@@ -220,10 +216,9 @@ def test_compute_uncompute_with_statement():
 
     def allow_dirty_qubits(self, meta_tag):
         return meta_tag == DirtyQubitTag
-    dummy_cengine.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
-                                                         dummy_cengine)
-    eng = MainEngine(backend=backend,
-                     engine_list=[compare_engine0, dummy_cengine])
+
+    dummy_cengine.is_meta_tag_handler = types.MethodType(allow_dirty_qubits, dummy_cengine)
+    eng = MainEngine(backend=backend, engine_list=[compare_engine0, dummy_cengine])
     qubit = eng.allocate_qubit()
     with _compute.Compute(eng):
         Rx(0.9) | qubit
@@ -268,19 +263,21 @@ def test_compute_uncompute_with_statement():
     # Test that each command has correct tags
     assert backend.received_commands[0].tags == []
     assert backend.received_commands[1].tags == [_compute.ComputeTag()]
-    assert backend.received_commands[2].tags == [DirtyQubitTag(),
-                                                 _compute.ComputeTag()]
+    assert backend.received_commands[2].tags == [DirtyQubitTag(), _compute.ComputeTag()]
     for cmd in backend.received_commands[3:9]:
         assert cmd.tags == [_compute.ComputeTag()]
-    assert backend.received_commands[9].tags == [DirtyQubitTag(),
-                                                 _compute.ComputeTag()]
+    assert backend.received_commands[9].tags == [DirtyQubitTag(), _compute.ComputeTag()]
     assert backend.received_commands[10].tags == []
-    assert backend.received_commands[11].tags == [DirtyQubitTag(),
-                                                  _compute.UncomputeTag()]
+    assert backend.received_commands[11].tags == [
+        DirtyQubitTag(),
+        _compute.UncomputeTag(),
+    ]
     for cmd in backend.received_commands[12:18]:
         assert cmd.tags == [_compute.UncomputeTag()]
-    assert backend.received_commands[18].tags == [DirtyQubitTag(),
-                                                  _compute.UncomputeTag()]
+    assert backend.received_commands[18].tags == [
+        DirtyQubitTag(),
+        _compute.UncomputeTag(),
+    ]
     assert backend.received_commands[19].tags == [_compute.UncomputeTag()]
     assert backend.received_commands[20].tags == []
     assert backend.received_commands[21].tags == []
@@ -295,8 +292,7 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[4].qubits[0][0].id == qubit_id
     assert backend.received_commands[5].qubits[0][0].id == ancilla_compt_id
     assert backend.received_commands[6].qubits[0][0].id == qubit_id
-    assert (backend.received_commands[6].control_qubits[0].id ==
-            ancilla_compt_id)
+    assert backend.received_commands[6].control_qubits[0].id == ancilla_compt_id
     assert backend.received_commands[7].qubits[0][0].id == qubit_id
     assert backend.received_commands[8].qubits[0][0].id == ancilla_compt_id
     assert backend.received_commands[9].qubits[0][0].id == ancilla_compt_id
@@ -304,15 +300,14 @@ def test_compute_uncompute_with_statement():
     assert backend.received_commands[12].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[13].qubits[0][0].id == qubit_id
     assert backend.received_commands[14].qubits[0][0].id == qubit_id
-    assert (backend.received_commands[14].control_qubits[0].id ==
-            ancilla_uncompt_id)
+    assert backend.received_commands[14].control_qubits[0].id == ancilla_uncompt_id
     assert backend.received_commands[15].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[16].qubits[0][0].id == qubit_id
     assert backend.received_commands[17].qubits[0][0].id == ancilla2_id
     assert backend.received_commands[18].qubits[0][0].id == ancilla_uncompt_id
     assert backend.received_commands[19].qubits[0][0].id == qubit_id
     assert backend.received_commands[20].qubits[0][0].id == qubit_id
-    # Test that ancilla qubits should have seperate ids
+    # Test that ancilla qubits should have separate ids
     assert ancilla_uncompt_id != ancilla_compt_id
 
     # Do the same thing with CustomUncompute and compare using the
@@ -324,10 +319,9 @@ def test_compute_uncompute_with_statement():
 
     def allow_dirty_qubits(self, meta_tag):
         return meta_tag == DirtyQubitTag
-    dummy_cengine1.is_meta_tag_handler = types.MethodType(allow_dirty_qubits,
-                                                          dummy_cengine1)
-    eng1 = MainEngine(backend=backend1,
-                      engine_list=[compare_engine1, dummy_cengine1])
+
+    dummy_cengine1.is_meta_tag_handler = types.MethodType(allow_dirty_qubits, dummy_cengine1)
+    eng1 = MainEngine(backend=backend1, engine_list=[compare_engine1, dummy_cengine1])
     qubit = eng1.allocate_qubit()
     with _compute.Compute(eng1):
         Rx(0.9) | qubit
@@ -361,7 +355,8 @@ def test_compute_uncompute_with_statement():
 def test_exception_if_no_compute_but_uncompute():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with pytest.raises(_compute.NoComputeSectionError):
-        with _compute.CustomUncompute(eng): pass
+        with _compute.CustomUncompute(eng):
+            pass
 
 
 def test_exception_if_no_compute_but_uncompute2():
@@ -373,7 +368,7 @@ def test_exception_if_no_compute_but_uncompute2():
 def test_qubit_management_error():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with _compute.Compute(eng):
-        ancilla = eng.allocate_qubit()
+        ancilla = eng.allocate_qubit()  # noqa: F841
     eng.active_qubits = weakref.WeakSet()
     with pytest.raises(_compute.QubitManagementError):
         _compute.Uncompute(eng)
@@ -382,7 +377,7 @@ def test_qubit_management_error():
 def test_qubit_management_error2():
     eng = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
     with _compute.Compute(eng):
-        ancilla = eng.allocate_qubit()
+        ancilla = eng.allocate_qubit()  # noqa: F841
         local_ancilla = eng.allocate_qubit()
         local_ancilla[0].__del__()
     eng.active_qubits = weakref.WeakSet()
@@ -393,7 +388,7 @@ def test_qubit_management_error2():
 def test_only_single_error_in_costum_uncompute():
     eng = MainEngine(backend=DummyEngine(), engine_list=[])
     with _compute.Compute(eng):
-        qb = eng.allocate_qubit()
+        eng.allocate_qubit()
     # Tests that QubitManagementError is not sent in addition
     with pytest.raises(RuntimeError):
         with _compute.CustomUncompute(eng):

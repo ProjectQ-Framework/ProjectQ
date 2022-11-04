@@ -17,19 +17,19 @@ import pytest
 import projectq.libs.math
 import projectq.setups.decompositions
 from projectq.backends._sim._simulator_test import sim
-from projectq.cengines import (MainEngine,
-                               AutoReplacer,
-                               DecompositionRuleSet,
-                               InstructionFilter,
-                               LocalOptimizer,
-                               TagRemover)
+from projectq.cengines import (
+    AutoReplacer,
+    DecompositionRuleSet,
+    InstructionFilter,
+    LocalOptimizer,
+    MainEngine,
+    TagRemover,
+)
 from projectq.libs.math import MultiplyByConstantModN
 from projectq.meta import Control
-from projectq.ops import (All, BasicMathGate, get_inverse, H, Measure, QFT,
-                          Swap, X)
+from projectq.ops import QFT, All, BasicMathGate, H, Measure, Swap, X, get_inverse
 
-rule_set = DecompositionRuleSet(modules=(projectq.libs.math,
-                                         projectq.setups.decompositions))
+rule_set = DecompositionRuleSet(modules=(projectq.libs.math, projectq.setups.decompositions))
 
 assert sim  # Asserts to tools that the fixture import is used.
 
@@ -44,13 +44,15 @@ def high_level_gates(eng, cmd):
 
 
 def get_main_engine(sim):
-    engine_list = [AutoReplacer(rule_set),
-                   InstructionFilter(high_level_gates),
-                   TagRemover(),
-                   LocalOptimizer(3),
-                   AutoReplacer(rule_set),
-                   TagRemover(),
-                   LocalOptimizer(3)]
+    engine_list = [
+        AutoReplacer(rule_set),
+        InstructionFilter(high_level_gates),
+        TagRemover(),
+        LocalOptimizer(3),
+        AutoReplacer(rule_set),
+        TagRemover(),
+        LocalOptimizer(3),
+    ]
     return MainEngine(sim, engine_list)
 
 
@@ -76,7 +78,7 @@ def test_factoring(sim):
     vec = cheat_tpl[1]
 
     for i in range(len(vec)):
-        if abs(vec[i]) > 1.e-8:
+        if abs(vec[i]) > 1.0e-8:
             assert ((i >> idx) & 1) == 0
 
     Measure | ctrl_qubit
@@ -93,13 +95,13 @@ def test_factoring(sim):
     idx = cheat_tpl[0][ctrl_qubit[0].id]
     vec = cheat_tpl[1]
 
-    probability = 0.
+    probability = 0.0
     for i in range(len(vec)):
-        if abs(vec[i]) > 1.e-8:
+        if abs(vec[i]) > 1.0e-8:
             if ((i >> idx) & 1) == 0:
-                probability += abs(vec[i])**2
+                probability += abs(vec[i]) ** 2
 
-    assert probability == pytest.approx(.5)
+    assert probability == pytest.approx(0.5)
 
     Measure | ctrl_qubit
     All(Measure) | x

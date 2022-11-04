@@ -11,21 +11,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.ops._basics."""
 
-from copy import deepcopy
 import math
 
 import numpy as np
 import pytest
 
-from projectq.types import Qubit, Qureg
-from projectq.ops import Command, X
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-
-from projectq.ops import _basics
+from projectq.ops import Command, X, _basics
+from projectq.types import Qubit, Qureg, WeakQubitRef
 
 
 @pytest.fixture
@@ -68,26 +64,29 @@ def test_basic_gate_generate_command(main_engine):
     qureg = Qureg([qubit2, qubit3])
     basic_gate = _basics.BasicGate()
     command1 = basic_gate.generate_command(qubit0)
-    assert command1 == Command(main_engine, basic_gate,
-                               ([qubit0],))
+    assert command1 == Command(main_engine, basic_gate, ([qubit0],))
     command2 = basic_gate.generate_command([qubit0, qubit1])
-    assert command2 == Command(main_engine, basic_gate,
-                               ([qubit0, qubit1],))
+    assert command2 == Command(main_engine, basic_gate, ([qubit0, qubit1],))
     command3 = basic_gate.generate_command(qureg)
-    assert command3 == Command(main_engine, basic_gate,
-                               (qureg,))
+    assert command3 == Command(main_engine, basic_gate, (qureg,))
     command4 = basic_gate.generate_command((qubit0,))
-    assert command4 == Command(main_engine, basic_gate,
-                               ([qubit0],))
+    assert command4 == Command(main_engine, basic_gate, ([qubit0],))
     command5 = basic_gate.generate_command((qureg, qubit0))
-    assert command5 == Command(main_engine, basic_gate,
-                               (qureg, [qubit0]))
+    assert command5 == Command(main_engine, basic_gate, (qureg, [qubit0]))
+
+
+def test_basic_gate_generate_command_invalid():
+    qb0 = WeakQubitRef(1, idx=0)
+    qb1 = WeakQubitRef(2, idx=0)
+
+    basic_gate = _basics.BasicGate()
+    with pytest.raises(ValueError):
+        basic_gate.generate_command([qb0, qb1])
 
 
 def test_basic_gate_or():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
@@ -109,8 +108,7 @@ def test_basic_gate_or():
     for cmd in saving_backend.received_commands:
         if not isinstance(cmd.gate, _basics.FastForwardingGate):
             received_commands.append(cmd)
-    assert received_commands == ([command1, command2, command3, command4,
-                                  command5])
+    assert received_commands == ([command1, command2, command3, command4, command5])
 
 
 def test_basic_gate_compare():
@@ -153,9 +151,15 @@ def test_self_inverse_gate():
     assert id(self_inverse_gate.get_inverse()) != id(self_inverse_gate)
 
 
-@pytest.mark.parametrize("input_angle, modulo_angle",
-                         [(2.0, 2.0), (17., 4.4336293856408275),
-                          (-0.5 * math.pi, 3.5 * math.pi), (4 * math.pi, 0)])
+@pytest.mark.parametrize(
+    "input_angle, modulo_angle",
+    [
+        (2.0, 2.0),
+        (17.0, 4.4336293856408275),
+        (-0.5 * math.pi, 3.5 * math.pi),
+        (4 * math.pi, 0),
+    ],
+)
 def test_basic_rotation_gate_init(input_angle, modulo_angle):
     # Test internal representation
     gate = _basics.BasicRotationGate(input_angle)
@@ -163,19 +167,20 @@ def test_basic_rotation_gate_init(input_angle, modulo_angle):
 
 
 def test_basic_rotation_gate_str():
-    basic_rotation_gate = _basics.BasicRotationGate(0.5)
-    assert str(basic_rotation_gate) == "BasicRotationGate(0.5)"
+    gate = _basics.BasicRotationGate(math.pi)
+    assert str(gate) == "BasicRotationGate(3.14159265359)"
+    assert gate.to_string(symbols=True) == "BasicRotationGate(1.0π)"
+    assert gate.to_string(symbols=False) == "BasicRotationGate(3.14159265359)"
 
 
 def test_basic_rotation_tex_str():
-    basic_rotation_gate = _basics.BasicRotationGate(0.5)
-    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.5}$"
-    basic_rotation_gate = _basics.BasicRotationGate(4 * math.pi - 1e-13)
-    assert basic_rotation_gate.tex_str() == "BasicRotationGate$_{0.0}$"
+    gate = _basics.BasicRotationGate(0.5 * math.pi)
+    assert gate.tex_str() == "BasicRotationGate$_{0.5\\pi}$"
+    gate = _basics.BasicRotationGate(4 * math.pi - 1e-13)
+    assert gate.tex_str() == "BasicRotationGate$_{0.0\\pi}$"
 
 
-@pytest.mark.parametrize("input_angle, inverse_angle",
-                         [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5), (0.0, 0)])
+@pytest.mark.parametrize("input_angle, inverse_angle", [(2.0, -2.0 + 4 * math.pi), (-0.5, 0.5), (0.0, 0)])
 def test_basic_rotation_gate_get_inverse(input_angle, inverse_angle):
     basic_rotation_gate = _basics.BasicRotationGate(input_angle)
     inverse = basic_rotation_gate.get_inverse()
@@ -194,6 +199,19 @@ def test_basic_rotation_gate_get_merged():
     assert merged_gate == basic_rotation_gate3
 
 
+def test_basic_rotation_gate_is_identity():
+    basic_rotation_gate1 = _basics.BasicRotationGate(0.0)
+    basic_rotation_gate2 = _basics.BasicRotationGate(1.0 * math.pi)
+    basic_rotation_gate3 = _basics.BasicRotationGate(2.0 * math.pi)
+    basic_rotation_gate4 = _basics.BasicRotationGate(3.0 * math.pi)
+    basic_rotation_gate5 = _basics.BasicRotationGate(4.0 * math.pi)
+    assert basic_rotation_gate1.is_identity()
+    assert not basic_rotation_gate2.is_identity()
+    assert not basic_rotation_gate3.is_identity()
+    assert not basic_rotation_gate4.is_identity()
+    assert basic_rotation_gate5.is_identity()
+
+
 def test_basic_rotation_gate_comparison_and_hash():
     basic_rotation_gate1 = _basics.BasicRotationGate(0.5)
     basic_rotation_gate2 = _basics.BasicRotationGate(0.5)
@@ -206,8 +224,8 @@ def test_basic_rotation_gate_comparison_and_hash():
     # Test __ne__:
     assert basic_rotation_gate4 != basic_rotation_gate1
     # Test one gate close to 4*pi the other one close to 0
-    basic_rotation_gate5 = _basics.BasicRotationGate(1.e-13)
-    basic_rotation_gate6 = _basics.BasicRotationGate(4 * math.pi - 1.e-13)
+    basic_rotation_gate5 = _basics.BasicRotationGate(1.0e-13)
+    basic_rotation_gate6 = _basics.BasicRotationGate(4 * math.pi - 1.0e-13)
     assert basic_rotation_gate5 == basic_rotation_gate6
     assert basic_rotation_gate6 == basic_rotation_gate5
     assert hash(basic_rotation_gate5) == hash(basic_rotation_gate6)
@@ -217,9 +235,15 @@ def test_basic_rotation_gate_comparison_and_hash():
     assert basic_rotation_gate2 != _basics.BasicRotationGate(0.5 + 2 * math.pi)
 
 
-@pytest.mark.parametrize("input_angle, modulo_angle",
-                         [(2.0, 2.0), (17., 4.4336293856408275),
-                          (-0.5 * math.pi, 1.5 * math.pi), (2 * math.pi, 0)])
+@pytest.mark.parametrize(
+    "input_angle, modulo_angle",
+    [
+        (2.0, 2.0),
+        (17.0, 4.4336293856408275),
+        (-0.5 * math.pi, 1.5 * math.pi),
+        (2 * math.pi, 0),
+    ],
+)
 def test_basic_phase_gate_init(input_angle, modulo_angle):
     # Test internal representation
     gate = _basics.BasicPhaseGate(input_angle)
@@ -238,8 +262,7 @@ def test_basic_phase_tex_str():
     assert basic_rotation_gate.tex_str() == "BasicPhaseGate$_{0.0}$"
 
 
-@pytest.mark.parametrize("input_angle, inverse_angle",
-                         [(2.0, -2.0 + 2 * math.pi), (-0.5, 0.5), (0.0, 0)])
+@pytest.mark.parametrize("input_angle, inverse_angle", [(2.0, -2.0 + 2 * math.pi), (-0.5, 0.5), (0.0, 0)])
 def test_basic_phase_gate_get_inverse(input_angle, inverse_angle):
     basic_phase_gate = _basics.BasicPhaseGate(input_angle)
     inverse = basic_phase_gate.get_inverse()
@@ -270,8 +293,8 @@ def test_basic_phase_gate_comparison_and_hash():
     # Test __ne__:
     assert basic_phase_gate4 != basic_phase_gate1
     # Test one gate close to 2*pi the other one close to 0
-    basic_phase_gate5 = _basics.BasicPhaseGate(1.e-13)
-    basic_phase_gate6 = _basics.BasicPhaseGate(2 * math.pi - 1.e-13)
+    basic_phase_gate5 = _basics.BasicPhaseGate(1.0e-13)
+    basic_phase_gate6 = _basics.BasicPhaseGate(2 * math.pi - 1.0e-13)
     assert basic_phase_gate5 == basic_phase_gate6
     assert basic_phase_gate6 == basic_phase_gate5
     assert hash(basic_phase_gate5) == hash(basic_phase_gate6)
@@ -287,7 +310,7 @@ def test_basic_math_gate():
 
     class MyMultiplyGate(_basics.BasicMathGate):
         def __init__(self):
-            _basics.BasicMathGate.__init__(self, my_math_function)
+            super().__init__(my_math_function)
 
     gate = MyMultiplyGate()
     assert str(gate) == 'MATH'
@@ -316,10 +339,10 @@ def test_matrix_gate():
     assert gate1 != gate6
     assert gate3 != gate6
     gate7 = gate5.get_inverse()
-    gate8 = _basics.MatrixGate([[1, 0], [0, (1+1j)/math.sqrt(2)]])
+    gate8 = _basics.MatrixGate([[1, 0], [0, (1 + 1j) / math.sqrt(2)]])
     assert gate7 == gate5
     assert gate7 != gate8
-    gate9 = _basics.MatrixGate([[1, 0], [0, (1-1j)/math.sqrt(2)]])
+    gate9 = _basics.MatrixGate([[1, 0], [0, (1 - 1j) / math.sqrt(2)]])
     gate10 = gate9.get_inverse()
     assert gate10 == gate8
     assert gate3 == X

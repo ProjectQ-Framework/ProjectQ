@@ -12,9 +12,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Math gate definitions."""
+
 from ._default_rules import all_defined_decomposition_rules
-from ._gates import (AddConstant,
-                     SubConstant,
-                     AddConstantModN,
-                     SubConstantModN,
-                     MultiplyByConstantModN)
+from ._gates import (
+    AddConstant,
+    AddConstantModN,
+    AddQuantum,
+    ComparatorQuantum,
+    DivideQuantum,
+    MultiplyByConstantModN,
+    MultiplyQuantum,
+    SubConstant,
+    SubConstantModN,
+    SubtractQuantum,
+)

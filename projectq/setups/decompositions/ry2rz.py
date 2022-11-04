@@ -12,36 +12,32 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Registers a decomposition for the Ry gate into an Rz and Rx(pi/2) gate.
-"""
+"""Register a decomposition for the Ry gate into an Rz and Rx(pi/2) gate."""
 
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Control, get_control_count, Uncompute
-from projectq.ops import Rx, Ry, Rz, H
+from projectq.meta import Compute, Control, Uncompute, get_control_count
+from projectq.ops import Rx, Ry, Rz
 
 
 def _decompose_ry(cmd):
-    """ Decompose the Ry gate."""
+    """Decompose the Ry gate."""
     qubit = cmd.qubits[0]
     eng = cmd.engine
     angle = cmd.gate.angle
 
     with Control(eng, cmd.control_qubits):
         with Compute(eng):
-            Rx(math.pi/2.) | qubit
+            Rx(math.pi / 2.0) | qubit
         Rz(angle) | qubit
         Uncompute(eng)
 
 
-def _recognize_RyNoCtrl(cmd):
-    """ For efficiency reasons only if no control qubits."""
+def _recognize_RyNoCtrl(cmd):  # pylint: disable=invalid-name
+    """For efficiency reasons only if no control qubits."""
     return get_control_count(cmd) == 0
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Ry, _decompose_ry, _recognize_RyNoCtrl)
-]
+all_defined_decomposition_rules = [DecompositionRule(Ry, _decompose_ry, _recognize_RyNoCtrl)]

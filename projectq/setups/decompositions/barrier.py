@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for barriers.
 
@@ -22,17 +21,14 @@ from projectq.cengines import DecompositionRule
 from projectq.ops import BarrierGate
 
 
-def _decompose_barrier(cmd):
-    """ Throw out all barriers if they are not supported. """
-    pass
+def _decompose_barrier(cmd):  # pylint: disable=unused-argument
+    """Throw out all barriers if they are not supported."""
 
 
-def _recognize_barrier(cmd):
-    """ Recognize all barriers. """
+def _recognize_barrier(cmd):  # pylint: disable=unused-argument
+    """Recognize all barriers."""
     return True
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(BarrierGate, _decompose_barrier, _recognize_barrier)
-]
+all_defined_decomposition_rules = [DecompositionRule(BarrierGate, _decompose_barrier, _recognize_barrier)]

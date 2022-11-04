@@ -1,9 +1,10 @@
 include LICENSE
+include CHANGELOG.md
 include MANIFEST.in
 include NOTICE
-include pytest.ini
 include README.rst
-include requirements.txt
 include setup.py
+include setup.cfg
+include pyproject.toml
 
 recursive-include projectq *.py *.hpp *.cpp

@@ -12,4 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""ProjectQ module containing all basic types."""
+
 from ._qubit import BasicQubit, Qubit, Qureg, WeakQubitRef

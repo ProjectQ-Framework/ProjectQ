@@ -11,15 +11,14 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._tagremover.py."""
 
+import pytest
+
 from projectq import MainEngine
+from projectq.cengines import DummyEngine, _tagremover
 from projectq.meta import ComputeTag, UncomputeTag
 from projectq.ops import Command, H
-from projectq.cengines import DummyEngine
-
-from projectq.cengines import _tagremover
 
 
 def test_tagremover_default():
@@ -27,9 +26,14 @@ def test_tagremover_default():
     assert tag_remover._tags == [ComputeTag, UncomputeTag]
 
 
+def test_tagremover_invalid():
+    with pytest.raises(TypeError):
+        _tagremover.TagRemover(ComputeTag)
+
+
 def test_tagremover():
     backend = DummyEngine(save_commands=True)
-    tag_remover = _tagremover.TagRemover([type("")])
+    tag_remover = _tagremover.TagRemover([str])
     eng = MainEngine(backend=backend, engine_list=[tag_remover])
     # Create a command_list and check if "NewTag" is removed
     qubit = eng.allocate_qubit()

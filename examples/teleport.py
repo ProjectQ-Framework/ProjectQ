@@ -1,13 +1,18 @@
-from projectq.ops import All, CNOT, H, Measure, Rz, X, Z
+# pylint: skip-file
+
+"""Example of a quantum teleportation circuit."""
+
 from projectq import MainEngine
-from projectq.meta import Dagger, Control
+from projectq.meta import Control, Dagger
+from projectq.ops import CNOT, H, Measure, Rz, X, Z
 
 
 def create_bell_pair(eng):
-    """
-    Returns a Bell-pair (two qubits in state :math:`|A\rangle \otimes |B
-    \rangle = \frac 1{\sqrt 2} \left( |0\rangle\otimes|0\rangle + |1\rangle
-    \otimes|1\rangle \right)`).
+    r"""
+    Create a Bell pair state with two qubits.
+
+    Returns a Bell-pair (two qubits in state :math:`|A\rangle \otimes |B \rangle = \frac 1{\sqrt 2} \left(
+    |0\rangle\otimes|0\rangle + |1\rangle \otimes|1\rangle \right)`).
 
     Args:
         eng (MainEngine): MainEngine from which to allocate the qubits.
@@ -26,18 +31,16 @@ def create_bell_pair(eng):
 
 def run_teleport(eng, state_creation_function, verbose=False):
     """
-    Runs quantum teleportation on the provided main compiler engine.
+    Run quantum teleportation on the provided main compiler engine.
 
-    Creates a state from |0> using the state_creation_function, teleports this
-    state to Bob who then tries to uncompute his qubit using the inverse of
-    the state_creation_function. If successful, deleting the qubit won't raise
-    an error in the underlying Simulator back-end (else it will).
+    Creates a state from |0> using the state_creation_function, teleports this state to Bob who then tries to
+    uncompute his qubit using the inverse of the state_creation_function. If successful, deleting the qubit won't
+    raise an error in the underlying Simulator back-end (else it will).
 
     Args:
         eng (MainEngine): Main compiler engine to run the circuit on.
-        state_creation_function (function): Function which accepts the main
-            engine and a qubit in state |0>, which it then transforms to the
-            state that Alice would like to send to Bob.
+        state_creation_function (function): Function which accepts the main engine and a qubit in state |0>, which it
+            then transforms to the state that Alice would like to send to Bob.
         verbose (bool): If True, info messages will be printed.
 
     """
@@ -61,7 +64,7 @@ def run_teleport(eng, state_creation_function, verbose=False):
     Measure | b1
     msg_to_bob = [int(psi), int(b1)]
     if verbose:
-        print("Alice is sending the message {} to Bob.".format(msg_to_bob))
+        print(f"Alice is sending the message {msg_to_bob} to Bob.")
 
     # Bob may have to apply up to two operation depending on the message sent
     # by Alice:
@@ -93,6 +96,7 @@ if __name__ == "__main__":
     # we would like to send. Bob can then try to uncompute it and, if he
     # arrives back at |0>, we know that the teleportation worked.
     def create_state(eng, qb):
+        """Create a quantum state."""
         H | qb
         Rz(1.21) | qb
 

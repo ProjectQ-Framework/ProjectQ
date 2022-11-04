@@ -1,0 +1,215 @@
+[build-system]
+requires = [
+    'setuptools>=61;python_version>="3.7"',
+    'setuptools>=59;python_version<"3.7"',
+    'wheel',
+    'pybind11>=2',
+    'setuptools_scm[toml]>6;python_version>="3.7"'
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'projectq'
+authors = [
+     {name = 'ProjectQ', email = 'info@projectq.ch'}
+]
+description = 'ProjectQ - An open source software framework for quantum computing'
+requires-python = '>= 3.7'
+license = {text= 'Apache License Version 2.0'}
+readme = 'README.rst'
+classifiers = [
+    'License :: OSI Approved :: Apache Software License',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10'
+]
+dynamic = ["version"]
+
+dependencies = [
+    'matplotlib >= 2.2.3',
+    'networkx >= 2',
+    'numpy',
+    'requests',
+    'scipy'
+]
+
+[project.urls]
+'Homepage' = 'http://www.projectq.ch'
+'Documentation' = 'https://projectq.readthedocs.io/en/latest/'
+'Issue Tracker' = 'https://github.com/ProjectQ-Framework/ProjectQ/'
+
+[project.optional-dependencies]
+
+azure-quantum = [
+      'azure-quantum'
+]
+
+braket = [
+      'boto3'
+]
+
+revkit = [
+     'revkit == 3.0a2.dev2',
+      'dormouse'
+]
+
+test = [
+     'flaky',
+     'mock',
+     'pytest >= 6.0',
+     'pytest-cov',
+     'pytest-mock'
+]
+
+docs = [
+     'sphinx',
+     'sphinx_rtd_theme'
+]
+
+# ==============================================================================
+
+[tool.black]
+
+    line-length = 120
+    target-version = ['py37','py38','py39','py310']
+    skip-string-normalization = true
+
+
+[tool.check-manifest]
+ignore = [
+    'PKG-INFO',
+    '*.egg-info',
+    '*.egg-info/*',
+    'setup.cfg',
+    '.hgtags',
+    '.hgsigs',
+    '.hgignore',
+    '.gitignore',
+    '.bzrignore',
+    '.gitattributes',
+    '.github/*',
+    '.travis.yml',
+    'Jenkinsfile',
+    '*.mo',
+    '.clang-format',
+    '.gitmodules',
+    'requirements.txt',
+    'requirements_tests.txt',
+    'VERSION.txt',
+    '.editorconfig',
+    '*.yml',
+    '*.yaml',
+    'docs/*',
+    'docs/images/*',
+    'examples/*',
+    ]
+
+
+
+[tool.coverage]
+    [tool.coverage.run]
+        omit = [
+            '*_test.py',
+            '*_fixtures.py'
+        ]
+
+
+[tool.pylint]
+    [tool.pylint.master]
+    ignore-patterns = [
+        '__init__.py',
+        '.*_test.py',
+        '.*_fixtures.py',
+        '.*flycheck.*.py',
+    ]
+
+    extension-pkg-whitelist = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+    extension-pkg-allow-list = [
+        'math',
+        'cmath',
+        'unicodedata',
+        'revkit'
+    ]
+
+    [tool.pylint.basic]
+    good-names = ['qb', 'id', 'i', 'j', 'k', 'N', 'op', 'X', 'Y', 'Z', 'R', 'C', 'CRz', 'Zero', 'One']
+
+    [tool.pylint.format]
+    max-line-length = 120
+
+    [tool.pylint.reports]
+    msg-template = '{path}:{line}: [{msg_id}, {obj}] {msg} ({symbol})'
+
+    [tool.pylint.similarities]
+    min-similarity-lines = 20
+
+    [tool.pylint.messages_control]
+    disable = [
+         'expression-not-assigned',
+         'pointless-statement',
+         'fixme',
+         'unspecified-encoding',
+         'R0801',
+    ]
+
+    [tool.pylint.typecheck]
+    ignored-modules = ['boto3', 'botocore', 'sympy']
+
+
+[tool.pytest.ini_options]
+
+minversion = '6.0'
+addopts = '-pno:warnings'
+testpaths = ['projectq']
+ignore-glob = ['*flycheck*.py']
+mock_use_standalone_module = true
+
+[tool.doc8]
+
+verbose = 0
+max_line_length = 120
+
+[tool.isort]
+
+profile = "black"
+
+[tool.setuptools_scm]
+
+write_to = 'VERSION.txt'
+write_to_template = '{version}'
+local_scheme = 'no-local-version'
+
+[tool.cibuildwheel]
+
+archs = ['auto64']
+build-frontend = 'build'
+build-verbosity = 1
+skip = 'pp* *-musllinux*'
+environment = { PROJECTQ_DISABLE_ARCH_NATIVE='1', PROJECTQ_CI_BUILD='1', OMP_NUM_THREADS='1' }
+
+before-test = [
+    'cd {package}',
+    'python setup.py gen_reqfile',
+    'python -m pip install -r requirements.txt --only-binary :all:',
+]
+
+test-command = 'python {package}/examples/grover.py'
+
+# Normal options, etc.
+manylinux-x86_64-image = 'manylinux2014'
+
+[[tool.cibuildwheel.overrides]]
+select = 'cp36-*'
+manylinux-x86_64-image = 'manylinux1'
+
+[[tool.cibuildwheel.overrides]]
+select = 'cp3{7,8,9}-*'
+manylinux-x86_64-image = 'manylinux2010'

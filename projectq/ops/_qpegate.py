@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Definition of the quantum phase estimation gate."""
+
 from ._basics import BasicGate
 
 
@@ -21,9 +23,12 @@ class QPE(BasicGate):
 
     See setups.decompositions for the complete implementation
     """
+
     def __init__(self, unitary):
-        BasicGate.__init__(self)
+        """Initialize a QPE gate."""
+        super().__init__()
         self.unitary = unitary
 
     def __str__(self):
-        return 'QPE({})'.format(str(self.unitary))
+        """Return a string representation of the object."""
+        return f'QPE({str(self.unitary)})'

@@ -11,18 +11,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._swapandcnotflipper.py."""
 
 import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import All, H, CNOT, X, Measure, Swap
-from projectq.meta import (Control, Compute, Uncompute, ComputeTag,
-                           UncomputeTag)
-from projectq.cengines import _swapandcnotflipper
-from projectq.backends import IBMBackend
+from projectq.meta import Compute, ComputeTag, Control, Uncompute, UncomputeTag
+from projectq.ops import CNOT, All, Command, H, Swap, X
+from projectq.types import WeakQubitRef
+
+from . import _swapandcnotflipper
 
 
 def test_swapandcnotflipper_missing_connection():
@@ -31,6 +30,16 @@ def test_swapandcnotflipper_missing_connection():
     qubit1, qubit2 = eng.allocate_qureg(2)
     with pytest.raises(RuntimeError):
         Swap | (qubit1, qubit2)
+
+
+def test_swapandcnotflipper_invalid_swap():
+    flipper = _swapandcnotflipper.SwapAndCNOTFlipper(set())
+
+    qb0 = WeakQubitRef(engine=None, idx=0)
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+    with pytest.raises(RuntimeError):
+        flipper.receive([Command(engine=None, gate=Swap, qubits=([qb0, qb1], [qb2]))])
 
 
 def test_swapandcnotflipper_is_available():
@@ -62,7 +71,7 @@ def test_swapandcnotflipper_is_available():
 
 def test_swapandcnotflipper_flips_cnot():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 1)])
+    connectivity = {(0, 1)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -81,7 +90,7 @@ def test_swapandcnotflipper_flips_cnot():
 
 def test_swapandcnotflipper_invalid_circuit():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 2)])
+    connectivity = {(0, 2)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -97,7 +106,7 @@ def test_swapandcnotflipper_invalid_circuit():
 
 def test_swapandcnotflipper_optimize_swaps():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(1, 0)])
+    connectivity = {(1, 0)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -113,7 +122,7 @@ def test_swapandcnotflipper_optimize_swaps():
     assert hgates == 4
 
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(0, 1)])
+    connectivity = {(0, 1)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()
@@ -131,7 +140,7 @@ def test_swapandcnotflipper_optimize_swaps():
 
 def test_swapandcnotflipper_keeps_tags():
     backend = DummyEngine(save_commands=True)
-    connectivity = set([(1, 0)])
+    connectivity = {(1, 0)}
     flipper = _swapandcnotflipper.SwapAndCNOTFlipper(connectivity)
     eng = MainEngine(backend=backend, engine_list=[flipper])
     qb0 = eng.allocate_qubit()

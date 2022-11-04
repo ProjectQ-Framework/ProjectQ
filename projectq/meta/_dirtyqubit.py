@@ -12,17 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Defines the DirtyQubitTag meta tag.
-"""
+"""Define the DirtyQubitTag meta tag."""
 
 
-class DirtyQubitTag(object):
-    """
-    Dirty qubit meta tag
-    """
+class DirtyQubitTag:  # pylint: disable=too-few-public-methods
+    """Dirty qubit meta tag."""
+
     def __eq__(self, other):
+        """Equal operator."""
         return isinstance(other, DirtyQubitTag)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)

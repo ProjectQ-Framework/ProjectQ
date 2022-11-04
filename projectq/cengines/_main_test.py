@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,20 +11,15 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.cengines._main.py."""
 import sys
 import weakref
 
 import pytest
 
-import projectq.setups.default
-from projectq.cengines import DummyEngine, BasicMapperEngine, LocalOptimizer
 from projectq.backends import Simulator
-from projectq.ops import (AllocateQubitGate, DeallocateQubitGate, FlushGate,
-                          H, X)
-
-from projectq.cengines import _main
+from projectq.cengines import BasicMapperEngine, DummyEngine, LocalOptimizer, _main
+from projectq.ops import AllocateQubitGate, DeallocateQubitGate, FlushGate, H
 
 
 def test_main_engine_init():
@@ -50,14 +45,14 @@ def test_main_engine_init():
 
 def test_main_engine_init_failure():
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(backend=DummyEngine)
+        _main.MainEngine(backend=DummyEngine)
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(engine_list=DummyEngine)
+        _main.MainEngine(engine_list=DummyEngine)
     with pytest.raises(_main.UnsupportedEngineError):
-        eng = _main.MainEngine(engine_list=[DummyEngine(), DummyEngine])
+        _main.MainEngine(engine_list=[DummyEngine(), DummyEngine])
     with pytest.raises(_main.UnsupportedEngineError):
         engine = DummyEngine()
-        eng = _main.MainEngine(backend=engine, engine_list=[engine])
+        _main.MainEngine(backend=engine, engine_list=[engine])
 
 
 def test_main_engine_init_defaults():
@@ -69,13 +64,25 @@ def test_main_engine_init_defaults():
         current_engine = current_engine.next_engine
     assert isinstance(eng_list[-1].next_engine, Simulator)
     import projectq.setups.default
+
     default_engines = projectq.setups.default.get_engine_list()
     for engine, expected in zip(eng_list, default_engines):
         assert type(engine) == type(expected)
 
 
-def test_main_engine_init_mapper():
+def test_main_engine_too_many_compiler_engines():
+    old = _main._N_ENGINES_THRESHOLD
+    _main._N_ENGINES_THRESHOLD = 3
 
+    _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine()])
+
+    with pytest.raises(ValueError):
+        _main.MainEngine(backend=DummyEngine(), engine_list=[DummyEngine(), DummyEngine(), DummyEngine()])
+
+    _main._N_ENGINES_THRESHOLD = old
+
+
+def test_main_engine_init_mapper():
     class LinearMapper(BasicMapperEngine):
         pass
 
@@ -89,7 +96,7 @@ def test_main_engine_init_mapper():
     assert eng2.mapper == mapper2
     engine_list3 = [mapper1, mapper2]
     with pytest.raises(_main.UnsupportedEngineError):
-        eng3 = _main.MainEngine(engine_list=engine_list3)
+        _main.MainEngine(engine_list=engine_list3)
 
 
 def test_main_engine_del():
@@ -97,7 +104,7 @@ def test_main_engine_del():
     sys.last_type = None
     del sys.last_type
     # need engine which caches commands to test that del calls flush
-    caching_engine = LocalOptimizer(m=5)
+    caching_engine = LocalOptimizer(cache_size=5)
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[caching_engine])
     qubit = eng.allocate_qubit()
@@ -152,7 +159,7 @@ def test_main_engine_atexit_no_error():
     del sys.last_type
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[])
-    qb = eng.allocate_qubit()
+    qb = eng.allocate_qubit()  # noqa: F841
     eng._delfun(weakref.ref(eng))
     assert len(backend.received_commands) == 3
     assert backend.received_commands[0].gate == AllocateQubitGate()
@@ -164,7 +171,7 @@ def test_main_engine_atexit_with_error():
     sys.last_type = "Something"
     backend = DummyEngine(save_commands=True)
     eng = _main.MainEngine(backend=backend, engine_list=[])
-    qb = eng.allocate_qubit()
+    qb = eng.allocate_qubit()  # noqa: F841
     eng._delfun(weakref.ref(eng))
     assert len(backend.received_commands) == 1
     assert backend.received_commands[0].gate == AllocateQubitGate()
@@ -174,10 +181,16 @@ def test_exceptions_are_forwarded():
     class ErrorEngine(DummyEngine):
         def receive(self, command_list):
             raise TypeError
+
     eng = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
-        eng.allocate_qubit()
-    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[],
-                            verbose=True)
+        qb = eng.allocate_qubit()  # noqa: F841
+    eng2 = _main.MainEngine(backend=ErrorEngine(), engine_list=[])
     with pytest.raises(TypeError):
-        eng2.allocate_qubit()
+        qb = eng2.allocate_qubit()  # noqa: F841
+
+    # NB: avoid throwing exceptions when destroying the MainEngine
+    eng.next_engine = DummyEngine()
+    eng.next_engine.is_last_engine = True
+    eng2.next_engine = DummyEngine()
+    eng2.next_engine.is_last_engine = True

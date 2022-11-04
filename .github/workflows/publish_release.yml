@@ -1,0 +1,279 @@
+---
+
+name: "Publish new release"
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v[0-9]+.*
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  packaging:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: >
+      startsWith(github.ref, 'refs/tags/')
+      || (github.event_name == 'pull_request'
+          && github.event.pull_request.merged == true)
+      || github.event_name == 'workflow_dispatch'
+
+    strategy:
+      matrix:
+        cibw_archs: ["auto64"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # include:
+        #   - os: ubuntu-18.04
+        #     cibw_archs: "aarch64"
+    steps:
+      - name: Set up QEMU
+        if: matrix.cibw_archs == 'aarch64'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - uses: actions/checkout@v3
+        if: github.event_name != 'workflow_dispatch'
+
+      - uses: actions/checkout@v3
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          ref: 'master'
+
+      - name: Get history and tags for SCM versioning to work
+        if: ${{ !env.ACT }}
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+      # ========================================================================
+
+      - name: Extract version from branch name (for release branches) (Unix)
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'release/')
+          && runner.os != 'Windows'
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#release/}
+          echo "VERSION = ${VERSION}"
+          git tag ${VERSION} master
+
+      - name: Extract version from branch name (for hotfix branches) (Unix)
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+          && runner.os != 'Windows'
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#hotfix/}
+          echo "VERSION = ${VERSION}"
+          git tag ${VERSION} master
+
+      # ------------------------------------------------------------------------
+
+      - name: Extract version from branch name (for release branches) (Windows)
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'release/')
+          && runner.os == 'Windows'
+        run: |
+          $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          $VERSION = $BRANCH_NAME -replace "release/",""
+          Write-Output "VERSION = ${VERSION}"
+          git tag ${VERSION} master
+
+      - name: Extract version from branch name (for hotfix branches) (Windows)
+        if: >
+          github.event_name == 'pull_request'
+          && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+          && runner.os == 'Windows'
+        run: |
+          $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          $VERSION = $BRANCH_NAME -replace "hotfix/",""
+          Write-Output "VERSION = ${VERSION}"
+          git tag ${VERSION} master
+
+      # ========================================================================
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Python packages
+        run: python -m pip install -U --prefer-binary pip setuptools build wheel twine 'cibuildwheel<3,>=2'
+
+      - name: Build source distribution (Linux)
+        if: runner.os == 'Linux'
+        id: src-dist
+        run: |
+          python -m build --sdist
+          python -m twine check dist/*
+
+      - name: Build binary wheels
+        continue-on-error: true
+        id: binary-dist
+        run: |
+          python -m cibuildwheel --output-dir binary_dist
+          python -m twine check binary_dist/*
+        env:
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - name: Build binary wheels without (failing) testing
+        if: steps.binary-dist.outcome == 'failure'
+        id: failed-dist
+        run: |
+          python -m cibuildwheel --output-dir failed_dist
+        env:
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_TEST_SKIP: '*'
+
+      - name: Files for Pypi upload
+        uses: actions/upload-artifact@v3
+        if: steps.src-dist.outcome == 'success'
+        with:
+          name: pypy_wheels
+          path: ./dist
+
+      - name: Binary wheels
+        uses: actions/upload-artifact@v3
+        if: steps.binary-dist.outcome == 'success'
+        with:
+          name: wheels
+          path: ./binary_dist
+
+      - name: Binary wheels that failed tests
+        uses: actions/upload-artifact@v3
+        if: steps.failed-dist.outcome == 'success'
+        with:
+          name: failed_wheels
+          path: ./failed_dist
+
+
+  release:
+    name: Publish new release
+    runs-on: ubuntu-latest
+    needs:
+      - packaging
+    steps:
+      - name: Extract version from tag name (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
+          VERSION=${TAG_NAME#v}
+
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from tag name
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_NAME="${GITHUB_REF/refs\/tags\//}"
+          VERSION=${TAG_NAME#v}
+
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from branch name (for release branches)
+        if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'release/')
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#release/v}
+
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from branch name (for hotfix branches)
+        if: github.event_name == 'pull_request'  && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          VERSION=${BRANCH_NAME#hotfix/v}
+
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      # ------------------------------------------------------------------------
+      # Checkout repository to get CHANGELOG
+
+      - uses: actions/checkout@v3
+        if: github.event_name != 'workflow_dispatch'
+
+      - uses: actions/checkout@v3
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          ref: 'master'
+
+      # ------------------------------------------------------------------------
+
+      - uses: actions/download-artifact@v3
+
+      # Code below inspired from this action:
+      # - uses: taiki-e/create-gh-release-action@v1
+      #   with:
+      #     title: ProjectQ $tag
+      #     changelog: CHANGELOG.md
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
+        env:
+          target: x86_64-unknown-linux-musl
+          source_url: https://github.com/taiki-e/parse-changelog/releases/download
+          parse_changelog_tag: v0.5.1
+          changelog: CHANGELOG.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # https://github.com/taiki-e/parse-changelog
+          curl -LsSf "${source_url}/${parse_changelog_tag}/parse-changelog-${target}.tar.gz" | tar xzf -
+          notes=$(./parse-changelog "${changelog}" "${RELEASE_VERSION}")
+          rm -f ./parse-changelog
+
+          if [[ "${tag}" =~ ^v?[0-9\.]+-[a-zA-Z_0-9\.-]+(\+[a-zA-Z_0-9\.-]+)?$ ]]; then
+            prerelease="--prerelease"
+          fi
+
+          mkdir -p wheels pypy_wheels
+          gh release create "v${RELEASE_VERSION}" ${prerelease:-} \
+            --title "ProjectQ v${RELEASE_VERSION}" \
+            --notes "${notes:-}" \
+            pypy_wheels/* wheels/*
+
+
+  upload_to_pypi:
+    name: Upload to PyPI
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - uses: actions/download-artifact@v3
+
+      - name: Publish standard package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          packages_dir: pypy_wheels/
+
+  master_to_develop_pr:
+    name: Merge master back into develop
+    runs-on: ubuntu-latest
+    needs:
+      - release
+      - upload_to_pypi
+    steps:
+      - name: Merge master into develop branch
+        uses: thomaseizinger/create-pull-request@1.2.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: master
+          base: develop
+          title: Merge master into develop branch
+          # yamllint disable rule:line-length
+          body: |
+            This PR merges the master branch back into develop.
+            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the develop branch.

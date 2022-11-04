@@ -12,33 +12,35 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Module containing the definition of a decomposition rule set."""
+
 from projectq.meta import Dagger
 
 
 class DecompositionRuleSet:
-    """
-    A collection of indexed decomposition rules.
-    """
+    """A collection of indexed decomposition rules."""
+
     def __init__(self, rules=None, modules=None):
         """
+        Initialize a DecompositionRuleSet object.
+
         Args:
             rules list[DecompositionRule]: Initial decomposition rules.
-            modules (iterable[ModuleWithDecompositionRuleSet]): A list of
-                things with an "all_defined_decomposition_rules" property
-                containing decomposition rules to add to the rule set.
+            modules (iterable[ModuleWithDecompositionRuleSet]): A list of things with an
+                "all_defined_decomposition_rules" property containing decomposition rules to add to the rule set.
         """
-        self.decompositions = dict()
+        self.decompositions = {}
 
         if rules:
             self.add_decomposition_rules(rules)
 
         if modules:
-            self.add_decomposition_rules([
-                rule
-                for module in modules
-                for rule in module.all_defined_decomposition_rules])
+            self.add_decomposition_rules(
+                [rule for module in modules for rule in module.all_defined_decomposition_rules]
+            )
 
     def add_decomposition_rules(self, rules):
+        """Add some decomposition rules to a decomposition rule set."""
         for rule in rules:
             self.add_decomposition_rule(rule)
 
@@ -56,46 +58,38 @@ class DecompositionRuleSet:
         self.decompositions[cls].append(decomp_obj)
 
 
-class ModuleWithDecompositionRuleSet:
-    """
-    Interface type for explaining one of the parameters that can be given to
-    DecompositionRuleSet.
-    """
+class ModuleWithDecompositionRuleSet:  # pragma: no cover # pylint: disable=too-few-public-methods
+    """Interface type for explaining one of the parameters that can be given to DecompositionRuleSet."""
+
     def __init__(self, all_defined_decomposition_rules):
         """
+        Initialize a ModuleWithDecompositionRuleSet object.
+
         Args:
-            all_defined_decomposition_rules (list[DecompositionRule]):
-                A list of decomposition rules.
+            all_defined_decomposition_rules (list[DecompositionRule]): A list of decomposition rules.
         """
         self.all_defined_decomposition_rules = all_defined_decomposition_rules
 
 
-class _Decomposition(object):
-    """
-    The Decomposition class can be used to register a decomposition rule (by
-    calling register_decomposition)
-    """
+class _Decomposition:  # pylint: disable=too-few-public-methods
+    """The Decomposition class can be used to register a decomposition rule (by calling register_decomposition)."""
+
     def __init__(self, replacement_fun, recogn_fun):
         """
-        Construct the Decomposition object.
+        Initialize a Decomposition object.
 
         Args:
-            replacement_fun: Function that, when called with a `Command`
-                object, decomposes this command.
-            recogn_fun: Function that, when called with a `Command` object,
-                returns True if and only if the replacement rule can handle
-                this command.
+            replacement_fun: Function that, when called with a `Command` object, decomposes this command.
+            recogn_fun: Function that, when called with a `Command` object, returns True if and only if the
+                replacement rule can handle this command.
 
-        Every Decomposition is registered with the gate class. The
-        Decomposition rule is then potentially valid for all objects which are
-        an instance of that same class
-        (i.e., instance of gate_object.__class__). All other parameters have
-        to be checked by the recogn_fun, i.e., it has to decide whether the
-        decomposition rule can indeed be applied to replace the given Command.
+        Every Decomposition is registered with the gate class. The Decomposition rule is then potentially valid for
+        all objects which are an instance of that same class (i.e., instance of gate_object.__class__). All other
+        parameters have to be checked by the recogn_fun, i.e., it has to decide whether the decomposition rule can
+        indeed be applied to replace the given Command.
 
-        As an example, consider recognizing the Toffoli gate, which is a
-        Pauli-X gate with 2 control qubits. The recognizer function would then
-        be:
+        As an example, consider recognizing the Toffoli gate, which is a Pauli-X gate with 2 control qubits. The
+        recognizer function would then be:
 
         .. code-block:: python
 
@@ -108,8 +102,7 @@ class _Decomposition(object):
 
         .. code-block:: python
 
-            register_decomposition(X.__class__, decompose_toffoli,
-                                   recogn_toffoli)
+            register_decomposition(X.__class__, decompose_toffoli, recogn_toffoli)
 
         Note:
             See projectq.setups.decompositions for more example codes.
@@ -120,18 +113,16 @@ class _Decomposition(object):
 
     def get_inverse_decomposition(self):
         """
-        Return the Decomposition object which handles the inverse of the
-        original command.
+        Return the Decomposition object which handles the inverse of the original command.
 
-        This simulates the user having added a decomposition rule for the
-        inverse as well. Since decomposing the inverse of a command can be
-        achieved by running the original decomposition inside a
-        `with Dagger(engine):` statement, this is not necessary
-        (and will be done automatically by the framework).
+        This simulates the user having added a decomposition rule for the inverse as well. Since decomposing the
+        inverse of a command can be achieved by running the original decomposition inside a `with Dagger(engine):`
+        statement, this is not necessary (and will be done automatically by the framework).
 
         Returns:
             Decomposition handling the inverse of the original command.
         """
+
         def decomp(cmd):
             with Dagger(cmd.engine):
                 self.decompose(cmd.get_inverse())

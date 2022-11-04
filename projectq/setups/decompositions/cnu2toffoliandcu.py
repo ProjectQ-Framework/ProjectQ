@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """
-Registers a decomposition rule for multi-controlled gates.
+Register a decomposition rule for multi-controlled gates.
 
 Implements the decomposition of Nielsen and Chuang (Fig. 4.10) which
 decomposes a C^n(U) gate into a sequence of 2 * (n-1) Toffoli gates and one
@@ -21,15 +21,12 @@ C(U) gate by using (n-1) ancilla qubits and circuit depth of 2n-1.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import get_control_count, Compute, Control, Uncompute
+from projectq.meta import Compute, Control, Uncompute, get_control_count
 from projectq.ops import BasicGate, Toffoli, XGate
 
 
-def _recognize_CnU(cmd):
-    """
-    Recognize an arbitrary gate which has n>=2 control qubits, except a
-    Toffoli gate.
-    """
+def _recognize_CnU(cmd):  # pylint: disable=invalid-name
+    """Recognize an arbitrary gate which has n>=2 control qubits, except a Toffoli gate."""
     if get_control_count(cmd) == 2:
         if not isinstance(cmd.gate, XGate):
             return True
@@ -38,30 +35,32 @@ def _recognize_CnU(cmd):
     return False
 
 
-def _decompose_CnU(cmd):
+def _decompose_CnU(cmd):  # pylint: disable=invalid-name
     """
-    Decompose a multi-controlled gate U with n control qubits into a single-
-    controlled U.
+    Decompose a multi-controlled gate U with n control qubits into a single- controlled U.
 
-    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates for general U
-    and (n-2) work qubits and 2n - 3 Toffoli gates if U is an X-gate.
+    It uses (n-1) work qubits and 2 * (n-1) Toffoli gates for general U and (n-2) work qubits and 2n - 3 Toffoli gates
+    if U is an X-gate.
     """
     eng = cmd.engine
     qubits = cmd.qubits
     ctrl_qureg = cmd.control_qubits
     gate = cmd.gate
-    n = get_control_count(cmd)
+    n_controls = get_control_count(cmd)
 
     # specialized for X-gate
-    if gate == XGate() and n > 2:
-        n -= 1
-    ancilla_qureg = eng.allocate_qureg(n-1)
+    if gate == XGate() and n_controls > 2:
+        n_controls -= 1
+    ancilla_qureg = eng.allocate_qureg(n_controls - 1)
 
     with Compute(eng):
         Toffoli | (ctrl_qureg[0], ctrl_qureg[1], ancilla_qureg[0])
-        for ctrl_index in range(2, n):
-            Toffoli | (ctrl_qureg[ctrl_index], ancilla_qureg[ctrl_index-2],
-                       ancilla_qureg[ctrl_index-1])
+        for ctrl_index in range(2, n_controls):
+            Toffoli | (
+                ctrl_qureg[ctrl_index],
+                ancilla_qureg[ctrl_index - 2],
+                ancilla_qureg[ctrl_index - 1],
+            )
     ctrls = [ancilla_qureg[-1]]
 
     # specialized for X-gate
@@ -74,6 +73,4 @@ def _decompose_CnU(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(BasicGate, _decompose_CnU, _recognize_CnU)
-]
+all_defined_decomposition_rules = [DecompositionRule(BasicGate, _decompose_CnU, _recognize_CnU)]

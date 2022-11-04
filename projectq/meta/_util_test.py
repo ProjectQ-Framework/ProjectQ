@@ -12,10 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.meta import insert_engine, drop_engine_after
+
+from . import _util
 
 
 def test_insert_then_drop():
@@ -30,19 +32,35 @@ def test_insert_then_drop():
     assert d1.main_engine is eng
     assert d2.main_engine is None
     assert d3.main_engine is eng
+    assert eng.n_engines == 2
 
-    insert_engine(d1, d2)
+    _util.insert_engine(d1, d2)
     assert d1.next_engine is d2
     assert d2.next_engine is d3
     assert d3.next_engine is None
     assert d1.main_engine is eng
     assert d2.main_engine is eng
     assert d3.main_engine is eng
+    assert eng.n_engines == 3
 
-    drop_engine_after(d1)
+    _util.drop_engine_after(d1)
     assert d1.next_engine is d3
     assert d2.next_engine is None
     assert d3.next_engine is None
     assert d1.main_engine is eng
     assert d2.main_engine is None
     assert d3.main_engine is eng
+    assert eng.n_engines == 2
+
+
+def test_too_many_engines():
+    N = 10
+
+    eng = MainEngine(backend=DummyEngine(), engine_list=[])
+    eng.n_engines_max = N
+
+    for _ in range(N - 1):
+        _util.insert_engine(eng, DummyEngine())
+
+    with pytest.raises(RuntimeError):
+        _util.insert_engine(eng, DummyEngine())

@@ -1,5 +1,9 @@
-from projectq.ops import H, Measure
+# pylint: skip-file
+
+"""Example of a simple quantum random number generator."""
+
 from projectq import MainEngine
+from projectq.ops import H, Measure
 
 # create a main compiler engine
 eng = MainEngine()
@@ -15,4 +19,4 @@ Measure | q1
 
 eng.flush()
 # print the result:
-print("Measured: {}".format(int(q1)))
+print(f"Measured: {int(q1)}")

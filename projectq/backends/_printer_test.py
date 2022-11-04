@@ -11,22 +11,20 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._printer.py.
 """
 
+import io
+
 import pytest
 
 from projectq import MainEngine
-from projectq.cengines import (DummyEngine,
-                               InstructionFilter,
-                               NotYetMeasuredError)
-from projectq.meta import LogicalQubitIDTag
-from projectq.ops import Allocate, Command, H, Measure, NOT, T
-from projectq.types import WeakQubitRef
-
 from projectq.backends import _printer
+from projectq.cengines import DummyEngine, InstructionFilter, NotYetMeasuredError
+from projectq.meta import LogicalQubitIDTag
+from projectq.ops import NOT, Allocate, Command, H, Measure, T
+from projectq.types import WeakQubitRef
 
 
 def test_command_printer_is_available():
@@ -35,9 +33,9 @@ def test_command_printer_is_available():
 
     def available_cmd(self, cmd):
         return cmd.gate == H
+
     filter = InstructionFilter(available_cmd)
-    eng = MainEngine(backend=cmd_printer,
-                     engine_list=[inline_cmd_printer, filter])
+    eng = MainEngine(backend=cmd_printer, engine_list=[inline_cmd_printer, filter])
     qubit = eng.allocate_qubit()
     cmd0 = Command(eng, H, (qubit,))
     cmd1 = Command(eng, T, (qubit,))
@@ -50,15 +48,29 @@ def test_command_printer_is_available():
 def test_command_printer_accept_input(monkeypatch):
     cmd_printer = _printer.CommandPrinter()
     eng = MainEngine(backend=cmd_printer, engine_list=[DummyEngine()])
-    monkeypatch.setattr(_printer, "input", lambda x: 1)
+
+    number_input = io.StringIO('1\n')
+    monkeypatch.setattr('sys.stdin', number_input)
     qubit = eng.allocate_qubit()
     Measure | qubit
     assert int(qubit) == 1
-    monkeypatch.setattr(_printer, "input", lambda x: 0)
+
+    number_input = io.StringIO('0\n')
+    monkeypatch.setattr('sys.stdin', number_input)
     qubit = eng.allocate_qubit()
     NOT | qubit
     Measure | qubit
     assert int(qubit) == 0
+
+
+def test_command_printer_measure_no_control():
+    qb1 = WeakQubitRef(engine=None, idx=1)
+    qb2 = WeakQubitRef(engine=None, idx=2)
+
+    printer = _printer.CommandPrinter()
+    printer.is_last_engine = True
+    with pytest.raises(ValueError):
+        printer._print_cmd(Command(engine=None, gate=Measure, qubits=([qb1],), controls=[qb2]))
 
 
 def test_command_printer_no_input_default_measure():
@@ -75,8 +87,13 @@ def test_command_printer_measure_mapped_qubit():
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
     cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
-    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
-                   tags=[LogicalQubitIDTag(2)])
+    cmd1 = Command(
+        engine=eng,
+        gate=Measure,
+        qubits=([qb1],),
+        controls=[],
+        tags=[LogicalQubitIDTag(2)],
+    )
     with pytest.raises(NotYetMeasuredError):
         int(qb1)
     with pytest.raises(NotYetMeasuredError):

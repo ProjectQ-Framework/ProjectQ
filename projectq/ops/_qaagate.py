@@ -12,36 +12,37 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Definition of the quantum amplitude amplification gate."""
+
 from ._basics import BasicGate
 
 
 class QAA(BasicGate):
     """
-    Quantum Aplitude Aplification gate.
+    Quantum Amplitude Amplification gate.
 
-    (Quick reference https://en.wikipedia.org/wiki/Amplitude_amplification.
-    Complete reference G. Brassard, P. Hoyer, M. Mosca, A. Tapp (2000)
-    Quantum Amplitude Amplification and Estimation
-    https://arxiv.org/abs/quant-ph/0005055)
+    (Quick reference https://en.wikipedia.org/wiki/Amplitude_amplification.  Complete reference G. Brassard, P. Hoyer,
+    M. Mosca, A. Tapp (2000) Quantum Amplitude Amplification and Estimation https://arxiv.org/abs/quant-ph/0005055)
 
-    Quantum Amplitude Amplification (QAA) executes the algorithm, but not
-    the final measurement required to obtain the marked state(s) with high
-    probability. The starting state on wich the QAA algorithm is executed
-    is the one resulting of aplying the Algorithm on the |0> state.
+    Quantum Amplitude Amplification (QAA) executes the algorithm, but not the final measurement required to obtain the
+    marked state(s) with high probability. The starting state on which the QAA algorithm is executed is the one
+    resulting of applying the Algorithm on the |0> state.
 
     Example:
         .. code-block:: python
 
-           def func_algorithm(eng,system_qubits):
+           def func_algorithm(eng, system_qubits):
                All(H) | system_qubits
 
-           def func_oracle(eng,system_qubits,qaa_ancilla):
+
+           def func_oracle(eng, system_qubits, qaa_ancilla):
                # This oracle selects the state |010> as the one marked
                with Compute(eng):
-                  All(X) | system_qubits[0::2]
+                   All(X) | system_qubits[0::2]
                with Control(eng, system_qubits):
-                  X | qaa_ancilla
+                   X | qaa_ancilla
                Uncompute(eng)
+
 
            system_qubits = eng.allocate_qureg(3)
            # Prepare the qaa_ancilla qubit in the |-> state
@@ -52,30 +53,30 @@ class QAA(BasicGate):
            # Creates the initial state form the Algorithm
            func_algorithm(eng, system_qubits)
            # Apply Quantum Amplitude Amplification the correct number of times
-           num_it = int(math.pi/4.*math.sqrt(1 << 3))
+           num_it = int(math.pi / 4.0 * math.sqrt(1 << 3))
            with Loop(eng, num_it):
                QAA(func_algorithm, func_oracle) | (system_qubits, qaa_ancilla)
 
            All(Measure) | system_qubits
 
     Warning:
-        No qubit allocation/deallocation may take place during the call
-        to the defined Algorithm :code:`func_algorithm`
+        No qubit allocation/deallocation may take place during the call to the defined Algorithm
+        :code:`func_algorithm`
 
     Attributes:
-        func_algorithm: Algorithm that initialite the state and to be used
-                        in the QAA algorithm
+        func_algorithm: Algorithm that initialite the state and to be used in the QAA algorithm
         func_oracle: The Oracle that marks the state(s) as "good"
         system_qubits: the system we are interested on
-        qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the
-                     "good" states
+        qaa_ancilla: auxiliary qubit that helps to invert the amplitude of the "good" states
 
     """
+
     def __init__(self, algorithm, oracle):
-        BasicGate.__init__(self)
+        """Initialize a QAA object."""
+        super().__init__()
         self.algorithm = algorithm
         self.oracle = oracle
 
     def __str__(self):
-        return 'QAA(Algorithm = {0}, Oracle = {1})'.format(
-                str(self.algorithm.__name__), str(self.oracle.__name__))
+        """Return a string representation of the object."""
+        return f'QAA(Algorithm = {str(self.algorithm.__name__)}, Oracle = {str(self.oracle.__name__)})'

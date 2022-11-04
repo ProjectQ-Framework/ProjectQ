@@ -11,46 +11,53 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+"""
+The TagRemover compiler engine.
 
+A TagRemover engine removes temporary command tags (such as Compute/Uncompute), thus enabling optimization across meta
+statements (loops after unrolling, compute/uncompute, ...)
 """
-Contains a TagRemover engine, which removes temporary command tags (such as
-Compute/Uncompute), thus enabling optimization across meta statements (loops
-after unrolling, compute/uncompute, ...)
-"""
-from projectq.cengines import BasicEngine
 from projectq.meta import ComputeTag, UncomputeTag
+
+from ._basics import BasicEngine
 
 
 class TagRemover(BasicEngine):
     """
-    TagRemover is a compiler engine which removes temporary command tags (see
-    the tag classes such as LoopTag in projectq.meta._loop).
+    Compiler engine that remove temporary command tags.
 
-    Removing tags is important (after having handled them if necessary) in
-    order to enable optimizations across meta-function boundaries (compute/
-    action/uncompute or loops after unrolling)
+    TagRemover is a compiler engine which removes temporary command tags (see the tag classes such as LoopTag in
+    projectq.meta._loop).
+
+    Removing tags is important (after having handled them if necessary) in order to enable optimizations across
+    meta-function boundaries (compute/ action/uncompute or loops after unrolling)
     """
-    def __init__(self, tags=[ComputeTag, UncomputeTag]):
+
+    def __init__(self, tags=None):
         """
-        Construct the TagRemover.
+        Initialize a TagRemover object.
 
         Args:
             tags: A list of meta tag classes (e.g., [ComputeTag, UncomputeTag])
                 denoting the tags to remove
         """
-        BasicEngine.__init__(self)
-        assert isinstance(tags, list)
-        self._tags = tags
+        super().__init__()
+        if not tags:
+            self._tags = [ComputeTag, UncomputeTag]
+        elif isinstance(tags, list):
+            self._tags = tags
+        else:
+            raise TypeError(f'tags should be a list! Got: {tags}')
 
     def receive(self, command_list):
         """
-        Receive a list of commands from the previous engine, remove all tags
-        which are an instance of at least one of the meta tags provided in the
-        constructor, and then send them on to the next compiler engine.
+        Receive a list of commands.
+
+        Receive a list of commands from the previous engine, remove all tags which are an instance of at least one of
+        the meta tags provided in the constructor, and then send them on to the next compiler engine.
 
         Args:
-            command_list (list<Command>): List of commands to receive and then
-                (after removing tags) send on.
+            command_list (list<Command>): List of commands to receive and then (after removing tags) send on.
         """
         for cmd in command_list:
             for tag in self._tags:

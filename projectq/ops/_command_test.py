@@ -1,4 +1,4 @@
-#   Copyright 2017 ProjectQ-Framework (www.projectq.ch)
+#   Copyright 2017, 2021 ProjectQ-Framework (www.projectq.ch)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,20 +11,19 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.ops._command."""
 
-from copy import deepcopy
 import math
+import sys
+from copy import deepcopy
+
 import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.meta import ComputeTag
-from projectq.ops import BasicGate, Rx, NotMergeable
+from projectq.meta import ComputeTag, canonical_ctrl_state
+from projectq.ops import BasicGate, CtrlAll, NotMergeable, Rx, _command
 from projectq.types import Qubit, Qureg, WeakQubitRef
-
-from projectq.ops import _command
 
 
 @pytest.fixture
@@ -36,8 +35,8 @@ def test_command_init(main_engine):
     qureg0 = Qureg([Qubit(main_engine, 0)])
     qureg1 = Qureg([Qubit(main_engine, 1)])
     qureg2 = Qureg([Qubit(main_engine, 2)])
-    qureg3 = Qureg([Qubit(main_engine, 3)])
-    qureg4 = Qureg([Qubit(main_engine, 4)])
+    # qureg3 = Qureg([Qubit(main_engine, 3)])
+    # qureg4 = Qureg([Qubit(main_engine, 4)])
     gate = BasicGate()
     cmd = _command.Command(main_engine, gate, (qureg0, qureg1, qureg2))
     assert cmd.gate == gate
@@ -51,13 +50,11 @@ def test_command_init(main_engine):
     # Test that quregs are ordered if gate has interchangeable qubits:
     symmetric_gate = BasicGate()
     symmetric_gate.interchangeable_qubit_indices = [[0, 1]]
-    symmetric_cmd = _command.Command(main_engine, symmetric_gate,
-                                     (qureg2, qureg1, qureg0))
+    symmetric_cmd = _command.Command(main_engine, symmetric_gate, (qureg2, qureg1, qureg0))
     assert cmd.gate == gate
     assert cmd.tags == []
     expected_ordered_tuple = (qureg1, qureg2, qureg0)
-    for cmd_qureg, expected_qureg in zip(symmetric_cmd.qubits,
-                                         expected_ordered_tuple):
+    for cmd_qureg, expected_qureg in zip(symmetric_cmd.qubits, expected_ordered_tuple):
         assert cmd_qureg[0].id == expected_qureg[0].id
     assert symmetric_cmd._engine == main_engine
 
@@ -121,6 +118,7 @@ def test_command_get_merged(main_engine):
     expected_cmd = _command.Command(main_engine, Rx(1.0), (qubit,))
     expected_cmd.add_control_qubits(ctrl_qubit)
     expected_cmd.tags = ["TestTag"]
+    assert merged_cmd == expected_cmd
     # Don't merge commands as different control qubits
     cmd3 = _command.Command(main_engine, Rx(0.5), (qubit,))
     cmd3.tags = ["TestTag"]
@@ -131,6 +129,19 @@ def test_command_get_merged(main_engine):
     cmd4.add_control_qubits(ctrl_qubit)
     with pytest.raises(NotMergeable):
         cmd.get_merged(cmd4)
+
+
+def test_command_is_identity(main_engine):
+    qubit = main_engine.allocate_qubit()
+    qubit2 = main_engine.allocate_qubit()
+    cmd = _command.Command(main_engine, Rx(0.0), (qubit,))
+    cmd2 = _command.Command(main_engine, Rx(0.5), (qubit2,))
+    inverse_cmd = cmd.get_inverse()
+    inverse_cmd2 = cmd2.get_inverse()
+    assert inverse_cmd.gate.is_identity()
+    assert cmd.gate.is_identity()
+    assert not inverse_cmd2.gate.is_identity()
+    assert not cmd2.gate.is_identity()
 
 
 def test_command_order_qubits(main_engine):
@@ -160,18 +171,54 @@ def test_command_interchangeable_qubit_indices(main_engine):
     qubit5 = Qureg([Qubit(main_engine, 5)])
     input_tuple = (qubit4, qubit5, qubit3, qubit2, qubit1, qubit0)
     cmd = _command.Command(main_engine, gate, input_tuple)
-    assert (cmd.interchangeable_qubit_indices == [[0, 4, 5], [1, 2]] or
-            cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]])
+    assert cmd.interchangeable_qubit_indices == [
+        [0, 4, 5],
+        [1, 2],
+    ] or cmd.interchangeable_qubit_indices == [[1, 2], [0, 4, 5]]
 
 
-def test_commmand_add_control_qubits(main_engine):
+@pytest.mark.parametrize(
+    'state',
+    [0, 1, '0', '1', CtrlAll.One, CtrlAll.Zero],
+    ids=['int(0)', 'int(1)', 'str(0)', 'str(1)', 'CtrlAll.One', 'CtrlAll.Zero'],
+)
+def test_command_add_control_qubits_one(main_engine, state):
+    qubit0 = Qureg([Qubit(main_engine, 0)])
+    qubit1 = Qureg([Qubit(main_engine, 1)])
+    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
+    cmd.add_control_qubits(qubit1, state=state)
+    assert cmd.control_qubits[0].id == 1
+    assert cmd.control_state == canonical_ctrl_state(state, 1)
+
+    with pytest.raises(ValueError):
+        cmd.add_control_qubits(qubit0[0])
+
+
+@pytest.mark.parametrize(
+    'state',
+    [0, 1, 2, 3, '00', '01', '10', '11', CtrlAll.One, CtrlAll.Zero],
+    ids=[
+        'int(0)',
+        'int(1)',
+        'int(2)',
+        'int(3)',
+        'str(00)',
+        'str(01)',
+        'str(10)',
+        'str(1)',
+        'CtrlAll.One',
+        'CtrlAll.Zero',
+    ],
+)
+def test_command_add_control_qubits_two(main_engine, state):
     qubit0 = Qureg([Qubit(main_engine, 0)])
     qubit1 = Qureg([Qubit(main_engine, 1)])
     qubit2 = Qureg([Qubit(main_engine, 2)])
-    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,))
-    cmd.add_control_qubits(qubit2 + qubit1)
+    qubit3 = Qureg([Qubit(main_engine, 3)])
+    cmd = _command.Command(main_engine, Rx(0.5), (qubit0,), qubit1)
+    cmd.add_control_qubits(qubit2 + qubit3, state)
     assert cmd.control_qubits[0].id == 1
-    assert cmd.control_qubits[1].id == 2
+    assert cmd.control_state == f"1{canonical_ctrl_state(state, 2)}"
 
 
 def test_command_all_qubits(main_engine):
@@ -194,6 +241,10 @@ def test_command_engine(main_engine):
     assert id(cmd.engine) == id(main_engine)
     assert id(cmd.control_qubits[0].engine) == id(main_engine)
     assert id(cmd.qubits[0][0].engine) == id(main_engine)
+
+    # Avoid raising exception upon Qubit destructions
+    qubit0[0].id = -1
+    qubit1[0].id = -1
 
 
 def test_command_comparison(main_engine):
@@ -229,12 +280,34 @@ def test_command_comparison(main_engine):
     assert cmd6 != cmd1
 
 
-def test_command_str():
+def test_command_str(main_engine):
     qubit = Qureg([Qubit(main_engine, 0)])
     ctrl_qubit = Qureg([Qubit(main_engine, 1)])
-    cmd = _command.Command(main_engine, Rx(0.5), (qubit,))
+    cmd = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
     cmd.tags = ["TestTag"]
     cmd.add_control_qubits(ctrl_qubit)
-    assert str(cmd) == "CRx(0.5) | ( Qureg[1], Qureg[0] )"
-    cmd2 = _command.Command(main_engine, Rx(0.5), (qubit,))
-    assert str(cmd2) == "Rx(0.5) | Qureg[0]"
+    cmd2 = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
+    if sys.version_info.major == 3:
+        assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
+        assert str(cmd2) == "Rx(1.570796326795) | Qureg[0]"
+    else:
+        assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
+        assert str(cmd2) == "Rx(1.5707963268) | Qureg[0]"
+
+
+def test_command_to_string(main_engine):
+    qubit = Qureg([Qubit(main_engine, 0)])
+    ctrl_qubit = Qureg([Qubit(main_engine, 1)])
+    cmd = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
+    cmd.tags = ["TestTag"]
+    cmd.add_control_qubits(ctrl_qubit)
+    cmd2 = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
+
+    assert cmd.to_string(symbols=True) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
+    assert cmd2.to_string(symbols=True) == "Rx(0.5π) | Qureg[0]"
+    if sys.version_info.major == 3:
+        assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
+        assert cmd2.to_string(symbols=False) == "Rx(1.570796326795) | Qureg[0]"
+    else:
+        assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
+        assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"

@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.types._qubits."""
 
 from copy import copy, deepcopy
@@ -45,9 +44,7 @@ def test_basic_qubit_measurement():
     assert int(qubit1) == 1
     # Testing functions for python 2 and python 3
     assert not qubit0.__bool__()
-    assert not qubit0.__nonzero__()
     assert qubit1.__bool__()
-    assert qubit1.__nonzero__()
 
 
 @pytest.mark.parametrize("id0, id1, expected", [(0, 0, True), (0, 1, False)])
@@ -75,8 +72,7 @@ def test_basic_qubit_hash():
     assert a == c and hash(a) == hash(c)
 
     # For performance reasons, low ids should not collide.
-    assert len(set(hash(_qubit.BasicQubit(fake_engine, e))
-                   for e in range(100))) == 100
+    assert len({hash(_qubit.BasicQubit(fake_engine, e)) for e in range(100)}) == 100
 
     # Important that weakref.WeakSet in projectq.cengines._main.py works.
     # When id is -1, expect reference equality.
@@ -88,7 +84,7 @@ def test_basic_qubit_hash():
 
 @pytest.fixture
 def mock_main_engine():
-    class MockMainEngine(object):
+    class MockMainEngine:
         def __init__(self):
             self.num_calls = 0
             self.active_qubits = set()
@@ -165,9 +161,7 @@ def test_qureg_measure_if_qubit():
     assert int(qureg1) == 1
     # Testing functions for python 2 and python 3
     assert not qureg0.__bool__()
-    assert not qureg0.__nonzero__()
     assert qureg1.__bool__()
-    assert qureg1.__nonzero__()
 
 
 def test_qureg_measure_exception():
@@ -178,8 +172,6 @@ def test_qureg_measure_exception():
         qureg.append(qubit)
     with pytest.raises(Exception):
         qureg.__bool__()
-    with pytest.raises(Exception):
-        qureg.__nonzero__()
     with pytest.raises(Exception):
         qureg.__int__()
 

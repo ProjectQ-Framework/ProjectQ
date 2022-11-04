@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tools to easily invert a sequence of gates.
 
@@ -24,42 +23,37 @@ Tools to easily invert a sequence of gates.
 
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
-from ._util import insert_engine, drop_engine_after
 
-
-class QubitManagementError(Exception):
-    pass
+from ._exceptions import QubitManagementError
+from ._util import drop_engine_after, insert_engine
 
 
 class DaggerEngine(BasicEngine):
-    """
-    Stores all commands and, when done, inverts the circuit & runs it.
-    """
+    """Store all commands and, when done, inverts the circuit & runs it."""
 
     def __init__(self):
-        BasicEngine.__init__(self)
+        """Initialize a DaggerEngine object."""
+        super().__init__()
         self._commands = []
         self._allocated_qubit_ids = set()
         self._deallocated_qubit_ids = set()
 
     def run(self):
-        """
-        Run the stored circuit in reverse and check that local qubits
-        have been deallocated.
-        """
+        """Run the stored circuit in reverse and check that local qubits have been deallocated."""
         if self._deallocated_qubit_ids != self._allocated_qubit_ids:
-                raise QubitManagementError(
-                    "\n Error. Qubits have been allocated in 'with " +
-                    "Dagger(eng)' context,\n which have not explicitely " +
-                    "been deallocated.\n" +
-                    "Correct usage:\n" +
-                    "with Dagger(eng):\n" +
-                    "    qubit = eng.allocate_qubit()\n" +
-                    "    ...\n" +
-                    "    del qubit[0]\n")
+            raise QubitManagementError(
+                "\n Error. Qubits have been allocated in 'with "
+                + "Dagger(eng)' context,\n which have not explicitly "
+                + "been deallocated.\n"
+                + "Correct usage:\n"
+                + "with Dagger(eng):\n"
+                + "    qubit = eng.allocate_qubit()\n"
+                + "    ...\n"
+                + "    del qubit[0]\n"
+            )
 
         for cmd in reversed(self._commands):
-                self.send([cmd.get_inverse()])
+            self.send([cmd.get_inverse()])
 
     def receive(self, command_list):
         """
@@ -77,7 +71,7 @@ class DaggerEngine(BasicEngine):
         self._commands.extend(command_list)
 
 
-class Dagger(object):
+class Dagger:
     """
     Invert an entire code block.
 
@@ -86,7 +80,8 @@ class Dagger(object):
     .. code-block:: python
 
         with Dagger(eng):
-            [code to invert]
+            # [code to invert]
+            pass
 
     Warning:
         If the code to invert contains allocation of qubits, those qubits have
@@ -98,7 +93,7 @@ class Dagger(object):
 
             with Dagger(eng):
                 qb = eng.allocate_qubit()
-                H | qb # qb is still available!!!
+                H | qb  # qb is still available!!!
 
         The **correct way** of handling qubit (de-)allocation is as follows:
 
@@ -107,7 +102,7 @@ class Dagger(object):
             with Dagger(eng):
                 qb = eng.allocate_qubit()
                 ...
-                del qb # sends deallocate gate (which becomes an allocate)
+                del qb  # sends deallocate gate (which becomes an allocate)
     """
 
     def __init__(self, engine):
@@ -128,14 +123,16 @@ class Dagger(object):
         self._dagger_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         self._dagger_eng = DaggerEngine()
         insert_engine(self.engine, self._dagger_eng)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         # If an error happens in this context, qubits might not have been
         # deallocated because that code section was not yet executed,
         # so don't check and raise an additional error.
-        if type is not None:
+        if exc_type is not None:
             return
         # run dagger engine
         self._dagger_eng.run()

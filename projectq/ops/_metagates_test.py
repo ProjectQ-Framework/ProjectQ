@@ -11,28 +11,46 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.ops._gates."""
 
 import cmath
 import math
+
 import numpy as np
 import pytest
 
-from projectq.types import Qubit, Qureg
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import (T, Y, NotInvertible, Entangle, Rx,
-                          FastForwardingGate, Command, C,
-                          ClassicalInstructionGate, All)
+from projectq.ops import (
+    All,
+    C,
+    ClassicalInstructionGate,
+    Command,
+    Entangle,
+    FastForwardingGate,
+    NotInvertible,
+    Rx,
+    T,
+    Y,
+    _metagates,
+)
+from projectq.types import Qubit, WeakQubitRef
 
-from projectq.ops import _metagates
+
+def test_tensored_gate_invalid():
+    qb0 = WeakQubitRef(None, idx=0)
+    qb1 = WeakQubitRef(None, idx=1)
+
+    with pytest.raises(ValueError):
+        _metagates.Tensor(Y) | (qb0, qb1)
+
+    with pytest.raises(ValueError):
+        _metagates.Tensor(Y) | qb0
 
 
 def test_tensored_controlled_gate():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
     gate = Rx(0.6)
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
@@ -55,9 +73,7 @@ def test_daggered_gate_init():
     # Test init and matrix
     dagger_inv = _metagates.DaggeredGate(not_invertible_gate)
     assert dagger_inv._gate == not_invertible_gate
-    assert np.array_equal(dagger_inv.matrix,
-                          np.matrix([[1, 0],
-                                     [0, cmath.exp(-1j * cmath.pi / 4)]]))
+    assert np.array_equal(dagger_inv.matrix, np.matrix([[1, 0], [0, cmath.exp(-1j * cmath.pi / 4)]]))
     inv = _metagates.DaggeredGate(invertible_gate)
     assert inv._gate == invertible_gate
     assert np.array_equal(inv.matrix, np.matrix([[0, -1j], [1j, 0]]))
@@ -72,7 +88,7 @@ def test_daggered_gate_init():
 
 def test_daggered_gate_str():
     daggered_gate = _metagates.DaggeredGate(Y)
-    assert str(daggered_gate) == str(Y) + r"^\dagger"
+    assert str(daggered_gate) == f"{str(Y)}^\\dagger"
 
 
 def test_daggered_gate_hashable():
@@ -87,13 +103,13 @@ def test_daggered_gate_hashable():
 def test_daggered_gate_tex_str():
     daggered_gate = _metagates.DaggeredGate(Y)
     str_Y = Y.tex_str() if hasattr(Y, 'tex_str') else str(Y)
-    assert daggered_gate.tex_str() == str_Y + r"${}^\dagger$"
+    assert daggered_gate.tex_str() == f"{str_Y}${{}}^\\dagger$"
 
     # test for a gate with tex_str method
     rx = Rx(0.5)
     daggered_rx = _metagates.DaggeredGate(rx)
     str_rx = rx.tex_str() if hasattr(rx, 'tex_str') else str(rx)
-    assert daggered_rx.tex_str() == str_rx + r"${}^\dagger$"
+    assert daggered_rx.tex_str() == f"{str_rx}${{}}^\\dagger$"
 
 
 def test_daggered_gate_get_inverse():
@@ -117,10 +133,20 @@ def test_get_inverse():
     assert invertible_gate.get_inverse() == Y
     # Check get_inverse(gate)
     inv = _metagates.get_inverse(not_invertible_gate)
-    assert (isinstance(inv, _metagates.DaggeredGate) and
-            inv._gate == not_invertible_gate)
+    assert isinstance(inv, _metagates.DaggeredGate) and inv._gate == not_invertible_gate
     inv2 = _metagates.get_inverse(invertible_gate)
     assert inv2 == Y
+
+
+def test_is_identity():
+    # Choose gate which is not an identity gate:
+    non_identity_gate = Rx(0.5)
+    assert not non_identity_gate.is_identity()
+    assert not _metagates.is_identity(non_identity_gate)
+    # Choose gate which is an identity gate:
+    identity_gate = Rx(0.0)
+    assert identity_gate.is_identity()
+    assert _metagates.is_identity(identity_gate)
 
 
 def test_controlled_gate_init():
@@ -137,7 +163,7 @@ def test_controlled_gate_init():
 
 def test_controlled_gate_str():
     one_control = _metagates.ControlledGate(Y, 2)
-    assert str(one_control) == "CC" + str(Y)
+    assert str(one_control) == f"CC{str(Y)}"
 
 
 def test_controlled_gate_get_inverse():
@@ -157,19 +183,16 @@ def test_controlled_gate_empty_controls():
 
 def test_controlled_gate_or():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
     gate = Rx(0.6)
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
     qubit2 = Qubit(main_engine, 2)
     qubit3 = Qubit(main_engine, 3)
-    expected_cmd = Command(main_engine, gate, ([qubit3],),
-                           controls=[qubit0, qubit1, qubit2])
+    expected_cmd = Command(main_engine, gate, ([qubit3],), controls=[qubit0, qubit1, qubit2])
     received_commands = []
     # Option 1:
-    _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0],
-                                          [qubit2], [qubit3])
+    _metagates.ControlledGate(gate, 3) | ([qubit1], [qubit0], [qubit2], [qubit3])
     # Option 2:
     _metagates.ControlledGate(gate, 3) | (qubit1, qubit0, qubit2, qubit3)
     # Option 3:
@@ -181,8 +204,7 @@ def test_controlled_gate_or():
         _metagates.ControlledGate(gate, 3) | (qubit1, [qubit0, qubit2, qubit3])
     # Remove Allocate and Deallocate gates
     for cmd in saving_backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     assert len(received_commands) == 4
     for cmd in received_commands:
@@ -211,7 +233,7 @@ def test_tensor_init():
 
 def test_tensor_str():
     gate = _metagates.Tensor(Y)
-    assert str(gate) == "Tensor(" + str(Y) + ")"
+    assert str(gate) == f"Tensor({str(Y)})"
 
 
 def test_tensor_get_inverse():
@@ -230,8 +252,7 @@ def test_tensor_comparison():
 
 def test_tensor_or():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
     gate = Rx(0.6)
     qubit0 = Qubit(main_engine, 0)
     qubit1 = Qubit(main_engine, 1)
@@ -243,8 +264,7 @@ def test_tensor_or():
     received_commands = []
     # Remove Allocate and Deallocate gates
     for cmd in saving_backend.received_commands:
-        if not (isinstance(cmd.gate, FastForwardingGate) or
-                isinstance(cmd.gate, ClassicalInstructionGate)):
+        if not (isinstance(cmd.gate, FastForwardingGate) or isinstance(cmd.gate, ClassicalInstructionGate)):
             received_commands.append(cmd)
     # Check results
     assert len(received_commands) == 6

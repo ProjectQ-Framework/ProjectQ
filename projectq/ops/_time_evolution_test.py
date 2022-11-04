@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 """Tests for projectq.ops._time_evolution."""
+
 import cmath
 import copy
 
@@ -21,8 +22,7 @@ import pytest
 
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-from projectq.ops import QubitOperator, BasicGate, NotMergeable, Ph
-
+from projectq.ops import BasicGate, NotMergeable, Ph, QubitOperator
 from projectq.ops import _time_evolution as te
 
 
@@ -54,22 +54,22 @@ def test_init_makes_copy():
 def test_init_bad_time():
     hamiltonian = QubitOperator("Z2", 0.5)
     with pytest.raises(TypeError):
-        gate = te.TimeEvolution(1.5j, hamiltonian)
+        te.TimeEvolution(1.5j, hamiltonian)
 
 
 def test_init_bad_hamiltonian():
     with pytest.raises(TypeError):
-        gate = te.TimeEvolution(2, "something else")
+        te.TimeEvolution(2, "something else")
 
 
 def test_init_not_hermitian():
     hamiltonian = QubitOperator("Z2", 1e-12j)
     with pytest.raises(te.NotHermitianOperatorError):
-        gate = te.TimeEvolution(1, hamiltonian)
+        te.TimeEvolution(1, hamiltonian)
 
 
 def test_init_cast_complex_to_float():
-    hamiltonian = QubitOperator("Z2", 2+0j)
+    hamiltonian = QubitOperator("Z2", 2 + 0j)
     gate = te.TimeEvolution(1, hamiltonian)
     assert isinstance(gate.hamiltonian.terms[((2, 'Z'),)], float)
     pytest.approx(gate.hamiltonian.terms[((2, 'Z'),)]) == 2.0
@@ -122,10 +122,10 @@ def test_get_merged_not_close_enough():
     hamiltonian += QubitOperator("X3", 1)
     gate = te.TimeEvolution(2, hamiltonian)
     hamiltonian2 = QubitOperator("Z2", 4)
-    hamiltonian2 += QubitOperator("X3", 2+1e-8)
+    hamiltonian2 += QubitOperator("X3", 2 + 1e-8)
     gate2 = te.TimeEvolution(5, hamiltonian2)
     with pytest.raises(NotMergeable):
-        merged = gate.get_merged(gate2)
+        gate.get_merged(gate2)
 
 
 def test_get_merged_bad_gate():
@@ -254,15 +254,14 @@ def test_or_gate_identity():
     eng = MainEngine(backend=saving_backend, engine_list=[])
     qureg = eng.allocate_qureg(4)
     hamiltonian = QubitOperator((), 3.4)
-    correct_h = copy.deepcopy(hamiltonian)
+    correct_h = copy.deepcopy(hamiltonian)  # noqa: F841
     gate = te.TimeEvolution(2.1, hamiltonian)
     gate | qureg
     eng.flush()
     cmd = saving_backend.received_commands[4]
     assert isinstance(cmd.gate, Ph)
     assert cmd.gate == Ph(-3.4 * 2.1)
-    correct = numpy.array([[cmath.exp(-1j * 3.4 * 2.1), 0],
-                           [0, cmath.exp(-1j * 3.4 * 2.1)]])
+    correct = numpy.array([[cmath.exp(-1j * 3.4 * 2.1), 0], [0, cmath.exp(-1j * 3.4 * 2.1)]])
     print(correct)
     print(cmd.gate.matrix)
     assert numpy.allclose(cmd.gate.matrix, correct)
@@ -284,5 +283,4 @@ def test_str():
     hamiltonian = QubitOperator("X0 Z1")
     hamiltonian += QubitOperator("Y1", 0.5)
     gate = te.TimeEvolution(2.1, hamiltonian)
-    assert (str(gate) == "exp(-2.1j * (0.5 Y1 +\n1.0 X0 Z1))" or
-            str(gate) == "exp(-2.1j * (1.0 X0 Z1 +\n0.5 Y1))")
+    assert str(gate) == "exp(-2.1j * (0.5 Y1 +\n1.0 X0 Z1))" or str(gate) == "exp(-2.1j * (1.0 X0 Z1 +\n0.5 Y1))"

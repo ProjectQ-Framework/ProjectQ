@@ -12,9 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Registers a decomposition rule for a unitary QubitOperator to one qubit gates.
-"""
+"""Register a decomposition rule for a unitary QubitOperator to one qubit gates."""
 
 import cmath
 
@@ -24,17 +22,18 @@ from projectq.ops import Ph, QubitOperator, X, Y, Z
 
 
 def _recognize_qubitop(cmd):
-    """ For efficiency only use this if at most 1 control qubit."""
+    """For efficiency only use this if at most 1 control qubit."""
     return get_control_count(cmd) <= 1
 
 
 def _decompose_qubitop(cmd):
-    assert len(cmd.qubits) == 1
+    if len(cmd.qubits) != 1:
+        raise ValueError('QubitOperator decomposition can only accept a single quantum register')
     qureg = cmd.qubits[0]
     eng = cmd.engine
     qubit_op = cmd.gate
     with Control(eng, cmd.control_qubits):
-        (term, coefficient), = qubit_op.terms.items()
+        ((term, coefficient),) = qubit_op.terms.items()
         phase = cmath.phase(coefficient)
         Ph(phase) | qureg[0]
         for index, action in term:
@@ -47,6 +46,4 @@ def _decompose_qubitop(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(QubitOperator, _decompose_qubitop, _recognize_qubitop)
-]
+all_defined_decomposition_rules = [DecompositionRule(QubitOperator, _decompose_qubitop, _recognize_qubitop)]

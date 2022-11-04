@@ -11,22 +11,20 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tests for projectq.backends._resource.py.
 """
 
 import pytest
 
+from projectq.backends import ResourceCounter
 from projectq.cengines import DummyEngine, MainEngine, NotYetMeasuredError
 from projectq.meta import LogicalQubitIDTag
-from projectq.ops import All, Allocate, CNOT, Command, H, Measure, QFT, Rz, Rzz, X
+from projectq.ops import CNOT, QFT, All, Allocate, Command, H, Measure, Rz, Rzz, X
 from projectq.types import WeakQubitRef
 
-from projectq.backends import ResourceCounter
 
-
-class MockEngine(object):
+class MockEngine:
     def is_available(self, cmd):
         return False
 
@@ -46,8 +44,13 @@ def test_resource_counter_measurement():
     qb1 = WeakQubitRef(engine=eng, idx=1)
     qb2 = WeakQubitRef(engine=eng, idx=2)
     cmd0 = Command(engine=eng, gate=Allocate, qubits=([qb1],))
-    cmd1 = Command(engine=eng, gate=Measure, qubits=([qb1],), controls=[],
-                   tags=[LogicalQubitIDTag(2)])
+    cmd1 = Command(
+        engine=eng,
+        gate=Measure,
+        qubits=([qb1],),
+        controls=[],
+        tags=[LogicalQubitIDTag(2)],
+    )
     with pytest.raises(NotYetMeasuredError):
         int(qb1)
     with pytest.raises(NotYetMeasuredError):

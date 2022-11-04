@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition rule for global phases.
 
@@ -23,17 +22,14 @@ from projectq.meta import get_control_count
 from projectq.ops import Ph
 
 
-def _decompose_PhNoCtrl(cmd):
-    """ Throw out global phases (no controls). """
-    pass
+def _decompose_PhNoCtrl(cmd):  # pylint: disable=invalid-name,unused-argument
+    """Throw out global phases (no controls)."""
 
 
-def _recognize_PhNoCtrl(cmd):
-    """ Recognize global phases (no controls). """
+def _recognize_PhNoCtrl(cmd):  # pylint: disable=invalid-name
+    """Recognize global phases (no controls)."""
     return get_control_count(cmd) == 0
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)
-]
+all_defined_decomposition_rules = [DecompositionRule(Ph, _decompose_PhNoCtrl, _recognize_PhNoCtrl)]

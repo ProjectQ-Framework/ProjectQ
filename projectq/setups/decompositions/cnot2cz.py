@@ -12,17 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Registers a decomposition to for a CNOT gate in terms of CZ and Hadamard.
-"""
+"""Registers a decomposition to for a CNOT gate in terms of CZ and Hadamard."""
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, get_control_count, Uncompute
+from projectq.meta import Compute, Uncompute, get_control_count
 from projectq.ops import CZ, H, X
 
 
 def _decompose_cnot(cmd):
-    """ Decompose CNOT gates. """
+    """Decompose CNOT gates."""
     ctrl = cmd.control_qubits
     eng = cmd.engine
     with Compute(eng):
@@ -36,6 +34,4 @@ def _recognize_cnot(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(X.__class__, _decompose_cnot, _recognize_cnot)
-]
+all_defined_decomposition_rules = [DecompositionRule(X.__class__, _decompose_cnot, _recognize_cnot)]

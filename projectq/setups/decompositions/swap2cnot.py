@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Registers a decomposition to achieve a Swap gate.
 
@@ -20,12 +19,12 @@ features as many control qubits as the Swap gate has control qubits.
 """
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Compute, Uncompute, Control, get_control_count
-from projectq.ops import Swap, CNOT
+from projectq.meta import Compute, Control, Uncompute
+from projectq.ops import CNOT, Swap
 
 
 def _decompose_swap(cmd):
-    """ Decompose (controlled) swap gates. """
+    """Decompose (controlled) swap gates."""
     ctrl = cmd.control_qubits
     eng = cmd.engine
     with Compute(eng):
@@ -36,6 +35,4 @@ def _decompose_swap(cmd):
 
 
 #: Decomposition rules
-all_defined_decomposition_rules = [
-    DecompositionRule(Swap.__class__, _decompose_swap)
-]
+all_defined_decomposition_rules = [DecompositionRule(Swap.__class__, _decompose_swap)]

@@ -11,12 +11,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for projectq.meta._dirtyqubit.py"""
 
-from projectq.meta import ComputeTag
-
-from projectq.meta import _dirtyqubit
+from projectq.meta import ComputeTag, _dirtyqubit
 
 
 def test_dirty_qubit_tag():

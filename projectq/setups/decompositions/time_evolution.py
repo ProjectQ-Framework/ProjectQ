@@ -11,10 +11,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
-
 """
-Registers decomposition for the TimeEvolution gates.
+Register decomposition for the TimeEvolution gates.
 
 An exact straight forward decomposition of a TimeEvolution gate is possible
 if the hamiltonian has only one term or if all the terms commute with each
@@ -23,28 +21,23 @@ other in which case one can implement each term individually.
 import math
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute
-from projectq.ops import TimeEvolution, QubitOperator, H, Y, CNOT, Rz, Rx, Ry
+from projectq.meta import Compute, Control, Uncompute
+from projectq.ops import CNOT, H, QubitOperator, Rx, Ry, Rz, TimeEvolution
 
 
 def _recognize_time_evolution_commuting_terms(cmd):
-    """
-    Recognize all TimeEvolution gates with >1 terms but which all commute.
-    """
+    """Recognize all TimeEvolution gates with >1 terms but which all commute."""
     hamiltonian = cmd.gate.hamiltonian
     if len(hamiltonian.terms) == 1:
         return False
-    else:
-        id_op = QubitOperator((), 0.0)
-        for term in hamiltonian.terms:
-            test_op = QubitOperator(term, hamiltonian.terms[term])
-            for other in hamiltonian.terms:
-                other_op = QubitOperator(other, hamiltonian.terms[other])
-                commutator = test_op * other_op - other_op * test_op
-                if not commutator.isclose(id_op,
-                                          rel_tol=1e-9,
-                                          abs_tol=1e-9):
-                    return False
+    id_op = QubitOperator((), 0.0)
+    for term in hamiltonian.terms:
+        test_op = QubitOperator(term, hamiltonian.terms[term])
+        for other in hamiltonian.terms:
+            other_op = QubitOperator(other, hamiltonian.terms[other])
+            commutator = test_op * other_op - other_op * test_op
+            if not commutator.isclose(id_op, rel_tol=1e-9, abs_tol=1e-9):
+                return False
     return True
 
 
@@ -63,9 +56,9 @@ def _recognize_time_evolution_individual_terms(cmd):
     return len(cmd.gate.hamiltonian.terms) == 1
 
 
-def _decompose_time_evolution_individual_terms(cmd):
+def _decompose_time_evolution_individual_terms(cmd):  # pylint: disable=too-many-branches
     """
-    Implements a TimeEvolution gate with a hamiltonian having only one term.
+    Implement a TimeEvolution gate with a hamiltonian having only one term.
 
     To implement exp(-i * t * hamiltonian), where the hamiltonian is only one
     term, e.g., hamiltonian = X0 x Y1 X Z2, we first perform local
@@ -81,29 +74,32 @@ def _decompose_time_evolution_individual_terms(cmd):
 
     Nielsen and Chuang, Quantum Computation and Information.
     """
-    assert len(cmd.qubits) == 1
+    if len(cmd.qubits) != 1:
+        raise ValueError('TimeEvolution gate can only accept a single quantum register')
     qureg = cmd.qubits[0]
     eng = cmd.engine
     time = cmd.gate.time
     hamiltonian = cmd.gate.hamiltonian
-    assert len(hamiltonian.terms) == 1
+    if len(hamiltonian.terms) != 1:
+        raise ValueError('This decomposition function only accepts single-term hamiltonians!')
     term = list(hamiltonian.terms)[0]
     coefficient = hamiltonian.terms[term]
     check_indices = set()
 
     # Check that hamiltonian is not identity term,
     # Previous __or__ operator should have apply a global phase instead:
-    assert not term == ()
+    if term == ():
+        raise ValueError('This decomposition function cannot accept a hamiltonian with an empty term!')
 
     # hamiltonian has only a single local operator
     if len(term) == 1:
         with Control(eng, cmd.control_qubits):
             if term[0][1] == 'X':
-                Rx(time * coefficient * 2.) | qureg[term[0][0]]
+                Rx(time * coefficient * 2.0) | qureg[term[0][0]]
             elif term[0][1] == 'Y':
-                Ry(time * coefficient * 2.) | qureg[term[0][0]]
+                Ry(time * coefficient * 2.0) | qureg[term[0][0]]
             else:
-                Rz(time * coefficient * 2.) | qureg[term[0][0]]
+                Rz(time * coefficient * 2.0) | qureg[term[0][0]]
     # hamiltonian has more than one local operator
     else:
         with Control(eng, cmd.control_qubits):
@@ -114,13 +110,15 @@ def _decompose_time_evolution_individual_terms(cmd):
                     if action == 'X':
                         H | qureg[index]
                     elif action == 'Y':
-                        Rx(math.pi / 2.) | qureg[index]
+                        Rx(math.pi / 2.0) | qureg[index]
+                print(check_indices, set(range(len(qureg))))
                 # Check that qureg had exactly as many qubits as indices:
-                assert check_indices == set((range(len(qureg))))
+                if check_indices != set(range(len(qureg))):
+                    raise ValueError('Indices mismatch between hamiltonian terms and qubits')
                 # Compute parity
-                for i in range(len(qureg)-1):
-                    CNOT | (qureg[i], qureg[i+1])
-            Rz(time * coefficient * 2.) | qureg[-1]
+                for i in range(len(qureg) - 1):
+                    CNOT | (qureg[i], qureg[i + 1])
+            Rz(time * coefficient * 2.0) | qureg[-1]
             # Uncompute parity and basis change
             Uncompute(eng)
 
@@ -128,15 +126,14 @@ def _decompose_time_evolution_individual_terms(cmd):
 rule_commuting_terms = DecompositionRule(
     gate_class=TimeEvolution,
     gate_decomposer=_decompose_time_evolution_commuting_terms,
-    gate_recognizer=_recognize_time_evolution_commuting_terms)
-
+    gate_recognizer=_recognize_time_evolution_commuting_terms,
+)
 
 rule_individual_terms = DecompositionRule(
     gate_class=TimeEvolution,
     gate_decomposer=_decompose_time_evolution_individual_terms,
-    gate_recognizer=_recognize_time_evolution_individual_terms)
-
+    gate_recognizer=_recognize_time_evolution_individual_terms,
+)
 
 #: Decomposition rules
-all_defined_decomposition_rules = [rule_commuting_terms,
-                                   rule_individual_terms]
+all_defined_decomposition_rules = [rule_commuting_terms, rule_individual_terms]

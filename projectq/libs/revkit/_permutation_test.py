@@ -11,17 +11,13 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """Tests for libs.revkit._permutation."""
 
 import pytest
 
-from projectq.types import Qubit
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
-
 from projectq.libs.revkit import PermutationOracle
-
 
 # run this test only if RevKit Python module can be loaded
 revkit = pytest.importorskip('revkit')
@@ -29,8 +25,7 @@ revkit = pytest.importorskip('revkit')
 
 def test_basic_permutation():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
@@ -41,8 +36,7 @@ def test_basic_permutation():
 
 
 def test_invalid_permutation():
-    main_engine = MainEngine(backend=DummyEngine(),
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=DummyEngine(), engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
@@ -65,14 +59,15 @@ def test_invalid_permutation():
 
 def test_synthesis_with_adjusted_tbs():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
 
-    import revkit
-    synth = lambda: revkit.tbs()
+    def synth():
+        import revkit
+
+        return revkit.tbs()
 
     PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)
 
@@ -81,14 +76,14 @@ def test_synthesis_with_adjusted_tbs():
 
 def test_synthesis_with_synthesis_script():
     saving_backend = DummyEngine(save_commands=True)
-    main_engine = MainEngine(backend=saving_backend,
-                             engine_list=[DummyEngine()])
+    main_engine = MainEngine(backend=saving_backend, engine_list=[DummyEngine()])
 
     qubit0 = main_engine.allocate_qubit()
     qubit1 = main_engine.allocate_qubit()
 
     def synth():
         import revkit
+
         revkit.tbs()
 
     PermutationOracle([0, 2, 1, 3], synth=synth) | (qubit0, qubit1)

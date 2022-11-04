@@ -21,22 +21,24 @@ https://arxiv.org/abs/quant-ph/0005055)
 
 Quantum Amplitude Amplification (QAA) executes the algorithm, but not
 the final measurement required to obtain the marked state(s) with high
-probability. The starting state on wich the QAA algorithm is executed
-is the one resulting of aplying the Algorithm on the |0> state.
+probability. The starting state on which the QAA algorithm is executed
+is the one resulting of applying the algorithm on the |0> state.
 
 Example:
     .. code-block:: python
 
-       def func_algorithm(eng,system_qubits):
+       def func_algorithm(eng, system_qubits):
            All(H) | system_qubits
 
-       def func_oracle(eng,system_qubits,qaa_ancilla):
+
+       def func_oracle(eng, system_qubits, qaa_ancilla):
            # This oracle selects the state |010> as the one marked
            with Compute(eng):
-              All(X) | system_qubits[0::2]
+               All(X) | system_qubits[0::2]
            with Control(eng, system_qubits):
-              X | qaa_ancilla
+               X | qaa_ancilla
            Uncompute(eng)
+
 
        system_qubits = eng.allocate_qureg(3)
        # Prepare the qaa_ancilla qubit in the |-> state
@@ -47,9 +49,9 @@ Example:
        # Creates the initial state form the Algorithm
        func_algorithm(eng, system_qubits)
        # Apply Quantum Amplitude Amplification the correct number of times
-       num_it = int(math.pi/4.*math.sqrt(1 << 3))
+       num_it = int(math.pi / 4.0 * math.sqrt(1 << 3))
        with Loop(eng, num_it):
-         QAA(func_algorithm, func_oracle) | (system_qubits, qaa_ancilla)
+           QAA(func_algorithm, func_oracle) | (system_qubits, qaa_ancilla)
 
        All(Measure) | system_qubits
 
@@ -68,17 +70,14 @@ Attributes:
 """
 
 import math
-import numpy as np
 
 from projectq.cengines import DecompositionRule
-from projectq.meta import Control, Compute, Uncompute, CustomUncompute, Dagger
-from projectq.ops import X, Z, Ph, All
-
-from projectq.ops import QAA
+from projectq.meta import Compute, Control, CustomUncompute, Dagger
+from projectq.ops import QAA, All, Ph, X, Z
 
 
-def _decompose_QAA(cmd):
-    """ Decompose the Quantum Amplitude Apmplification algorithm as a gate. """
+def _decompose_QAA(cmd):  # pylint: disable=invalid-name
+    """Decompose the Quantum Amplitude Apmplification algorithm as a gate."""
     eng = cmd.engine
 
     # System-qubit is the first qubit/qureg. Ancilla qubit is the second qubit
@@ -86,24 +85,24 @@ def _decompose_QAA(cmd):
     qaa_ancilla = cmd.qubits[1]
 
     # The Oracle and the Algorithm
-    Oracle = cmd.gate.oracle
-    A = cmd.gate.algorithm
+    oracle = cmd.gate.oracle
+    alg = cmd.gate.algorithm
 
     # Apply the oracle to invert the amplitude of the good states, S_Chi
-    Oracle(eng, system_qubits, qaa_ancilla)
+    oracle(eng, system_qubits, qaa_ancilla)
 
     # Apply the inversion of the Algorithm,
-    # the inversion of the aplitude of |0> and the Algorithm
+    # the inversion of the amplitude of |0> and the Algorithm
 
     with Compute(eng):
         with Dagger(eng):
-            A(eng, system_qubits)
+            alg(eng, system_qubits)
         All(X) | system_qubits
     with Control(eng, system_qubits[0:-1]):
         Z | system_qubits[-1]
     with CustomUncompute(eng):
         All(X) | system_qubits
-        A(eng, system_qubits)
+        alg(eng, system_qubits)
     Ph(math.pi) | system_qubits[0]
 
 

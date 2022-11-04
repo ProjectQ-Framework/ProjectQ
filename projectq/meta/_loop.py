@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 """
 Tools to implement loops.
 
@@ -20,44 +19,40 @@ Example:
 
         with Loop(eng, 4):
             H | qb
-        Rz(M_PI/3.) | qb
+        Rz(M_PI / 3.0) | qb
 """
 
 from copy import deepcopy
 
 from projectq.cengines import BasicEngine
 from projectq.ops import Allocate, Deallocate
-from ._util import insert_engine, drop_engine_after
+
+from ._exceptions import QubitManagementError
+from ._util import drop_engine_after, insert_engine
 
 
-class QubitManagementError(Exception):
-    pass
+class LoopTag:  # pylint: disable=too-few-public-methods
+    """Loop meta tag."""
 
-
-class LoopTag(object):
-    """
-    Loop meta tag
-    """
     def __init__(self, num):
+        """Initialize a LoopTag object."""
         self.num = num
         self.id = LoopTag.loop_tag_id
         LoopTag.loop_tag_id += 1
 
     def __eq__(self, other):
-        return (isinstance(other, LoopTag) and self.id == other.id and
-                self.num == other.num)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        """Equal operator."""
+        return isinstance(other, LoopTag) and self.id == other.id and self.num == other.num
 
     loop_tag_id = 0
 
 
 class LoopEngine(BasicEngine):
     """
-    Stores all commands and, when done, executes them num times if no loop tag
-    handler engine is available.
-    If there is one, it adds a loop_tag to the commands and sends them on.
+    A compiler engine to represent executing part of the code multiple times.
+
+    Stores all commands and, when done, executes them num times if no loop tag handler engine is available.  If there
+    is one, it adds a loop_tag to the commands and sends them on.
     """
 
     def __init__(self, num):
@@ -67,7 +62,7 @@ class LoopEngine(BasicEngine):
         Args:
             num (int): Number of loop iterations.
         """
-        BasicEngine.__init__(self)
+        super().__init__()
         self._tag = LoopTag(num)
         self._cmd_list = []
         self._allocated_qubit_ids = set()
@@ -76,7 +71,7 @@ class LoopEngine(BasicEngine):
         #      and deallocated within the loop body.
         # value: list contain reference to each weakref qubit with this qubit
         #        id either within control_qubits or qubits.
-        self._refs_to_local_qb = dict()
+        self._refs_to_local_qb = {}
         self._next_engines_support_loop_tag = False
 
     def run(self):
@@ -87,16 +82,19 @@ class LoopEngine(BasicEngine):
         engines, i.e., if
 
         .. code-block:: python
+
             is_meta_tag_supported(next_engine, LoopTag) == False
         """
-        error_message = ("\n Error. Qubits have been allocated in with "
-                         "Loop(eng, num) context,\n which have not "
-                         "explicitely been deallocated in the Loop context.\n"
-                         "Correct usage:\nwith Loop(eng, 5):\n"
-                         "    qubit = eng.allocate_qubit()\n"
-                         "    ...\n"
-                         "    del qubit[0]\n")
-        if not self._next_engines_support_loop_tag:
+        error_message = (
+            "\n Error. Qubits have been allocated in with "
+            "Loop(eng, num) context,\n which have not "
+            "explicitly been deallocated in the Loop context.\n"
+            "Correct usage:\nwith Loop(eng, 5):\n"
+            "    qubit = eng.allocate_qubit()\n"
+            "    ...\n"
+            "    del qubit[0]\n"
+        )
+        if not self._next_engines_support_loop_tag:  # pylint: disable=too-many-nested-blocks
             # Unroll the loop
             # Check that local qubits have been deallocated:
             if self._deallocated_qubit_ids != self._allocated_qubit_ids:
@@ -127,7 +125,7 @@ class LoopEngine(BasicEngine):
             if self._deallocated_qubit_ids != self._allocated_qubit_ids:
                 raise QubitManagementError(error_message)
 
-    def receive(self, command_list):
+    def receive(self, command_list):  # pylint: disable=too-many-branches
         """
         Receive (and potentially temporarily store) all commands.
 
@@ -144,8 +142,8 @@ class LoopEngine(BasicEngine):
                 unroll or, if there is a LoopTag-handling engine, add the
                 LoopTag.
         """
-        if (self._next_engines_support_loop_tag or
-           self.next_engine.is_meta_tag_supported(LoopTag)):
+        # pylint: disable=too-many-nested-blocks
+        if self._next_engines_support_loop_tag or self.next_engine.is_meta_tag_supported(LoopTag):
             # Loop tag is supported, send everything with a LoopTag
             # Don't check is_meta_tag_supported anymore
             self._next_engines_support_loop_tag = True
@@ -166,28 +164,24 @@ class LoopEngine(BasicEngine):
                 if cmd.gate == Allocate:
                     self._allocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
-                    self._refs_to_local_qb[cmd.qubits[0][0].id] = (
-                        [cmd.qubits[0][0]])
+                    self._refs_to_local_qb[cmd.qubits[0][0].id] = [cmd.qubits[0][0]]
                 elif cmd.gate == Deallocate:
                     self._deallocated_qubit_ids.add(cmd.qubits[0][0].id)
                     # Save reference to this local qubit
-                    self._refs_to_local_qb[cmd.qubits[0][0].id].append(
-                        cmd.qubits[0][0])
+                    self._refs_to_local_qb[cmd.qubits[0][0].id].append(cmd.qubits[0][0])
                 else:
                     # Add a reference to each place a local qubit id is
                     # used as within either control_qubit or qubits
                     for control_qubit in cmd.control_qubits:
                         if control_qubit.id in self._allocated_qubit_ids:
-                            self._refs_to_local_qb[control_qubit.id].append(
-                                control_qubit)
+                            self._refs_to_local_qb[control_qubit.id].append(control_qubit)
                     for qureg in cmd.qubits:
                         for qubit in qureg:
                             if qubit.id in self._allocated_qubit_ids:
-                                self._refs_to_local_qb[qubit.id].append(
-                                    qubit)
+                                self._refs_to_local_qb[qubit.id].append(qubit)
 
 
-class Loop(object):
+class Loop:
     """
     Loop n times over an entire code block.
 
@@ -196,10 +190,11 @@ class Loop(object):
 
             with Loop(eng, 4):
                 # [quantum gates to be executed 4 times]
+                pass
 
     Warning:
-        If the code in the loop contains allocation of qubits, those qubits
-        have to be deleted prior to exiting the 'with Loop()' context.
+        If the code in the loop contains allocation of qubits, those qubits have to be deleted prior to exiting the
+        'with Loop()' context.
 
         This code is **NOT VALID**:
 
@@ -207,7 +202,7 @@ class Loop(object):
 
             with Loop(eng, 4):
                 qb = eng.allocate_qubit()
-                H | qb # qb is still available!!!
+                H | qb  # qb is still available!!!
 
         The **correct way** of handling qubit (de-)allocation is as follows:
 
@@ -215,8 +210,8 @@ class Loop(object):
 
             with Loop(eng, 4):
                 qb = eng.allocate_qubit()
-                ...
-                del qb # sends deallocate gate
+                # ...
+                del qb  # sends deallocate gate
     """
 
     def __init__(self, engine, num):
@@ -232,7 +227,7 @@ class Loop(object):
 
                 with Loop(eng, 4):
                     H | qb
-                    Rz(M_PI/3.) | qb
+                    Rz(M_PI / 3.0) | qb
         Raises:
             TypeError: If number of iterations (num) is not an integer
             ValueError: If number of iterations (num) is not >= 0
@@ -246,11 +241,13 @@ class Loop(object):
         self._loop_eng = None
 
     def __enter__(self):
+        """Context manager enter function."""
         if self.num != 1:
             self._loop_eng = LoopEngine(self.num)
             insert_engine(self.engine, self._loop_eng)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager exit function."""
         if self.num != 1:
             # remove loop handler from engine list (i.e. skip it)
             self._loop_eng.run()

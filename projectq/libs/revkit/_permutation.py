@@ -12,14 +12,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""RevKit support for permutation oracles."""
+
 from projectq.ops import BasicGate
 
 from ._utils import _exec
 
 
-class PermutationOracle:
+class PermutationOracle:  # pylint: disable=too-few-public-methods
     """
-    Synthesizes a permutation using RevKit.
+    Synthesize a permutation using RevKit.
 
     Given a permutation over `2**q` elements (starting from 0), this class
     helps to automatically find a reversible circuit over `q` qubits that
@@ -33,16 +35,15 @@ class PermutationOracle:
 
     def __init__(self, permutation, **kwargs):
         """
-        Initializes a permutation oracle.
+        Initialize a permutation oracle.
 
         Args:
             permutation (list<int>): Permutation (starting from 0).
 
         Keyword Args:
-            synth: A RevKit synthesis command which creates a reversible
-                   circuit based on a reversible truth table (e.g.,
-                   ``revkit.tbs`` or ``revkit.dbs``).  Can also be a
-                   nullary lambda that calls several RevKit commands.
+            synth: A RevKit synthesis command which creates a reversible circuit based on a reversible truth table
+                   (e.g., ``revkit.tbs`` or ``revkit.dbs``).  Can also be a nullary lambda that calls several RevKit
+                   commands.
                    **Default:** ``revkit.tbs``
         """
         self.permutation = permutation
@@ -52,27 +53,27 @@ class PermutationOracle:
 
     def __or__(self, qubits):
         """
-        Applies permutation to qubits (and synthesizes circuit).
+        Apply permutation to qubits (and synthesizes circuit).
 
         Args:
-            qubits (tuple<Qureg>): Qubits to which the permutation is being
-                                   applied.
+            qubits (tuple<Qureg>): Qubits to which the permutation is being applied.
         """
         try:
-            import revkit
-        except ImportError:  # pragma: no cover
+            import revkit  # pylint: disable=import-outside-toplevel
+        except ImportError as err:  # pragma: no cover
             raise RuntimeError(
                 "The RevKit Python library needs to be installed and in the "
-                "PYTHONPATH in order to call this function")
+                "PYTHONPATH in order to call this function"
+            ) from err
 
+        # pylint: disable=invalid-name
         # convert qubits to flattened list
         qs = BasicGate.make_tuple_of_qureg(qubits)
         qs = sum(qs, [])
 
         # permutation must have 2*q elements, where q is the number of qubits
-        if 2**(len(qs)) != len(self.permutation):
-            raise AttributeError(
-                "Number of qubits does not fit to the size of the permutation")
+        if 2 ** (len(qs)) != len(self.permutation):
+            raise AttributeError("Number of qubits does not fit to the size of the permutation")
 
         # create reversible truth table from permutation
         revkit.perm(permutation=" ".join(map(str, self.permutation)))
@@ -84,11 +85,8 @@ class PermutationOracle:
         _exec(revkit.to_projectq(mct=True), qs)
 
     def _check_permutation(self):
-        """
-        Checks whether permutation is valid.
-        """
+        """Check whether permutation is valid."""
         # permutation must start from 0, has no duplicates and all elements are
         # consecutive
-        if (sorted(list(set(self.permutation))) !=
-                list(range(len(self.permutation)))):
+        if sorted(set(self.permutation)) != list(range(len(self.permutation))):
             raise AttributeError("Invalid permutation (does it start from 0?)")

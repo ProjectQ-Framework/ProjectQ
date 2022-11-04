@@ -12,24 +12,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-Defines LogicalQubitIDTag to annotate a MeasureGate for mapped qubits.
-"""
+"""Definition of LogicalQubitIDTag to annotate a MeasureGate for mapped qubits."""
 
 
-class LogicalQubitIDTag(object):
+class LogicalQubitIDTag:  # pylint: disable=too-few-public-methods
     """
     LogicalQubitIDTag for a mapped qubit to annotate a MeasureGate.
 
     Attributes:
         logical_qubit_id (int): Logical qubit id
     """
+
     def __init__(self, logical_qubit_id):
+        """Initialize a LogicalQubitIDTag object."""
         self.logical_qubit_id = logical_qubit_id
 
     def __eq__(self, other):
-        return (isinstance(other, LogicalQubitIDTag) and
-                self.logical_qubit_id == other.logical_qubit_id)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        """Equal operator."""
+        return isinstance(other, LogicalQubitIDTag) and self.logical_qubit_id == other.logical_qubit_id
