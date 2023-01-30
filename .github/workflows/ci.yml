@@ -121,8 +121,12 @@ jobs:
       - name: Install Git
         if: matrix.clang == 10
         run: |
-          apt-get update && apt-get install -y git
+          apt-get update && apt-get install -y git --no-install-recommends
 
+      # Work-around for https://github.com/actions/runner-images/issues/6775
+      - name: Change Owner of Container Working Directory
+        run: chown root:root .
+  
       - uses: actions/checkout@v3
 
       - name: Get history and tags for SCM versioning to work
