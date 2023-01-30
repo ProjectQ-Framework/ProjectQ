@@ -112,12 +112,21 @@ jobs:
     env:
       CC: clang
       CXX: clang++
-      PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang < 10) && 1 || 0 }}
+      PROJECTQ_CLEANUP_COMPILER_FLAGS: ${{ (matrix.clang <= 10) && 1 || 0 }}
 
     name: "Python 3 • Clang ${{ matrix.clang }} • x64"
     container: "silkeh/clang:${{ matrix.clang }}"
 
     steps:
+      - name: Install Git
+        if: matrix.clang == 10
+        run: |
+          apt-get update && apt-get install -y git --no-install-recommends
+
+      # Work-around for https://github.com/actions/runner-images/issues/6775
+      - name: Change Owner of Container Working Directory
+        run: chown root:root .
+
       - uses: actions/checkout@v3
 
       - name: Get history and tags for SCM versioning to work
@@ -167,6 +176,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      # Work-around for https://github.com/actions/runner-images/issues/6775
+      - name: Change Owner of Container Working Directory
+        run: chown root:root .
 
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
@@ -256,6 +269,10 @@ jobs:
         run: |
           yum install -y git
           git config --global --add safe.directory /__w/ProjectQ/ProjectQ
+
+      # Work-around for https://github.com/actions/runner-images/issues/6775
+      - name: Change Owner of Container Working Directory
+        run: chown root:root .
 
       - uses: actions/checkout@v3
 
