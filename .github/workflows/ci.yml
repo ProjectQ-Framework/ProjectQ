@@ -120,6 +120,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Git
+        if: matrix.clang == 10
+        run: |
+          apt-get update && apt-get install -y git
+
       - name: Get history and tags for SCM versioning to work
         if: ${{ !env.ACT }}
         run: |
