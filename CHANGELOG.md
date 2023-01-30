@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added new pre-commit hooks: `codespell`, `doc8`, `pydocstyle` and `yamllint`
 -   Update pre-commit hook versions
 -   Keep `flake8` hook to version 5.0.4 until plugin support Flake8 6.X
+-   Disable `no-member` warning for Pylint on pre-commit CI
 
 ## [v0.8.0] - 2022-10-18
 
