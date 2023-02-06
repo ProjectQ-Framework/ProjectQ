@@ -98,7 +98,7 @@ repos:
         additional_dependencies: [black==22.10.0]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 5.0.4
     hooks:
       - id: flake8
         name: flake8-strict
