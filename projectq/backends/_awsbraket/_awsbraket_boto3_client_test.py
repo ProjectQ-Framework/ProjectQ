@@ -180,7 +180,6 @@ def test_send_too_many_qubits(mocker, send_too_many_setup):
     ],
 )
 def test_send_real_device_online_verbose(mocker, var_status, var_result, real_device_online_setup):
-
     (
         qtarntask,
         creds,
@@ -285,7 +284,6 @@ def test_send_that_errors_are_caught(mocker, var_error, send_that_error_setup):
 @has_boto3
 @pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
 def test_retrieve_error_arn_not_exist(mocker, var_error, arntask, creds):
-
     mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task'])
     mock_boto3_client.get_quantum_task.side_effect = botocore.exceptions.ClientError(
         {"Error": {"Code": var_error, "Message": f"Msg error for {var_error}"}},

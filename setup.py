@@ -380,7 +380,13 @@ class BuildExt(build_ext):
 
     def _get_compilation_commands(self, ext):
         # pylint: disable=protected-access
-        (_, objects, extra_postargs, pp_opts, build,) = self.compiler._setup_compile(
+        (
+            _,
+            objects,
+            extra_postargs,
+            pp_opts,
+            build,
+        ) = self.compiler._setup_compile(
             outdir=self.build_temp,
             sources=ext.sources,
             macros=ext.define_macros,

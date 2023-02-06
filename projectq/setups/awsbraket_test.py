@@ -132,7 +132,6 @@ creds = {
 @patch('boto3.client')
 @pytest.mark.parametrize("var_device", ['SV1', 'Aspen-8', 'IonQ Device'])
 def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
-
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
@@ -144,7 +143,6 @@ def test_awsbraket_get_engine_list(mock_boto3_client, var_device):
 @has_boto3
 @patch('boto3.client')
 def test_awsbraket_error(mock_boto3_client):
-
     mock_boto3_client.return_value = mock_boto3_client
     mock_boto3_client.search_devices.return_value = search_value
     mock_boto3_client.get_device.return_value = device_value
