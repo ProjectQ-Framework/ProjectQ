@@ -236,7 +236,7 @@ class Simulator:
         """
         expectation = 0.0
         current_state = _np.copy(self._state)
-        for (term, coefficient) in terms_dict:
+        for term, coefficient in terms_dict:
             self._apply_term(term, ids)
             delta = coefficient * _np.vdot(current_state, self._state).real
             expectation += delta
@@ -253,7 +253,7 @@ class Simulator:
         """
         new_state = _np.zeros_like(self._state)
         current_state = _np.copy(self._state)
-        for (term, coefficient) in terms_dict:
+        for term, coefficient in terms_dict:
             self._apply_term(term, ids)
             self._state *= coefficient
             new_state += self._state

@@ -228,7 +228,6 @@ class IBMQ(Session):
         try:
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
             for retries in range(num_retries):
-
                 # STEP5: WAIT FOR THE JOB TO BE RUN
                 json_step5 = {'allow_redirects': True, 'timeout': (self.timeout, None)}
                 request = super().get(urljoin(_API_URL, job_status_url), **json_step5)

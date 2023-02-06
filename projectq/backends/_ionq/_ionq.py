@@ -205,7 +205,6 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         targets = [qb.id for qureg in cmd.qubits for qb in qureg]
         controls = [qb.id for qb in cmd.control_qubits]
         if len(self._measured_ids) > 0:
-
             # Check any qubits we are trying to operate on.
             gate_qubits = set(targets) | set(controls)
 

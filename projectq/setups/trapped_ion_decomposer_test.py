@@ -138,7 +138,6 @@ def test_chooser_Ry_reducer():
         ),
         (get_engine_list(), 11),
     ]:
-
         backend = DummyEngine(save_commands=True)
         eng = projectq.MainEngine(backend, engine_list, verbose=True)
         qubit1 = eng.allocate_qubit()
