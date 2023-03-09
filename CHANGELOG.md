@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Python context manager `with flushing(MainEngine()) as eng:`
 
+### Fixed
+
+-   Fixed some typos (thanks to @eltociear)
+
 ### Repository
 
 -   Update GitHub workflows to work with merge queues
