@@ -1,21 +1,60 @@
 ---
 
-name: PR
-on:
-  merge_group:
+name: Pull requests
+on:  # yamllint disable-line rule:truthy
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
-  # Enforces the update of a changelog file on every pull request
-  changelog:
+  update-changelog:
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/master'
+    name: "Pre-commit CI CHANGELOG auto-update"
+    if: >
+      (github.event.pull_request.title == '[pre-commit.ci] pre-commit autoupdate') &&
+      (github.event.action == 'opened')
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.PRE_COMMIT_CI_CHANGELOG }}
 
-      - id: changelog-enforcer
-        uses: dangoslen/changelog-enforcer@v3
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: '**/setup.cfg'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install 'git+https://github.com/Takishima/pre-commit-changelog-auto-update@v1.0.0'
+
+      - name: Update CHANGELOG
+        run: |
+          python3 -m update_changelog --pr-body "${{ github.event.pull_request.body }}"
+
+      - name: Commit changes
+        id: commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: github-actions[bot]
+          author_email: noreply@github.com
+          message: Update CHANGELOG
+
+  changelog:
+    needs: update-changelog
+    runs-on: ubuntu-latest
+    name: CHANGELOG enforcer
+    if: github.ref != 'refs/head/master' && !cancelled()
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - uses: dangoslen/changelog-enforcer@v3
         with:
           changeLogPath: 'CHANGELOG.md'
           skipLabels: 'Skip-Changelog'
+          
