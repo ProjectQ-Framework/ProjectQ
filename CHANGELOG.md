@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Keep `flake8` hook to version 5.0.4 until plugins support Flake8 6.X
 -   Disable `no-member` warning for Pylint on pre-commit CI
 
+
 ## [v0.8.0] - 2022-10-18
 
 ### Added
