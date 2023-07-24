@@ -40,6 +40,7 @@ class IonQ(Session):
     def __init__(self, verbose=False):
         """Initialize an session with IonQ's APIs."""
         super().__init__()
+        self.user_agent()
         self.backends = {}
         self.timeout = 5.0
         self.token = None
@@ -100,6 +101,10 @@ class IonQ(Session):
         nb_qubit_max = self.backends[device]['nq']
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
+
+    def user_agent(self):
+        """Set a User-Agent header for this session."""
+        self.headers.update({'User-Agent': f'projectq-ionq/0.8.0'})
 
     def authenticate(self, token=None):
         """Set an Authorization header for this session.
