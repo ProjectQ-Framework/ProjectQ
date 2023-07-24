@@ -50,7 +50,7 @@ def test_authenticate_prompt_requires_token(monkeypatch):
 
 def test_is_online(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'https://api.ionq.co/v0.2/backends' == path
+        assert 'https://api.ionq.co/v0.3/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -86,7 +86,7 @@ def test_is_online(monkeypatch):
 
 def test_show_devices(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'https://api.ionq.co/v0.2/backends' == path
+        assert 'https://api.ionq.co/v0.3/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -182,7 +182,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     }
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         assert 'json' in kwargs
         assert expected_request == kwargs['json']
         mock_response = mock.MagicMock()
@@ -196,7 +196,7 @@ def test_send_real_device_online_verbose(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/new-job-id'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -428,7 +428,7 @@ def test_send_api_errors_are_raised(monkeypatch, expected_err, err_data):
     )
 
     def mock_post(_self, path, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(return_value=err_data)
         return mock_response
@@ -467,7 +467,7 @@ def test_timeout_exception(monkeypatch):
     )
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -478,7 +478,7 @@ def test_timeout_exception(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/new-job-id'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -528,7 +528,7 @@ def test_retrieve(monkeypatch, token):
     request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/old-job-id'
         json_response = {
             'id': 'old-job-id',
             'status': 'running',
@@ -586,7 +586,7 @@ def test_retrieve_that_errors_are_caught(monkeypatch):
     request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/old-job-id'
         json_response = {
             'id': 'old-job-id',
             'status': 'running',
