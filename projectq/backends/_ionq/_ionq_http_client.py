@@ -137,21 +137,21 @@ class IonQ(Session):
             str: The ID of a newly submitted Job.
         """
         argument = {
-            'target': self.backends[device]['target'],
+            'target': self.backends[device].get('target'),
             'metadata': {
                 'sdk': 'ProjectQ',
-                'meas_qubit_ids': json.dumps(info['meas_qubit_ids']),
+                'meas_qubit_ids': json.dumps(info.get('meas_qubit_ids')),
             },
-            'shots': info['shots'],
-            'registers': {'meas_mapped': info['meas_mapped']},
+            'shots': info.get('shots'),
+            'registers': {'meas_mapped': info.get('meas_mapped')},
             'input': {
-                'format': info['format'],
-                'gateset': info['gateset'],
-                'qubits': info['nq'],
-                'circuit': info['circuit'],
+                'format': info.get('format'),
+                'gateset': info.get('gateset'),
+                'qubits': info.get('nq'),
+                'circuit': info.get('circuit'),
             },
         }
-        if info['error_mitigation'] is not None:
+        if info.get('error_mitigation') is not None:
             argument['error_mitigation'] = info['error_mitigation']
 
         # _API_URL[:-1] strips the trailing slash.
@@ -161,11 +161,11 @@ class IonQ(Session):
 
         # Process the response.
         r_json = req.json()
-        status = r_json['status']
+        status = r_json.get('status')
 
         # Return the job id.
         if status == 'ready':
-            return r_json['id']
+            return r_json.get('id')
 
         # Otherwise, extract any provided failure info and raise an exception.
         failure = r_json.get('failure') or {
@@ -226,7 +226,7 @@ class IonQ(Session):
 
                 # Check if job is completed.
                 if status == 'completed':
-                    r = super().get(urljoin(_JOB_API_URL, req_json['results_url']), params=params)
+                    r = super().get(urljoin(_JOB_API_URL, req_json.get('results_url')), params=params)
                     r_json = r.json()
                     meas_mapped = req_json['registers']['meas_mapped']
                     meas_qubit_ids = json.loads(req_json['metadata']['meas_qubit_ids'])
