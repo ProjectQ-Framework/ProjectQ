@@ -22,7 +22,8 @@ from projectq.cengines import BasicMapperEngine, MainEngine
 from projectq.ops import CX, All, Command, H, Measure
 from projectq.types import WeakQubitRef
 
-_has_azure_quantum = True
+# NB: temporary workaround until Azure Quantum backend is fixed
+_has_azure_quantum = False
 try:
     from azure.quantum import Workspace
 
