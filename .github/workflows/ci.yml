@@ -120,7 +120,6 @@ jobs:
 
     steps:
       - name: Install Git
-        if: matrix.clang == 10
         run: |
           apt-get update && apt-get install -y git --no-install-recommends
 
@@ -197,16 +196,16 @@ jobs:
 
       - name: Prepare Python env
         run: |
-          python3 -m pip install -U pip setuptools wheel
+          python3 -m pip install --user -U pip setuptools wheel
           python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
           cat requirements.txt
-          python3 -m pip install -r requirements.txt --prefer-binary
+          python3 -m pip install --user -r requirements.txt --prefer-binary
 
       - name: Upgrade pybind11 and flaky
-        run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
+        run: python3 -m pip install --user --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install -ve .[azure-quantum,braket,test]
+        run: python3 -m pip install --user -ve .[azure-quantum,braket,test]
 
       - name: Pytest
         run: |
