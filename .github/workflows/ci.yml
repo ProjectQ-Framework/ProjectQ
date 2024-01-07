@@ -338,5 +338,6 @@ jobs:
       - name: Build docs
         run: python3 -m sphinx -b html docs docs/.build
 
-      - name: Make SDist
-        run: python3 setup.py sdist
+      # NB: disabling until setup.py is updated to remove any mention of distutils
+      # - name: Make SDist
+      #  run: python3 setup.py sdist
