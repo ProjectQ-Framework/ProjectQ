@@ -85,7 +85,7 @@ linear chain and the architecture supports any single-qubit gate as well as the 
 
     from projectq import MainEngine
     from projectq.backends import ResourceCounter
-    from projectq.ops import QFT
+    from projectq.ops import QFT, CNOT, Swap
     from projectq.setups import linear
 
     compiler_engines = linear.get_engine_list(num_qubits=16, one_qubit_gates='any', two_qubit_gates=(CNOT, Swap))
