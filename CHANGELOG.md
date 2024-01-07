@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--   Fixed some typos (thanks to @eltociear)
+-   Fixed some typos (thanks to @eltociear, @Darkdragon84)
 
 ### Repository
 
