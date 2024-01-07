@@ -239,7 +239,7 @@ Detailed instructions and OS-specific hints
         sudo port install py37-pip
 
     Next, we can install ProjectQ with the high performance simulator written in C++. First, we will need to install a
-    suitable compiler with support for **C++11**, OpenMP, and instrinsics. The best option is to install clang 9.0 also
+    suitable compiler with support for **C++11**, OpenMP, and intrinsics. The best option is to install clang 9.0 also
     using macports (note: gcc installed via macports does not work).
 
     .. code-block:: bash

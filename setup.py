@@ -39,7 +39,6 @@
 
 # pylint: disable=deprecated-module
 
-import distutils.log
 import os
 import platform
 import subprocess
@@ -655,7 +654,7 @@ class ClangTidy(Command):
         # that --dry-run --gen-compiledb are passed to build_ext regardless of
         # other arguments
         command = 'build_ext'
-        distutils.log.info("running %s --dry-run --gen-compiledb", command)
+        # distutils.log.info("running %s --dry-run --gen-compiledb", command)
         cmd_obj = self.get_finalized_command(command)
         cmd_obj.dry_run = True
         cmd_obj.gen_compiledb = True
@@ -663,7 +662,7 @@ class ClangTidy(Command):
             cmd_obj.run()
             self.distribution.have_run[command] = 1
         except BuildFailed as err:
-            distutils.log.error('build_ext --dry-run --gen-compiledb command failed!')
+            # distutils.log.error('build_ext --dry-run --gen-compiledb command failed!')
             raise RuntimeError('build_ext --dry-run --gen-compiledb command failed!') from err
 
         command = ['clang-tidy']
