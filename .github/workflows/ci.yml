@@ -196,21 +196,22 @@ jobs:
 
       - name: Prepare Python env
         run: |
-          python3 -m pip install --user -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python3 -m pip venv venv
+          ./venv/bin/python3 -m pip install -U pip setuptools wheel
+          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
           cat requirements.txt
-          python3 -m pip install --user -r requirements.txt --prefer-binary
+          ./venv/bin/python3 -m pip install -r requirements.txt --prefer-binary
 
       - name: Upgrade pybind11 and flaky
-        run: python3 -m pip install --user --upgrade pybind11 flaky --prefer-binary
+        run: ./venv/bin/python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install --user -ve .[azure-quantum,braket,test]
+        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,braket,test]
 
       - name: Pytest
         run: |
           echo 'backend: Agg' > matplotlibrc
-          python3 -m pytest -p no:warnings
+          ./venv/bin/python3 -m pytest -p no:warnings
 
 
   # Testing on CentOS (manylinux uses a centos base, and this is an easy way
