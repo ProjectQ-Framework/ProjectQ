@@ -78,6 +78,8 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         verbose=False,
         token=None,
         device='ionq_simulator',
+        error_mitigation=None,
+        sharpen=None,
         num_retries=3000,
         interval=1,
         retrieve_execution=None,
@@ -102,6 +104,8 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__()
         self.device = device if use_hardware else 'ionq_simulator'
+        self.error_mitigation = error_mitigation
+        self._sharpen = sharpen
         self._num_runs = num_runs
         self._verbose = verbose
         self._token = token
@@ -291,6 +295,9 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
             measured_ids = self._measured_ids[:]
             info = {
                 'circuit': self._circuit,
+                'gateset': 'qis',
+                'format': 'ionq.circuit.v0',
+                'error_mitigation': self.error_mitigation,
                 'nq': len(qubit_mapping.keys()),
                 'shots': self._num_runs,
                 'meas_mapped': [qubit_mapping[qubit_id] for qubit_id in measured_ids],
@@ -311,6 +318,7 @@ class IonQBackend(BasicEngine):  # pylint: disable=too-many-instance-attributes
                 device=self.device,
                 token=self._token,
                 jobid=self._retrieve_execution,
+                sharpen=self._sharpen,
                 num_retries=self._num_retries,
                 interval=self._interval,
                 verbose=self._verbose,

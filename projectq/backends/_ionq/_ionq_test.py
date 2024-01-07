@@ -393,12 +393,16 @@ def test_ionq_retrieve_nonetype_response_error(monkeypatch, mapper_factory):
 
 
 def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
-    """Test that the backend can handle a valid circuit with valid results."""
+    """Test that sub-classed or aliased gates are handled correctly."""
+    # using alias gates, for coverage
     expected = {
         'nq': 3,
         'shots': 10,
         'meas_mapped': [1, 2],
         'meas_qubit_ids': [1, 2],
+        'error_mitigation': None,
+        'format': 'ionq.circuit.v0',
+        'gateset': 'qis',
         'circuit': [
             {'gate': 'ry', 'rotation': 0.5, 'targets': [1]},
             {'gate': 'rx', 'rotation': 0.5, 'targets': [1]},
@@ -425,7 +429,7 @@ def test_ionq_backend_functional_test(monkeypatch, mapper_factory):
     backend = _ionq.IonQBackend(verbose=True, num_runs=10)
     eng = MainEngine(
         backend=backend,
-        engine_list=[mapper_factory()],
+        engine_list=[mapper_factory(9)],
         verbose=True,
     )
     unused_qubit = eng.allocate_qubit()  # noqa: F841
@@ -458,6 +462,9 @@ def test_ionq_backend_functional_aliases_test(monkeypatch, mapper_factory):
         'shots': 10,
         'meas_mapped': [2, 3],
         'meas_qubit_ids': [2, 3],
+        'error_mitigation': None,
+        'format': 'ionq.circuit.v0',
+        'gateset': 'qis',
         'circuit': [
             {'gate': 'x', 'targets': [0]},
             {'gate': 'x', 'targets': [1]},
