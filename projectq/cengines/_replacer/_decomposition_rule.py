@@ -14,7 +14,7 @@
 
 """Module containing the definition of a decomposition rule."""
 
-from projectq.ops import BasicGate
+from projectq.ops._basics import BasicGate, BasicGateMeta
 
 
 class ThisIsNotAGateClassError(TypeError):
@@ -54,6 +54,8 @@ class DecompositionRule:  # pylint: disable=too-few-public-methods
                 "\nDid you pass in someGate instead of someGate.__class__?"
             )
         if gate_class == type.__class__:
+            "\nDid you pass in someGate instead of someGate.__class__?"
+        if gate_class in (type.__class__, BasicGateMeta):
             raise ThisIsNotAGateClassError(
                 "gate_class is type.__class__ instead of a type of BasicGate."
                 "\nDid you pass in GateType.__class__ instead of GateType?"

@@ -116,6 +116,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
         self.control_qubits = controls  # property
         self.engine = engine  # property
         self.control_state = control_state  # property
+        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(n=len(self.control_qubits))  # property
 
     @property
     def qubits(self):
@@ -162,6 +163,27 @@ class Command:  # pylint: disable=too-many-instance-attributes
             True if the gate is equivalent to an Identity gate, False otherwise
         """
         return projectq.ops.is_identity(self.gate)
+
+    def is_commutable(self, other):
+        """
+        Evaluate if this command is commutable with another command.
+
+        Args:
+            other (Command): The other command.
+
+        Returns:
+            Commutability value (int) : value of the commutability enum
+        """
+        if not overlap(self.all_qubits, other.all_qubits):
+            return Commutability.NOT_COMMUTABLE
+        self._commutable_circuit_list = self.gate.get_commutable_circuit_list(len(self.control_qubits))
+        # If other gate may be part of a list which is
+        # commutable with gate, return enum MAYBE_COMMUTABLE
+        for circuit in self._commutable_circuit_list:
+            if type(other.gate) is type(circuit[0]._gate):
+                return Commutability.MAYBE_COMMUTABLE
+        else:
+            return self.gate.is_commutable(other.gate)
 
     def get_merged(self, other):
         """
@@ -358,3 +380,31 @@ class Command:  # pylint: disable=too-many-instance-attributes
             qstring = f"{qstring[:-2]} )"
         cstring = "C" * len(ctrlqubits)
         return f"{cstring + self.gate.to_string(symbols)} | {qstring}"
+
+
+def overlap(tuple1, tuple2):
+    """
+    Takes two tuples of lists, flattens them and counts the number
+    of common elements. Used to check if two commands have qubits
+    or control qubits in common.
+
+    i.e.    command1.all_qubits = [[control_qubits], [qubits]]
+            command2.all_qubits = [[control_qubits], [qubits]]
+            overlap(command1, command2) = 4
+            means command1 and command2 have 4 qubits or control
+            qubits in common.
+
+    """
+    flat_tuple1 = [item for sublist in tuple1 for item in sublist]
+    flat_tuple2 = [item for sublist in tuple2 for item in sublist]
+    n = 0
+    for element in flat_tuple1:
+        if element in flat_tuple2:
+            n += 1
+    return n
+
+
+class Commutability(IntEnum):
+    NOT_COMMUTABLE = 0
+    COMMUTABLE = 1
+    MAYBE_COMMUTABLE = 2
