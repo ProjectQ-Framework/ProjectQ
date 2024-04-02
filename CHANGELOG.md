@@ -19,13 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Update GitHub workflows to work with merge queues
 -   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`, `thomaseizinger/create-pull-request`
+-   Update pre-commit hook versions
 -   Fix failing GitHub workflows (Clang-10)
 -   Introduce pre-commit CI
 -   Update to clang-tidy 14 in GitHub workflow
 -   Added new pre-commit hooks: `codespell`, `doc8`, `pydocstyle` and `yamllint`
 -   Keep `flake8` hook to version 5.0.4 until plugins support Flake8 6.X
 -   Disable `no-member` warning for Pylint on pre-commit CI
--   Update pre-commit hook versions
 
 
 ## [v0.8.0] - 2022-10-18
