@@ -1,10 +1,9 @@
 [build-system]
 requires = [
-    'setuptools>=61;python_version>="3.7"',
-    'setuptools>=59;python_version<"3.7"',
+    'setuptools>=61',
     'wheel',
     'pybind11>=2',
-    'setuptools_scm[toml]>6;python_version>="3.7"'
+    'setuptools_scm[toml]>6'
 ]
 build-backend = "setuptools.build_meta"
 
@@ -14,17 +13,18 @@ authors = [
      {name = 'ProjectQ', email = 'info@projectq.ch'}
 ]
 description = 'ProjectQ - An open source software framework for quantum computing'
-requires-python = '>= 3.7'
+requires-python = '>= 3.8'
 license = {text= 'Apache License Version 2.0'}
 readme = 'README.rst'
 classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10'
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12'
 ]
 dynamic = ["version"]
 
@@ -211,5 +211,5 @@ select = 'cp36-*'
 manylinux-x86_64-image = 'manylinux1'
 
 [[tool.cibuildwheel.overrides]]
-select = 'cp3{7,8,9}-*'
+select = 'cp3{8,9,10,11,12}-*'
 manylinux-x86_64-image = 'manylinux2010'
