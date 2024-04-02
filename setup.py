@@ -44,16 +44,16 @@ import platform
 import subprocess
 import sys
 import tempfile
-from distutils.spawn import find_executable, spawn
 from operator import itemgetter
 from pathlib import Path
 
 from setuptools import Command
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
-from setuptools._distutils.errors import CompileError, DistutilsError
+from setuptools._distutils.spawn import find_executable, spawn, DistutilsExecError
+from setuptools._distutils.errors import CCompilerError, CompileError, DistutilsError
 from setuptools.command.build_ext import build_ext
-from setuptools.errors import CCompilerError, LinkError, PlatformError
+from setuptools.errors import LinkError, PlatformError
 
 try:
     import setuptools_scm  # noqa: F401  # pylint: disable=unused-import
@@ -272,7 +272,7 @@ class BuildFailed(Exception):
 # Python build related variable
 
 cpython = platform.python_implementation() == 'CPython'
-ext_errors = (CCompilerError, DistutilsError, CompileError)
+ext_errors = (CCompilerError, DistutilsError, CompileError, DistutilsExecError)
 if sys.platform == 'win32':
     # 2.6's distutils.msvc9compiler can raise an IOError when failing to
     # find the compiler
