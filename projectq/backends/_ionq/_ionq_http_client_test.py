@@ -197,29 +197,29 @@ def test_send_real_device_online_verbose(monkeypatch):
         return mock_response
 
 
-def mock_get(_self, path, *args, **kwargs):
-    if path == 'https://api.ionq.co/v0.3/jobs/new-job-id':
-        mock_response = mock.MagicMock()
-        mock_response.json = mock.MagicMock(
-            return_value={
-                'id': 'new-job-id',
-                'status': 'completed',
-                'qubits': 4,
-                'metadata': {'meas_qubit_ids': '[2, 3]'},
-                'registers': {'meas_mapped': [2, 3]},
-                'results_url': 'new-job-id/results',
-            }
-        )
-    elif path == 'https://api.ionq.co/v0.3/jobs/new-job-id/results':
-        mock_response = mock.MagicMock()
-        mock_response.json = mock.MagicMock(
-            return_value={
-                {'2': 1},
-            }
-        )
-    else:
-        raise ValueError(f"Unexpected URL: {path}")
-    return mock_response
+    def mock_get(_self, path, *args, **kwargs):
+        if path == 'https://api.ionq.co/v0.3/jobs/new-job-id':
+            mock_response = mock.MagicMock()
+            mock_response.json = mock.MagicMock(
+                return_value={
+                    'id': 'new-job-id',
+                    'status': 'completed',
+                    'qubits': 4,
+                    'metadata': {'meas_qubit_ids': '[2, 3]'},
+                    'registers': {'meas_mapped': [2, 3]},
+                    'results_url': 'new-job-id/results',
+                }
+            )
+        elif path == 'https://api.ionq.co/v0.3/jobs/new-job-id/results':
+            mock_response = mock.MagicMock()
+            mock_response.json = mock.MagicMock(
+                return_value={
+                    {'2': 1},
+                }
+            )
+        else:
+            raise ValueError(f"Unexpected URL: {path}")
+        return mock_response
 
     monkeypatch.setattr('requests.sessions.Session.post', mock_post)
     monkeypatch.setattr('requests.sessions.Session.get', mock_get)
@@ -534,7 +534,7 @@ def test_retrieve(monkeypatch, token):
         'update_devices_list',
         _dummy_update.__get__(None, _ionq_http_client.IonQ),
     )
-    request_num = [0]
+    # request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
         if path == 'https://api.ionq.co/v0.3/jobs/old-job-id':

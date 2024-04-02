@@ -104,7 +104,7 @@ class IonQ(Session):
 
     def user_agent(self):
         """Set a User-Agent header for this session."""
-        self.headers.update({'User-Agent': f'projectq-ionq/0.8.0'})
+        self.headers.update({'User-Agent': 'projectq-ionq/0.8.0'})
 
     def authenticate(self, token=None):
         """Set an Authorization header for this session.
@@ -174,7 +174,13 @@ class IonQ(Session):
         }
         raise JobSubmissionError(f"{failure['code']}: {failure['error']} (status={status})")
 
-    def get_result(self, device, execution_id, sharpen=None, num_retries=3000, interval=1):
+    def get_result(
+        self, 
+        device, 
+        execution_id, 
+        sharpen=None, 
+        num_retries=3000, 
+        interval=1):  # pylint: disable=too-many-arguments,too-many-locals
         """
         Given a backend and ID, fetch the results for this job's execution.
 
@@ -226,8 +232,8 @@ class IonQ(Session):
 
                 # Check if job is completed.
                 if status == 'completed':
-                    r = super().get(urljoin(_JOB_API_URL, req_json.get('results_url')), params=params)
-                    r_json = r.json()
+                    r_get = super().get(urljoin(_JOB_API_URL, req_json.get('results_url')), params=params)
+                    re_json = r_get.json()
                     meas_mapped = req_json['registers']['meas_mapped']
                     meas_qubit_ids = json.loads(req_json['metadata']['meas_qubit_ids'])
                     output_probs = r_json
