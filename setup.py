@@ -50,8 +50,8 @@ from pathlib import Path
 from setuptools import Command
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
-from setuptools._distutils.spawn import find_executable, spawn, DistutilsExecError
 from setuptools._distutils.errors import CCompilerError, CompileError, DistutilsError
+from setuptools._distutils.spawn import DistutilsExecError, find_executable, spawn
 from setuptools.command.build_ext import build_ext
 from setuptools.errors import LinkError, PlatformError
 
