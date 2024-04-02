@@ -24,7 +24,7 @@ import random
 import numpy as _np
 
 _USE_REFCHECK = True
-if 'TRAVIS' in os.environ:  # pragma: no cover
+if 'CI' in os.environ:  # pragma: no cover
     _USE_REFCHECK = False
 
 
