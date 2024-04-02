@@ -51,6 +51,10 @@ jobs:
             setup.cfg
             pyproject.toml
 
+      - name: Prepare env
+        run: |
+          python -m pip install -U "setuptools>=61.0.0"
+
       - name: Generate requirement file (Unix)
         if: runner.os != 'Windows'
         run: |
