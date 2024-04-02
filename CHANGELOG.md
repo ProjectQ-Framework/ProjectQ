@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Update GitHub workflows to work with merge queues
--   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`, `thomaseizinger/create-pull-request`
+-   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`, `thomaseizinger/create-pull-request`, `thomaseizinger/keep-a-changelog-new-release`
 -   Update pre-commit hook versions
 -   Fix failing GitHub workflows (Clang-10)
 -   Introduce pre-commit CI
