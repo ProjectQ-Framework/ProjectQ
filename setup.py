@@ -59,7 +59,7 @@ try:
         DistutilsError,
     )
     from setuptools._distutils.spawn import DistutilsExecError, find_executable, spawn
-    from setuptools.errors import LinkError, PlatformError
+    from setuptools.errors import PlatformError
 
     _SETUPTOOL_IMPORT_ERROR = None
 
@@ -239,7 +239,7 @@ def compiler_test(
             with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
-    except:
+    except Exception:
         return False
     else:
         return True
