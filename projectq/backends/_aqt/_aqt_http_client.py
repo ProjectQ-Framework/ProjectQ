@@ -136,7 +136,6 @@ class AQT(Session):
             signal.signal(signal.SIGINT, _handle_sigint_during_get_result)
 
             for retries in range(num_retries):
-
                 argument = {'id': execution_id, 'access_token': self.token}
                 req = super().put(urljoin(_API_URL, self.backends[device]['url']), data=argument)
                 req.raise_for_status()

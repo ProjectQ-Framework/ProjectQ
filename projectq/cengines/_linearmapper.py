@@ -121,7 +121,7 @@ class LinearMapper(BasicMapperEngine):  # pylint: disable=too-many-instance-attr
         Build a mapping of qubits to a linear chain.
 
         It goes through stored_commands and tries to find a mapping to apply these gates on a first come first served
-        basis.  More compilicated scheme could try to optimize to apply as many gates as possible between the Swaps.
+        basis.  More complicated scheme could try to optimize to apply as many gates as possible between the Swaps.
 
         Args:
             num_qubits(int): Total number of qubits in the linear chain
