@@ -53,13 +53,13 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 try:
-    from setuptools.errors import LinkError, PlatformError
     from setuptools._distutils.errors import (
         CCompilerError,
         CompileError,
         DistutilsError,
     )
     from setuptools._distutils.spawn import DistutilsExecError, find_executable, spawn
+    from setuptools.errors import LinkError, PlatformError
 
     _SETUPTOOL_IMPORT_ERROR = None
 
