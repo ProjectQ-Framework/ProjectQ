@@ -45,7 +45,7 @@ def test_command_init(main_engine):
     for cmd_qureg, expected_qureg in zip(cmd.qubits, expected_tuple):
         assert cmd_qureg[0].id == expected_qureg[0].id
         # Testing that Qubits are now WeakQubitRef objects
-        assert type(cmd_qureg[0]) == WeakQubitRef
+        assert type(cmd_qureg[0]) is WeakQubitRef
     assert cmd._engine == main_engine
     # Test that quregs are ordered if gate has interchangeable qubits:
     symmetric_gate = BasicGate()

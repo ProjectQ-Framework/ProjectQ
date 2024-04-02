@@ -120,7 +120,6 @@ jobs:
 
     steps:
       - name: Install Git
-        if: matrix.clang == 10
         run: |
           apt-get update && apt-get install -y git --no-install-recommends
 
@@ -140,8 +139,7 @@ jobs:
         run: >
           apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
           python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
-          python3-pytest python3-pytest-cov python3-flaky
-          libomp-dev
+          python3-pytest python3-pytest-cov python3-flaky python3-venv
           --no-install-recommends
 
       - name: Fix environment variables for compilation with Clang
@@ -152,21 +150,22 @@ jobs:
 
       - name: Prepare Python env
         run: |
-          python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
+          python3 -m venv venv
+          ./venv/bin/python3 -m pip install -U pip setuptools wheel
+          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,qiskit-terra,braket
           cat requirements.txt
-          python3 -m pip install -r requirements.txt --prefer-binary
+          ./venv/bin/python3 -m pip install -r requirements.txt --prefer-binary
 
       - name: Upgrade pybind11 and flaky
-        run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
+        run: ./venv/bin/python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
+        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,qiskit-terra,braket,test]
 
       - name: Pytest
         run: |
           echo 'backend: Agg' > matplotlibrc
-          python3 -m pytest -p no:warnings
+          ./venv/bin/python3 -m pytest -p no:warnings
 
 
   gcc:
@@ -198,26 +197,27 @@ jobs:
         run: >
           apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
           python3-numpy python3-scipy python3-matplotlib python3-requests python3-networkx
-          python3-pytest python3-pytest-cov python3-flaky
+          python3-pytest python3-pytest-cov python3-flaky python3-venv
           --no-install-recommends
 
       - name: Prepare Python env
         run: |
-          python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
+          python3 -m venv venv
+          ./venv/bin/python3 -m pip install -U pip setuptools wheel
+          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,qiskit-terra,braket
           cat requirements.txt
-          python3 -m pip install -r requirements.txt --prefer-binary
+          ./venv/bin/python3 -m pip install -r requirements.txt --prefer-binary
 
       - name: Upgrade pybind11 and flaky
-        run: python3 -m pip install --upgrade pybind11 flaky --prefer-binary
+        run: ./venv/bin/python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: python3 -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
+        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,qiskit-terra,braket,test]
 
       - name: Pytest
         run: |
           echo 'backend: Agg' > matplotlibrc
-          python3 -m pytest -p no:warnings
+          ./venv/bin/python3 -m pytest -p no:warnings
 
 
   # Testing on CentOS (manylinux uses a centos base, and this is an easy way
@@ -299,7 +299,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
+          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit-terra,pyparsing
           cat requirements.txt
           python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -342,5 +342,6 @@ jobs:
       - name: Build docs
         run: python3 -m sphinx -b html docs docs/.build
 
-      - name: Make SDist
-        run: python3 setup.py sdist
+      # NB: disabling until setup.py is updated to remove any mention of distutils
+      # - name: Make SDist
+      #  run: python3 setup.py sdist

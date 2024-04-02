@@ -67,7 +67,7 @@ def test_main_engine_init_defaults():
 
     default_engines = projectq.setups.default.get_engine_list()
     for engine, expected in zip(eng_list, default_engines):
-        assert type(engine) == type(expected)
+        assert type(engine) is type(expected)
 
 
 def test_main_engine_too_many_compiler_engines():
