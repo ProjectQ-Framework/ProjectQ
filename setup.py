@@ -37,7 +37,7 @@
 
 """Setup.py file."""
 
-# pylint: disable=deprecated-module
+# pylint: disable=deprecated-module,attribute-defined-outside-init
 
 import os
 import platform
@@ -324,7 +324,7 @@ class BuildExt(build_ext):
         """Finalize this command's options."""
         build_ext.finalize_options(self)
         if self.gen_compiledb:
-            self.dry_run = True  # pylint: disable=attribute-defined-outside-init
+            self.dry_run = True
 
     def run(self):
         """Execute this command."""
@@ -411,8 +411,6 @@ class BuildExt(build_ext):
         return commands
 
     def _configure_compiler(self):
-        # pylint: disable=attribute-defined-outside-init
-
         # Force dry_run = False to allow for compiler feature testing
         dry_run_old = self.compiler.dry_run
         self.compiler.dry_run = False
@@ -698,7 +696,6 @@ class GenerateRequirementFile(Command):
             if self.include_all_extras or name in include_extras:
                 self.extra_pkgs.extend(pkgs)
 
-        # pylint: disable=attribute-defined-outside-init
         self.dependencies = self.distribution.install_requires
         if not self.dependencies:
             self.dependencies = pyproject_toml['project']['dependencies']
