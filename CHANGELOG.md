@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Fixed some typos (thanks to @eltociear, @Darkdragon84)
 
+### Changed
+
+-   Update ProjectQ to handle IonQ API v0.3
+
 ### Repository
 
 -   Update GitHub workflows to work with merge queues

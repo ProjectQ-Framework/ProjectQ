@@ -229,7 +229,7 @@ class IonQ(Session):
                 # Check if job is completed.
                 if status == 'completed':
                     r_get = super().get(urljoin(_JOB_API_URL, req_json.get('results_url')), params=params)
-                    re_json = r_get.json()
+                    r_json = r_get.json()
                     meas_mapped = req_json['registers']['meas_mapped']
                     meas_qubit_ids = json.loads(req_json['metadata']['meas_qubit_ids'])
                     output_probs = r_json
