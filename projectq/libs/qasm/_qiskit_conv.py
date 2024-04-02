@@ -64,8 +64,8 @@ gates_conv_table = {
     'cswap': lambda: C(SwapGate()),
     'crz': lambda a: C(Rz(a)),
     'cu1': lambda a: C(Rz(a)),
-    'cu2': lambda p, l: C(U2(p, l)),
-    'cu3': lambda t, p, l: C(U3(t, p, l)),
+    'cu2': lambda phi, lamda: C(U2(phi, lamda)),
+    'cu3': lambda theta, phi, lamda: C(U3(theta, phi, lamda)),
     # Doubly-controlled gates
     "ccx": lambda: Toffoli,
 }

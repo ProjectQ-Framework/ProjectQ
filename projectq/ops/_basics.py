@@ -72,8 +72,8 @@ def _round_angle(angle, mod_pi):
 
 def _angle_to_str(angle, symbols):
     if symbols:
-        return f"({str(round(angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
-    return f"({str(angle)})"
+        return f"{str(round(angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')}"
+    return f"{str(angle)}"
 
 
 class BasicGate:
@@ -468,8 +468,11 @@ class U3Gate(BasicGate):
                             more user friendly display if True, full angle
                             written in radian otherwise.
         """
-        return str(self.__class__.__name__) + '({},{},{})'.format(
-            _angle_to_str(self.theta, symbols), _angle_to_str(self.phi, symbols), _angle_to_str(self.lamda, symbols)
+        return (
+            str(self.__class__.__name__)
+            + f'({_angle_to_str(self.theta, symbols)},'
+            + f'{_angle_to_str(self.phi, symbols)},'
+            + f'{_angle_to_str(self.lamda, symbols)})'
         )
 
     def tex_str(self):
@@ -482,8 +485,11 @@ class U3Gate(BasicGate):
 
             [CLASSNAME]$_[ANGLE]$
         """
-        return str(self.__class__.__name__) + "$({}\\pi,{}\\pi,{}\\pi)$".format(
-            round(self.theta / math.pi, 3), round(self.phi / math.pi, 3), round(self.lamda / math.pi, 3)
+        return (
+            str(self.__class__.__name__)
+            + f'$({round(self.theta / math.pi, 3)}\\pi,'
+            + f'{round(self.phi / math.pi, 3)}\\pi,'
+            + f'{round(self.lamda / math.pi, 3)}\\pi)$'
         )
 
     def get_inverse(self):
@@ -525,11 +531,7 @@ class U3Gate(BasicGate):
 
     def is_identity(self):
         """Return True if the gate is equivalent to an Identity gate."""
-        return (
-            (self.theta == 0.0 or self.theta == 4 * math.pi)
-            and (self.phi == 0.0 or self.phi == 4 * math.pi)
-            and (self.lamda == 0.0 or self.lamda == 4 * math.pi)
-        )
+        return self.theta in (0.0, 4 * math.pi) and self.phi in (0.0, 4 * math.pi) and self.lamda in (0.0, 4 * math.pi)
 
 
 class BasicPhaseGate(BasicGate):

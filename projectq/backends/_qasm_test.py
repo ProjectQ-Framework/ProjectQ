@@ -137,7 +137,7 @@ def test_qasm_allocate_deallocate(qubit_id_redux):
         (Barrier, True),
         (Entangle, False),
     ],
-    ids=lambda l: str(l),
+    ids=lambda lamda: str(lamda),
 )
 def test_qasm_is_available(gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[OpenQASMBackend()])
@@ -164,7 +164,7 @@ def test_qasm_is_available(gate, is_available):
         (Rx(0.5), False),
         (Ry(0.5), False),
     ],
-    ids=lambda l: str(l),
+    ids=lambda lamda: str(lamda),
 )
 def test_qasm_is_available_1control(gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[OpenQASMBackend()])
@@ -192,7 +192,7 @@ def test_qasm_is_available_1control(gate, is_available):
         (Rx(0.5), False),
         (Ry(0.5), False),
     ],
-    ids=lambda l: str(l),
+    ids=lambda lamda: str(lamda),
 )
 def test_qasm_is_available_2control(gate, is_available):
     eng = MainEngine(backend=DummyEngine(), engine_list=[OpenQASMBackend()])
