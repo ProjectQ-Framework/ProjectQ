@@ -12,6 +12,10 @@ on:
       - develop
       - v*
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   standard:
     strategy:

@@ -12,6 +12,11 @@ on:
       - stable
       - "v*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   clang-tidy:
     name: Clang-Tidy
