@@ -49,12 +49,12 @@ jobs:
       - name: Generate requirement file (Unix)
         if: runner.os != 'Windows'
         run: |
-          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit
+          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,revkit,qiskit,pyparsing
 
       - name: Generate requirement file (Windows)
         if: runner.os == 'Windows'
         run: |
-          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit,pyparsing
 
       - name: Prepare env
         run: |
@@ -69,11 +69,11 @@ jobs:
 
       - name: Build and install package (Unix)
         if: runner.os != 'Windows'
-        run: python -m pip install -ve .[azure-quantum,braket,revkit,test]
+        run: python -m pip install -ve .[azure-quantum,braket,revkit,test,qiskit,pyparsing]
 
       - name: Build and install package (Windows)
         if: runner.os == 'Windows'
-        run: python -m pip install -ve .[azure-quantum,braket,test]
+        run: python -m pip install -ve .[azure-quantum,braket,test,qiskit,pyparsing]
 
       - name: Pytest
         run: |
@@ -142,11 +142,17 @@ jobs:
           python3-pytest python3-pytest-cov python3-flaky python3-venv
           --no-install-recommends
 
+      - name: Fix environment variables for compilation with Clang
+        run: |
+          ld_flags=$(python3 -c "import sysconfig; print(' '.join(sysconfig.get_config_var('LDSHARED').split()[1:]))")
+          echo "LDSHARED=clang" >> $GITHUB_ENV
+          echo "LDFLAGS=$ld_flags" >> $GITHUB_ENV
+
       - name: Prepare Python env
         run: |
           python3 -m venv venv
           ./venv/bin/python3 -m pip install -U pip setuptools wheel
-          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,qiskit-terra,braket
           cat requirements.txt
           ./venv/bin/python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -154,7 +160,7 @@ jobs:
         run: ./venv/bin/python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,braket,test]
+        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,qiskit-terra,braket,test]
 
       - name: Pytest
         run: |
@@ -198,7 +204,7 @@ jobs:
         run: |
           python3 -m venv venv
           ./venv/bin/python3 -m pip install -U pip setuptools wheel
-          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          ./venv/bin/python3 setup.py gen_reqfile --include-extras=test,azure-quantum,qiskit-terra,braket
           cat requirements.txt
           ./venv/bin/python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -206,7 +212,7 @@ jobs:
         run: ./venv/bin/python3 -m pip install --upgrade pybind11 flaky --prefer-binary
 
       - name: Build and install package
-        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,braket,test]
+        run: ./venv/bin/python3 -m pip install -ve .[azure-quantum,qiskit-terra,braket,test]
 
       - name: Pytest
         run: |
@@ -283,9 +289,6 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Create pip cache dir
-        run: mkdir -p ~/.cache/pip
-
       - name: Cache wheels
         uses: actions/cache@v3
         with:
@@ -296,7 +299,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install -U pip setuptools wheel
-          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
+          python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket,qiskit-terra,pyparsing
           cat requirements.txt
           python3 -m pip install -r requirements.txt --prefer-binary
 
@@ -333,6 +336,7 @@ jobs:
 
       - name: Install docs & setup requirements
         run: |
+          python3 -m pip install wheel
           python3 -m pip install .[docs]
 
       - name: Build docs

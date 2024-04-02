@@ -63,6 +63,19 @@ class NotInvertible(Exception):
     """
 
 
+def _round_angle(angle, mod_pi):
+    rounded_angle = round(float(angle) % (mod_pi * math.pi), ANGLE_PRECISION)
+    if rounded_angle > mod_pi * math.pi - ANGLE_TOLERANCE:
+        rounded_angle = 0.0
+    return rounded_angle
+
+
+def _angle_to_str(angle, symbols):
+    if symbols:
+        return f"{str(round(angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')}"
+    return f"{str(angle)}"
+
+
 class BasicGate:
     """Base class of all gates. (Don't use it directly but derive from it)."""
 
@@ -335,10 +348,7 @@ class BasicRotationGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 4 * pi)
         """
         super().__init__()
-        rounded_angle = round(float(angle) % (4.0 * math.pi), ANGLE_PRECISION)
-        if rounded_angle > 4 * math.pi - ANGLE_TOLERANCE:
-            rounded_angle = 0.0
-        self.angle = rounded_angle
+        self.angle = _round_angle(angle, 4)
 
     def __str__(self):
         """
@@ -360,11 +370,7 @@ class BasicRotationGate(BasicGate):
             symbols (bool): uses the pi character and round the angle for a more user friendly display if True, full
                             angle written in radian otherwise.
         """
-        if symbols:
-            angle = f"({str(round(self.angle / math.pi, 3))}{unicodedata.lookup('GREEK SMALL LETTER PI')})"
-        else:
-            angle = f"({str(self.angle)})"
-        return str(self.__class__.__name__) + angle
+        return str(self.__class__.__name__) + '(' + _angle_to_str(self.angle, symbols) + ')'
 
     def tex_str(self):
         """
@@ -418,6 +424,116 @@ class BasicRotationGate(BasicGate):
         return self.angle in (0.0, 4 * math.pi)
 
 
+class U3Gate(BasicGate):
+    """
+    Base class of for a general unitary single-qubit gate.
+
+    All three angles are continuous parameters. The inverse is the same gate
+    with the negated argument.  Rotation gates of the same class can be merged
+    by adding the angles.  The continuous parameter are modulo 4 * pi.
+    """
+
+    def __init__(self, theta, phi, lamda):
+        """
+        Initialize a general unitary single-qubit gate.
+
+        Args:
+            theta (float): Angle of rotation (saved modulo 4 * pi)
+            phi (float): Angle of rotation (saved modulo 4 * pi)
+            lamda (float): Angle of rotation (saved modulo 4 * pi)
+        """
+        BasicGate.__init__(self)
+        self.theta = _round_angle(theta, 4)
+        self.phi = _round_angle(phi, 4)
+        self.lamda = _round_angle(lamda, 4)
+
+    def __str__(self):
+        """
+        Return the string representation of a U3Gate.
+
+        Returns the class name and the angle as
+
+        .. code-block:: python
+
+            [CLASSNAME]([ANGLE])
+        """
+        return self.to_string()
+
+    def to_string(self, symbols=False):
+        """
+        Return the string representation of a U3Gate.
+
+        Args:
+            symbols (bool): uses the pi character and round the angle for a
+                            more user friendly display if True, full angle
+                            written in radian otherwise.
+        """
+        return (
+            str(self.__class__.__name__)
+            + f'({_angle_to_str(self.theta, symbols)},'
+            + f'{_angle_to_str(self.phi, symbols)},'
+            + f'{_angle_to_str(self.lamda, symbols)})'
+        )
+
+    def tex_str(self):
+        """
+        Return the Latex string representation of a BasicRotationGate.
+
+        Returns the class name and the angle as a subscript, i.e.
+
+        .. code-block:: latex
+
+            [CLASSNAME]$_[ANGLE]$
+        """
+        return (
+            str(self.__class__.__name__)
+            + f'$({round(self.theta / math.pi, 3)}\\pi,'
+            + f'{round(self.phi / math.pi, 3)}\\pi,'
+            + f'{round(self.lamda / math.pi, 3)}\\pi)$'
+        )
+
+    def get_inverse(self):
+        """Return the inverse of this rotation gate (negate the angle, return new object)."""
+        if (self.theta, self.phi, self.lamda) == (0, 0, 0):
+            return self.__class__(0, 0, 0)
+        return self.__class__(-self.theta + 4 * math.pi, -self.phi + 4 * math.pi, -self.lamda + 4 * math.pi)
+
+    def get_merged(self, other):
+        """
+        Return self merged with another gate.
+
+        Default implementation handles rotation gate of the same type, where
+        angles are simply added.
+
+        Args:
+            other: Rotation gate of same type.
+
+        Raises:
+            NotMergeable: For non-rotation gates or rotation gates of
+                different type.
+
+        Returns:
+            New object representing the merged gates.
+        """
+        if isinstance(other, self.__class__):
+            return self.__class__(self.theta + other.theta, self.phi + other.phi, self.lamda + other.lamda)
+        raise NotMergeable("Can't merge different types of rotation gates.")
+
+    def __eq__(self, other):
+        """Return True if same class and same rotation angle."""
+        if isinstance(other, self.__class__):
+            return (self.theta, self.phi, self.lamda) == (other.theta, other.phi, other.lamda)
+        return False
+
+    def __hash__(self):
+        """Compute the hash of the object."""
+        return hash(str(self))
+
+    def is_identity(self):
+        """Return True if the gate is equivalent to an Identity gate."""
+        return self.theta in (0.0, 4 * math.pi) and self.phi in (0.0, 4 * math.pi) and self.lamda in (0.0, 4 * math.pi)
+
+
 class BasicPhaseGate(BasicGate):
     """
     Base class for all phase gates.
@@ -435,10 +551,7 @@ class BasicPhaseGate(BasicGate):
             angle (float): Angle of rotation (saved modulo 2 * pi)
         """
         super().__init__()
-        rounded_angle = round(float(angle) % (2.0 * math.pi), ANGLE_PRECISION)
-        if rounded_angle > 2 * math.pi - ANGLE_TOLERANCE:
-            rounded_angle = 0.0
-        self.angle = rounded_angle
+        self.angle = _round_angle(angle, 2)
 
     def __str__(self):
         """

@@ -117,7 +117,7 @@ repos:
     hooks:
       - id: pylint
         args: ['--score=n', '--disable=no-member']
-        additional_dependencies: [pybind11>=2.6, numpy, requests, matplotlib, networkx]
+        additional_dependencies: [pybind11>=2.6, numpy, requests, matplotlib, networkx, pyparsing]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: '0.49'

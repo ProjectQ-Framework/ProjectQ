@@ -31,7 +31,7 @@ dynamic = ["version"]
 dependencies = [
     'matplotlib >= 2.2.3',
     'networkx >= 2',
-    'numpy',
+    'numpy >= 1.17',
     'requests',
     'scipy'
 ]
@@ -49,6 +49,18 @@ azure-quantum = [
 
 braket = [
       'boto3'
+]
+
+qiskit = [
+       'qiskit-terra>=0.17'
+]
+
+qasm = [
+       'qiskit-terra>=0.17'
+]
+
+pyparsing = [
+       'pyparsing'
 ]
 
 revkit = [
@@ -161,7 +173,7 @@ ignore = [
     ]
 
     [tool.pylint.typecheck]
-    ignored-modules = ['boto3', 'botocore', 'sympy']
+    ignored-modules = ['boto3', 'botocore', 'sympy', 'qiskit']
 
 
 [tool.pytest.ini_options]
