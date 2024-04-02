@@ -239,7 +239,7 @@ def compiler_test(
             with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
-    except (CompileError, LinkError, RuntimeError):
+    except (CompileError, LinkError, RuntimeError, DistutilsExecError):
         return False
     else:
         return True
