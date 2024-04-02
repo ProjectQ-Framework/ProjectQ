@@ -59,10 +59,9 @@ jobs:
           && startsWith(github.event.pull_request.head.ref, 'release/')
           && runner.os != 'Windows'
         run: |
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          VERSION=${BRANCH_NAME#release/}
-          echo "VERSION = ${VERSION}"
-          git tag ${VERSION} master
+          TAG_NAME="${GITHUB_REF/refs\/tags\//}"
+          VERSION=${TAG_NAME#v}
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Extract version from branch name (for hotfix branches) (Unix)
         if: >
@@ -71,9 +70,8 @@ jobs:
           && runner.os != 'Windows'
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          VERSION=${BRANCH_NAME#hotfix/}
-          echo "VERSION = ${VERSION}"
-          git tag ${VERSION} master
+          VERSION=${BRANCH_NAME#release/v}
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
       # ------------------------------------------------------------------------
 
@@ -84,9 +82,8 @@ jobs:
           && runner.os == 'Windows'
         run: |
           $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          $VERSION = $BRANCH_NAME -replace "release/",""
-          Write-Output "VERSION = ${VERSION}"
-          git tag ${VERSION} master
+          $VERSION = $BRANCH_NAME -replace "release/v",""
+          Write-Output "VERSION = ${VERSION}" >> $Env:GITHUB_ENV
 
       - name: Extract version from branch name (for hotfix branches) (Windows)
         if: >
@@ -96,8 +93,7 @@ jobs:
         run: |
           $BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           $VERSION = $BRANCH_NAME -replace "hotfix/",""
-          Write-Output "VERSION = ${VERSION}"
-          git tag ${VERSION} master
+          Write-Output "VERSION = ${VERSION}" >> $Env:GITHUB_ENV
 
       # ========================================================================
 
