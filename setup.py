@@ -44,21 +44,16 @@ import platform
 import subprocess
 import sys
 import tempfile
-from distutils.cmd import Command
-from distutils.errors import (
-    CCompilerError,
-    CompileError,
-    DistutilsExecError,
-    DistutilsPlatformError,
-    LinkError,
-)
 from distutils.spawn import find_executable, spawn
 from operator import itemgetter
 from pathlib import Path
 
+from setuptools import Command
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
+from setuptools._distutils.errors import CompileError, DistutilsError
 from setuptools.command.build_ext import build_ext
+from setuptools.errors import CCompilerError, LinkError, PlatformError
 
 try:
     import setuptools_scm  # noqa: F401  # pylint: disable=unused-import
@@ -277,7 +272,7 @@ class BuildFailed(Exception):
 # Python build related variable
 
 cpython = platform.python_implementation() == 'CPython'
-ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+ext_errors = (CCompilerError, DistutilsError, CompileError)
 if sys.platform == 'win32':
     # 2.6's distutils.msvc9compiler can raise an IOError when failing to
     # find the compiler
@@ -335,7 +330,7 @@ class BuildExt(build_ext):
         """Execute this command."""
         try:
             build_ext.run(self)
-        except DistutilsPlatformError as err:
+        except PlatformError as err:
             raise BuildFailed() from err
 
     def build_extensions(self):
