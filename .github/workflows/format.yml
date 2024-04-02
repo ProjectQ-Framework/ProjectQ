@@ -34,8 +34,8 @@ jobs:
           apt-get update && apt-get install -y python3-dev python3-pip python3-setuptools python3-wheel
           --no-install-recommends
 
-      - name: Upgrade pybind11
-        run: python3 -m pip install --upgrade pybind11 --prefer-binary
+      - name: Upgrade pybind11 and setuptools
+        run: python3 -m pip install --upgrade pybind11 "setuptools>=61.0.0" --prefer-binary
 
       - name: Run clang-tidy
         run: python3 setup.py clang_tidy --warning-as-errors
