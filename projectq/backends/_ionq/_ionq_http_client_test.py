@@ -546,9 +546,9 @@ def test_retrieve(monkeypatch, token):
                 'results_url': 'old-job-id/results',
             }
         elif path == 'https://api.ionq.co/v0.3/jobs/old-job-id/results':
-            json_response = {
+            json_response = '''{
                 '2': 1,
-            }
+            }'''
         else:
             raise ValueError(f"Unexpected URL: {path}")
 
