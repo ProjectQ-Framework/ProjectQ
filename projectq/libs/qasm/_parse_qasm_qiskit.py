@@ -54,13 +54,15 @@ def apply_op(eng, gate, qubits, bits, bits_map):
                 # TODO: This will silently discard opaque gates...
                 return
 
-            gate_args = {gate.definition.qregs[0].name: qubits}
-
-            for gate_sub, quregs_sub, bits_sub in gate.definition.data:
+            for gate_sub, quregs_sub, bits_sub in gate.definition._data:
                 # OpenQASM 2.0 limitation...
                 assert gate.name != 'measure' and not bits_sub
                 apply_op(
-                    eng, gate_sub, [gate_args[qubit.register.name][qubit.index] for qubit in quregs_sub], [], bits_map
+                    eng,
+                    gate_sub,
+                    [qubits[gate.definition._qubit_indices[qubit].index] for qubit in quregs_sub],
+                    [],
+                    bits_map,
                 )
         else:
             gate_projectq = gates_conv_table[gate.name](*gate.params)
