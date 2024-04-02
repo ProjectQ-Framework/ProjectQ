@@ -175,12 +175,8 @@ class IonQ(Session):
         raise JobSubmissionError(f"{failure['code']}: {failure['error']} (status={status})")
 
     def get_result(
-        self, 
-        device, 
-        execution_id, 
-        sharpen=None, 
-        num_retries=3000, 
-        interval=1):  # pylint: disable=too-many-arguments,too-many-locals
+        self, device, execution_id, sharpen=None, num_retries=3000, interval=1
+    ):  # pylint: disable=too-many-arguments,too-many-locals
         """
         Given a backend and ID, fetch the results for this job's execution.
 

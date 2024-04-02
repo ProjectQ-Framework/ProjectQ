@@ -196,7 +196,6 @@ def test_send_real_device_online_verbose(monkeypatch):
         )
         return mock_response
 
-
     def mock_get(_self, path, *args, **kwargs):
         if path == 'https://api.ionq.co/v0.3/jobs/new-job-id':
             mock_response = mock.MagicMock()
