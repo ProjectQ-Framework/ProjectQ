@@ -239,7 +239,7 @@ def compiler_test(
             with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
-    except Exception:
+    except Exception:  # pylint disable=broad-except
         return False
     else:
         return True
