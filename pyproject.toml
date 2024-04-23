@@ -1,10 +1,9 @@
 [build-system]
 requires = [
-    'setuptools>=61;python_version>="3.7"',
-    'setuptools>=59;python_version<"3.7"',
+    'setuptools>=61',
     'wheel',
     'pybind11>=2',
-    'setuptools_scm[toml]>6;python_version>="3.7"'
+    'setuptools_scm[toml]>6'
 ]
 build-backend = "setuptools.build_meta"
 
@@ -14,26 +13,27 @@ authors = [
      {name = 'ProjectQ', email = 'info@projectq.ch'}
 ]
 description = 'ProjectQ - An open source software framework for quantum computing'
-requires-python = '>= 3.7'
+requires-python = '>= 3.8'
 license = {text= 'Apache License Version 2.0'}
 readme = 'README.rst'
 classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10'
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12'
 ]
 dynamic = ["version"]
 
 dependencies = [
     'matplotlib >= 2.2.3',
-    'networkx >= 2',
-    'numpy',
-    'requests',
-    'scipy'
+    'networkx >= 2.4',
+    'numpy>=1.21.5',
+    'requests>=2.25.1',
+    'scipy>=1.8.0'
 ]
 
 [project.urls]
@@ -57,7 +57,7 @@ revkit = [
 ]
 
 test = [
-     'flaky',
+     'flaky>=3.7.0',
      'mock',
      'pytest >= 6.0',
      'pytest-cov',
@@ -65,7 +65,7 @@ test = [
 ]
 
 docs = [
-     'sphinx',
+     'sphinx>=4.3.2',
      'sphinx_rtd_theme'
 ]
 
@@ -74,7 +74,7 @@ docs = [
 [tool.black]
 
     line-length = 120
-    target-version = ['py37','py38','py39','py310']
+    target-version = ['py38','py39','py310','py311','py312']
     skip-string-normalization = true
 
 
@@ -205,11 +205,3 @@ test-command = 'python {package}/examples/grover.py'
 
 # Normal options, etc.
 manylinux-x86_64-image = 'manylinux2014'
-
-[[tool.cibuildwheel.overrides]]
-select = 'cp36-*'
-manylinux-x86_64-image = 'manylinux1'
-
-[[tool.cibuildwheel.overrides]]
-select = 'cp3{7,8,9}-*'
-manylinux-x86_64-image = 'manylinux2010'

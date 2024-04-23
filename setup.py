@@ -37,28 +37,35 @@
 
 """Setup.py file."""
 
-# pylint: disable=deprecated-module
+# pylint: disable=deprecated-module,attribute-defined-outside-init
 
 import os
 import platform
 import subprocess
 import sys
 import tempfile
-from distutils.cmd import Command
-from distutils.errors import (
-    CCompilerError,
-    CompileError,
-    DistutilsExecError,
-    DistutilsPlatformError,
-    LinkError,
-)
-from distutils.spawn import find_executable, spawn
 from operator import itemgetter
 from pathlib import Path
 
+from setuptools import Command
 from setuptools import Distribution as _Distribution
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+try:
+    from setuptools._distutils.errors import (
+        CCompilerError,
+        CompileError,
+        DistutilsError,
+    )
+    from setuptools._distutils.spawn import DistutilsExecError, find_executable, spawn
+    from setuptools.errors import PlatformError
+
+    _SETUPTOOL_IMPORT_ERROR = None
+
+except ImportError as setuptools_import_error:
+    _SETUPTOOL_IMPORT_ERROR = setuptools_import_error
+
 
 try:
     import setuptools_scm  # noqa: F401  # pylint: disable=unused-import
@@ -232,7 +239,7 @@ def compiler_test(
             with open('err.txt') as err_file:
                 if err_file.readlines():
                     raise RuntimeError('')
-    except (CompileError, LinkError, RuntimeError):
+    except Exception:  # pylint: disable=broad-except
         return False
     else:
         return True
@@ -277,7 +284,9 @@ class BuildFailed(Exception):
 # Python build related variable
 
 cpython = platform.python_implementation() == 'CPython'
-ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+ext_errors = ()
+if _SETUPTOOL_IMPORT_ERROR is None:
+    ext_errors = (CCompilerError, DistutilsError, CompileError, DistutilsExecError)
 if sys.platform == 'win32':
     # 2.6's distutils.msvc9compiler can raise an IOError when failing to
     # find the compiler
@@ -329,13 +338,16 @@ class BuildExt(build_ext):
         """Finalize this command's options."""
         build_ext.finalize_options(self)
         if self.gen_compiledb:
-            self.dry_run = True  # pylint: disable=attribute-defined-outside-init
+            self.dry_run = True
 
     def run(self):
         """Execute this command."""
+        if _SETUPTOOL_IMPORT_ERROR is not None:
+            raise _SETUPTOOL_IMPORT_ERROR
+
         try:
             build_ext.run(self)
-        except DistutilsPlatformError as err:
+        except PlatformError as err:
             raise BuildFailed() from err
 
     def build_extensions(self):
@@ -416,8 +428,6 @@ class BuildExt(build_ext):
         return commands
 
     def _configure_compiler(self):
-        # pylint: disable=attribute-defined-outside-init
-
         # Force dry_run = False to allow for compiler feature testing
         dry_run_old = self.compiler.dry_run
         self.compiler.dry_run = False
@@ -703,7 +713,6 @@ class GenerateRequirementFile(Command):
             if self.include_all_extras or name in include_extras:
                 self.extra_pkgs.extend(pkgs)
 
-        # pylint: disable=attribute-defined-outside-init
         self.dependencies = self.distribution.install_requires
         if not self.dependencies:
             self.dependencies = pyproject_toml['project']['dependencies']

@@ -132,7 +132,7 @@ Detailed instructions and OS-specific hints
 **Windows**:
 
     It is easiest to install a pre-compiled version of Python, including numpy and many more useful packages. One way to
-    do so is using, e.g., the Python 3.7 installers from `python.org <https://www.python.org/downloads>`_ or `ANACONDA
+    do so is using, e.g., the Python 3.8 installers from `python.org <https://www.python.org/downloads>`_ or `ANACONDA
     <https://www.continuum.io/downloads>`_. Installing ProjectQ right away will succeed for the (slow) Python
     simulator. For a compiled version of the simulator, install the Visual C++ Build Tools and the Microsoft Windows SDK
     prior to doing a pip install. The built simulator will not support multi-threading due to the limited OpenMP support
@@ -220,23 +220,23 @@ Detailed instructions and OS-specific hints
     Visit `macports.org <https://www.macports.org/install.php>`_ and install the latest version that corresponds to your
     operating system's version. Afterwards, open a new terminal window.
 
-    Then, use macports to install Python 3.7 by entering the following command
+    Then, use macports to install Python 3.8 by entering the following command
 
     .. code-block:: bash
 
-        sudo port install python37
+        sudo port install python38
 
     It might show a warning that if you intend to use python from the terminal. In this case, you should also install
 
     .. code-block:: bash
 
-        sudo port install py37-gnureadline
+        sudo port install py38-gnureadline
 
     Install pip by
 
     .. code-block:: bash
 
-        sudo port install py37-pip
+        sudo port install py38-pip
 
     Next, we can install ProjectQ with the high performance simulator written in C++. First, we will need to install a
     suitable compiler with support for **C++11**, OpenMP, and intrinsics. The best option is to install clang 9.0 also
@@ -250,7 +250,7 @@ Detailed instructions and OS-specific hints
 
     .. code-block:: bash
 
-        env CC=clang-mp-9.0 env CXX=clang++-mp-9.0 /opt/local/bin/python3.7 -m pip install --user projectq
+        env CC=clang-mp-9.0 env CXX=clang++-mp-9.0 /opt/local/bin/python3.8 -m pip install --user projectq
 
 
 The ProjectQ syntax

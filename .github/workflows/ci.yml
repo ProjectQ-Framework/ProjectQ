@@ -12,6 +12,10 @@ on:
       - develop
       - v*
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   standard:
     strategy:
@@ -19,10 +23,11 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
         python:
-          - 3.7
           - 3.8
           - 3.9
           - '3.10'
+          - '3.11'
+          - '3.12'
 
     name: "Python ${{ matrix.python }} • ${{ matrix.runs-on }} • x64 ${{ matrix.args }}"
     runs-on: ${{ matrix.runs-on }}
@@ -45,6 +50,10 @@ jobs:
           cache-dependency-path: |
             setup.cfg
             pyproject.toml
+
+      - name: Prepare env
+        run: |
+          python -m pip install -U "setuptools>=61.0.0"
 
       - name: Generate requirement file (Unix)
         if: runner.os != 'Windows'
@@ -106,9 +115,7 @@ jobs:
       fail-fast: false
       matrix:
         clang:
-          - 3.5  # version for full C++14 support (3.4 fails because of -fstack-protector-strong)
-          - 5    # earliest version for reasonable C++17 support
-          - 10   # version for full C++17 support (with patches)
+          - 11
           - latest
     env:
       CC: clang
@@ -168,7 +175,7 @@ jobs:
       fail-fast: false
       matrix:
         gcc:
-          - 7  # C++17 earliest version
+          - 9
           - latest
 
     name: "Python 3 • GCC ${{ matrix.gcc }} • x64"
