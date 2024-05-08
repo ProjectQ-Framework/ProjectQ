@@ -30,7 +30,7 @@ from .._exceptions import (
     RequestTimeoutError,
 )
 
-_API_URL = 'https://api.ionq.co/v0.2/'
+_API_URL = 'https://api.ionq.co/v0.3/'
 _JOB_API_URL = urljoin(_API_URL, 'jobs/')
 
 
@@ -40,6 +40,7 @@ class IonQ(Session):
     def __init__(self, verbose=False):
         """Initialize an session with IonQ's APIs."""
         super().__init__()
+        self.user_agent()
         self.backends = {}
         self.timeout = 5.0
         self.token = None
@@ -59,7 +60,7 @@ class IonQ(Session):
             },
             'ionq_qpu': {
                 'nq': 11,
-                'target': 'qpu',
+                'target': 'qpu.harmony',
             },
         }
         for backend in r_json:
@@ -101,6 +102,10 @@ class IonQ(Session):
         nb_qubit_needed = info['nq']
         return nb_qubit_needed <= nb_qubit_max, nb_qubit_max, nb_qubit_needed
 
+    def user_agent(self):
+        """Set a User-Agent header for this session."""
+        self.headers.update({'User-Agent': 'projectq-ionq/0.8.0'})
+
     def authenticate(self, token=None):
         """Set an Authorization header for this session.
 
@@ -132,19 +137,22 @@ class IonQ(Session):
             str: The ID of a newly submitted Job.
         """
         argument = {
-            'target': self.backends[device]['target'],
+            'target': self.backends[device].get('target'),
             'metadata': {
                 'sdk': 'ProjectQ',
-                'meas_qubit_ids': json.dumps(info['meas_qubit_ids']),
+                'meas_qubit_ids': json.dumps(info.get('meas_qubit_ids')),
             },
-            'shots': info['shots'],
-            'registers': {'meas_mapped': info['meas_mapped']},
-            'lang': 'json',
-            'body': {
-                'qubits': info['nq'],
-                'circuit': info['circuit'],
+            'shots': info.get('shots'),
+            'registers': {'meas_mapped': info.get('meas_mapped')},
+            'input': {
+                'format': info.get('format'),
+                'gateset': info.get('gateset'),
+                'qubits': info.get('nq'),
+                'circuit': info.get('circuit'),
             },
         }
+        if info.get('error_mitigation') is not None:
+            argument['error_mitigation'] = info['error_mitigation']
 
         # _API_URL[:-1] strips the trailing slash.
         # TODO: Add comprehensive error parsing for non-200 responses.
@@ -153,11 +161,11 @@ class IonQ(Session):
 
         # Process the response.
         r_json = req.json()
-        status = r_json['status']
+        status = r_json.get('status')
 
         # Return the job id.
         if status == 'ready':
-            return r_json['id']
+            return r_json.get('id')
 
         # Otherwise, extract any provided failure info and raise an exception.
         failure = r_json.get('failure') or {
@@ -166,7 +174,9 @@ class IonQ(Session):
         }
         raise JobSubmissionError(f"{failure['code']}: {failure['error']} (status={status})")
 
-    def get_result(self, device, execution_id, num_retries=3000, interval=1):
+    def get_result(
+        self, device, execution_id, sharpen=None, num_retries=3000, interval=1
+    ):  # pylint: disable=too-many-arguments,too-many-locals
         """
         Given a backend and ID, fetch the results for this job's execution.
 
@@ -178,6 +188,8 @@ class IonQ(Session):
         Args:
             device (str): The device used to run this job.
             execution_id (str): An IonQ Job ID.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
             num_retries (int, optional): Number of times to retry the fetch
                 before raising a timeout error. Defaults to 3000.
             interval (int, optional): Number of seconds to wait between retries.
@@ -196,6 +208,10 @@ class IonQ(Session):
         if self._verbose:  # pragma: no cover
             print(f"Waiting for results. [Job ID: {execution_id}]")
 
+        params = {}
+        if sharpen is not None:
+            params["sharpen"] = sharpen
+
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
         def _handle_sigint_during_get_result(*_):  # pragma: no cover
@@ -205,18 +221,20 @@ class IonQ(Session):
 
         try:
             for retries in range(num_retries):
-                req = super().get(urljoin(_JOB_API_URL, execution_id))
+                req = super().get(urljoin(_JOB_API_URL, execution_id), params=params)
                 req.raise_for_status()
-                r_json = req.json()
-                status = r_json['status']
+                req_json = req.json()
+                status = req_json['status']
 
                 # Check if job is completed.
                 if status == 'completed':
-                    meas_mapped = r_json['registers']['meas_mapped']
-                    meas_qubit_ids = json.loads(r_json['metadata']['meas_qubit_ids'])
-                    output_probs = r_json['data']['registers']['meas_mapped']
+                    r_get = super().get(urljoin(_JOB_API_URL, req_json.get('results_url')), params=params)
+                    r_json = r_get.json()
+                    meas_mapped = req_json['registers']['meas_mapped']
+                    meas_qubit_ids = json.loads(req_json['metadata']['meas_qubit_ids'])
+                    output_probs = r_json
                     return {
-                        'nq': r_json['qubits'],
+                        'nq': req_json['qubits'],
                         'output_probs': output_probs,
                         'meas_mapped': meas_mapped,
                         'meas_qubit_ids': meas_qubit_ids,
@@ -255,6 +273,7 @@ def retrieve(
     device,
     token,
     jobid,
+    sharpen=None,
     num_retries=3000,
     interval=1,
     verbose=False,
@@ -281,6 +300,7 @@ def retrieve(
     res = ionq_session.get_result(
         device,
         jobid,
+        sharpen=sharpen,
         num_retries=num_retries,
         interval=interval,
     )

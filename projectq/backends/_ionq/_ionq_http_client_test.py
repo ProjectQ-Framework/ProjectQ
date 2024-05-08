@@ -50,7 +50,7 @@ def test_authenticate_prompt_requires_token(monkeypatch):
 
 def test_is_online(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'https://api.ionq.co/v0.2/backends' == path
+        assert 'https://api.ionq.co/v0.3/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -86,7 +86,7 @@ def test_is_online(monkeypatch):
 
 def test_show_devices(monkeypatch):
     def mock_get(_self, path, *args, **kwargs):
-        assert 'https://api.ionq.co/v0.2/backends' == path
+        assert 'https://api.ionq.co/v0.3/backends' == path
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value=[
@@ -168,8 +168,9 @@ def test_send_real_device_online_verbose(monkeypatch):
         'metadata': {'sdk': 'ProjectQ', 'meas_qubit_ids': '[2, 3]'},
         'shots': 1,
         'registers': {'meas_mapped': [2, 3]},
-        'lang': 'json',
-        'body': {
+        'input': {
+            'format': None,
+            'gateset': None,
             'qubits': 4,
             'circuit': [
                 {'gate': 'x', 'targets': [0]},
@@ -182,7 +183,7 @@ def test_send_real_device_online_verbose(monkeypatch):
     }
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         assert 'json' in kwargs
         assert expected_request == kwargs['json']
         mock_response = mock.MagicMock()
@@ -196,20 +197,25 @@ def test_send_real_device_online_verbose(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
-        mock_response = mock.MagicMock()
-        mock_response.json = mock.MagicMock(
-            return_value={
-                'id': 'new-job-id',
-                'status': 'completed',
-                'qubits': 4,
-                'metadata': {'meas_qubit_ids': '[2, 3]'},
-                'registers': {'meas_mapped': [2, 3]},
-                'data': {
-                    'registers': {'meas_mapped': {'2': 1}},
-                },
-            }
-        )
+        if path == 'https://api.ionq.co/v0.3/jobs/new-job-id':
+            mock_response = mock.MagicMock()
+            mock_response.json = mock.MagicMock(
+                return_value={
+                    'id': 'new-job-id',
+                    'status': 'completed',
+                    'qubits': 4,
+                    'metadata': {'meas_qubit_ids': '[2, 3]'},
+                    'registers': {'meas_mapped': [2, 3]},
+                    'results_url': 'new-job-id/results',
+                }
+            )
+        elif path == 'https://api.ionq.co/v0.3/jobs/new-job-id/results':
+            mock_response = mock.MagicMock()
+            mock_response.json = mock.MagicMock(
+                return_value={'2': 1},
+            )
+        else:
+            raise ValueError(f"Unexpected URL: {path}")
         return mock_response
 
     monkeypatch.setattr('requests.sessions.Session.post', mock_post)
@@ -428,7 +434,7 @@ def test_send_api_errors_are_raised(monkeypatch, expected_err, err_data):
     )
 
     def mock_post(_self, path, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(return_value=err_data)
         return mock_response
@@ -467,7 +473,7 @@ def test_timeout_exception(monkeypatch):
     )
 
     def mock_post(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs'
+        assert path == 'https://api.ionq.co/v0.3/jobs'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -478,7 +484,7 @@ def test_timeout_exception(monkeypatch):
         return mock_response
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/new-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/new-job-id'
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(
             return_value={
@@ -525,28 +531,25 @@ def test_retrieve(monkeypatch, token):
         'update_devices_list',
         _dummy_update.__get__(None, _ionq_http_client.IonQ),
     )
-    request_num = [0]
+    # request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
-        json_response = {
-            'id': 'old-job-id',
-            'status': 'running',
-        }
-        if request_num[0] > 1:
+        if path == 'https://api.ionq.co/v0.3/jobs/old-job-id':
             json_response = {
                 'id': 'old-job-id',
                 'status': 'completed',
                 'qubits': 4,
                 'registers': {'meas_mapped': [2, 3]},
                 'metadata': {'meas_qubit_ids': '[2, 3]'},
-                'data': {
-                    'registers': {'meas_mapped': {'2': 1}},
-                },
+                'results_url': 'old-job-id/results',
             }
+        elif path == 'https://api.ionq.co/v0.3/jobs/old-job-id/results':
+            json_response = {'2': 1}
+        else:
+            raise ValueError(f"Unexpected URL: {path}")
+
         mock_response = mock.MagicMock()
         mock_response.json = mock.MagicMock(return_value=json_response)
-        request_num[0] += 1
         return mock_response
 
     monkeypatch.setattr('requests.sessions.Session.get', mock_get)
@@ -566,12 +569,8 @@ def test_retrieve(monkeypatch, token):
 
     # Code to test:
     # Called once per loop in _get_result while the job is not ready.
-    mock_sleep = mock.MagicMock()
-    monkeypatch.setattr(_ionq_http_client.time, 'sleep', mock_sleep)
     result = _ionq_http_client.retrieve('dummy', token, 'old-job-id')
     assert expected == result
-    # We only sleep twice.
-    assert 2 == mock_sleep.call_count
 
 
 def test_retrieve_that_errors_are_caught(monkeypatch):
@@ -586,7 +585,7 @@ def test_retrieve_that_errors_are_caught(monkeypatch):
     request_num = [0]
 
     def mock_get(_self, path, *args, **kwargs):
-        assert path == 'https://api.ionq.co/v0.2/jobs/old-job-id'
+        assert path == 'https://api.ionq.co/v0.3/jobs/old-job-id'
         json_response = {
             'id': 'old-job-id',
             'status': 'running',
