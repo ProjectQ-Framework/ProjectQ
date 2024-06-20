@@ -22,7 +22,22 @@ import pytest
 from projectq import MainEngine
 from projectq.cengines import DummyEngine
 from projectq.meta import ComputeTag, canonical_ctrl_state
-from projectq.ops import BasicGate, CtrlAll, NotMergeable, Rx, _command
+from projectq.ops import (
+    CNOT,
+    BasicGate,
+    CtrlAll,
+    H,
+    NotMergeable,
+    Ph,
+    Rx,
+    Rxx,
+    Ry,
+    Rz,
+    SqrtX,
+    X,
+    _command,
+)
+from projectq.ops._command import Commutability
 from projectq.types import Qubit, Qureg, WeakQubitRef
 
 
@@ -142,6 +157,54 @@ def test_command_is_identity(main_engine):
     assert cmd.gate.is_identity()
     assert not inverse_cmd2.gate.is_identity()
     assert not cmd2.gate.is_identity()
+
+
+def test_overlap():
+    """Test the overlap function is working as
+    expected."""
+    tuple1 = ([1, 2], [3])
+    tuple2 = ([2], [3, 0])
+    tuple3 = ([0, 0, 0],)
+    assert _command.overlap(tuple1, tuple2) == 2
+    assert _command.overlap(tuple1, tuple3) == 0
+
+
+def test_command_is_commutable(main_engine):
+    """Check is_commutable function returns 0, 1, 2
+    For False, True and Maybe
+    'Maybe' refers to the situation where you
+    might have a commutable circuit
+    CNOT's commutable circuit wont be recognised at this
+    level because CNOT.__gate__ = ControlledGate
+    whereas in the optimizer CNOT.__gate__ = XGate."""
+    qubit1 = Qureg([Qubit(main_engine, 0)])
+    qubit2 = Qureg([Qubit(main_engine, 1)])
+    cmd1 = _command.Command(main_engine, Rx(0.5), (qubit1,))
+    cmd2 = _command.Command(main_engine, Rx(0.5), (qubit1,))
+    cmd3 = _command.Command(main_engine, Rx(0.5), (qubit2,))
+    cmd4 = _command.Command(main_engine, Rxx(0.5), (qubit1, qubit2))
+    cmd5 = _command.Command(main_engine, Ry(0.2), (qubit1,))
+    cmd6 = _command.Command(main_engine, Rz(0.2), (qubit1,))
+    cmd7 = _command.Command(main_engine, H, (qubit1,))
+    cmd8 = _command.Command(main_engine, CNOT, (qubit2,), qubit1)
+    cmd9 = _command.Command(main_engine, X, (qubit1,))
+    cmd10 = _command.Command(main_engine, SqrtX, (qubit1,))
+    cmd11 = _command.Command(main_engine, Ph(math.pi), (qubit1,))
+    assert not cmd1.is_commutable(cmd2)  # Identical qubits, identical gate
+    assert _command.overlap(cmd1.all_qubits, cmd3.all_qubits) == 0
+    assert not cmd1.is_commutable(cmd3)  # Different qubits, same gate
+    assert cmd3.is_commutable(cmd4)  # Qubits in common, different but commutable gates
+    assert not cmd4.is_commutable(cmd5)  # Qubits in common, different, non-commutable gates
+    assert (
+        cmd6.is_commutable(cmd7) == Commutability.MAYBE_COMMUTABLE.value
+    )  # Rz has a commutable circuit which starts with H
+    assert not cmd7.is_commutable(cmd8)  # H does not have a commutable circuit which starts with CNOT
+    assert cmd1.is_commutable(cmd9)  # Rx commutes with X
+    assert cmd9.is_commutable(cmd1)
+    assert cmd10.is_commutable(cmd9)  # SqrtX commutes with X
+    assert cmd9.is_commutable(cmd10)
+    assert cmd11.is_commutable(cmd9)  # Ph commutes with X
+    assert cmd9.is_commutable(cmd11)
 
 
 def test_command_order_qubits(main_engine):
@@ -278,6 +341,12 @@ def test_command_comparison(main_engine):
     cmd6.tags = ["TestTag"]
     cmd6.add_control_qubits(ctrl_qubit)
     assert cmd6 != cmd1
+    # Test not equal because of location of ctrl qubits
+    ctrl_qubit2 = ctrl_qubit = Qureg([Qubit(main_engine, 2)])
+    cmd7 = _command.Command(main_engine, Rx(0.5), (qubit,))
+    cmd7.tags = ["TestTag"]
+    cmd7.add_control_qubits(ctrl_qubit2)
+    assert not cmd7 == cmd1
 
 
 def test_command_str(main_engine):

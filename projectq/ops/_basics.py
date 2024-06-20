@@ -39,7 +39,7 @@ import numpy as np
 
 from projectq.types import BasicQubit
 
-from ._command import Command, apply_command
+from ._command import Command, Commutability, apply_command
 
 ANGLE_PRECISION = 12
 ANGLE_TOLERANCE = 10**-ANGLE_PRECISION
@@ -63,8 +63,28 @@ class NotInvertible(Exception):
     """
 
 
-class BasicGate:
-    """Base class of all gates. (Don't use it directly but derive from it)."""
+class BasicGateMeta(type):
+    """
+    Meta class for all gates; mainly used to ensure that all gate classes have some basic class variable defined.
+    """
+
+    def __new__(cls, name, bases, attrs):
+        def get_commutable_gates(self):
+            return self._commutable_gates
+
+        return super().__new__(
+            cls, name, bases, {**attrs, get_commutable_gates.__name__: get_commutable_gates, '_commutable_gates': set()}
+        )
+
+
+class BasicGate(metaclass=BasicGateMeta):
+    """
+    A list of gates that commute with this gate class
+    """
+
+    """
+    Base class of all gates. (Don't use it directly but derive from it)
+    """
 
     def __init__(self):
         """
@@ -122,6 +142,21 @@ class BasicGate:
             NotMergeable: merging is not implemented
         """
         raise NotMergeable("BasicGate: No get_merged() implemented.")
+
+    def get_commutable_gates(self):
+        return []
+
+    def get_commutable_circuit_list(self, n=0):
+        """
+        Args:
+            n (int): The CNOT gate needs to be able to pass in parameter n in
+                this method.
+
+        Returns:
+            _commutable_circuit_list (list): the list of commutable circuits
+            associated with this gate.
+        """
+        return []
 
     @staticmethod
     def make_tuple_of_qureg(qubits):
@@ -233,6 +268,24 @@ class BasicGate:
     def is_identity(self):
         """Return True if the gate is an identity gate. In this base class, always returns False."""
         return False
+
+    def is_commutable(self, other):
+        """Determine whether this gate is commutable with
+        another gate.
+
+        Args:
+            other (Gate): The other gate.
+
+        Returns:
+            commutability (Commutability) : An enum which
+                indicates whether the next gate is commutable,
+                not commutable or maybe commutable.
+        """
+        for gate in self.get_commutable_gates():
+            if type(other) is gate:
+                return Commutability.COMMUTABLE
+        else:
+            return Commutability.NOT_COMMUTABLE
 
 
 class MatrixGate(BasicGate):
