@@ -23,7 +23,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
@@ -52,14 +52,14 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/PyCQA/doc8/
-    rev: v1.1.1
+    rev: v1.1.2
     hooks:
       - id: doc8
         require_serial: false
         additional_dependencies: [tomli]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         require_serial: false
@@ -73,7 +73,7 @@ repos:
         require_serial: false
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
+    rev: v3.18.0
     hooks:
       - id: pyupgrade
         args: [--py37-plus, --keep-mock]
@@ -85,20 +85,20 @@ repos:
         name: isort (python)
 
   - repo: https://github.com/psf/black
-    rev: 24.3.0
+    rev: 24.10.0
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.16.0
+    rev: 1.19.0
     hooks:
       - id: blacken-docs
         args: [-S, -l, '120']
         additional_dependencies: [black==22.10.0]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
+    rev: 7.1.1
     hooks:
       - id: flake8
         name: flake8-strict
@@ -120,7 +120,7 @@ repos:
         additional_dependencies: [pybind11>=2.6, numpy, requests, matplotlib, networkx]
 
   - repo: https://github.com/mgedmin/check-manifest
-    rev: '0.49'
+    rev: '0.50'
     hooks:
       - id: check-manifest
         additional_dependencies: ['setuptools-scm', 'pybind11>=2.6']
