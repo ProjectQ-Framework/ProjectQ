@@ -505,7 +505,7 @@ class BuildExt(build_ext):
                         self.opts.append(flag)
                         self.link_opts.extend((l_arg, flag))
                         return
-            except subprocess.CalledProcessError:
+            except (subprocess.CalledProcessError, OSError):
                 pass
 
             try:
