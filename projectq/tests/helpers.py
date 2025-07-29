@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class PhaseAgnosticStateComparator:
     def __init__(self, tol=1e-8):
         self.tol = tol
@@ -47,6 +48,4 @@ class PhaseAgnosticStateComparator:
         else:
             for i in range(actual.shape[0]):
                 if not np.allclose(aligned[i], expected[i], atol=self.tol):
-                    raise AssertionError(
-                        f"State {i} differs:\nAligned: {aligned[i]}\nExpected: {expected[i]}"
-                    )
+                    raise AssertionError(f"State {i} differs:\nAligned: {aligned[i]}\nExpected: {expected[i]}")
