@@ -107,8 +107,8 @@ def test_decomposition(angle):
 
             # Create empty vectors for the wave vectors for the correct and
             # test qubits
-            correct_vector = np.zeros((2, 1), dtype=np.complex_)
-            test_vector = np.zeros((2, 1), dtype=np.complex_)
+            correct_vector = np.zeros((2, 1), dtype=np.complex128)
+            test_vector = np.zeros((2, 1), dtype=np.complex128)
 
             i = 0
             for fstate in ['0', '1']:

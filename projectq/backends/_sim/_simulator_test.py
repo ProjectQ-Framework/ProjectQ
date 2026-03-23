@@ -559,8 +559,8 @@ def test_simulator_time_evolution(sim):
         res_matrix += build_matrix(matrix) * c
     res_matrix *= -1j * time_to_evolve
 
-    init_wavefunction = numpy.array(init_wavefunction, copy=False)
-    final_wavefunction = numpy.array(final_wavefunction, copy=False)
+    init_wavefunction = numpy.asarray(init_wavefunction)
+    final_wavefunction = numpy.asarray(final_wavefunction)
     res = scipy.sparse.linalg.expm_multiply(res_matrix, init_wavefunction)
 
     half = int(len(final_wavefunction) / 2)

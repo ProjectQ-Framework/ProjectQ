@@ -13,7 +13,7 @@ authors = [
      {name = 'ProjectQ', email = 'info@projectq.ch'}
 ]
 description = 'ProjectQ - An open source software framework for quantum computing'
-requires-python = '>= 3.10'
+requires-python = '>= 3.8'
 license = {text= 'Apache License Version 2.0'}
 readme = 'README.rst'
 classifiers = [
