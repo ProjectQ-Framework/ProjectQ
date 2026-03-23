@@ -13,7 +13,7 @@ authors = [
      {name = 'ProjectQ', email = 'info@projectq.ch'}
 ]
 description = 'ProjectQ - An open source software framework for quantum computing'
-requires-python = '>= 3.8'
+requires-python = '>= 3.10'
 license = {text= 'Apache License Version 2.0'}
 readme = 'README.rst'
 classifiers = [
@@ -24,7 +24,9 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12'
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14'
 ]
 dynamic = ["version"]
 
@@ -74,7 +76,7 @@ docs = [
 [tool.black]
 
     line-length = 120
-    target-version = ['py38','py39','py310','py311','py312']
+    target-version = ['py38','py39','py310','py311','py312','py313','py314']
     skip-string-normalization = true
 
 
