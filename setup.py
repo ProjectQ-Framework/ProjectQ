@@ -338,7 +338,7 @@ class BuildExt(build_ext):
         """Finalize this command's options."""
         build_ext.finalize_options(self)
         if self.gen_compiledb:
-            self.dry_run = True
+            self.dry_run = getattr(self, 'dry_run', False)
 
     def run(self):
         """Execute this command."""
@@ -428,9 +428,8 @@ class BuildExt(build_ext):
         return commands
 
     def _configure_compiler(self):
-        # Force dry_run = False to allow for compiler feature testing
-        dry_run_old = self.compiler.dry_run
-        self.compiler.dry_run = False
+        dry_run_old = getattr(self.compiler, 'dry_run', False)
+        self.compiler.dry_run = getattr(self.compiler, 'dry_run', False)
 
         if (
             int(os.environ.get('PROJECTQ_CLEANUP_COMPILER_FLAGS', 0))
@@ -660,19 +659,14 @@ class ClangTidy(Command):
 
     def run(self):
         """Execute this command."""
-        # Ideally we would use self.run_command(command) but we need to ensure
-        # that --dry-run --gen-compiledb are passed to build_ext regardless of
-        # other arguments
         command = 'build_ext'
-        # distutils.log.info("running %s --dry-run --gen-compiledb", command)
         cmd_obj = self.get_finalized_command(command)
-        cmd_obj.dry_run = True
+        cmd_obj.dry_run = getattr(cmd_obj, 'dry_run', False)
         cmd_obj.gen_compiledb = True
         try:
             cmd_obj.run()
             self.distribution.have_run[command] = 1
         except BuildFailed as err:
-            # distutils.log.error('build_ext --dry-run --gen-compiledb command failed!')
             raise RuntimeError('build_ext --dry-run --gen-compiledb command failed!') from err
 
         command = ['clang-tidy']
@@ -680,7 +674,7 @@ class ClangTidy(Command):
             command.append('--warnings-as-errors=*')
         for ext in self.distribution.ext_modules:
             command.extend(os.path.abspath(p) for p in ext.sources)
-        spawn(command, dry_run=self.dry_run)
+        spawn(command, dry_run=getattr(self, 'dry_run', False))
 
 
 # ------------------------------------------------------------------------------
