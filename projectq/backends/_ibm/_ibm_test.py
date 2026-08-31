@@ -370,12 +370,8 @@ def test_ibm_backend_functional_test(monkeypatch):
     assert prob_dict['00'] == pytest.approx(0.512)
     assert prob_dict['11'] == pytest.approx(0.488)
     result = "\nu2(0,pi/2) q[1];\ncx q[1], q[2];\ncx q[1], q[3];"
-    if sys.version_info.major == 3:
-        result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];"
-        result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];"
-    else:
-        result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972451) q[1];"
-        result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(10.9955742876) q[1];"
+    result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(11.780972450962) q[1];"
+    result += "\nu3(6.28318530718, 0, 0) q[1];\nu1(10.995574287564) q[1];"
     result += "\nbarrier q[1], q[2], q[3];"
     result += "\nu3(0.2, -pi/2, pi/2) q[1];\nmeasure q[1] -> c[1];"
     result += "\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];"

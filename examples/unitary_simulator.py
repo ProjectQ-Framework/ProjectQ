@@ -15,7 +15,6 @@
 
 """Example of using the UnitarySimulator."""
 
-
 import numpy as np
 
 from projectq.backends import UnitarySimulator

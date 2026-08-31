@@ -17,6 +17,7 @@ The TagRemover compiler engine.
 A TagRemover engine removes temporary command tags (such as Compute/Uncompute), thus enabling optimization across meta
 statements (loops after unrolling, compute/uncompute, ...)
 """
+
 from projectq.meta import ComputeTag, UncomputeTag
 
 from ._basics import BasicEngine

@@ -30,7 +30,7 @@ def _format_gate_str(cmd):
     param_str = ''
     gate_name = str(cmd.gate)
     if '(' in gate_name:
-        (gate_name, param_str) = re.search(r'(.+)\((.*)\)', gate_name).groups()
+        gate_name, param_str = re.search(r'(.+)\((.*)\)', gate_name).groups()
         params = re.findall(r'([^,]+)', param_str)
         params_str_list = []
         for param in params:
