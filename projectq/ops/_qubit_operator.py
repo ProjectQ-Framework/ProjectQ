@@ -383,14 +383,14 @@ class QubitOperator(BasicGate):
                     n_operators_left = len(left_term)
                     n_operators_right = len(right_term)
                     while left_operator_index < n_operators_left and right_operator_index < n_operators_right:
-                        (left_qubit, left_loc_op) = left_term[left_operator_index]
-                        (right_qubit, right_loc_op) = right_term[right_operator_index]
+                        left_qubit, left_loc_op = left_term[left_operator_index]
+                        right_qubit, right_loc_op = right_term[right_operator_index]
 
                         # Multiply local operators acting on the same qubit
                         if left_qubit == right_qubit:
                             left_operator_index += 1
                             right_operator_index += 1
-                            (scalar, loc_op) = _PAULI_OPERATOR_PRODUCTS[(left_loc_op, right_loc_op)]
+                            scalar, loc_op = _PAULI_OPERATOR_PRODUCTS[(left_loc_op, right_loc_op)]
 
                             # Add new term.
                             if loc_op != 'I':

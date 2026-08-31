@@ -308,7 +308,7 @@ def draw_gates(  # pylint: disable=too-many-arguments
     for qubit_line in qubit_lines.values():
         for idx, data in enumerate(qubit_line):
             if data is not None:
-                (gate_str, targets, controls) = data
+                gate_str, targets, controls = data
                 targets_order = [drawing_order[tgt] for tgt in targets]
                 draw_gate(
                     axes,

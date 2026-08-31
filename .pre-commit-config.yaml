@@ -23,7 +23,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
@@ -40,7 +40,7 @@ repos:
 
   # Changes tabs to spaces
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.5
+    rev: v1.5.6
     hooks:
       - id: remove-tabs
 
@@ -52,14 +52,14 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/PyCQA/doc8/
-    rev: v1.1.1
+    rev: v2.0.0
     hooks:
       - id: doc8
         require_serial: false
         additional_dependencies: [tomli]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.4.3
     hooks:
       - id: codespell
         require_serial: false
@@ -67,38 +67,38 @@ repos:
         args: [-S, '.git,third_party', -I, .codespell.allow]
 
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
         require_serial: false
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         args: [--py37-plus, --keep-mock]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 9.0.1
     hooks:
       - id: isort
         name: isort (python)
 
-  - repo: https://github.com/psf/black
-    rev: 24.3.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.5.1
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.16.0
+    rev: 1.20.0
     hooks:
       - id: blacken-docs
         args: [-S, -l, '120']
         additional_dependencies: [black==22.10.0]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         name: flake8-strict
@@ -120,7 +120,7 @@ repos:
         additional_dependencies: [pybind11>=2.6, numpy, requests, matplotlib, networkx]
 
   - repo: https://github.com/mgedmin/check-manifest
-    rev: '0.49'
+    rev: '0.51'
     hooks:
       - id: check-manifest
         additional_dependencies: ['setuptools-scm', 'pybind11>=2.6']

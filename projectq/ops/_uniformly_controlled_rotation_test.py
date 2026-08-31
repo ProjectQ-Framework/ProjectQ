@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """Tests for projectq.ops._uniformly_controlled_rotation."""
+
 import math
 
 import pytest

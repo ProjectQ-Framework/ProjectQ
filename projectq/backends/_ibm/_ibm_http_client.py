@@ -14,7 +14,6 @@
 
 """Back-end to run quantum program on IBM QE cloud platform."""
 
-
 # helpers to run the jsonified gate sequence on ibm quantum experience server
 # api documentation does not exist and has to be deduced from the qiskit code
 # source at: https://github.com/Qiskit/qiskit-ibmq-provider
