@@ -98,7 +98,7 @@ def to_draw(qubit_lines, qubit_labels=None, drawing_order=None, **kwargs):
             wires (roughly in inches)
     """
     if qubit_labels is None:
-        qubit_labels = {qubit_id: r'$|0\rangle$' for qubit_id in qubit_lines}
+        qubit_labels = dict.fromkeys(qubit_lines, r'$|0\rangle$')
     else:
         if list(qubit_labels) != list(qubit_lines):
             raise RuntimeError('Qubit IDs in qubit_labels do not match qubit IDs in qubit_lines!')

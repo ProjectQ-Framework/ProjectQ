@@ -429,8 +429,11 @@ class BuildExt(build_ext):
 
     def _configure_compiler(self):
         # Force dry_run = False to allow for compiler feature testing
-        dry_run_old = self.compiler.dry_run
-        self.compiler.dry_run = False
+        dry_run_old = getattr(self.compiler, 'dry_run', getattr(self, 'dry_run', False))
+        if hasattr(self.compiler, 'dry_run'):
+            self.compiler.dry_run = False
+        dry_run_cmd_old = getattr(self, 'dry_run', False)
+        self.dry_run = False
 
         if (
             int(os.environ.get('PROJECTQ_CLEANUP_COMPILER_FLAGS', 0))
@@ -472,7 +475,9 @@ class BuildExt(build_ext):
         if compiler_type == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
             self.opts.append('-fvisibility=hidden')
 
-        self.compiler.dry_run = dry_run_old
+        if hasattr(self.compiler, 'dry_run'):
+            self.compiler.dry_run = dry_run_old
+        self.dry_run = dry_run_cmd_old
         status_msgs('Finished configuring compiler!')
 
     def _configure_openmp(self):
