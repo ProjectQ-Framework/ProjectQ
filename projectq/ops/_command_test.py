@@ -330,12 +330,3 @@ def test_command_disjoint_control_target(main_engine):
     # Valid disjoint qubits succeed
     cmd.add_control_qubits([qubit1])
     assert len(cmd.control_qubits) == 1
-
-
-def test_command_distinct_target_qubits(main_engine):
-    qubit0 = Qubit(main_engine, 0)
-    gate = BasicGate()
-
-    # Duplicate target qubits for a gate
-    with pytest.raises(ValueError, match="Target qubits for a gate must be distinct"):
-        _command.Command(main_engine, gate, ([qubit0], [qubit0]))

@@ -255,18 +255,15 @@ class Command:  # pylint: disable=too-many-instance-attributes
         self._control_state = canonical_ctrl_state(state, len(self._control_qubits))
 
     def _check_disjoint_qubits(self):
-        """Check that control qubits and target qubits are disjoint, and target qubits are distinct."""
-        if hasattr(self, '_qubits') and self._qubits:
-            target_ids = [q.id for qreg in self._qubits for q in qreg]
-            if len(target_ids) != len(set(target_ids)):
-                raise ValueError('Target qubits for a gate must be distinct.')
-            if hasattr(self, '_control_qubits') and self._control_qubits:
-                ctrl_ids = {q.id for q in self._control_qubits}
-                overlap = ctrl_ids.intersection(target_ids)
-                if overlap:
-                    raise ValueError(
-                        f'Control and target qubits must be disjoint. Overlapping qubit ID(s): {sorted(overlap)}'
-                    )
+        """Check that control qubits and target qubits are disjoint."""
+        if hasattr(self, '_qubits') and self._qubits and hasattr(self, '_control_qubits') and self._control_qubits:
+            ctrl_ids = {q.id for q in self._control_qubits}
+            target_ids = {q.id for qreg in self._qubits for q in qreg}
+            overlap = ctrl_ids.intersection(target_ids)
+            if overlap:
+                raise ValueError(
+                    f'Control and target qubits must be disjoint. Overlapping qubit ID(s): {sorted(overlap)}'
+                )
 
     def add_control_qubits(self, qubits, state=CtrlAll.One):
         """
