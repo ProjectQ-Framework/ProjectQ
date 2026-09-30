@@ -116,7 +116,8 @@ except ImportError:
                     continue
                 if line.startswith("]"):
                     return (name, elements, idx + 1)
-                elements.append(line.rstrip(',').strip("'").strip('"'))
+                # Remove only the TOML string delimiters, preserving quotes in dependency markers.
+                elements.append(line.rstrip(',')[1:-1])
 
             raise RuntimeError(f'Failed to locate closing "]" for {name}')
 
