@@ -27,6 +27,13 @@ jobs:
       CXX: clang++
 
     steps:
+      # Use HTTPS and the security archive origin to avoid stale HTTP mirror indexes.
+      - name: Refresh Debian repository URLs
+        run: |
+          find /etc/apt -name '*.list' -exec sed -i \
+            -e 's|http://deb.debian.org/debian-security|https://security.debian.org/debian-security|g' \
+            -e 's|http://deb.debian.org/debian|https://deb.debian.org/debian|g' {} +
+
       - uses: actions/checkout@v3
 
       - name: Prepare env
