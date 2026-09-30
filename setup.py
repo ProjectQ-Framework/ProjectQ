@@ -686,7 +686,8 @@ class ClangTidy(Command):
             command.append('--warnings-as-errors=*')
         for ext in self.distribution.ext_modules:
             command.extend(os.path.abspath(p) for p in ext.sources)
-        spawn(command, dry_run=self.dry_run)
+        if not self.dry_run:
+            spawn(command)
 
 
 # ------------------------------------------------------------------------------
