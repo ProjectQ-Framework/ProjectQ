@@ -30,8 +30,10 @@ jobs:
       # Bullseye security packages have left the live mirrors; keep this legacy toolchain reproducible.
       - name: Refresh Debian repository URLs
         run: |
+          security_snapshot=https://snapshot.debian.org/archive/debian-security/20260801T000000Z
+          security_source="deb [check-valid-until=no] $security_snapshot bullseye-security"
           find /etc/apt -name '*.list' -exec sed -i \
-            -e 's|^deb http://deb.debian.org/debian-security bullseye-security|deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260801T000000Z bullseye-security|' \
+            -e "s|^deb http://deb.debian.org/debian-security bullseye-security|$security_source|" \
             -e 's|http://deb.debian.org/debian|https://deb.debian.org/debian|g' {} +
 
       - uses: actions/checkout@v3
