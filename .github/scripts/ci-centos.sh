@@ -35,6 +35,12 @@ git config --global --add safe.directory /src
 python3 -m pip install -U pip setuptools wheel
 python3 setup.py gen_reqfile --include-extras=test,azure-quantum,braket
 python3 -m pip install -r requirements.txt --prefer-binary
-python3 -m pip install -ve '.[azure-quantum,braket,test]'
+if [[ "$CENTOS_VERSION" == 7 ]]; then
+    # Retain GCC 4.8 coverage with the last compatible pybind11 series.
+    python3 -m pip install 'pybind11<2.11' 'setuptools_scm[toml]>6'
+    python3 -m pip install --no-build-isolation -ve '.[azure-quantum,braket,test]'
+else
+    python3 -m pip install -ve '.[azure-quantum,braket,test]'
+fi
 echo 'backend: Agg' > matplotlibrc
 python3 -m pytest -p no:warnings
