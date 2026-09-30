@@ -126,6 +126,8 @@ class Command:  # pylint: disable=too-many-instance-attributes
     def qubits(self, qubits):
         """Set the qubits stored in a Command object."""
         self._qubits = self._order_qubits(qubits)
+        if hasattr(self, '_control_qubits'):
+            self._check_disjoint_qubits()
 
     def __deepcopy__(self, memo):
         """Deepcopy implementation. Engine should stay a reference."""
@@ -230,6 +232,7 @@ class Command:  # pylint: disable=too-many-instance-attributes
         """
         self._control_qubits = [WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits]
         self._control_qubits = sorted(self._control_qubits, key=lambda x: x.id)
+        self._check_disjoint_qubits()
 
     @property
     def control_state(self):
@@ -251,6 +254,17 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
         self._control_state = canonical_ctrl_state(state, len(self._control_qubits))
 
+    def _check_disjoint_qubits(self):
+        """Check that control qubits and target qubits are disjoint."""
+        if hasattr(self, '_qubits') and self._qubits and hasattr(self, '_control_qubits') and self._control_qubits:
+            ctrl_ids = {q.id for q in self._control_qubits}
+            target_ids = {q.id for qreg in self._qubits for q in qreg}
+            overlap = ctrl_ids.intersection(target_ids)
+            if overlap:
+                raise ValueError(
+                    f'Control and target qubits must be disjoint. Overlapping qubit ID(s): {sorted(overlap)}'
+                )
+
     def add_control_qubits(self, qubits, state=CtrlAll.One):
         """
         Add (additional) control qubits to this command object.
@@ -271,6 +285,13 @@ class Command:  # pylint: disable=too-many-instance-attributes
 
         if not isinstance(qubits, list):
             raise ValueError('Control qubits must be a list of qubits!')
+
+        new_ctrl_ids = {q.id for q in qubits}
+        target_ids = {q.id for qreg in self._qubits for q in qreg}
+        overlap = new_ctrl_ids.intersection(target_ids)
+        if overlap:
+            raise ValueError(f'Control and target qubits must be disjoint. Overlapping qubit ID(s): {sorted(overlap)}')
+
         self._control_qubits.extend([WeakQubitRef(qubit.engine, qubit.id) for qubit in qubits])
         self._control_state += canonical_ctrl_state(state, len(qubits))
 
@@ -285,6 +306,8 @@ class Command:  # pylint: disable=too-many-instance-attributes
                 raise IncompatibleControlState(
                     f'Control qubits {list(qubits)} cannot have conflicting control states: {states}'
                 )
+
+        self._check_disjoint_qubits()
 
     @property
     def all_qubits(self):

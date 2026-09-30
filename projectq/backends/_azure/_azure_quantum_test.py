@@ -30,7 +30,7 @@ try:
     import projectq.backends._azure._azure_quantum
     from projectq.backends import AzureQuantumBackend
     from projectq.backends._azure._exceptions import AzureQuantumTargetNotFoundError
-except ImportError:
+except (ImportError, TypeError):
     _has_azure_quantum = False
 
 has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure quantum package is not installed")

@@ -44,7 +44,8 @@ dependencies = [
 [project.optional-dependencies]
 
 azure-quantum = [
-      'azure-quantum'
+      'azure-quantum <= 3.5.0; python_version <= "3.8"',
+      'azure-quantum; python_version > "3.8"'
 ]
 
 braket = [

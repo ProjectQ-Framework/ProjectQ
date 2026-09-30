@@ -64,7 +64,7 @@ try:
         to_json,
         to_qasm,
     )
-except ImportError:
+except (ImportError, TypeError):
     _has_azure_quantum = False
 
 has_azure_quantum = pytest.mark.skipif(not _has_azure_quantum, reason="azure quantum package is not installed")

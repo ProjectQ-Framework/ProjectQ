@@ -61,9 +61,9 @@ def test_canonical_representation():
 
 def test_has_negative_control():
     qubit0 = WeakQubitRef(None, 0)
-    qubit1 = WeakQubitRef(None, 0)
-    qubit2 = WeakQubitRef(None, 0)
-    qubit3 = WeakQubitRef(None, 0)
+    qubit1 = WeakQubitRef(None, 1)
+    qubit2 = WeakQubitRef(None, 2)
+    qubit3 = WeakQubitRef(None, 3)
     assert not _control.has_negative_control(Command(None, H, ([qubit0],)))
     assert not _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1]))
     assert not _control.has_negative_control(Command(None, H, ([qubit0],), [qubit1], control_state=CtrlAll.One))
@@ -174,4 +174,14 @@ def test_control_state_contradiction():
             qubit = eng.allocate_qubit()
             with _control.Control(eng, qureg[0], '1'):
                 H | qubit
+    eng.flush()
+
+
+def test_control_overlapping_target_raises():
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[DummyEngine()])
+    q0 = eng.allocate_qubit()
+    with pytest.raises(ValueError, match="Control and target qubits must be disjoint"):
+        with _control.Control(eng, q0):
+            H | q0
     eng.flush()

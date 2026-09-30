@@ -39,7 +39,7 @@ try:
     from azure.quantum import Workspace
     from azure.quantum.target import IonQ, Quantinuum, Target
     from azure.quantum.target.target_factory import TargetFactory
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
     raise ImportError(  # pylint: disable=raise-missing-from
         "Missing optional 'azure-quantum' dependencies. To install run: pip install projectq[azure-quantum]"
     )

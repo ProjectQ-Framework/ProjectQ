@@ -16,7 +16,7 @@
 
 try:
     from ._azure_quantum import AzureQuantumBackend
-except ImportError:  # pragma: no cover
+except (ImportError, TypeError):  # pragma: no cover
 
     class AzureQuantumBackend:
         """Dummy class."""

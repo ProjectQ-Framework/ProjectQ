@@ -311,3 +311,22 @@ def test_command_to_string(main_engine):
     else:
         assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
         assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"
+
+
+def test_command_disjoint_control_target(main_engine):
+    qubit0 = Qubit(main_engine, 0)
+    qubit1 = Qubit(main_engine, 1)
+    gate = BasicGate()
+
+    # Overlapping control and target at initialization
+    with pytest.raises(ValueError, match="Control and target qubits must be disjoint"):
+        _command.Command(main_engine, gate, ([qubit0],), controls=[qubit0])
+
+    # Adding an overlapping control qubit
+    cmd = _command.Command(main_engine, gate, ([qubit0],))
+    with pytest.raises(ValueError, match="Control and target qubits must be disjoint"):
+        cmd.add_control_qubits([qubit0])
+
+    # Valid disjoint qubits succeed
+    cmd.add_control_qubits([qubit1])
+    assert len(cmd.control_qubits) == 1

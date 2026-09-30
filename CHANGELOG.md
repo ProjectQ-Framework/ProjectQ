@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Fixed some typos (thanks to @eltociear, @Darkdragon84)
 -   Fixed support for Python 3.12
+-   Fixed obscure IndexError in optimizer when control and target qubits overlap or are not distinct (#343)
+-   Fixed installation failure with setuptools >= 81.0.0 due to compiler dry_run attribute (#485)
 
 ### Removed
 
