@@ -18,6 +18,7 @@ An exact straight forward decomposition of a TimeEvolution gate is possible
 if the hamiltonian has only one term or if all the terms commute with each
 other in which case one can implement each term individually.
 """
+
 import math
 
 from projectq.cengines import DecompositionRule

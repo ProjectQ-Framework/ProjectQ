@@ -141,14 +141,14 @@ except ImportError:
                 if line.startswith('name'):
                     result['project']['name'] = line.split('=')[1].strip().strip("'")
                 elif line.startswith('dependencies'):
-                    (name, pkgs, shift) = _parse_list(project_data[idx:])
+                    name, pkgs, shift = _parse_list(project_data[idx:])
                     result['project'][name] = pkgs
                 idx += shift
 
             idx = 0
             N = len(optional_dependencies)
             while idx < N:
-                (opt_name, opt_pkgs, shift) = _parse_list(optional_dependencies[idx:])
+                opt_name, opt_pkgs, shift = _parse_list(optional_dependencies[idx:])
                 result['project']['optional-dependencies'][opt_name] = opt_pkgs
                 idx += shift
 
