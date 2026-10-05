@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """Tests for projectq.cengines._main.py."""
+
 import sys
 import weakref
 
