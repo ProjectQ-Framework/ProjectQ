@@ -69,7 +69,7 @@ jobs:
         run: |
           python -m pip install -U pip setuptools wheel pybind11
           cat requirements.txt
-          python -m pip install -r requirements.txt --prefer-binary
+          python -m pip install -r requirements.txt --prefer-binary --no-build-isolation
           python -m pip install coveralls
 
       - name: Setup annotations on Linux
@@ -254,11 +254,12 @@ jobs:
             /var/cache/dnf/
           key: ${{ runner.os }}-centos${{ matrix.centos }}-yum-${{ secrets.yum_cache }}
 
-      - name: Fix repository URLs (CentOS 8 only)
-        if: matrix.centos == 8
+      - name: Fix repository URLs
         run: |
           sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
           sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|mirror.centos.org|vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|^#baseurl|baseurl|g' /etc/yum.repos.d/CentOS-*
 
       - name: Update YUM/DNF
         run: yum update -y
@@ -267,6 +268,9 @@ jobs:
         if: matrix.centos == 7
         run: |
           yum install -y centos-release-scl-rh
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|mirror.centos.org|vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|^#baseurl|baseurl|g' /etc/yum.repos.d/CentOS-*
           yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
           echo '/opt/rh/rh-python38/root/usr/bin' >> $GITHUB_PATH
 
