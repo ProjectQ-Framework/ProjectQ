@@ -218,11 +218,11 @@ def comparator(eng, quint_a, quint_b, comp):
     with Control(eng, [quint_a[n_qubits - 2], quint_b[n_qubits - 2]]):
         X | comp
 
-    for k in range(0, n_qubits - 2):
+    for k in range(n_qubits - 3, -1, -1):
         with Control(eng, [quint_a[k], quint_b[k]]):
             X | (quint_a[k + 1])
 
-    for j in range(n_qubits - 3, 0, -1):
+    for j in range(1, n_qubits - 2):
         CNOT | (quint_a[j], quint_a[j + 1])
 
     for i in range(1, n_qubits - 1):
