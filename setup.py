@@ -429,8 +429,9 @@ class BuildExt(build_ext):
 
     def _configure_compiler(self):
         # Force dry_run = False to allow for compiler feature testing
-        dry_run_old = self.compiler.dry_run
-        self.compiler.dry_run = False
+        dry_run_old = getattr(self.compiler, 'dry_run', False)
+        if hasattr(self.compiler, 'dry_run'):
+            self.compiler.dry_run = False
 
         if (
             int(os.environ.get('PROJECTQ_CLEANUP_COMPILER_FLAGS', 0))
@@ -472,7 +473,8 @@ class BuildExt(build_ext):
         if compiler_type == 'unix' and compiler_test(self.compiler, '-fvisibility=hidden'):
             self.opts.append('-fvisibility=hidden')
 
-        self.compiler.dry_run = dry_run_old
+        if hasattr(self.compiler, 'dry_run'):
+            self.compiler.dry_run = dry_run_old
         status_msgs('Finished configuring compiler!')
 
     def _configure_openmp(self):
@@ -680,7 +682,8 @@ class ClangTidy(Command):
             command.append('--warnings-as-errors=*')
         for ext in self.distribution.ext_modules:
             command.extend(os.path.abspath(p) for p in ext.sources)
-        spawn(command, dry_run=self.dry_run)
+        if not self.dry_run:
+            spawn(command)
 
 
 # ------------------------------------------------------------------------------

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Fixed some typos (thanks to @eltociear, @Darkdragon84)
 -   Fixed support for Python 3.12
+-   Fixed `ComparatorQuantum` decomposition so input registers are properly restored (#491)
 
 ### Removed
 
@@ -23,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Repository
 
 -   Update GitHub workflows to work with merge queues
+-   Fix Clang-Tidy Debian security package source URL in GitHub workflow
+-   Fix setuptools >= 70 compatibility in compiler configuration and build commands
 -   Update GitHub workflow action versions: `actions/cache@v3`, `actions/checkout@v3`, `actions/setup-python@v4`, `thomaseizinger/create-pull-request`
 -   Update pre-commit hook versions
 -   Fix failing GitHub workflows (Clang-10)

@@ -17,7 +17,12 @@ import pytest
 import projectq.libs.math
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import AutoReplacer, DecompositionRuleSet, InstructionFilter
+from projectq.cengines import (
+    AutoReplacer,
+    BasicEngine,
+    DecompositionRuleSet,
+    InstructionFilter,
+)
 from projectq.libs.math import (
     AddQuantum,
     ComparatorQuantum,
@@ -249,6 +254,8 @@ def test_comparator(eng):
 
     ComparatorQuantum | (qureg_a, qureg_b, compare_qubit)
 
+    assert 1.0 == pytest.approx(eng.backend.get_probability([1, 0, 1], qureg_a))
+    assert 1.0 == pytest.approx(eng.backend.get_probability([1, 1, 0], qureg_b))
     assert 1.0 == pytest.approx(eng.backend.get_probability([1], compare_qubit))
 
     # Size mismatch in qubit registers
@@ -262,6 +269,85 @@ def test_comparator(eng):
     All(Measure) | qureg_a
     All(Measure) | qureg_b
     Measure | compare_qubit
+
+
+class _BasisBackend(BasicEngine):
+    """Exact basis-state backend accepting only multi-controlled X and lifecycle gates."""
+
+    def __init__(self):
+        super().__init__()
+        self.state = {}
+
+    def is_available(self, cmd):
+        return cmd.gate.__class__.__name__ in (
+            'XGate',
+            'AllocateQubitGate',
+            'DeallocateQubitGate',
+            'FlushGate',
+            'MeasureGate',
+        )
+
+    def receive(self, commands):
+        for cmd in commands:
+            name = cmd.gate.__class__.__name__
+            if name == 'AllocateQubitGate':
+                self.state[cmd.qubits[0][0].id] = 0
+            elif name == 'XGate' and all(self.state[c.id] for c in cmd.control_qubits):
+                self.state[cmd.qubits[0][0].id] ^= 1
+
+
+def _run_comparator_decomposition(a_val, b_val, c_val, n_bits=3):
+    backend = _BasisBackend()
+    rules = DecompositionRuleSet(modules=[projectq.libs.math])
+    engine = MainEngine(backend=backend, engine_list=[AutoReplacer(rules)])
+    reg_a = engine.allocate_qureg(n_bits)
+    reg_b = engine.allocate_qureg(n_bits)
+    reg_c = engine.allocate_qureg(1)
+    for i, qubit in enumerate(reg_a):
+        if (a_val >> i) & 1:
+            X | qubit
+    for i, qubit in enumerate(reg_b):
+        if (b_val >> i) & 1:
+            X | qubit
+    if c_val:
+        X | reg_c[0]
+    ComparatorQuantum | (reg_a, reg_b, reg_c)
+    All(Measure) | (reg_a + reg_b + reg_c)
+    engine.flush()
+    res_a = sum(backend.state[q.id] << i for i, q in enumerate(reg_a))
+    res_b = sum(backend.state[q.id] << i for i, q in enumerate(reg_b))
+    res_c = backend.state[reg_c[0].id]
+    return res_a, res_b, res_c
+
+
+@pytest.mark.parametrize(
+    'a, b, c_in, expected_c',
+    [
+        (1, 0, 0, 1),
+        (0, 1, 0, 0),
+        (2, 2, 0, 0),
+        (1, 0, 1, 0),
+        (0, 1, 1, 1),
+        (7, 0, 0, 1),
+        (0, 7, 0, 0),
+        (7, 7, 1, 1),
+    ],
+)
+def test_comparator_decomposition_restore_registers(a, b, c_in, expected_c):
+    res_a, res_b, res_c = _run_comparator_decomposition(a, b, c_in, n_bits=3)
+    assert res_a == a
+    assert res_b == b
+    assert res_c == expected_c
+
+
+def test_comparator_decomposition_all_3bit_cases():
+    for a in range(8):
+        for b in range(8):
+            for c_in in (0, 1):
+                res_a, res_b, res_c = _run_comparator_decomposition(a, b, c_in, n_bits=3)
+                assert res_a == a
+                assert res_b == b
+                assert res_c == c_in ^ int(a > b)
 
 
 @pytest.mark.parametrize('qubit_idx', (0, 1, 2))
