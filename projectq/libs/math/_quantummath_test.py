@@ -17,7 +17,12 @@ import pytest
 import projectq.libs.math
 from projectq import MainEngine
 from projectq.backends import Simulator
-from projectq.cengines import AutoReplacer, BasicEngine, DecompositionRuleSet, InstructionFilter
+from projectq.cengines import (
+    AutoReplacer,
+    BasicEngine,
+    DecompositionRuleSet,
+    InstructionFilter,
+)
 from projectq.libs.math import (
     AddQuantum,
     ComparatorQuantum,
