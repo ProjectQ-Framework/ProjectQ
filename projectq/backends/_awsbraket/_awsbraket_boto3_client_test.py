@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Test for projectq.backends._awsbraket._awsbraket_boto3_client.py """
+"""Test for projectq.backends._awsbraket._awsbraket_boto3_client.py"""
 
 import pytest
 
@@ -110,21 +110,15 @@ def test_retrieve(mocker, var_status, var_result, retrieve_setup):
             _awsbraket_boto3_client.retrieve(credentials=creds, task_arn=arntask, num_retries=2)
         print(exinfo.value)
         if var_status == 'failed':
-            assert (
-                str(exinfo.value)
-                == "Error while running the code: FAILED. \
+            assert str(exinfo.value) == "Error while running the code: FAILED. \
 The failure reason was: This is a failure reason."
-            )
 
         if var_status == 'cancelling':
             assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert (
-                str(exinfo.value)
-                == "Timeout. The Arn of your submitted job \
+            assert str(exinfo.value) == "Timeout. The Arn of your submitted job \
 is arn:aws:braket:us-east-1:id:taskuuid \
 and the status of the job is OTHER."
-            )
 
 
 # ==============================================================================
@@ -155,7 +149,7 @@ def test_retrieve_devicetypes(mocker, retrieve_devicetypes_setup):
 
 @has_boto3
 def test_send_too_many_qubits(mocker, send_too_many_setup):
-    (creds, s3_folder, search_value, device_value, info_too_much) = send_too_many_setup
+    creds, s3_folder, search_value, device_value, info_too_much = send_too_many_setup
 
     mock_boto3_client = mocker.MagicMock(spec=['search_devices', 'get_device'])
     mock_boto3_client.search_devices.return_value = search_value
@@ -222,21 +216,15 @@ def test_send_real_device_online_verbose(mocker, var_status, var_result, real_de
             )
         print(exinfo.value)
         if var_status == 'failed':
-            assert (
-                str(exinfo.value)
-                == "Error while running the code: FAILED. The failure \
+            assert str(exinfo.value) == "Error while running the code: FAILED. The failure \
 reason was: This is a failure reason."
-            )
 
         if var_status == 'cancelling':
             assert str(exinfo.value) == "The job received a CANCEL operation: CANCELLING."
         if var_status == 'other':
-            assert (
-                str(exinfo.value)
-                == "Timeout. The Arn of your submitted job \
+            assert str(exinfo.value) == "Timeout. The Arn of your submitted job \
 is arn:aws:braket:us-east-1:id:taskuuid \
 and the status of the job is OTHER."
-            )
 
 
 # ==============================================================================
@@ -282,7 +270,7 @@ def test_send_that_errors_are_caught(mocker, var_error, send_that_error_setup):
 
 
 @has_boto3
-@pytest.mark.parametrize("var_error", [('ResourceNotFoundException')])
+@pytest.mark.parametrize("var_error", ['ResourceNotFoundException'])
 def test_retrieve_error_arn_not_exist(mocker, var_error, arntask, creds):
     mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task'])
     mock_boto3_client.get_quantum_task.side_effect = botocore.exceptions.ClientError(
