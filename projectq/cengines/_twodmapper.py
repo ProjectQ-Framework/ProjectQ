@@ -19,6 +19,7 @@ Input: Quantum circuit with 1 and 2 qubit gates on n qubits. Gates are assumed t
 Output: Quantum circuit in which qubits are placed in 2-D square grid in which only nearest neighbour qubits can
         perform a 2 qubit gate. The mapper uses Swap gates in order to move qubits next to each other.
 """
+
 import itertools
 import math
 import random
