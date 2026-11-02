@@ -16,6 +16,7 @@ A compiler engine which flips the directionality of CNOTs according to the given
 
 It also translates Swap gates to CNOTs if necessary.
 """
+
 from copy import deepcopy
 
 from projectq.meta import get_control_count

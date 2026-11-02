@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-""" Test for projectq.backends._awsbraket._awsbraket.py"""
+"""Test for projectq.backends._awsbraket._awsbraket.py"""
 
 import copy
 import math
@@ -477,7 +477,7 @@ def test_awsbraket_sent_error_2():
 
 @has_boto3
 def test_awsbraket_retrieve(mocker, retrieve_setup):
-    (arntask, creds, completed_value, device_value, results_dict) = retrieve_setup
+    arntask, creds, completed_value, device_value, results_dict = retrieve_setup
 
     mock_boto3_client = mocker.MagicMock(spec=['get_quantum_task', 'get_device', 'get_object'])
     mock_boto3_client.get_quantum_task.return_value = completed_value

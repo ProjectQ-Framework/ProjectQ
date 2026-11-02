@@ -19,6 +19,7 @@ Defines a setup allowing to compile code for IonQ trapped ion devices:
 ->The 11 qubit device
 ->The 29 qubits simulator
 """
+
 from projectq.backends._exceptions import DeviceOfflineError
 from projectq.backends._ionq._ionq_http_client import IonQ
 from projectq.backends._ionq._ionq_mapper import BoundedQubitMapper

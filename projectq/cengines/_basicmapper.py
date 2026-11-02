@@ -17,6 +17,7 @@ The parent class from which all mappers should be derived.
 There is only one engine currently allowed to be derived from BasicMapperEngine. This allows the simulator to
 automatically translate logical qubit ids to mapped ids.
 """
+
 from copy import deepcopy
 
 from projectq.meta import LogicalQubitIDTag, drop_engine_after, insert_engine
