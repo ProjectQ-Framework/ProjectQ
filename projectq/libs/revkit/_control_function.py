@@ -14,7 +14,6 @@
 
 """RevKit support for control function oracles."""
 
-
 from projectq.ops import BasicGate
 
 from ._utils import _exec

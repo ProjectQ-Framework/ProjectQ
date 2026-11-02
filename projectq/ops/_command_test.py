@@ -287,12 +287,8 @@ def test_command_str(main_engine):
     cmd.tags = ["TestTag"]
     cmd.add_control_qubits(ctrl_qubit)
     cmd2 = _command.Command(main_engine, Rx(0.5 * math.pi), (qubit,))
-    if sys.version_info.major == 3:
-        assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
-        assert str(cmd2) == "Rx(1.570796326795) | Qureg[0]"
-    else:
-        assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
-        assert str(cmd2) == "Rx(1.5707963268) | Qureg[0]"
+    assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
+    assert str(cmd2) == "Rx(1.570796326795) | Qureg[0]"
 
 
 def test_command_to_string(main_engine):
@@ -305,9 +301,5 @@ def test_command_to_string(main_engine):
 
     assert cmd.to_string(symbols=True) == "CRx(0.5π) | ( Qureg[1], Qureg[0] )"
     assert cmd2.to_string(symbols=True) == "Rx(0.5π) | Qureg[0]"
-    if sys.version_info.major == 3:
-        assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
-        assert cmd2.to_string(symbols=False) == "Rx(1.570796326795) | Qureg[0]"
-    else:
-        assert cmd.to_string(symbols=False) == "CRx(1.5707963268) | ( Qureg[1], Qureg[0] )"
-        assert cmd2.to_string(symbols=False) == "Rx(1.5707963268) | Qureg[0]"
+    assert cmd.to_string(symbols=False) == "CRx(1.570796326795) | ( Qureg[1], Qureg[0] )"
+    assert cmd2.to_string(symbols=False) == "Rx(1.570796326795) | Qureg[0]"

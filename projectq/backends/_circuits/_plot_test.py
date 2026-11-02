@@ -12,13 +12,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 """
-    Tests for projectq.backends._circuits._plot.py.
+Tests for projectq.backends._circuits._plot.py.
 
-    To generate the baseline images,
-    run the tests with '--mpl-generate-path=baseline'
+To generate the baseline images,
+run the tests with '--mpl-generate-path=baseline'
 
-    Then run the tests simply with '--mpl'
+Then run the tests simply with '--mpl'
 """
+
 from copy import deepcopy
 
 import pytest

@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 "Tests for projectq.setups.decompositions.time_evolution."
+
 import copy
 
 import numpy

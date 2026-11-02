@@ -14,7 +14,6 @@
 
 """Contain a compiler engine which generates TikZ Latex code describing the circuit."""
 
-
 from projectq.cengines import BasicEngine, LastEngineException
 from projectq.meta import get_control_count
 from projectq.ops import Allocate, Deallocate, FlushGate, Measure
