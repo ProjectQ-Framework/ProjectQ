@@ -513,22 +513,6 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
 
 
 def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
-    """
-    Inverse of the multiplication of two quantum integers.
-
-    i.e,
-
-    |a>|b>|a*b> -> |a>|b>|0>
-
-    (only works if quint_a and quint_b are of the same size, n qubits and product has size 2n+1)
-
-    Args:
-        eng (MainEngine): ProjectQ MainEngine
-        quint_a (list): Quantum register (or list of qubits)
-        quint_b (list): Quantum register (or list of qubits)
-        product (list): Quantum register (or list of qubits) storing the result
-
-    """
     n_a = len(quint_a)
 
     if len(quint_a) != len(quint_b):
@@ -536,20 +520,21 @@ def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
     if len(product) != ((2 * n_a) + 1):
         raise ValueError('product size must be 2*n + 1')
 
-    for j in range(2, n_a):
+    for j in reversed(range(2, n_a)):
         with Control(eng, quint_b[j]):
             SubtractQuantum | (
-                quint_a[0 : (n_a - 1)],  # noqa: E203
-                product[(0 + j) : (n_a - 1 + j)],  # noqa: E203
+                quint_a[0 : (n_a - 1)],
+                product[j : (n_a - 1 + j)],
                 [product[n_a + j], product[n_a + j + 1]],
             )
-    for i in range(0, n_a):
-        with Control(eng, [quint_a[i], quint_b[0]]):
-            X | product[i]
 
     with Control(eng, quint_b[1]):
         SubtractQuantum | (
-            quint_a[0 : (n_a - 1)],  # noqa: E203
+            quint_a[0 : (n_a - 1)],
             product[1:n_a],
             [product[n_a + 1], product[n_a + 2]],
         )
+
+    for i in reversed(range(0, n_a)):
+        with Control(eng, [quint_a[i], quint_b[0]]):
+            X | product[i]
