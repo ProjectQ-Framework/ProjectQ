@@ -391,3 +391,19 @@ def test_quantummultiplication(eng):
     assert 1.0 == pytest.approx(eng.backend.get_probability([0, 1, 0], qureg_a))
     assert 1.0 == pytest.approx(eng.backend.get_probability([1, 1, 0], qureg_b))
     assert 1.0 == pytest.approx(eng.backend.get_probability([0, 0, 0, 0, 0, 0, 0], qureg_c))
+
+
+def test_quantummultiplication_inverse(eng):
+    qureg_a = eng.allocate_qureg(3)
+    qureg_b = eng.allocate_qureg(3)
+    qureg_c = eng.allocate_qureg(7)
+
+    init(eng, qureg_a, 7)
+    init(eng, qureg_b, 3)
+
+    MultiplyQuantum | (qureg_a, qureg_b, qureg_c)
+    MultiplyQuantum.get_inverse() | (qureg_a, qureg_b, qureg_c)
+
+    assert 1.0 == pytest.approx(eng.backend.get_probability([1, 1, 1], qureg_a))
+    assert 1.0 == pytest.approx(eng.backend.get_probability([1, 1, 0], qureg_b))
+    assert 1.0 == pytest.approx(eng.backend.get_probability([0, 0, 0, 0, 0, 0, 0], qureg_c))
