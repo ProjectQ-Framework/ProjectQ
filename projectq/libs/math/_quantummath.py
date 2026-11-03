@@ -512,7 +512,6 @@ def quantum_multiplication(eng, quint_a, quint_b, product):
             )
 
 
-
 def inverse_quantum_multiplication(eng, quint_a, quint_b, product):
     n_a = len(quint_a)
 
