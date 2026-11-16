@@ -20,7 +20,6 @@ gates. ProjectQ's GridMapper is then used to introduce the necessary Swap operat
 to each other.  This setup allows to choose the final gate set (with some limitations).
 """
 
-
 from projectq.cengines import GridMapper
 from projectq.ops import CNOT, Swap
 
